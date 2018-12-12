@@ -1,16 +1,19 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.db.*;
+import jdtx.repl.main.api.struct.*;
+
+import java.sql.*;
 
 /**
  *
  */
 public class UtRepl {
 
-    DbUtils ut;
+    Db db;
 
-    UtRepl(DbUtils ut) {
-        this.ut = ut;
+    UtRepl(Db db) {
+        this.db = db;
     }
 
 
@@ -20,16 +23,28 @@ public class UtRepl {
      * - аудит
      * - таблица возрастов таблиц
      */
-    void createReplication() {
-
+    void createReplication() throws Exception {
+        // чтение структуры
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(db);
+        IJdxDbStruct struct = reader.readDbStruct();
+        // создание всего
+        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
+        ut.createAudit();
     }
 
 
     /**
      * Удалить репликационные структуры
      */
-    void dropReplication() {
-
+    void dropReplication() throws Exception {
+        // чтение структуры
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(db);
+        IJdxDbStruct struct = reader.readDbStruct();
+        // удаление всего
+        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
+        ut.dropAudit();
     }
 
     /**
