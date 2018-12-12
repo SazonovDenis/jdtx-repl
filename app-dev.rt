@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <!--
+        В этом файле настраивается среда разработки, перекрывая и дополняя описания
+        из app-product.rt
+    -->
+
+    <app debug="true"/>
+
+    <x-include module="jandcode.wax.tst"/>
+
+    <web>
+        <resource name="app.webdir" path="#{path}/web"/>
+    </web>
+
+</root>

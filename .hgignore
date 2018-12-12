@@ -1,0 +1,17 @@
+syntax: glob
+?
+?.bat
+*.log
+Thumbs.db
+*.iws
+*.iml
+*.ipr
+*.pyc
+*.pyo
+_product
+-TEMPLATE
+temp
+out
+
+syntax: regexp
+^_

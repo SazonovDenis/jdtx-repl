@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <x-module name="jdtx.repl.main">
+        <depend name="jandcode.lang"/>
+        <depend name="jandcode.auth"/>
+        <depend name="jandcode.wax.core"/>
+        <depend name="jandcode.wax.verdb"/>
+    </x-module>
+
+    <model name="jdtx.repl.main" parent="sys" x-root="true">
+        <x-include plugin="jandcode.wax.core.model"/>
+        <x-include plugin="jandcode.wax.verdb.model"/>
+        <x-include path="model/model.rt"/>
+    </model>
+
+    <dbm>
+        <registermodel name="default" model="jdtx.repl.main"/>
+    </dbm>
+
+    <web>
+        <resource name="jdtx.repl.main" package="jdtx.repl.main"/>
+    </web>
+
+    <lang>
+        <lang name="en" title="English"/>
+    </lang>
+
+    <app
+            title="JdtxRepl"/>
+
+
+</root>

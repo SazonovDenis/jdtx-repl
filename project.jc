@@ -1,0 +1,15 @@
+//
+project.name = "jdtx-repl"
+project.package_root = "jdtx.repl"
+//
+include "wax-root-project"
+include "wax-verdb-project"
+include "wax-verdb-project-product"
+//
+modules = [
+        'jdtx-repl-main',
+]
+
+//
+libs = libs + []
+libs_dev = libs_dev + []

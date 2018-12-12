@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <x-include module="jdtx.repl.main"/>
+    <x-include path="#{pathprop:wax.approot}/test.rt"/>
+
+</root>
