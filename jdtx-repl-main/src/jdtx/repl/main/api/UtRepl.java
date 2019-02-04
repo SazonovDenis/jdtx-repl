@@ -3,8 +3,6 @@ package jdtx.repl.main.api;
 import jandcode.dbm.db.*;
 import jdtx.repl.main.api.struct.*;
 
-import java.sql.*;
-
 /**
  *
  */

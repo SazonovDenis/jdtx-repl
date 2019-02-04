@@ -1,16 +1,9 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.test.*;
-import jandcode.utils.*;
 import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
-public class UtDbStruct_Test extends DbmTestCase {
-
-    public void setUp() throws Exception {
-        super.setUp();
-        UtFile.mkdirs("temp");
-    }
+public class UtDbStruct_Test extends Repl_Test_Custom {
 
     @Test
     public void test_1() throws Exception {
@@ -32,7 +25,7 @@ public class UtDbStruct_Test extends DbmTestCase {
         IJdxDbStruct structXml = struct_rw.read("temp/dbStruct.xml");
 
         // проверим совпадение
-        (new UtStructTest()).compareStruct(struct, structXml);
+        utt.compareStruct(struct, structXml);
     }
 
 }

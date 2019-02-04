@@ -5,7 +5,7 @@ import jdtx.repl.main.api.struct.*;
 
 /**
  */
-public class UtStructTest extends UtilsTestCase {
+public class UtTest extends UtilsTestCase {
 
     public void compareStruct(IJdxDbStruct struct_1, IJdxDbStruct struct_2) {
         assertEquals("Количество таблиц", struct_1.getTables().size(), struct_2.getTables().size());
@@ -15,5 +15,10 @@ public class UtStructTest extends UtilsTestCase {
                 assertEquals("Полея в таблице " + struct_1.getTables().get(t).getName(), struct_1.getTables().get(t).getFields().get(f).getName(), struct_2.getTables().get(t).getFields().get(f).getName());
             }
         }
+    }
+
+
+    public void makeChange(String tableName){
+
     }
 }

@@ -1,33 +1,14 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
-import jandcode.dbm.test.*;
 import jdtx.repl.main.api.struct.*;
-import org.apache.commons.io.*;
 import org.junit.*;
-
-import java.io.*;
 
 /**
  * Создание/удаление репликационных структур
  */
-public class UtRepl_Create_Test extends DbmTestCase {
+public class UtRepl_CreateRepl_Test extends Repl_Test_Custom {
 
-
-    public void setUp() throws Exception {
-        super.setUp();
-
-        // Копируем эталонную в рабочую
-        String dbNameDest = app.getApp().getRt().getChild("db/default").getValue("database").toString();
-        String dbNameSour = app.getApp().getRt().getChild("db/default").getValue("database_etalon").toString();
-        File fDest = new File(dbNameDest);
-        File fSour = new File(dbNameSour);
-        FileUtils.copyFile(fSour, fDest);
-        System.out.println("База подготовлена [" + dbNameDest + "]");
-
-        //
-        dbm.getDb().connect();
-    }
 
     @Test
     public void test_db() throws Exception {
@@ -65,7 +46,7 @@ public class UtRepl_Create_Test extends DbmTestCase {
         struct_rw.write(struct_2, "temp/dbStruct_2.xml");
 
         // Проверим совпадение
-        (new UtStructTest()).compareStruct(struct_1, struct_2);
+        utt.compareStruct(struct_1, struct_2);
     }
 
 
