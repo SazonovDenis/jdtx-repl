@@ -32,13 +32,7 @@ public class UtDbStruct_Test extends DbmTestCase {
         IJdxDbStruct structXml = struct_rw.read("temp/dbStruct.xml");
 
         // проверим совпадение
-        assertEquals(struct.getTables().size(), structXml.getTables().size());
-        for (int t = 0; t < struct.getTables().size(); t++) {
-            assertEquals(struct.getTables().get(t).getFields().size(), structXml.getTables().get(t).getFields().size());
-            for (int f = 0; f < struct.getTables().get(t).getFields().size(); f++) {
-                assertEquals(struct.getTables().get(t).getFields().get(f).getName(), structXml.getTables().get(t).getFields().get(f).getName());
-            }
-        }
+        (new UtStructTest()).compareStruct(struct, structXml);
     }
 
 }

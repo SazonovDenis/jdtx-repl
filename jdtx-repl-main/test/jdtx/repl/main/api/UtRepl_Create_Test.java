@@ -44,7 +44,7 @@ public class UtRepl_Create_Test extends DbmTestCase {
     @Test
     public void test_createReplication() throws Exception {
         UtRepl utr = new UtRepl(dbm.getDb());
-        utr.dropReplication();
+        //utr.dropReplication();
 
         //
         JdxDbStructReader reader = new JdxDbStructReader();
@@ -65,14 +65,7 @@ public class UtRepl_Create_Test extends DbmTestCase {
         struct_rw.write(struct_2, "temp/dbStruct_2.xml");
 
         // Проверим совпадение
-        assertEquals("Количество таблиц", struct_1.getTables().size(), struct_2.getTables().size());
-        for (int t = 0; t < struct_1.getTables().size(); t++) {
-            assertEquals("Количество полей в таблице " + struct_1.getTables().get(t).getName(), struct_1.getTables().get(t).getFields().size(), struct_2.getTables().get(t).getFields().size());
-            for (int f = 0; f < struct_1.getTables().get(t).getFields().size(); f++) {
-                assertEquals("Полея в таблице " + struct_1.getTables().get(t).getName(), struct_1.getTables().get(t).getFields().get(f).getName(), struct_2.getTables().get(t).getFields().get(f).getName());
-            }
-        }
-
+        (new UtStructTest()).compareStruct(struct_1, struct_2);
     }
 
 
