@@ -21,19 +21,18 @@ public class UtDbObjectManager {
 
     public void createAudit() throws Exception {
         String sql;
-        //Statement st = conn.createStatement();
         DbQuery query = null;
         try {
-            // таблица tableList со списком названий таблиц, за изменениями в которых надо следить
-            sql = "create table " + JdxUtils.prefix + "tableList(Id int not null, Name varchar(50) default '' not null)";
+            // таблица table_list со списком названий таблиц, за изменениями в которых надо следить
+            sql = "create table " + JdxUtils.prefix + "table_list(Id int not null, Name varchar(50) default '' not null)";
             db.execSql(sql);
             // первичный ключ
-            sql = "alter table " + JdxUtils.prefix + "tableList add constraint pk_" + JdxUtils.prefix + "tableList_id primary key (id)";
+            sql = "alter table " + JdxUtils.prefix + "table_list add constraint pk_" + JdxUtils.prefix + "tableList_id primary key (id)";
             db.execSql(sql);
             // генератор Id для новой таблицы
-            sql = "create generator " + JdxUtils.gen_pref + "tableList";
+            sql = "create generator " + JdxUtils.gen_pref + "table_list";
             db.execSql(sql);
-            sql = "set generator " + JdxUtils.gen_pref + "tableList to 0";
+            sql = "set generator " + JdxUtils.gen_pref + "table_list to 0";
             db.execSql(sql);
 
             // таблица с флагом работы триггеров
@@ -45,8 +44,8 @@ public class UtDbObjectManager {
 
             // вставляем в созданную таблицу названия всех таблиц
 
-            // запрос на вставку в таблицу tableList названий всех таблиц из базы
-            query = db.createQuery("insert into " + JdxUtils.prefix + "tableList(Id, Name) values (GEN_ID(" + JdxUtils.gen_pref + "tableList, 1), :Name)");
+            // запрос на вставку в таблицу table_list названий всех таблиц из базы
+            query = db.createQuery("insert into " + JdxUtils.prefix + "table_list(Id, Name) values (GEN_ID(" + JdxUtils.gen_pref + "table_list, 1), :Name)");
             //
             ArrayList<IJdxTableStruct> tables = struct.getTables();
             for (IJdxTableStruct table : tables) {
@@ -91,43 +90,54 @@ public class UtDbObjectManager {
             sql = "create table " + JdxUtils.prefix + "age(age int not null, tableName varchar(50) default '' not null, " + JdxUtils.prefix + "Id int not null, dt timestamp not null)";
             db.execSql(sql);
         } finally {
-            //st.close();
             if (query != null) {
                 query.close();
             }
         }
     }
 
-    public void dropAudit() throws SQLException {
+    public void dropAudit() throws Exception {
         String query;
 
-        // удаляем таблицы: для хранения состояния, список рабочих станций, исходящая и входящая очереди, таблицу для хранения возраста базы, таблицу с флагом работы триггеров
-        String[] jdx_sys_tables = new String[]{"state", "workstation_list", "que_out", "que_in", "age", "tableList", "flag_tab"};
+        // Удаляем связанную с каждой таблицей таблицу журнала изменений
+        ArrayList<IJdxTableStruct> tables = struct.getTables();
+        for (IJdxTableStruct table : tables) {
+            dropAuditTable(table.getName());
+        }
+
+        // Удаляем системные таблицы:
+        // для хранения состояния, список рабочих станций,
+        // исходящая и входящая очереди,
+        // таблицу для хранения возраста базы,
+        // таблицу с флагом работы триггеров
+        String[] jdx_sys_tables = new String[]{"state", "workstation_list", "workstation_state", "que_out", "que_in", "age", "table_list", "flag_tab"};
         for (String jdx_sys_table : jdx_sys_tables) {
             try {
                 // удаляем таблицу для хранения состояния
                 query = "drop table " + JdxUtils.prefix + jdx_sys_table;
                 db.execSql(query);
-            } catch (Exception ex) {
-                // если удаляемая таблица не будет найдена, программа продолжит работу
+            } catch (Exception e) {
+                // если удаляемый объект не будет найден, программа продолжит работу
+                if (!e.getCause().toString().contains("does not exist")) {
+                    System.out.println(e.getMessage());
+                    System.out.println(e.getCause().toString());
+                }
             }
         }
 
-        // удаляем генераторы: таблицы для хранения состояния, таблицы со списком названий таблиц, за изменениями в которых надо следить
-        String[] jdx_sys_generators = new String[]{"age", "tableList", "workstation_list"};
+        // Удаляем системные генераторы: таблицы для хранения состояния, таблицы со списком названий таблиц, за изменениями в которых надо следить
+        String[] jdx_sys_generators = new String[]{"table_list", "workstation_list", "workstation_state"};
         for (String jdx_sys_generator : jdx_sys_generators) {
             try {
                 query = "drop generator " + JdxUtils.gen_pref + jdx_sys_generator;
                 db.execSql(query);
-            } catch (Exception ex) {
-                // если удаляемый генератор не будет найден, программа продолжит работу
+            } catch (Exception e) {
+                // если удаляемый объект не будет найден, программа продолжит работу
+                if (!e.getCause().toString().contains("Generator not found")) {
+                    System.out.println(e.getMessage());
+                    System.out.println(e.getCause().toString());
+                }
             }
-        }
-
-        // удаляем связанную с каждой таблицей таблицу журнала изменений
-        ArrayList<IJdxTableStruct> tables = struct.getTables();
-        for (IJdxTableStruct table : tables) {
-            dropAuditTable(table.getName());
         }
     }
 
