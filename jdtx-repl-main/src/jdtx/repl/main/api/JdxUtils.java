@@ -8,7 +8,9 @@ public class JdxUtils {
 
     public static final String prefix = "Z_";
 
-    public static final String pk_pref = prefix + "PK_";
+    public static final String audit_table_prefix = prefix;
+
+    public static final String sys_table_prefix = prefix + "Z_";
 
     public static final String gen_pref = prefix + "G_";
 
@@ -79,6 +81,7 @@ public class JdxUtils {
             // к списку использованных таблиц прибавляем список таблиц, добавленных на данной итерации
             usedLst.addAll(curLst);
         }
+
         // отсортированный список таблиц
         return sortLst;
     }

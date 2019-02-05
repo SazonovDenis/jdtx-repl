@@ -3,7 +3,7 @@ package jdtx.repl.main.api;
 import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
-public class UtDbStruct_Test extends Repl_Test_Custom {
+public class UtDbStruct_Test extends Repl_TwoDatabase_Test {
 
     @Test
     public void test_1() throws Exception {

@@ -1,9 +1,14 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.data.*;
+import java.io.*;
 
 /**
- * Блок данных. Команды IDE и специальные.
+ * Блок данных
  */
-public interface IReplica extends DataStore {
+public interface IReplica {
+
+    void setFile(File file);
+
+    File getFile();
+
 }

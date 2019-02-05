@@ -5,9 +5,9 @@ import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
 /**
- * Создание/удаление репликационных структур
+ * РЎРѕР·РґР°РЅРёРµ/СѓРґР°Р»РµРЅРёРµ СЂРµРїР»РёРєР°С†РёРѕРЅРЅС‹С… СЃС‚СЂСѓРєС‚СѓСЂ
  */
-public class UtRepl_CreateRepl_Test extends Repl_Test_Custom {
+public class UtRepl_ReplInit_Test extends Repl_TwoDatabase_Test {
 
 
     @Test
@@ -17,15 +17,21 @@ public class UtRepl_CreateRepl_Test extends Repl_Test_Custom {
     }
 
     @Test
-    public void test_dropReplication() throws Exception {
+    public void test_Drop() throws Exception {
         UtRepl utr = new UtRepl(dbm.getDb());
         utr.dropReplication();
     }
 
     @Test
-    public void test_createReplication() throws Exception {
+    public void test_Create() throws Exception {
         UtRepl utr = new UtRepl(dbm.getDb());
-        //utr.dropReplication();
+        utr.dropReplication();
+        utr.createReplication();
+    }
+
+    @Test
+    public void test_CreateDrop() throws Exception {
+        UtRepl utr = new UtRepl(dbm.getDb());
 
         //
         JdxDbStructReader reader = new JdxDbStructReader();
@@ -45,7 +51,7 @@ public class UtRepl_CreateRepl_Test extends Repl_Test_Custom {
         IJdxDbStruct struct_2 = reader.readDbStruct(false);
         struct_rw.write(struct_2, "temp/dbStruct_2.xml");
 
-        // Проверим совпадение
+        // РџСЂРѕРІРµСЂРёРј СЃРѕРІРїР°РґРµРЅРёРµ
         utt.compareStruct(struct_1, struct_2);
     }
 

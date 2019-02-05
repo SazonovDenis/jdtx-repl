@@ -6,7 +6,7 @@ public class JdxFieldStruct implements IJdxFieldStruct {
     JdxDataType jdxType;
     int size;
     boolean isPrimaryKey;
-
+    IJdxTableStruct refTable;
 
     public String getName() {
         return name;
@@ -28,6 +28,10 @@ public class JdxFieldStruct implements IJdxFieldStruct {
         return this.isPrimaryKey;
     }
 
+    public IJdxTableStruct getRefTable() {
+        return this.refTable;
+    }
+
     public IJdxFieldStruct cloneField() {
         JdxFieldStruct f1 = new JdxFieldStruct();
         f1.setName(this.getName());
@@ -35,11 +39,16 @@ public class JdxFieldStruct implements IJdxFieldStruct {
         f1.setJdxDatatype(this.getJdxDatatype());
         f1.setSize(this.getSize());
         f1.setIsPrimaryKey(this.isPrimaryKey);
+        f1.setRefTable(this.refTable);
         return f1;
     }
 
     public void setIsPrimaryKey(boolean isPrimaryKey) {
         this.isPrimaryKey = isPrimaryKey;
+    }
+
+    public void setRefTable(IJdxTableStruct refTable) {
+        this.refTable = refTable;
     }
 
     public void setName(String name) {

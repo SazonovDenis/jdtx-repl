@@ -4,7 +4,7 @@ import java.util.*;
 
 public class JdxDbStruct implements IJdxDbStruct {
 
-    private ArrayList<IJdxTableStruct> tables;
+    protected ArrayList<IJdxTableStruct> tables;
 
     public JdxDbStruct() {
         tables = new ArrayList<IJdxTableStruct>();
@@ -28,7 +28,7 @@ public class JdxDbStruct implements IJdxDbStruct {
                 IJdxFieldStruct newRefTableField = newRefTable.getField(refField.getName());
                 //
                 fk.setField(newOwnField);
-                fk.setTable(newRefTable);
+                fk.startTable(newRefTable);
                 fk.setTableField(newRefTableField);
             }
         }

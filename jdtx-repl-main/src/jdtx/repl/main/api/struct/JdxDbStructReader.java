@@ -5,6 +5,7 @@ import jandcode.dbm.db.*;
 import jdtx.repl.main.api.*;
 
 import java.sql.*;
+import java.util.*;
 
 public class JdxDbStructReader implements IJdxDbStructReader {
 
@@ -21,15 +22,14 @@ public class JdxDbStructReader implements IJdxDbStructReader {
 
 
     public IJdxDbStruct readDbStruct(boolean skipReplObj) throws Exception {
-        //создаем экземпляр класса JdxDbStruct
-        JdxDbStruct struct = new JdxDbStruct();
+        ArrayList<IJdxTableStruct> structTables = new ArrayList<>();
 
-
+        //
         DatabaseMetaData dbm = db.getConnection().getMetaData();
         String[] types = {"TABLE"};
         ResultSet rs = dbm.getTables(null, null, "%", types);
         while (rs.next()) {
-            if (skipReplObj && rs.getString("TABLE_NAME").toLowerCase().startsWith(JdxUtils.prefix.toLowerCase())) {
+            if (skipReplObj && rs.getString("TABLE_NAME").toLowerCase().startsWith(JdxUtils.audit_table_prefix.toLowerCase())) {
                 continue;
             }
 
@@ -37,7 +37,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
             //создаем экземпляр класса
             JdxTableStruct table = new JdxTableStruct();
             //добавляем экземпляр в список
-            struct.getTables().add(table);
+            structTables.add(table);
 
             //
             table.setName(rs.getString("TABLE_NAME"));
@@ -71,24 +71,45 @@ public class JdxDbStructReader implements IJdxDbStructReader {
         }
 
         // --- внешние ключи
-        for (IJdxTableStruct table : struct.getTables()) {
+        for (IJdxTableStruct table : structTables) {
             ResultSet rsFK = dbm.getImportedKeys(db.getConnection().getCatalog(), null, table.getName());
             while (rsFK.next()) {
+                // Пополняем список ForeignKey для таблицы
                 JdxForeignKey foreignKey = new JdxForeignKey();
                 table.getForeignKeys().add(foreignKey);
 
-                JdxTableStruct tableFK = (JdxTableStruct) struct.getTable(rsFK.getString("PKTABLE_NAME"));
+                JdxTableStruct tableFK = (JdxTableStruct) findTable(structTables, rsFK.getString("PKTABLE_NAME"));
                 IJdxFieldStruct tableFieldFK = tableFK.getField(rsFK.getString("PKCOLUMN_NAME"));
-                IJdxFieldStruct fieldFK = ((JdxTableStruct) table).getField(rsFK.getString("FKCOLUMN_NAME"));
+                JdxFieldStruct fieldFK = (JdxFieldStruct) table.getField(rsFK.getString("FKCOLUMN_NAME"));
 
                 foreignKey.setField(fieldFK);
                 foreignKey.setTable(tableFK);
                 foreignKey.setTableField(tableFieldFK);
+
+                // Прставляем данные, на какую таблицу смотрит ссылочное поле
+                fieldFK.setRefTable(tableFK);
             }
         }
 
+        // Сортируем
+        ArrayList<IJdxTableStruct> structTablesSorted = JdxUtils.sortTables(structTables);
+
+
+        // Создаем и возвращаем экземпляр класса JdxDbStruct
+        JdxDbStruct struct = new JdxDbStruct();
+        struct.getTables().addAll(structTablesSorted);
+
         //
         return struct;
+    }
+
+    private IJdxTableStruct findTable(ArrayList<IJdxTableStruct> tables, String tableName) {
+        for (IJdxTableStruct t : tables) {
+            if (t.getName().compareToIgnoreCase(tableName) == 0) {
+                return t;
+            }
+        }
+        return null;
     }
 
 

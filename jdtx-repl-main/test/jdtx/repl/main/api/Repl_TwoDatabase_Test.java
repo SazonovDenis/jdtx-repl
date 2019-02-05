@@ -2,15 +2,16 @@ package jdtx.repl.main.api;
 
 import jandcode.dbm.test.*;
 import jandcode.utils.*;
+import jdtx.repl.main.api.struct.*;
 import org.apache.commons.io.*;
 
 import java.io.*;
 
 /**
  */
-public class Repl_Test_Custom extends DbmTestCase {
+public class Repl_TwoDatabase_Test extends DbmTestCase {
 
-    UtTest utt = new UtTest();
+    UtTest utt;
 
     public void setUp() throws Exception {
         //
@@ -34,6 +35,15 @@ public class Repl_Test_Custom extends DbmTestCase {
 
 
         // ---
+        // чтение структуры
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(dbm.getDb());
+        IJdxDbStruct struct = reader.readDbStruct();
+        utt = new UtTest(dbm.getDb(), struct);
+
+
+        // ---
+        // Чтобы были
         UtFile.mkdirs("temp");
 
     }

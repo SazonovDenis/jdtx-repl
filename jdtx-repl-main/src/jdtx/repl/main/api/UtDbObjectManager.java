@@ -24,10 +24,10 @@ public class UtDbObjectManager {
         DbQuery query = null;
         try {
             // таблица table_list со списком названий таблиц, за изменениями в которых надо следить
-            sql = "create table " + JdxUtils.prefix + "table_list(Id int not null, Name varchar(50) default '' not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "table_list(id int not null, name varchar(150) default '' not null)";
             db.execSql(sql);
             // первичный ключ
-            sql = "alter table " + JdxUtils.prefix + "table_list add constraint pk_" + JdxUtils.prefix + "tableList_id primary key (id)";
+            sql = "alter table " + JdxUtils.sys_table_prefix + "table_list add constraint pk_" + JdxUtils.audit_table_prefix + "tableList_id primary key (id)";
             db.execSql(sql);
             // генератор Id для новой таблицы
             sql = "create generator " + JdxUtils.gen_pref + "table_list";
@@ -36,16 +36,16 @@ public class UtDbObjectManager {
             db.execSql(sql);
 
             // таблица с флагом работы триггеров
-            sql = "create table " + JdxUtils.prefix + "flag_tab(id integer not null, trigger_flag integer not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "flag_tab(id integer not null, trigger_flag integer not null)";
             db.execSql(sql);
-            sql = "insert into " + JdxUtils.prefix + "flag_tab(id, trigger_flag) values (1, 1)";
+            sql = "insert into " + JdxUtils.sys_table_prefix + "flag_tab(id, trigger_flag) values (1, 1)";
             db.execSql(sql);
 
 
             // вставляем в созданную таблицу названия всех таблиц
 
             // запрос на вставку в таблицу table_list названий всех таблиц из базы
-            query = db.createQuery("insert into " + JdxUtils.prefix + "table_list(Id, Name) values (GEN_ID(" + JdxUtils.gen_pref + "table_list, 1), :Name)");
+            query = db.createQuery("insert into " + JdxUtils.sys_table_prefix + "table_list(Id, Name) values (GEN_ID(" + JdxUtils.gen_pref + "table_list, 1), :Name)");
             //
             ArrayList<IJdxTableStruct> tables = struct.getTables();
             for (IJdxTableStruct table : tables) {
@@ -58,36 +58,36 @@ public class UtDbObjectManager {
             }
 
             // таблица состояния: для хранения возраста примененных реплик и т.п.
-            sql = "create table " + JdxUtils.prefix + "state(id integer not null, que_in_receive int not null, que_in_applied int not null, que_in_formed_out int not null, audit_formed_dir_age int not null, audit_formed_out_age int not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "state(id integer not null, que_in_receive int not null, que_in_applied int not null, que_in_formed_out int not null, audit_formed_dir_age int not null, audit_formed_out_age int not null)";
             db.execSql(sql);
-            sql = "insert into " + JdxUtils.prefix + "state(id, que_in_receive, que_in_applied, que_in_formed_out, audit_formed_dir_age, audit_formed_out_age) values (1, 0, 0, 0, 0, 0)";
+            sql = "insert into " + JdxUtils.sys_table_prefix + "state(id, que_in_receive, que_in_applied, que_in_formed_out, audit_formed_dir_age, audit_formed_out_age) values (1, 0, 0, 0, 0, 0)";
             db.execSql(sql);
 
             // список рабочих станций
-            sql = "create table " + JdxUtils.prefix + "workstation_list(id integer not null, parent integer not null, ws_name varchar(50) not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "workstation_list(id integer not null, parent integer not null, ws_name varchar(50) not null)";
             db.execSql(sql);
             // генератор Id для списка рабочих станций
             sql = "create generator " + JdxUtils.gen_pref + "workstation_list";
             db.execSql(sql);
 
             // состояние рабочих станций
-            sql = "create table " + JdxUtils.prefix + "workstation_state(id integer not null, que_out_send int not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "workstation_state(id integer not null, que_out_send int not null)";
             db.execSql(sql);
             // генератор Id для списка рабочих станций
             sql = "create generator " + JdxUtils.gen_pref + "workstation_state";
             db.execSql(sql);
 
             // исходящая очередь
-            sql = "create table " + JdxUtils.prefix + "que_out(id integer not null, db_code int not null, age int not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "que_out(id integer not null, db_code int not null, age int not null)";
             db.execSql(sql);
 
             // входящая очередь
-            sql = "create table " + JdxUtils.prefix + "que_in(id integer not null, db_code int not null, age int not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "que_in(id integer not null, db_code int not null, age int not null)";
             db.execSql(sql);
 
 
             // таблица для хранения возраста базы
-            sql = "create table " + JdxUtils.prefix + "age(age int not null, tableName varchar(50) default '' not null, " + JdxUtils.prefix + "Id int not null, dt timestamp not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "age(age int not null, tableName varchar(50) default '' not null, " + JdxUtils.audit_table_prefix + "Id int not null, dt timestamp not null)";
             db.execSql(sql);
         } finally {
             if (query != null) {
@@ -114,7 +114,7 @@ public class UtDbObjectManager {
         for (String jdx_sys_table : jdx_sys_tables) {
             try {
                 // удаляем таблицу для хранения состояния
-                query = "drop table " + JdxUtils.prefix + jdx_sys_table;
+                query = "drop table " + JdxUtils.sys_table_prefix + jdx_sys_table;
                 db.execSql(query);
             } catch (Exception e) {
                 // если удаляемый объект не будет найден, программа продолжит работу
@@ -158,10 +158,10 @@ public class UtDbObjectManager {
             }
         }
 
-        String query = "create table " + JdxUtils.prefix + tableName + "(" +
-                JdxUtils.prefix + "Id integer not null, " +
-                JdxUtils.prefix + "opr_type integer not null, " +
-                JdxUtils.prefix + "trigger_flag integer not null, " +
+        String query = "create table " + JdxUtils.audit_table_prefix + tableName + "(" +
+                JdxUtils.audit_table_prefix + "Id integer not null, " +
+                JdxUtils.audit_table_prefix + "opr_type integer not null, " +
+                JdxUtils.audit_table_prefix + "trigger_flag integer not null, " +
                 fieldsStr +
                 ")";
 
@@ -192,10 +192,10 @@ public class UtDbObjectManager {
                 "as\n" +
                 "declare variable trigger_flag_ integer;\n" +
                 "begin\n" +
-                "  select trigger_flag from " + JdxUtils.prefix + "flag_tab where id=1 into :trigger_flag_;\n" +
+                "  select trigger_flag from " + JdxUtils.sys_table_prefix + "flag_tab where id=1 into :trigger_flag_;\n" +
                 "  if (trigger_flag_<>0) then\n" +
                 "  begin\n" +
-                "    insert into " + JdxUtils.prefix + tableName + " (" + JdxUtils.prefix + "Id, " + JdxUtils.prefix + "opr_type, " + JdxUtils.prefix + "trigger_flag, ";
+                "    insert into " + JdxUtils.audit_table_prefix + tableName + " (" + JdxUtils.audit_table_prefix + "Id, " + JdxUtils.audit_table_prefix + "opr_type, " + JdxUtils.audit_table_prefix + "trigger_flag, ";
         // перечисление полей для вставки в них значений
         for (int i = 0; i < fieldCount - 1; i++) {
             sql = sql + fields.get(i).getName() + ", ";
@@ -239,7 +239,7 @@ public class UtDbObjectManager {
         }
         try {
             // удаляем саму таблицу журнала изменений
-            sql = "drop table " + JdxUtils.prefix + tableName;
+            sql = "drop table " + JdxUtils.audit_table_prefix + tableName;
             db.execSql(sql);
             // удаляем генератор для таблицы журнала изменений
             sql = "drop generator " + JdxUtils.gen_pref + tableName;
@@ -250,5 +250,7 @@ public class UtDbObjectManager {
     }
 
     enum updMods {INSERT, UPDATE, DELETE}
+
+
 
 }

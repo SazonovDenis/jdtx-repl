@@ -1,6 +1,8 @@
 package jdtx.repl.main.api;
 
-import java.util.*;
+import org.json.simple.*;
+
+import java.io.*;
 
 /**
  * Публикация - набор правил подготовки реплик.
@@ -8,5 +10,10 @@ import java.util.*;
  * В общем виде правило - это просто запрос к аудиту
  * и left join к соответствующей таблице с данными, с наложением фильтров.
  */
-public interface IPublication extends Map {
+public interface IPublication {
+
+    void load(Reader r) throws Exception;
+
+    JSONArray getData();
+
 }

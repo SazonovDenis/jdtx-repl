@@ -12,6 +12,8 @@ public interface IJdxFieldStruct {
 
     boolean isPrimaryKey();
 
+    IJdxTableStruct getRefTable();
+
     IJdxFieldStruct cloneField();
 
 }
