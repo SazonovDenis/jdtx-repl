@@ -14,13 +14,13 @@ public class JdxRefDecoder {
 
     long SLOT_SIZE = 1000000;
 
-    int db_code = -1;
+    long db_code = -1;
     Db db = null;
 
     protected Map<String, Map> tablesDecodeSlots;
     protected Map<String, Long> tablesSlotMax;
 
-    public JdxRefDecoder(Db db, int db_code) throws Exception {
+    public JdxRefDecoder(Db db, long db_code) throws Exception {
         this.db = db;
         this.db_code = db_code;
 

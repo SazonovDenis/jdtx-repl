@@ -83,6 +83,9 @@ public class UtRepl {
         JdxDataWriter wr = new JdxDataWriter(ost);
 
         //
+        wr.setReplicaInfo(1, ageFrom, ageTo); //todo: правила/страегия работы с DbID
+
+        //
         UtAuditSelector utrr = new UtAuditSelector(db, struct);
 
         // Забираем аудит по порядку сортировки таблиц в struct

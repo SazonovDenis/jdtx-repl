@@ -8,7 +8,7 @@ import java.io.*;
 
 /**
  */
-public class UtRepl_AuditApply_Test extends DbmTestCase {
+public class UtAuditApplyer_Test extends DbmTestCase {
 
     IJdxDbStruct struct;
 
