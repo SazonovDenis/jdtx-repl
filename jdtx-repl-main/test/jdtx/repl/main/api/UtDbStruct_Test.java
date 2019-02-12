@@ -14,7 +14,7 @@ public class UtDbStruct_Test extends ReplDatabase_Test {
 
         // структура подключенной БД - в файл
         UtDbStruct_RW struct_rw = new UtDbStruct_RW();
-        struct_rw.write(struct, "temp/dbStruct.xml");
+        struct_rw.write(struct, "../_test-data/dbStruct.xml");
 
         // проверим, что структура подключенной БД нетривиальна
         assertEquals(true, struct.getTables().size() > 5);
@@ -22,9 +22,10 @@ public class UtDbStruct_Test extends ReplDatabase_Test {
         assertEquals(true, struct.getTables().get(1).getFields().size() > 2);
 
         // прочитаем из файла
-        IJdxDbStruct structXml = struct_rw.read("temp/dbStruct.xml");
+        IJdxDbStruct structXml = struct_rw.read("../_test-data/dbStruct.xml");
 
         // проверим совпадение
+        UtTest utTest = new UtTest(db);
         utTest.compareStruct(struct, structXml);
     }
 

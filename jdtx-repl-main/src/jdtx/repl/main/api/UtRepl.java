@@ -78,7 +78,7 @@ public class UtRepl {
      * todo: правила/страегия работы с файлами и вообще с получателем информации - в какой момент и кто выбирает файл
      */
     IReplica createReplica(IPublication publication, long ageFrom, long ageTo) throws Exception {
-        File file = new File("temp/csv.xml");
+        File file = new File("../_test-data/csv.xml");
         OutputStream ost = new FileOutputStream(file);
         JdxDataWriter wr = new JdxDataWriter(ost);
 
@@ -127,10 +127,44 @@ public class UtRepl {
 
     /**
      * При включении новой БД в систему:
-     * первая реплика для сервера готовится как реплика на вставку всех существующих записей в этой БД.
+     * Самая первая (установочная) реплика для сервера.
+     * Готовится как реплика на вставку всех существующих записей в этой БД.
      */
-    IReplica createReplicaFull(IPublication publication) {
-        return null;
+    IReplica createReplicaFull(IPublication publication) throws Exception {
+        File file = new File("../_test-data/csv_full.xml");
+        OutputStream ost = new FileOutputStream(file);
+        JdxDataWriter wr = new JdxDataWriter(ost);
+
+        //
+        wr.setReplicaInfo(1, -1, 0); //todo: правила/страегия работы с DbID
+
+        //
+        UtDataSelector utrr = new UtDataSelector(db, struct);
+
+        // Забираем все данные из таблиц по порядку сортировки таблиц в struct
+        JSONArray publicationData = publication.getData();
+        for (IJdxTableStruct table : struct.getTables()) {
+            String stuctTableName = table.getName();
+
+            for (int i = 0; i < publicationData.size(); i++) {
+                JSONObject publicationTable = (JSONObject) publicationData.get(i);
+                String publicationTableName = (String) publicationTable.get("table");
+                if (stuctTableName.compareToIgnoreCase(publicationTableName) == 0) {
+                    String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
+                    utrr.readFullData(stuctTableName, publicationFields, wr);
+                }
+            }
+        }
+
+        //
+        wr.close();
+
+        //
+        IReplica res = new Replica();
+        res.setFile(file);
+
+        //
+        return res;
     }
 
 

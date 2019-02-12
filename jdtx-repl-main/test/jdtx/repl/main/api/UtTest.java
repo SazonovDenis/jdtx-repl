@@ -12,11 +12,9 @@ import java.util.*;
 public class UtTest extends UtilsTestCase {
 
     Db db;
-    IJdxDbStruct struct;
 
-    public UtTest(Db db, IJdxDbStruct struct) {
+    public UtTest(Db db) {
         this.db = db;
-        this.struct = struct;
     }
 
     public void compareStruct(IJdxDbStruct struct_1, IJdxDbStruct struct_2) {
@@ -30,7 +28,7 @@ public class UtTest extends UtilsTestCase {
     }
 
 
-    public void makeChange() throws Exception {
+    public void makeChange(IJdxDbStruct struct) throws Exception {
         Random rnd = new Random();
         DbUtils dbu = new DbUtils(db, struct);
 

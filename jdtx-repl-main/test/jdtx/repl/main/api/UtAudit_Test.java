@@ -27,7 +27,7 @@ public class UtAudit_Test extends ReplDatabase_Test {
     @Test
     public void test_LoadRules() throws Exception {
         Publication publication = new Publication();
-        Reader r = new FileReader("temp/pub.json");
+        Reader r = new FileReader("../_test-data/etalon/pub.json");
         try {
             publication.loadRules(r);
         } finally {
@@ -49,7 +49,8 @@ public class UtAudit_Test extends ReplDatabase_Test {
         UtRepl utr = new UtRepl(db);
 
         // Делаем изменения
-        utTest.makeChange();
+        UtTest utTest = new UtTest(db);
+        utTest.makeChange(struct);
 
         // Фиксируем возраст
         long age = utr.markAuditAge();
@@ -58,7 +59,7 @@ public class UtAudit_Test extends ReplDatabase_Test {
         // Забираем реплики
         UtAuditSelector utrr = new UtAuditSelector(db, struct);
 
-        OutputStream ost = new FileOutputStream("temp/csv.xml");
+        OutputStream ost = new FileOutputStream("../_test-data/csv.xml");
         JdxDataWriter wr = new JdxDataWriter(ost);
         //
         utrr.readAuditData("lic", "*", age, age, wr);
@@ -70,13 +71,36 @@ public class UtAudit_Test extends ReplDatabase_Test {
     }
 
     @Test
+    public void test_createSetupReplica() throws Exception {
+        //logOn();
+
+        UtRepl utr = new UtRepl(db);
+
+        // Загружаем правила публикации
+        IPublication publcation = new Publication();
+        Reader r = new FileReader("../_test-data/etalon/pub_full.json");
+        try {
+            publcation.loadRules(r);
+        } finally {
+            r.close();
+        }
+
+        // Забираем установочную реплику
+        IReplica replica = utr.createReplicaFull(publcation);
+
+        //
+        System.out.println(replica.getFile().getAbsolutePath());
+    }
+
+    @Test
     public void test_createReplica() throws Exception {
         //logOn();
 
         UtRepl utr = new UtRepl(db);
 
         // Делаем изменения
-        utTest.makeChange();
+        UtTest utTest = new UtTest(db);
+        utTest.makeChange(struct);
 
         // Фиксируем возраст
         long age = utr.markAuditAge();
@@ -84,7 +108,7 @@ public class UtAudit_Test extends ReplDatabase_Test {
 
         // Загружаем правила публикации
         IPublication publcation = new Publication();
-        Reader r = new FileReader("temp/pub.json");
+        Reader r = new FileReader("../_test-data/etalon/pub.json");
         try {
             publcation.loadRules(r);
         } finally {
@@ -96,14 +120,13 @@ public class UtAudit_Test extends ReplDatabase_Test {
 
         //
         System.out.println(replica.getFile().getAbsolutePath());
-
     }
 
     @Test
     public void test_applyReplica() throws Exception {
         // Загружаем правила публикации
         IPublication publcation = new Publication();
-        Reader r = new FileReader("temp/pub.json");
+        Reader r = new FileReader("../_test-data/etalon/pub.json");
         try {
             publcation.loadRules(r);
         } finally {
@@ -112,7 +135,27 @@ public class UtAudit_Test extends ReplDatabase_Test {
 
         // Реплики
         IReplica replica = new Replica();
-        replica.setFile(new File("temp/csv.xml"));
+        replica.setFile(new File("../_test-data/csv.xml"));
+
+        // Применяем реплики
+        UtAuditApplyer utaa = new UtAuditApplyer(db1, struct);
+        utaa.applyReplica(replica, publcation, null);
+    }
+
+    @Test
+    public void test_applyReplicaFull() throws Exception {
+        // Загружаем правила публикации
+        IPublication publcation = new Publication();
+        Reader r = new FileReader("../_test-data/etalon/pub_full.json");
+        try {
+            publcation.loadRules(r);
+        } finally {
+            r.close();
+        }
+
+        // Реплики
+        IReplica replica = new Replica();
+        replica.setFile(new File("../_test-data/csv_full.xml"));
 
         // Применяем реплики
         UtAuditApplyer utaa = new UtAuditApplyer(db1, struct);

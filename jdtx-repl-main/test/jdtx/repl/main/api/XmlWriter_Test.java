@@ -12,7 +12,7 @@ public class XmlWriter_Test {
 
     @Test
     public void test_write() throws Exception {
-        OutputStream ost = new FileOutputStream("temp/csv.xml");
+        OutputStream ost = new FileOutputStream("../_test-data/csv.xml");
 
         XMLOutputFactory xof = XMLOutputFactory.newInstance();
         XMLStreamWriter wr = xof.createXMLStreamWriter(ost, "utf-8");
@@ -41,7 +41,7 @@ public class XmlWriter_Test {
 
     @Test
     public void test_read() throws Exception {
-        InputStream ist = new FileInputStream("temp/csv.xml");
+        InputStream ist = new FileInputStream("../_test-data/csv.xml");
 
         XMLInputFactory fff = XMLInputFactory.newInstance();
         XMLStreamReader rd = fff.createXMLStreamReader(ist, "utf-8");

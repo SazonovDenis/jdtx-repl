@@ -14,7 +14,7 @@ public class ReplicaReaderXml_Test extends DbmTestCase {
     @Test
     public void test_1() throws Exception {
         IReplica replica = new Replica();
-        replica.setFile(new File("temp/csv.xml"));
+        replica.setFile(new File("../_test-data/csv.xml"));
 
         //
         ReplicaReaderXml reader = new ReplicaReaderXml(replica);

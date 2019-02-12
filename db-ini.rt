@@ -22,7 +22,7 @@
         jdbcDriverClass="org.firebirdsql.jdbc.FBDriver"
         url="jdbc:firebirdsql:localhost/3050:${database}?charSet=Cp1251"
         
-        database="db.gdb"
+        database="db1.gdb"
         username="SYSDBA"
         password="masterkey"
         host="localhost"
