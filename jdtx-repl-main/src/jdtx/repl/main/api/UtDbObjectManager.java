@@ -78,11 +78,11 @@ public class UtDbObjectManager {
             db.execSql(sql);
 
             // исходящая очередь
-            sql = "create table " + JdxUtils.sys_table_prefix + "que_out(id integer not null, db_code int not null, age int not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "que_out(id integer not null, ws_id int not null, age int not null)";
             db.execSql(sql);
 
             // входящая очередь
-            sql = "create table " + JdxUtils.sys_table_prefix + "que_in(id integer not null, db_code int not null, age int not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "que_in(id integer not null, ws_id int not null, age int not null)";
             db.execSql(sql);
 
 

@@ -14,14 +14,14 @@ public class UtAuditApplyer {
 
     Db db;
     IJdxDbStruct struct;
-    //JdxRefDecoder decoder;
+    //RefDecoder decoder;
 
     public UtAuditApplyer(Db db, IJdxDbStruct struct) throws Exception {
         this.db = db;
         this.struct = struct;
     }
 
-    public void applyAuditData(IReplica replica, IPublication publication, Object ws) throws Exception {
+    public void applyReplica(IReplica replica, IPublication publication, Object ws) throws Exception {
         List<IJdxTableStruct> tables = struct.getTables();
         int tIdx = 0;
 
@@ -38,11 +38,11 @@ public class UtAuditApplyer {
         DbAuditTriggersManager trm = new DbAuditTriggersManager(db);
 
         //
-        ReplicaReaderXml reader = new ReplicaReaderXml(replica);
-        System.out.println("DbId = " + reader.getDbId());
+        ReplicaReaderXml replicaReader = new ReplicaReaderXml(replica);
+        System.out.println("DbId = " + replicaReader.getDbId());
 
         //
-        JdxRefDecoder decoder = new JdxRefDecoder(db, reader.getDbId()); //todo: стратегия работы с рабочими станциями в какой момент и кто задает станцию
+        IRefDecoder decoder = new RefDecoder(db, replicaReader.getDbId()); //todo: стратегия работы с рабочими станциями в какой момент и кто задает станцию
 
         //
         db.startTran();
@@ -54,7 +54,7 @@ public class UtAuditApplyer {
 
 
             //
-            String tableName = reader.nextTable();
+            String tableName = replicaReader.nextTable();
             while (tableName != null) {
                 System.out.println("table [" + tableName + "]");
 
@@ -83,7 +83,7 @@ public class UtAuditApplyer {
                 }
 
                 // Перебираем записи
-                Map recValues = reader.nextRec();
+                Map recValues = replicaReader.nextRec();
                 while (recValues != null) {
                     System.out.println("recValues=" + recValues);
 
@@ -91,18 +91,18 @@ public class UtAuditApplyer {
                     for (String fieldName : tableFromFields) {
                         IJdxFieldStruct field = table.getField(fieldName);
                         IJdxTableStruct refTable = field.getRefTable();
-                        // if (fieldName.compareToIgnoreCase(DbUtils.ID_FIELD) == 0) {
                         if (field.isPrimaryKey() || refTable != null) {
-                            // Перекодировка ссылки
+                            // Ссылка
                             String refTableName;
                             if (field.isPrimaryKey()) {
                                 refTableName = table.getName();
                             } else {
                                 refTableName = refTable.getName();
                             }
-                            long id_db = Long.valueOf((String) recValues.get(fieldName));
-                            long id_own = decoder.getOrCreate_id_own(id_db, refTableName);
-                            recValues.put(fieldName, id_own);
+                            long ref_db = Long.valueOf((String) recValues.get(fieldName));
+                            // Перекодировка ссылки
+                            long ref_own = decoder.getOrCreate_id_own(ref_db, refTableName);
+                            recValues.put(fieldName, ref_own);
                         } else {
                             recValues.put(fieldName, recValues.get(fieldName));
                         }
@@ -115,6 +115,8 @@ public class UtAuditApplyer {
                         } catch (Exception e) {
                             if (isPrimaryKeyError(e.getCause().getMessage())) {
                                 dbu.updateRec(table.getName(), recValues, publicationFields, null);
+                            } else {
+                                throw (e);
                             }
                         }
                     } else if (oprType == JdxOprType.OPR_UPD) {
@@ -124,11 +126,11 @@ public class UtAuditApplyer {
                     }
 
                     //
-                    recValues = reader.nextRec();
+                    recValues = replicaReader.nextRec();
                 }
 
                 //
-                tableName = reader.nextTable();
+                tableName = replicaReader.nextTable();
             }
 
 
@@ -141,7 +143,7 @@ public class UtAuditApplyer {
             if (!trm.triggersIsOn()) {
                 trm.setTriggersOn();
             }
-            reader.close();
+            replicaReader.close();
         }
 
     }

@@ -3,13 +3,13 @@ package jdtx.repl.main.api;
 import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
-public class UtDbStruct_Test extends Repl_TwoDatabase_Test {
+public class UtDbStruct_Test extends ReplDatabase_Test {
 
     @Test
     public void test_1() throws Exception {
         // чтение структуры
         IJdxDbStructReader reader = new JdxDbStructReader();
-        reader.setDb(dbm.getDb());
+        reader.setDb(db);
         IJdxDbStruct struct = reader.readDbStruct();
 
         // структура подключенной БД - в файл
@@ -25,7 +25,7 @@ public class UtDbStruct_Test extends Repl_TwoDatabase_Test {
         IJdxDbStruct structXml = struct_rw.read("temp/dbStruct.xml");
 
         // проверим совпадение
-        utt.compareStruct(struct, structXml);
+        utTest.compareStruct(struct, structXml);
     }
 
 }

@@ -5,13 +5,13 @@ import org.junit.*;
 
 /**
  */
-public class JdxRefDecoder_Test extends DbmTestCase {
+public class RefDecoder_Test extends DbmTestCase {
 
 
     @Test
     public void test_1() throws Exception {
         // ---
-        JdxRefDecoder d1 = new JdxRefDecoder(dbm.getDb(), 1);
+        RefDecoder d1 = new RefDecoder(dbm.getDb(), 1);
         d1.SLOT_SIZE = 4;
 
         //
@@ -32,7 +32,7 @@ public class JdxRefDecoder_Test extends DbmTestCase {
 
 
         // ---
-        JdxRefDecoder d2 = new JdxRefDecoder(dbm.getDb(), 2);
+        RefDecoder d2 = new RefDecoder(dbm.getDb(), 2);
         d2.SLOT_SIZE = 4;
 
         //
@@ -53,7 +53,7 @@ public class JdxRefDecoder_Test extends DbmTestCase {
 
 
         // ---
-        d1 = new JdxRefDecoder(dbm.getDb(), 1);
+        d1 = new RefDecoder(dbm.getDb(), 1);
         d1.SLOT_SIZE = 4;
 
         //
@@ -68,7 +68,7 @@ public class JdxRefDecoder_Test extends DbmTestCase {
 
 
         // ---
-        d2 = new JdxRefDecoder(dbm.getDb(), 2);
+        d2 = new RefDecoder(dbm.getDb(), 2);
         d2.SLOT_SIZE = 4;
 
         //

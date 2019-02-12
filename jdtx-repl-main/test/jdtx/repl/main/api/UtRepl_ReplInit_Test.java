@@ -7,35 +7,48 @@ import org.junit.*;
 /**
  * Создание/удаление репликационных структур
  */
-public class UtRepl_ReplInit_Test extends Repl_TwoDatabase_Test {
+public class UtRepl_ReplInit_Test extends ReplDatabase_Test {
 
 
     @Test
     public void test_db() throws Exception {
-        DataStore st = dbm.getDb().loadSql("select id, orgName from dbInfo");
-        dbm.outTable(st);
+        // db
+        DataStore st = db.loadSql("select id, orgName, dbLabel from dbInfo");
+        UtData.outTable(st);
+        // db1
+        DataStore st1 = db1.loadSql("select id, orgName, dbLabel from dbInfo");
+        UtData.outTable(st1);
     }
 
     @Test
     public void test_Drop() throws Exception {
-        UtRepl utr = new UtRepl(dbm.getDb());
+        // db
+        UtRepl utr = new UtRepl(db);
         utr.dropReplication();
+        // db1
+        UtRepl utr1 = new UtRepl(db1);
+        utr1.dropReplication();
     }
 
     @Test
     public void test_Create() throws Exception {
-        UtRepl utr = new UtRepl(dbm.getDb());
+        // db
+        UtRepl utr = new UtRepl(db);
         utr.dropReplication();
         utr.createReplication();
+        // db1
+        UtRepl utr1 = new UtRepl(db1);
+        utr1.dropReplication();
+        utr1.createReplication();
     }
 
     @Test
-    public void test_CreateDrop() throws Exception {
-        UtRepl utr = new UtRepl(dbm.getDb());
+    public void test_compareCreateDrop() throws Exception {
+        UtRepl utr = new UtRepl(db);
 
         //
         JdxDbStructReader reader = new JdxDbStructReader();
-        reader.setDb(dbm.getDb());
+        reader.setDb(db);
         UtDbStruct_RW struct_rw = new UtDbStruct_RW();
 
         //
@@ -52,7 +65,7 @@ public class UtRepl_ReplInit_Test extends Repl_TwoDatabase_Test {
         struct_rw.write(struct_2, "temp/dbStruct_2.xml");
 
         // Проверим совпадение
-        utt.compareStruct(struct_1, struct_2);
+        utTest.compareStruct(struct_1, struct_2);
     }
 
 

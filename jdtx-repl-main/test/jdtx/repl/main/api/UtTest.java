@@ -48,7 +48,7 @@ public class UtTest extends UtilsTestCase {
         dbu.insertRec("ulz", UtCnv.toMap(
                 "id", id1,
                 "region", id0,
-                "ulzTip", 1001,
+                "ulzTip", 1002,
                 "name", "Name-ins-" + rnd.nextInt()
         ));
 
@@ -77,8 +77,9 @@ public class UtTest extends UtilsTestCase {
                 "id", id02,
                 "NameF", "NameF-upd-" + rnd.nextInt(),
                 "NameI", "NameI-upd-" + rnd.nextInt(),
-                "NameO", "NameO-upd-" + rnd.nextInt()
-        ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,ulz,dom,kv,tel,info");
+                "NameO", "NameO-upd-" + rnd.nextInt(),
+                "Ulz", id1
+        ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,dom,kv,tel,info");
     }
 
 

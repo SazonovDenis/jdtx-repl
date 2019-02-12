@@ -11,10 +11,10 @@ public class UtDbObjectDecodeManager {
     }
 
     public void createRefDecodeObject() throws Exception {
-        db.execSql("create table " + JdxUtils.sys_table_prefix + "decode (db_code integer, table_name varchar(150), db_slot integer, own_slot integer)");
-        db.execSql("create unique index " + JdxUtils.sys_table_prefix + "decode_idx1 on " + JdxUtils.sys_table_prefix + "decode (db_code, table_name, db_slot)");
+        db.execSql("create table " + JdxUtils.sys_table_prefix + "decode (ws_id integer, table_name varchar(150), ws_slot integer, own_slot integer)");
+        db.execSql("create unique index " + JdxUtils.sys_table_prefix + "decode_idx1 on " + JdxUtils.sys_table_prefix + "decode (ws_id, table_name, ws_slot)");
         db.execSql("create unique index " + JdxUtils.sys_table_prefix + "decode_idx2 on " + JdxUtils.sys_table_prefix + "decode (table_name, own_slot)");
-        db.execSql("create table " + JdxUtils.sys_table_prefix + "db_info (db_code integer)");
+        db.execSql("create table " + JdxUtils.sys_table_prefix + "db_info (ws_id integer)");
     }
 
     public void dropRefDecodeObject() throws Exception {

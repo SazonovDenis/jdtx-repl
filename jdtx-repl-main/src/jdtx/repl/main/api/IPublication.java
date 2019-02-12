@@ -12,7 +12,7 @@ import java.io.*;
  */
 public interface IPublication {
 
-    void load(Reader r) throws Exception;
+    void loadRules(Reader r) throws Exception;
 
     JSONArray getData();
 

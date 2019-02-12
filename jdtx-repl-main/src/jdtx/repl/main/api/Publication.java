@@ -16,7 +16,7 @@ public class Publication implements IPublication {
     }
 
 
-    public void load(Reader r) throws Exception {
+    public void loadRules(Reader r) throws Exception {
         JSONParser p = new JSONParser();
         data = (JSONArray) p.parse(r);
     }

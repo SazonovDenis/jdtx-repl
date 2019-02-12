@@ -17,6 +17,17 @@
         host="localhost"
     />
 
+    <db name="db1"
+        dbdriver="jdbc" 
+        jdbcDriverClass="org.firebirdsql.jdbc.FBDriver"
+        url="jdbc:firebirdsql:localhost/3050:${database}?charSet=Cp1251"
+        
+        database="db.gdb"
+        username="SYSDBA"
+        password="masterkey"
+        host="localhost"
+    />
+
 
     <x-include path="_db-ini.rt" required="false"/>
 

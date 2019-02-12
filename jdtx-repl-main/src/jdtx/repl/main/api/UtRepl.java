@@ -98,7 +98,7 @@ public class UtRepl {
                 String publicationTableName = (String) publicationTable.get("table");
                 if (stuctTableName.compareToIgnoreCase(publicationTableName) == 0) {
                     String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
-                    utrr.fillAuditData(stuctTableName, publicationFields, ageFrom, ageTo, wr);
+                    utrr.readAuditData(stuctTableName, publicationFields, ageFrom, ageTo, wr);
                 }
             }
         }
@@ -121,7 +121,7 @@ public class UtRepl {
      */
     void applyReplica(IReplica replica, IPublication publication) throws Exception {
         UtAuditApplyer utaa = new UtAuditApplyer(db, struct);
-        utaa.applyAuditData(replica, publication, null);
+        utaa.applyReplica(replica, publication, null);
     }
 
 
