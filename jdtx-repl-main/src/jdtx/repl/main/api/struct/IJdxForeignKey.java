@@ -3,6 +3,11 @@ package jdtx.repl.main.api.struct;
 public interface IJdxForeignKey {
 
     /**
+     * @return Название в БД
+     */
+    String getName();
+
+    /**
      * @return Поле, которое ссылается (собственно ссылочное поле)
      */
     IJdxFieldStruct getField();
@@ -16,6 +21,8 @@ public interface IJdxForeignKey {
      * @return Поле в таблице, на которое ссылаемся
      */
     IJdxFieldStruct getTableField();
+
+    void setName(String name);
 
     void setField(IJdxFieldStruct field);
 

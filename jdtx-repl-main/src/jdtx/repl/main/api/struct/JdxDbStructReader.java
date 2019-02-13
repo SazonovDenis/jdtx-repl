@@ -81,7 +81,9 @@ public class JdxDbStructReader implements IJdxDbStructReader {
                 JdxTableStruct tableFK = (JdxTableStruct) findTable(structTables, rsFK.getString("PKTABLE_NAME"));
                 IJdxFieldStruct tableFieldFK = tableFK.getField(rsFK.getString("PKCOLUMN_NAME"));
                 JdxFieldStruct fieldFK = (JdxFieldStruct) table.getField(rsFK.getString("FKCOLUMN_NAME"));
+                String name = rsFK.getString("FK_NAME");
 
+                foreignKey.setName(name);
                 foreignKey.setField(fieldFK);
                 foreignKey.setTable(tableFK);
                 foreignKey.setTableField(tableFieldFK);
