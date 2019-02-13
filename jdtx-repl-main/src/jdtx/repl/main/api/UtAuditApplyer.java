@@ -21,6 +21,7 @@ public class UtAuditApplyer {
         this.struct = struct;
     }
 
+    //todo: стратегия работы с рабочими станциями в какой момент и кто задает станцию, а также стратегия приема реплик с некоторых станций
     public void applyReplica(IReplica replica, IPublication publication, Object ws) throws Exception {
         List<IJdxTableStruct> tables = struct.getTables();
         int tIdx = 0;
@@ -42,7 +43,7 @@ public class UtAuditApplyer {
         System.out.println("DbId = " + replicaReader.getDbId());
 
         //
-        IRefDecoder decoder = new RefDecoder(db, replicaReader.getDbId()); //todo: стратегия работы с рабочими станциями в какой момент и кто задает станцию
+        IRefDecoder decoder = new RefDecoder(db, replicaReader.getDbId());
 
         //
         db.startTran();
@@ -72,7 +73,7 @@ public class UtAuditApplyer {
                 tIdx = n;
                 table = tables.get(n);
 
-                // Поиск полей таблицы в публикации (поля берем именно из нее)
+                // Поиск полей таблицы в публикации (поля берем именно из правил публикаций)
                 for (int i = 0; i < publicationData.size(); i++) {
                     JSONObject publicationTable = (JSONObject) publicationData.get(i);
                     String publicationTableName = (String) publicationTable.get("table");
@@ -87,6 +88,7 @@ public class UtAuditApplyer {
                 while (recValues != null) {
                     //System.out.println("recValues=" + recValues);
 
+                    // Подготовка полей записи в recValues
                     String[] tableFromFields = publicationFields.split(",");
                     for (String fieldName : tableFromFields) {
                         IJdxFieldStruct field = table.getField(fieldName);
@@ -108,6 +110,7 @@ public class UtAuditApplyer {
                         }
                     }
 
+                    // INS/UPD/DEL
                     int oprType = Integer.valueOf((String) recValues.get("Z_OPR"));
                     if (oprType == JdxOprType.OPR_INS) {
                         try {
