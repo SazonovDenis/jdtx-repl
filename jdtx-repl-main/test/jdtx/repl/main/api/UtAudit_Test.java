@@ -60,7 +60,7 @@ public class UtAudit_Test extends ReplDatabase_Test {
         UtAuditSelector utrr = new UtAuditSelector(db, struct);
 
         OutputStream ost = new FileOutputStream("../_test-data/csv.xml");
-        JdxDataWriter wr = new JdxDataWriter(ost);
+        JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
         //
         utrr.readAuditData("lic", "*", age, age, wr);
         utrr.readAuditData("usr", "*", age, age, wr);

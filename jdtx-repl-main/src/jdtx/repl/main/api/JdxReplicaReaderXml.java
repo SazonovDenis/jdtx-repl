@@ -1,18 +1,20 @@
 package jdtx.repl.main.api;
 
+import groovy.json.*;
+
 import javax.xml.stream.*;
 import java.io.*;
 import java.util.*;
 
 /**
  */
-public class ReplicaReaderXml {
+public class JdxReplicaReaderXml {
 
     IReplica replica = null;
     XMLStreamReader reader = null;
     private long dbId;
 
-    public ReplicaReaderXml(IReplica replica) throws Exception {
+    public JdxReplicaReaderXml(IReplica replica) throws Exception {
         this.replica = replica;
         //
         InputStream ist = new FileInputStream(replica.getFile());
@@ -58,7 +60,7 @@ public class ReplicaReaderXml {
                     Map values = new HashMap<>();
                     for (int i = 0; i < reader.getAttributeCount(); i++) {
                         String fieldName = reader.getAttributeLocalName(i);
-                        values.put(fieldName, reader.getAttributeValue(i));
+                        values.put(fieldName, StringEscapeUtils.unescapeJava(reader.getAttributeValue(i)));
                     }
                     //
                     return values;

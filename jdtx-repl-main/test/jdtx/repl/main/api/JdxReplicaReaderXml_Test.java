@@ -9,7 +9,7 @@ import java.util.*;
 /**
  *
  */
-public class ReplicaReaderXml_Test extends DbmTestCase {
+public class JdxReplicaReaderXml_Test extends DbmTestCase {
 
     @Test
     public void test_1() throws Exception {
@@ -17,7 +17,7 @@ public class ReplicaReaderXml_Test extends DbmTestCase {
         replica.setFile(new File("../_test-data/csv.xml"));
 
         //
-        ReplicaReaderXml reader = new ReplicaReaderXml(replica);
+        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(replica);
         System.out.println("DbId = " + reader.getDbId());
 
         //

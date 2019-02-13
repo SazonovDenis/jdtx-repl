@@ -1,12 +1,14 @@
 package jdtx.repl.main.api;
 
+import groovy.json.*;
+
 import javax.xml.stream.*;
 import java.io.*;
 
 /**
  *
  */
-public class JdxDataWriter {
+public class JdxReplicaWriterXml {
 
     XMLStreamWriter wr;
 
@@ -16,7 +18,7 @@ public class JdxDataWriter {
     boolean currentElement_table = false;
 
     //
-    public JdxDataWriter(OutputStream ost) throws XMLStreamException {
+    public JdxReplicaWriterXml(OutputStream ost) throws XMLStreamException {
         XMLOutputFactory xof = XMLOutputFactory.newInstance();
         wr = xof.createXMLStreamWriter(ost, "utf-8");
         //
@@ -103,7 +105,7 @@ public class JdxDataWriter {
             throw new XMLStreamException("Not started currentElement_rec");
         }
         //
-        wr.writeAttribute(name, String.valueOf(value));
+        wr.writeAttribute(name, JdxStringEscapeUtils.escapeJava(String.valueOf(value)));
     }
 
     public void setReplicaInfo(long dbId, long ageFrom, long ageTo) throws XMLStreamException {

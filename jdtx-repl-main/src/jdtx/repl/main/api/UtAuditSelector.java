@@ -15,7 +15,7 @@ public class UtAuditSelector {
     }
 
 
-    public void readAuditData(String tableName, String tableFields, long ageFrom, long ageTo, JdxDataWriter dataContainer) throws Exception {
+    public void readAuditData(String tableName, String tableFields, long ageFrom, long ageTo, JdxReplicaWriterXml dataContainer) throws Exception {
         //
         DbQuery rsTableLog = selectAuditData(tableName, tableFields, ageFrom, ageTo);
         try {

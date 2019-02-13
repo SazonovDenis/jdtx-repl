@@ -80,7 +80,7 @@ public class UtRepl {
     IReplica createReplica(IPublication publication, long ageFrom, long ageTo) throws Exception {
         File file = new File("../_test-data/csv.xml");
         OutputStream ost = new FileOutputStream(file);
-        JdxDataWriter wr = new JdxDataWriter(ost);
+        JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
 
         //
         wr.setReplicaInfo(1, ageFrom, ageTo); //todo: правила/страегия работы с DbID
@@ -133,7 +133,7 @@ public class UtRepl {
     IReplica createReplicaFull(IPublication publication) throws Exception {
         File file = new File("../_test-data/csv_full.xml");
         OutputStream ost = new FileOutputStream(file);
-        JdxDataWriter wr = new JdxDataWriter(ost);
+        JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
 
         //
         wr.setReplicaInfo(1, -1, 0); //todo: правила/страегия работы с DbID

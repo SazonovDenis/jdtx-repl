@@ -15,24 +15,62 @@ public class XmlRW_Test extends UtilsTestCase {
 
     @Test
     public void test_escape() throws Exception {
-        String s0 = "qqq\tttt\baaa\0zzz\\too\\boo\\roo\\zoo";
-        String s1 = StringEscapeUtils.escapeJava(s0);
-        String s2 = StringEscapeUtils.unescapeJava(s1);
-        System.out.println(s0);
-        System.out.println(s1);
-        System.out.println(s2);
-        assertEquals(s0, s2);
+        String sSr1 = "qqq\tttt\baaa\0zzz\ruuu\nsss\\too\\boo\\roo\\zoo";
+        String sSr2 = "qwerty|Иванов ВАСЯ|ә, ғ, қ, ң, ө, ұ, ү, h";
+        String sSr3 = "qqq\"\"zoo''hhh\"'xxx'\"fff| the \"SUN\" the 'sun'";
+
+        String sEs1 = StringEscapeUtils.escapeJava(sSr1);
+        String sEs2 = StringEscapeUtils.escapeJava(sSr2);
+        String sEs3 = StringEscapeUtils.escapeJava(sSr3);
+        String sUn1 = StringEscapeUtils.unescapeJava(sEs1);
+        String sUn2 = StringEscapeUtils.unescapeJava(sEs2);
+        String sUn3 = StringEscapeUtils.unescapeJava(sEs3);
+        
+        System.out.println(sSr1);
+        System.out.println(sEs1);
+        System.out.println(sUn1);
+        System.out.println("---");
+        System.out.println(sSr2);
+        System.out.println(sEs2);
+        System.out.println(sUn3);
+        System.out.println("---");
+        System.out.println(sSr3);
+        System.out.println(sEs3);
+        System.out.println(sUn3);
+
+        assertEquals(sSr1, sUn1);
+        assertEquals(sSr2, sUn2);
+        assertEquals(sSr3, sUn3);
     }
 
     @Test
-    public void test_escape_ru() throws Exception {
-        String s0 = "qwerty|Иванов ВАСЯ|ә, ғ, қ, ң, ө, ұ, ү, h";
-        String s1 = StringEscapeUtils.escapeJava(s0);
-        String s2 = StringEscapeUtils.unescapeJava(s1);
-        System.out.println(s0);
-        System.out.println(s1);
-        System.out.println(s2);
-        assertEquals(s0, s2);
+    public void test_escape_Jdx() throws Exception {
+        String sSr1 = "qqq\tttt\baaa\0zzz\ruuu\nsss\\too\\boo\\roo\\zoo";
+        String sSr2 = "qwerty|Иванов ВАСЯ|ә, ғ, қ, ң, ө, ұ, ү, h";
+        String sSr3 = "qqq\"\"zoo''hhh\"'xxx'\"fff| the \"SUN\" the 'sun'";
+
+        String sEs1 = JdxStringEscapeUtils.escapeJava(sSr1);
+        String sEs2 = JdxStringEscapeUtils.escapeJava(sSr2);
+        String sEs3 = JdxStringEscapeUtils.escapeJava(sSr3);
+        String sUn1 = StringEscapeUtils.unescapeJava(sEs1);
+        String sUn2 = StringEscapeUtils.unescapeJava(sEs2);
+        String sUn3 = StringEscapeUtils.unescapeJava(sEs3);
+
+        System.out.println(sSr1);
+        System.out.println(sEs1);
+        System.out.println(sUn1);
+        System.out.println("---");
+        System.out.println(sSr2);
+        System.out.println(sEs2);
+        System.out.println(sUn3);
+        System.out.println("---");
+        System.out.println(sSr3);
+        System.out.println(sEs3);
+        System.out.println(sUn3);
+
+        assertEquals(sSr1, sUn1);
+        assertEquals(sSr2, sUn2);
+        assertEquals(sSr3, sUn3);
     }
 
     @Test

@@ -13,7 +13,10 @@ public class UtDataSelector {
         this.struct = struct;
     }
 
-    public void readFullData(String tableName, String tableFields, JdxDataWriter dataContainer) throws Exception {
+    /**
+     * Обязана обеспечить правильный поток записей, если есть ссылка на самого себя
+     */
+    public void readFullData(String tableName, String tableFields, JdxReplicaWriterXml dataContainer) throws Exception {
         //
         DbQuery rsTableLog = selectFullData(tableName, tableFields);
         try {
@@ -52,7 +55,8 @@ public class UtDataSelector {
     }
 
     protected String getSql(IJdxTableStruct tableFrom, String tableFields) {
-        return "select " + tableFields + " from " + tableFrom.getName();
+        // Пока так реализуем правильный поток записей, если есть ссылка на самого себя
+        return "select " + tableFields + " from " + tableFrom.getName() + " order by id";
     }
 
 

@@ -39,7 +39,7 @@ public class UtAuditApplyer {
         DbAuditTriggersManager trm = new DbAuditTriggersManager(db);
 
         //
-        ReplicaReaderXml replicaReader = new ReplicaReaderXml(replica);
+        JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(replica);
         System.out.println("DbId = " + replicaReader.getDbId());
 
         //
