@@ -37,7 +37,7 @@ public class UtTest extends UtilsTestCase {
         long id0 = dbu.genId("g_region");
         dbu.insertRec("region", UtCnv.toMap(
                 "id", id0,
-                "regionTip", 1001,
+                "regionTip", 1,
                 "parent", 0,
                 "name", "Name-ins-" + rnd.nextInt()
         ));
@@ -46,7 +46,7 @@ public class UtTest extends UtilsTestCase {
         dbu.insertRec("ulz", UtCnv.toMap(
                 "id", id1,
                 "region", id0,
-                "ulzTip", 1002,
+                "ulzTip", 2,
                 "name", "Name-ins-" + rnd.nextInt()
         ));
 
