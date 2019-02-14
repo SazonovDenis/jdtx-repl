@@ -14,6 +14,9 @@ public class UtRepl {
     Db db;
     IJdxDbStruct struct;
 
+    JdxQueCreator queIn;
+    JdxQueCreator queOut;
+
     public UtRepl(Db db) throws Exception {
         this.db = db;
         // чтение структуры
@@ -77,7 +80,7 @@ public class UtRepl {
      * от возраста ageFrom до возраста ageTo включительно.
      * todo: правила/страегия работы с файлами и вообще с получателем информации - в какой момент и кто выбирает файл
      */
-    IReplica createReplica(IPublication publication, long ageFrom, long ageTo) throws Exception {
+    IReplica createReplicaFromAudit(IPublication publication, long ageFrom, long ageTo) throws Exception {
         File file = new File("../_test-data/csv.xml");
         OutputStream ost = new FileOutputStream(file);
         JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
@@ -113,15 +116,6 @@ public class UtRepl {
 
         //
         return res;
-    }
-
-
-    /**
-     * Применить реплику на рабочей станции
-     */
-    void applyReplica(IReplica replica, IPublication publication) throws Exception {
-        UtAuditApplyer utaa = new UtAuditApplyer(db, struct);
-        utaa.applyReplica(replica, publication, null);
     }
 
 
@@ -165,6 +159,51 @@ public class UtRepl {
 
         //
         return res;
+    }
+
+
+    /**
+     * Отслеживаем и обрабатываем свои изменения,
+     * формируем исходящие реплики
+     */
+    public void handleSelfAudit() throws Exception {
+        // Фиксируем возраст своего аудита
+        long selfAuditAge = markAuditAge();
+        System.out.println("selfAuditAge = " + selfAuditAge);
+
+        // Формируем реплики (по собственным изменениям)
+        for (IPublication publication : publicationsOut) {
+            IReplica replica = createReplicaFromAudit(publication, 0, selfAuditAge);
+
+            //
+            System.out.println(replica.getFile().getAbsolutePath());
+
+            // Пополнение исходящей очереди реплик
+            queOut.put(replica);
+        }
+    }
+
+    /**
+     * Применяем входящие реплики
+     */
+    public void handleInAudit() throws Exception {
+        UtAuditApplyer utaa = new UtAuditApplyer(db, struct);
+
+        //
+        long inIdxDone = queIn.getDone();
+        long inIdxMax = queIn.getMaxIdx();
+
+        //
+        while (inIdxDone < inIdxMax) {
+            IReplica replica = queIn.get(inIdxDone);
+            for (IPublication publication : publicationsIn) {
+                utaa.applyReplica(replica, publication, null);
+            }
+            //
+            inIdxDone++;
+            //
+            queIn.setDone(inIdxDone);
+        }
     }
 
 

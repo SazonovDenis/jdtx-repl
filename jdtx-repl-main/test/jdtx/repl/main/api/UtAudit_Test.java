@@ -53,8 +53,8 @@ public class UtAudit_Test extends ReplDatabase_Test {
         utTest.makeChange(struct);
 
         // Фиксируем возраст
-        long age = utr.markAuditAge();
-        System.out.println("age = " + age);
+        long selfAuditAge = utr.markAuditAge();
+        System.out.println("selfAuditAge = " + selfAuditAge);
 
         // Забираем реплики
         UtAuditSelector utrr = new UtAuditSelector(db, struct);
@@ -62,10 +62,10 @@ public class UtAudit_Test extends ReplDatabase_Test {
         OutputStream ost = new FileOutputStream("../_test-data/csv.xml");
         JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
         //
-        utrr.readAuditData("lic", "*", age, age, wr);
-        utrr.readAuditData("usr", "*", age, age, wr);
-        utrr.readAuditData("region", "*", age, age, wr);
-        utrr.readAuditData("ulz", "*", age, age, wr);
+        utrr.readAuditData("lic", "*", selfAuditAge, selfAuditAge, wr);
+        utrr.readAuditData("usr", "*", selfAuditAge, selfAuditAge, wr);
+        utrr.readAuditData("region", "*", selfAuditAge, selfAuditAge, wr);
+        utrr.readAuditData("ulz", "*", selfAuditAge, selfAuditAge, wr);
         //
         wr.close();
     }
@@ -103,8 +103,8 @@ public class UtAudit_Test extends ReplDatabase_Test {
         utTest.makeChange(struct);
 
         // Фиксируем возраст
-        long age = utr.markAuditAge();
-        System.out.println("age = " + age);
+        long selfAuditAge = utr.markAuditAge();
+        System.out.println("selfAuditAge = " + selfAuditAge);
 
         // Загружаем правила публикации
         IPublication publcation = new Publication();
@@ -116,7 +116,7 @@ public class UtAudit_Test extends ReplDatabase_Test {
         }
 
         // Забираем реплики
-        IReplica replica = utr.createReplica(publcation, 0, age);
+        IReplica replica = utr.createReplicaFromAudit(publcation, 0, selfAuditAge);
 
         //
         System.out.println(replica.getFile().getAbsolutePath());
