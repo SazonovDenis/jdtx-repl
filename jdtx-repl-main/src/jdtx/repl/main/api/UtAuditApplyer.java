@@ -14,14 +14,17 @@ public class UtAuditApplyer {
 
     Db db;
     IJdxDbStruct struct;
-    //RefDecoder decoder;
 
+    //
     public UtAuditApplyer(Db db, IJdxDbStruct struct) throws Exception {
         this.db = db;
         this.struct = struct;
     }
 
-    //todo: стратегия работы с рабочими станциями в какой момент и кто задает станцию, а также стратегия приема реплик с некоторых станций
+    /**
+     * Применить реплику на рабочей станции
+     * todo: стратегия работы с рабочими станциями в какой момент и кто задает станцию, а также стратегия приема реплик с некоторых станций
+     */
     public void applyReplica(IReplica replica, IPublication publication, Object ws) throws Exception {
         List<IJdxTableStruct> tables = struct.getTables();
         int tIdx = 0;
