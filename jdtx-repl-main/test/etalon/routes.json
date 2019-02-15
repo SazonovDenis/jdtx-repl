@@ -1,0 +1,10 @@
+[
+  {
+    "source": {
+      "directory": "Z:/jdtx-repl/_test-data/queOut/"
+    },
+    "destination": {
+      "directory": "Z:/jdtx-repl/_test-data/queIn/"
+    }
+  }
+]
