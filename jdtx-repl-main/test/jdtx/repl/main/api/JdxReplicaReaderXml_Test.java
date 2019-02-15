@@ -13,8 +13,8 @@ public class JdxReplicaReaderXml_Test extends DbmTestCase {
 
     @Test
     public void test_1() throws Exception {
-        IReplica replica = new Replica();
-        replica.setFile(new File("../_test-data/csv.xml"));
+        IReplica replica = new ReplicaFile();
+        replica.setFile(new File("../_test-data/~tmp_csv.xml"));
 
         //
         JdxReplicaReaderXml reader = new JdxReplicaReaderXml(replica);

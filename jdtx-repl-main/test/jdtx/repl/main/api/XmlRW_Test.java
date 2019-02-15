@@ -75,7 +75,7 @@ public class XmlRW_Test extends UtilsTestCase {
 
     @Test
     public void test_write() throws Exception {
-        OutputStream ost = new FileOutputStream("../_test-data/csv.xml");
+        OutputStream ost = new FileOutputStream("../_test-data/~tmp_csv.xml");
 
         XMLOutputFactory xof = XMLOutputFactory.newInstance();
         XMLStreamWriter wr = xof.createXMLStreamWriter(ost, "utf-8");
@@ -104,7 +104,7 @@ public class XmlRW_Test extends UtilsTestCase {
 
     @Test
     public void test_read() throws Exception {
-        InputStream ist = new FileInputStream("../_test-data/csv.xml");
+        InputStream ist = new FileInputStream("../_test-data/~tmp_csv.xml");
 
         XMLInputFactory fff = XMLInputFactory.newInstance();
         XMLStreamReader rd = fff.createXMLStreamReader(ist, "utf-8");

@@ -11,6 +11,7 @@ import org.junit.*;
  */
 public class ReplDatabase_Test extends AppTestCase {
 
+    // Экземпляры db и db1
     Db db;
     Db db1;
 

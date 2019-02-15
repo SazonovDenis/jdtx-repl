@@ -51,7 +51,6 @@ public class UtAuditApplyer {
         //
         db.startTran();
 
-
         //
         try {
             trm.setTriggersOff();
@@ -145,10 +144,19 @@ public class UtAuditApplyer {
 
             //
             db.commit();
-        } finally {
+
+            //
+            replicaReader.close();
+
+        } catch (Exception e){
             if (!trm.triggersIsOn()) {
                 trm.setTriggersOn();
             }
+
+            //
+            db.rollback();
+
+            //
             replicaReader.close();
         }
 

@@ -11,12 +11,12 @@ import java.util.*;
 /**
  * Работа с возрастом аудита
  */
-public class UtAuditManager {
+public class UtAuditAgeManager {
 
     IJdxDbStruct struct;
     Db db;
 
-    public UtAuditManager(Db db, IJdxDbStruct struct) {
+    public UtAuditAgeManager(Db db, IJdxDbStruct struct) {
         this.db = db;
         this.struct = struct;
     }
@@ -27,8 +27,8 @@ public class UtAuditManager {
      */
     public long markAuditAge() throws Exception {
         // возраст базы данных
-        long ageFixed = getAuditAge();
-        long ageActual = ageFixed;
+        long auditAgeFixed = getAuditAge();
+        long auditAgeActual = auditAgeFixed;
 
         // стартуем транзакцию
         db.startTran();
@@ -36,7 +36,7 @@ public class UtAuditManager {
         try {
 
             // Предыдущий возраст аудита каждой таблицы
-            DataStore st = db.loadSql("select table_name, " + JdxUtils.prefix + "id as maxId from " + JdxUtils.sys_table_prefix + "age where age = "+ageFixed);
+            DataStore st = db.loadSql("select table_name, " + JdxUtils.prefix + "id as maxId from " + JdxUtils.sys_table_prefix + "age where age = " + auditAgeFixed);
             Map maxIdsFixed = new HashMap<>();
             for (DataRecord rec : st) {
                 String tableName = rec.getValueString("table_name");
@@ -56,14 +56,22 @@ public class UtAuditManager {
             boolean wasChange = false;
             for (IJdxTableStruct table : struct.getTables()) {
                 String tableName = table.getName();
-                if (maxIdsCurr.get(tableName) != maxIdsFixed.get(tableName)) {
+                long maxIdCurr = 0;
+                long maxIdFixed = 0;
+                if (maxIdsCurr.get(tableName) != null) {
+                    maxIdCurr = (long) maxIdsCurr.get(tableName);
+                }
+                if (maxIdsFixed.get(tableName) != null) {
+                    maxIdFixed = (long) maxIdsFixed.get(tableName);
+                }
+                if (maxIdCurr != maxIdFixed) {
                     wasChange = true;
                     break;
                 }
             }
 
             if (wasChange) {
-                ageActual = ageActual + 1;
+                auditAgeActual = auditAgeActual + 1;
                 // пишем метки
                 DateTime dt = new DateTime();
                 String sqlIns = "insert into " + JdxUtils.sys_table_prefix + "age(age, table_name, " + JdxUtils.prefix + "id, dt) values (:age, :table_name, :maxId, :dt)";
@@ -72,7 +80,7 @@ public class UtAuditManager {
                     // максимальный Z_ID из аудита каждой таблицы
                     long maxId = db.loadSql("select max(" + JdxUtils.prefix + "id) as maxId from " + JdxUtils.audit_table_prefix + tableName).getCurRec().getValueLong("maxId");
                     //
-                    db.execSql(sqlIns, UtCnv.toMap("age", ageActual, "table_name", tableName, "maxId", maxId, "dt", dt));
+                    db.execSql(sqlIns, UtCnv.toMap("age", auditAgeActual, "table_name", tableName, "maxId", maxId, "dt", dt));
                 }
             }
 
@@ -80,10 +88,11 @@ public class UtAuditManager {
             db.commit();
         } catch (Exception e) {
             db.rollback(e);
+            throw e;
         }
 
         // возвращаем новый возраст базы
-        return ageActual;
+        return auditAgeActual;
     }
 
 

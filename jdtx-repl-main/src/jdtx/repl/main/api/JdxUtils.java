@@ -12,7 +12,9 @@ public class JdxUtils {
 
     public static final String sys_table_prefix = prefix + "Z_";
 
-    public static final String gen_pref = prefix + "G_";
+    public static final String audit_gen_prefix = prefix + "G_";
+
+    public static final String sys_gen_prefix = sys_table_prefix + "G_";
 
     public static final String trig_pref = prefix + "T_";
 

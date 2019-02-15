@@ -26,10 +26,21 @@ public class DbUtils {
      * Возвращает очередную id для генератора generatorName
      */
     public long genId(String generatorName) throws SQLException {
+        return genId(generatorName, 1);
+    }
+
+    /**
+     * Возвращает текущую id для генератора generatorName
+     */
+    public long getCurrId(String generatorName) throws SQLException {
+        return genId(generatorName, 0);
+    }
+
+    private long genId(String generatorName, int increment) throws SQLException {
         Statement st = db.getConnection().createStatement();
         ResultSet rs = null;
         try {
-            String sql = "select gen_id(" + generatorName + ", 1) as id from dual";
+            String sql = "select gen_id(" + generatorName + ", " + increment + ") as id from dual";
             rs = st.executeQuery(sql);
             if (rs.next()) {
                 return rs.getLong("id");
@@ -70,7 +81,7 @@ public class DbUtils {
         sb.append(table.getName());
         sb.append("(");
         int cnt = 0;
-        for (String fieldName: fieldsList) {
+        for (String fieldName : fieldsList) {
             if (containsInList(ilist, fieldName)) {
                 continue;
             }
@@ -92,7 +103,7 @@ public class DbUtils {
         //
         cnt = 0;
         sb.append(") values (");
-        for (String fieldName: fieldsList) {
+        for (String fieldName : fieldsList) {
             if (containsInList(ilist, fieldName)) {
                 continue;
             }
@@ -306,7 +317,7 @@ public class DbUtils {
         p.putAll(params);
         long id = UtCnv.toLong(p.get(ID_FIELD));
         if (id == 0) {
-            id = getNextId(tableName);
+            id = getTableNextId(tableName);
             p.put(ID_FIELD, id);
         }
         //
@@ -330,7 +341,7 @@ public class DbUtils {
      * @return
      * @throws SQLException
      */
-    private long getNextId(String tableName) throws SQLException {
+    private long getTableNextId(String tableName) throws SQLException {
         return genId("g_" + tableName);
     }
 }

@@ -1,6 +1,5 @@
 package jdtx.repl.main.api;
 
-import jdtx.repl.main.api.struct.*;
 import org.json.simple.*;
 import org.junit.*;
 
@@ -8,21 +7,8 @@ import java.io.*;
 
 /**
  */
-public class UtAudit_Test extends ReplDatabase_Test {
+public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
-    IJdxDbStruct struct;
-    IJdxDbStruct struct1;
-
-    public void setUp() throws Exception {
-        super.setUp();
-
-        // Утилиты
-        IJdxDbStructReader reader = new JdxDbStructReader();
-        reader.setDb(db);
-        struct = reader.readDbStruct();
-        reader.setDb(db1);
-        struct1 = reader.readDbStruct();
-    }
 
     @Test
     public void test_LoadRules() throws Exception {
@@ -117,7 +103,7 @@ public class UtAudit_Test extends ReplDatabase_Test {
         // Забираем реплики
         UtAuditSelector utrr = new UtAuditSelector(db, struct);
 
-        OutputStream ost = new FileOutputStream("../_test-data/csv.xml");
+        OutputStream ost = new FileOutputStream("../_test-data/~tmp_csv.xml");
         JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
         //
         utrr.readAuditData("lic", "*", selfAuditAge, selfAuditAge, wr);
@@ -152,8 +138,6 @@ public class UtAudit_Test extends ReplDatabase_Test {
 
     @Test
     public void test_createReplica() throws Exception {
-        //logOn();
-
         UtRepl utr = new UtRepl(db);
 
         // Делаем изменения
@@ -173,8 +157,8 @@ public class UtAudit_Test extends ReplDatabase_Test {
             r.close();
         }
 
-        // Забираем реплики
-        IReplica replica = utr.createReplicaFromAudit(publcation, 0, selfAuditAge);
+        // Формируем реплики
+        IReplica replica = utr.createReplicaFromAudit(publcation, selfAuditAge);
 
         //
         System.out.println(replica.getFile().getAbsolutePath());
@@ -192,8 +176,8 @@ public class UtAudit_Test extends ReplDatabase_Test {
         }
 
         // Реплики
-        IReplica replica = new Replica();
-        replica.setFile(new File("../_test-data/csv.xml"));
+        IReplica replica = new ReplicaFile();
+        replica.setFile(new File("../_test-data/~tmp_csv.xml"));
 
         // Применяем реплики
         UtAuditApplyer utaa = new UtAuditApplyer(db1, struct);
@@ -212,7 +196,7 @@ public class UtAudit_Test extends ReplDatabase_Test {
         }
 
         // Реплики
-        IReplica replica = new Replica();
+        IReplica replica = new ReplicaFile();
         replica.setFile(new File("../_test-data/csv_full.xml"));
 
         // Применяем реплики

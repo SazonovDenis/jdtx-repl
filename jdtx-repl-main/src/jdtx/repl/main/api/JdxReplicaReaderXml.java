@@ -13,6 +13,7 @@ public class JdxReplicaReaderXml {
     IReplica replica = null;
     XMLStreamReader reader = null;
     private long dbId;
+    private long age;
 
     public JdxReplicaReaderXml(IReplica replica) throws Exception {
         this.replica = replica;
@@ -27,6 +28,7 @@ public class JdxReplicaReaderXml {
             if (event == XMLStreamConstants.START_ELEMENT) {
                 if (reader.getLocalName().compareToIgnoreCase("replica") == 0) {
                     dbId = Long.valueOf(reader.getAttributeValue(null, "DB_ID"));
+                    age = Long.valueOf(reader.getAttributeValue(null, "AGE"));
                     break;
                 }
             }
@@ -35,6 +37,10 @@ public class JdxReplicaReaderXml {
 
     public long getDbId() {
         return dbId;
+    }
+
+    public long getAge() {
+        return age;
     }
 
     public String nextTable() throws XMLStreamException {
@@ -79,7 +85,6 @@ public class JdxReplicaReaderXml {
 
         return null;
     }
-
 
     public void close() throws XMLStreamException {
         reader.close();

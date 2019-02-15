@@ -7,6 +7,10 @@ import java.io.*;
  */
 public interface IReplica {
 
+    void setAge(long age);
+
+    long getAge();
+
     void setFile(File file);
 
     File getFile();

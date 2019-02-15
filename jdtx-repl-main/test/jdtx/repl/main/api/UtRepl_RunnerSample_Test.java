@@ -7,7 +7,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- *
+ * todo: Нужен ли ? Мусор походу - УДАЛИТЬ
  */
 public class UtRepl_RunnerSample_Test extends ReplDatabase_Test {
 
@@ -18,8 +18,8 @@ public class UtRepl_RunnerSample_Test extends ReplDatabase_Test {
     List<IPublication> publicationsIn;
     List<IPublication> publicationsOut;
 
-    JdxQueCreator queIn;
-    JdxQueCreator queOut;
+    JdxQueCreatorFile queIn;
+    JdxQueCreatorFile queOut;
 
 
     public void setUp() throws Exception {
@@ -53,6 +53,7 @@ public class UtRepl_RunnerSample_Test extends ReplDatabase_Test {
         SrvQueManager srvQueManager = new SrvQueManager();
         UtRepl utr = new UtRepl(db1);
 
+/*
         // Отслеживаем и обрабатываем свои изменения
         utr.queOut = srvQueManager.localOutQue;
         utr.handleSelfAudit();
@@ -61,24 +62,25 @@ public class UtRepl_RunnerSample_Test extends ReplDatabase_Test {
         srvQueManager.handleQue();
 
         // Применяем входящие реплики
-        utr.handleInAudit();
+        utr.handleInQue();
+*/
     }
 
 
     @Test
     public void sample_runWs() throws Exception {
-        UtRepl utr = new UtRepl(db);
+        JdxReplWs replWs = new JdxReplWs(db);
 
         //
-        utr.queIn = queIn;
-        utr.queOut = queOut;
+        replWs.queIn = queIn;
+        replWs.queOut = queOut;
 
 
         // Отслеживаем и обрабатываем свои изменения
-        utr.handleSelfAudit();
+        replWs.handleSelfAudit();
 
         // Применяем входящие реплики
-        utr.handleInAudit();
+        replWs.handleInQue();
     }
 
 

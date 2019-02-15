@@ -42,7 +42,7 @@ public class UtAuditSelector {
         }
     }
 
-    public void clearAuditData(long ageFrom, long ageTo) throws Exception {
+    public void __clearAuditData(long ageFrom, long ageTo) throws Exception {
         String query;
         db.startTran();
         try {
@@ -66,6 +66,7 @@ public class UtAuditSelector {
             db.commit();
         } catch (Exception e) {
             db.rollback(e);
+            throw e;
         }
     }
 
@@ -99,7 +100,7 @@ public class UtAuditSelector {
      * @return id таблицы аудита, соответствующая возрасту age
      */
     protected long getAuditMaxIdByAge(IJdxTableStruct tableFrom, long age) throws Exception {
-        String query = "select " + JdxUtils.prefix + "id as id from " + JdxUtils.sys_table_prefix + "age where age=" + age + " and tableName='" + tableFrom.getName() + "'";
+        String query = "select " + JdxUtils.prefix + "id as id from " + JdxUtils.sys_table_prefix + "age where age=" + age + " and table_name='" + tableFrom.getName() + "'";
         return db.loadSql(query).getCurRec().getValueLong("id");
     }
 

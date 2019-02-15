@@ -1,7 +1,7 @@
 package jdtx.repl.main.api;
 
 /**
- * Читатель очереди сообщений с репликами
+ * Читатель очереди сообщений с репликами todo НУЖЕН ЛИ- УДАЛИТЬ
  */
 public class JdxQueReader {
 

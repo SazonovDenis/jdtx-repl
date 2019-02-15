@@ -76,7 +76,8 @@ public class RefDecoder implements IRefDecoder {
 
         // Записываем новый слот
         Map params = UtCnv.toMap("ws_id", ws_id, "table_name", tableName, "ws_slot", ws_slot, "own_slot", own_slot);
-        db.execSql("insert into " + JdxUtils.sys_table_prefix + "decode (ws_id, table_name, ws_slot, own_slot) values (:ws_id, :table_name, :ws_slot, :own_slot)", params);
+        String sql = "insert into " + JdxUtils.sys_table_prefix + "decode (ws_id, table_name, ws_slot, own_slot) values (:ws_id, :table_name, :ws_slot, :own_slot)";
+        db.execSql(sql, params);
 
         // Перекодировка через слот
         own_id = own_slot * SLOT_SIZE + db_id % SLOT_SIZE;
