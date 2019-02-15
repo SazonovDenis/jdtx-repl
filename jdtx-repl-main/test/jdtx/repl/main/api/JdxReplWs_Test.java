@@ -36,7 +36,7 @@ public class JdxReplWs_Test extends ReplDatabaseStruct_Test {
         // Загружаем правила публикации
         // todo: доделать инициализацию до уровня реального применения
         IPublication publication = new Publication();
-        Reader r = new FileReader("../_test-data/etalon/pub.json");
+        Reader r = new FileReader("test/etalon/pub.json");
         try {
             publication.loadRules(r);
             ws.publicationsIn.add(publication);
@@ -114,7 +114,7 @@ public class JdxReplWs_Test extends ReplDatabaseStruct_Test {
         // Загружаем правила публикации
         // todo: доделать инициализацию до уровня реального применения
         IPublication publication = new Publication();
-        Reader r = new FileReader("../_test-data/etalon/pub.json");
+        Reader r = new FileReader("test/etalon/pub.json");
         try {
             publication.loadRules(r);
             ws.publicationsIn.add(publication);

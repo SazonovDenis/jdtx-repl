@@ -1,0 +1,15 @@
+[
+  {
+    "table": "Region",
+    "strategy": "DECODE_ID",
+    "dedode_range": [
+      {
+        "min": "1007"
+      }
+    ]
+  },
+  {
+    "table": "OprTip",
+    "strategy": "NO_DECODE"
+  }
+]

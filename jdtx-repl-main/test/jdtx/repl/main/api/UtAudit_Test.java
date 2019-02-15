@@ -13,7 +13,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_LoadRules() throws Exception {
         Publication publication = new Publication();
-        Reader r = new FileReader("../_test-data/etalon/pub.json");
+        Reader r = new FileReader("test/etalon/pub.json");
         try {
             publication.loadRules(r);
         } finally {
@@ -122,7 +122,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
         // Загружаем правила публикации
         IPublication publcation = new Publication();
-        Reader r = new FileReader("../_test-data/etalon/pub_full.json");
+        Reader r = new FileReader("test/etalon/pub_full.json");
         try {
             publcation.loadRules(r);
         } finally {
@@ -150,7 +150,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
         // Загружаем правила публикации
         IPublication publcation = new Publication();
-        Reader r = new FileReader("../_test-data/etalon/pub.json");
+        Reader r = new FileReader("test/etalon/pub.json");
         try {
             publcation.loadRules(r);
         } finally {
@@ -168,7 +168,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
     public void test_applyReplica() throws Exception {
         // Загружаем правила публикации
         IPublication publcation = new Publication();
-        Reader r = new FileReader("../_test-data/etalon/pub.json");
+        Reader r = new FileReader("test/etalon/pub.json");
         try {
             publcation.loadRules(r);
         } finally {
@@ -188,7 +188,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
     public void test_applyReplicaFull() throws Exception {
         // Загружаем правила публикации
         IPublication publcation = new Publication();
-        Reader r = new FileReader("../_test-data/etalon/pub_full.json");
+        Reader r = new FileReader("test/etalon/pub_full.json");
         try {
             publcation.loadRules(r);
         } finally {
