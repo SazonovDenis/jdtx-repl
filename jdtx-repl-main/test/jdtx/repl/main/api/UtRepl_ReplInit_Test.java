@@ -17,6 +17,9 @@ public class UtRepl_ReplInit_Test extends ReplDatabase_Test {
         // db1
         UtRepl utr1 = new UtRepl(db1);
         utr1.dropReplication();
+        // db2
+        UtRepl utr2 = new UtRepl(db2);
+        utr2.dropReplication();
     }
 
     @Test
@@ -29,6 +32,10 @@ public class UtRepl_ReplInit_Test extends ReplDatabase_Test {
         UtRepl utr1 = new UtRepl(db1);
         utr1.dropReplication();
         utr1.createReplication();
+        // db2
+        UtRepl utr2 = new UtRepl(db2);
+        utr2.dropReplication();
+        utr2.createReplication();
     }
 
     @Test

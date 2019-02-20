@@ -79,6 +79,11 @@ public class UtRepl_RunnerSample_Test extends ReplDatabase_Test {
         // Отслеживаем и обрабатываем свои изменения
         replWs.handleSelfAudit();
 
+
+        // Забираем входящие реплики
+        replWs.pullToQueIn();
+
+
         // Применяем входящие реплики
         replWs.handleInQue();
     }

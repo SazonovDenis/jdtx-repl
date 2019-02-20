@@ -74,6 +74,12 @@ public class JdxReplWs {
         }
     }
 
+    public void pullToQueIn() throws Exception {
+        JdxQueReaderDir x = new JdxQueReaderDir();
+        x.baseFilePath = "../_test-data/queIn/";
+        x.reloadDir(queIn);
+    }
+
     /**
      * Применяем входящие реплики
      */

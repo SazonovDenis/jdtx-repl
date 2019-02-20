@@ -17,6 +17,7 @@
     <dbm>
         <registermodel name="default" model="jdtx.repl.main"/>
         <registermodel name="db1" model="jdtx.repl.main"/>
+        <registermodel name="db2" model="jdtx.repl.main"/>
     </dbm>
 
     <web>

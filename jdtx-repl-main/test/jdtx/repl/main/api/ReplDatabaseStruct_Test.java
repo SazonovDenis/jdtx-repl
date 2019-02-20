@@ -10,6 +10,7 @@ public class ReplDatabaseStruct_Test extends ReplDatabase_Test {
     // Структуры db и db1
     IJdxDbStruct struct;
     IJdxDbStruct struct1;
+    IJdxDbStruct struct2;
 
     public void setUp() throws Exception {
         //
@@ -21,6 +22,8 @@ public class ReplDatabaseStruct_Test extends ReplDatabase_Test {
         struct = reader.readDbStruct();
         reader.setDb(db1);
         struct1 = reader.readDbStruct();
+        reader.setDb(db2);
+        struct2 = reader.readDbStruct();
     }
 
     @Test

@@ -9,10 +9,69 @@ public class JdxReplWs_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void test_db() throws Exception {
+    public void test_doSetupReplica() throws Exception {
+        // ---
+        // Рабочая станция 1, настройка
+        // ---
+        JdxReplWs ws1 = new JdxReplWs(db1);
+
+        // Пишем в эту очередь
+        ws1.queOut = new JdxQueCreatorFile(db1);
+        ws1.queOut.baseFilePath = "../_test-data/queOut/ws1";
+        ws1.queOut.queType = JdxQueType.OUT;
+        // ---
+
 
         // ---
-        // Рабочая станция, настройка
+        // Рабочая станция 2, настройка
+        // ---
+        JdxReplWs ws2 = new JdxReplWs(db2);
+
+        // Пишем в эту очередь
+        ws2.queOut = new JdxQueCreatorFile(db2);
+        ws2.queOut.baseFilePath = "../_test-data/queOut/ws2";
+        ws2.queOut.queType = JdxQueType.OUT;
+        // ---
+
+
+        // ---
+        // Загружаем правила публикации
+        // ---
+        IPublication publication = new Publication();
+        Reader r = new FileReader("test/etalon/pub_full.json");
+        try {
+            publication.loadRules(r);
+        } finally {
+            r.close();
+        }
+        // ---
+
+
+        // ---
+        // Работаем
+        // ---
+
+        // Забираем установочную реплику
+        UtRepl utr1 = new UtRepl(db1);
+        IReplica setupReplica = utr1.createReplicaFull(publication);
+
+        // Помещаем установочную реплику в очередь
+        ws1.queOut.put(setupReplica);
+
+
+        // Забираем установочную реплику
+        UtRepl utr2 = new UtRepl(db2);
+        IReplica setupReplica2 = utr2.createReplicaFull(publication);
+
+        // Помещаем установочную реплику в очередь
+        ws2.queOut.put(setupReplica2);
+    }
+
+    @Test
+    public void test_srv() throws Exception {
+
+        // ---
+        // Сервер, настройка
         JdxReplWs ws = new JdxReplWs(db);
 
         // Пишем в эту очередь
@@ -90,7 +149,7 @@ public class JdxReplWs_Test extends ReplDatabaseStruct_Test {
     public void test_db1() throws Exception {
 
         // ---
-        // Рабочая станция, настройка
+        // Рабочая станция 1, настройка
         JdxReplWs ws = new JdxReplWs(db1);
 
         // Пишем в эту очередь
@@ -132,7 +191,11 @@ public class JdxReplWs_Test extends ReplDatabaseStruct_Test {
         long auditAge_0 = ut.getAuditAge();
 
 
-        // Читаем чужие реплики
+        // Забираем входящие реплики
+        ws.pullToQueIn();
+
+
+        // Применяем входящие реплики
         ws.handleInQue();
 
 

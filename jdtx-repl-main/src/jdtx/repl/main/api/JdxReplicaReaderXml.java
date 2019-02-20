@@ -22,7 +22,7 @@ public class JdxReplicaReaderXml {
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         reader = xmlInputFactory.createXMLStreamReader(ist, "utf-8");
 
-        // DbId
+        // Чтение заголовка - DB_ID и AGE
         while (reader.hasNext()) {
             int event = reader.next();
             if (event == XMLStreamConstants.START_ELEMENT) {
