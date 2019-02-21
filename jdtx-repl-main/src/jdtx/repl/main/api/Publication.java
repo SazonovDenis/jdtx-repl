@@ -12,10 +12,6 @@ public class Publication implements IPublication {
 
     JSONArray data;
 
-    public Publication() throws Exception {
-    }
-
-
     public void loadRules(Reader r) throws Exception {
         JSONParser p = new JSONParser();
         data = (JSONArray) p.parse(r);
@@ -23,6 +19,10 @@ public class Publication implements IPublication {
 
     public JSONArray getData() {
         return data;
+    }
+
+    public void setData(JSONArray data) {
+        this.data = data;
     }
 
 

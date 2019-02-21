@@ -16,4 +16,6 @@ public interface IPublication {
 
     JSONArray getData();
 
+    void setData(JSONArray data);
+
 }

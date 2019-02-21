@@ -9,42 +9,12 @@ public class JdxReplWs_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void test_doSetupReplica() throws Exception {
+    public void test_ws1_CreateSetupReplica() throws Exception {
         // ---
         // Рабочая станция 1, настройка
         // ---
         JdxReplWs ws1 = new JdxReplWs(db1);
-
-        // Пишем в эту очередь
-        ws1.queOut = new JdxQueCreatorFile(db1);
-        ws1.queOut.baseFilePath = "../_test-data/queOut/ws1";
-        ws1.queOut.queType = JdxQueType.OUT;
-        // ---
-
-
-        // ---
-        // Рабочая станция 2, настройка
-        // ---
-        JdxReplWs ws2 = new JdxReplWs(db2);
-
-        // Пишем в эту очередь
-        ws2.queOut = new JdxQueCreatorFile(db2);
-        ws2.queOut.baseFilePath = "../_test-data/queOut/ws2";
-        ws2.queOut.queType = JdxQueType.OUT;
-        // ---
-
-
-        // ---
-        // Загружаем правила публикации
-        // ---
-        IPublication publication = new Publication();
-        Reader r = new FileReader("test/etalon/pub_full.json");
-        try {
-            publication.loadRules(r);
-        } finally {
-            r.close();
-        }
-        // ---
+        ws1.init("test/etalon/ws1.json");
 
 
         // ---
@@ -52,19 +22,46 @@ public class JdxReplWs_Test extends ReplDatabaseStruct_Test {
         // ---
 
         // Забираем установочную реплику
-        UtRepl utr1 = new UtRepl(db1);
-        IReplica setupReplica = utr1.createReplicaFull(publication);
+        UtRepl utr = new UtRepl(db1);
+        utr.dbId = 1;
+        for (IPublication publication : ws1.publicationsOut) {
+            // Забираем реплику
+            IReplica setupReplica = utr.createReplicaFull(publication);
 
-        // Помещаем установочную реплику в очередь
-        ws1.queOut.put(setupReplica);
+            // Помещаем реплику в очередь
+            ws1.queOut.put(setupReplica);
+        }
+
+    }
+
+    @Test
+    public void test_srv_ApplySetupReplica() throws Exception {
+        // ---
+        // Рабочая станция, настройка
+        // ---
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.init("test/etalon/ws_srv.json");
 
 
-        // Забираем установочную реплику
-        UtRepl utr2 = new UtRepl(db2);
-        IReplica setupReplica2 = utr2.createReplicaFull(publication);
+        // ---
+        // Работаем
+        // ---
 
-        // Помещаем установочную реплику в очередь
-        ws2.queOut.put(setupReplica2);
+        // Отслеживаем и обрабатываем свои изменения
+        ws.handleSelfAudit();
+        //
+        ws.send();
+
+        // Забираем входящие реплики
+        ws.receive();
+
+        //
+        ws.pullToQueIn();
+
+
+        // Применяем входящие реплики
+        ws.handleQueIn();
+
     }
 
     @Test
@@ -76,14 +73,14 @@ public class JdxReplWs_Test extends ReplDatabaseStruct_Test {
 
         // Пишем в эту очередь
         JdxQueCreatorFile queOut = new JdxQueCreatorFile(db);
-        queOut.baseFilePath = "../_test-data/queOut/";
+        queOut.baseDir = "../_test-data/queOut/";
         queOut.queType = JdxQueType.OUT;
         //
         ws.queOut = queOut;
 
         // Читаем из этой очереди
-        JdxQueCreatorFile queIn = new JdxQueCreatorFile(db);
-        queIn.baseFilePath = "../_test-data/queIn/";
+        JdxQueCommon queIn = new JdxQueCommon(db);
+        queIn.baseDir = "../_test-data/queIn/";
         queIn.queType = JdxQueType.IN;
         //
         ws.queIn = queIn;
@@ -154,14 +151,14 @@ public class JdxReplWs_Test extends ReplDatabaseStruct_Test {
 
         // Пишем в эту очередь
         JdxQueCreatorFile queOut = new JdxQueCreatorFile(db1);
-        queOut.baseFilePath = "../_test-data/queOut/";
+        queOut.baseDir = "../_test-data/queOut/";
         queOut.queType = JdxQueType.OUT;
         //
         ws.queOut = queOut;
 
         // Читаем из этой очереди
-        JdxQueCreatorFile queIn = new JdxQueCreatorFile(db1);
-        queIn.baseFilePath = "../_test-data/queIn/";
+        JdxQueCommon queIn = new JdxQueCommon(db1);
+        queIn.baseDir = "../_test-data/queIn/";
         queIn.queType = JdxQueType.IN;
         //
         ws.queIn = queIn;
@@ -196,7 +193,7 @@ public class JdxReplWs_Test extends ReplDatabaseStruct_Test {
 
 
         // Применяем входящие реплики
-        ws.handleInQue();
+        ws.handleQueIn();
 
 
         //
@@ -212,7 +209,7 @@ public class JdxReplWs_Test extends ReplDatabaseStruct_Test {
         long auditAge_2 = ut.getAuditAge();
 
         // Снова читаем чужие реплики
-        ws.handleInQue();
+        ws.handleQueIn();
 
 
         //

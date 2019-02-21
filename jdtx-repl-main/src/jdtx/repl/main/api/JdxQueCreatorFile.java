@@ -12,11 +12,11 @@ import java.io.*;
  * Формирователь очереди реплик.
  * Физическая реализация хранения реплик и их упорядочивание.
  */
-public class JdxQueCreatorFile implements IJdxQue {
+public class JdxQueCreatorFile implements IJdxQueOut {
 
     long queType;
 
-    String baseFilePath;
+    String baseDir;
 
     Db db;
     DbUtils ut;
@@ -38,19 +38,19 @@ public class JdxQueCreatorFile implements IJdxQue {
             throw new XError("invalid queType");
         }
         //
+        if (replica.getAge() == -1) {
+            throw new XError("invalid replica.age");
+        }
+        //
         long queMaxAge = getMaxAge();
         if (replica.getAge() != queMaxAge + 1) {
             throw new XError("invalid age: replica.getAge = " + replica.getAge() + ", queMaxAge = " + queMaxAge);
         }
-        //
-        if (replica.getAge() == -1) {
-            throw new XError("invalid replica.age");
-        }
 
         //
-        long id_temp = ut.getCurrId(JdxUtils.sys_gen_prefix + "que");
-        String actualFileName = genFileName(id_temp);
-        File actualFile = new File(baseFilePath + actualFileName);
+        //long id_temp = ut.getCurrId(JdxUtils.sys_gen_prefix + "que");
+        String actualFileName = genFileName(replica.getAge());
+        File actualFile = new File(baseDir + actualFileName);
         FileUtils.copyFile(replica.getFile(), actualFile);
 
         //
@@ -64,26 +64,14 @@ public class JdxQueCreatorFile implements IJdxQue {
 
     }
 
-    IReplica getById(long id) {
-        String actualFileName = genFileName(id);
-        File actualFile = new File(baseFilePath + actualFileName);
-        IReplica replica = new ReplicaFile();
-        replica.setFile(actualFile);
-        return replica;
-    }
-
-    long getMaxAge() throws Exception {
+    public long getMaxAge() throws Exception {
         String sql = "select max(age) as age from " + JdxUtils.sys_table_prefix + "que where que_type = " + queType;
         return db.loadSql(sql).getCurRec().getValueLong("age");
     }
 
-    public long getMaxId() throws Exception {
-        String sql = "select max(id) as id from " + JdxUtils.sys_table_prefix + "que where que_type = " + queType;
-        return db.loadSql(sql).getCurRec().getValueLong("id");
-    }
 
-    String genFileName(long id) {
-        return UtString.padLeft(String.valueOf(id), 9, '0') + ".xml";
+    String genFileName(long age) {
+        return UtString.padLeft(String.valueOf(age), 9, '0') + ".xml";
     }
 
 }

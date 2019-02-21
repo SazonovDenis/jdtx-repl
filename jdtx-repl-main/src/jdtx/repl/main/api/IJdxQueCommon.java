@@ -3,7 +3,7 @@ package jdtx.repl.main.api;
 /**
  * Формирователь очереди реплик - хранение реплик и их упорядочивание.
  */
-public interface IJdxQue {
+public interface IJdxQueCommon {
 
     /**
      * Поместить replica в очередь
@@ -15,12 +15,12 @@ public interface IJdxQue {
      */
     long getMaxId() throws Exception;
 
-    //IReplica get(long idx) throws Exception;
-
-    //long getQueMaxAge() throws Exception;
-
-    //long getDone() throws Exception;
-
-    //void setDone(long inIdxDone) throws Exception;
+    /**
+     *
+     * @param idx
+     * @return
+     * @throws Exception
+     */
+    IReplica getById(long idx) throws Exception;
 
 }

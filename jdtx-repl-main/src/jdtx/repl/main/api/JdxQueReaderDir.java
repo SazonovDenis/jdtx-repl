@@ -11,14 +11,14 @@ import java.util.*;
  */
 public class JdxQueReaderDir {
 
-    String baseFilePath = null;
+    String baseDir = null;
     String inFileMask = "*.xml";
 
     /**
      * Забираем из внешнего источника и кладем во входящую очередь
      */
-    void reloadDir(IJdxQue queIn) throws Exception {
-        File inDir = new File(baseFilePath);
+    void reloadDir(IJdxQueCommon queIn) throws Exception {
+        File inDir = new File(baseDir);
         File[] files = inDir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
         Arrays.sort(files);
 

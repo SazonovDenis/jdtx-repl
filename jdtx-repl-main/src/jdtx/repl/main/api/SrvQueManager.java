@@ -7,6 +7,6 @@ package jdtx.repl.main.api;
  */
 public class SrvQueManager {
 
-    IJdxQue localOutQue;
+    IJdxQueOut localOutQue;
 
 }

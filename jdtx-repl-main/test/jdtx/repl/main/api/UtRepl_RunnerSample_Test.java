@@ -18,7 +18,7 @@ public class UtRepl_RunnerSample_Test extends ReplDatabase_Test {
     List<IPublication> publicationsIn;
     List<IPublication> publicationsOut;
 
-    JdxQueCreatorFile queIn;
+    JdxQueCommon queIn;
     JdxQueCreatorFile queOut;
 
 
@@ -62,7 +62,7 @@ public class UtRepl_RunnerSample_Test extends ReplDatabase_Test {
         srvQueManager.handleQue();
 
         // Применяем входящие реплики
-        utr.handleInQue();
+        utr.handleQueIn();
 */
     }
 
@@ -85,7 +85,7 @@ public class UtRepl_RunnerSample_Test extends ReplDatabase_Test {
 
 
         // Применяем входящие реплики
-        replWs.handleInQue();
+        replWs.handleQueIn();
     }
 
 

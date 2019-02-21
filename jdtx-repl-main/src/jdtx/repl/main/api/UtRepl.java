@@ -13,9 +13,7 @@ public class UtRepl {
 
     Db db;
     IJdxDbStruct struct;
-
-    IJdxQue queIn;
-    IJdxQue queOut;
+    long dbId; // todo: правила/страегия работы с DbID
 
     public UtRepl(Db db) throws Exception {
         this.db = db;
@@ -85,7 +83,7 @@ public class UtRepl {
         JdxReplicaWriterXml writerXml = new JdxReplicaWriterXml(ost);
 
         //
-        writerXml.setReplicaInfo(1, age); //todo: правила/страегия работы с DbID
+        writerXml.setReplicaInfo(dbId, age);
 
         //
         UtAuditSelector utrr = new UtAuditSelector(db, struct);
@@ -130,8 +128,8 @@ public class UtRepl {
         JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
 
         //
-        long age = 0;
-        wr.setReplicaInfo(1, age); //todo: правила/страегия работы с DbID
+        long age = 1;
+        wr.setReplicaInfo(dbId, age);
 
         //
         UtDataSelector utrr = new UtDataSelector(db, struct);
