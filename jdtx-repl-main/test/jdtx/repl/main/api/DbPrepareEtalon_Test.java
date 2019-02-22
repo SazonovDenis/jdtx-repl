@@ -31,6 +31,9 @@ public class DbPrepareEtalon_Test extends AppTestCase {
         String dbNameSour2 = app.getApp().getRt().getChild("db/db2").getValue("database_etalon").toString();
         FileUtils.copyFile(new File(dbNameSour2), new File(dbNameDest2));
 
+        //
+        System.out.println("База подготовлена [" + dbNameDest2 + "]");
+
 
         // ---
         String dbNameDest3 = app.getApp().getRt().getChild("db/db3").getValue("database").toString();
@@ -38,7 +41,7 @@ public class DbPrepareEtalon_Test extends AppTestCase {
         FileUtils.copyFile(new File(dbNameSour3), new File(dbNameDest3));
 
         //
-        System.out.println("База подготовлена [" + dbNameDest2 + "]");
+        System.out.println("База подготовлена [" + dbNameDest3 + "]");
     }
 
     @Test
