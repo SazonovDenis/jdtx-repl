@@ -16,8 +16,8 @@
         password="masterkey"
         host="localhost"
     />
-
-    <db name="db1"
+                
+    <db name="db2"
         dbdriver="jdbc" 
         jdbcDriverClass="org.firebirdsql.jdbc.FBDriver"
         url="jdbc:firebirdsql:localhost/3050:${database}?charSet=Cp1251"
@@ -28,7 +28,7 @@
         host="localhost"
     />
 
-    <db name="db2"
+    <db name="db3"
         dbdriver="jdbc" 
         jdbcDriverClass="org.firebirdsql.jdbc.FBDriver"
         url="jdbc:firebirdsql:localhost/3050:${database}?charSet=Cp1251"

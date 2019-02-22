@@ -1,26 +1,37 @@
 package jdtx.repl.main.api;
 
 /**
- * Формирователь очереди реплик - хранение реплик и их упорядочивание.
+ * Формирователь общей очереди реплик - хранение и упорядочивание.
  */
 public interface IJdxQueCommon {
 
     /**
-     * Поместить replica в очередь
+     * Поместить в очередь
      */
-    void put(IReplica replica) throws Exception;
+    long put(IReplica replica) throws Exception;
 
     /**
      * @return Сколько записей есть в очереди
      */
-    long getMaxId() throws Exception;
+    long getMaxNo() throws Exception;
+
+    /**
+     * Получить реплику по номеру
+     *
+     * @param no Номер
+     * @return Реплика
+     */
+    IReplica getByNo(long no) throws Exception;
 
     /**
      *
-     * @param idx
-     * @return
-     * @throws Exception
      */
-    IReplica getById(long idx) throws Exception;
+    String getBaseDir();
+
+    /**
+     *
+     */
+    void setBaseDir(String baseDir);
+
 
 }

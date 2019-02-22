@@ -7,7 +7,7 @@ import jandcode.dbm.db.*;
  */
 public class JdxStateManager {
 
-    Db db;
+    private Db db;
 
     public JdxStateManager(Db db) {
         this.db = db;
@@ -31,13 +31,13 @@ public class JdxStateManager {
     /**
      * @return Номер реплики, до которого обработана входящая очередь
      */
-    public long getQueInIdxDone() throws Exception {
+    public long getQueInNoDone() throws Exception {
         String sql = "select * from " + JdxUtils.sys_table_prefix + "state";
-        return db.loadSql(sql).getCurRec().getValueLong("que_in_id_done");
+        return db.loadSql(sql).getCurRec().getValueLong("que_in_no_done");
     }
 
-    public void setQueInIdxDone(long queInIdDone) throws Exception {
-        String sql = "update " + JdxUtils.sys_table_prefix + "state set que_in_id_done = " + queInIdDone;
+    public void setQueInNoDone(long queInNoDone) throws Exception {
+        String sql = "update " + JdxUtils.sys_table_prefix + "state set que_in_no_done = " + queInNoDone;
         db.execSql(sql);
     }
 

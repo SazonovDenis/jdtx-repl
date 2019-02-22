@@ -3,11 +3,14 @@ package jdtx.repl.main.api;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.struct.*;
+import org.apache.commons.logging.*;
 
 public class UtAuditSelector {
 
-    Db db;
-    IJdxDbStruct struct;
+    private Db db;
+    private IJdxDbStruct struct;
+
+    protected static Log log = LogFactory.getLog("jdtx");
 
     public UtAuditSelector(Db db, IJdxDbStruct struct) {
         this.db = db;
@@ -15,28 +18,28 @@ public class UtAuditSelector {
     }
 
 
-    public void readAuditData(String tableName, String tableFields, long ageFrom, long ageTo, JdxReplicaWriterXml dataContainer) throws Exception {
+    public void readAuditData(String tableName, String tableFields, long ageFrom, long ageTo, JdxReplicaWriterXml dataWriter) throws Exception {
         //
         DbQuery rsTableLog = selectAuditData(tableName, tableFields, ageFrom, ageTo);
         try {
-            dataContainer.startTable(tableName);
+            dataWriter.startTable(tableName);
 
-            // измененные данные помещаем в dataContainer
+            // »змененные данные помещаем в dataWriter
             while (!rsTableLog.eof()) {
-                dataContainer.append();
+                dataWriter.append();
                 // “ип операции
-                dataContainer.setOprType(rsTableLog.getValueInt(JdxUtils.prefix + "opr_type"));
+                dataWriter.setOprType(rsTableLog.getValueInt(JdxUtils.prefix + "opr_type"));
                 // “ело записи
                 String[] tableFromFields = tableFields.split(",");
                 for (String field : tableFromFields) {
-                    dataContainer.setRecValue(field, rsTableLog.getValue(field));
+                    dataWriter.setRecValue(field, rsTableLog.getValue(field));
                 }
                 //
                 rsTableLog.next();
             }
 
             //
-            dataContainer.flush();
+            dataWriter.flush();
         } finally {
             rsTableLog.close();
         }
@@ -54,9 +57,9 @@ public class UtAuditSelector {
 
                 //
                 if (toId >= fromId) {
-                    System.out.println("clearAudit [" + t.getName() + "], age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], count: " + (toId - fromId + 1));
+                    log.info("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], count: " + (toId - fromId + 1));
                 } else {
-                    System.out.println("clearAudit [" + t.getName() + "], age: [" + ageFrom + ".." + ageTo + "], z_id: empty");
+                    log.info("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], z_id: empty");
                 }
 
                 // изменени€ с указанным возрастом
@@ -80,9 +83,9 @@ public class UtAuditSelector {
 
         //
         if (toId >= fromId) {
-            System.out.println("selectAudit [" + tableName + "], age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], count: " + (toId - fromId + 1));
+            log.info("selectAudit: " + tableName + ", age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], count: " + (toId - fromId + 1));
         } else {
-            System.out.println("selectAudit [" + tableName + "], age: [" + ageFrom + ".." + ageTo + "], z_id: empty");
+            log.info("selectAudit: " + tableName + ", age: [" + ageFrom + ".." + ageTo + "], z_id: empty");
         }
 
         // јудит в указанном диапазоне возрастов: id >= fromId и id <= toId
@@ -107,7 +110,6 @@ public class UtAuditSelector {
     protected String getSql(IJdxTableStruct tableFrom, String tableFields, long fromId, long toId) {
         return "select " + JdxUtils.prefix + "opr_type, " + tableFields + " from " + JdxUtils.audit_table_prefix + tableFrom.getName() + " where " + JdxUtils.prefix + "id >= " + fromId + " and " + JdxUtils.prefix + "id <= " + toId + " order by " + JdxUtils.prefix + "id";
     }
-
 
 
 }

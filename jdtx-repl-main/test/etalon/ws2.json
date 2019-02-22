@@ -1,0 +1,33 @@
+{
+  "queOut_DirLocal": "../_test-data/ws2/queOut",
+  "queOut_DirRemote": {
+    "directory": "../_test-data/mail/ws2/from/"
+  },
+
+  "queIn_DirLocal": "../_test-data/ws2/queIn",
+  "queIn_DirRemote": {
+    "directory": "../_test-data/mail/ws2/to/"
+  },
+
+  "publicationsIn": [],
+  "publicationsOut": [
+    {
+      "routes": [],
+      "tables": [
+        {
+          "table": "Region",
+          "fields": "*"
+        },
+        {
+          "table": "LIC",
+          "fields": "NameF,NameI,NameO,Dom,Kv,Ulz",
+          "filter": "Region.ID in (2, 3844) and LicDocTip=1002"
+        },
+        {
+          "table": "Ulz",
+          "fields": "*"
+        }
+      ]
+    }
+  ]
+}

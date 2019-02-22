@@ -3,6 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.struct.*;
+import org.apache.commons.logging.*;
 import org.json.simple.*;
 import org.json.simple.parser.*;
 
@@ -14,23 +15,27 @@ import java.util.*;
  */
 public class JdxReplWs {
 
+    long dbId; // todo: правила/страегия работы с DbID
+
     // Правила публикации
     List<IPublication> publicationsIn;
     List<IPublication> publicationsOut;
 
     //
-    JdxQueCommon queIn;
-    JdxQueCreatorFile queOut;
+    private JdxQueCommonFile queIn;
+    private JdxQuePersonalFile queOut;
 
     //
     Db db;
     IJdxDbStruct struct;
 
     //
-    UtMailer mailerIn;
-    UtMailer mailerOut;
+    IJdxMailer mailer;
 
+    //
+    protected static Log log = LogFactory.getLog("jdtx");
 
+    //
     public JdxReplWs(Db db) throws Exception {
         this.db = db;
         // чтение структуры
@@ -55,14 +60,12 @@ public class JdxReplWs {
         }
 
         // Читаем из этой очереди
-        queIn = new JdxQueCommon(db);
-        queIn.baseDir = UtFile.unnormPath((String) cfgData.get("queInDir")) + "/";
-        queIn.queType = JdxQueType.IN;
+        queIn = new JdxQueCommonFile(db, JdxQueType.IN);
+        queIn.setBaseDir(UtFile.unnormPath((String) cfgData.get("queIn_DirLocal")) + "/");
 
         // Пишем в эту очередь
-        queOut = new JdxQueCreatorFile(db);
-        queOut.baseDir = UtFile.unnormPath((String) cfgData.get("queOutDir")) + "/";
-        queOut.queType = JdxQueType.OUT;
+        queOut = new JdxQuePersonalFile(db, JdxQueType.OUT);
+        queOut.setBaseDir(UtFile.unnormPath((String) cfgData.get("queOut_DirLocal")) + "/");
 
         // Правила публикации
         publicationsIn = new ArrayList<>();
@@ -88,15 +91,28 @@ public class JdxReplWs {
         }
 
         //
-        JSONObject queOutRoute = (JSONObject) cfgData.get("queOutRoute");
-        mailerOut = new UtMailer(db);
-        mailerOut.localDir = queOut.baseDir;
-        mailerOut.remoteDir = UtFile.unnormPath((String) queOutRoute.get("directory"));
+        mailer = new UtMailerLocalFiles(queIn, queOut);
+        mailer.init(cfgData);
+    }
+
+    /**
+     * Формируем установочную реплику
+     */
+    public void createSetupReplica() throws Exception {
+        log.info("createSetupReplica");
+
         //
-        JSONObject queInRoute = (JSONObject) cfgData.get("queInRoute");
-        mailerIn = new UtMailer(db);
-        mailerIn.localDir = UtFile.unnormPath((String) queInRoute.get("directory"));
-        mailerIn.remoteDir = queIn.baseDir;
+        UtRepl utr = new UtRepl(db, dbId);
+        for (IPublication publication : publicationsOut) {
+            // Забираем установочную реплику
+            IReplica setupReplica = utr.createReplicaFull(publication);
+
+            // Помещаем реплику в очередь
+            queOut.put(setupReplica);
+        }
+
+        //
+        log.info("createSetupReplica done");
     }
 
     /**
@@ -104,23 +120,25 @@ public class JdxReplWs {
      * формируем исходящие реплики
      */
     public void handleSelfAudit() throws Exception {
-        UtAuditAgeManager ut = new UtAuditAgeManager(db, struct);
-        UtRepl utr = new UtRepl(db);
+        log.info("handleSelfAudit");
 
+        //
+        UtAuditAgeManager ut = new UtAuditAgeManager(db, struct);
+        UtRepl utr = new UtRepl(db, dbId);
+
+        //
         JdxStateManager stateManager = new JdxStateManager(db);
         long auditAgeDone = stateManager.getAuditAgeDone();
 
         // Фиксируем возраст своего аудита
         long auditAgeActual = ut.markAuditAge();
-        System.out.println("auditAgeActual = " + auditAgeActual);
+        log.info("auditAgeDone: " + auditAgeDone + ", auditAgeActual: " + auditAgeActual);
 
         // Формируем реплики (по собственным изменениям)
+        long n = 0;
         for (long age = auditAgeDone + 1; age <= auditAgeActual; age++) {
             for (IPublication publication : publicationsOut) {
                 IReplica replica = utr.createReplicaFromAudit(publication, age);
-
-                //
-                System.out.println(replica.getFile().getAbsolutePath());
 
                 //
                 db.startTran();
@@ -139,47 +157,68 @@ public class JdxReplWs {
                 }
 
             }
-        }
-    }
 
-    public void pullToQueIn() throws Exception {
-        JdxQueReaderDir x = new JdxQueReaderDir();
-        x.baseDir = queIn.baseDir;
-        x.reloadDir(queIn);
+            //
+            n++;
+        }
+
+        //
+        log.info("handleSelfAudit done: " + n + ", age: " + auditAgeActual);
     }
 
     /**
      * Применяем входящие реплики
      */
     public void handleQueIn() throws Exception {
-        UtAuditApplyer utaa = new UtAuditApplyer(db, struct);
+        log.info("handleQueIn");
 
+        //
+        UtAuditApplyer utaa = new UtAuditApplyer(db, struct);
         JdxStateManager stateManager = new JdxStateManager(db);
 
         //
-        long inIdDone = stateManager.getQueInIdxDone();
-        long inIdMax = queIn.getMaxId();
+        long queInNoDone = stateManager.getQueInNoDone();
+        long queInNoAvailable = queIn.getMaxNo();
 
         //
-        for (long inId = inIdDone + 1; inId <= inIdMax; inId++) {
+        log.info("handleQueIn, queIn done: " + queInNoDone + ", queIn available: " + queInNoAvailable);
+
+        //
+        long n = 0;
+        for (long no = queInNoDone + 1; no <= queInNoAvailable; no++) {
+            log.info("handleQueIn, queIn no: " + no);
+
             //
-            IReplica replica = queIn.getById(inId);
+            IReplica replica = queIn.getByNo(no);
             for (IPublication publication : publicationsIn) {
                 utaa.applyReplica(replica, publication, null);
             }
 
             //
-            stateManager.setQueInIdxDone(inId);
+            stateManager.setQueInNoDone(no);
+
+            //
+            n++;
         }
+
+        //
+        log.info("handleQueIn, done: " + n + ", queIn no: " + queInNoAvailable);
     }
 
 
-    public void receive() throws IOException {
-        mailerIn.receive();
+    public void receive() throws Exception {
+        mailer.receive();
+
+        //
+        JdxQueReaderDir rdr = new JdxQueReaderDir();
+        rdr.baseDir = queIn.getBaseDir();
+        rdr.loadFromDirToQueIn(queIn);
     }
+
 
     public void send() throws Exception {
-        mailerOut.send();
+        mailer.send();
     }
+
 
 }

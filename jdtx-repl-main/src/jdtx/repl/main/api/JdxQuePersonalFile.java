@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
@@ -12,23 +13,33 @@ import java.io.*;
  * Формирователь очереди реплик.
  * Физическая реализация хранения реплик и их упорядочивание.
  */
-public class JdxQueCreatorFile implements IJdxQueOut {
+public class JdxQuePersonalFile implements IJdxQuePersonal {
 
-    long queType;
+    private long queType;
 
-    String baseDir;
+    private String baseDir;
 
-    Db db;
-    DbUtils ut;
+    private Db db;
+    private DbUtils ut;
 
-    public JdxQueCreatorFile(Db db) throws Exception {
+    public JdxQuePersonalFile(Db db, long queType) throws Exception {
         this.db = db;
+        this.queType = queType;
         // чтение структуры
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         IJdxDbStruct struct = reader.readDbStruct();
         //
         ut = new DbUtils(db, struct);
+    }
+
+    public String getBaseDir() {
+        return baseDir;
+    }
+
+    public void setBaseDir(String baseDir) {
+        this.baseDir = baseDir;
+        UtFile.mkdirs(baseDir);
     }
 
 
@@ -43,7 +54,7 @@ public class JdxQueCreatorFile implements IJdxQueOut {
         }
         //
         long queMaxAge = getMaxAge();
-        if (replica.getAge() != queMaxAge + 1) {
+        if (queMaxAge != -1 && replica.getAge() != queMaxAge + 1) {
             throw new XError("invalid age: replica.getAge = " + replica.getAge() + ", queMaxAge = " + queMaxAge);
         }
 
@@ -55,18 +66,23 @@ public class JdxQueCreatorFile implements IJdxQueOut {
 
         //
         long id = ut.genId(JdxUtils.sys_gen_prefix + "que");
-        String sql = "insert into " + JdxUtils.sys_table_prefix + "que (id, que_type, age) values (:id, :que_type, :age)";
+        String sql = "insert into " + JdxUtils.sys_table_prefix + "que (id, que_type, db_id, age) values (:id, :que_type, :db_id, :age)";
         db.execSql(sql, UtCnv.toMap(
                 "id", id,
                 "que_type", queType,
+                "db_id", replica.getDbId(),
                 "age", replica.getAge()
         ));
-
     }
 
     public long getMaxAge() throws Exception {
-        String sql = "select max(age) as age from " + JdxUtils.sys_table_prefix + "que where que_type = " + queType;
-        return db.loadSql(sql).getCurRec().getValueLong("age");
+        String sql = "select max(age) as maxAge, count(*) as cnt from " + JdxUtils.sys_table_prefix + "que where que_type = " + queType;
+        DataRecord rec = db.loadSql(sql).getCurRec();
+        if (rec.getValueLong("cnt") == 0) {
+            return -1;
+        } else {
+            return rec.getValueLong("maxAge");
+        }
     }
 
 

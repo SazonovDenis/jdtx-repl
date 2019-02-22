@@ -7,10 +7,10 @@ import org.junit.*;
  */
 public class ReplDatabaseStruct_Test extends ReplDatabase_Test {
 
-    // Структуры db и db1
+    // Структуры
     IJdxDbStruct struct;
-    IJdxDbStruct struct1;
     IJdxDbStruct struct2;
+    IJdxDbStruct struct3;
 
     public void setUp() throws Exception {
         //
@@ -20,10 +20,10 @@ public class ReplDatabaseStruct_Test extends ReplDatabase_Test {
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         struct = reader.readDbStruct();
-        reader.setDb(db1);
-        struct1 = reader.readDbStruct();
         reader.setDb(db2);
         struct2 = reader.readDbStruct();
+        reader.setDb(db3);
+        struct3 = reader.readDbStruct();
     }
 
     @Test

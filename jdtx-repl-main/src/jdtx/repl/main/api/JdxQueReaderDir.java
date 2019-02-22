@@ -1,44 +1,71 @@
 package jdtx.repl.main.api;
 
+import jandcode.utils.*;
 import org.apache.commons.io.*;
 import org.apache.commons.io.filefilter.*;
+import org.apache.commons.logging.*;
 
 import java.io.*;
 import java.util.*;
 
 /**
  * Читатель сообщений с репликами, формирователь входящей очереди
+ * todo: надо ли? Что за клас????
  */
 public class JdxQueReaderDir {
 
     String baseDir = null;
     String inFileMask = "*.xml";
 
+    //
+    protected static Log log = LogFactory.getLog("jdtx");
+
     /**
      * Забираем из внешнего источника и кладем во входящую очередь
      */
-    void reloadDir(IJdxQueCommon queIn) throws Exception {
+    void loadFromDirToQueIn(IJdxQueCommon queIn) throws Exception {
+        log.info("loadFromDirToQueIn");
+
+        // Узнаем что там у нас пришло во входящем каталоге?
         File inDir = new File(baseDir);
         File[] files = inDir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
         Arrays.sort(files);
+        File lastFile = files[files.length - 1];
+        long dirMaxNo = getNo(lastFile.getName());
+
+        // Узнаем что мы уже обработали?
+        long queInMaxNo = queIn.getMaxNo();
 
         //
-        for (File file : files) {
+        log.info("loadFromDirToQueIn, dirMaxNo: " + dirMaxNo + ", self.queIn: " + queInMaxNo);
+
+        //
+        for (long no = queInMaxNo + 1; no <= dirMaxNo; no++) {
+            File file = new File(baseDir + getFileName(no));
+            //
             IReplica replica = new ReplicaFile();
             replica.setFile(file);
-            fillReplicaAgeFromFile(replica);
+            replica.setNo(getNo(file.getName()));
+            readReplicaInfo(replica);
             //
             queIn.put(replica);
         }
 
     }
 
-    private void fillReplicaAgeFromFile(IReplica replica) throws Exception {
+    private void readReplicaInfo(IReplica replica) throws Exception {
         JdxReplicaReaderXml reader = new JdxReplicaReaderXml(replica);
+        replica.setDbId(reader.getDbId());
         replica.setAge(reader.getAge());
-        System.out.println("DbId = " + reader.getDbId());
-        System.out.println("Age = " + reader.getAge());
         reader.close();
+    }
+
+    long getNo(String fileName) {
+        return Long.valueOf(fileName.substring(0, 9));
+    }
+
+    String getFileName(long no) {
+        return UtString.padLeft(String.valueOf(no), 9, '0') + ".xml";
     }
 
 }

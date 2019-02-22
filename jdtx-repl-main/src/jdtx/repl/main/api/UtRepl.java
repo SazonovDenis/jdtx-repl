@@ -2,6 +2,7 @@ package jdtx.repl.main.api;
 
 import jandcode.dbm.db.*;
 import jdtx.repl.main.api.struct.*;
+import org.apache.commons.logging.*;
 import org.json.simple.*;
 
 import java.io.*;
@@ -11,12 +12,15 @@ import java.io.*;
  */
 public class UtRepl {
 
-    Db db;
-    IJdxDbStruct struct;
-    long dbId; // todo: правила/страегия работы с DbID
+    private Db db;
+    private long dbId; // todo: правила/страегия работы с DbID
+    private IJdxDbStruct struct;
 
-    public UtRepl(Db db) throws Exception {
+    protected static Log log = LogFactory.getLog("jdtx");
+
+    public UtRepl(Db db, long dbId) throws Exception {
         this.db = db;
+        this.dbId = dbId;
         // чтение структуры
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
@@ -78,12 +82,14 @@ public class UtRepl {
      * от для возраста age.
      */
     IReplica createReplicaFromAudit(IPublication publication, long age) throws Exception {
+        log.info("createReplicaFromAudit");
+
         File file = new File("../_test-data/~tmp_csv.xml"); // todo: правила/страегия работы с файлами и вообще с получателем информации - в какой момент и кто выбирает файл
         OutputStream ost = new FileOutputStream(file);
         JdxReplicaWriterXml writerXml = new JdxReplicaWriterXml(ost);
 
         //
-        writerXml.setReplicaInfo(dbId, age);
+        writerXml.writeReplicaInfo(dbId, age);
 
         //
         UtAuditSelector utrr = new UtAuditSelector(db, struct);
@@ -92,11 +98,13 @@ public class UtRepl {
         JSONArray publicationData = publication.getData();
         for (IJdxTableStruct table : struct.getTables()) {
             String stuctTableName = table.getName();
-
             for (int i = 0; i < publicationData.size(); i++) {
                 JSONObject publicationTable = (JSONObject) publicationData.get(i);
                 String publicationTableName = (String) publicationTable.get("table");
                 if (stuctTableName.compareToIgnoreCase(publicationTableName) == 0) {
+                    log.info("readAuditData: " + stuctTableName);
+
+                        //
                     String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
                     utrr.readAuditData(stuctTableName, publicationFields, age - 1, age, writerXml);
                 }
@@ -109,7 +117,9 @@ public class UtRepl {
 
         //
         IReplica res = new ReplicaFile();
+        res.setDbId(dbId);
         res.setAge(age);
+        res.setNo(age);
         res.setFile(file);
 
         //
@@ -128,8 +138,8 @@ public class UtRepl {
         JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
 
         //
-        long age = 1;
-        wr.setReplicaInfo(dbId, age);
+        long age = 0; // Установочная реплика именно возраста 0
+        wr.writeReplicaInfo(dbId, age);
 
         //
         UtDataSelector utrr = new UtDataSelector(db, struct);
@@ -154,11 +164,27 @@ public class UtRepl {
 
         //
         IReplica replica = new ReplicaFile();
+        replica.setDbId(dbId);
         replica.setAge(age);
         replica.setFile(file);
 
         //
         return replica;
+    }
+
+
+    /**
+     * Сервер: считывание очередей из рабочих  станций и формирование общей очереди
+     */
+    public void formCommonQue() {
+
+    }
+
+    /**
+     * Сервер: распределение общей очереди по рабочим станциям
+     */
+    public void dispatchReplicas() {
+
     }
 
 

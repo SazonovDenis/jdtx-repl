@@ -11,14 +11,18 @@ import org.junit.*;
  */
 public class ReplDatabase_Test extends AppTestCase {
 
-    // Экземпляры db и db1
+    // Экземпляры db и db2, db3
     Db db;
-    Db db1;
     Db db2;
+    Db db3;
 
     public void setUp() throws Exception {
         //
         super.setUp();
+
+        //
+        UtLog.loadProperties("../_log.properties");
+        logOn();
 
         //
         Model m = app.getApp().service(ModelService.class).getModel();
@@ -28,17 +32,17 @@ public class ReplDatabase_Test extends AppTestCase {
 
 
         //
-        Model m1 = app.getApp().service(ModelService.class).getModel("db1");
-        //
-        db1 = m1.getDb();
-        db1.connect();
-
-
-        //
         Model m2 = app.getApp().service(ModelService.class).getModel("db2");
         //
         db2 = m2.getDb();
         db2.connect();
+
+
+        //
+        Model m3 = app.getApp().service(ModelService.class).getModel("db3");
+        //
+        db3 = m3.getDb();
+        db3.connect();
 
 
         // ---
@@ -51,12 +55,12 @@ public class ReplDatabase_Test extends AppTestCase {
         // db
         DataStore st = db.loadSql("select id, orgName, dbLabel from dbInfo");
         UtData.outTable(st);
-        // db1
-        DataStore st1 = db1.loadSql("select id, orgName, dbLabel from dbInfo");
-        UtData.outTable(st1);
         // db2
         DataStore st2 = db2.loadSql("select id, orgName, dbLabel from dbInfo");
         UtData.outTable(st2);
+        // db3
+        DataStore st3 = db3.loadSql("select id, orgName, dbLabel from dbInfo");
+        UtData.outTable(st3);
     }
 
 

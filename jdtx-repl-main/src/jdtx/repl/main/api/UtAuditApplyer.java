@@ -3,6 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.db.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.struct.*;
+import org.apache.commons.logging.*;
 import org.json.simple.*;
 
 import java.util.*;
@@ -12,8 +13,11 @@ import java.util.*;
  */
 public class UtAuditApplyer {
 
-    Db db;
-    IJdxDbStruct struct;
+    private Db db;
+    private IJdxDbStruct struct;
+
+    //
+    protected static Log log = LogFactory.getLog("jdtx");
 
     //
     public UtAuditApplyer(Db db, IJdxDbStruct struct) throws Exception {
@@ -26,6 +30,9 @@ public class UtAuditApplyer {
      * todo: стратегия работы с рабочими станциями в какой момент и кто задает станцию, а также стратегия приема реплик с некоторых станций
      */
     public void applyReplica(IReplica replica, IPublication publication, Object ws) throws Exception {
+        log.info("applyReplica");
+
+        //
         List<IJdxTableStruct> tables = struct.getTables();
         int tIdx = 0;
 
@@ -43,7 +50,7 @@ public class UtAuditApplyer {
 
         //
         JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(replica);
-        System.out.println("DbId = " + replicaReader.getDbId());
+        log.info("DbId: " + replicaReader.getDbId()+", no: " + replica.getNo());
 
         //
         IRefDecoder decoder = new RefDecoder(db, replicaReader.getDbId());
@@ -59,7 +66,7 @@ public class UtAuditApplyer {
             //
             String tableName = replicaReader.nextTable();
             while (tableName != null) {
-                System.out.println("table [" + tableName + "]");
+                log.info("table: " + tableName);
 
                 // Поиск таблицы tableName в структуре, только в одну сторону (из-за зависимостей)
                 int n = -1;

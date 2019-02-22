@@ -4,6 +4,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.struct.*;
+import org.apache.commons.logging.*;
 
 import java.sql.*;
 import java.util.*;
@@ -12,6 +13,8 @@ public class UtDbObjectManager {
 
     IJdxDbStruct struct;
     Db db;
+
+    protected static Log log = LogFactory.getLog("jdtx");
 
     public UtDbObjectManager(Db db, IJdxDbStruct struct) {
         this.db = db;
@@ -23,6 +26,8 @@ public class UtDbObjectManager {
         String sql;
         DbQuery query = null;
         try {
+            log.info("createAudit - системные объекты");
+
             // таблица table_list со списком названий таблиц, за изменениями в которых надо следить
             sql = "create table " + JdxUtils.sys_table_prefix + "table_list(id int not null, name varchar(150) default '' not null)";
             db.execSql(sql);
@@ -42,25 +47,10 @@ public class UtDbObjectManager {
             db.execSql(sql);
 
 
-            // вставляем в созданную таблицу названия всех таблиц
-
-            // запрос на вставку в таблицу table_list названий всех таблиц из базы
-            query = db.createQuery("insert into " + JdxUtils.sys_table_prefix + "table_list(Id, Name) values (GEN_ID(" + JdxUtils.sys_gen_prefix + "table_list, 1), :Name)");
-            //
-            ArrayList<IJdxTableStruct> tables = struct.getTables();
-            for (IJdxTableStruct table : tables) {
-                query.setParams(UtCnv.toMap("Name", table.getName()));
-                query.execUpdate();
-                //pst.setString(1, table.getName());
-                //pst.executeUpdate();
-                // создаем таблицу журнала изменений для каждой таблицы
-                createAuditTable(table.getName());
-            }
-
             // таблица состояния: для хранения возраста созданных реплик, примененных реплик и т.п.
-            sql = "create table " + JdxUtils.sys_table_prefix + "state(id integer not null, que_out_age_done int not null, que_in_id_done int not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "state(id integer not null, que_out_age_done int not null, que_in_no_done int not null)";
             db.execSql(sql);
-            sql = "insert into " + JdxUtils.sys_table_prefix + "state(id, que_out_age_done, que_in_id_done) values (1, 0, 0)";
+            sql = "insert into " + JdxUtils.sys_table_prefix + "state(id, que_out_age_done, que_in_no_done) values (1, 0, 0)";
             db.execSql(sql);
 
             // список рабочих станций
@@ -78,7 +68,7 @@ public class UtDbObjectManager {
             db.execSql(sql);
 
             // очереди реплик
-            sql = "create table " + JdxUtils.sys_table_prefix + "que(id integer not null, que_type int not null, age int not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "que(id integer not null, que_type int not null, db_id int not null, age int not null)";
             db.execSql(sql);
             sql = "create generator " + JdxUtils.sys_gen_prefix + "que";
             db.execSql(sql);
@@ -88,6 +78,27 @@ public class UtDbObjectManager {
             // таблица для хранения возраста таблиц
             sql = "create table " + JdxUtils.sys_table_prefix + "age(age int not null, table_name varchar(50) not null, " + JdxUtils.audit_table_prefix + "id int not null, dt timestamp not null)";
             db.execSql(sql);
+
+
+            // Вставляем в созданную таблицу названия всех таблиц
+
+            log.info("createAudit - объекты базы данных");
+
+            // запрос на вставку в таблицу table_list названий всех таблиц из базы
+            query = db.createQuery("insert into " + JdxUtils.sys_table_prefix + "table_list(Id, Name) values (GEN_ID(" + JdxUtils.sys_gen_prefix + "table_list, 1), :Name)");
+            ArrayList<IJdxTableStruct> tables = struct.getTables();
+            long n = 0;
+            for (IJdxTableStruct table : tables) {
+                n++;
+                log.info("createAudit " + n + "/" + tables.size() + " " + table.getName());
+
+                // Вставка в таблицу table_list названия таблицы
+                query.setParams(UtCnv.toMap("Name", table.getName()));
+                query.execUpdate();
+                // создаем таблицу журнала изменений для каждой таблицы
+                createAuditTable(table.getName());
+            }
+
         } finally {
             if (query != null) {
                 query.close();
@@ -98,11 +109,19 @@ public class UtDbObjectManager {
     public void dropAudit() throws Exception {
         String query;
 
+        log.info("dropAudit - объекты базы данных");
+
         // Удаляем связанную с каждой таблицей таблицу журнала изменений
         ArrayList<IJdxTableStruct> tables = struct.getTables();
+        long n = 0;
         for (IJdxTableStruct table : tables) {
+            n++;
+            log.info("dropAudit " + n + "/" + tables.size() + " " + table.getName());
+            //
             dropAuditTable(table.getName());
         }
+
+        log.info("dropAudit - системные объекты");
 
         // Удаляем системные таблицы:
         // для хранения состояния, список рабочих станций,
