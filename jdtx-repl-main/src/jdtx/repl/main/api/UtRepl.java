@@ -104,7 +104,7 @@ public class UtRepl {
                 if (stuctTableName.compareToIgnoreCase(publicationTableName) == 0) {
                     log.info("readAuditData: " + stuctTableName);
 
-                        //
+                    //
                     String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
                     utrr.readAuditData(stuctTableName, publicationFields, age - 1, age, writerXml);
                 }
@@ -174,7 +174,10 @@ public class UtRepl {
 
 
     /**
-     * Сервер: считывание очередей из рабочих  станций и формирование общей очереди
+     * Сервер: считывание очередей рабочих станций и формирование общей очереди
+     * <p>
+     * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
+     * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
      */
     public void formCommonQue() {
 
