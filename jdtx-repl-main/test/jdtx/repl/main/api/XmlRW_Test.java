@@ -90,6 +90,12 @@ public class XmlRW_Test extends UtilsTestCase {
         wr.writeEndElement();
 
         wr.writeStartElement("rec");
+        wr.writeAttribute("id", String.valueOf(12435061));
+        wr.writeAttribute("dt", String.valueOf(new DateTime()));
+        wr.writeAttribute("name", "name\t\n\rqwer");
+        wr.writeEndElement();
+
+        wr.writeStartElement("rec");
         wr.writeAttribute("id", String.valueOf(3456.67));
         wr.writeAttribute("dt", String.valueOf(new DateTime()));
         wr.writeAttribute("name", "Строка ә, ғ, қ, ң, ө, ұ, ү, h, 99999");
