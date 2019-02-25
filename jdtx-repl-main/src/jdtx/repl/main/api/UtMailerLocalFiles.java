@@ -39,6 +39,11 @@ public class UtMailerLocalFiles implements IJdxMailer {
         localDirQueIn = queIn.getBaseDir();
         JSONObject cfgIn = (JSONObject) cfg.get("queIn_DirRemote");
         remoteDirQueIn = UtFile.unnormPath((String) cfgIn.get("directory")) + "/";
+        //
+        UtFile.mkdirs(localDirQueIn);
+        UtFile.mkdirs(localDirQueOut);
+        UtFile.mkdirs(remoteDirQueIn);
+        UtFile.mkdirs(remoteDirQueOut);
     }
 
     public void send() throws Exception {

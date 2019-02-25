@@ -62,7 +62,7 @@ public class UtDbObjectManager {
             db.execSql(sql);
 
             // список рабочих станций
-            sql = "create table " + JdxUtils.sys_table_prefix + "workstation_list(id integer not null, parent integer not null, ws_name varchar(50) not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "workstation_list(id integer not null, parent integer, name varchar(50) not null)";
             db.execSql(sql);
             // генератор Id для списка рабочих станций
             sql = "create generator " + JdxUtils.sys_gen_prefix + "workstation_list";
@@ -112,6 +112,10 @@ public class UtDbObjectManager {
                 query.close();
             }
         }
+
+
+        // Добавляем сервер
+        addWorkstation(UtCnv.toMap("name", "Сервер"));
     }
 
     public void dropAudit() throws Exception {
@@ -139,7 +143,7 @@ public class UtDbObjectManager {
         String[] jdx_sys_tables = new String[]{"state", "state_ws", "workstation_list", "workstation_state", "que", "age", "table_list", "flag_tab"};
         for (String jdx_sys_table : jdx_sys_tables) {
             try {
-                // удаляем таблицу для хранения состояния
+                // удаляем таблицу
                 query = "drop table " + JdxUtils.sys_table_prefix + jdx_sys_table;
                 db.execSql(query);
             } catch (Exception e) {
@@ -275,13 +279,21 @@ public class UtDbObjectManager {
         }
     }
 
-    public long addWorkstation() throws Exception {
+    public long addWorkstation(String wsName) throws Exception {
+        Map params = new HashMap<>();
+        params.put("parent", 1);
+        params.put("name", wsName);
+        return addWorkstation(params);
+    }
+
+    private long addWorkstation(Map<String, Object> params) throws Exception {
         DbUtils dbu = new DbUtils(db, struct);
 
         //
         long wsId = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "workstation_list");
-        String sql = "insert into " + JdxUtils.sys_table_prefix + "workstation_list(id, parent, ws_name) values (" + wsId + ", 0, '')";
-        db.execSql(sql);
+        params.put("id", wsId);
+        String sql = "insert into " + JdxUtils.sys_table_prefix + "workstation_list(id, parent, name) values (:id, :parent, :name)";
+        db.execSql(sql, params);
 
         //
         long id = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "state_ws");

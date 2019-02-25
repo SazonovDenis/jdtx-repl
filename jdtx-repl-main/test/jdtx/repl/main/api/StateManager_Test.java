@@ -8,19 +8,18 @@ public class StateManager_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void test_StateManager_before() throws Exception {
-        //
+    public void test_StateManager_setUp() throws Exception {
         UtDbObjectManager ut = new UtDbObjectManager(db, struct);
         ut.dropAudit();
         ut.createAudit();
 
         //
-        long wsId_1 = ut.addWorkstation();
-        long wsId_2 = ut.addWorkstation();
+        long wsId_2 = ut.addWorkstation("ws 2");
+        long wsId_3 = ut.addWorkstation("ws 3");
 
         //
-        System.out.println("wsId_1: " + wsId_1);
         System.out.println("wsId_2: " + wsId_2);
+        System.out.println("wsId_3: " + wsId_3);
     }
 
     @Test

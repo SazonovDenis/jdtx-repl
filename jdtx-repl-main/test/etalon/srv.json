@@ -1,0 +1,16 @@
+{
+  "1":
+  {
+    "queCommon_DirLocal": "../_test-data/ws_srv/queCommon/"
+  },
+  "2":
+    {
+      "queIn_DirLocal": "../_test-data/mail/ws2/from/",
+      "queOut_DirLocal": "../_test-data/mail/ws2/to/"
+    },
+  "3":
+    {
+      "queIn_DirLocal": "../_test-data/mail/ws3/from/",
+      "queOut_DirLocal": "../_test-data/mail/ws3/to/"
+    }
+}

@@ -6,6 +6,29 @@ public class JdxReplWs_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
+    public void test_srv_setUp() throws Exception {
+        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
+        UtDbObjectManager ut_2 = new UtDbObjectManager(db2, struct);
+        UtDbObjectManager ut_3 = new UtDbObjectManager(db3, struct);
+        //
+        ut.dropAudit();
+        ut_2.dropAudit();
+        ut_3.dropAudit();
+        //
+        ut.createAudit();
+        ut_2.createAudit();
+        ut_3.createAudit();
+
+        //
+        long wsId_2 = ut.addWorkstation("ws 2");
+        long wsId_3 = ut.addWorkstation("ws 3");
+
+        //
+        System.out.println("wsId_2: " + wsId_2);
+        System.out.println("wsId_3: " + wsId_3);
+    }
+
+    @Test
     public void test_ws2_CreateSetupReplica() throws Exception {
         // Рабочая станция, настройка
         JdxReplWs ws2 = new JdxReplWs(db2);
@@ -20,7 +43,7 @@ public class JdxReplWs_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_makeChange() throws Exception {
+    public void test_ws2_makeChange() throws Exception {
         // Делаем изменения
         UtTest utTest = new UtTest(db2);
         utTest.makeChange(struct2);
@@ -53,21 +76,20 @@ public class JdxReplWs_Test extends ReplDatabaseStruct_Test {
 
         // Применяем входящие реплики
         ws.handleQueIn();
-
     }
 
     @Test
     public void test_srv_handleQue() throws Exception {
         // Сервер, настройка
         JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init("test/etalon/ws_srv.json");
+        srv.init("test/etalon/srv.json");
 
 
-        // Забираем входящие реплики
+        // Формирование общей очереди
         srv.srvFormCommonQue();
 
 
-        // Применяем входящие реплики
+        // Тиражирование реплик
         srv.srvDispatchReplicas();
 
     }
