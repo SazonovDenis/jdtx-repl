@@ -3,13 +3,13 @@ package jdtx.repl.main.api;
 import jandcode.dbm.db.*;
 
 /**
- * Состояние рабоей станции: насколько отбаботаны очереди и прочее.
+ * Состояние задач рабочей станции: отметки (в БД), насколько отработаны очереди и прочее.
  */
-public class JdxStateManager {
+public class JdxStateManagerWs {
 
     private Db db;
 
-    public JdxStateManager(Db db) {
+    public JdxStateManagerWs(Db db) {
         this.db = db;
     }
 
@@ -29,7 +29,7 @@ public class JdxStateManager {
 
 
     /**
-     * @return Номер реплики, до которого обработана входящая очередь
+     * @return Номер реплики, до которого обработана (и применена) входящая очередь
      */
     public long getQueInNoDone() throws Exception {
         String sql = "select * from " + JdxUtils.sys_table_prefix + "state";

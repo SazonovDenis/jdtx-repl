@@ -16,12 +16,20 @@ public interface IJdxQuePersonal {
     long getMaxAge() throws Exception;
 
     /**
+     * Получить реплику по номеру (возрасту)
      *
+     * @param age Номер (возраст)
+     * @return Реплика
+     */
+    IReplica getByAge(long age) throws Exception;
+
+    /**
+     * todo: Это только для реплик в файлах. А вообще может быть по-другому.
      */
     String getBaseDir();
 
     /**
-     *
+     * todo: Это только для реплик в файлах. А вообще может быть по-другому.
      */
     void setBaseDir(String baseDir);
 

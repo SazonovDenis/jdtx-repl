@@ -7,9 +7,9 @@ import java.io.*;
  */
 public interface IReplica {
 
-    void setDbId(long dbId);
+    void setWsId(long wsId);
 
-    long getDbId();
+    long getWsId();
 
     void setAge(long age);
 

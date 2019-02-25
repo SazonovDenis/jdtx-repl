@@ -25,18 +25,18 @@ public class DbUtils {
     /**
      * Возвращает очередную id для генератора generatorName
      */
-    public long genId(String generatorName) throws SQLException {
-        return genId(generatorName, 1);
+    public long getNextGenerator(String generatorName) throws SQLException {
+        return getNextGenerator(generatorName, 1);
     }
 
     /**
      * Возвращает текущую id для генератора generatorName
      */
     public long getCurrId(String generatorName) throws SQLException {
-        return genId(generatorName, 0);
+        return getNextGenerator(generatorName, 0);
     }
 
-    private long genId(String generatorName, int increment) throws SQLException {
+    private long getNextGenerator(String generatorName, int increment) throws SQLException {
         Statement st = db.getConnection().createStatement();
         ResultSet rs = null;
         try {
@@ -342,6 +342,6 @@ public class DbUtils {
      * @throws SQLException
      */
     private long getTableNextId(String tableName) throws SQLException {
-        return genId("g_" + tableName);
+        return getNextGenerator("g_" + tableName);
     }
 }

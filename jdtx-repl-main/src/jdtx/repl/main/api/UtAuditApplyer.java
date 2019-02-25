@@ -50,10 +50,10 @@ public class UtAuditApplyer {
 
         //
         JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(replica);
-        log.info("DbId: " + replicaReader.getDbId()+", no: " + replica.getNo());
+        log.info("WsId: " + replicaReader.getWsId()+", no: " + replica.getNo());
 
         //
-        IRefDecoder decoder = new RefDecoder(db, replicaReader.getDbId());
+        IRefDecoder decoder = new RefDecoder(db, replicaReader.getWsId());
 
         //
         db.startTran();

@@ -64,7 +64,7 @@ public class JdxQueReaderDir {
 
     private void readReplicaInfo(IReplica replica) throws Exception {
         JdxReplicaReaderXml reader = new JdxReplicaReaderXml(replica);
-        replica.setDbId(reader.getDbId());
+        replica.setWsId(reader.getWsId());
         replica.setAge(reader.getAge());
         reader.close();
     }

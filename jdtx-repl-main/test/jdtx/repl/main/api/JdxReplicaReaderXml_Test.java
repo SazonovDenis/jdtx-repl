@@ -18,7 +18,7 @@ public class JdxReplicaReaderXml_Test extends DbmTestCase {
 
         //
         JdxReplicaReaderXml reader = new JdxReplicaReaderXml(replica);
-        System.out.println("DbId = " + reader.getDbId());
+        System.out.println("WsId = " + reader.getWsId());
         System.out.println("Age = " + reader.getAge());
 
         //

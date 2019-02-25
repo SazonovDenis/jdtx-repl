@@ -24,12 +24,12 @@ public interface IJdxQueCommon {
     IReplica getByNo(long no) throws Exception;
 
     /**
-     *
+     * todo: Это только для реплик в файлах. А вообще может быть по-другому.
      */
     String getBaseDir();
 
     /**
-     *
+     * todo: Это только для реплик в файлах. А вообще может быть по-другому.
      */
     void setBaseDir(String baseDir);
 

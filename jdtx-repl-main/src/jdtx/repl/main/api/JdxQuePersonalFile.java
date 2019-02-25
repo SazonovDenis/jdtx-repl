@@ -65,12 +65,12 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
         FileUtils.copyFile(replica.getFile(), actualFile);
 
         //
-        long id = ut.genId(JdxUtils.sys_gen_prefix + "que");
-        String sql = "insert into " + JdxUtils.sys_table_prefix + "que (id, que_type, db_id, age) values (:id, :que_type, :db_id, :age)";
+        long id = ut.getNextGenerator(JdxUtils.sys_gen_prefix + "que");
+        String sql = "insert into " + JdxUtils.sys_table_prefix + "que (id, que_type, ws_id, age) values (:id, :que_type, :ws_id, :age)";
         db.execSql(sql, UtCnv.toMap(
                 "id", id,
                 "que_type", queType,
-                "db_id", replica.getDbId(),
+                "ws_id", replica.getWsId(),
                 "age", replica.getAge()
         ));
     }
@@ -83,6 +83,15 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
         } else {
             return rec.getValueLong("maxAge");
         }
+    }
+
+    public IReplica getByAge(long age) throws Exception {
+        String actualFileName = genFileName(age);
+        File actualFile = new File(baseDir + actualFileName);
+        IReplica replica = new ReplicaFile();
+        replica.setAge(age);
+        replica.setFile(actualFile);
+        return replica;
     }
 
 

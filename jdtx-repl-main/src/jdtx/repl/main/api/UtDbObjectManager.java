@@ -16,6 +16,9 @@ public class UtDbObjectManager {
 
     protected static Log log = LogFactory.getLog("jdtx");
 
+    enum updMods {INSERT, UPDATE, DELETE}
+
+
     public UtDbObjectManager(Db db, IJdxDbStruct struct) {
         this.db = db;
         this.struct = struct;
@@ -47,10 +50,15 @@ public class UtDbObjectManager {
             db.execSql(sql);
 
 
-            // таблица состояния: для хранения возраста созданных реплик, примененных реплик и т.п.
+            // таблица состояния сервера: для хранения возраста созданных реплик, примененных реплик и т.п.
             sql = "create table " + JdxUtils.sys_table_prefix + "state(id integer not null, que_out_age_done int not null, que_in_no_done int not null)";
             db.execSql(sql);
             sql = "insert into " + JdxUtils.sys_table_prefix + "state(id, que_out_age_done, que_in_no_done) values (1, 0, 0)";
+            db.execSql(sql);
+            // таблица состояния рабочих станций: для хранения возраста созданных реплик, примененных реплик и т.п.
+            sql = "create table " + JdxUtils.sys_table_prefix + "state_ws(id integer not null, ws_id int not null, que_common_no_done int not null, que_in_age_done int not null)";
+            db.execSql(sql);
+            sql = "create generator " + JdxUtils.sys_gen_prefix + "state_ws";
             db.execSql(sql);
 
             // список рабочих станций
@@ -68,7 +76,7 @@ public class UtDbObjectManager {
             db.execSql(sql);
 
             // очереди реплик
-            sql = "create table " + JdxUtils.sys_table_prefix + "que(id integer not null, que_type int not null, db_id int not null, age int not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "que(id integer not null, que_type int not null, ws_id int not null, age int not null)";
             db.execSql(sql);
             sql = "create generator " + JdxUtils.sys_gen_prefix + "que";
             db.execSql(sql);
@@ -128,7 +136,7 @@ public class UtDbObjectManager {
         // исходящая и входящая очереди,
         // таблицу для хранения возраста базы,
         // таблицу с флагом работы триггеров
-        String[] jdx_sys_tables = new String[]{"state", "workstation_list", "workstation_state", "que", "age", "table_list", "flag_tab"};
+        String[] jdx_sys_tables = new String[]{"state", "state_ws", "workstation_list", "workstation_state", "que", "age", "table_list", "flag_tab"};
         for (String jdx_sys_table : jdx_sys_tables) {
             try {
                 // удаляем таблицу для хранения состояния
@@ -144,7 +152,7 @@ public class UtDbObjectManager {
         }
 
         // Удаляем системные генераторы
-        String[] jdx_sys_generators = new String[]{"table_list", "workstation_list", "workstation_state", "que"};
+        String[] jdx_sys_generators = new String[]{"state", "state_ws", "workstation_list", "workstation_state", "que", "table_list"};
         for (String jdx_sys_generator : jdx_sys_generators) {
             try {
                 query = "drop generator " + JdxUtils.sys_gen_prefix + jdx_sys_generator;
@@ -267,7 +275,21 @@ public class UtDbObjectManager {
         }
     }
 
-    enum updMods {INSERT, UPDATE, DELETE}
+    public long addWorkstation() throws Exception {
+        DbUtils dbu = new DbUtils(db, struct);
 
+        //
+        long wsId = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "workstation_list");
+        String sql = "insert into " + JdxUtils.sys_table_prefix + "workstation_list(id, parent, ws_name) values (" + wsId + ", 0, '')";
+        db.execSql(sql);
+
+        //
+        long id = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "state_ws");
+        sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws(id, ws_id, que_common_no_done, que_in_age_done) values (" + id + ", " + wsId + ", 0, 0)";
+        db.execSql(sql);
+
+        //
+        return wsId;
+    }
 
 }

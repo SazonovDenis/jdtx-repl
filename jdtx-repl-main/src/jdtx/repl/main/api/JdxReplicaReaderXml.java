@@ -12,7 +12,7 @@ public class JdxReplicaReaderXml {
 
     IReplica replica = null;
     XMLStreamReader reader = null;
-    private long dbId;
+    private long wsId;
     private long age;
 
     public JdxReplicaReaderXml(IReplica replica) throws Exception {
@@ -22,12 +22,12 @@ public class JdxReplicaReaderXml {
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         reader = xmlInputFactory.createXMLStreamReader(ist, "utf-8");
 
-        // Чтение заголовка - DB_ID и AGE
+        // Чтение заголовка - WS_ID и AGE
         while (reader.hasNext()) {
             int event = reader.next();
             if (event == XMLStreamConstants.START_ELEMENT) {
                 if (reader.getLocalName().compareToIgnoreCase("replica") == 0) {
-                    dbId = Long.valueOf(reader.getAttributeValue(null, "DB_ID"));
+                    wsId = Long.valueOf(reader.getAttributeValue(null, "WS_ID"));
                     age = Long.valueOf(reader.getAttributeValue(null, "AGE"));
                     break;
                 }
@@ -35,8 +35,8 @@ public class JdxReplicaReaderXml {
         }
     }
 
-    public long getDbId() {
-        return dbId;
+    public long getWsId() {
+        return wsId;
     }
 
     public long getAge() {

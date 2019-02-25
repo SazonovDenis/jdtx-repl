@@ -15,7 +15,7 @@ import java.util.*;
  */
 public class JdxReplWs {
 
-    long dbId; // todo: правила/страегия работы с DbID
+    long wsId; // todo: правила/страегия работы с WsID
 
     // Правила публикации
     List<IPublication> publicationsIn;
@@ -102,10 +102,10 @@ public class JdxReplWs {
         log.info("createSetupReplica");
 
         //
-        UtRepl utr = new UtRepl(db, dbId);
+        UtRepl utr = new UtRepl(db);
         for (IPublication publication : publicationsOut) {
             // Забираем установочную реплику
-            IReplica setupReplica = utr.createReplicaFull(publication);
+            IReplica setupReplica = utr.createReplicaFull(wsId, publication);
 
             // Помещаем реплику в очередь
             queOut.put(setupReplica);
@@ -124,10 +124,10 @@ public class JdxReplWs {
 
         //
         UtAuditAgeManager ut = new UtAuditAgeManager(db, struct);
-        UtRepl utr = new UtRepl(db, dbId);
+        UtRepl utr = new UtRepl(db);
 
         //
-        JdxStateManager stateManager = new JdxStateManager(db);
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         long auditAgeDone = stateManager.getAuditAgeDone();
 
         // Фиксируем возраст своего аудита
@@ -138,7 +138,7 @@ public class JdxReplWs {
         long n = 0;
         for (long age = auditAgeDone + 1; age <= auditAgeActual; age++) {
             for (IPublication publication : publicationsOut) {
-                IReplica replica = utr.createReplicaFromAudit(publication, age);
+                IReplica replica = utr.createReplicaFromAudit(wsId, publication, age);
 
                 //
                 db.startTran();
@@ -174,7 +174,7 @@ public class JdxReplWs {
 
         //
         UtAuditApplyer utaa = new UtAuditApplyer(db, struct);
-        JdxStateManager stateManager = new JdxStateManager(db);
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
         //
         long queInNoDone = stateManager.getQueInNoDone();

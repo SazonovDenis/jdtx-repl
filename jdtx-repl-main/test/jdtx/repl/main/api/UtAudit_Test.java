@@ -36,7 +36,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
      */
     @Test
     public void test_markAuditAge() throws Exception {
-        UtRepl utr = new UtRepl(db,1);
+        UtRepl utr = new UtRepl(db);
 
         // Проверяем возраст
         long auditAge_A_0 = utr.markAuditAge();
@@ -90,7 +90,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_readAuditData() throws Exception {
-        UtRepl utr = new UtRepl(db,1);
+        UtRepl utr = new UtRepl(db);
 
         // Делаем изменения
         UtTest utTest = new UtTest(db);
@@ -118,7 +118,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
     public void test_createSetupReplica() throws Exception {
         //logOn();
 
-        UtRepl utr = new UtRepl(db,1);
+        UtRepl utr = new UtRepl(db);
 
         // Загружаем правила публикации
         IPublication publcation = new Publication();
@@ -130,7 +130,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         }
 
         // Забираем установочную реплику
-        IReplica replica = utr.createReplicaFull(publcation);
+        IReplica replica = utr.createReplicaFull(1, publcation);
 
         //
         System.out.println(replica.getFile().getAbsolutePath());
@@ -138,7 +138,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_createReplica() throws Exception {
-        UtRepl utr = new UtRepl(db,1);
+        UtRepl utr = new UtRepl(db);
 
         // Делаем изменения
         UtTest utTest = new UtTest(db);
@@ -158,7 +158,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         }
 
         // Формируем реплики
-        IReplica replica = utr.createReplicaFromAudit(publcation, selfAuditAge);
+        IReplica replica = utr.createReplicaFromAudit(1, publcation, selfAuditAge);
 
         //
         System.out.println(replica.getFile().getAbsolutePath());

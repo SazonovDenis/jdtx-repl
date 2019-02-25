@@ -12,28 +12,28 @@ public class UtRepl_ReplInit_Test extends ReplDatabase_Test {
     @Test
     public void test_DropReplication() throws Exception {
         // db
-        UtRepl utr = new UtRepl(db, 1);
+        UtRepl utr = new UtRepl(db);
         utr.dropReplication();
         // db1
-        UtRepl utr1 = new UtRepl(db2, 2);
+        UtRepl utr1 = new UtRepl(db2);
         utr1.dropReplication();
         // db2
-        UtRepl utr2 = new UtRepl(db3, 3);
+        UtRepl utr2 = new UtRepl(db3);
         utr2.dropReplication();
     }
 
     @Test
     public void test_CreateReplication() throws Exception {
         // db
-        UtRepl utr = new UtRepl(db, 1);
+        UtRepl utr = new UtRepl(db);
         utr.dropReplication();
         utr.createReplication();
         // db1
-        UtRepl utr1 = new UtRepl(db2, 2);
+        UtRepl utr1 = new UtRepl(db2);
         utr1.dropReplication();
         utr1.createReplication();
         // db2
-        UtRepl utr2 = new UtRepl(db3, 3);
+        UtRepl utr2 = new UtRepl(db3);
         utr2.dropReplication();
         utr2.createReplication();
     }
@@ -44,7 +44,7 @@ public class UtRepl_ReplInit_Test extends ReplDatabase_Test {
      * после создания и последующего удаления репликационных структур
      */
     public void test_compareCreateDrop() throws Exception {
-        UtRepl utr = new UtRepl(db, 1);
+        UtRepl utr = new UtRepl(db);
 
         //
         JdxDbStructReader reader = new JdxDbStructReader();

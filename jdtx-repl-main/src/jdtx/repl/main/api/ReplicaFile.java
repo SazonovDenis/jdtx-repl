@@ -8,16 +8,16 @@ import java.io.*;
 public class ReplicaFile implements IReplica {
 
     File file = null;
-    long dbId = -1;
+    long wsId = -1;
     long age = -1;
     long no = -1;
 
-    public long getDbId() {
-        return dbId;
+    public long getWsId() {
+        return wsId;
     }
 
-    public void setDbId(long dbId) {
-        this.dbId = dbId;
+    public void setWsId(long wsId) {
+        this.wsId = wsId;
     }
 
     public long getAge() {

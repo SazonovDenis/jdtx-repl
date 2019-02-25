@@ -55,7 +55,9 @@ public class RefDecoder implements IRefDecoder {
 
     //
     public long getOrCreate_id_own(long db_id, String tableName) throws Exception {
-        // Id находится в нерегулируемом диапазоне
+        // Id находится в нерегулируемом диапазоне.
+        // todo: возможно есть более сложное поведение, например "id до 1000".
+        // Это может быть перекрыто в казстомных обработчиках
         if (db_id <= 0) {
             return db_id;
         }

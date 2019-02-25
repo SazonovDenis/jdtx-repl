@@ -60,11 +60,11 @@ public class JdxQueCommonFile implements IJdxQueCommon {
         }
 
         //
-        String sql = "insert into " + JdxUtils.sys_table_prefix + "que (id, que_type, db_id, age) values (:id, :que_type, :db_id, :age)";
+        String sql = "insert into " + JdxUtils.sys_table_prefix + "que (id, que_type, ws_id, age) values (:id, :que_type, :ws_id, :age)";
         db.execSql(sql, UtCnv.toMap(
                 "id", queNextNo,
                 "que_type", queType,
-                "db_id", replica.getDbId(),
+                "ws_id", replica.getWsId(),
                 "age", replica.getAge()
         ));
 

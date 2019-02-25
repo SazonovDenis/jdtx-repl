@@ -6,6 +6,7 @@ import org.apache.commons.logging.*;
 import org.json.simple.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  * Главное API репликатора
@@ -13,14 +14,12 @@ import java.io.*;
 public class UtRepl {
 
     private Db db;
-    private long dbId; // todo: правила/страегия работы с DbID
     private IJdxDbStruct struct;
 
     protected static Log log = LogFactory.getLog("jdtx");
 
-    public UtRepl(Db db, long dbId) throws Exception {
+    public UtRepl(Db db) throws Exception {
         this.db = db;
-        this.dbId = dbId;
         // чтение структуры
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
@@ -81,7 +80,7 @@ public class UtRepl {
      * Собрать аудит и подготовить реплику по правилам публикации publication
      * от для возраста age.
      */
-    IReplica createReplicaFromAudit(IPublication publication, long age) throws Exception {
+    IReplica createReplicaFromAudit(long wsId, IPublication publication, long age) throws Exception {
         log.info("createReplicaFromAudit");
 
         File file = new File("../_test-data/~tmp_csv.xml"); // todo: правила/страегия работы с файлами и вообще с получателем информации - в какой момент и кто выбирает файл
@@ -89,7 +88,7 @@ public class UtRepl {
         JdxReplicaWriterXml writerXml = new JdxReplicaWriterXml(ost);
 
         //
-        writerXml.writeReplicaInfo(dbId, age);
+        writerXml.writeReplicaInfo(wsId, age);
 
         //
         UtAuditSelector utrr = new UtAuditSelector(db, struct);
@@ -117,7 +116,7 @@ public class UtRepl {
 
         //
         IReplica res = new ReplicaFile();
-        res.setDbId(dbId);
+        res.setWsId(wsId);
         res.setAge(age);
         res.setNo(age);
         res.setFile(file);
@@ -132,14 +131,14 @@ public class UtRepl {
      * Самая первая (установочная) реплика для сервера.
      * Готовится как реплика на вставку всех существующих записей в этой БД.
      */
-    IReplica createReplicaFull(IPublication publication) throws Exception {
+    IReplica createReplicaFull(long wsId, IPublication publication) throws Exception {
         File file = new File("../_test-data/csv_full.xml");
         OutputStream ost = new FileOutputStream(file);
         JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
 
         //
         long age = 0; // Установочная реплика именно возраста 0
-        wr.writeReplicaInfo(dbId, age);
+        wr.writeReplicaInfo(wsId, age);
 
         //
         UtDataSelector utrr = new UtDataSelector(db, struct);
@@ -164,7 +163,7 @@ public class UtRepl {
 
         //
         IReplica replica = new ReplicaFile();
-        replica.setDbId(dbId);
+        replica.setWsId(wsId);
         replica.setAge(age);
         replica.setFile(file);
 
@@ -179,15 +178,79 @@ public class UtRepl {
      * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
      * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
      */
-    public void formCommonQue() {
+    public void srvFormCommonQue(Map<Long, IJdxQuePersonal> queOutList, IJdxQueCommon commonQue) throws Exception {
+        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
 
+        //
+        for (Map.Entry en : queOutList.entrySet()) {
+            long wsId = (long) en.getKey();
+            IJdxQuePersonal wsQueOut = (IJdxQuePersonal) en.getValue();
+
+            //
+            long queDoneAge = stateManager.getWsQueInAgeDone(wsId);
+            long queMaxAge = wsQueOut.getMaxAge();
+
+            //
+            log.info("srvFormCommonQue, baseDir: " + wsQueOut.getBaseDir() + ", queDoneAge: " + queDoneAge + ", queMaxAge: " + queMaxAge);
+
+            //
+            for (long age = queDoneAge + 1; age <= queMaxAge; age++) {
+                log.info("srvFormCommonQue, age: " + age);
+
+                //
+                db.startTran();
+
+                try {
+                    commonQue.put(wsQueOut.getByAge(age));
+                    //
+                    stateManager.setWsQueInAgeDone(wsId, age);
+                    //
+                    db.commit();
+                } catch (Exception e) {
+                    db.rollback();
+                    throw e;
+                }
+            }
+        }
     }
 
     /**
      * Сервер: распределение общей очереди по рабочим станциям
      */
-    public void dispatchReplicas() {
+    public void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IJdxQueCommon> queInList) throws Exception {
+        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
 
+        //
+        for (Map.Entry en : queInList.entrySet()) {
+            long wsId = (long) en.getKey();
+            IJdxQueCommon wsQueIn = (IJdxQueCommon) en.getValue();
+
+            //
+            long commonQueDoneNo = stateManager.getCommonQueNoDone(wsId);
+            long commonQueMaxNo = commonQue.getMaxNo();
+
+            //
+            log.info("srvDispatchReplicas, baseDir: " + wsQueIn.getBaseDir() + ", commonQueDoneNo: " + commonQueDoneNo + ", commonQueMaxNo: " + commonQueMaxNo);
+
+            //
+            for (long no = commonQueDoneNo + 1; no <= commonQueMaxNo; no++) {
+                log.info("srvDispatchReplicas, no: " + no);
+
+                //
+                db.startTran();
+
+                try {
+                    commonQue.put(wsQueIn.getByNo(no));
+                    //
+                    stateManager.setCommonQueNoDone(wsId, no);
+                    //
+                    db.commit();
+                } catch (Exception e) {
+                    db.rollback();
+                    throw e;
+                }
+            }
+        }
     }
 
 

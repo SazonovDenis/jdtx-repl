@@ -56,5 +56,21 @@ public class JdxReplWs_Test extends ReplDatabaseStruct_Test {
 
     }
 
+    @Test
+    public void test_srv_handleQue() throws Exception {
+        // Сервер, настройка
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init("test/etalon/ws_srv.json");
+
+
+        // Забираем входящие реплики
+        srv.srvFormCommonQue();
+
+
+        // Применяем входящие реплики
+        srv.srvDispatchReplicas();
+
+    }
+
 
 }
