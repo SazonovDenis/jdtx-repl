@@ -192,7 +192,7 @@ public class UtRepl {
 
             //
             for (long age = queDoneAge + 1; age <= queMaxAge; age++) {
-                log.info("srvFillCommonQue, age: " + age);
+                log.info("srvFillCommonQue, wsId: " + wsId + ",  age: " + age);
 
                 //
                 IReplica replica = mailer.receive(age);
@@ -216,38 +216,30 @@ public class UtRepl {
     /**
      * Сервер: распределение общей очереди по рабочим станциям
      */
-    public void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IJdxQueCommon> queInList) throws Exception {
+    public void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IJdxMailer> mailerList) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
 
         //
-        for (Map.Entry en : queInList.entrySet()) {
+        for (Map.Entry en : mailerList.entrySet()) {
             long wsId = (long) en.getKey();
-            IJdxQueCommon wsQueIn = (IJdxQueCommon) en.getValue();
+            IJdxMailer mailer = (IJdxMailer) en.getValue();
 
             //
             long commonQueDoneNo = stateManager.getCommonQueNoDone(wsId);
             long commonQueMaxNo = commonQue.getMaxNo();
 
             //
-            log.info("srvDispatchReplicas, baseDir: " + wsQueIn.getBaseDir() + ", commonQueDoneNo: " + commonQueDoneNo + ", commonQueMaxNo: " + commonQueMaxNo);
+            log.info("srvDispatchReplicas, wsId: " + wsId + ", commonQueDoneNo: " + commonQueDoneNo + ", commonQueMaxNo: " + commonQueMaxNo);
 
             //
             for (long no = commonQueDoneNo + 1; no <= commonQueMaxNo; no++) {
-                log.info("srvDispatchReplicas, no: " + no);
+                log.info("srvDispatchReplicas, wsId: " + wsId + ", no: " + no);
 
-                //
-                db.startTran();
+                IReplica replica = commonQue.getByNo(no);
 
-                try {
-                    commonQue.put(wsQueIn.getByNo(no));
-                    //
-                    stateManager.setCommonQueNoDone(wsId, no);
-                    //
-                    db.commit();
-                } catch (Exception e) {
-                    db.rollback();
-                    throw e;
-                }
+                mailer.send(replica, no);
+
+                stateManager.setCommonQueNoDone(wsId, no);
             }
         }
     }

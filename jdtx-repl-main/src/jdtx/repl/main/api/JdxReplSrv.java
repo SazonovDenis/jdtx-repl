@@ -79,8 +79,8 @@ public class JdxReplSrv {
     }
 
     public void srvDispatchReplicas() throws Exception {
-        //UtRepl utr = new UtRepl(db);
-        //utr.srvDispatchReplicas(commonQue, mailerList);
+        UtRepl utr = new UtRepl(db);
+        utr.srvDispatchReplicas(commonQue, mailerList);
     }
 
 }

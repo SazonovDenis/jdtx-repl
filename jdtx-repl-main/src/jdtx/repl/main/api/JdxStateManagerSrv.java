@@ -46,7 +46,13 @@ public class JdxStateManagerSrv {
         if (rec.getValueLong("ws_id") == 0) {
             throw new XError("Не найдена запись для ws_id [" + wsId + "] в " + JdxUtils.sys_table_prefix + "state_ws");
         } else {
-            return rec.getValueLong("que_common_no_done");
+            long no = rec.getValueLong("que_common_no_done");
+            // Номер в очередях (в отличие от возраста) начинается от 1,
+            // но возраст в очередях может начаться с 0
+            if (no == -1) {
+                no = 0;
+            }
+            return no;
         }
     }
 

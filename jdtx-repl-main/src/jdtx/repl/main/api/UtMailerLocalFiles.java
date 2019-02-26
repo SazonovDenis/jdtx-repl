@@ -49,9 +49,6 @@ public class UtMailerLocalFiles implements IJdxMailer {
     }
 
     public void send(IReplica repl, long n) throws Exception {
-        log.info("UtMailer, send n: " + n);
-
-        //
         File localFile = repl.getFile();
         String remoteFileName = getFileName(n);
         File remoteFile = new File(remoteDirSend + remoteFileName);
@@ -60,9 +57,6 @@ public class UtMailerLocalFiles implements IJdxMailer {
     }
 
     public IReplica receive(long no) throws Exception {
-        log.info("UtMailer, receive no: " + no);
-
-        //
         String remoteFileName = getFileName(no);
         File remoteFile = new File(remoteDirReceive + remoteFileName);
         String localFileName = getFileName(no);

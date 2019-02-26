@@ -41,7 +41,9 @@ public class JdxStateManagerWs {
         String sql = "select * from " + JdxUtils.sys_table_prefix + "state";
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("id") == 0) {
-            return -1;
+            // Номер в очередях (в отличие от возраста) начинается от 1,
+            // но возраст в очередях может начаться с 0
+            return 0;
         } else {
             return rec.getValueLong("que_in_no_done");
         }

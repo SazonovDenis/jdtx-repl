@@ -219,6 +219,8 @@ public class JdxReplWs {
         //
         long count = 0;
         for (long no = selfReceivedNo + 1; no <= srvAvailableNo; no++) {
+            log.info("UtMailer, receive no: " + no);
+
             // Физически забираем данные
             IReplica replica = mailer.receive(no);
 
@@ -247,6 +249,8 @@ public class JdxReplWs {
         //
         long count = 0;
         for (long age = srvSendAge + 1; age <= selfQueOutAge; age++) {
+            log.info("UtMailer, send.age: " + age);
+
             // Физически отправляем данные
             mailer.send(queOut.getByAge(age), age);
 

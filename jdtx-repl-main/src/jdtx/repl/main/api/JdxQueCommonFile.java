@@ -43,7 +43,7 @@ public class JdxQueCommonFile implements IJdxQueCommon {
     }
 
     public long put(IReplica replica) throws Exception {
-        // Проверки правильности номера реплики
+        // Проверки правильности возраста реплики
         if (replica.getAge() == -1) {
             throw new XError("invalid replica.age");
         }
@@ -95,6 +95,11 @@ public class JdxQueCommonFile implements IJdxQueCommon {
         File actualFile = new File(baseDir + actualFileName);
         IReplica replica = new ReplicaFile();
         replica.setFile(actualFile);
+        //
+        if (!actualFile.exists()) {
+            throw new XError("Replica file is not exists: " + actualFile.getAbsolutePath());
+        }
+        //
         return replica;
     }
 
@@ -112,6 +117,7 @@ public class JdxQueCommonFile implements IJdxQueCommon {
         String sql = "select max(id) as maxNo, count(*) as cnt from " + JdxUtils.sys_table_prefix + "que" + queType;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("cnt") == 0) {
+            // Номера в очередях начинаются от 1 (в отличие от возрастов, котрые могут начаться с 0)
             return 0;
         } else {
             return rec.getValueLong("maxNo");

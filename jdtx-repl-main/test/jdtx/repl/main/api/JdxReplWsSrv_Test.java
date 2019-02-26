@@ -66,15 +66,27 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void test_srv_ApplyReplica() throws Exception {
+    public void test_ws2_ApplyReplica() throws Exception {
         // Сервер, настройка
-        JdxReplWs ws = new JdxReplWs(db,1);
-        ws.init("test/etalon/ws_srv.json");
-
+        JdxReplWs ws = new JdxReplWs(db2, 2);
+        ws.init("test/etalon/ws2.json");
 
         // Забираем входящие реплики
         ws.receive();
 
+        // Применяем входящие реплики
+        ws.handleQueIn();
+    }
+
+
+    @Test
+    public void test_srv_ApplyReplica() throws Exception {
+        // Сервер, настройка
+        JdxReplWs ws = new JdxReplWs(db, 1);
+        ws.init("test/etalon/ws_srv.json");
+
+        // Забираем входящие реплики
+        ws.receive();
 
         // Применяем входящие реплики
         ws.handleQueIn();
@@ -87,14 +99,11 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init("test/etalon/srv.json");
 
-
         // Формирование общей очереди
         srv.srvFillCommonQue();
 
-
         // Тиражирование реплик
         srv.srvDispatchReplicas();
-
     }
 
 
