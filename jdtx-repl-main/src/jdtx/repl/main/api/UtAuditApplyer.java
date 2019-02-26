@@ -49,8 +49,8 @@ public class UtAuditApplyer {
         DbAuditTriggersManager trm = new DbAuditTriggersManager(db);
 
         //
-        JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(replica);
-        log.info("WsId: " + replicaReader.getWsId() + ", age: " + replica.getAge());
+        JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(replica.getFile());
+        log.info("WsId: " + replicaReader.getWsId() + ", age: " + replicaReader.getAge());
 
         //
         IRefDecoder decoder = new RefDecoder(db, replicaReader.getWsId());
@@ -165,6 +165,9 @@ public class UtAuditApplyer {
 
             //
             replicaReader.close();
+
+            //
+            throw e;
         }
 
     }

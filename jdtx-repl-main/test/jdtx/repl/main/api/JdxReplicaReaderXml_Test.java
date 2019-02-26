@@ -17,7 +17,7 @@ public class JdxReplicaReaderXml_Test extends DbmTestCase {
         replica.setFile(new File("../_test-data/~tmp_csv.xml"));
 
         //
-        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(replica);
+        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(replica.getFile());
         System.out.println("WsId = " + reader.getWsId());
         System.out.println("Age = " + reader.getAge());
 

@@ -4,6 +4,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.utils.error.*;
 
 import java.util.*;
 
@@ -22,6 +23,11 @@ public class RefDecoder implements IRefDecoder {
     protected Map<String, Long> tablesSlotMax;
 
     public RefDecoder(Db db, long ws_id) throws Exception {
+        if (ws_id <= 0) {
+            throw new XError("invalid ws_id <= 0");
+        }
+
+        //
         this.db = db;
         this.ws_id = ws_id;
 

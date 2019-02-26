@@ -10,15 +10,15 @@ import java.util.*;
  */
 public class JdxReplicaReaderXml {
 
-    IReplica replica = null;
+    //IReplica replica = null;
     XMLStreamReader reader = null;
     private long wsId;
     private long age;
 
-    public JdxReplicaReaderXml(IReplica replica) throws Exception {
-        this.replica = replica;
+    public JdxReplicaReaderXml(File file) throws Exception {
+        //this.replica = replica;
         //
-        InputStream ist = new FileInputStream(replica.getFile());
+        InputStream ist = new FileInputStream(file);
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         reader = xmlInputFactory.createXMLStreamReader(ist, "utf-8");
 

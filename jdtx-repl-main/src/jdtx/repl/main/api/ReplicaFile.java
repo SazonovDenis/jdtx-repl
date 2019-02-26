@@ -36,7 +36,7 @@ public class ReplicaFile implements IReplica {
     }
 
     public static void readReplicaInfo(IReplica replica) throws Exception {
-        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(replica);
+        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(replica.getFile());
         replica.setWsId(reader.getWsId());
         replica.setAge(reader.getAge());
         reader.close();
