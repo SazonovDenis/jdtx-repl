@@ -16,6 +16,12 @@ public interface IJdxQueCommon {
     long getMaxNo() throws Exception;
 
     /**
+     * @return Последний возраст реплики в очереди для рабочей станции wsId
+     */
+    long getMaxAge(long wsId) throws Exception;
+
+
+    /**
      * Получить реплику по номеру
      *
      * @param no Номер

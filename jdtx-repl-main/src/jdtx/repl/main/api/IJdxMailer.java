@@ -8,10 +8,20 @@ import org.json.simple.*;
  */
 public interface IJdxMailer {
 
-    void send() throws Exception;
-
-    void receive() throws Exception;
-
     void init(JSONObject cfg);
+
+    /**
+     * @return Сколько уже отправлено на сервер (age или no)
+     */
+    long getSrvSend();
+
+    void send(IReplica repl, long n) throws Exception;
+
+    /**
+     * @return Сколько есть на сервере (age или no)
+     */
+    long getSrvReceive();
+
+    IReplica receive(long n) throws Exception;
 
 }

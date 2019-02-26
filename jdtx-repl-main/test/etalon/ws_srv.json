@@ -1,13 +1,10 @@
 {
-  "queOut_DirLocal": "../_test-data/ws_srv/queOut",
-  "queOut_DirRemote": {
-    "directory": "../_test-data/mail/ws_srv/from/"
-  },
+  "mailReceive": "../_test-data/mail/ws_srv/to/",
+  "mailSend": "../_test-data/mail/ws_srv/from/",
+  "mailLocalDir": "../_test-data/ws_srv/tmp",
 
   "queIn_DirLocal": "../_test-data/ws_srv/queIn",
-  "queIn_DirRemote": {
-    "directory": "../_test-data/mail/ws_srv/to/"
-  },
+  "queOut_DirLocal": "../_test-data/ws_srv/queOut",
 
   "publicationsIn": [
     {

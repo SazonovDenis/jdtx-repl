@@ -76,11 +76,25 @@ public class UtDbObjectManager {
             db.execSql(sql);
 
             // очереди реплик
-            sql = "create table " + JdxUtils.sys_table_prefix + "que(id integer not null, que_type int not null, ws_id int not null, age int not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.IN] + "(id integer not null, ws_id int not null, age int not null)";
             db.execSql(sql);
-            sql = "create generator " + JdxUtils.sys_gen_prefix + "que";
+            sql = "create generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.IN];
             db.execSql(sql);
-            sql = "set generator " + JdxUtils.sys_gen_prefix + "que to 0";
+            sql = "set generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.IN] + " to 0";
+            db.execSql(sql);
+            //
+            sql = "create table " + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.OUT] + "(id integer not null, ws_id int not null, age int not null)";
+            db.execSql(sql);
+            sql = "create generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.OUT];
+            db.execSql(sql);
+            sql = "set generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.OUT] + " to 0";
+            db.execSql(sql);
+            //
+            sql = "create table " + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.COMMON] + "(id integer not null, ws_id int not null, age int not null)";
+            db.execSql(sql);
+            sql = "create generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.COMMON];
+            db.execSql(sql);
+            sql = "set generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.COMMON] + " to 0";
             db.execSql(sql);
 
             // таблица дл€ хранени€ возраста таблиц
@@ -140,7 +154,12 @@ public class UtDbObjectManager {
         // исход€ща€ и вход€ща€ очереди,
         // таблицу дл€ хранени€ возраста базы,
         // таблицу с флагом работы триггеров
-        String[] jdx_sys_tables = new String[]{"state", "state_ws", "workstation_list", "workstation_state", "que", "age", "table_list", "flag_tab"};
+        String[] jdx_sys_tables = new String[]{
+                "age", "flag_tab", "state", "state_ws", "workstation_list", "workstation_state", "table_list",
+                "que"+JdxQueType.table_suffix[JdxQueType.IN],
+                "que"+JdxQueType.table_suffix[JdxQueType.OUT],
+                "que"+JdxQueType.table_suffix[JdxQueType.COMMON]
+        };
         for (String jdx_sys_table : jdx_sys_tables) {
             try {
                 // удал€ем таблицу
@@ -156,7 +175,12 @@ public class UtDbObjectManager {
         }
 
         // ”дал€ем системные генераторы
-        String[] jdx_sys_generators = new String[]{"state", "state_ws", "workstation_list", "workstation_state", "que", "table_list"};
+        String[] jdx_sys_generators = new String[]{
+                "state", "state_ws", "workstation_list", "workstation_state", "table_list",
+                "que"+JdxQueType.table_suffix[JdxQueType.IN],
+                "que"+JdxQueType.table_suffix[JdxQueType.OUT],
+                "que"+JdxQueType.table_suffix[JdxQueType.COMMON]
+        };
         for (String jdx_sys_generator : jdx_sys_generators) {
             try {
                 query = "drop generator " + JdxUtils.sys_gen_prefix + jdx_sys_generator;
@@ -297,7 +321,7 @@ public class UtDbObjectManager {
 
         //
         long id = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "state_ws");
-        sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws(id, ws_id, que_common_no_done, que_in_age_done) values (" + id + ", " + wsId + ", 0, 0)";
+        sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws(id, ws_id, que_common_no_done, que_in_age_done) values (" + id + ", " + wsId + ", -1, -1)";
         db.execSql(sql);
 
         //

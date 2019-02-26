@@ -1,13 +1,10 @@
 {
-  "queOut_DirLocal": "../_test-data/ws2/queOut",
-  "queOut_DirRemote": {
-    "directory": "../_test-data/mail/ws2/from/"
-  },
+  "mailReceive": "../_test-data/mail/ws2/to/",
+  "mailSend": "../_test-data/mail/ws2/from/",
+  "mailLocalDir": "../_test-data/ws2/tmp",
 
   "queIn_DirLocal": "../_test-data/ws2/queIn",
-  "queIn_DirRemote": {
-    "directory": "../_test-data/mail/ws2/to/"
-  },
+  "queOut_DirLocal": "../_test-data/ws2/queOut",
 
   "publicationsIn": [],
   "publicationsOut": [

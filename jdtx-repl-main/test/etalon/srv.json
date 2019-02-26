@@ -1,16 +1,23 @@
 {
-  "1":
-  {
-    "queCommon_DirLocal": "../_test-data/ws_srv/queCommon/"
+
+  "queCommon_DirLocal": "../_test-data/srv/queCommon/",
+
+  "1": {
+    "mailLocalDir": "../_test-data/srv/tmp/",
+    "mailReceive": "../_test-data/mail/ws_srv/from/",
+    "mailSend": "../_test-data/mail/ws_srv/to/"
   },
-  "2":
-    {
-      "queIn_DirLocal": "../_test-data/mail/ws2/from/",
-      "queOut_DirLocal": "../_test-data/mail/ws2/to/"
-    },
-  "3":
-    {
-      "queIn_DirLocal": "../_test-data/mail/ws3/from/",
-      "queOut_DirLocal": "../_test-data/mail/ws3/to/"
-    }
+
+  "2": {
+    "mailLocalDir": "../_test-data/srv/tmp/",
+    "mailReceive": "../_test-data/mail/ws2/from/",
+    "mailSend": "../_test-data/mail/ws2/to/"
+  },
+
+  "3": {
+    "mailLocalDir": "../_test-data/srv/tmp/",
+    "mailReceive": "../_test-data/mail/ws3/from/",
+    "mailSend": "../_test-data/mail/ws3/to/"
+  }
+
 }

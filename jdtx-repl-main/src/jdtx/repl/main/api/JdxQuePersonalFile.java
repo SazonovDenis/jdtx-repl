@@ -15,16 +15,20 @@ import java.io.*;
  */
 public class JdxQuePersonalFile implements IJdxQuePersonal {
 
-    private long queType;
+    private String queType;
 
     private String baseDir;
 
     private Db db;
     private DbUtils ut;
 
-    public JdxQuePersonalFile(Db db, long queType) throws Exception {
+    public JdxQuePersonalFile(Db db, int queType) throws Exception {
+        if (queType == -1) {
+            throw new XError("invalid queType");
+        }
+        //
         this.db = db;
-        this.queType = queType;
+        this.queType = JdxQueType.table_suffix[queType];
         // чтение структуры
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
@@ -38,45 +42,56 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
     }
 
     public void setBaseDir(String baseDir) {
-        this.baseDir = baseDir;
+        if (baseDir == null || baseDir.length() == 0) {
+            throw new XError("Invalid baseDir");
+        }
+        //
+        this.baseDir = UtFile.unnormPath(baseDir) + "/";
+        //
         UtFile.mkdirs(baseDir);
     }
 
 
     public void put(IReplica replica) throws Exception {
-        //
-        if (queType == -1) {
-            throw new XError("invalid queType");
-        }
-        //
+        // Проверки правильности номера реплики
         if (replica.getAge() == -1) {
             throw new XError("invalid replica.age");
         }
         //
         long queMaxAge = getMaxAge();
-        if (queMaxAge != -1 && replica.getAge() != queMaxAge + 1) {
-            throw new XError("invalid age: replica.getAge = " + replica.getAge() + ", queMaxAge = " + queMaxAge);
+        if (replica.getAge() == 0) {
+            // Установочная (самая первая, полная) реплика
+            if (queMaxAge != -1) {
+                throw new XError("Setup replica is not allowed in que.age: " + queMaxAge);
+            }
+        } else {
+            // Очередная реплика
+            if (replica.getAge() != queMaxAge + 1) {
+                throw new XError("invalid replica.getAge: " + replica.getAge() + ", que.age: " + queMaxAge);
+            }
         }
 
-        //
-        //long id_temp = ut.getCurrId(JdxUtils.sys_gen_prefix + "que");
+        // Помещаем в очередь
         String actualFileName = genFileName(replica.getAge());
         File actualFile = new File(baseDir + actualFileName);
-        FileUtils.copyFile(replica.getFile(), actualFile);
-
+        if (replica.getFile().getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
+            // Иногда две очереди разделяют одно место хранения,
+            // тогда файл копировать не нужно
+            // todo - может помешать процедурам удаления реплик
+            FileUtils.copyFile(replica.getFile(), actualFile);
+        }
         //
-        long id = ut.getNextGenerator(JdxUtils.sys_gen_prefix + "que");
-        String sql = "insert into " + JdxUtils.sys_table_prefix + "que (id, que_type, ws_id, age) values (:id, :que_type, :ws_id, :age)";
+        long id = ut.getNextGenerator(JdxUtils.sys_gen_prefix + "que" + queType);
+        String sql = "insert into " + JdxUtils.sys_table_prefix + "que" + queType + " (id, ws_id, age) values (:id, :ws_id, :age)";
         db.execSql(sql, UtCnv.toMap(
                 "id", id,
-                "que_type", queType,
                 "ws_id", replica.getWsId(),
                 "age", replica.getAge()
         ));
     }
 
     public long getMaxAge() throws Exception {
-        String sql = "select max(age) as maxAge, count(*) as cnt from " + JdxUtils.sys_table_prefix + "que where que_type = " + queType;
+        String sql = "select max(age) as maxAge, count(*) as cnt from " + JdxUtils.sys_table_prefix + "que" + queType;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("cnt") == 0) {
             return -1;

@@ -3,7 +3,7 @@ package jdtx.repl.main.api;
 import java.io.*;
 
 /**
- * Блок данных
+ * Блок данных. todo: возможно нет необходитости хранить возраст и номер ВНУТРИ реплики
  */
 public interface IReplica {
 
@@ -14,10 +14,6 @@ public interface IReplica {
     void setAge(long age);
 
     long getAge();
-
-    void setNo(long age);
-
-    long getNo();
 
     void setFile(File file);
 

@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 
 /**
@@ -19,7 +20,12 @@ public class JdxStateManagerWs {
      */
     public long getAuditAgeDone() throws Exception {
         String sql = "select * from " + JdxUtils.sys_table_prefix + "state";
-        return db.loadSql(sql).getCurRec().getValueLong("que_out_age_done");
+        DataRecord rec = db.loadSql(sql).getCurRec();
+        if (rec.getValueLong("id") == 0) {
+            return -1;
+        } else {
+            return rec.getValueLong("que_out_age_done");
+        }
     }
 
     public void setAuditAgeDone(long queOutAgeDone) throws Exception {
@@ -33,7 +39,12 @@ public class JdxStateManagerWs {
      */
     public long getQueInNoDone() throws Exception {
         String sql = "select * from " + JdxUtils.sys_table_prefix + "state";
-        return db.loadSql(sql).getCurRec().getValueLong("que_in_no_done");
+        DataRecord rec = db.loadSql(sql).getCurRec();
+        if (rec.getValueLong("id") == 0) {
+            return -1;
+        } else {
+            return rec.getValueLong("que_in_no_done");
+        }
     }
 
     public void setQueInNoDone(long queInNoDone) throws Exception {

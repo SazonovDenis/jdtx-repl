@@ -118,7 +118,6 @@ public class UtRepl {
         IReplica res = new ReplicaFile();
         res.setWsId(wsId);
         res.setAge(age);
-        res.setNo(age);
         res.setFile(file);
 
         //
@@ -132,7 +131,7 @@ public class UtRepl {
      * Готовится как реплика на вставку всех существующих записей в этой БД.
      */
     IReplica createReplicaFull(long wsId, IPublication publication) throws Exception {
-        File file = new File("../_test-data/csv_full.xml");
+        File file = new File("../_test-data/~tmp_csv.xml");  //todo: политика размещения!!
         OutputStream ost = new FileOutputStream(file);
         JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
 
@@ -178,30 +177,30 @@ public class UtRepl {
      * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
      * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
      */
-    public void srvFormCommonQue(Map<Long, IJdxQuePersonal> queOutList, IJdxQueCommon commonQue) throws Exception {
+    public void srvFillCommonQue(Map<Long, IJdxMailer> mailerList, IJdxQueCommon commonQue) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
-
-        //
-        for (Map.Entry en : queOutList.entrySet()) {
+        for (Map.Entry en : mailerList.entrySet()) {
             long wsId = (long) en.getKey();
-            IJdxQuePersonal wsQueOut = (IJdxQuePersonal) en.getValue();
+            IJdxMailer mailer = (IJdxMailer) en.getValue();
 
             //
             long queDoneAge = stateManager.getWsQueInAgeDone(wsId);
-            long queMaxAge = wsQueOut.getMaxAge();
+            long queMaxAge = mailer.getSrvReceive();
 
             //
-            log.info("srvFormCommonQue, baseDir: " + wsQueOut.getBaseDir() + ", queDoneAge: " + queDoneAge + ", queMaxAge: " + queMaxAge);
+            log.info("srvFillCommonQue, wsId: " + wsId + ", queDoneAge: " + queDoneAge + ", queMaxAge: " + queMaxAge);
 
             //
             for (long age = queDoneAge + 1; age <= queMaxAge; age++) {
-                log.info("srvFormCommonQue, age: " + age);
+                log.info("srvFillCommonQue, age: " + age);
+
+                //
+                IReplica replica = mailer.receive(age);
 
                 //
                 db.startTran();
-
                 try {
-                    commonQue.put(wsQueOut.getByAge(age));
+                    commonQue.put(replica);
                     //
                     stateManager.setWsQueInAgeDone(wsId, age);
                     //

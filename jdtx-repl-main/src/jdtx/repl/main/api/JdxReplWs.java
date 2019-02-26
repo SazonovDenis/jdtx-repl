@@ -1,7 +1,6 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.db.*;
-import jandcode.utils.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
@@ -15,7 +14,6 @@ import java.util.*;
  */
 public class JdxReplWs {
 
-    long wsId; // todo: правила/страегия работы с WsID
 
     // Правила публикации
     List<IPublication> publicationsIn;
@@ -26,8 +24,9 @@ public class JdxReplWs {
     private JdxQuePersonalFile queOut;
 
     //
-    Db db;
-    IJdxDbStruct struct;
+    private Db db;
+    private long wsId;
+    private IJdxDbStruct struct;
 
     //
     IJdxMailer mailer;
@@ -36,8 +35,9 @@ public class JdxReplWs {
     protected static Log log = LogFactory.getLog("jdtx");
 
     //
-    public JdxReplWs(Db db) throws Exception {
+    public JdxReplWs(Db db, long wsId) throws Exception {
         this.db = db;
+        this.wsId = wsId;
         // чтение структуры
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
@@ -61,11 +61,11 @@ public class JdxReplWs {
 
         // Читаем из этой очереди
         queIn = new JdxQueCommonFile(db, JdxQueType.IN);
-        queIn.setBaseDir(UtFile.unnormPath((String) cfgData.get("queIn_DirLocal")) + "/");
+        queIn.setBaseDir((String) cfgData.get("queIn_DirLocal"));
 
         // Пишем в эту очередь
         queOut = new JdxQuePersonalFile(db, JdxQueType.OUT);
-        queOut.setBaseDir(UtFile.unnormPath((String) cfgData.get("queOut_DirLocal")) + "/");
+        queOut.setBaseDir((String) cfgData.get("queOut_DirLocal"));
 
         // Правила публикации
         publicationsIn = new ArrayList<>();
@@ -91,7 +91,7 @@ public class JdxReplWs {
         }
 
         //
-        mailer = new UtMailerLocalFiles(queIn, queOut);
+        mailer = new UtMailerLocalFiles();
         mailer.init(cfgData);
     }
 
@@ -207,17 +207,55 @@ public class JdxReplWs {
 
 
     public void receive() throws Exception {
-        mailer.receive();
+        // Узнаем сколько есть на сервере
+        long srvAvailableNo = mailer.getSrvReceive();
+
+        // Узнаем сколько получено у нас
+        long selfReceivedNo = queIn.getMaxNo();
 
         //
-        JdxQueReaderDir rdr = new JdxQueReaderDir();
-        rdr.baseDir = queIn.getBaseDir();
-        rdr.loadFromDirToQueIn(queIn);
+        log.info("UtMailer, srv.available: " + srvAvailableNo + ", self.received: " + selfReceivedNo);
+
+        //
+        long count = 0;
+        for (long no = selfReceivedNo + 1; no <= srvAvailableNo; no++) {
+            // Физически забираем данные
+            IReplica replica = mailer.receive(no);
+
+            // Помещаем полученные данные в свою входящую очередь
+            queIn.put(replica);
+
+            //
+            count++;
+        }
+
+        //
+        log.info("UtMailer, receive done: " + count + ", no: " + srvAvailableNo);
     }
 
 
     public void send() throws Exception {
-        mailer.send();
+        // Узнаем сколько уже отправлено на сервер
+        long srvSendAge = mailer.getSrvSend();
+
+        // Узнаем сколько есть у нас в очереди на отправку
+        long selfQueOutAge = queOut.getMaxAge();
+
+        //
+        log.info("UtMailer, send.age: " + srvSendAge + ", que.age: " + selfQueOutAge);
+
+        //
+        long count = 0;
+        for (long age = srvSendAge + 1; age <= selfQueOutAge; age++) {
+            // Физически отправляем данные
+            mailer.send(queOut.getByAge(age), age);
+
+            //
+            count++;
+        }
+
+        //
+        log.info("UtMailer, send done: " + count + ", age: " + selfQueOutAge);
     }
 
 

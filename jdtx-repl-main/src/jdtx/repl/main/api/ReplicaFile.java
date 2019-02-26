@@ -10,7 +10,6 @@ public class ReplicaFile implements IReplica {
     File file = null;
     long wsId = -1;
     long age = -1;
-    long no = -1;
 
     public long getWsId() {
         return wsId;
@@ -28,20 +27,19 @@ public class ReplicaFile implements IReplica {
         this.age = age;
     }
 
-    public long getNo() {
-        return no;
-    }
-
-    public void setNo(long no) {
-        this.no = no;
-    }
-
     public void setFile(File file) {
         this.file = file;
     }
 
     public File getFile() {
         return this.file;
+    }
+
+    public static void readReplicaInfo(IReplica replica) throws Exception {
+        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(replica);
+        replica.setWsId(reader.getWsId());
+        replica.setAge(reader.getAge());
+        reader.close();
     }
 
 }

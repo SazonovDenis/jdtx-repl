@@ -50,7 +50,7 @@ public class UtAuditApplyer {
 
         //
         JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(replica);
-        log.info("WsId: " + replicaReader.getWsId()+", no: " + replica.getNo());
+        log.info("WsId: " + replicaReader.getWsId() + ", age: " + replica.getAge());
 
         //
         IRefDecoder decoder = new RefDecoder(db, replicaReader.getWsId());
@@ -155,7 +155,7 @@ public class UtAuditApplyer {
             //
             replicaReader.close();
 
-        } catch (Exception e){
+        } catch (Exception e) {
             if (!trm.triggersIsOn()) {
                 trm.setTriggersOn();
             }

@@ -1,6 +1,7 @@
 package jdtx.repl.main.api;
 
 import jandcode.utils.*;
+import jandcode.utils.error.*;
 import org.apache.commons.io.*;
 import org.apache.commons.io.filefilter.*;
 import org.apache.commons.logging.*;
@@ -13,106 +14,76 @@ import java.io.*;
  */
 public class UtMailerLocalFiles implements IJdxMailer {
 
-    private String localDirQueOut;
-    private String remoteDirQueOut;
+    String remoteDirSend;
+    String remoteDirReceive;
+    String localDir;
 
-    private String localDirQueIn;
-    private String remoteDirQueIn;
-
-    private IJdxQuePersonal queOut;
-    private IJdxQueCommon queIn;
 
     protected static Log log = LogFactory.getLog("jdtx");
 
     private String inFileMask = "*.xml";
 
-    public UtMailerLocalFiles(IJdxQueCommon queIn, IJdxQuePersonal queOut) {
-        this.queIn = queIn;
-        this.queOut = queOut;
-    }
 
     public void init(JSONObject cfg) {
-        localDirQueOut = queOut.getBaseDir();
-        JSONObject cfgOut = (JSONObject) cfg.get("queOut_DirRemote");
-        remoteDirQueOut = UtFile.unnormPath((String) cfgOut.get("directory")) + "/";
+        remoteDirSend = (String) cfg.get("mailSend");
+        remoteDirReceive = (String) cfg.get("mailReceive");
+        localDir = (String) cfg.get("mailLocalDir");
         //
-        localDirQueIn = queIn.getBaseDir();
-        JSONObject cfgIn = (JSONObject) cfg.get("queIn_DirRemote");
-        remoteDirQueIn = UtFile.unnormPath((String) cfgIn.get("directory")) + "/";
-        //
-        UtFile.mkdirs(localDirQueIn);
-        UtFile.mkdirs(localDirQueOut);
-        UtFile.mkdirs(remoteDirQueIn);
-        UtFile.mkdirs(remoteDirQueOut);
-    }
-
-    public void send() throws Exception {
-        // Узнаем сколько уже отправлено на сервер
-        long srvSendAge = getSrvSendAge();
-
-        // Узнаем сколько есть у нас в очереди на отправку
-        long selfOutAge = queOut.getMaxAge();
-
-        //
-        log.info("UtMailer, send.age: " + srvSendAge + ", que.age: " + selfOutAge);
-
-        //
-        long n = 0;
-        for (long age = srvSendAge + 1; age <= selfOutAge; age++) {
-            log.info("UtMailer, send age: " + age);
-
-            //
-            String localFileName = getFileName(age);
-            File localFile = new File(localDirQueOut + localFileName);
-            String remoteFileName = getFileName(age);
-            File remoteFile = new File(remoteDirQueOut + remoteFileName);
-            //
-            FileUtils.copyFile(localFile, remoteFile);
-            //
-            age = age + 1;
-
-            //
-            n++;
+        if (remoteDirSend == null || remoteDirSend.length() == 0) {
+            throw new XError("Invalid remoteDirSend");
         }
-
-        //
-        log.info("UtMailer, send done: " + n + ", age: " + selfOutAge);
-    }
-
-    public void receive() throws Exception {
-        // Узнаем сколько есть на сервере
-        long srvAvailableNo = getSrvMaxIdx();
-
-        // Узнаем сколько получено у нас
-        long selfReceivedNo = queIn.getMaxNo();
-
-        //
-        log.info("UtMailer, srv.available: " + srvAvailableNo + ", self.received: " + selfReceivedNo);
-
-        //
-        long n = 0;
-        for (long no = selfReceivedNo + 1; no <= srvAvailableNo; no++) {
-            log.info("UtMailer, receive no: " + no);
-
-            //
-            String remoteFileName = getFileName(no);
-            File remoteFile = new File(remoteDirQueIn + remoteFileName);
-            String localFileName = getFileName(no);
-            File localFile = new File(localDirQueIn + localFileName);
-
-            //
-            FileUtils.copyFile(remoteFile, localFile);
-
-            //
-            n++;
+        if (remoteDirReceive == null || remoteDirReceive.length() == 0) {
+            throw new XError("Invalid remoteDirReceive");
         }
-
+        if (localDir == null || localDir.length() == 0) {
+            throw new XError("Invalid localDir");
+        }
         //
-        log.info("UtMailer, receive done: " + n + ", no: " + srvAvailableNo);
+        remoteDirSend = UtFile.unnormPath(remoteDirSend) + "/";
+        remoteDirReceive = UtFile.unnormPath(remoteDirReceive) + "/";
+        localDir = UtFile.unnormPath(localDir) + "/";
+        //
+        UtFile.mkdirs(remoteDirSend);
+        UtFile.mkdirs(remoteDirReceive);
+        UtFile.mkdirs(localDir);
     }
 
-    protected long getSrvSendAge() {
-        File dir = new File(remoteDirQueOut);
+    public void send(IReplica repl, long n) throws Exception {
+        log.info("UtMailer, send n: " + n);
+
+        //
+        File localFile = repl.getFile();
+        String remoteFileName = getFileName(n);
+        File remoteFile = new File(remoteDirSend + remoteFileName);
+        //
+        FileUtils.copyFile(localFile, remoteFile);
+    }
+
+    public IReplica receive(long no) throws Exception {
+        log.info("UtMailer, receive no: " + no);
+
+        //
+        String remoteFileName = getFileName(no);
+        File remoteFile = new File(remoteDirReceive + remoteFileName);
+        String localFileName = getFileName(no);
+        File localFile = new File(localDir + localFileName);
+
+        //
+        FileUtils.copyFile(remoteFile, localFile);
+
+        //
+        IReplica replica = new ReplicaFile();
+        replica.setFile(localFile);
+
+        //
+        ReplicaFile.readReplicaInfo(replica);
+
+        //
+        return replica;
+    }
+
+    public long getSrvSend() {
+        File dir = new File(remoteDirSend);
         File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
 
         //
@@ -127,8 +98,8 @@ public class UtMailerLocalFiles implements IJdxMailer {
         return age;
     }
 
-    protected long getSrvMaxIdx() {
-        File dir = new File(remoteDirQueIn);
+    public long getSrvReceive() {
+        File dir = new File(remoteDirReceive);
         File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
 
         //

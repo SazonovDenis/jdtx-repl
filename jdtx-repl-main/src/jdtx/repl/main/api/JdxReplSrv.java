@@ -9,6 +9,8 @@ import org.json.simple.parser.*;
 import java.io.*;
 import java.util.*;
 
+// todo: исправить: как то удалось отправить три реплики на посту, хтя было всего две, путем останова на середине
+
 /**
  * Контекст сервера
  */
@@ -17,11 +19,9 @@ public class JdxReplSrv {
     // Общая очередь на сервере
     IJdxQueCommon commonQue;
 
-    // Входящие очереди всех рабочих станций, получающих реплики с сервера
-    Map<Long, IJdxQueCommon> queInList;
+    // Источник для чтения/отправки сообщений всех рабочих станций
+    Map<Long, IJdxMailer> mailerList;
 
-    // Исходящие очереди всех рабочих станций, отправляющих реплики на сервер
-    Map<Long, IJdxQuePersonal> queOutList;
 
     //
     Db db;
@@ -36,11 +36,8 @@ public class JdxReplSrv {
         // Общая очередь на сервере
         commonQue = new JdxQueCommonFile(db, JdxQueType.COMMON);
 
-        // Входящие очереди всех рабочих станций, получающих реплики с сервера
-        queInList = new HashMap<>();
-
-        // Исходящие очереди всех рабочих станций, отправляющих реплики на сервер
-        queOutList = new HashMap<>();
+        // Источник для чтения/отправки сообщений всех рабочих станций
+        mailerList = new HashMap<>();
     }
 
     /**
@@ -59,7 +56,7 @@ public class JdxReplSrv {
         }
 
         // Список рабочих станций
-        DataStore t = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list where id <> 1");
+        DataStore t = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list");
 
         //
         for (DataRecord rec : t) {
@@ -67,28 +64,23 @@ public class JdxReplSrv {
             long wdId = rec.getValueLong("id");
             JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wdId));
             //
-            IJdxQueCommon wsQueIn = new JdxQueCommonFile(db, JdxQueType.IN);
-            queInList.put(wdId, wsQueIn);
-            wsQueIn.setBaseDir((String) cfgWs.get("queIn_DirLocal"));
-            //
-            IJdxQuePersonal wsQueOut = new JdxQuePersonalFile(db, JdxQueType.OUT);
-            queOutList.put(wdId, wsQueOut);
-            wsQueOut.setBaseDir((String) cfgWs.get("queOut_DirLocal"));
+            IJdxMailer mailer = new UtMailerLocalFiles();
+            mailerList.put(wdId, mailer);
+            mailer.init(cfgWs);
         }
 
-        //
-        JSONObject cfgSrv = (JSONObject) cfgData.get(String.valueOf(1));
-        commonQue.setBaseDir((String) cfgSrv.get("queCommon_DirLocal"));
+        // Общая очередь
+        commonQue.setBaseDir((String) cfgData.get("queCommon_DirLocal"));
     }
 
-    public void srvFormCommonQue() throws Exception {
+    public void srvFillCommonQue() throws Exception {
         UtRepl utr = new UtRepl(db);
-        utr.srvFormCommonQue(queOutList, commonQue);
+        utr.srvFillCommonQue(mailerList, commonQue);
     }
 
     public void srvDispatchReplicas() throws Exception {
-        UtRepl utr = new UtRepl(db);
-        utr.srvDispatchReplicas(commonQue, queInList);
+        //UtRepl utr = new UtRepl(db);
+        //utr.srvDispatchReplicas(commonQue, mailerList);
     }
 
 }
