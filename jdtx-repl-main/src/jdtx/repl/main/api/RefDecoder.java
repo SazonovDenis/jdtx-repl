@@ -16,11 +16,10 @@ public class RefDecoder implements IRefDecoder {
     long SLOT_SIZE = 1000000;
     long IN_SLOT_START_NUMBER = 100;  //todo: политика назначения диапазонов
 
-    long ws_id = -1;
     Db db = null;
+    long ws_id = -1;
 
-    protected Map<String, Map> tablesDecodeSlots;
-    protected Map<String, Long> tablesSlotMax;
+    protected Map<String, Map> allSlots;
 
     public RefDecoder(Db db, long ws_id) throws Exception {
         if (ws_id <= 0) {
@@ -31,94 +30,130 @@ public class RefDecoder implements IRefDecoder {
         this.db = db;
         this.ws_id = ws_id;
 
-        // Загрузим слоты для ws_id
-        tablesDecodeSlots = new HashMap<>();
-        DataStore st = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "decode where ws_id = " + ws_id);
-        for (DataRecord rec : st) {
-            String tableName = rec.getValueString("table_name").toUpperCase();
-            Map tableSlots = getTableSlots(tableName);
-            long own_slot = rec.getValueLong("own_slot");
-            tableSlots.put(rec.getValueLong("ws_slot"), own_slot);
-        }
-
-        // Свободные слоты
-        tablesSlotMax = new HashMap<>();
-        st = db.loadSql("select table_name, max(own_slot) as own_slot_max from " + JdxUtils.sys_table_prefix + "decode group by table_name");
-        for (DataRecord rec : st) {
-            String tableName = rec.getValueString("table_name").toUpperCase();
-            tablesSlotMax.put(tableName, rec.getValueLong("own_slot_max"));
-        }
+        // Слоты
+        allSlots = new HashMap<>();
     }
 
-    private Map getTableSlots(String tableName) {
-        Map tableSlots = tablesDecodeSlots.get(tableName);
-        if (tableSlots == null) {
-            tableSlots = new HashMap<>();
-            tablesDecodeSlots.put(tableName, tableSlots);
-        }
-        return tableSlots;
-    }
+    // ------------------------------------------
+    // IRefDecoder
+    // ------------------------------------------
 
-    //
-    public long getOrCreate_id_own(long db_id, String tableName) throws Exception {
-        // Id находится в нерегулируемом диапазоне.
-        // todo: возможно есть более сложное поведение, например "id до 1000".
-        // Это может быть перекрыто в казстомных обработчиках
-        if (db_id <= 0) {
+
+    public long get_id_own(long db_id, long ws_id, String tableName) throws Exception {
+        if (!needDecode(db_id, ws_id, tableName)) {
             return db_id;
         }
 
         // Пробуем перекодировку имеющемися слотами
-        long own_id = get_id_own(db_id, tableName);
+        long own_id = find_id_own_internal(db_id, ws_id, tableName);
         if (own_id != -1) {
             return own_id;
         }
 
+        // ---
         // Создаем новый слот
-        long ws_slot = db_id / SLOT_SIZE;
-        //
-        long own_slot = incTableSlotsMax(tableName);
-        //
-        Map tableSlots = getTableSlots(tableName);
-        tableSlots.put(ws_slot, own_slot);
+        long ws_slot_no = db_id / SLOT_SIZE;
+        long own_slot_no = calcNextSlotNo(tableName);
+        // Записываем новый слот в свой кэш
+        Map slots = loadSlotsFor(ws_id, tableName);
+        slots.put(ws_slot_no, own_slot_no);
+        // Записываем новый слот в БД
+        writeSlotToDb(ws_id, tableName, ws_slot_no, own_slot_no);
 
-        // Записываем новый слот
-        Map params = UtCnv.toMap("ws_id", ws_id, "table_name", tableName, "ws_slot", ws_slot, "own_slot", own_slot);
+
+        // ---
+        // Перекодировка через слот
+        own_id = own_slot_no * SLOT_SIZE + db_id % SLOT_SIZE;
+
+
+        // ---
+        return own_id;
+    }
+
+    // ------------------------------------------
+    //
+    // ------------------------------------------
+
+
+    /**
+     * @return Нужно ли перекодировать
+     */
+    protected boolean needDecode(long db_id, long ws_id, String tableName) {
+        // Свои id не перекодируем
+        if (ws_id == this.ws_id) {
+            return false;
+        }
+
+        // Для PS: id находится в нерегулируемом диапазоне.
+        if (db_id <= 0) {
+            // todo: возможно есть более сложное поведение, например "id до 1000",
+            // или зависит от таблицы. Это может быть перекрыто в кастомных обработчиках
+            return false;
+        }
+
+        //
+        return true;
+    }
+
+
+    private long find_id_own_internal(long db_id, long ws_id, String tableName) throws Exception {
+        if (!needDecode(db_id, ws_id, tableName)) {
+            return db_id;
+        }
+
+        //
+        long own_id = -1;
+
+        // Берем слоты в кэше
+        Map tableSlots = loadSlotsFor(ws_id, tableName);
+        // Пробуем перекодировку имеющемися слотами
+        long ws_slot_no = db_id / SLOT_SIZE;
+        Long own_slot_no = (Long) tableSlots.get(ws_slot_no);
+        // Уже есть слот в кэше?
+        if (own_slot_no != null) {
+            // Перекодировка через слот
+            own_id = own_slot_no * SLOT_SIZE + db_id % SLOT_SIZE;
+        }
+
+        //
+        return own_id;
+    }
+
+    // Записываем новый слот
+    private void writeSlotToDb(long ws_id, String tableName, long ws_slot_no, long own_slot_no) throws Exception {
+        Map params = UtCnv.toMap("ws_id", ws_id, "table_name", tableName, "ws_slot", ws_slot_no, "own_slot", own_slot_no);
         String sql = "insert into " + JdxUtils.sys_table_prefix + "decode (ws_id, table_name, ws_slot, own_slot) values (:ws_id, :table_name, :ws_slot, :own_slot)";
         db.execSql(sql, params);
-
-        // Перекодировка через слот
-        own_id = own_slot * SLOT_SIZE + db_id % SLOT_SIZE;
-
-        //
-        return own_id;
     }
 
-    private long incTableSlotsMax(String tableName) {
-        Long own_slot_max = tablesSlotMax.get(tableName);
-        if (own_slot_max == null) {
+
+    private Map loadSlotsFor(long ws_id, String tableName) throws Exception {
+        String key = ws_id + "|" + tableName;
+        Map slots = allSlots.get(key);
+        if (slots == null) {
+            // Слоты для этой ws_id+tableName еще не кешировали
+            slots = new HashMap<>();
+            allSlots.put(key, slots);
+            // Загружаем из БД
+            DataStore st = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "decode where ws_id = " + ws_id + " and table_name = '" + tableName + "'");
+            for (DataRecord rec : st) {
+                slots.put(rec.getValueLong("ws_slot"), rec.getValueLong("own_slot"));
+            }
+        }
+        return slots;
+    }
+
+    private long calcNextSlotNo(String tableName) throws Exception {
+        DataRecord rec = db.loadSql("select max(own_slot) as own_slot_max, count(*) as cnt from " + JdxUtils.sys_table_prefix + "decode where table_name = '" + tableName + "'").getCurRec();
+        long own_slot_max;
+        if (rec.getValueLong("cnt") == 0) {
             own_slot_max = IN_SLOT_START_NUMBER;
+        } else {
+            own_slot_max = rec.getValueLong("own_slot_max");
         }
-        long own_slot = own_slot_max + 1;
-        tablesSlotMax.put(tableName, own_slot);
-        return own_slot;
-    }
-
-    public long get_id_own(long db_id, String tableName) {
-        // Пробуем перекодировку имеющемися слотами
-        long ws_slot = db_id / SLOT_SIZE;
-        Map tableSlots = getTableSlots(tableName);
-        Long own_slot = (Long) tableSlots.get(ws_slot);
-        if (own_slot == null) {
-            // Нет слота
-            return -1;
-        }
-
-        // Перекодировка через слот
-        long own_id = own_slot * SLOT_SIZE + db_id % SLOT_SIZE;
 
         //
-        return own_id;
+        return own_slot_max + 1;
     }
 
 

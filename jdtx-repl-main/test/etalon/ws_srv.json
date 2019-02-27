@@ -11,13 +11,17 @@
       "routes": [],
       "tables": [
         {
+          "table": "RegionTip",
+          "fields": "*"
+        },
+        {
           "table": "Region",
           "fields": "*"
         },
         {
           "table": "LIC",
           "fields": "NameF,NameI,NameO,Dom,Kv,Ulz",
-          "filter": "Region.ID in (2, 3844) and LicDocTip=1002"
+          "filter": "Region.ID in (2, 3844) and LicDocTip = 1002"
         },
         {
           "table": "Ulz",
@@ -30,6 +34,10 @@
     {
       "routes": [],
       "tables": [
+        {
+          "table": "RegionTip",
+          "fields": "*"
+        },
         {
           "table": "Region",
           "fields": "*"

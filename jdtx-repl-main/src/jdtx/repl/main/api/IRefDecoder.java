@@ -12,8 +12,6 @@ public interface IRefDecoder {
      * @param tableName Таблица
      * @return id в нашей БД
      */
-    long getOrCreate_id_own(long db_id, String tableName) throws Exception;
-
-    long get_id_own(long db_id, String tableName);
+    long get_id_own(long db_id, long ws_id, String tableName) throws Exception;
 
 }

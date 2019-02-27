@@ -7,19 +7,21 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_srv_setUp() throws Exception {
-        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
-        UtDbObjectManager ut_2 = new UtDbObjectManager(db2, struct);
-        //UtDbObjectManager ut_3 = new UtDbObjectManager(db3, struct);
-        //
-        ut.dropAudit();
-        ut_2.dropAudit();
-        //ut_3.dropAudit();
-        //
-        ut.createAudit();
-        ut_2.createAudit();
-        //ut_3.createAudit();
+        // db
+        UtRepl utr = new UtRepl(db);
+        utr.dropReplication();
+        utr.createReplication();
+        // db2
+        UtRepl utr2 = new UtRepl(db2);
+        utr2.dropReplication();
+        utr2.createReplication();
+        // db3
+        //UtRepl utr3 = new UtRepl(db3);
+        //utr3.dropReplication();
+        //utr3.createReplication();
 
         //
+        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
         long wsId_2 = ut.addWorkstation("ws 2");
         long wsId_3 = ut.addWorkstation("ws 3");
 
