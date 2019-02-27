@@ -91,7 +91,7 @@ public class UtRepl {
         writerXml.writeReplicaInfo(wsId, age);
 
         //
-        UtAuditSelector utrr = new UtAuditSelector(db, struct);
+        UtAuditSelector utrr = new UtAuditSelector(db, struct, wsId);
 
         // Забираем аудит по порядку сортировки таблиц в struct
         JSONArray publicationData = publication.getData();

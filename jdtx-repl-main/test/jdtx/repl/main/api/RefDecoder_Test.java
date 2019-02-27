@@ -147,10 +147,9 @@ public class RefDecoder_Test extends DbmTestCase {
 
         for (long id = 10; id < 25; id++) {
             long id_own = decoder.get_id_own(id, wsId_d1, "LIC");
-            //System.out.println(wsId_d1 + ":" + id + " -> " + id_own);
             //
             JdxRef ref = decoder.get_ref(id_own, "LIC");
-            System.out.println(id_own + "->" + ref.ws_id + ":" + ref.id);
+            System.out.println(id_own + "->" + ref.toString());
             //
             assertEquals(id, ref.id);
             assertEquals(wsId_d1, ref.ws_id);
@@ -158,10 +157,9 @@ public class RefDecoder_Test extends DbmTestCase {
 
         for (long id = 100; id < 110; id++) {
             long id_own = decoder.get_id_own(id, wsId_d2, "LIC");
-            //System.out.println(wsId_d2 + ":" + id + " -> " + id_own);
             //
             JdxRef ref = decoder.get_ref(id_own, "LIC");
-            System.out.println(id_own + "->" + ref.ws_id + ":" + ref.id);
+            System.out.println(id_own + "->" + ref.toString());
             //
             assertEquals(id, ref.id);
             assertEquals(wsId_d2, ref.ws_id);
@@ -169,10 +167,9 @@ public class RefDecoder_Test extends DbmTestCase {
 
         for (long id = 80; id < 120; id++) {
             long id_own = decoder.get_id_own(id, wsId_d1, "LIC");
-            //System.out.println(wsId_d1 + ":" + id + " -> " + id_own);
             //
             JdxRef ref = decoder.get_ref(id_own, "LIC");
-            System.out.println(id_own + "->" + ref.ws_id + ":" + ref.id);
+            System.out.println(id_own + "->" + ref.toString());
             //
             assertEquals(id, ref.id);
             assertEquals(wsId_d1, ref.ws_id);
@@ -180,10 +177,9 @@ public class RefDecoder_Test extends DbmTestCase {
 
         for (long id = 10; id < 25; id++) {
             long id_own = decoder.get_id_own(id, wsId_d2, "LIC");
-            //System.out.println(wsId_d2 + ":" + id + " -> " + id_own);
             //
             JdxRef ref = decoder.get_ref(id_own, "LIC");
-            System.out.println(id_own + "->" + ref.ws_id + ":" + ref.id);
+            System.out.println(id_own + "->" + ref.toString());
             //
             assertEquals(id, ref.id);
             assertEquals(wsId_d2, ref.ws_id);

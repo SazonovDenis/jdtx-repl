@@ -101,7 +101,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         System.out.println("selfAuditAge = " + selfAuditAge);
 
         // Забираем реплики
-        UtAuditSelector utrr = new UtAuditSelector(db, struct);
+        UtAuditSelector utrr = new UtAuditSelector(db, struct, 1);
 
         OutputStream ost = new FileOutputStream("../_test-data/~tmp_csv.xml");
         JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);

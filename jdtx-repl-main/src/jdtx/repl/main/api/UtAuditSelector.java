@@ -9,30 +9,52 @@ public class UtAuditSelector {
 
     private Db db;
     private IJdxDbStruct struct;
+    long wsId;
 
     protected static Log log = LogFactory.getLog("jdtx");
 
-    public UtAuditSelector(Db db, IJdxDbStruct struct) {
+    public UtAuditSelector(Db db, IJdxDbStruct struct, long wsId) {
         this.db = db;
         this.struct = struct;
+        this.wsId = wsId;
     }
 
 
     public void readAuditData(String tableName, String tableFields, long ageFrom, long ageTo, JdxReplicaWriterXml dataWriter) throws Exception {
+        IJdxTableStruct table = struct.getTable(tableName);
+        IRefDecoder decoder = new RefDecoder(db, wsId);
         //
         DbQuery rsTableLog = selectAuditData(tableName, tableFields, ageFrom, ageTo);
         try {
             dataWriter.startTable(tableName);
 
-            // Èçìåíåííûå äàííûå ïîìåùàåì â dataWriter
+            // Ð˜Ð·Ð¼ÐµÐ½ÐµÐ½Ð½Ñ‹Ðµ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¿Ð¾Ð¼ÐµÑ‰Ð°ÐµÐ¼ Ð² dataWriter
             while (!rsTableLog.eof()) {
                 dataWriter.append();
-                // Òèï îïåðàöèè
+                // Ð¢Ð¸Ð¿ Ð¾Ð¿ÐµÑ€Ð°Ñ†Ð¸Ð¸
                 dataWriter.setOprType(rsTableLog.getValueInt(JdxUtils.prefix + "opr_type"));
-                // Òåëî çàïèñè
+                // Ð¢ÐµÐ»Ð¾ Ð·Ð°Ð¿Ð¸ÑÐ¸
                 String[] tableFromFields = tableFields.split(",");
-                for (String field : tableFromFields) {
-                    dataWriter.setRecValue(field, rsTableLog.getValue(field));
+                for (String fieldName : tableFromFields) {
+                    Object fieldValue = rsTableLog.getValue(fieldName);
+                    IJdxFieldStruct field = table.getField(fieldName);
+                    IJdxTableStruct refTable = field.getRefTable();
+                    if (field.isPrimaryKey() || refTable != null) {
+                        // Ð¡ÑÑ‹Ð»ÐºÐ°
+                        String refTableName;
+                        if (field.isPrimaryKey()) {
+                            refTableName = table.getName();
+                        } else {
+                            refTableName = refTable.getName();
+                        }
+                        // ÐŸÐµÑ€ÐµÐºÐ¾Ð´Ð¸Ñ€Ð¾Ð²ÐºÐ° ÑÑÑ‹Ð»ÐºÐ¸
+                        JdxRef ref = decoder.get_ref(Long.valueOf(String.valueOf(fieldValue)), refTableName);
+                        dataWriter.setRecValue(fieldName, ref.toString());
+                    } else {
+                        dataWriter.setRecValue(fieldName, fieldValue);
+                    }
+
+
                 }
                 //
                 rsTableLog.next();
@@ -49,9 +71,9 @@ public class UtAuditSelector {
         String query;
         db.startTran();
         try {
-            // óäàëÿåì æóðíàë èçìåíèé âî âñåõ òàáëèöàõ
+            // ÑƒÐ´Ð°Ð»ÑÐµÐ¼ Ð¶ÑƒÑ€Ð½Ð°Ð» Ð¸Ð·Ð¼ÐµÐ½Ð¸Ð¹ Ð²Ð¾ Ð²ÑÐµÑ… Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ð°Ñ…
             for (IJdxTableStruct t : struct.getTables()) {
-                // Èíòåðâàë id â òàáëèöå àóäèòà, êîòîðûé ïîêðûâàåò âîçðàñò ñ ageFrom ïî ageTo
+                // Ð˜Ð½Ñ‚ÐµÑ€Ð²Ð°Ð» id Ð² Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ðµ Ð°ÑƒÐ´Ð¸Ñ‚Ð°, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¹ Ð¿Ð¾ÐºÑ€Ñ‹Ð²Ð°ÐµÑ‚ Ð²Ð¾Ð·Ñ€Ð°ÑÑ‚ Ñ ageFrom Ð¿Ð¾ ageTo
                 long fromId = getAuditMaxIdByAge(t, ageFrom - 1) + 1;
                 long toId = getAuditMaxIdByAge(t, ageTo);
 
@@ -62,7 +84,7 @@ public class UtAuditSelector {
                     log.info("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], z_id: empty");
                 }
 
-                // èçìåíåíèÿ ñ óêàçàííûì âîçðàñòîì
+                // Ð¸Ð·Ð¼ÐµÐ½ÐµÐ½Ð¸Ñ Ñ ÑƒÐºÐ°Ð·Ð°Ð½Ð½Ñ‹Ð¼ Ð²Ð¾Ð·Ñ€Ð°ÑÑ‚Ð¾Ð¼
                 query = "delete from " + JdxUtils.audit_table_prefix + t.getName() + " where " + JdxUtils.prefix + "id >= :fromId and " + JdxUtils.prefix + "id <= :toId";
                 db.execSql(query, UtCnv.toMap("fromId", fromId, "toId", toId));
             }
@@ -77,7 +99,7 @@ public class UtAuditSelector {
         //
         IJdxTableStruct tableFrom = struct.getTable(tableName);
 
-        // Èíòåðâàë id â òàáëèöå àóäèòà, êîòîðûé ïîêðûâàåò âîçðàñò ñ ageFrom ïî ageTo
+        // Ð˜Ð½Ñ‚ÐµÑ€Ð²Ð°Ð» id Ð² Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ðµ Ð°ÑƒÐ´Ð¸Ñ‚Ð°, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¹ Ð¿Ð¾ÐºÑ€Ñ‹Ð²Ð°ÐµÑ‚ Ð²Ð¾Ð·Ñ€Ð°ÑÑ‚ Ñ ageFrom Ð¿Ð¾ ageTo
         long fromId = getAuditMaxIdByAge(tableFrom, ageFrom - 1) + 1;
         long toId = getAuditMaxIdByAge(tableFrom, ageTo);
 
@@ -88,7 +110,7 @@ public class UtAuditSelector {
             log.info("selectAudit: " + tableName + ", age: [" + ageFrom + ".." + ageTo + "], z_id: empty");
         }
 
-        // Àóäèò â óêàçàííîì äèàïàçîíå âîçðàñòîâ: id >= fromId è id <= toId
+        // ÐÑƒÐ´Ð¸Ñ‚ Ð² ÑƒÐºÐ°Ð·Ð°Ð½Ð½Ð¾Ð¼ Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½Ðµ Ð²Ð¾Ð·Ñ€Ð°ÑÑ‚Ð¾Ð²: id >= fromId Ð¸ id <= toId
         String query = getSql(tableFrom, tableFields, fromId, toId);
 
         //
@@ -96,11 +118,11 @@ public class UtAuditSelector {
     }
 
     /**
-     * Âîçâðàùàåò, íà êàêîì ID òàáëèöû àóäèòà çàêîí÷èëàñü ðåïëèêà ñ âîçðàñòîì age
+     * Ð’Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚, Ð½Ð° ÐºÐ°ÐºÐ¾Ð¼ ID Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ Ð°ÑƒÐ´Ð¸Ñ‚Ð° Ð·Ð°ÐºÐ¾Ð½Ñ‡Ð¸Ð»Ð°ÑÑŒ Ñ€ÐµÐ¿Ð»Ð¸ÐºÐ° Ñ Ð²Ð¾Ð·Ñ€Ð°ÑÑ‚Ð¾Ð¼ age
      *
-     * @param tableFrom äëÿ êàêîé òàáëèöû
-     * @param age       âîçðàñò ÁÄ
-     * @return id òàáëèöû àóäèòà, ñîîòâåòñòâóþùàÿ âîçðàñòó age
+     * @param tableFrom Ð´Ð»Ñ ÐºÐ°ÐºÐ¾Ð¹ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹
+     * @param age       Ð²Ð¾Ð·Ñ€Ð°ÑÑ‚ Ð‘Ð”
+     * @return id Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ Ð°ÑƒÐ´Ð¸Ñ‚Ð°, ÑÐ¾Ð¾Ñ‚Ð²ÐµÑ‚ÑÑ‚Ð²ÑƒÑŽÑ‰Ð°Ñ Ð²Ð¾Ð·Ñ€Ð°ÑÑ‚Ñƒ age
      */
     protected long getAuditMaxIdByAge(IJdxTableStruct tableFrom, long age) throws Exception {
         String query = "select " + JdxUtils.prefix + "id as id from " + JdxUtils.sys_table_prefix + "age where age=" + age + " and table_name='" + tableFrom.getName() + "'";
