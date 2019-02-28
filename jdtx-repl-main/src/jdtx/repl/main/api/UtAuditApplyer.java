@@ -94,8 +94,6 @@ public class UtAuditApplyer {
                 // Перебираем записи
                 Map recValues = replicaReader.nextRec();
                 while (recValues != null) {
-                    //System.out.println("recValues=" + recValues);
-
                     // Подготовка полей записи в recValues
                     String[] tableFromFields = publicationFields.split(",");
                     for (String fieldName : tableFromFields) {

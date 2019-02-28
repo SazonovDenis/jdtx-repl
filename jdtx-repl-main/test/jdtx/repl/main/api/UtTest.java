@@ -67,8 +67,8 @@ public class UtTest extends UtilsTestCase {
         dbu.insertRec("lic", UtCnv.toMap(
                 "lic", id2,
                 "ulz", id1,
-                "NameF", "NameF-ins-ws:" + ws_id + "-" + rnd.nextInt(),
-                "NameI", "NameI-ins-ws:" + ws_id + "-" + rnd.nextInt(),
+                "NameF", "Name-F-ins-ws:" + ws_id + "-" + rnd.nextInt(),
+                "NameI", "Name-I-ins-ws:" + ws_id + "-" + rnd.nextInt(),
                 "NameO", "NameO-ins-ws:" + ws_id + "-" + rnd.nextInt()
         ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,dom,kv,tel,info");
 
@@ -79,9 +79,9 @@ public class UtTest extends UtilsTestCase {
 
         dbu.updateRec("lic", UtCnv.toMap(
                 "id", id01,
-                "NameF", "NameF-upd-ws:" + ws_id + "-" + rnd.nextInt(),
-                "NameI", "NameI-upd-ws:" + ws_id + "-" + rnd.nextInt(),
-                "NameO", "NameO-upd-ws:" + ws_id + "-" + rnd.nextInt()
+                "NameF", "Name-F-upd-ws:" + ws_id + "-" + rnd.nextInt(),
+                "NameI", "Name-I-upd-ws:" + ws_id + "-" + rnd.nextInt(),
+                "NameO", "Name-O-upd-ws:" + ws_id + "-" + rnd.nextInt()
         ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,ulz,dom,kv,tel,info");
 
         dbu.updateRec("lic", UtCnv.toMap(
@@ -91,6 +91,12 @@ public class UtTest extends UtilsTestCase {
                 "NameO", "NameO-upd-ws:" + ws_id + "-" + rnd.nextInt(),
                 "Ulz", id1
         ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,dom,kv,tel,info");
+
+        // Апдейт общей записи
+        dbu.db.execSql("update Lic set NameI = :NameI where Dom = :Dom", UtCnv.toMap(
+                "Dom", "12",
+                "NameI", "NameI-upd-com-ws:" + ws_id + "-" + rnd.nextInt()
+        ));
     }
 
 

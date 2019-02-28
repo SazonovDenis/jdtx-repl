@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import jandcode.dbm.data.*;
 import jandcode.utils.*;
 import org.junit.*;
 
@@ -12,6 +13,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         //
         test_ws2_CreateSetupReplica();
         test_ws3_CreateSetupReplica();
+        test_ws1_handleSelfAudit();
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
         test_srv_handleQue();
@@ -26,6 +28,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_all_1() throws Exception {
         test_ws2_makeChange();
         test_ws3_makeChange();
+        test_ws1_handleSelfAudit();
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
         test_srv_handleQue();
@@ -107,6 +110,16 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtTest utt3 = new UtTest(db3);
         utt3.dumpTable("lic", "../_test-data/csv/ws3-lic.csv", "nameF");
         utt3.dumpTable("ulz", "../_test-data/csv/ws3-ulz.csv", "name");
+
+        DataStore st1 = db.loadSql("select Lic.nameF,  Lic.nameI,  Lic.nameO, Region.name as RegionName, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) order by Lic.NameF");
+        OutTableSaver svr1 = new OutTableSaver(st1);
+        svr1.save().toFile("../_test-data/csv/ws1-all.csv");
+        DataStore st2 = db2.loadSql("select Lic.nameF,  Lic.nameI,  Lic.nameO, Region.name as RegionName, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) order by Lic.NameF");
+        OutTableSaver svr2 = new OutTableSaver(st2);
+        svr2.save().toFile("../_test-data/csv/ws2-all.csv");
+        DataStore st3 = db3.loadSql("select Lic.nameF,  Lic.nameI,  Lic.nameO, Region.name as RegionName, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) order by Lic.NameF");
+        OutTableSaver svr3 = new OutTableSaver(st3);
+        svr3.save().toFile("../_test-data/csv/ws3-all.csv");
     }
 
     @Test
@@ -122,6 +135,19 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         utTest.makeChange(struct3, 3);
     }
 
+
+    @Test
+    public void test_ws1_handleSelfAudit() throws Exception {
+        // Рабочая станция, настройка
+        JdxReplWs ws = new JdxReplWs(db, 2);
+        ws.init("test/etalon/ws_srv.json");
+
+        // Отслеживаем и обрабатываем свои изменения
+        ws.handleSelfAudit();
+
+        //
+        ws.send();
+    }
 
     @Test
     public void test_ws2_handleSelfAudit() throws Exception {
@@ -202,6 +228,40 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         // Тиражирование реплик
         srv.srvDispatchReplicas();
+    }
+
+
+    @Test
+    public void test_run_srv() throws Exception {
+        while (true) {
+            test_srv_handleQue();
+        }
+    }
+
+    @Test
+    public void test_run_1() throws Exception {
+        while (true) {
+            test_ws1_handleSelfAudit();
+            test_srv_ApplyReplica();
+        }
+    }
+
+    @Test
+    public void test_run_2() throws Exception {
+        while (true) {
+            test_ws2_makeChange();
+            test_ws2_handleSelfAudit();
+            test_ws2_ApplyReplica();
+        }
+    }
+
+    @Test
+    public void test_run_3() throws Exception {
+        while (true) {
+            test_ws3_makeChange();
+            test_ws3_handleSelfAudit();
+            test_ws3_ApplyReplica();
+        }
     }
 
 
