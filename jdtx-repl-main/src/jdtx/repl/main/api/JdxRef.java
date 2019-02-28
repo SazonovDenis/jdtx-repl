@@ -21,7 +21,6 @@ public class JdxRef {
         return ref;
     }
 
-
     public String toString() {
         if (ws_id == -1) {
             return String.valueOf(id);

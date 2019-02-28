@@ -26,10 +26,9 @@ public class UtAuditApplyer {
     }
 
     /**
-     * Применить реплику на рабочей станции
-     * todo: стратегия работы с рабочими станциями в какой момент и кто задает станцию, а также стратегия приема реплик с некоторых станций
+     * Применить реплику replica на рабочей станции wsId
      */
-    public void applyReplica(IReplica replica, IPublication publication, Object ws) throws Exception {
+    public void applyReplica(IReplica replica, IPublication publication, long selfWsId) throws Exception {
         log.info("applyReplica");
 
         //
@@ -53,7 +52,7 @@ public class UtAuditApplyer {
         log.info("WsId: " + replicaReader.getWsId() + ", age: " + replicaReader.getAge());
 
         //
-        IRefDecoder decoder = new RefDecoder(db, replicaReader.getWsId());
+        IRefDecoder decoder = new RefDecoder(db, selfWsId);
 
         //
         db.startTran();
@@ -115,7 +114,7 @@ public class UtAuditApplyer {
                                 ref.ws_id = replicaReader.getWsId();
                             }
                             // Перекодировка ссылки
-                            long ref_own = decoder.get_id_own(ref.id, ref.ws_id, refTableName);
+                            long ref_own = decoder.get_id_own(refTableName, ref.ws_id, ref.id);
                             recValues.put(fieldName, ref_own);
                         } else {
                             recValues.put(fieldName, recValues.get(fieldName));

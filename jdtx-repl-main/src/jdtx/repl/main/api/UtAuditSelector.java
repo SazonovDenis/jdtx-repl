@@ -48,7 +48,7 @@ public class UtAuditSelector {
                             refTableName = refTable.getName();
                         }
                         // Перекодировка ссылки
-                        JdxRef ref = decoder.get_ref(Long.valueOf(String.valueOf(fieldValue)), refTableName);
+                        JdxRef ref = decoder.get_ref(refTableName, Long.valueOf(String.valueOf(fieldValue)));
                         dataWriter.setRecValue(fieldName, ref.toString());
                     } else {
                         dataWriter.setRecValue(fieldName, fieldValue);
@@ -79,7 +79,7 @@ public class UtAuditSelector {
 
                 //
                 if (toId >= fromId) {
-                    log.info("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], count: " + (toId - fromId + 1));
+                    log.info("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], recs: " + (toId - fromId + 1));
                 } else {
                     log.info("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], z_id: empty");
                 }
@@ -105,7 +105,7 @@ public class UtAuditSelector {
 
         //
         if (toId >= fromId) {
-            log.info("selectAudit: " + tableName + ", age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], count: " + (toId - fromId + 1));
+            log.info("selectAudit: " + tableName + ", age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], recs: " + (toId - fromId + 1));
         } else {
             log.info("selectAudit: " + tableName + ", age: [" + ageFrom + ".." + ageTo + "], z_id: empty");
         }

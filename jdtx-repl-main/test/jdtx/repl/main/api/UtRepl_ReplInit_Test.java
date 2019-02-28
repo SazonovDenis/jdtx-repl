@@ -23,7 +23,7 @@ public class UtRepl_ReplInit_Test extends ReplDatabase_Test {
     }
 
     @Test
-    public void test_CreateReplication() throws Exception {
+    public void test_PrepareReplication() throws Exception {
         // db
         UtRepl utr = new UtRepl(db);
         utr.dropReplication();

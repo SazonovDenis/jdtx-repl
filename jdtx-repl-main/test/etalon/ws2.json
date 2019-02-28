@@ -8,8 +8,11 @@
 
   "publicationsIn": [
     {
-      "routes": [],
       "tables": [
+        {
+          "table": "UlzTip",
+          "fields": "*"
+        },
         {
           "table": "RegionTip",
           "fields": "*"
@@ -33,8 +36,11 @@
 
   "publicationsOut": [
     {
-      "routes": [],
       "tables": [
+        {
+          "table": "UlzTip",
+          "fields": "*"
+        },
         {
           "table": "RegionTip",
           "fields": "*"

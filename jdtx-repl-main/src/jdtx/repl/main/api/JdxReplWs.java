@@ -120,7 +120,7 @@ public class JdxReplWs {
      * формируем исходящие реплики
      */
     public void handleSelfAudit() throws Exception {
-        log.info("handleSelfAudit");
+        log.info("handleSelfAudit, wsId: " + wsId);
 
         //
         UtAuditAgeManager ut = new UtAuditAgeManager(db, struct);
@@ -181,17 +181,17 @@ public class JdxReplWs {
         long queInNoAvailable = queIn.getMaxNo();
 
         //
-        log.info("handleQueIn, queIn done: " + queInNoDone + ", queIn available: " + queInNoAvailable);
+        log.info("handleQueIn, done: " + queInNoDone + ", available: " + queInNoAvailable);
 
         //
         long n = 0;
         for (long no = queInNoDone + 1; no <= queInNoAvailable; no++) {
-            log.info("handleQueIn, queIn no: " + no);
+            log.info("handleQueIn, no: " + no);
 
             //
             IReplica replica = queIn.getByNo(no);
             for (IPublication publication : publicationsIn) {
-                utaa.applyReplica(replica, publication, null);
+                utaa.applyReplica(replica, publication, wsId);
             }
 
             //
@@ -202,7 +202,7 @@ public class JdxReplWs {
         }
 
         //
-        log.info("handleQueIn, done: " + n + ", queIn no: " + queInNoAvailable);
+        log.info("handleQueIn, done: " + n + ", no: " + queInNoAvailable);
     }
 
 

@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.test.*;
@@ -22,13 +23,25 @@ public class UtTest extends UtilsTestCase {
         for (int t = 0; t < struct_1.getTables().size(); t++) {
             assertEquals("Количество полей в таблице " + struct_1.getTables().get(t).getName(), struct_1.getTables().get(t).getFields().size(), struct_2.getTables().get(t).getFields().size());
             for (int f = 0; f < struct_1.getTables().get(t).getFields().size(); f++) {
-                assertEquals("Полея в таблице " + struct_1.getTables().get(t).getName(), struct_1.getTables().get(t).getFields().get(f).getName(), struct_2.getTables().get(t).getFields().get(f).getName());
+                assertEquals("Поля в таблице " + struct_1.getTables().get(t).getName(), struct_1.getTables().get(t).getFields().get(f).getName(), struct_2.getTables().get(t).getFields().get(f).getName());
             }
         }
     }
 
+    public void dumpTable(String tableName, String outFileName, String sortBy) throws Exception {
+        UtFile.mkdirs(outFileName.substring(0, outFileName.length() - UtFile.filename(outFileName).length()));
+        //
+        String sql = "select * from " + tableName;
+        if (sortBy != null) {
+            sql = sql + " order by " + sortBy;
+        }
+        DataStore st = db.loadSql(sql);
+        //
+        OutTableSaver svr = new OutTableSaver(st);
+        svr.save().toFile(outFileName);
+    }
 
-    public void makeChange(IJdxDbStruct struct) throws Exception {
+    public void makeChange(IJdxDbStruct struct, long ws_id) throws Exception {
         Random rnd = new Random();
         DbUtils dbu = new DbUtils(db, struct);
 
@@ -39,7 +52,7 @@ public class UtTest extends UtilsTestCase {
                 "id", id0,
                 "regionTip", 1,
                 "parent", 0,
-                "name", "Name-ins-" + rnd.nextInt()
+                "name", "Name-ins-ws:" + ws_id + "-" + rnd.nextInt()
         ));
 
         long id1 = dbu.getNextGenerator("g_ulz");
@@ -47,16 +60,16 @@ public class UtTest extends UtilsTestCase {
                 "id", id1,
                 "region", id0,
                 "ulzTip", 2,
-                "name", "Name-ins-" + rnd.nextInt()
+                "name", "Name-ins-ws:" + ws_id + "-" + rnd.nextInt()
         ));
 
         long id2 = dbu.getNextGenerator("g_lic");
         dbu.insertRec("lic", UtCnv.toMap(
                 "lic", id2,
                 "ulz", id1,
-                "NameF", "NameF-ins-" + rnd.nextInt(),
-                "NameI", "NameI-ins-" + rnd.nextInt(),
-                "NameO", "NameO-ins-" + rnd.nextInt()
+                "NameF", "NameF-ins-ws:" + ws_id + "-" + rnd.nextInt(),
+                "NameI", "NameI-ins-ws:" + ws_id + "-" + rnd.nextInt(),
+                "NameO", "NameO-ins-ws:" + ws_id + "-" + rnd.nextInt()
         ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,dom,kv,tel,info");
 
 
@@ -66,16 +79,16 @@ public class UtTest extends UtilsTestCase {
 
         dbu.updateRec("lic", UtCnv.toMap(
                 "id", id01,
-                "NameF", "NameF-upd-" + rnd.nextInt(),
-                "NameI", "NameI-upd-" + rnd.nextInt(),
-                "NameO", "NameO-upd-" + rnd.nextInt()
+                "NameF", "NameF-upd-ws:" + ws_id + "-" + rnd.nextInt(),
+                "NameI", "NameI-upd-ws:" + ws_id + "-" + rnd.nextInt(),
+                "NameO", "NameO-upd-ws:" + ws_id + "-" + rnd.nextInt()
         ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,ulz,dom,kv,tel,info");
 
         dbu.updateRec("lic", UtCnv.toMap(
                 "id", id02,
-                "NameF", "NameF-upd-" + rnd.nextInt(),
-                "NameI", "NameI-upd-" + rnd.nextInt(),
-                "NameO", "NameO-upd-" + rnd.nextInt(),
+                "NameF", "NameF-upd-ws:" + ws_id + "-" + rnd.nextInt(),
+                "NameI", "NameI-upd-ws:" + ws_id + "-" + rnd.nextInt(),
+                "NameO", "NameO-upd-ws:" + ws_id + "-" + rnd.nextInt(),
                 "Ulz", id1
         ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,dom,kv,tel,info");
     }

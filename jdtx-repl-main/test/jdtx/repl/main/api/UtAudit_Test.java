@@ -47,15 +47,15 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
         // Делаем изменения
         UtTest utTest = new UtTest(db);
-        utTest.makeChange(struct);
-        utTest.makeChange(struct);
+        utTest.makeChange(struct, 1);
+        utTest.makeChange(struct, 1);
 
         //
         long auditAge_A_5 = utr.getAuditAge();
 
         //
-        utTest.makeChange(struct);
-        utTest.makeChange(struct);
+        utTest.makeChange(struct, 1);
+        utTest.makeChange(struct, 1);
 
         //
         long auditAge_A_6 = utr.getAuditAge();
@@ -94,7 +94,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
         // Делаем изменения
         UtTest utTest = new UtTest(db);
-        utTest.makeChange(struct);
+        utTest.makeChange(struct, 1);
 
         // Фиксируем возраст
         long selfAuditAge = utr.markAuditAge();
@@ -142,7 +142,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
         // Делаем изменения
         UtTest utTest = new UtTest(db);
-        utTest.makeChange(struct);
+        utTest.makeChange(struct, 1);
 
         // Фиксируем возраст
         long selfAuditAge = utr.markAuditAge();
@@ -181,7 +181,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
         // Применяем реплики
         UtAuditApplyer utaa = new UtAuditApplyer(db2, struct);
-        utaa.applyReplica(replica, publcation, null);
+        utaa.applyReplica(replica, publcation, 2);
     }
 
     @Test
@@ -201,7 +201,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
         // Применяем реплики
         UtAuditApplyer utaa = new UtAuditApplyer(db2, struct);
-        utaa.applyReplica(replica, publcation, null);
+        utaa.applyReplica(replica, publcation, 2);
     }
 
 }

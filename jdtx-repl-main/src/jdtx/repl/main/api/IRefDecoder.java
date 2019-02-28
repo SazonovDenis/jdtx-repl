@@ -8,22 +8,22 @@ package jdtx.repl.main.api;
 public interface IRefDecoder {
 
     /**
-     * Превращает db_id от рабочей станции ws_id в свою id
+     * Превращает id от рабочей станции ws_id в свою id
      *
-     * @param db_id     id в другой рабочей станции
-     * @param ws_id     код рабочей станции
      * @param tableName имя таблицы
-     * @return id в нашей БД
+     * @param ws_id     код рабочей станции
+     * @param id        id на этой рабочей станции
+     * @return id на нашей станции
      */
-    long get_id_own(long db_id, long ws_id, String tableName) throws Exception;
+    long get_id_own(String tableName, long ws_id, long id) throws Exception;
 
     /**
-     * Превращает свою id в пару: рабочей станция + id на этой станции
+     * Превращает свою id в пару: код рабочей станции + id на этой станции
      *
-     * @param own_id    id на нашей рабочей станции
      * @param tableName имя таблицы
+     * @param own_id    id на нашей рабочей станции
      * @return объект JdxRef: код рабочей станции + id на этой станции
      */
-    JdxRef get_ref(long own_id, String tableName) throws Exception;
+    JdxRef get_ref(String tableName, long own_id) throws Exception;
 
 }
