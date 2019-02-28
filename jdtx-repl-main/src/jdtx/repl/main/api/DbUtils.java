@@ -315,8 +315,8 @@ public class DbUtils {
     public long insertRec(String tableName, Map params, String includeFields, String excludeFields) throws Exception {
         Map p = new HashMapNoCase();
         p.putAll(params);
-        long id = UtCnv.toLong(p.get(ID_FIELD));
-        if (id == 0) {
+        Long id = UtCnv.toLong(p.get(ID_FIELD));
+        if (id == null) {
             id = getTableNextId(tableName);
             p.put(ID_FIELD, id);
         }
