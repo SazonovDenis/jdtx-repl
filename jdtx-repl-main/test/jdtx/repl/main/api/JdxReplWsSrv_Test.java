@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import jandcode.utils.*;
 import org.junit.*;
 
 public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
@@ -9,9 +10,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_all_0() throws Exception {
         test_srv_setUp();
         //
-        test_ws2_CreateSetupReplica();
+        //test_ws2_CreateSetupReplica();
         test_ws3_CreateSetupReplica();
-        //test_ws2_makeChange();
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
         test_srv_handleQue();
@@ -38,6 +38,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_srv_setUp() throws Exception {
+        UtFile.cleanDir("../_test-data/csv");
+        UtFile.cleanDir("../_test-data/mail");
+        UtFile.cleanDir("../_test-data/srv");
+        UtFile.cleanDir("../_test-data/ws_srv");
+        UtFile.cleanDir("../_test-data/ws2");
+        UtFile.cleanDir("../_test-data/ws3");
         // db
         UtRepl utr = new UtRepl(db);
         utr.dropReplication();
