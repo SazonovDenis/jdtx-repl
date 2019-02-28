@@ -83,7 +83,7 @@ public class UtRepl {
     IReplica createReplicaFromAudit(long wsId, IPublication publication, long age) throws Exception {
         log.info("createReplicaFromAudit");
 
-        File file = new File("../_test-data/~tmp_csv.xml"); // todo: правила/страегия работы с файлами и вообще с получателем информации - в какой момент и кто выбирает файл
+        File file = new File("../_test-data/~tmp-" + wsId + "-" + age + "-csv.xml"); // todo: правила/страегия работы с файлами и вообще с получателем информации - в какой момент и кто выбирает файл
         OutputStream ost = new FileOutputStream(file);
         JdxReplicaWriterXml writerXml = new JdxReplicaWriterXml(ost);
 
@@ -131,7 +131,7 @@ public class UtRepl {
      * Готовится как реплика на вставку всех существующих записей в этой БД.
      */
     IReplica createReplicaFull(long wsId, IPublication publication) throws Exception {
-        File file = new File("../_test-data/~tmp_csv.xml");  //todo: политика размещения!!
+        File file = new File("../_test-data/~tmp-" + wsId + "-full-csv.xml");  //todo: политика размещения!!
         OutputStream ost = new FileOutputStream(file);
         JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
 
