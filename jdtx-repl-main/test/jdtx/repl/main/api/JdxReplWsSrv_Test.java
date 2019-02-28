@@ -10,7 +10,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_all_0() throws Exception {
         test_srv_setUp();
         //
-        //test_ws2_CreateSetupReplica();
+        test_ws2_CreateSetupReplica();
         test_ws3_CreateSetupReplica();
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
