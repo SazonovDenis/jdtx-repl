@@ -1,6 +1,7 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.db.*;
+import jandcode.utils.error.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
@@ -99,20 +100,48 @@ public class JdxReplWs {
      * Формируем установочную реплику
      */
     public void createSetupReplica() throws Exception {
-        log.info("createSetupReplica");
+        log.info("createSetupReplica, wsId: " + wsId);
 
         //
         UtRepl utr = new UtRepl(db);
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+
+        // Проверяем, что весь свой аудит мы уже выложили в очередь
+        long auditAgeDone = stateManager.getAuditAgeDone();
+        long auditAgeActual = utr.getAuditAge();
+        if (auditAgeActual != auditAgeDone) {
+            throw new XError("invalid auditAgeActual != auditAgeDone, auditAgeDone: " + auditAgeDone + ", auditAgeActual: " + auditAgeActual);
+        }
+
+
+        // Увеличиваем возраст (установочная реплика просто сдвигает возраст БД)
+        long age = utr.incAuditAge();
+        log.info("createSetupReplica, new age: " + age);
+
+        //
         for (IPublication publication : publicationsOut) {
             // Забираем установочную реплику
-            IReplica setupReplica = utr.createReplicaFull(wsId, publication);
+            IReplica setupReplica = utr.createReplicaFull(wsId, publication, age);
 
-            // Помещаем реплику в очередь
-            queOut.put(setupReplica);
+            db.startTran();
+            try {
+
+                // Помещаем реплику в очередь
+                queOut.put(setupReplica);
+
+                //
+                stateManager.setAuditAgeDone(age);
+
+                //
+                db.commit();
+            } catch (Exception e) {
+                db.rollback(e);
+                throw e;
+            }
         }
 
         //
-        log.info("createSetupReplica done");
+        log.info("createSetupReplica, done");
     }
 
     /**
@@ -132,7 +161,7 @@ public class JdxReplWs {
 
         // Фиксируем возраст своего аудита
         long auditAgeActual = ut.markAuditAge();
-        log.info("auditAgeDone: " + auditAgeDone + ", auditAgeActual: " + auditAgeActual);
+        log.info("handleSelfAudit, auditAgeDone: " + auditAgeDone + ", auditAgeActual: " + auditAgeActual);
 
         // Формируем реплики (по собственным изменениям)
         long n = 0;
@@ -163,7 +192,7 @@ public class JdxReplWs {
         }
 
         //
-        log.info("handleSelfAudit done: " + n + ", age: " + auditAgeActual);
+        log.info("handleSelfAudit, done: " + n + ", age: " + auditAgeActual);
     }
 
     /**

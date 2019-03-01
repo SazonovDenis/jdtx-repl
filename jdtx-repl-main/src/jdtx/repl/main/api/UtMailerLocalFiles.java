@@ -81,7 +81,7 @@ public class UtMailerLocalFiles implements IJdxMailer {
         File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
 
         //
-        long age = -1;
+        long age = 0;
         for (File file : files) {
             if (age < getNo(file.getName())) {
                 age = getNo(file.getName());
@@ -97,7 +97,7 @@ public class UtMailerLocalFiles implements IJdxMailer {
         File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
 
         //
-        long idx = -1;
+        long idx = 0;
         for (File file : files) {
             if (idx < getNo(file.getName())) {
                 idx = getNo(file.getName());

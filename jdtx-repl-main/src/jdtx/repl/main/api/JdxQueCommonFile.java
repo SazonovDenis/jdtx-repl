@@ -43,26 +43,18 @@ public class JdxQueCommonFile implements IJdxQueCommon {
     }
 
     public long put(IReplica replica) throws Exception {
-        // Проверки правильности возраста реплики
+        // Проверки: правильность возраста реплики
         if (replica.getAge() == -1) {
             throw new XError("invalid replica.age");
         }
-        //
+        // Проверки: правильность кода рабочей станции
         if (replica.getWsId() <= 0) {
             throw new XError("invalid replica.wsId");
         }
-        //
+        // Проверки: правильность очередности реплик
         long queMaxAge = getMaxAge(replica.getWsId());
-        if (replica.getAge() == 0) {
-            // Установочная (самая первая, полная) реплика
-            if (queMaxAge != -1) {
-                throw new XError("Setup replica is not allowed in que.age: " + queMaxAge);
-            }
-        } else {
-            // Очередная реплика
-            if (replica.getAge() != queMaxAge + 1) {
-                throw new XError("invalid replica.age: " + replica.getAge() + ", que.age: " + queMaxAge);
-            }
+        if (replica.getAge() != queMaxAge + 1) {
+            throw new XError("invalid replica.age: " + replica.getAge() + ", que.age: " + queMaxAge);
         }
 
         // Генерим следующий номер
@@ -107,7 +99,7 @@ public class JdxQueCommonFile implements IJdxQueCommon {
         String sql = "select max(age) as maxAge, count(*) as cnt from " + JdxUtils.sys_table_prefix + "que" + queType + " where ws_id = " + wsId;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("cnt") == 0) {
-            return -1;
+            return 0;
         } else {
             return rec.getValueLong("maxAge");
         }

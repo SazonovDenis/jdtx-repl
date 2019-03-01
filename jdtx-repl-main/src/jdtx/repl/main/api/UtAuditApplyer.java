@@ -29,7 +29,7 @@ public class UtAuditApplyer {
      * Применить реплику replica на рабочей станции wsId
      */
     public void applyReplica(IReplica replica, IPublication publication, long selfWsId) throws Exception {
-        log.info("applyReplica");
+        log.info("applyReplica, selfWsId: " + selfWsId);
 
         //
         List<IJdxTableStruct> tables = struct.getTables();
@@ -49,7 +49,7 @@ public class UtAuditApplyer {
 
         //
         JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(replica.getFile());
-        log.info("WsId: " + replicaReader.getWsId() + ", age: " + replicaReader.getAge());
+        log.info("  replica.WsId: " + replicaReader.getWsId() + ", replica.age: " + replicaReader.getAge());
 
         //
         IRefDecoder decoder = new RefDecoder(db, selfWsId);
@@ -65,7 +65,7 @@ public class UtAuditApplyer {
             //
             String tableName = replicaReader.nextTable();
             while (tableName != null) {
-                log.info("table: " + tableName);
+                log.info("  table: " + tableName);
 
                 // Поиск таблицы tableName в структуре, только в одну сторону (из-за зависимостей)
                 int n = -1;

@@ -111,10 +111,10 @@ public class UtAuditSelector {
         }
 
         // Аудит в указанном диапазоне возрастов: id >= fromId и id <= toId
-        String query = getSql(tableFrom, tableFields, fromId, toId);
+        String sql = getSql(tableFrom, tableFields, fromId, toId);
 
         //
-        return db.openSql(query);
+        return db.openSql(sql);
     }
 
     /**

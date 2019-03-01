@@ -68,6 +68,15 @@ public class UtRepl {
 
 
     /**
+     * Зафиксировать возраст рабочей станции
+     */
+    public long incAuditAge() throws Exception {
+        UtAuditAgeManager ut = new UtAuditAgeManager(db, struct);
+        return ut.incAuditAge();
+    }
+
+
+    /**
      * Узнать возраст рабочей станции
      */
     public long getAuditAge() throws Exception {
@@ -126,17 +135,17 @@ public class UtRepl {
 
 
     /**
-     * При включении новой БД в систему:
-     * Самая первая (установочная) реплика для сервера.
-     * Готовится как реплика на вставку всех существующих записей в этой БД.
+     * Реплика на вставку всех существующих записей в этой БД.
+     * <p>
+     * Используется при включении новой БД в систему:
+     * самая первая (установочная) реплика для сервера.
      */
-    IReplica createReplicaFull(long wsId, IPublication publication) throws Exception {
-        File file = new File("../_test-data/~tmp-" + wsId + "-full-csv.xml");  //todo: политика размещения!!
+    IReplica createReplicaFull(long wsId, IPublication publication, long age) throws Exception {
+        File file = new File("../_test-data/~tmp-" + wsId + "-" + age + "-full-csv.xml");  //todo: политика размещения!!
         OutputStream ost = new FileOutputStream(file);
         JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
 
         //
-        long age = 0; // Установочная реплика именно возраста 0
         wr.writeReplicaInfo(wsId, age);
 
         //

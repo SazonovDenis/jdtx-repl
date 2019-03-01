@@ -8,6 +8,85 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
+    public void test_ttttt() throws Exception {
+        test_srv_setUp();
+
+        //
+        test_ws3_CreateSetupReplica();
+        test_ws3_CreateSetupReplica();
+
+        //
+        test_ws3_handleSelfAudit();
+        test_ws3_handleSelfAudit();
+
+        //
+        test_ws3_makeChange();
+        test_ws3_makeChange();
+
+        //
+        test_ws3_handleSelfAudit();
+        test_ws3_handleSelfAudit();
+
+
+        //
+        test_ws3_makeChange();
+        test_ws3_makeChange();
+
+        //
+        test_ws3_handleSelfAudit();
+        test_ws3_handleSelfAudit();
+
+        //
+        test_ws3_CreateSetupReplica();
+        test_ws3_CreateSetupReplica();
+
+        //
+        test_ws3_handleSelfAudit();
+        test_ws3_handleSelfAudit();
+
+        // ---
+
+
+        //
+        test_ws2_makeChange();
+        test_ws2_makeChange();
+
+        //
+        test_ws2_handleSelfAudit();
+        test_ws2_handleSelfAudit();
+
+        //
+        test_ws2_CreateSetupReplica();
+        test_ws2_CreateSetupReplica();
+
+        //
+        test_ws2_makeChange();
+        test_ws2_makeChange();
+
+        //
+        test_ws2_handleSelfAudit();
+        test_ws2_handleSelfAudit();
+
+
+        // ---
+
+        //
+        test_srv_handleQue();
+        test_ws1_ApplyReplica();
+        test_ws2_ApplyReplica();
+        test_ws3_ApplyReplica();
+
+        //
+        test_dumpTables();
+    }
+
+
+    @Test
+    public void test_ttttt1() throws Exception {
+        test_ws2_handleSelfAudit();
+    }
+
+    @Test
     public void test_all_0() throws Exception {
         test_srv_setUp();
         //
@@ -17,7 +96,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
         test_srv_handleQue();
-        test_srv_ApplyReplica();
+        test_ws1_ApplyReplica();
         test_ws2_ApplyReplica();
         test_ws3_ApplyReplica();
         //
@@ -26,13 +105,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_all_1() throws Exception {
+        test_ws1_makeChange();
         test_ws2_makeChange();
         test_ws3_makeChange();
         test_ws1_handleSelfAudit();
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
         test_srv_handleQue();
-        test_srv_ApplyReplica();
+        test_ws1_ApplyReplica();
         test_ws2_ApplyReplica();
         test_ws3_ApplyReplica();
         //
@@ -84,7 +164,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ws2.send();
     }
 
-
     @Test
     public void test_ws3_CreateSetupReplica() throws Exception {
         // Рабочая станция, настройка
@@ -122,12 +201,18 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         svr3.save().toFile("../_test-data/csv/ws3-all.csv");
     }
 
+
+    @Test
+    public void test_ws1_makeChange() throws Exception {
+        UtTest utTest = new UtTest(db);
+        utTest.makeChange(struct, 1);
+    }
+
     @Test
     public void test_ws2_makeChange() throws Exception {
         UtTest utTest = new UtTest(db2);
         utTest.makeChange(struct2, 2);
     }
-
 
     @Test
     public void test_ws3_makeChange() throws Exception {
@@ -139,7 +224,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws1_handleSelfAudit() throws Exception {
         // Рабочая станция, настройка
-        JdxReplWs ws = new JdxReplWs(db, 2);
+        JdxReplWs ws = new JdxReplWs(db, 1);
         ws.init("test/etalon/ws_srv.json");
 
         // Отслеживаем и обрабатываем свои изменения
@@ -177,7 +262,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void test_srv_ApplyReplica() throws Exception {
+    public void test_ws1_ApplyReplica() throws Exception {
         // Сервер, настройка
         JdxReplWs ws = new JdxReplWs(db, 1);
         ws.init("test/etalon/ws_srv.json");
@@ -201,7 +286,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         // Применяем входящие реплики
         ws.handleQueIn();
     }
-
 
     @Test
     public void test_ws3_ApplyReplica() throws Exception {
@@ -241,8 +325,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_run_1() throws Exception {
         while (true) {
+            test_ws1_makeChange();
             test_ws1_handleSelfAudit();
-            test_srv_ApplyReplica();
+            test_ws1_ApplyReplica();
         }
     }
 

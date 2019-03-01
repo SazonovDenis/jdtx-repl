@@ -53,22 +53,14 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
 
 
     public void put(IReplica replica) throws Exception {
-        // Проверки правильности номера реплики
+        // Проверки: правильность номера реплики
         if (replica.getAge() == -1) {
             throw new XError("invalid replica.age");
         }
-        //
+        // Проверки: правильность очередности реплик
         long queMaxAge = getMaxAge();
-        if (replica.getAge() == 0) {
-            // Установочная (самая первая, полная) реплика
-            if (queMaxAge != -1) {
-                throw new XError("Setup replica is not allowed in que.age: " + queMaxAge);
-            }
-        } else {
-            // Очередная реплика
-            if (replica.getAge() != queMaxAge + 1) {
-                throw new XError("invalid replica.getAge: " + replica.getAge() + ", que.age: " + queMaxAge);
-            }
+        if (replica.getAge() != queMaxAge + 1) {
+            throw new XError("invalid replica.getAge: " + replica.getAge() + ", que.age: " + queMaxAge);
         }
 
         // Помещаем в очередь
@@ -94,7 +86,7 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
         String sql = "select max(age) as maxAge, count(*) as cnt from " + JdxUtils.sys_table_prefix + "que" + queType;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("cnt") == 0) {
-            return -1;
+            return 0;
         } else {
             return rec.getValueLong("maxAge");
         }

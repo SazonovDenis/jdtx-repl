@@ -129,8 +129,12 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
             r.close();
         }
 
+        // Увеличиваем возраст
+        long age = utr.incAuditAge();
+        System.out.println("new AuditAge = " + age);
+
         // Забираем установочную реплику
-        IReplica replica = utr.createReplicaFull(1, publcation);
+        IReplica replica = utr.createReplicaFull(1, publcation, age);
 
         //
         System.out.println(replica.getFile().getAbsolutePath());
@@ -146,7 +150,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
         // Фиксируем возраст
         long selfAuditAge = utr.markAuditAge();
-        System.out.println("selfAuditAge = " + selfAuditAge);
+        System.out.println("new AuditAge = " + selfAuditAge);
 
         // Загружаем правила публикации
         IPublication publcation = new Publication();

@@ -321,7 +321,7 @@ public class UtDbObjectManager {
 
         //
         long id = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "state_ws");
-        sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws(id, ws_id, que_common_no_done, que_in_age_done) values (" + id + ", " + wsId + ", -1, -1)";
+        sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws(id, ws_id, que_common_no_done, que_in_age_done) values (" + id + ", " + wsId + ", 0, 0)";
         db.execSql(sql);
 
         //
