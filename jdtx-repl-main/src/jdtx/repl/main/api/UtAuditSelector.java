@@ -130,7 +130,11 @@ public class UtAuditSelector {
     }
 
     protected String getSql(IJdxTableStruct tableFrom, String tableFields, long fromId, long toId) {
-        return "select " + JdxUtils.prefix + "opr_type, " + tableFields + " from " + JdxUtils.audit_table_prefix + tableFrom.getName() + " where " + JdxUtils.prefix + "id >= " + fromId + " and " + JdxUtils.prefix + "id <= " + toId + " order by " + JdxUtils.prefix + "id";
+        return "select " +
+                JdxUtils.prefix + "opr_type, " + tableFields +
+                " from " + JdxUtils.audit_table_prefix + tableFrom.getName() +
+                " where " + JdxUtils.prefix + "id >= " + fromId + " and " + JdxUtils.prefix + "id <= " + toId +
+                " order by " + JdxUtils.prefix + "id";
     }
 
 
