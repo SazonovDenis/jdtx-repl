@@ -248,7 +248,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_run_1() throws Exception {
         while (true) {
-            test_ws1_makeChange();
+            //test_ws1_makeChange();
             test_ws1_handleSelfAudit();
             test_ws1_ApplyReplica();
         }
@@ -269,6 +269,113 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
             test_ws3_makeChange();
             test_ws3_handleSelfAudit();
             test_ws3_ApplyReplica();
+        }
+    }
+
+    /////////////////////////////////////////////////
+
+/*
+    @Test
+    public void test_loop_1_change() throws Exception {
+        while (true) {
+            test_ws1_makeChange();
+        }
+    }
+*/
+
+    @Test
+    public void test_loop_2_change() throws Exception {
+        while (true) {
+            try {
+                test_ws2_makeChange();
+            } catch (Exception e) {
+                String msg = e.getCause().getMessage();
+                if (msg.contains("deadlock")) {
+                    System.out.println(msg);
+                    System.out.println(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    @Test
+    public void test_loop_3_change() throws Exception {
+        while (true) {
+            try {
+                test_ws3_makeChange();
+            } catch (Exception e) {
+                String msg = e.getCause().getMessage();
+                if (msg.contains("deadlock")) {
+                    System.out.println(msg);
+                    System.out.println(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    @Test
+    public void test_loop_1_repl() throws Exception {
+        while (true) {
+            try {
+                test_ws1_handleSelfAudit();
+                test_ws1_ApplyReplica();
+            } catch (Exception e) {
+                String msg = e.getCause().getMessage();
+                if (msg.contains("deadlock")) {
+                    System.out.println(msg);
+                    System.out.println(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    @Test
+    public void test_loop_2_repl() throws Exception {
+        while (true) {
+            try {
+                test_ws2_handleSelfAudit();
+                test_ws2_ApplyReplica();
+            } catch (Exception e) {
+                String msg = e.getCause().getMessage();
+                if (msg.contains("deadlock")) {
+                    System.out.println(msg);
+                    System.out.println(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    @Test
+    public void test_loop_3_repl() throws Exception {
+        while (true) {
+            try {
+                test_ws3_handleSelfAudit();
+                test_ws3_ApplyReplica();
+            } catch (Exception e) {
+                String msg = e.getCause().getMessage();
+                if (msg.contains("deadlock")) {
+                    System.out.println(msg);
+                    System.out.println(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+
+    @Test
+    public void test_loop_srv() throws Exception {
+        while (true) {
+            test_srv_handleQue();
         }
     }
 
