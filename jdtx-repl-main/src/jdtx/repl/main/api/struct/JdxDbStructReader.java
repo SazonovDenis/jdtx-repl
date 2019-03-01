@@ -25,72 +25,87 @@ public class JdxDbStructReader implements IJdxDbStructReader {
         ArrayList<IJdxTableStruct> structTables = new ArrayList<>();
 
         //
-        DatabaseMetaData dbm = db.getConnection().getMetaData();
+        DatabaseMetaData metaData = db.getConnection().getMetaData();
         String[] types = {"TABLE"};
-        ResultSet rs = dbm.getTables(null, null, "%", types);
-        while (rs.next()) {
-            if (skipReplObj && rs.getString("TABLE_NAME").toLowerCase().startsWith(JdxUtils.audit_table_prefix.toLowerCase())) {
-                continue;
+        ResultSet rs = metaData.getTables(null, null, "%", types);
+        try {
+            while (rs.next()) {
+                if (skipReplObj && rs.getString("TABLE_NAME").toLowerCase().startsWith(JdxUtils.audit_table_prefix.toLowerCase())) {
+                    continue;
+                }
+
+                //для очередной таблицы
+                //создаем экземпляр класса
+                JdxTableStruct table = new JdxTableStruct();
+                //добавляем экземпляр в список
+                structTables.add(table);
+
+                //
+                table.setName(rs.getString("TABLE_NAME"));
+
+                // --- столбцы
+                ResultSet rsColumns = metaData.getColumns(null, null, table.getName(), null);
+                try {
+                    while (rsColumns.next()) {
+                        JdxFieldStruct field = new JdxFieldStruct();
+                        table.getFields().add(field);
+
+                        String columnName = rsColumns.getString("COLUMN_NAME");
+                        String columnType = rsColumns.getString("TYPE_NAME");
+                        int columnSize = rsColumns.getInt("COLUMN_SIZE");
+
+                        field.setName(columnName);
+                        field.setDbDatatype(columnType);
+                        field.setJdxDatatype(dbDatatypeToJdxDatatype(columnType));
+                        field.setSize(columnSize);
+                    }
+                } finally {
+                    rsColumns.close();
+                }
+
+                // --- первичные ключи
+                ResultSet rsPK = metaData.getPrimaryKeys(null, null, table.getName());
+                try {
+                    while (rsPK.next()) {
+                        String columnName = rsPK.getString("COLUMN_NAME");
+                        JdxFieldStruct fieldPK = (JdxFieldStruct) table.getField(columnName);
+                        fieldPK.setIsPrimaryKey(true);
+                        table.getPrimaryKey().add(fieldPK);
+                    }
+                } finally {
+                    rsPK.close();
+                }
             }
-
-            //для очередной таблицы
-            //создаем экземпляр класса
-            JdxTableStruct table = new JdxTableStruct();
-            //добавляем экземпляр в список
-            structTables.add(table);
-
-            //
-            table.setName(rs.getString("TABLE_NAME"));
-
-            //String tableMy = table.getName();
-            ResultSet rsColumns = dbm.getColumns(null, null, table.getName(), null);
-            ResultSet rsPK = dbm.getPrimaryKeys(null, null, table.getName());
-
-            // --- столбцы
-            while (rsColumns.next()) {
-                JdxFieldStruct field = new JdxFieldStruct();
-                table.getFields().add(field);
-
-                String columnName = rsColumns.getString("COLUMN_NAME");
-                String columnType = rsColumns.getString("TYPE_NAME");
-                int columnSize = rsColumns.getInt("COLUMN_SIZE");
-
-                field.setName(columnName);
-                field.setDbDatatype(columnType);
-                field.setJdxDatatype(dbDatatypeToJdxDatatype(columnType));
-                field.setSize(columnSize);
-            }
-
-            // --- первичные ключи
-            while (rsPK.next()) {
-                String columnName = rsPK.getString("COLUMN_NAME");
-                JdxFieldStruct fieldPK = (JdxFieldStruct) table.getField(columnName);
-                fieldPK.setIsPrimaryKey(true);
-                table.getPrimaryKey().add(fieldPK);
-            }
+        } finally {
+            rs.close();
         }
 
         // --- внешние ключи
         for (IJdxTableStruct table : structTables) {
-            ResultSet rsFK = dbm.getImportedKeys(db.getConnection().getCatalog(), null, table.getName());
-            while (rsFK.next()) {
-                // Пополняем список ForeignKey для таблицы
-                JdxForeignKey foreignKey = new JdxForeignKey();
-                table.getForeignKeys().add(foreignKey);
+            ResultSet rsFK = metaData.getImportedKeys(db.getConnection().getCatalog(), null, table.getName());
+            try {
+                while (rsFK.next()) {
+                    // Пополняем список ForeignKey для таблицы
+                    JdxForeignKey foreignKey = new JdxForeignKey();
+                    table.getForeignKeys().add(foreignKey);
 
-                JdxTableStruct tableFK = (JdxTableStruct) findTable(structTables, rsFK.getString("PKTABLE_NAME"));
-                IJdxFieldStruct tableFieldFK = tableFK.getField(rsFK.getString("PKCOLUMN_NAME"));
-                JdxFieldStruct fieldFK = (JdxFieldStruct) table.getField(rsFK.getString("FKCOLUMN_NAME"));
-                String name = rsFK.getString("FK_NAME");
+                    JdxTableStruct tableFK = (JdxTableStruct) findTable(structTables, rsFK.getString("PKTABLE_NAME"));
+                    IJdxFieldStruct tableFieldFK = tableFK.getField(rsFK.getString("PKCOLUMN_NAME"));
+                    JdxFieldStruct fieldFK = (JdxFieldStruct) table.getField(rsFK.getString("FKCOLUMN_NAME"));
+                    String name = rsFK.getString("FK_NAME");
 
-                foreignKey.setName(name);
-                foreignKey.setField(fieldFK);
-                foreignKey.setTable(tableFK);
-                foreignKey.setTableField(tableFieldFK);
+                    foreignKey.setName(name);
+                    foreignKey.setField(fieldFK);
+                    foreignKey.setTable(tableFK);
+                    foreignKey.setTableField(tableFieldFK);
 
-                // Прставляем данные, на какую таблицу смотрит ссылочное поле
-                fieldFK.setRefTable(tableFK);
+                    // Прставляем данные, на какую таблицу смотрит ссылочное поле
+                    fieldFK.setRefTable(tableFK);
+                }
+            } finally {
+                rsFK.close();
             }
+
         }
 
         // Сортируем
