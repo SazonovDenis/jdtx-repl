@@ -29,7 +29,7 @@ public class UtAuditApplyer {
      * Применить реплику replica на рабочей станции wsId
      */
     public void applyReplica(IReplica replica, IPublication publication, long selfWsId) throws Exception {
-        log.info("applyReplica, selfWsId: " + selfWsId);
+        log.info("applyReplica, self.WsId: " + selfWsId);
 
         //
         List<IJdxTableStruct> tables = struct.getTables();

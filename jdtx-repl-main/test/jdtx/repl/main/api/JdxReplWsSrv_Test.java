@@ -8,85 +8,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void test_ttttt() throws Exception {
-        test_srv_setUp();
-
-        //
-        test_ws3_CreateSetupReplica();
-        test_ws3_CreateSetupReplica();
-
-        //
-        test_ws3_handleSelfAudit();
-        test_ws3_handleSelfAudit();
-
-        //
-        test_ws3_makeChange();
-        test_ws3_makeChange();
-
-        //
-        test_ws3_handleSelfAudit();
-        test_ws3_handleSelfAudit();
-
-
-        //
-        test_ws3_makeChange();
-        test_ws3_makeChange();
-
-        //
-        test_ws3_handleSelfAudit();
-        test_ws3_handleSelfAudit();
-
-        //
-        test_ws3_CreateSetupReplica();
-        test_ws3_CreateSetupReplica();
-
-        //
-        test_ws3_handleSelfAudit();
-        test_ws3_handleSelfAudit();
-
-        // ---
-
-
-        //
-        test_ws2_makeChange();
-        test_ws2_makeChange();
-
-        //
-        test_ws2_handleSelfAudit();
-        test_ws2_handleSelfAudit();
-
-        //
-        test_ws2_CreateSetupReplica();
-        test_ws2_CreateSetupReplica();
-
-        //
-        test_ws2_makeChange();
-        test_ws2_makeChange();
-
-        //
-        test_ws2_handleSelfAudit();
-        test_ws2_handleSelfAudit();
-
-
-        // ---
-
-        //
-        test_srv_handleQue();
-        test_ws1_ApplyReplica();
-        test_ws2_ApplyReplica();
-        test_ws3_ApplyReplica();
-
-        //
-        test_dumpTables();
-    }
-
-
-    @Test
-    public void test_ttttt1() throws Exception {
-        test_ws2_handleSelfAudit();
-    }
-
-    @Test
     public void test_all_0() throws Exception {
         test_srv_setUp();
         //
@@ -105,7 +26,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_all_1() throws Exception {
-        test_ws1_makeChange();
+        //test_ws1_makeChange();
         test_ws2_makeChange();
         test_ws3_makeChange();
         test_ws1_handleSelfAudit();
@@ -314,6 +235,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         srv.srvDispatchReplicas();
     }
 
+
+    /////////////////////////////////////////////////
 
     @Test
     public void test_run_srv() throws Exception {
