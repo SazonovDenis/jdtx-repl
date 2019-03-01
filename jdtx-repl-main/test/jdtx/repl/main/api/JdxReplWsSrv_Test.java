@@ -2,7 +2,10 @@ package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
 import jandcode.utils.*;
+import org.apache.tools.ant.taskdefs.*;
 import org.junit.*;
+
+import java.util.concurrent.*;
 
 public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
@@ -288,6 +291,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         while (true) {
             try {
                 test_ws2_makeChange();
+                TimeUnit.SECONDS.sleep(5);
             } catch (Exception e) {
                 String msg = e.getCause().getMessage();
                 if (msg.contains("deadlock")) {
@@ -305,6 +309,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         while (true) {
             try {
                 test_ws3_makeChange();
+                TimeUnit.SECONDS.sleep(5);
             } catch (Exception e) {
                 String msg = e.getCause().getMessage();
                 if (msg.contains("deadlock")) {

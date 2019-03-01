@@ -65,7 +65,7 @@ public class UtAuditApplyer {
             //
             String tableName = replicaReader.nextTable();
             while (tableName != null) {
-                log.info("  table: " + tableName);
+                //log.debug("  table: " + tableName);
 
                 // Поиск таблицы tableName в структуре, только в одну сторону (из-за зависимостей)
                 int n = -1;

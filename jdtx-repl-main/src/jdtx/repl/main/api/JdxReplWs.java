@@ -219,7 +219,7 @@ public class JdxReplWs {
         //
         long n = 0;
         for (long no = queInNoDone + 1; no <= queInNoAvailable; no++) {
-            log.info("handleQueIn, no: " + no);
+            log.info("handleQueIn, no: " + no + " (" + n + "/" + (queInNoAvailable - queInNoDone) + ")");
 
             //
             IReplica replica = queIn.getByNo(no);

@@ -1,6 +1,7 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.db.*;
+import jandcode.utils.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
@@ -92,7 +93,8 @@ public class UtRepl {
     IReplica createReplicaFromAudit(long wsId, IPublication publication, long age) throws Exception {
         log.info("createReplicaFromAudit");
 
-        File file = new File("../_test-data/~tmp-" + wsId + "-" + age + "-csv.xml"); // todo: правила/страегия работы с файлами и вообще с получателем информации - в какой момент и кто выбирает файл
+        // todo: правила/страегия работы с файлами и вообще с получателем информации - в какой момент и кто выбирает файл
+        File file = new File("../_test-data/~tmp-" + UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0') + ".xml");
         OutputStream ost = new FileOutputStream(file);
         JdxReplicaWriterXml writerXml = new JdxReplicaWriterXml(ost);
 
@@ -141,7 +143,8 @@ public class UtRepl {
      * самая первая (установочная) реплика для сервера.
      */
     IReplica createReplicaFull(long wsId, IPublication publication, long age) throws Exception {
-        File file = new File("../_test-data/~tmp-" + wsId + "-" + age + "-full-csv.xml");  //todo: политика размещения!!
+        //todo: политика размещения!!
+        File file = new File("../_test-data/~tmp-" + UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0') + "-full.xml");
         OutputStream ost = new FileOutputStream(file);
         JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
 
