@@ -7,6 +7,6 @@ project.package_root = "jdtx.repl.main"
 include "wax-module-project"
 include "localize-project"
 //
-libs = libs + ["jandcode-wax-core", "jandcode-wax-verdb", "jandcode-dbm", "jdbc-firebird"]
+libs = libs + ["jandcode-wax-core", "jandcode-wax-verdb", "jandcode-dbm", "jdbc-firebird", "httpclient"]
 libs_dev = libs_dev + []
 //
