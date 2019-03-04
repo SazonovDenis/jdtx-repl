@@ -258,6 +258,7 @@ public class JdxReplWs {
             IReplica replica = mailer.receive(no);
 
             // Помещаем полученные данные в свою входящую очередь
+            ReplicaFile.readReplicaInfo(replica);
             queIn.put(replica);
 
             //

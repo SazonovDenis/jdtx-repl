@@ -64,10 +64,7 @@ public class JdxQueCommonFile implements IJdxQueCommon {
         String actualFileName = genFileName(queNextNo);
         File actualFile = new File(baseDir + actualFileName);
         if (replica.getFile().getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
-            // Иногда две очереди разделяют одно место хранения,
-            // тогда файл копировать не нужно
-            // todo - может помешать процедурам удаления реплик
-            FileUtils.copyFile(replica.getFile(), actualFile);
+            FileUtils.moveFile(replica.getFile(), actualFile);
         }
 
         //

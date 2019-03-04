@@ -93,13 +93,13 @@ public class UtRepl {
     IReplica createReplicaFromAudit(long wsId, IPublication publication, long age) throws Exception {
         log.info("createReplicaFromAudit");
 
-        // todo: правила/страегия работы с файлами и вообще с получателем информации - в какой момент и кто выбирает файл
-        File file = new File("../_test-data/~tmp-" + UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0') + ".xml");
-        OutputStream ost = new FileOutputStream(file);
-        JdxReplicaWriterXml writerXml = new JdxReplicaWriterXml(ost);
+        //
+        File file = File.createTempFile("~jdx-" + UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0'), ".xml");
+        OutputStream outputStream = new FileOutputStream(file);
+        JdxReplicaWriterXml writer = new JdxReplicaWriterXml(outputStream);
 
         //
-        writerXml.writeReplicaInfo(wsId, age);
+        writer.writeReplicaInfo(wsId, age);
 
         //
         UtAuditSelector utrr = new UtAuditSelector(db, struct, wsId);
@@ -116,14 +116,15 @@ public class UtRepl {
 
                     //
                     String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
-                    utrr.readAuditData(stuctTableName, publicationFields, age - 1, age, writerXml);
+                    utrr.readAuditData(stuctTableName, publicationFields, age - 1, age, writer);
                 }
             }
         }
 
 
         //
-        writerXml.close();
+        writer.close();
+        outputStream.close();
 
         //
         IReplica res = new ReplicaFile();
@@ -145,11 +146,11 @@ public class UtRepl {
     IReplica createReplicaFull(long wsId, IPublication publication, long age) throws Exception {
         //todo: политика размещения!!
         File file = new File("../_test-data/~tmp-" + UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0') + "-full.xml");
-        OutputStream ost = new FileOutputStream(file);
-        JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
+        OutputStream outputStream = new FileOutputStream(file);
+        JdxReplicaWriterXml writer = new JdxReplicaWriterXml(outputStream);
 
         //
-        wr.writeReplicaInfo(wsId, age);
+        writer.writeReplicaInfo(wsId, age);
 
         //
         UtDataSelector utrr = new UtDataSelector(db, struct);
@@ -164,13 +165,14 @@ public class UtRepl {
                 String publicationTableName = (String) publicationTable.get("table");
                 if (stuctTableName.compareToIgnoreCase(publicationTableName) == 0) {
                     String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
-                    utrr.readFullData(stuctTableName, publicationFields, wr);
+                    utrr.readFullData(stuctTableName, publicationFields, writer);
                 }
             }
         }
 
         //
-        wr.close();
+        writer.close();
+        outputStream.close();
 
         //
         IReplica replica = new ReplicaFile();
@@ -209,9 +211,10 @@ public class UtRepl {
                 //
                 IReplica replica = mailer.receive(age);
 
-                //
+                // Помещаем полученные данные в общую очередь
                 db.startTran();
                 try {
+                    ReplicaFile.readReplicaInfo(replica);
                     commonQue.put(replica);
                     //
                     stateManager.setWsQueInAgeDone(wsId, age);

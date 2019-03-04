@@ -67,10 +67,7 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
         String actualFileName = genFileName(replica.getAge());
         File actualFile = new File(baseDir + actualFileName);
         if (replica.getFile().getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
-            // Иногда две очереди разделяют одно место хранения,
-            // тогда файл копировать не нужно
-            // todo - может помешать процедурам удаления реплик
-            FileUtils.copyFile(replica.getFile(), actualFile);
+            FileUtils.moveFile(replica.getFile(), actualFile);
         }
         //
         long id = ut.getNextGenerator(JdxUtils.sys_gen_prefix + "que" + queType);

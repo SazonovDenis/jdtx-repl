@@ -50,6 +50,7 @@ public class UtMailerLocalFiles implements IJdxMailer {
 
     public void send(IReplica repl, long n) throws Exception {
         File localFile = repl.getFile();
+        //
         String remoteFileName = getFileName(n);
         File remoteFile = new File(remoteDirSend + remoteFileName);
         //
@@ -68,9 +69,6 @@ public class UtMailerLocalFiles implements IJdxMailer {
         //
         IReplica replica = new ReplicaFile();
         replica.setFile(localFile);
-
-        //
-        ReplicaFile.readReplicaInfo(replica);
 
         //
         return replica;

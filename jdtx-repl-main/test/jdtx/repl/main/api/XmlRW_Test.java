@@ -104,8 +104,10 @@ public class XmlRW_Test extends UtilsTestCase {
         wr.writeEndElement();
 
         wr.writeEndDocument();
-        //wr.flush();
+
+        //
         wr.close();
+        ost.close();
     }
 
     @Test

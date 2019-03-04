@@ -1,7 +1,5 @@
 package jdtx.repl.main.api;
 
-import groovy.json.*;
-
 import javax.xml.stream.*;
 import java.io.*;
 
@@ -10,7 +8,7 @@ import java.io.*;
  */
 public class JdxReplicaWriterXml {
 
-    XMLStreamWriter wr;
+    XMLStreamWriter writer;
 
     // Статусы писателя
     boolean currentElement_replica = false;
@@ -20,10 +18,10 @@ public class JdxReplicaWriterXml {
     //
     public JdxReplicaWriterXml(OutputStream ost) throws XMLStreamException {
         XMLOutputFactory xof = XMLOutputFactory.newInstance();
-        wr = xof.createXMLStreamWriter(ost, "utf-8");
+        writer = xof.createXMLStreamWriter(ost, "utf-8");
         //
-        wr.writeStartDocument();
-        wr.writeStartElement("root");
+        writer.writeStartDocument();
+        writer.writeStartElement("root");
     }
 
     public void append() throws XMLStreamException {
@@ -33,11 +31,11 @@ public class JdxReplicaWriterXml {
         }
         // <rec>
         if (currentElement_rec) {
-            wr.writeEndElement();
+            writer.writeEndElement();
             currentElement_rec = false;
         }
         //
-        wr.writeStartElement("rec");
+        writer.writeStartElement("rec");
         //
         currentElement_rec = true;
     }
@@ -45,49 +43,49 @@ public class JdxReplicaWriterXml {
     public void startTable(String tableName) throws XMLStreamException {
         // <currentElement_replica>
         if (currentElement_replica) {
-            wr.writeEndElement();
+            writer.writeEndElement();
             currentElement_replica = false;
         }
         // <rec>
         if (currentElement_rec) {
-            wr.writeEndElement();
+            writer.writeEndElement();
             currentElement_rec = false;
         }
         // <table>
         if (currentElement_table) {
-            wr.writeEndElement();
+            writer.writeEndElement();
             currentElement_table = false;
         }
         //
-        wr.writeStartElement("table");
-        wr.writeAttribute("name", tableName);
+        writer.writeStartElement("table");
+        writer.writeAttribute("name", tableName);
         //
         currentElement_table = true;
     }
 
     public void flush() throws Exception {
-        wr.flush();
+        writer.flush();
     }
 
     public void close() throws Exception {
         // <replica>
         if (currentElement_replica) {
-            wr.writeEndElement();
+            writer.writeEndElement();
         }
         // <rec>
         if (currentElement_rec) {
-            wr.writeEndElement();
+            writer.writeEndElement();
         }
         // <table>
         if (currentElement_table) {
-            wr.writeEndElement();
+            writer.writeEndElement();
         }
         // <root>
-        wr.writeEndElement();
+        writer.writeEndElement();
         //
-        wr.writeEndDocument();
+        writer.writeEndDocument();
         //
-        wr.close();
+        writer.close();
     }
 
     public void setOprType(int oprType) throws XMLStreamException {
@@ -96,7 +94,7 @@ public class JdxReplicaWriterXml {
             throw new XMLStreamException("Not started currentElement_rec");
         }
         //
-        wr.writeAttribute("Z_OPR", String.valueOf(oprType));
+        writer.writeAttribute("Z_OPR", String.valueOf(oprType));
     }
 
     public void setRecValue(String name, Object value) throws XMLStreamException {
@@ -105,7 +103,7 @@ public class JdxReplicaWriterXml {
             throw new XMLStreamException("Not started currentElement_rec");
         }
         //
-        wr.writeAttribute(name, JdxStringEscapeUtils.escapeJava(String.valueOf(value)));
+        writer.writeAttribute(name, JdxStringEscapeUtils.escapeJava(String.valueOf(value)));
     }
 
     public void writeReplicaInfo(long wsId, long age) throws XMLStreamException {
@@ -119,12 +117,12 @@ public class JdxReplicaWriterXml {
         }
         // <currentElement_replica>
         if (!currentElement_replica) {
-            wr.writeStartElement("replica");
+            writer.writeStartElement("replica");
             currentElement_replica = true;
         }
         //
-        wr.writeAttribute("WS_ID", String.valueOf(wsId));
-        wr.writeAttribute("AGE", String.valueOf(age));
+        writer.writeAttribute("WS_ID", String.valueOf(wsId));
+        writer.writeAttribute("AGE", String.valueOf(age));
     }
 
 }

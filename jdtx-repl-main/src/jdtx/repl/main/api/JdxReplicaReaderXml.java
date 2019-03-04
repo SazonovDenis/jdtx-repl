@@ -11,16 +11,15 @@ import java.util.*;
 public class JdxReplicaReaderXml {
 
     //IReplica replica = null;
+    InputStream inputStream = null;
     XMLStreamReader reader = null;
     private long wsId;
     private long age;
 
     public JdxReplicaReaderXml(File file) throws Exception {
-        //this.replica = replica;
-        //
-        InputStream ist = new FileInputStream(file);
+        inputStream = new FileInputStream(file);
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        reader = xmlInputFactory.createXMLStreamReader(ist, "utf-8");
+        reader = xmlInputFactory.createXMLStreamReader(inputStream, "utf-8");
 
         // Чтение заголовка - WS_ID и AGE
         while (reader.hasNext()) {
@@ -86,8 +85,9 @@ public class JdxReplicaReaderXml {
         return null;
     }
 
-    public void close() throws XMLStreamException {
-        reader.close();
+    public void close() throws XMLStreamException, IOException {
+        //reader.close();
+        inputStream.close();
     }
 
 }
