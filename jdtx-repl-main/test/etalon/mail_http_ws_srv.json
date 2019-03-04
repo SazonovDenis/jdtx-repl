@@ -1,7 +1,7 @@
 {
   "url": "http://localhost/lombard.systems/repl/",
   "guid": "97845f2f56f4d4dc",
-  "mailLocalDir": "../_test-data/ws_srv/tmp",
+  "mailLocalDirTmp": "../_test-data/ws_srv/tmp",
 
   "queIn_DirLocal": "../_test-data/ws_srv/queIn",
   "queOut_DirLocal": "../_test-data/ws_srv/queOut",

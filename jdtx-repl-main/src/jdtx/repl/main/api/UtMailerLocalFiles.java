@@ -1,22 +1,25 @@
 package jdtx.repl.main.api;
 
-import jandcode.utils.*;
-import jandcode.utils.error.*;
-import org.apache.commons.io.*;
-import org.apache.commons.io.filefilter.*;
-import org.apache.commons.logging.*;
-import org.json.simple.*;
+import jandcode.utils.UtFile;
+import jandcode.utils.UtString;
+import jandcode.utils.error.XError;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOCase;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.json.simple.JSONObject;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileFilter;
 
 /**
  * Отправляет и забирает реплики через локальные каталоги.
  */
 public class UtMailerLocalFiles implements IJdxMailer {
 
-    String remoteDirSend;
-    String remoteDirReceive;
-    String localDir;
+    String remoteDir;
+    String localDirTmp;
 
 
     protected static Log log = LogFactory.getLog("jdtx");
@@ -25,43 +28,37 @@ public class UtMailerLocalFiles implements IJdxMailer {
 
 
     public void init(JSONObject cfg) {
-        remoteDirSend = (String) cfg.get("mailSend");
-        remoteDirReceive = (String) cfg.get("mailReceive");
-        localDir = (String) cfg.get("mailLocalDir");
+        remoteDir = (String) cfg.get("mailRemoteDir");
+        localDirTmp = (String) cfg.get("mailLocalDirTmp");
         //
-        if (remoteDirSend == null || remoteDirSend.length() == 0) {
-            throw new XError("Invalid remoteDirSend");
+        if (remoteDir == null || remoteDir.length() == 0) {
+            throw new XError("Invalid remoteDir");
         }
-        if (remoteDirReceive == null || remoteDirReceive.length() == 0) {
-            throw new XError("Invalid remoteDirReceive");
-        }
-        if (localDir == null || localDir.length() == 0) {
-            throw new XError("Invalid localDir");
+        if (localDirTmp == null || localDirTmp.length() == 0) {
+            throw new XError("Invalid localDirTmp");
         }
         //
-        remoteDirSend = UtFile.unnormPath(remoteDirSend) + "/";
-        remoteDirReceive = UtFile.unnormPath(remoteDirReceive) + "/";
-        localDir = UtFile.unnormPath(localDir) + "/";
+        remoteDir = UtFile.unnormPath(remoteDir) + "/";
+        localDirTmp = UtFile.unnormPath(localDirTmp) + "/";
         //
-        UtFile.mkdirs(remoteDirSend);
-        UtFile.mkdirs(remoteDirReceive);
-        UtFile.mkdirs(localDir);
+        UtFile.mkdirs(remoteDir);
+        UtFile.mkdirs(localDirTmp);
     }
 
-    public void send(IReplica repl, long n) throws Exception {
+    public void send(IReplica repl, long n, String box) throws Exception {
         File localFile = repl.getFile();
         //
         String remoteFileName = getFileName(n);
-        File remoteFile = new File(remoteDirSend + remoteFileName);
+        File remoteFile = new File(remoteDir + box + "/" + remoteFileName);
         //
         FileUtils.copyFile(localFile, remoteFile);
     }
 
-    public IReplica receive(long no) throws Exception {
+    public IReplica receive(long no, String box) throws Exception {
         String remoteFileName = getFileName(no);
-        File remoteFile = new File(remoteDirReceive + remoteFileName);
+        File remoteFile = new File(remoteDir + box + "/" + remoteFileName);
         String localFileName = getFileName(no);
-        File localFile = new File(localDir + localFileName);
+        File localFile = new File(localDirTmp + localFileName);
 
         //
         FileUtils.copyFile(remoteFile, localFile);
@@ -74,8 +71,8 @@ public class UtMailerLocalFiles implements IJdxMailer {
         return replica;
     }
 
-    public long getSrvSend() {
-        File dir = new File(remoteDirSend);
+    public long getSrvSend(String box) {
+        File dir = new File(remoteDir + box + "/");
         File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
 
         //
@@ -90,8 +87,8 @@ public class UtMailerLocalFiles implements IJdxMailer {
         return age;
     }
 
-    public long getSrvReceive() {
-        File dir = new File(remoteDirReceive);
+    public long getSrvReceive(String box) {
+        File dir = new File(remoteDir + box + "/");
         File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
 
         //

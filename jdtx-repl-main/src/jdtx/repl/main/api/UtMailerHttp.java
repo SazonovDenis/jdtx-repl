@@ -29,11 +29,7 @@ public class UtMailerHttp implements IJdxMailer {
 
     String rootUrl;
     String guid;
-/*
-    String remoteDirSend;
-    String remoteDirReceive;
-*/
-    String localDir;
+    String localDirTmp;
 
     protected static Log log = LogFactory.getLog("jdtx");
 
@@ -42,11 +38,7 @@ public class UtMailerHttp implements IJdxMailer {
     public void init(JSONObject cfg) {
         rootUrl = (String) cfg.get("url");
         guid = (String) cfg.get("guid");
-/*
-        remoteDirSend = (String) cfg.get("mailSend");
-        remoteDirReceive = (String) cfg.get("mailReceive");
-*/
-        localDir = (String) cfg.get("mailLocalDir");
+        localDirTmp = (String) cfg.get("mailLocalDirTmp");
         //
         if (rootUrl == null || rootUrl.length() == 0) {
             throw new XError("Invalid rootUrl");
@@ -54,30 +46,21 @@ public class UtMailerHttp implements IJdxMailer {
         if (guid == null || guid.length() == 0) {
             throw new XError("Invalid guid");
         }
-/*
-        if (remoteDirSend == null || remoteDirSend.length() == 0) {
-            throw new XError("Invalid remoteDirSend");
+        if (localDirTmp == null || localDirTmp.length() == 0) {
+            throw new XError("Invalid localDirTmp");
         }
-        if (remoteDirReceive == null || remoteDirReceive.length() == 0) {
-            throw new XError("Invalid remoteDirReceive");
-        }
-*/
-        if (localDir == null || localDir.length() == 0) {
-            throw new XError("Invalid localDir");
-        }
-/*
-        remoteDirSend = UtFile.unnormPath(remoteDirSend) + "/";
-        remoteDirReceive = UtFile.unnormPath(remoteDirReceive) + "/";
-*/
-        localDir = UtFile.unnormPath(localDir) + "/";
+        //
+        localDirTmp = UtFile.unnormPath(localDirTmp) + "/";
+        //
+        UtFile.mkdirs(localDirTmp);
     }
 
     @Override
-    public long getSrvSend() throws Exception {
+    public long getSrvSend(String box) throws Exception {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(rootUrl + "/repl_get_send.php?" + "guid=" + guid);
+        HttpGet httpGet = new HttpGet(rootUrl + "/repl_get_send.php?" + "guid=" + guid + "&box=" + box);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -99,16 +82,16 @@ public class UtMailerHttp implements IJdxMailer {
     }
 
     @Override
-    public void send(IReplica repl, long no) throws Exception {
+    public void send(IReplica repl, long no, String box) throws Exception {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        // Отправка запроса
         HttpPost httpPost = new HttpPost(rootUrl + "/repl_send.php");
 
         //
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("guid", guid));
+        params.add(new BasicNameValuePair("box", box));
         params.add(new BasicNameValuePair("no", String.valueOf(no)));
         params.add(new BasicNameValuePair("file", UtFile.loadString(repl.getFile())));
         httpPost.setEntity(new UrlEncodedFormEntity(params));
@@ -127,17 +110,14 @@ public class UtMailerHttp implements IJdxMailer {
         if (res.get("error") != null) {
             throw new XError(String.valueOf(res.get("error")));
         }
-
-        //
-        //return Long.valueOf((String) resStr.get("result"));
     }
 
     @Override
-    public long getSrvReceive() throws Exception {
+    public long getSrvReceive(String box) throws Exception {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(rootUrl + "/repl_get_receive.php?" + "guid=" + guid);
+        HttpGet httpGet = new HttpGet(rootUrl + "/repl_get_receive.php?" + "guid=" + guid + "&box=" + box);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -159,11 +139,11 @@ public class UtMailerHttp implements IJdxMailer {
     }
 
     @Override
-    public IReplica receive(long no) throws Exception {
+    public IReplica receive(long no, String box) throws Exception {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(rootUrl + "/repl_receive.php?" + "guid=" + guid + "&no=" + no);
+        HttpGet httpGet = new HttpGet(rootUrl + "/repl_receive.php?" + "guid=" + guid + "&box=" + box + "&no=" + no);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -175,8 +155,7 @@ public class UtMailerHttp implements IJdxMailer {
 
         //
         String localFileName = getFileName(no);
-        File file = new File(localDir + localFileName);
-        //File file = File.createTempFile("~jdx-" + UtString.padLeft(String.valueOf(no), 9, '0') + "-", ".xml");
+        File file = new File(localDirTmp + localFileName);
         String resStr = EntityUtils.toString(response.getEntity());
         UtFile.saveString(resStr, file);
 

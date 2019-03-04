@@ -1,7 +1,6 @@
 {
-  "mailReceive": "../_test-data/mail/ws3/to/",
-  "mailSend": "../_test-data/mail/ws3/from/",
-  "mailLocalDir": "../_test-data/ws3/tmp",
+  "mailRemoteDir": "../_test-data/mail/ws3/",
+  "mailLocalDirTmp": "../_test-data/ws3/tmp",
 
   "queIn_DirLocal": "../_test-data/ws3/queIn",
   "queOut_DirLocal": "../_test-data/ws3/queOut",

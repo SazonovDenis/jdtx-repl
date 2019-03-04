@@ -4,18 +4,18 @@
   "1": {
     "url": "http://localhost/lombard.systems/repl/",
     "guid": "97845f2f56f4d4dc",
-    "mailLocalDir": "../_test-data/ws_srv/tmp"
+    "mailLocalDirTmp": "../_test-data/ws_srv/tmp"
   },
 
   "2": {
     "url": "http://localhost/lombard.systems/repl/",
     "guid": "61ba238dfc94503e",
-    "mailLocalDir": "../_test-data/ws2/tmp"
+    "mailLocalDirTmp": "../_test-data/ws2/tmp"
   },
 
   "3": {
     "url": "http://localhost/lombard.systems/repl/",
     "guid": "84f3cc20bea645fa",
-    "mailLocalDir": "../_test-data/ws3/tmp"
+    "mailLocalDirTmp": "../_test-data/ws3/tmp"
   }
 }

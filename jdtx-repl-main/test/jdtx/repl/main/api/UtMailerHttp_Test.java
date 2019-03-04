@@ -1,6 +1,5 @@
 package jdtx.repl.main.api;
 
-import junit.framework.TestCase;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Test;
@@ -36,26 +35,26 @@ public class UtMailerHttp_Test extends ReplDatabase_Test {
 
     @Test
     public void test_getSrv() throws Exception {
-        System.out.println("getSrvSend: " + mailer.getSrvSend());
-        System.out.println("getSrvReceive: " + mailer.getSrvReceive());
+        System.out.println("getSrvSend.from: " + mailer.getSrvSend("from"));
+        System.out.println("getSrvReceive.to: " + mailer.getSrvReceive("to"));
     }
 
     @Test
     public void test_Receive() throws Exception {
-        IReplica replica_1 = mailer.receive(1);
+        IReplica replica_1 = mailer.receive(1, "to");
         System.out.println("receive: " + replica_1.getFile());
         //
-        IReplica replica_2 = mailer.receive(2);
+        IReplica replica_2 = mailer.receive(2, "to");
         System.out.println("receive: " + replica_2.getFile());
         //
-        IReplica replica_3 = mailer.receive(3);
+        IReplica replica_3 = mailer.receive(3, "to");
         System.out.println("receive: " + replica_3.getFile());
     }
 
     @Test
     public void test_Send() throws Exception {
         // ---
-        System.out.println("getSrvSend: " + mailer.getSrvSend());
+        System.out.println("getSrvSend: " + mailer.getSrvSend("from"));
 
 
         // ---
@@ -79,11 +78,11 @@ public class UtMailerHttp_Test extends ReplDatabase_Test {
 
 
         // ---
-        mailer.send(replica, age);
+        mailer.send(replica, age, "from");
 
 
         // ---
-        System.out.println("new getSrvSend: " + mailer.getSrvSend());
+        System.out.println("new getSrvSend: " + mailer.getSrvSend("from"));
     }
 
 

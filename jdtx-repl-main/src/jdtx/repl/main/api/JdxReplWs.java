@@ -1,15 +1,21 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.db.*;
-import jandcode.utils.error.*;
-import jdtx.repl.main.api.struct.*;
-import org.apache.commons.logging.*;
-import org.json.simple.*;
-import org.json.simple.parser.*;
+import jandcode.dbm.db.Db;
+import jandcode.utils.error.XError;
+import jdtx.repl.main.api.struct.IJdxDbStruct;
+import jdtx.repl.main.api.struct.IJdxDbStructReader;
+import jdtx.repl.main.api.struct.JdxDbStructReader;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
-import java.io.*;
-import java.sql.*;
-import java.util.*;
+import java.io.FileReader;
+import java.io.Reader;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Контекст рабочей станции
@@ -242,7 +248,7 @@ public class JdxReplWs {
 
     public void receive() throws Exception {
         // Узнаем сколько есть на сервере
-        long srvAvailableNo = mailer.getSrvReceive();
+        long srvAvailableNo = mailer.getSrvReceive("to");
 
         // Узнаем сколько получено у нас
         long selfReceivedNo = queIn.getMaxNo();
@@ -256,7 +262,7 @@ public class JdxReplWs {
             log.info("UtMailer, receive no: " + no);
 
             // Физически забираем данные
-            IReplica replica = mailer.receive(no);
+            IReplica replica = mailer.receive(no, "to");
 
             // Помещаем полученные данные в свою входящую очередь
             ReplicaFile.readReplicaInfo(replica);
@@ -273,7 +279,7 @@ public class JdxReplWs {
 
     public void send() throws Exception {
         // Узнаем сколько уже отправлено на сервер
-        long srvSendAge = mailer.getSrvSend();
+        long srvSendAge = mailer.getSrvSend("from");
 
         // Узнаем сколько есть у нас в очереди на отправку
         long selfQueOutAge = queOut.getMaxAge();
@@ -287,7 +293,7 @@ public class JdxReplWs {
             log.info("UtMailer, send.age: " + age);
 
             // Физически отправляем данные
-            mailer.send(queOut.getByAge(age), age);
+            mailer.send(queOut.getByAge(age), age, "from");
 
             //
             count++;

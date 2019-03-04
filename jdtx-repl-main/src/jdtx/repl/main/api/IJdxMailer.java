@@ -15,15 +15,15 @@ public interface IJdxMailer {
     /**
      * @return Сколько уже отправлено на сервер (age или no)
      */
-    long getSrvSend() throws Exception;
+    long getSrvSend(String box) throws Exception;
 
-    void send(IReplica repl, long n) throws Exception;
+    void send(IReplica repl, long n, String box) throws Exception;
 
     /**
      * @return Сколько есть на сервере (age или no)
      */
-    long getSrvReceive() throws Exception;
+    long getSrvReceive(String box) throws Exception;
 
-    IReplica receive(long n) throws Exception;
+    IReplica receive(long n, String box) throws Exception;
 
 }

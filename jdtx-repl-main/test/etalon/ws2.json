@@ -1,7 +1,6 @@
 {
-  "mailReceive": "../_test-data/mail/ws2/to/",
-  "mailSend": "../_test-data/mail/ws2/from/",
-  "mailLocalDir": "../_test-data/ws2/tmp",
+  "mailRemoteDir": "../_test-data/mail/ws2/",
+  "mailLocalDirTmp": "../_test-data/ws2/tmp",
 
   "queIn_DirLocal": "../_test-data/ws2/queIn",
   "queOut_DirLocal": "../_test-data/ws2/queOut",
@@ -52,7 +51,7 @@
         {
           "table": "LIC",
           "fields": "NameF,NameI,NameO,Dom,Kv,Ulz",
-          "filter": "Region.ID in (2, 3844) and LicDocTip=1002"
+          "filter": "Region.ID in (2, 3844) and LicDocTip = 1002"
         },
         {
           "table": "Ulz",

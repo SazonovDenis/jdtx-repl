@@ -151,8 +151,7 @@ public class UtRepl {
      * самая первая (установочная) реплика для сервера.
      */
     IReplica createReplicaFull(long wsId, IPublication publication, long age) throws Exception {
-        //todo: политика размещения!!
-        File file = new File("../_test-data/~tmp-" + UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0') + "-full.xml");
+        File file = File.createTempFile("~jdx-" + UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0') + "-full", ".xml");
         OutputStream outputStream = new FileOutputStream(file);
         JdxReplicaWriterXml writer = new JdxReplicaWriterXml(outputStream);
 
@@ -206,7 +205,7 @@ public class UtRepl {
 
             //
             long queDoneAge = stateManager.getWsQueInAgeDone(wsId);
-            long queMaxAge = mailer.getSrvReceive();
+            long queMaxAge = mailer.getSrvReceive("from");
 
             //
             log.info("srvFillCommonQue, wsId: " + wsId + ", queDoneAge: " + queDoneAge + ", queMaxAge: " + queMaxAge);
@@ -216,7 +215,7 @@ public class UtRepl {
                 log.info("srvFillCommonQue, wsId: " + wsId + ",  age: " + age);
 
                 //
-                IReplica replica = mailer.receive(age);
+                IReplica replica = mailer.receive(age, "from");
 
                 // Помещаем полученные данные в общую очередь
                 db.startTran();
@@ -259,7 +258,7 @@ public class UtRepl {
 
                 IReplica replica = commonQue.getByNo(no);
 
-                mailer.send(replica, no);
+                mailer.send(replica, no, "to");
 
                 stateManager.setCommonQueNoDone(wsId, no);
             }
