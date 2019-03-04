@@ -11,5 +11,7 @@ _product
 temp
 out
 
+_test-data/*
+
 syntax: regexp
 ^_
