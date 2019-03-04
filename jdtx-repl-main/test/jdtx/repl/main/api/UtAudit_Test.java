@@ -121,10 +121,10 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         UtRepl utr = new UtRepl(db);
 
         // Загружаем правила публикации
-        IPublication publcation = new Publication();
+        IPublication publication = new Publication();
         Reader r = new FileReader("test/etalon/pub_full.json");
         try {
-            publcation.loadRules(r);
+            publication.loadRules(r);
         } finally {
             r.close();
         }
@@ -134,7 +134,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         System.out.println("new AuditAge = " + age);
 
         // Забираем установочную реплику
-        IReplica replica = utr.createReplicaFull(1, publcation, age);
+        IReplica replica = utr.createReplicaFull(1, publication, age);
 
         //
         System.out.println(replica.getFile().getAbsolutePath());
@@ -153,16 +153,16 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         System.out.println("new AuditAge = " + selfAuditAge);
 
         // Загружаем правила публикации
-        IPublication publcation = new Publication();
+        IPublication publication = new Publication();
         Reader r = new FileReader("test/etalon/pub.json");
         try {
-            publcation.loadRules(r);
+            publication.loadRules(r);
         } finally {
             r.close();
         }
 
         // Формируем реплики
-        IReplica replica = utr.createReplicaFromAudit(1, publcation, selfAuditAge);
+        IReplica replica = utr.createReplicaFromAudit(1, publication, selfAuditAge);
 
         //
         System.out.println(replica.getFile().getAbsolutePath());
@@ -171,10 +171,10 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_applyReplica() throws Exception {
         // Загружаем правила публикации
-        IPublication publcation = new Publication();
+        IPublication publication = new Publication();
         Reader r = new FileReader("test/etalon/pub.json");
         try {
-            publcation.loadRules(r);
+            publication.loadRules(r);
         } finally {
             r.close();
         }
@@ -185,16 +185,16 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
         // Применяем реплики
         UtAuditApplyer utaa = new UtAuditApplyer(db2, struct);
-        utaa.applyReplica(replica, publcation, 2);
+        utaa.applyReplica(replica, publication, 2);
     }
 
     @Test
     public void test_applyReplicaFull() throws Exception {
         // Загружаем правила публикации
-        IPublication publcation = new Publication();
+        IPublication publication = new Publication();
         Reader r = new FileReader("test/etalon/pub_full.json");
         try {
-            publcation.loadRules(r);
+            publication.loadRules(r);
         } finally {
             r.close();
         }
@@ -205,7 +205,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
         // Применяем реплики
         UtAuditApplyer utaa = new UtAuditApplyer(db2, struct);
-        utaa.applyReplica(replica, publcation, 2);
+        utaa.applyReplica(replica, publication, 2);
     }
 
 }
