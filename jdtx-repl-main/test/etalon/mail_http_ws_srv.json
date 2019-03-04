@@ -1,0 +1,64 @@
+{
+  "url": "http://localhost/lombard.systems/repl/",
+  "guid": "97845f2f56f4d4dc",
+  "mailLocalDir": "../_test-data/ws_srv/tmp",
+
+  "queIn_DirLocal": "../_test-data/ws_srv/queIn",
+  "queOut_DirLocal": "../_test-data/ws_srv/queOut",
+
+  "publicationsIn": [
+    {
+      "tables": [
+        {
+          "table": "UlzTip",
+          "fields": "*"
+        },
+        {
+          "table": "RegionTip",
+          "fields": "*"
+        },
+        {
+          "table": "Region",
+          "fields": "*"
+        },
+        {
+          "table": "LIC",
+          "fields": "NameF,NameI,NameO,Dom,Kv,Ulz",
+          "filter": "Region.ID in (2, 3844) and LicDocTip = 1002"
+        },
+        {
+          "table": "Ulz",
+          "fields": "*"
+        }
+      ]
+    }
+  ],
+
+  "publicationsOut": [
+    {
+      "tables": [
+        {
+          "table": "UlzTip",
+          "fields": "*"
+        },
+        {
+          "table": "RegionTip",
+          "fields": "*"
+        },
+        {
+          "table": "Region",
+          "fields": "*"
+        },
+        {
+          "table": "LIC",
+          "fields": "NameF,NameI,NameO,Dom,Kv,Ulz",
+          "filter": "Region.ID in (2, 3844) and LicDocTip=1002"
+        },
+        {
+          "table": "Ulz",
+          "fields": "*"
+        }
+      ]
+    }
+  ]
+}

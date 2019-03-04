@@ -96,7 +96,8 @@ public class JdxReplWs {
         }
 
         //
-        mailer = new UtMailerLocalFiles();
+        //mailer = new UtMailerLocalFiles();
+        mailer = new UtMailerHttp();
         mailer.init(cfgData);
     }
 

@@ -64,7 +64,8 @@ public class JdxReplSrv {
             long wdId = rec.getValueLong("id");
             JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wdId));
             //
-            IJdxMailer mailer = new UtMailerLocalFiles();
+            //IJdxMailer mailer = new UtMailerLocalFiles();
+            IJdxMailer mailer = new UtMailerHttp();
             mailerList.put(wdId, mailer);
             mailer.init(cfgWs);
         }

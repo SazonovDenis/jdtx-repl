@@ -1,13 +1,20 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.db.*;
-import jandcode.utils.*;
-import jdtx.repl.main.api.struct.*;
-import org.apache.commons.logging.*;
-import org.json.simple.*;
+import jandcode.dbm.db.Db;
+import jandcode.utils.UtString;
+import jdtx.repl.main.api.struct.IJdxDbStruct;
+import jdtx.repl.main.api.struct.IJdxDbStructReader;
+import jdtx.repl.main.api.struct.IJdxTableStruct;
+import jdtx.repl.main.api.struct.JdxDbStructReader;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.util.Map;
 
 /**
  * Главное API репликатора
@@ -94,7 +101,7 @@ public class UtRepl {
         log.info("createReplicaFromAudit");
 
         //
-        File file = File.createTempFile("~jdx-" + UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0'), ".xml");
+        File file = File.createTempFile("~jdx-" + UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0') + "-", ".xml");
         OutputStream outputStream = new FileOutputStream(file);
         JdxReplicaWriterXml writer = new JdxReplicaWriterXml(outputStream);
 
