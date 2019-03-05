@@ -6,59 +6,6 @@
   "queIn_DirLocal": "../_test-data/ws3/queIn",
   "queOut_DirLocal": "../_test-data/ws3/queOut",
 
-  "publicationsIn": [
-    {
-      "tables": [
-        {
-          "table": "UlzTip",
-          "fields": "*"
-        },
-        {
-          "table": "RegionTip",
-          "fields": "*"
-        },
-        {
-          "table": "Region",
-          "fields": "*"
-        },
-        {
-          "table": "LIC",
-          "fields": "NameF,NameI,NameO,Dom,Kv,Ulz",
-          "filter": "Region.ID in (2, 3844) and LicDocTip = 1002"
-        },
-        {
-          "table": "Ulz",
-          "fields": "*"
-        }
-      ]
-    }
-  ],
-
-  "publicationsOut": [
-    {
-      "tables": [
-        {
-          "table": "UlzTip",
-          "fields": "*"
-        },
-        {
-          "table": "RegionTip",
-          "fields": "*"
-        },
-        {
-          "table": "Region",
-          "fields": "*"
-        },
-        {
-          "table": "LIC",
-          "fields": "NameF,NameI,NameO,Dom,Kv,Ulz",
-          "filter": "Region.ID in (2, 3844) and LicDocTip=1002"
-        },
-        {
-          "table": "Ulz",
-          "fields": "*"
-        }
-      ]
-    }
-  ]
+  "publicationsIn": ["publication_full"],
+  "publicationsOut": ["publication_full"]
 }

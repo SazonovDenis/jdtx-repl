@@ -18,7 +18,7 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
     public void test_1() throws Exception {
         // Загружаем правила публикации
         IPublication publication = new Publication();
-        Reader r0 = new FileReader("test/etalon/pub_full.json");
+        Reader r0 = new FileReader("test/etalon/publication_full.json");
         try {
             publication.loadRules(r0);
         } finally {
@@ -26,14 +26,14 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
         }
 
         // Забираем установочную реплику
-        UtRepl utr = new UtRepl(db);
+        UtRepl utr = new UtRepl(db2);
         IReplica replica = utr.createReplicaFull(2, publication, 1);
         //
         File f = new File("../_test-data/ws2/tmp/000000001-src.xml");
         FileUtils.copyFile(replica.getFile(), f);
         //
         //System.out.println(replica.getFile());
-        System.out.println(f);
+        System.out.println("replica: " + f);
 
 
         //////////
@@ -56,13 +56,29 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
         //
         IReplica replica_1 = mailer.receive(1, "from");
         //
-        System.out.println(replica_1.getFile());
+        System.out.println("mailer.receive: " + replica_1.getFile());
+    }
 
-/*
-        /////////
-        OutputStream ost = new FileOutputStream(replica.getFile());
-        JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
-*/
+    @Test
+    public void test_2() throws Exception {
+        // Загружаем правила публикации
+        IPublication publication = new Publication();
+        Reader r0 = new FileReader("test/etalon/publication_full.json");
+        try {
+            publication.loadRules(r0);
+        } finally {
+            r0.close();
+        }
+
+        // Забираем установочную реплику
+        UtRepl utr = new UtRepl(db2);
+        IReplica replica = utr.createReplicaFull(2, publication, 1);
+        //
+        File f = new File("../_test-data/ws2/tmp/000000001-src.xml");
+        FileUtils.copyFile(replica.getFile(), f);
+        //
+        //System.out.println(replica.getFile());
+        System.out.println("replica: " + f);
     }
 
 

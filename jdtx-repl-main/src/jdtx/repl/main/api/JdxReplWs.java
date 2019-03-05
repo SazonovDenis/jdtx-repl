@@ -1,6 +1,7 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.db.Db;
+import jandcode.utils.UtFile;
 import jandcode.utils.error.XError;
 import jdtx.repl.main.api.struct.IJdxDbStruct;
 import jdtx.repl.main.api.struct.IJdxDbStructReader;
@@ -83,26 +84,36 @@ public class JdxReplWs {
         publicationsOut = new ArrayList<>();
 
         // Загружаем правила публикации
-        JSONArray publicationsInCfg = (JSONArray) cfgData.get("publicationsIn");
-        for (int i = 0; i < publicationsInCfg.size(); i++) {
-            JSONObject publicationCfg = (JSONObject) publicationsInCfg.get(i);
-            JSONArray publicationTables = (JSONArray) publicationCfg.get("tables");
+        JSONArray publicationsIn = (JSONArray) cfgData.get("publicationsIn");
+        for (int i = 0; i < publicationsIn.size(); i++) {
             IPublication publication = new Publication();
-            publication.setData(publicationTables);
-            publicationsIn.add(publication);
+            String publicationCfgName = (String) publicationsIn.get(i);
+            publicationCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + publicationCfgName + ".json";
+            Reader reader = new FileReader(publicationCfgName);
+            try {
+                publication.loadRules(reader);
+            } finally {
+                reader.close();
+            }
+            this.publicationsIn.add(publication);
         }
 
-        JSONArray publicationsOutCfg = (JSONArray) cfgData.get("publicationsOut");
-        for (int i = 0; i < publicationsOutCfg.size(); i++) {
-            JSONObject publicationCfg = (JSONObject) publicationsOutCfg.get(i);
-            JSONArray publicationTables = (JSONArray) publicationCfg.get("tables");
+        JSONArray publicationsOut = (JSONArray) cfgData.get("publicationsOut");
+        for (int i = 0; i < publicationsOut.size(); i++) {
             IPublication publication = new Publication();
-            publication.setData(publicationTables);
-            publicationsOut.add(publication);
+            String publicationCfgName = (String) publicationsOut.get(i);
+            publicationCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + publicationCfgName + ".json";
+            Reader reader = new FileReader(publicationCfgName);
+            try {
+                publication.loadRules(reader);
+            } finally {
+                reader.close();
+            }
+
+            this.publicationsOut.add(publication);
         }
 
         //
-        //mailer = new UtMailerLocalFiles();
         mailer = new UtMailerHttp();
         mailer.init(cfgData);
     }
