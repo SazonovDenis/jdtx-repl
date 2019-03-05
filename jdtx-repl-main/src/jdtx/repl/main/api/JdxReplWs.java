@@ -109,7 +109,8 @@ public class JdxReplWs {
         }
 
         //
-        mailer = new UtMailerHttp();
+        //mailer = new UtMailerHttp();
+        mailer = new UtMailerLocalFiles();
         mailer.init(cfgData);
 
         // Стратегии перекодировки каждой таблицы
