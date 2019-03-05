@@ -46,6 +46,8 @@ public class UtMailerLocalFiles implements IJdxMailer {
     }
 
     public void send(IReplica repl, long n, String box) throws Exception {
+        UtFile.mkdirs(remoteDir + box);
+        //
         File localFile = repl.getFile();
         //
         String remoteFileName = getFileName(n);
@@ -55,6 +57,8 @@ public class UtMailerLocalFiles implements IJdxMailer {
     }
 
     public IReplica receive(long no, String box) throws Exception {
+        UtFile.mkdirs(remoteDir + box);
+        //
         String remoteFileName = getFileName(no);
         File remoteFile = new File(remoteDir + box + "/" + remoteFileName);
         String localFileName = getFileName(no);
@@ -72,7 +76,9 @@ public class UtMailerLocalFiles implements IJdxMailer {
     }
 
     public long getSrvSend(String box) {
-        File dir = new File(remoteDir + box + "/");
+        UtFile.mkdirs(remoteDir + box);
+        //
+        File dir = new File(remoteDir + box);
         File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
 
         //
@@ -88,7 +94,9 @@ public class UtMailerLocalFiles implements IJdxMailer {
     }
 
     public long getSrvReceive(String box) {
-        File dir = new File(remoteDir + box + "/");
+        UtFile.mkdirs(remoteDir + box);
+        //
+        File dir = new File(remoteDir + box);
         File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
 
         //
