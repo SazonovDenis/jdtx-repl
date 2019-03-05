@@ -11,8 +11,11 @@ public class UtAuditSelector {
     private IJdxDbStruct struct;
     long wsId;
 
+    //
     protected static Log log = LogFactory.getLog("jdtx");
 
+
+    //
     public UtAuditSelector(Db db, IJdxDbStruct struct, long wsId) {
         this.db = db;
         this.struct = struct;
@@ -22,7 +25,10 @@ public class UtAuditSelector {
 
     public void readAuditData(String tableName, String tableFields, long ageFrom, long ageTo, JdxReplicaWriterXml dataWriter) throws Exception {
         IJdxTableStruct table = struct.getTable(tableName);
+
+        //
         IRefDecoder decoder = new RefDecoder(db, wsId);
+
         //
         DbQuery rsTableLog = selectAuditData(tableName, tableFields, ageFrom, ageTo);
         try {

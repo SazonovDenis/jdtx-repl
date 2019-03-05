@@ -27,6 +27,7 @@ public class UtAuditApplyer {
     //
     protected static Log log = LogFactory.getLog("jdtx");
 
+
     //
     public UtAuditApplyer(Db db, IJdxDbStruct struct) throws Exception {
         this.db = db;
