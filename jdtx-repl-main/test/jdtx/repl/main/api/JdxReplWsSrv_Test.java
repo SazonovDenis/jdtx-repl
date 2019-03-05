@@ -328,8 +328,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 test_ws1_handleSelfAudit();
                 test_ws1_ApplyReplica();
             } catch (Exception e) {
-                String msg = e.getCause().getMessage();
-                if (msg.contains("deadlock")) {
+                String msg;
+                if (e.getCause() != null) {
+                    msg = e.getCause().getMessage();
+                } else {
+                    msg = e.getMessage();
+                }
+                if (msg.contains("deadlock") || msg.contains("Connection timed out: connect")) {
                     System.out.println(msg);
                     System.out.println(e.getMessage());
                 } else {
@@ -346,8 +351,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 test_ws2_handleSelfAudit();
                 test_ws2_ApplyReplica();
             } catch (Exception e) {
-                String msg = e.getCause().getMessage();
-                if (msg.contains("deadlock")) {
+                String msg;
+                if (e.getCause() != null) {
+                    msg = e.getCause().getMessage();
+                } else {
+                    msg = e.getMessage();
+                }
+                if (msg.contains("deadlock") || msg.contains("Connection timed out: connect")) {
                     System.out.println(msg);
                     System.out.println(e.getMessage());
                 } else {
@@ -364,8 +374,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 test_ws3_handleSelfAudit();
                 test_ws3_ApplyReplica();
             } catch (Exception e) {
-                String msg = e.getCause().getMessage();
-                if (msg.contains("deadlock")) {
+                String msg;
+                if (e.getCause() != null) {
+                    msg = e.getCause().getMessage();
+                } else {
+                    msg = e.getMessage();
+                }
+                if (msg.contains("deadlock") || msg.contains("Connection timed out: connect")) {
                     System.out.println(msg);
                     System.out.println(e.getMessage());
                 } else {
@@ -379,7 +394,22 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_loop_srv() throws Exception {
         while (true) {
-            test_srv_handleQue();
+            try {
+                test_srv_handleQue();
+            } catch (Exception e) {
+                String msg;
+                if (e.getCause() != null) {
+                    msg = e.getCause().getMessage();
+                } else {
+                    msg = e.getMessage();
+                }
+                if (msg.contains("deadlock") || msg.contains("Connection timed out: connect")) {
+                    System.out.println(msg);
+                    System.out.println(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
         }
     }
 
