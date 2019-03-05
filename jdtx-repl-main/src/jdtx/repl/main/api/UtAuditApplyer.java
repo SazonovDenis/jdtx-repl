@@ -1,12 +1,20 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.db.*;
-import jandcode.utils.error.*;
-import jdtx.repl.main.api.struct.*;
-import org.apache.commons.logging.*;
-import org.json.simple.*;
+import jandcode.dbm.db.Db;
+import jandcode.utils.DataType;
+import jandcode.utils.UtString;
+import jandcode.utils.error.XError;
+import jdtx.repl.main.api.struct.IJdxDbStruct;
+import jdtx.repl.main.api.struct.IJdxFieldStruct;
+import jdtx.repl.main.api.struct.IJdxTableStruct;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.joda.time.DateTime;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Применяет реплики
@@ -100,6 +108,24 @@ public class UtAuditApplyer {
                     String[] tableFromFields = publicationFields.split(",");
                     for (String fieldName : tableFromFields) {
                         IJdxFieldStruct field = table.getField(fieldName);
+
+                        // Поле - BLOB?
+                        if (getDataType(field.getDbDatatype()) == DataType.BLOB) {
+                            String blobBase64 = (String) recValues.get(fieldName);
+                            byte[] blob = UtString.decodeBase64(blobBase64);
+                            recValues.put(fieldName, blob);
+                            continue;
+                        }
+
+                        // Поле - дата/время?
+                        if (getDataType(field.getDbDatatype()) == DataType.DATETIME) {
+                            String valueStr = (String) recValues.get(fieldName);
+                            DateTime value = new DateTime(valueStr);
+                            recValues.put(fieldName, value);
+                            continue;
+                        }
+
+                        // Поле - ссылка?
                         IJdxTableStruct refTable = field.getRefTable();
                         if (field.isPrimaryKey() || refTable != null) {
                             // Ссылка
@@ -116,9 +142,11 @@ public class UtAuditApplyer {
                             // Перекодировка ссылки
                             long ref_own = decoder.get_id_own(refTableName, ref.ws_id, ref.id);
                             recValues.put(fieldName, ref_own);
-                        } else {
-                            recValues.put(fieldName, recValues.get(fieldName));
+                            continue;
                         }
+
+                        //
+                        recValues.put(fieldName, recValues.get(fieldName));
                     }
 
                     // INS/UPD/DEL
@@ -172,6 +200,33 @@ public class UtAuditApplyer {
             throw e;
         }
 
+    }
+
+    private int getDataType(String dbDatatypeName) {
+        switch (dbDatatypeName) {
+            case "SMALLINT":
+                return DataType.INT;
+            case "LONGINT":
+            case "INTEGER":
+                return DataType.LONG;
+            case "FLOAT":
+            case "NUMERIC":
+            case "DOUBLE PRECISION":
+                return DataType.DOUBLE;
+            case "DATE":
+            case "TIME":
+            case "TIMESTAMP":
+                return DataType.DATETIME;
+            case "CHAR":
+            case "VARCHAR":
+                return DataType.STRING;
+            case "---":
+                return DataType.BOOLEAN;
+            case "BLOB SUB_TYPE 0":
+                return DataType.BLOB;
+            default:
+                return DataType.OBJECT;
+        }
     }
 
     private boolean isPrimaryKeyError(String message) {

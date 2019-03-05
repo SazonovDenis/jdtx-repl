@@ -1,7 +1,11 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.db.*;
-import jdtx.repl.main.api.struct.*;
+import jandcode.dbm.db.Db;
+import jandcode.dbm.db.DbQuery;
+import jandcode.utils.DataType;
+import jandcode.utils.UtString;
+import jdtx.repl.main.api.struct.IJdxDbStruct;
+import jdtx.repl.main.api.struct.IJdxTableStruct;
 
 public class UtDataSelector {
 
@@ -30,7 +34,13 @@ public class UtDataSelector {
                 // Тело записи
                 String[] tableFromFields = tableFields.split(",");
                 for (String field : tableFromFields) {
-                    dataContainer.setRecValue(field, rsTableLog.getValue(field));
+                    if (rsTableLog.getDataType(field) == DataType.BLOB) {
+                        byte[] blob = (byte[]) rsTableLog.getValue(field);
+                        String blobBase64 = UtString.encodeBase64(blob);
+                        dataContainer.setRecValue(field, blobBase64);
+                    } else {
+                        dataContainer.setRecValue(field, rsTableLog.getValue(field));
+                    }
                 }
                 //
                 rsTableLog.next();
