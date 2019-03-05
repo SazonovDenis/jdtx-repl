@@ -15,10 +15,10 @@ public interface IJdxTableStruct {
     //IJdxTableStruct cloneTable();
 
     /**
-     * Возвращает поле по имени
+     * Р’РѕР·РІСЂР°С‰Р°РµС‚ РїРѕР»Рµ РїРѕ РёРјРµРЅРё
      *
-     * @param tableName имя поля
-     * @return поле или null, если такого поля нет
+     * @param tableName РёРјСЏ РїРѕР»СЏ
+     * @return РїРѕР»Рµ РёР»Рё null, РµСЃР»Рё С‚Р°РєРѕРіРѕ РїРѕР»СЏ РЅРµС‚
      */
     IJdxFieldStruct getField(String tableName);
 

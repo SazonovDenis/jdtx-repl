@@ -15,7 +15,7 @@ public class JdxGenerator implements IJdxGenerator {
     }
 
     /**
-     * Дергает хранимую процедуру JdxGenID, которая возвращает очередную id для генератора generatorName
+     * Р”РµСЂРіР°РµС‚ С…СЂР°РЅРёРјСѓСЋ РїСЂРѕС†РµРґСѓСЂСѓ JdxGenID, РєРѕС‚РѕСЂР°СЏ РІРѕР·РІСЂР°С‰Р°РµС‚ РѕС‡РµСЂРµРґРЅСѓСЋ id РґР»СЏ РіРµРЅРµСЂР°С‚РѕСЂР° generatorName
      */
     public long genId(String generatorName) throws SQLException {
         Statement st = db.getConnection().createStatement();

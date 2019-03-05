@@ -3,22 +3,22 @@ package jdtx.repl.main.api.struct;
 public interface IJdxForeignKey {
 
     /**
-     * @return Название в БД
+     * @return РќР°Р·РІР°РЅРёРµ РІ Р‘Р”
      */
     String getName();
 
     /**
-     * @return Поле, которое ссылается (собственно ссылочное поле)
+     * @return РџРѕР»Рµ, РєРѕС‚РѕСЂРѕРµ СЃСЃС‹Р»Р°РµС‚СЃСЏ (СЃРѕР±СЃС‚РІРµРЅРЅРѕ СЃСЃС‹Р»РѕС‡РЅРѕРµ РїРѕР»Рµ)
      */
     IJdxFieldStruct getField();
 
     /**
-     * @return Таблица, на которую ссылаемся
+     * @return РўР°Р±Р»РёС†Р°, РЅР° РєРѕС‚РѕСЂСѓСЋ СЃСЃС‹Р»Р°РµРјСЃСЏ
      */
     IJdxTableStruct getTable();
 
     /**
-     * @return Поле в таблице, на которое ссылаемся
+     * @return РџРѕР»Рµ РІ С‚Р°Р±Р»РёС†Рµ, РЅР° РєРѕС‚РѕСЂРѕРµ СЃСЃС‹Р»Р°РµРјСЃСЏ
      */
     IJdxFieldStruct getTableField();
 

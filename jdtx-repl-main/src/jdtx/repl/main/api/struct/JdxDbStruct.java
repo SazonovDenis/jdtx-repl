@@ -16,7 +16,7 @@ public class JdxDbStruct implements IJdxDbStruct {
         for (IJdxTableStruct t : this.getTables()) {
             newStruct.getTables().add(t.cloneTable());
         }
-        // ремонтируем ссылки в ForeignKey
+        // СЂРµРјРѕРЅС‚РёСЂСѓРµРј СЃСЃС‹Р»РєРё РІ ForeignKey
         for (IJdxTableStruct newTable : newStruct.getTables()) {
             for (IJdxForeignKey fk : newTable.getForeignKeys()) {
                 IJdxFieldStruct ownField = fk.getField();

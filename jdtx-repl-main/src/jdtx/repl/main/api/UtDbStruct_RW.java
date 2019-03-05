@@ -64,7 +64,7 @@ public class UtDbStruct_RW {
         //
         IJdxDbStruct struct = new JdxDbStruct();
 
-        // Таблицы
+        // РўР°Р±Р»РёС†С‹
         for (EasyXml item_table : xml.getChilds()) {
             JdxTableStruct table = new JdxTableStruct();
             struct.getTables().add(table);
@@ -74,7 +74,7 @@ public class UtDbStruct_RW {
             readTableStruct(item_table, table);
         }
 
-        // FK таблиц
+        // FK С‚Р°Р±Р»РёС†
         for (EasyXml item_table : xml.getChilds()) {
             IJdxTableStruct table = struct.getTable(item_table.getValueString("@name"));
             //

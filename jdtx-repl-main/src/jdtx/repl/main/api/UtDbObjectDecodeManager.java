@@ -22,7 +22,7 @@ public class UtDbObjectDecodeManager {
         try {
             db.execSql(query);
         } catch (Exception e) {
-            // если удаляемый объект не будет найден, программа продолжит работу
+            // РµСЃР»Рё СѓРґР°Р»СЏРµРјС‹Р№ РѕР±СЉРµРєС‚ РЅРµ Р±СѓРґРµС‚ РЅР°Р№РґРµРЅ, РїСЂРѕРіСЂР°РјРјР° РїСЂРѕРґРѕР»Р¶РёС‚ СЂР°Р±РѕС‚Сѓ
             if (!e.getCause().toString().contains("does not exist")) {
                 System.out.println(e.getMessage());
                 System.out.println(e.getCause().toString());
@@ -33,7 +33,7 @@ public class UtDbObjectDecodeManager {
         try {
             db.execSql("drop table " + JdxUtils.sys_table_prefix + "db_info");
         } catch (Exception e) {
-            // если удаляемый объект не будет найден, программа продолжит работу
+            // РµСЃР»Рё СѓРґР°Р»СЏРµРјС‹Р№ РѕР±СЉРµРєС‚ РЅРµ Р±СѓРґРµС‚ РЅР°Р№РґРµРЅ, РїСЂРѕРіСЂР°РјРјР° РїСЂРѕРґРѕР»Р¶РёС‚ СЂР°Р±РѕС‚Сѓ
             if (!e.getCause().toString().contains("does not exist")) {
                 System.out.println(e.getMessage());
                 System.out.println(e.getCause().toString());

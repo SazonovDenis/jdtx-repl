@@ -7,10 +7,10 @@ public interface IJdxDbStruct {
     public ArrayList<IJdxTableStruct> getTables();
 
     /**
-     * Возвращает таблицу по имени
+     * Р’РѕР·РІСЂР°С‰Р°РµС‚ С‚Р°Р±Р»РёС†Сѓ РїРѕ РёРјРµРЅРё
      *
-     * @param tableName имя таблицы
-     * @return таблица или null, если такой таблицы нет
+     * @param tableName РёРјСЏ С‚Р°Р±Р»РёС†С‹
+     * @return С‚Р°Р±Р»РёС†Р° РёР»Рё null, РµСЃР»Рё С‚Р°РєРѕР№ С‚Р°Р±Р»РёС†С‹ РЅРµС‚
      */
     public IJdxTableStruct getTable(String tableName);
 

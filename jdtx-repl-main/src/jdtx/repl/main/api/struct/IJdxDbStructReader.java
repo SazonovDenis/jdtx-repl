@@ -7,7 +7,7 @@ public interface IJdxDbStructReader {
     void setDb(Db db);
 
     /**
-     * читаем из БД ее структуру
+     * С‡РёС‚Р°РµРј РёР· Р‘Р” РµРµ СЃС‚СЂСѓРєС‚СѓСЂСѓ
      */
     IJdxDbStruct readDbStruct() throws Exception;
 

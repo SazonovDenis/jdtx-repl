@@ -14,7 +14,7 @@ public class UtDataSelector {
     }
 
     /**
-     * Обязана обеспечить правильный поток записей, если есть ссылка на самого себя
+     * РћР±СЏР·Р°РЅР° РѕР±РµСЃРїРµС‡РёС‚СЊ РїСЂР°РІРёР»СЊРЅС‹Р№ РїРѕС‚РѕРє Р·Р°РїРёСЃРµР№, РµСЃР»Рё РµСЃС‚СЊ СЃСЃС‹Р»РєР° РЅР° СЃР°РјРѕРіРѕ СЃРµР±СЏ
      */
     public void readFullData(String tableName, String tableFields, JdxReplicaWriterXml dataContainer) throws Exception {
         //
@@ -22,12 +22,12 @@ public class UtDataSelector {
         try {
             dataContainer.startTable(tableName);
 
-            // измененные данные помещаем в dataContainer
+            // РёР·РјРµРЅРµРЅРЅС‹Рµ РґР°РЅРЅС‹Рµ РїРѕРјРµС‰Р°РµРј РІ dataContainer
             while (!rsTableLog.eof()) {
                 dataContainer.append();
-                // Тип операции
+                // РўРёРї РѕРїРµСЂР°С†РёРё
                 dataContainer.setOprType(JdxOprType.OPR_INS);
-                // Тело записи
+                // РўРµР»Рѕ Р·Р°РїРёСЃРё
                 String[] tableFromFields = tableFields.split(",");
                 for (String field : tableFromFields) {
                     dataContainer.setRecValue(field, rsTableLog.getValue(field));
@@ -55,7 +55,7 @@ public class UtDataSelector {
     }
 
     protected String getSql(IJdxTableStruct tableFrom, String tableFields) {
-        // Пока так реализуем правильный поток записей, если есть ссылка на самого себя
+        // РџРѕРєР° С‚Р°Рє СЂРµР°Р»РёР·СѓРµРј РїСЂР°РІРёР»СЊРЅС‹Р№ РїРѕС‚РѕРє Р·Р°РїРёСЃРµР№, РµСЃР»Рё РµСЃС‚СЊ СЃСЃС‹Р»РєР° РЅР° СЃР°РјРѕРіРѕ СЃРµР±СЏ
         return "select " + tableFields + " from " + tableFrom.getName() + " order by id";
     }
 

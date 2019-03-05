@@ -30,22 +30,22 @@ public class JdxTableStruct implements IJdxTableStruct {
     public IJdxTableStruct cloneTable() {
         JdxTableStruct newTableStruct = new JdxTableStruct();
         newTableStruct.setName(this.getName());
-        // поля
+        // РїРѕР»СЏ
         for (IJdxFieldStruct f : this.getFields()) {
             IJdxFieldStruct f1 = f.cloneField();
-            // добавляем поле в таблицу
+            // РґРѕР±Р°РІР»СЏРµРј РїРѕР»Рµ РІ С‚Р°Р±Р»РёС†Сѓ
             newTableStruct.getFields().add(f1);
         }
-        // первичные ключи
+        // РїРµСЂРІРёС‡РЅС‹Рµ РєР»СЋС‡Рё
         for (IJdxFieldStruct pk : this.getPrimaryKey()) {
             IJdxFieldStruct pk1 = pk.cloneField();
-            // добавляем ключ в таблицу
+            // РґРѕР±Р°РІР»СЏРµРј РєР»СЋС‡ РІ С‚Р°Р±Р»РёС†Сѓ
             newTableStruct.getPrimaryKey().add(pk1);
         }
-        // внешние ключи
+        // РІРЅРµС€РЅРёРµ РєР»СЋС‡Рё
         for (IJdxForeignKey fk : this.getForeignKeys()) {
             IJdxForeignKey fk1 = fk.cloneForeignKey();
-            // добавляем ключ в таблицу
+            // РґРѕР±Р°РІР»СЏРµРј РєР»СЋС‡ РІ С‚Р°Р±Р»РёС†Сѓ
             newTableStruct.getForeignKeys().add(fk1);
         }
         return newTableStruct;
