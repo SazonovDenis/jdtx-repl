@@ -32,38 +32,40 @@ public class UtAuditSelector {
         //
         DbQuery rsTableLog = selectAuditData(tableName, tableFields, ageFrom, ageTo);
         try {
-            dataWriter.startTable(tableName);
+            if (!rsTableLog.eof()) {
+                dataWriter.startTable(tableName);
 
-            // Измененные данные помещаем в dataWriter
-            while (!rsTableLog.eof()) {
-                dataWriter.append();
-                // Тип операции
-                dataWriter.setOprType(rsTableLog.getValueInt(JdxUtils.prefix + "opr_type"));
-                // Тело записи
-                String[] tableFromFields = tableFields.split(",");
-                for (String fieldName : tableFromFields) {
-                    Object fieldValue = rsTableLog.getValue(fieldName);
-                    IJdxFieldStruct field = table.getField(fieldName);
-                    IJdxTableStruct refTable = field.getRefTable();
-                    if (field.isPrimaryKey() || refTable != null) {
-                        // Ссылка
-                        String refTableName;
-                        if (field.isPrimaryKey()) {
-                            refTableName = table.getName();
+                // Измененные данные помещаем в dataWriter
+                while (!rsTableLog.eof()) {
+                    dataWriter.append();
+                    // Тип операции
+                    dataWriter.setOprType(rsTableLog.getValueInt(JdxUtils.prefix + "opr_type"));
+                    // Тело записи
+                    String[] tableFromFields = tableFields.split(",");
+                    for (String fieldName : tableFromFields) {
+                        Object fieldValue = rsTableLog.getValue(fieldName);
+                        IJdxFieldStruct field = table.getField(fieldName);
+                        IJdxTableStruct refTable = field.getRefTable();
+                        if (field.isPrimaryKey() || refTable != null) {
+                            // Ссылка
+                            String refTableName;
+                            if (field.isPrimaryKey()) {
+                                refTableName = table.getName();
+                            } else {
+                                refTableName = refTable.getName();
+                            }
+                            // Перекодировка ссылки
+                            JdxRef ref = decoder.get_ref(refTableName, Long.valueOf(String.valueOf(fieldValue)));
+                            dataWriter.setRecValue(fieldName, ref.toString());
                         } else {
-                            refTableName = refTable.getName();
+                            dataWriter.setRecValue(fieldName, fieldValue);
                         }
-                        // Перекодировка ссылки
-                        JdxRef ref = decoder.get_ref(refTableName, Long.valueOf(String.valueOf(fieldValue)));
-                        dataWriter.setRecValue(fieldName, ref.toString());
-                    } else {
-                        dataWriter.setRecValue(fieldName, fieldValue);
+
+
                     }
-
-
+                    //
+                    rsTableLog.next();
                 }
-                //
-                rsTableLog.next();
             }
 
             //
