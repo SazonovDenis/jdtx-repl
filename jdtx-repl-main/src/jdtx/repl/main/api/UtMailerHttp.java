@@ -5,11 +5,17 @@ import jandcode.utils.UtString;
 import jandcode.utils.error.XError;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
@@ -83,27 +89,34 @@ public class UtMailerHttp implements IJdxMailer {
 
     @Override
     public void send(IReplica repl, long no, String box) throws Exception {
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+        DefaultHttpClient client = new DefaultHttpClient();
 
         //
-        HttpPost httpPost = new HttpPost(rootUrl + "/repl_send.php");
+        HttpPost post = new HttpPost(rootUrl + "/repl_send.php");
 
         //
-        List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("guid", guid));
-        params.add(new BasicNameValuePair("box", box));
-        params.add(new BasicNameValuePair("no", String.valueOf(no)));
-        params.add(new BasicNameValuePair("file", UtFile.loadString(repl.getFile())));
-        httpPost.setEntity(new UrlEncodedFormEntity(params));
+        StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
+        StringBody stringBody_box = new StringBody(box, ContentType.MULTIPART_FORM_DATA);
+        StringBody stringBody_no = new StringBody(String.valueOf(no), ContentType.MULTIPART_FORM_DATA);
+        FileBody fileBody = new FileBody(repl.getFile(), ContentType.DEFAULT_BINARY);
+        //
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+        builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        builder.addPart("guid", stringBody_guid);
+        builder.addPart("box", stringBody_box);
+        builder.addPart("no", stringBody_no);
+        builder.addPart("file", fileBody);
+        HttpEntity entity = builder.build();
+        //
+        post.setEntity(entity);
 
         //
-        HttpResponse response = httpclient.execute(httpPost);
+        HttpResponse response = client.execute(post);
 
         //
         if (response.getStatusLine().getStatusCode() != 200) {
             throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
         }
-
         //
         String resStr = EntityUtils.toString(response.getEntity());
         JSONObject res = parseJson(resStr);
