@@ -1,22 +1,16 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.db.Db;
-import jandcode.utils.UtFile;
-import jandcode.utils.error.XError;
-import jdtx.repl.main.api.struct.IJdxDbStruct;
-import jdtx.repl.main.api.struct.IJdxDbStructReader;
-import jdtx.repl.main.api.struct.JdxDbStructReader;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import jandcode.dbm.db.*;
+import jandcode.utils.*;
+import jandcode.utils.error.*;
+import jdtx.repl.main.api.struct.*;
+import org.apache.commons.logging.*;
+import org.json.simple.*;
+import org.json.simple.parser.*;
 
-import java.io.FileReader;
-import java.io.Reader;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
+import java.sql.*;
+import java.util.*;
 
 /**
  * Контекст рабочей станции
@@ -42,6 +36,7 @@ public class JdxReplWs {
 
     //
     protected static Log log = LogFactory.getLog("jdtx");
+
 
     //
     public JdxReplWs(Db db, long wsId) throws Exception {
@@ -116,6 +111,12 @@ public class JdxReplWs {
         //
         mailer = new UtMailerHttp();
         mailer.init(cfgData);
+
+        // Стратегии перекодировки каждой таблицы
+        String strategyCfgName = "decode_strategy";
+        strategyCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + strategyCfgName + ".json";
+        RefDecodeStrategy.instance = new RefDecodeStrategy();
+        RefDecodeStrategy.instance.init(strategyCfgName);
     }
 
     /**
@@ -225,6 +226,8 @@ public class JdxReplWs {
 
         //
         UtAuditApplyer utaa = new UtAuditApplyer(db, struct);
+
+        //
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
         //

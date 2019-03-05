@@ -1,0 +1,15 @@
+[
+  {
+    "table": "UsrGrp",
+    "strategy": "DECODE_ID",
+    "decode_from_id": 3
+  },
+  {
+    "table": "OprTip",
+    "strategy": "NO_DECODE"
+  },
+  {
+    "table": "NchTip",
+    "strategy": "NO_DECODE"
+  }
+]

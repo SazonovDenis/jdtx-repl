@@ -69,6 +69,7 @@ public class RefDecoder implements IRefDecoder {
             }
             wsToSlot.put(sl, own_slot_no);
         }
+
     }
 
     // ------------------------------------------
@@ -175,15 +176,13 @@ public class RefDecoder implements IRefDecoder {
             return false;
         }
 
-        // Для PS: id находится в нерегулируемом диапазоне.
-        if (db_id <= 0) {
-            // todo: возможно есть более сложное поведение, например "id до 1000",
-            // или зависит от таблицы. Это может быть перекрыто в кастомных обработчиках
-            return false;
+        // Не заданы стратегии перекодировки для каждой таблицы
+        if (RefDecodeStrategy.instance == null) {
+            return true;
         }
 
-        //
-        return true;
+        // Стратегии перекодировки заданы
+        return RefDecodeStrategy.instance.needDecode(tableName, ws_id, db_id);
     }
 
 

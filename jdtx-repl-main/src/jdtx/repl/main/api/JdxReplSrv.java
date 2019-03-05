@@ -2,6 +2,7 @@ package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
+import jandcode.utils.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
 import org.json.simple.parser.*;
@@ -72,6 +73,12 @@ public class JdxReplSrv {
 
         // Общая очередь
         commonQue.setBaseDir((String) cfgData.get("queCommon_DirLocal"));
+
+        // Стратегии перекодировки каждой таблицы
+        String strategyCfgName = "decode_strategy";
+        strategyCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + strategyCfgName + ".json";
+        RefDecodeStrategy.instance = new RefDecodeStrategy();
+        RefDecodeStrategy.instance.init(strategyCfgName);
     }
 
     public void srvFillCommonQue() throws Exception {
