@@ -1,5 +1,7 @@
 package jdtx.repl.main.api;
 
+import jandcode.utils.*;
+
 import javax.xml.stream.*;
 import java.io.*;
 
@@ -102,8 +104,16 @@ public class JdxReplicaWriterXml {
         if (!currentElement_rec) {
             throw new XMLStreamException("Not started currentElement_rec");
         }
-        //
-        writer.writeAttribute(name, JdxStringEscapeUtils.escapeJava(String.valueOf(value)));
+
+        if (value instanceof byte[]) {
+            // Особая сериализация для BLOB
+            byte[] blob = (byte[]) value;
+            String blobBase64 = UtString.encodeBase64(blob);
+            writer.writeAttribute(name, blobBase64);
+        } else {
+            // Обычная сериализация
+            writer.writeAttribute(name, JdxStringEscapeUtils.escapeJava(String.valueOf(value)));
+        }
     }
 
     public void writeReplicaInfo(long wsId, long age) throws XMLStreamException {

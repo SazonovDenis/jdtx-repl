@@ -34,13 +34,7 @@ public class UtDataSelector {
                 // Тело записи
                 String[] tableFromFields = tableFields.split(",");
                 for (String field : tableFromFields) {
-                    if (rsTableLog.getDataType(field) == DataType.BLOB) {
-                        byte[] blob = (byte[]) rsTableLog.getValue(field);
-                        String blobBase64 = UtString.encodeBase64(blob);
-                        dataContainer.setRecValue(field, blobBase64);
-                    } else {
-                        dataContainer.setRecValue(field, rsTableLog.getValue(field));
-                    }
+                    dataContainer.setRecValue(field, rsTableLog.getValue(field));
                 }
                 //
                 rsTableLog.next();
