@@ -41,7 +41,7 @@ public class UtRepl {
      * - таблица возрастов таблиц
      * - таблицы перекодировок
      */
-    void createReplication() throws Exception {
+    public void createReplication() throws Exception {
         // создание всего аудита
         UtDbObjectManager ut = new UtDbObjectManager(db, struct);
         ut.createAudit();
@@ -55,7 +55,7 @@ public class UtRepl {
     /**
      * Удалить репликационные структуры
      */
-    void dropReplication() throws Exception {
+    public void dropReplication() throws Exception {
         // удаление всего аудита
         UtDbObjectManager ut = new UtDbObjectManager(db, struct);
         ut.dropAudit();

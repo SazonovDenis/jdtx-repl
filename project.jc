@@ -13,3 +13,8 @@ modules = [
 //
 libs = libs + []
 libs_dev = libs_dev + []
+
+// product
+project.event("waxBeforeProduct") {
+    wax_scripts_masks.add("ov-product.jc")
+}
