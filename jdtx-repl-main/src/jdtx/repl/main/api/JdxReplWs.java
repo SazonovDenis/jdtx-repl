@@ -131,8 +131,10 @@ public class JdxReplWs {
         // Стратегии перекодировки каждой таблицы
         String strategyCfgName = "decode_strategy";
         strategyCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + strategyCfgName + ".json";
-        RefDecodeStrategy.instance = new RefDecodeStrategy();
-        RefDecodeStrategy.instance.init(strategyCfgName);
+        if (RefDecodeStrategy.instance == null) {
+            RefDecodeStrategy.instance = new RefDecodeStrategy();
+            RefDecodeStrategy.instance.init(strategyCfgName);
+        }
     }
 
     /**
