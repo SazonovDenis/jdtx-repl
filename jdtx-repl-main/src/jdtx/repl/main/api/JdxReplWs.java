@@ -1,16 +1,22 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.db.*;
-import jandcode.utils.*;
-import jandcode.utils.error.*;
-import jdtx.repl.main.api.struct.*;
-import org.apache.commons.logging.*;
-import org.json.simple.*;
-import org.json.simple.parser.*;
+import jandcode.dbm.db.Db;
+import jandcode.utils.UtFile;
+import jandcode.utils.error.XError;
+import jdtx.repl.main.api.struct.IJdxDbStruct;
+import jdtx.repl.main.api.struct.IJdxDbStructReader;
+import jdtx.repl.main.api.struct.JdxDbStructReader;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
-import java.io.*;
-import java.sql.*;
-import java.util.*;
+import java.io.FileReader;
+import java.io.Reader;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Контекст рабочей станции
@@ -23,8 +29,8 @@ public class JdxReplWs {
     List<IPublication> publicationsOut;
 
     //
-    private JdxQueCommonFile queIn;
-    private JdxQuePersonalFile queOut;
+    JdxQueCommonFile queIn;
+    JdxQuePersonalFile queOut;
 
     //
     private Db db;
@@ -39,9 +45,8 @@ public class JdxReplWs {
 
 
     //
-    public JdxReplWs(Db db, long wsId) throws Exception {
+    public JdxReplWs(Db db) throws Exception {
         this.db = db;
-        this.wsId = wsId;
         // чтение структуры
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
@@ -49,6 +54,10 @@ public class JdxReplWs {
         // Строго обязательно REPEATABLE_READ, иначе сохранение в age возраста аудита
         // не синхронно с изменениями в таблицах аудита.
         this.db.getConnection().setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+    }
+
+    public long getWsId() {
+        return wsId;
     }
 
     /**
@@ -65,6 +74,12 @@ public class JdxReplWs {
         } finally {
             r.close();
         }
+
+        // Код нашей станции
+        if (cfgData.get("wsId") == null || ((Long) cfgData.get("wsId") == 0)) {
+            throw new XError("Invalid wsId");
+        }
+        this.wsId = (Long) cfgData.get("wsId");
 
         // Читаем из этой очереди
         queIn = new JdxQueCommonFile(db, JdxQueType.IN);
@@ -109,8 +124,8 @@ public class JdxReplWs {
         }
 
         //
-        //mailer = new UtMailerHttp();
-        mailer = new UtMailerLocalFiles();
+        //mailer = new UtMailerLocalFiles();
+        mailer = new UtMailerHttp();
         mailer.init(cfgData);
 
         // Стратегии перекодировки каждой таблицы

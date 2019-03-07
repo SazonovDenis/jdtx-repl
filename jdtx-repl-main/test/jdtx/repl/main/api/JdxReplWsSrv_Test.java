@@ -77,7 +77,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws2_CreateSetupReplica() throws Exception {
         // Рабочая станция, настройка
-        JdxReplWs ws2 = new JdxReplWs(db2, 2);
+        JdxReplWs ws2 = new JdxReplWs(db2);
         //ws2.init("test/etalon/mail_http_ws2.json");
         ws2.init("test/etalon/ws2.json");
 
@@ -91,7 +91,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws3_CreateSetupReplica() throws Exception {
         // Рабочая станция, настройка
-        JdxReplWs ws3 = new JdxReplWs(db3, 3);
+        JdxReplWs ws3 = new JdxReplWs(db3);
         //ws3.init("test/etalon/mail_http_ws3.json");
         ws3.init("test/etalon/ws3.json");
 
@@ -149,7 +149,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws1_handleSelfAudit() throws Exception {
         // Рабочая станция, настройка
-        JdxReplWs ws = new JdxReplWs(db, 1);
+        JdxReplWs ws = new JdxReplWs(db);
         //ws.init("test/etalon/mail_http_ws_srv.json");
         ws.init("test/etalon/ws_srv.json");
 
@@ -163,7 +163,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws2_handleSelfAudit() throws Exception {
         // Рабочая станция, настройка
-        JdxReplWs ws = new JdxReplWs(db2, 2);
+        JdxReplWs ws = new JdxReplWs(db2);
         //ws.init("test/etalon/mail_http_ws2.json");
         ws.init("test/etalon/ws2.json");
 
@@ -177,7 +177,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws3_handleSelfAudit() throws Exception {
         // Рабочая станция, настройка
-        JdxReplWs ws = new JdxReplWs(db3, 3);
+        JdxReplWs ws = new JdxReplWs(db3);
         //ws.init("test/etalon/mail_http_ws3.json");
         ws.init("test/etalon/ws3.json");
 
@@ -192,7 +192,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws1_ApplyReplica() throws Exception {
         // Сервер, настройка
-        JdxReplWs ws = new JdxReplWs(db, 1);
+        JdxReplWs ws = new JdxReplWs(db);
         //ws.init("test/etalon/mail_http_ws_srv.json");
         ws.init("test/etalon/ws_srv.json");
 
@@ -206,7 +206,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws2_ApplyReplica() throws Exception {
         // Сервер, настройка
-        JdxReplWs ws = new JdxReplWs(db2, 2);
+        JdxReplWs ws = new JdxReplWs(db2);
         //ws.init("test/etalon/mail_http_ws2.json");
         ws.init("test/etalon/ws2.json");
 
@@ -220,7 +220,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws3_ApplyReplica() throws Exception {
         // Сервер, настройка
-        JdxReplWs ws = new JdxReplWs(db3, 3);
+        JdxReplWs ws = new JdxReplWs(db3);
         //ws.init("test/etalon/mail_http_ws3.json");
         ws.init("test/etalon/ws3.json");
 
