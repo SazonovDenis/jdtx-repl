@@ -10,6 +10,13 @@ repl_create = cm("Инициализация",
 }
 
 //
+repl_info = cm("Информация",
+) {
+    def ext = createExt("jdtx.repl.main.Jdx_Ext")
+    ext.repl_info(args)
+}
+
+//
 repl_add_ws = cm("Добавляет рабочую станцию",
 ) {
     def ext = createExt("jdtx.repl.main.Jdx_Ext")

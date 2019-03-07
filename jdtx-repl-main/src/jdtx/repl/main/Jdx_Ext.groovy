@@ -54,6 +54,32 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
+    void repl_info(IVariantMap args) {
+        String cfg = args.getValueString("cfg")
+        if (cfg == null || cfg.length() == 0) {
+            throw new XError("Не указан [cfg] - файл конфигурации")
+        }
+
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        try {
+            // Рабочая станция, настройка
+            JdxReplWs ws = new JdxReplWs(db)
+            ws.init(cfg)
+
+            //
+            System.out.println("wsId: " + ws.getWsId())
+            System.out.println("queIn.baseDir: " + ws.queIn.baseDir)
+            System.out.println("queOut.baseDir: " + ws.queOut.baseDir)
+            System.out.println("queOut.baseDir: " + ws.mailer.class)
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
     void repl_create(IVariantMap args) {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -72,13 +98,9 @@ class Jdx_Ext extends ProjectExt {
 
 
     void repl_add_ws(IVariantMap args) {
-        //println(args)
-        //String cubeName = args.getValueString("cube")
-        //DateTime intervalDbeg = args.getValueDateTime("dbeg")
-
         String name = args.getValueString("name")
         if (name == null || name.length() == 0) {
-            throw new XError("Не указано name")
+            throw new XError("Не указано [name] - название рабочей станции ")
         }
 
         //
@@ -95,7 +117,7 @@ class Jdx_Ext extends ProjectExt {
             UtDbObjectManager ut = new UtDbObjectManager(db, struct)
             long wsId = ut.addWorkstation(name)
             //
-            System.out.println("wsId: " + wsId)
+            System.out.println("new wsId: " + wsId)
 
         } finally {
             db.disconnect()
@@ -104,7 +126,10 @@ class Jdx_Ext extends ProjectExt {
 
 
     void repl_setup(IVariantMap args) {
-        //print(args)
+        String cfg = args.getValueString("cfg")
+        if (cfg == null || cfg.length() == 0) {
+            throw new XError("Не указан [cfg] - файл конфигурации")
+        }
 
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -112,8 +137,8 @@ class Jdx_Ext extends ProjectExt {
         //
         try {
             // Рабочая станция, настройка
-            JdxReplWs ws = new JdxReplWs(db, 1)
-            ws.init("test/etalon/ws.json")
+            JdxReplWs ws = new JdxReplWs(db)
+            ws.init(cfg)
 
             // Забираем установочную реплику
             ws.createSetupReplica()
