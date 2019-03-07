@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 
-    <!--
-        настройки базы данных для разработчика
-    -->
-
+    <!-- настройки базы данных -->
 
     <db name="default"
         dbdriver="jdbc" 
@@ -40,6 +37,7 @@
     />
 
 
+    <!-- перкрытие настроек -->
     <x-include path="_db-ini.rt" required="false"/>
 
 
