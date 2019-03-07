@@ -50,6 +50,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtFile.cleanDir("../_test-data/ws_srv");
         UtFile.cleanDir("../_test-data/ws2");
         UtFile.cleanDir("../_test-data/ws3");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/61ba238dfc94503e/from");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/61ba238dfc94503e/to");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/84f3cc20bea645fa/from");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/84f3cc20bea645fa/to");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/97845f2f56f4d4dc/from");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/97845f2f56f4d4dc/to");
         // db
         UtRepl utr = new UtRepl(db);
         utr.dropReplication();

@@ -1,7 +1,7 @@
 {
   "wsId": 2,
 
-  "url": "http://localhost/lombard.systems/repl/",
+  "url": "http://192.168.0.141/lombard.systems/repl/",
   "guid": "b5781df573ca6ee6-61ba238dfc94503e",
   "mailLocalDirTmp": "../_test-data/ws2/tmp",
 

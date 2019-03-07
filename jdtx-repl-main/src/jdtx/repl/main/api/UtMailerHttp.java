@@ -7,8 +7,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -17,7 +15,6 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -25,15 +22,13 @@ import org.json.simple.parser.JSONParser;
 import java.io.File;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  */
 public class UtMailerHttp implements IJdxMailer {
 
 
-    String rootUrl;
+    String remoteUrl;
     String guid;
     String localDirTmp;
 
@@ -42,12 +37,12 @@ public class UtMailerHttp implements IJdxMailer {
 
     @Override
     public void init(JSONObject cfg) {
-        rootUrl = (String) cfg.get("url");
+        remoteUrl = (String) cfg.get("url");
         guid = (String) cfg.get("guid");
         localDirTmp = (String) cfg.get("mailLocalDirTmp");
         //
-        if (rootUrl == null || rootUrl.length() == 0) {
-            throw new XError("Invalid rootUrl");
+        if (remoteUrl == null || remoteUrl.length() == 0) {
+            throw new XError("Invalid remoteUrl");
         }
         if (guid == null || guid.length() == 0) {
             throw new XError("Invalid guid");
@@ -66,7 +61,7 @@ public class UtMailerHttp implements IJdxMailer {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(rootUrl + "/repl_get_send.php?" + "guid=" + guid + "&box=" + box);
+        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_get_send.php?" + "guid=" + guid + "&box=" + box);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -92,7 +87,7 @@ public class UtMailerHttp implements IJdxMailer {
         DefaultHttpClient client = new DefaultHttpClient();
 
         //
-        HttpPost post = new HttpPost(rootUrl + "/repl_send.php");
+        HttpPost post = new HttpPost(remoteUrl + "/repl_send.php");
 
         //
         StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
@@ -130,7 +125,7 @@ public class UtMailerHttp implements IJdxMailer {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(rootUrl + "/repl_get_receive.php?" + "guid=" + guid + "&box=" + box);
+        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_get_receive.php?" + "guid=" + guid + "&box=" + box);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -156,7 +151,7 @@ public class UtMailerHttp implements IJdxMailer {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(rootUrl + "/repl_receive.php?" + "guid=" + guid + "&box=" + box + "&no=" + no);
+        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_receive.php?" + "guid=" + guid + "&box=" + box + "&no=" + no);
 
         //
         HttpResponse response = httpclient.execute(httpGet);

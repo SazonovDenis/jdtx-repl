@@ -37,7 +37,7 @@ public class JdxReplSrv {
         // Общая очередь на сервере
         commonQue = new JdxQueCommonFile(db, JdxQueType.COMMON);
 
-        // Источник для чтения/отправки сообщений всех рабочих станций
+        // Почтальон для чтения/отправки сообщений для каждой рабочей станции
         mailerList = new HashMap<>();
     }
 
@@ -59,7 +59,7 @@ public class JdxReplSrv {
         // Список рабочих станций
         DataStore t = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list");
 
-        //
+        // Общая очередь
         for (DataRecord rec : t) {
             // Очереди рабочих станций
             long wdId = rec.getValueLong("id");
