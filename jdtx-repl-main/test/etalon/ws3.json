@@ -1,4 +1,6 @@
 {
+  "wsId": 3,
+
   "mailRemoteDir": "../_test-data/mail/ws3/",
   "mailLocalDirTmp": "../_test-data/ws3/tmp",
 

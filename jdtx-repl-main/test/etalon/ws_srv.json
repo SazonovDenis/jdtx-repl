@@ -1,4 +1,6 @@
 {
+  "wsId": 1,
+
   "mailRemoteDir": "../_test-data/mail/ws_srv/",
   "mailLocalDirTmp": "../_test-data/ws_srv/tmp",
 

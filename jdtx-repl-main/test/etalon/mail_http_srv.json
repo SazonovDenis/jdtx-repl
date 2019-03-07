@@ -3,19 +3,19 @@
 
   "1": {
     "url": "http://localhost/lombard.systems/repl/",
-    "guid": "97845f2f56f4d4dc",
+    "guid": "b5781df573ca6ee6-97845f2f56f4d4dc",
     "mailLocalDirTmp": "../_test-data/ws_srv/tmp"
   },
 
   "2": {
     "url": "http://localhost/lombard.systems/repl/",
-    "guid": "61ba238dfc94503e",
+    "guid": "b5781df573ca6ee6-61ba238dfc94503e",
     "mailLocalDirTmp": "../_test-data/ws2/tmp"
   },
 
   "3": {
     "url": "http://localhost/lombard.systems/repl/",
-    "guid": "84f3cc20bea645fa",
+    "guid": "b5781df573ca6ee6-84f3cc20bea645fa",
     "mailLocalDirTmp": "../_test-data/ws3/tmp"
   }
 }
