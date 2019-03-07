@@ -12,4 +12,6 @@
     <!-- настройки базы данных -->
     <x-include path="db-ini.rt"/>
 
+    <!-- перкрытие настроек -->
+    <x-include path="_app.rt" required="false"/>
 </root>

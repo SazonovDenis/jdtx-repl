@@ -6,6 +6,9 @@
         <depend name="jandcode.auth"/>
         <depend name="jandcode.wax.core"/>
         <depend name="jandcode.wax.verdb"/>
+
+        <!-- Запуск по расписанию -->
+        <depend name="jandcode.bgtasks"/>
     </x-module>
 
     <model name="jdtx.repl.main" parent="sys" x-root="true">
@@ -28,8 +31,31 @@
         <lang name="en" title="English"/>
     </lang>
 
-    <app
-            title="JdtxRepl"/>
+    <app title="JdtxRepl"/>
+
+    <!-- Запуск по расписанию -->
+    <service name="jandcode.bgtasks.BgTasksService">
+
+        <!-- Рабочая станция -->
+        <bgtask name="ws"
+                class="jdtx.repl.main.task.WsBgTask"
+                delay="100"
+                period="600000"
+                enabled="false"
+                wsId="1"
+                cfgFileName="cfg.json"
+                />
+
+        <!-- Сервер -->
+        <bgtask name="server"
+                class="jdtx.repl.main.task.SrvBgTask"
+                delay="100"
+                period="600000"
+                enabled="false"
+                cfgFileName="cfg.json"
+                />
+        
+    </service>
 
 
 </root>
