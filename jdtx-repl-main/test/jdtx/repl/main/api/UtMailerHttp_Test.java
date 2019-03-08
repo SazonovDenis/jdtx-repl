@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import org.joda.time.DateTime;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Test;
@@ -51,6 +52,19 @@ public class UtMailerHttp_Test extends ReplDatabase_Test {
         //
         IReplica replica_3 = mailer.receive(3, "to");
         System.out.println("receive: " + replica_3.getFile());
+    }
+
+    @Test
+    public void test_Ping() throws Exception {
+        DateTime state_dt_0 = mailer.getPingDt("to");
+        System.out.println("state_dt: " + state_dt_0);
+
+        //
+        mailer.ping("to");
+
+        //
+        DateTime state_dt_1 = mailer.getPingDt("to");
+        System.out.println("state_dt: " + state_dt_1);
     }
 
 

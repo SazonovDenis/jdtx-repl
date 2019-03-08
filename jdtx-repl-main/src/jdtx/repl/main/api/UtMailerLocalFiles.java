@@ -8,6 +8,7 @@ import org.apache.commons.io.IOCase;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.joda.time.DateTime;
 import org.json.simple.JSONObject;
 
 import java.io.File;
@@ -100,6 +101,16 @@ public class UtMailerLocalFiles implements IJdxMailer {
 
         //
         FileUtils.forceDelete(remoteFile);
+    }
+
+    @Override
+    public void ping(String box) throws Exception {
+       throw new XError("Not implemented");
+    }
+
+    @Override
+    public DateTime getPingDt(String box) throws Exception {
+        throw new XError("Not implemented");
     }
 
 

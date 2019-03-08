@@ -1,6 +1,9 @@
 package jdtx.repl.main.api;
 
+import org.joda.time.DateTime;
 import org.json.simple.JSONObject;
+
+import java.io.IOException;
 
 /**
  * Отправляет реплики из исходящей очереди на сервер.
@@ -21,4 +24,7 @@ public interface IJdxMailer {
 
     void delete(long no, String box) throws Exception;
 
+    void ping(String box) throws Exception;
+
+    DateTime getPingDt(String box) throws Exception;
 }

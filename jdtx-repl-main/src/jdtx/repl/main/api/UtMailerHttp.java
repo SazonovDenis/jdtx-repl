@@ -16,6 +16,7 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.joda.time.DateTime;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -171,6 +172,60 @@ public class UtMailerHttp implements IJdxMailer {
         if (res.get("error") != null) {
             throw new XError(String.valueOf(res.get("error")));
         }
+    }
+
+    @Override
+    public void ping(String box) throws Exception {
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+
+        //
+        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_ping.php?" + "guid=" + guid + "&box=" + box);
+
+        //
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        if (response.getStatusLine().getStatusCode() != 200) {
+            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
+        }
+
+        //
+        String resStr = EntityUtils.toString(response.getEntity());
+        JSONObject res = parseJson(resStr);
+        if (res.get("error") != null) {
+            throw new XError(String.valueOf(res.get("error")));
+        }
+    }
+
+    @Override
+    public DateTime getPingDt(String box) throws Exception {
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+
+        //
+        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_get_ping_dt.php?" + "guid=" + guid + "&box=" + box);
+
+        //
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        if (response.getStatusLine().getStatusCode() != 200) {
+            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
+        }
+
+        //
+        String resStr = EntityUtils.toString(response.getEntity());
+        JSONObject res = parseJson(resStr);
+        if (res.get("error") != null) {
+            throw new XError(String.valueOf(res.get("error")));
+        }
+
+        //
+        String state_dt = (String) res.get("state_dt");
+        if (state_dt == null || state_dt.length() == 0) {
+            return null;
+        }
+        //
+        return new DateTime(state_dt);
     }
 
     JSONObject parseJson(String jsonStr) throws Exception {

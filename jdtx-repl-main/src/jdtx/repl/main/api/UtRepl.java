@@ -265,6 +265,9 @@ public class UtRepl {
 
                 stateManager.setCommonQueNoDone(wsId, no);
             }
+
+            //
+            mailer.ping("to");
         }
     }
 

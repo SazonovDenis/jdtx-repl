@@ -335,6 +335,9 @@ public class JdxReplWs {
         }
 
         //
+        mailer.ping("from");
+
+        //
         log.info("UtMailer, send done: " + count + ", age: " + selfQueOutAge);
     }
 
