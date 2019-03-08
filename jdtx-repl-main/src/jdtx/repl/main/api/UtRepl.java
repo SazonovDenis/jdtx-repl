@@ -214,7 +214,7 @@ public class UtRepl {
             for (long age = queDoneAge + 1; age <= queMaxAge; age++) {
                 log.info("srvFillCommonQue, wsId: " + wsId + ",  age: " + age);
 
-                //
+                // Физически забираем данные с почтового сервера
                 IReplica replica = mailer.receive(age, "from");
 
                 // Помещаем полученные данные в общую очередь
@@ -230,6 +230,9 @@ public class UtRepl {
                     db.rollback();
                     throw e;
                 }
+
+                // Удаляем с почтового сервера
+                mailer.delete(age, "from");
             }
         }
     }

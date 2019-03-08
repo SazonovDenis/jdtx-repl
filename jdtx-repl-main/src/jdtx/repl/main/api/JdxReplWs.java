@@ -293,12 +293,15 @@ public class JdxReplWs {
         for (long no = selfReceivedNo + 1; no <= srvAvailableNo; no++) {
             log.info("UtMailer, receive no: " + no);
 
-            // Физически забираем данные
+            // Физически забираем данные с почтового сервера
             IReplica replica = mailer.receive(no, "to");
 
             // Помещаем полученные данные в свою входящую очередь
             ReplicaFile.readReplicaInfo(replica);
             queIn.put(replica);
+
+            // Удаляем с почтового сервера
+            mailer.delete(no, "to");
 
             //
             count++;
