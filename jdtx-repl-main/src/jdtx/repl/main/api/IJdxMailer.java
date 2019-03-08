@@ -1,8 +1,6 @@
 package jdtx.repl.main.api;
 
-import org.json.simple.*;
-
-import java.io.IOException;
+import org.json.simple.JSONObject;
 
 /**
  * Отправляет реплики из исходящей очереди на сервер.
@@ -13,17 +11,14 @@ public interface IJdxMailer {
     void init(JSONObject cfg);
 
     /**
-     * @return Сколько уже отправлено на сервер (age или no)
+     * @return Сколько есть на сервере (age или no) в папке box
      */
-    long getSrvSend(String box) throws Exception;
+    long getSrvSate(String box) throws Exception;
 
     void send(IReplica repl, long n, String box) throws Exception;
 
-    /**
-     * @return Сколько есть на сервере (age или no)
-     */
-    long getSrvReceive(String box) throws Exception;
-
     IReplica receive(long n, String box) throws Exception;
+
+    void delete(long no, String box) throws Exception;
 
 }

@@ -45,6 +45,24 @@ public class UtMailerLocalFiles implements IJdxMailer {
         UtFile.mkdirs(localDirTmp);
     }
 
+    public long getSrvSate(String box) {
+        UtFile.mkdirs(remoteDir + box);
+        //
+        File dir = new File(remoteDir + box);
+        File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
+
+        //
+        long idx = 0;
+        for (File file : files) {
+            if (idx < getNo(file.getName())) {
+                idx = getNo(file.getName());
+            }
+        }
+
+        //
+        return idx;
+    }
+
     public void send(IReplica repl, long n, String box) throws Exception {
         UtFile.mkdirs(remoteDir + box);
         //
@@ -75,40 +93,13 @@ public class UtMailerLocalFiles implements IJdxMailer {
         return replica;
     }
 
-    public long getSrvSend(String box) {
-        UtFile.mkdirs(remoteDir + box);
-        //
-        File dir = new File(remoteDir + box);
-        File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
+    @Override
+    public void delete(long no, String box) throws Exception {
+        String remoteFileName = getFileName(no);
+        File remoteFile = new File(remoteDir + box + "/" + remoteFileName);
 
         //
-        long age = 0;
-        for (File file : files) {
-            if (age < getNo(file.getName())) {
-                age = getNo(file.getName());
-            }
-        }
-
-        //
-        return age;
-    }
-
-    public long getSrvReceive(String box) {
-        UtFile.mkdirs(remoteDir + box);
-        //
-        File dir = new File(remoteDir + box);
-        File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
-
-        //
-        long idx = 0;
-        for (File file : files) {
-            if (idx < getNo(file.getName())) {
-                idx = getNo(file.getName());
-            }
-        }
-
-        //
-        return idx;
+        FileUtils.forceDelete(remoteFile);
     }
 
 

@@ -205,7 +205,7 @@ public class UtRepl {
 
             //
             long queDoneAge = stateManager.getWsQueInAgeDone(wsId);
-            long queMaxAge = mailer.getSrvReceive("from");
+            long queMaxAge = mailer.getSrvSate("from");
 
             //
             log.info("srvFillCommonQue, wsId: " + wsId + ", queDoneAge: " + queDoneAge + ", queMaxAge: " + queMaxAge);

@@ -33,11 +33,13 @@ public class UtMailerHttp_Test extends ReplDatabase_Test {
         mailer.init(cfgData);
     }
 
+
     @Test
     public void test_getSrv() throws Exception {
-        System.out.println("getSrvSend.from: " + mailer.getSrvSend("from"));
-        System.out.println("getSrvReceive.to: " + mailer.getSrvReceive("to"));
+        System.out.println("getSrvState.from: " + mailer.getSrvSate("from"));
+        System.out.println("getSrvSate.to: " + mailer.getSrvSate("to"));
     }
+
 
     @Test
     public void test_Receive() throws Exception {
@@ -51,16 +53,17 @@ public class UtMailerHttp_Test extends ReplDatabase_Test {
         System.out.println("receive: " + replica_3.getFile());
     }
 
+
     @Test
     public void test_Send() throws Exception {
         // ---
-        System.out.println("getSrvSend: " + mailer.getSrvSend("from"));
+        System.out.println("getSrvSate.from: " + mailer.getSrvSate("from"));
 
 
         // ---
         UtRepl utr = new UtRepl(db);
 
-        // Загружаем правила публикации
+        // Р—Р°РіСЂСѓР¶Р°РµРј РїСЂР°РІРёР»Р° РїСѓР±Р»РёРєР°С†РёРё
         IPublication publication = new Publication();
         Reader r = new FileReader("test/etalon/pub_full.json");
         try {
@@ -69,11 +72,11 @@ public class UtMailerHttp_Test extends ReplDatabase_Test {
             r.close();
         }
 
-        // Увеличиваем возраст
+        // РЈРІРµР»РёС‡РёРІР°РµРј РІРѕР·СЂР°СЃС‚
         long age = utr.incAuditAge();
         System.out.println("new AuditAge = " + age);
 
-        // Забираем установочную реплику
+        // Р—Р°Р±РёСЂР°РµРј СѓСЃС‚Р°РЅРѕРІРѕС‡РЅСѓСЋ СЂРµРїР»РёРєСѓ
         IReplica replica = utr.createReplicaFull(1, publication, age);
 
 
@@ -82,7 +85,23 @@ public class UtMailerHttp_Test extends ReplDatabase_Test {
 
 
         // ---
-        System.out.println("new getSrvSend: " + mailer.getSrvSend("from"));
+        System.out.println("new getSrvSate.from: " + mailer.getSrvSate("from"));
+    }
+
+
+    @Test
+    public void test_delete() throws Exception {
+        // ---
+        long no = mailer.getSrvSate("from");
+        System.out.println("getSrvSend: " + no);
+
+
+        // ---
+        mailer.delete(no, "from");
+
+
+        // ---
+        System.out.println("new getSrvSend.from: " + mailer.getSrvSate("from"));
     }
 
 

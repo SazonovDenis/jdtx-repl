@@ -56,12 +56,13 @@ public class UtMailerHttp implements IJdxMailer {
         UtFile.mkdirs(localDirTmp);
     }
 
+
     @Override
-    public long getSrvSend(String box) throws Exception {
+    public long getSrvSate(String box) throws Exception {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_get_send.php?" + "guid=" + guid + "&box=" + box);
+        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_get_state.php?" + "guid=" + guid + "&box=" + box);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -121,32 +122,6 @@ public class UtMailerHttp implements IJdxMailer {
     }
 
     @Override
-    public long getSrvReceive(String box) throws Exception {
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-
-        //
-        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_get_receive.php?" + "guid=" + guid + "&box=" + box);
-
-        //
-        HttpResponse response = httpclient.execute(httpGet);
-
-        //
-        if (response.getStatusLine().getStatusCode() != 200) {
-            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
-        }
-
-        //
-        String resStr = EntityUtils.toString(response.getEntity());
-        JSONObject res = parseJson(resStr);
-        if (res.get("error") != null) {
-            throw new XError(String.valueOf(res.get("error")));
-        }
-
-        //
-        return Long.valueOf(String.valueOf(res.get("result")));
-    }
-
-    @Override
     public IReplica receive(long no, String box) throws Exception {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
@@ -173,6 +148,29 @@ public class UtMailerHttp implements IJdxMailer {
 
         //
         return replica;
+    }
+
+    @Override
+    public void delete(long no, String box) throws Exception {
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+
+        //
+        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_delete.php?" + "guid=" + guid + "&box=" + box + "&no=" + no);
+
+        //
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        if (response.getStatusLine().getStatusCode() != 200) {
+            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
+        }
+
+        //
+        String resStr = EntityUtils.toString(response.getEntity());
+        JSONObject res = parseJson(resStr);
+        if (res.get("error") != null) {
+            throw new XError(String.valueOf(res.get("error")));
+        }
     }
 
     JSONObject parseJson(String jsonStr) throws Exception {

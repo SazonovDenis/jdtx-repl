@@ -280,7 +280,7 @@ public class JdxReplWs {
 
     public void receive() throws Exception {
         // Узнаем сколько есть на сервере
-        long srvAvailableNo = mailer.getSrvReceive("to");
+        long srvAvailableNo = mailer.getSrvSate("to");
 
         // Узнаем сколько получено у нас
         long selfReceivedNo = queIn.getMaxNo();
@@ -311,7 +311,7 @@ public class JdxReplWs {
 
     public void send() throws Exception {
         // Узнаем сколько уже отправлено на сервер
-        long srvSendAge = mailer.getSrvSend("from");
+        long srvSendAge = mailer.getSrvSate("from");
 
         // Узнаем сколько есть у нас в очереди на отправку
         long selfQueOutAge = queOut.getMaxAge();
