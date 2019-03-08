@@ -95,8 +95,8 @@ public class UtMailerLocalFiles implements IJdxMailer {
     }
 
     @Override
-    public void delete(long no, String box) throws Exception {
-        String remoteFileName = getFileName(no);
+    public void delete(long n, String box) throws Exception {
+        String remoteFileName = getFileName(n);
         File remoteFile = new File(remoteDir + box + "/" + remoteFileName);
 
         //

@@ -152,11 +152,11 @@ public class UtMailerHttp implements IJdxMailer {
     }
 
     @Override
-    public void delete(long no, String box) throws Exception {
+    public void delete(long n, String box) throws Exception {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_delete.php?" + "guid=" + guid + "&box=" + box + "&no=" + no);
+        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_delete.php?" + "guid=" + guid + "&box=" + box + "&no=" + n);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
