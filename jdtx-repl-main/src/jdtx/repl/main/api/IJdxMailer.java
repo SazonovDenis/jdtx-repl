@@ -29,4 +29,5 @@ public interface IJdxMailer {
     void ping(String box) throws Exception;
 
     DateTime getPingDt(String box) throws Exception;
+
 }

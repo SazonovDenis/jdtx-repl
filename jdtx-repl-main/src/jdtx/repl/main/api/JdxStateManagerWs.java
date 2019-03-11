@@ -16,7 +16,7 @@ public class JdxStateManagerWs {
 
 
     /**
-     * @return Возраст, до которого сформирована исходящая очередь
+     * @return Возраст аудита, до которого сформирована исходящая очередь
      */
     public long getAuditAgeDone() throws Exception {
         String sql = "select * from " + JdxUtils.sys_table_prefix + "state";
