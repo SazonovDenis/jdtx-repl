@@ -261,7 +261,7 @@ public class UtRepl {
 
                 IReplica replica = commonQue.getByNo(no);
 
-                mailer.send(replica, no, "to");
+                mailer.send(replica, no, "to"); // todo это тупо - так копировать и перекладывать файлы
 
                 stateManager.setCommonQueNoDone(wsId, no);
             }

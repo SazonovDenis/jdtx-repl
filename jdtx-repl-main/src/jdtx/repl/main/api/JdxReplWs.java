@@ -298,7 +298,12 @@ public class JdxReplWs {
 
             // Помещаем полученные данные в свою входящую очередь
             ReplicaFile.readReplicaInfo(replica);
-            queIn.put(replica);
+            if (replica.getWsId() == wsId && replica.getType() == ReplicaType.SETUP) {  :с контроль своей реплики, плюс конфиг рядом с БД
+                // Свои собственные установочные реплики можно не применять и не скачивать
+                log.info("Skip self setup replica, age: " + replica.getAge());
+            } else {
+                queIn.put(replica);
+            }
 
             // Удаляем с почтового сервера
             mailer.delete(no, "to");
