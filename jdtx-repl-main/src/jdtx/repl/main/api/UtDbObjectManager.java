@@ -76,21 +76,21 @@ public class UtDbObjectManager {
             db.execSql(sql);
 
             // очереди реплик
-            sql = "create table " + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.IN] + "(id integer not null, ws_id int not null, age int not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.IN] + "(id integer not null, ws_id int not null, age int not null, replica_type int not null)";
             db.execSql(sql);
             sql = "create generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.IN];
             db.execSql(sql);
             sql = "set generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.IN] + " to 0";
             db.execSql(sql);
             //
-            sql = "create table " + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.OUT] + "(id integer not null, ws_id int not null, age int not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.OUT] + "(id integer not null, ws_id int not null, age int not null, replica_type int not null)";
             db.execSql(sql);
             sql = "create generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.OUT];
             db.execSql(sql);
             sql = "set generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.OUT] + " to 0";
             db.execSql(sql);
             //
-            sql = "create table " + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.COMMON] + "(id integer not null, ws_id int not null, age int not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.COMMON] + "(id integer not null, ws_id int not null, age int not null, replica_type int not null)";
             db.execSql(sql);
             sql = "create generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.COMMON];
             db.execSql(sql);

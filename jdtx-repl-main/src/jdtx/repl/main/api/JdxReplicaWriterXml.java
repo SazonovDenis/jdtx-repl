@@ -116,7 +116,7 @@ public class JdxReplicaWriterXml {
         }
     }
 
-    public void writeReplicaInfo(long wsId, long age) throws XMLStreamException {
+    public void writeReplicaInfo(long wsId, long age, int replicaType) throws XMLStreamException {
         // <table>
         if (currentElement_table) {
             throw new XMLStreamException("Already started currentElement_table");
@@ -133,6 +133,7 @@ public class JdxReplicaWriterXml {
         //
         writer.writeAttribute("WS_ID", String.valueOf(wsId));
         writer.writeAttribute("AGE", String.valueOf(age));
+        writer.writeAttribute("REPLICA_TYPE", String.valueOf(replicaType));
     }
 
 }

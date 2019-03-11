@@ -15,6 +15,10 @@ public interface IReplica {
 
     long getAge();
 
+    void setReplicaType(int replicaType);
+
+    int getReplicaType();
+
     void setFile(File file);
 
     File getFile();

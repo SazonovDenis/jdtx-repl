@@ -1,7 +1,7 @@
 package jdtx.repl.main.api;
 
 /**
- * Виды реплики (IDE)
+ * Виды операций в реплике (IDE)
  */
 public class JdxOprType {
 

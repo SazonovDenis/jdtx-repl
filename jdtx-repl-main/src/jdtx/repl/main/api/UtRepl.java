@@ -106,7 +106,7 @@ public class UtRepl {
         JdxReplicaWriterXml writer = new JdxReplicaWriterXml(outputStream);
 
         //
-        writer.writeReplicaInfo(wsId, age);
+        writer.writeReplicaInfo(wsId, age, JdxReplicaType.IDE);
 
         //
         UtAuditSelector utrr = new UtAuditSelector(db, struct, wsId);
@@ -137,6 +137,7 @@ public class UtRepl {
         IReplica res = new ReplicaFile();
         res.setWsId(wsId);
         res.setAge(age);
+        res.setReplicaType(JdxReplicaType.IDE);
         res.setFile(file);
 
         //
@@ -156,7 +157,7 @@ public class UtRepl {
         JdxReplicaWriterXml writer = new JdxReplicaWriterXml(outputStream);
 
         //
-        writer.writeReplicaInfo(wsId, age);
+        writer.writeReplicaInfo(wsId, age, JdxReplicaType.EXPORT);
 
         //
         UtDataSelector utrr = new UtDataSelector(db, struct);
@@ -184,6 +185,7 @@ public class UtRepl {
         IReplica replica = new ReplicaFile();
         replica.setWsId(wsId);
         replica.setAge(age);
+        replica.setReplicaType(JdxReplicaType.EXPORT);
         replica.setFile(file);
 
         //
@@ -216,11 +218,12 @@ public class UtRepl {
 
                 // Физически забираем данные с почтового сервера
                 IReplica replica = mailer.receive(age, "from");
+                //
+                JdxReplicaReaderXml.readReplicaInfo(replica);
 
                 // Помещаем полученные данные в общую очередь
                 db.startTran();
                 try {
-                    ReplicaFile.readReplicaInfo(replica);
                     commonQue.put(replica);
                     //
                     stateManager.setWsQueInAgeDone(wsId, age);

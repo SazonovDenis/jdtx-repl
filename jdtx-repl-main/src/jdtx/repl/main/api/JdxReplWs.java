@@ -262,8 +262,12 @@ public class JdxReplWs {
 
             //
             IReplica replica = queIn.getByNo(no);
-            for (IPublication publication : publicationsIn) {
-                utaa.applyReplica(replica, publication, wsId);
+
+            // Свои собственные установочные реплики можно не применять
+            if (replica.getWsId() != wsId || replica.getReplicaType() != JdxReplicaType.EXPORT) {
+                for (IPublication publication : publicationsIn) {
+                    utaa.applyReplica(replica, publication, wsId);
+                }
             }
 
             //
@@ -293,17 +297,28 @@ public class JdxReplWs {
         for (long no = selfReceivedNo + 1; no <= srvAvailableNo; no++) {
             log.info("UtMailer, receive no: " + no);
 
-            // Физически забираем данные с почтового сервера
-            IReplica replica = mailer.receive(no, "to");
+            // Информацмия о реплике с почтового сервера
+            JdxReplInfo info = mailer.getInfo(no, "to");
 
-            // Помещаем полученные данные в свою входящую очередь
-            ReplicaFile.readReplicaInfo(replica);
-            if (replica.getWsId() == wsId && replica.getType() == ReplicaType.SETUP) {  :с контроль своей реплики, плюс конфиг рядом с БД
-                // Свои собственные установочные реплики можно не применять и не скачивать
-                log.info("Skip self setup replica, age: " + replica.getAge());
+            // Нужно ли скачивать эту реплику с сервера?
+            IReplica replica;
+            if (info.wsId == wsId && info.replicaType == JdxReplicaType.EXPORT) {
+                // Свои собственные установочные реплики можно не скачивать (и не применять)
+                log.info("Found self setup replica, age: " + info.age);
+                //
+                replica = new ReplicaFile();
+                replica.setWsId(info.wsId);
+                replica.setAge(info.age);
+                replica.setReplicaType(info.replicaType);
             } else {
-                queIn.put(replica);
+                // Физически забираем данные реплики с сервера
+                replica = mailer.receive(no, "to");
+                //
+                JdxReplicaReaderXml.readReplicaInfo(replica);
             }
+
+            // Помещаем реплику в свою входящую очередь
+            queIn.put(replica);
 
             // Удаляем с почтового сервера
             mailer.delete(no, "to");

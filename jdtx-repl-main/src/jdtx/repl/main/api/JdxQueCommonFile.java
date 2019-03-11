@@ -1,12 +1,14 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.data.*;
-import jandcode.dbm.db.*;
-import jandcode.utils.*;
-import jandcode.utils.error.*;
-import org.apache.commons.io.*;
+import jandcode.dbm.data.DataRecord;
+import jandcode.dbm.db.Db;
+import jandcode.utils.UtCnv;
+import jandcode.utils.UtFile;
+import jandcode.utils.UtString;
+import jandcode.utils.error.XError;
+import org.apache.commons.io.FileUtils;
 
-import java.io.*;
+import java.io.File;
 
 /**
  *
@@ -56,6 +58,11 @@ public class JdxQueCommonFile implements IJdxQueCommon {
         if (replica.getAge() != queMaxAge + 1) {
             throw new XError("invalid replica.age: " + replica.getAge() + ", que.age: " + queMaxAge);
         }
+        // Проверки: обязательность файла
+        File replicaFile = replica.getFile();
+        if (replicaFile == null && replica.getReplicaType() != JdxReplicaType.EXPORT) {
+            throw new XError("invalid replica.file is null");
+        }
 
         // Генерим следующий номер
         long queNextNo = getMaxNo() + 1;
@@ -63,31 +70,41 @@ public class JdxQueCommonFile implements IJdxQueCommon {
         // Помещаем в очередь
         String actualFileName = genFileName(queNextNo);
         File actualFile = new File(baseDir + actualFileName);
-        if (replica.getFile().getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
-            FileUtils.moveFile(replica.getFile(), actualFile);
+        if (replicaFile != null && replicaFile.getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
+            FileUtils.moveFile(replicaFile, actualFile);
         }
 
         //
-        String sql = "insert into " + JdxUtils.sys_table_prefix + "que" + queType + " (id, ws_id, age) values (:id, :ws_id, :age)";
+        String sql = "insert into " + JdxUtils.sys_table_prefix + "que" + queType + " (id, ws_id, age, replica_type) values (:id, :ws_id, :age, :replica_type)";
         db.execSql(sql, UtCnv.toMap(
                 "id", queNextNo,
                 "ws_id", replica.getWsId(),
-                "age", replica.getAge()
+                "age", replica.getAge(),
+                "replica_type", replica.getReplicaType()
         ));
 
         //
         return queNextNo;
     }
 
-    public IReplica getByNo(long no) {
+    public IReplica getByNo(long no) throws Exception {
+        IReplica replica = new ReplicaFile();
+
+        //
+        String sql = "select * from " + JdxUtils.sys_table_prefix + "que" + queType + " where id = " + no;
+        DataRecord rec = db.loadSql(sql).getCurRec();
+        if (rec.getValueLong("id") == 0) {
+            throw new XError("Replica not found: " + no);
+        }
+        replica.setAge(rec.getValueLong("age"));
+        replica.setWsId(rec.getValueLong("ws_id"));
+        replica.setReplicaType(rec.getValueInt("replica_type"));
+
+        //
         String actualFileName = genFileName(no);
         File actualFile = new File(baseDir + actualFileName);
-        IReplica replica = new ReplicaFile();
         replica.setFile(actualFile);
-        //
-        if (!actualFile.exists()) {
-            throw new XError("Replica file is not exists: " + actualFile.getAbsolutePath());
-        }
+
         //
         return replica;
     }

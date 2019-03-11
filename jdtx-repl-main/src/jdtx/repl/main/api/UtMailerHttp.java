@@ -93,9 +93,10 @@ public class UtMailerHttp implements IJdxMailer {
 
         //
         JdxReplInfo info = new JdxReplInfo();
-        info.crc = UtString.md5Str(UtFile.loadString(repl.getFile()));
         info.wsId = repl.getWsId();
-        info.no = no;
+        info.age = repl.getAge();
+        info.replicaType = repl.getReplicaType();
+        info.crc = UtString.md5Str(UtFile.loadString(repl.getFile()));
 
         //
         StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
@@ -103,6 +104,7 @@ public class UtMailerHttp implements IJdxMailer {
         StringBody stringBody_no = new StringBody(String.valueOf(no), ContentType.MULTIPART_FORM_DATA);
         StringBody stringBody_info = new StringBody(info.toString(), ContentType.MULTIPART_FORM_DATA);
         FileBody fileBody = new FileBody(repl.getFile(), ContentType.DEFAULT_BINARY);
+
         //
         MultipartEntityBuilder builder = MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -259,10 +261,7 @@ public class UtMailerHttp implements IJdxMailer {
         }
 
         //
-        JdxReplInfo info = new JdxReplInfo();
-        info.crc = (String) res.get("crc");
-        info.wsId = (long) res.get("wsId");
-        info.no = (long) res.get("no");
+        JdxReplInfo info = JdxReplInfo.fromJSONObject(res);
         return info;
     }
 

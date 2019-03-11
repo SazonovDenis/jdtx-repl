@@ -1,13 +1,17 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.data.*;
-import jandcode.dbm.db.*;
-import jandcode.utils.*;
-import jandcode.utils.error.*;
-import jdtx.repl.main.api.struct.*;
-import org.apache.commons.io.*;
+import jandcode.dbm.data.DataRecord;
+import jandcode.dbm.db.Db;
+import jandcode.utils.UtCnv;
+import jandcode.utils.UtFile;
+import jandcode.utils.UtString;
+import jandcode.utils.error.XError;
+import jdtx.repl.main.api.struct.IJdxDbStruct;
+import jdtx.repl.main.api.struct.IJdxDbStructReader;
+import jdtx.repl.main.api.struct.JdxDbStructReader;
+import org.apache.commons.io.FileUtils;
 
-import java.io.*;
+import java.io.File;
 
 /**
  * Формирователь очереди реплик.
@@ -71,11 +75,12 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
         }
         //
         long id = ut.getNextGenerator(JdxUtils.sys_gen_prefix + "que" + queType);
-        String sql = "insert into " + JdxUtils.sys_table_prefix + "que" + queType + " (id, ws_id, age) values (:id, :ws_id, :age)";
+        String sql = "insert into " + JdxUtils.sys_table_prefix + "que" + queType + " (id, ws_id, age, replica_type) values (:id, :ws_id, :age, :replica_type)";
         db.execSql(sql, UtCnv.toMap(
                 "id", id,
                 "ws_id", replica.getWsId(),
-                "age", replica.getAge()
+                "age", replica.getAge(),
+                "replica_type", replica.getReplicaType()
         ));
     }
 
