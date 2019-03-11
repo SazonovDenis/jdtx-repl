@@ -52,7 +52,7 @@ public class JdxReplWs {
         reader.setDb(db);
         struct = reader.readDbStruct();
         // Строго обязательно REPEATABLE_READ, иначе сохранение в age возраста аудита
-        // не синхронно с изменениями в таблицах аудита.
+        // будет не синхронно с изменениями в таблицах аудита.
         this.db.getConnection().setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
     }
 

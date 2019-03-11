@@ -22,6 +22,8 @@ public interface IJdxMailer {
 
     IReplica receive(long n, String box) throws Exception;
 
+    JdxReplInfo getInfo(long n, String box) throws Exception;
+
     void delete(long n, String box) throws Exception;
 
     void ping(String box) throws Exception;

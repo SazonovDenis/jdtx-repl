@@ -92,9 +92,16 @@ public class UtMailerHttp implements IJdxMailer {
         HttpPost post = new HttpPost(remoteUrl + "/repl_send.php");
 
         //
+        JdxReplInfo info = new JdxReplInfo();
+        info.crc = UtString.md5Str(UtFile.loadString(repl.getFile()));
+        info.wsId = repl.getWsId();
+        info.no = no;
+
+        //
         StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
         StringBody stringBody_box = new StringBody(box, ContentType.MULTIPART_FORM_DATA);
         StringBody stringBody_no = new StringBody(String.valueOf(no), ContentType.MULTIPART_FORM_DATA);
+        StringBody stringBody_info = new StringBody(info.toString(), ContentType.MULTIPART_FORM_DATA);
         FileBody fileBody = new FileBody(repl.getFile(), ContentType.DEFAULT_BINARY);
         //
         MultipartEntityBuilder builder = MultipartEntityBuilder.create();
@@ -102,6 +109,7 @@ public class UtMailerHttp implements IJdxMailer {
         builder.addPart("guid", stringBody_guid);
         builder.addPart("box", stringBody_box);
         builder.addPart("no", stringBody_no);
+        builder.addPart("info", stringBody_info);
         builder.addPart("file", fileBody);
         HttpEntity entity = builder.build();
         //
@@ -226,6 +234,36 @@ public class UtMailerHttp implements IJdxMailer {
         }
         //
         return new DateTime(state_dt);
+    }
+
+    @Override
+    public JdxReplInfo getInfo(long no, String box) throws Exception {
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+
+        //
+        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_get_info.php?" + "guid=" + guid + "&box=" + box + "&no=" + no);
+
+        //
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        if (response.getStatusLine().getStatusCode() != 200) {
+            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
+        }
+
+        //
+        String resStr = EntityUtils.toString(response.getEntity());
+        JSONObject res = parseJson(resStr);
+        if (res.get("error") != null) {
+            throw new XError(String.valueOf(res.get("error")));
+        }
+
+        //
+        JdxReplInfo info = new JdxReplInfo();
+        info.crc = (String) res.get("crc");
+        info.wsId = (long) res.get("wsId");
+        info.no = (long) res.get("no");
+        return info;
     }
 
     JSONObject parseJson(String jsonStr) throws Exception {

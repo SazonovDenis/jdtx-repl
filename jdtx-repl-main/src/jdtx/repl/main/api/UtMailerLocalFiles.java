@@ -113,6 +113,11 @@ public class UtMailerLocalFiles implements IJdxMailer {
         throw new XError("Not implemented");
     }
 
+    @Override
+    public JdxReplInfo getInfo(long n, String box) throws Exception {
+        throw new XError("Not implemented");
+    }
+
 
     String getFileName(long no) {
         return UtString.padLeft(String.valueOf(no), 9, '0') + ".xml";

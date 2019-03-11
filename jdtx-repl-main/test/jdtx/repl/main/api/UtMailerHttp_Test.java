@@ -119,4 +119,20 @@ public class UtMailerHttp_Test extends ReplDatabase_Test {
     }
 
 
+    @Test
+    public void test_info() throws Exception {
+        // ---
+        long no = mailer.getSrvSate("from");
+        System.out.println("getSrvSend: " + no);
+
+
+        // ---
+        JdxReplInfo info = mailer.getInfo(no, "from");
+
+
+        // ---
+        System.out.println("info: " + info);
+    }
+
+
 }
