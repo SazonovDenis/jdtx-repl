@@ -44,7 +44,6 @@
                 delay="100"
                 period="600000"
                 enabled="false"
-                wsId="1"
                 cfgFileName="cfg.json"
                 />
 
