@@ -267,14 +267,21 @@ public class UtMailerHttp implements IJdxMailer {
 
     JSONObject parseJson(String jsonStr) throws Exception {
         JSONObject cfgData;
-        Reader r = new StringReader(jsonStr);
         try {
-            JSONParser p = new JSONParser();
-            cfgData = (JSONObject) p.parse(r);
-        } finally {
-            r.close();
+            Reader r = new StringReader(jsonStr);
+            try {
+                JSONParser p = new JSONParser();
+                cfgData = (JSONObject) p.parse(r);
+            } finally {
+                r.close();
+            }
+        } catch (Exception e) {
+            log.error("parseJson.error: " + e.getMessage());
+            log.error("parseJson.jsonStr: " + jsonStr);
+            throw e;
         }
 
+        //
         return cfgData;
     }
 
