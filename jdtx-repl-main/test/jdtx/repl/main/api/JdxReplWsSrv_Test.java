@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import jandcode.bgtasks.*;
 import jandcode.dbm.data.*;
 import jandcode.utils.*;
 import org.junit.*;
@@ -239,6 +240,35 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
+    public void test_ws_sendLocal() throws Exception {
+        // Рабочая станция, настройка
+        JdxReplWs ws2 = new JdxReplWs(db2);
+        ws2.init("test/etalon/mail_http_ws2.json");
+        //
+        JdxReplWs ws3 = new JdxReplWs(db3);
+        ws3.init("test/etalon/mail_http_ws3.json");
+
+        //
+        ws2.sendTo("test/etalon/mail_http_ws2.json", 1, 3, "../_test-data/mail_local");
+        ws3.sendTo("test/etalon/mail_http_ws3.json", 1, 1, "../_test-data/mail_local/");
+    }
+
+
+    @Test
+    public void test_ws_receiveLocal() throws Exception {
+        // Рабочая станция, настройка
+        JdxReplWs ws2 = new JdxReplWs(db2);
+        ws2.init("test/etalon/mail_http_ws2.json");
+        //
+        JdxReplWs ws3 = new JdxReplWs(db3);
+        ws3.init("test/etalon/mail_http_ws3.json");
+
+        //
+        ws2.receiveFrom("test/etalon/mail_http_ws2.json", 1, 3, "../_test-data/mail_local");
+        ws3.receiveFrom("test/etalon/mail_http_ws3.json", 1, 1, "../_test-data/mail_local/");
+    }
+
+    @Test
     public void test_srv_handleQue() throws Exception {
         // Сервер, настройка
         JdxReplSrv srv = new JdxReplSrv(db);
@@ -250,6 +280,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         // Тиражирование реплик
         srv.srvDispatchReplicas();
+    }
+
+    @Test
+    public void test_z() throws Exception {
+        BgTasksService bgTasksService = app.service(BgTasksService.class);
+        String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName");
+        System.out.println(cfgFileName);  // todo: почему не накладывается _app.rt ?
     }
 
 

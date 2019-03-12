@@ -105,7 +105,7 @@ public class UtMailerLocalFiles implements IJdxMailer {
 
     @Override
     public void ping(String box) throws Exception {
-       throw new XError("Not implemented");
+        //throw new XError("Not implemented");
     }
 
     @Override
@@ -115,7 +115,8 @@ public class UtMailerLocalFiles implements IJdxMailer {
 
     @Override
     public JdxReplInfo getInfo(long n, String box) throws Exception {
-        throw new XError("Not implemented");
+        JdxReplInfo info = new JdxReplInfo();
+        return info;
     }
 
 

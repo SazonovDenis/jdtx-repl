@@ -282,7 +282,36 @@ public class JdxReplWs {
     }
 
 
+    public void receiveFrom(String cfgFileName, long age_from, long age_to, String mailFromDir) throws Exception {
+        mailFromDir = UtFile.unnormPath(mailFromDir) + "/";
+
+        //
+        JSONObject cfgData = null;
+        Reader r = new FileReader(cfgFileName);
+        try {
+            JSONParser p = new JSONParser();
+            cfgData = (JSONObject) p.parse(r);
+        } finally {
+            r.close();
+        }
+        //
+        String guidPath = ((UtMailerHttp) mailer).guid.replace("-", "/");
+        cfgData.put("mailRemoteDir", mailFromDir + guidPath);
+
+        //
+        IJdxMailer mailerLocal = new UtMailerLocalFiles();
+        mailerLocal.init(cfgData);
+
+
+        // Физически забираем данные
+        receiveInternal(mailerLocal);
+    }
+
     public void receive() throws Exception {
+        receiveInternal(mailer);
+    }
+
+    void receiveInternal(IJdxMailer mailer) throws Exception {
         // Узнаем сколько есть на сервере
         long srvAvailableNo = mailer.getSrvSate("to");
 
@@ -332,7 +361,36 @@ public class JdxReplWs {
     }
 
 
+    public void sendTo(String cfgFileName, long age_from, long age_to, String mailToDir) throws Exception {
+        mailToDir = UtFile.unnormPath(mailToDir) + "/";
+
+        //
+        JSONObject cfgData = null;
+        Reader r = new FileReader(cfgFileName);
+        try {
+            JSONParser p = new JSONParser();
+            cfgData = (JSONObject) p.parse(r);
+        } finally {
+            r.close();
+        }
+        //
+        String guidPath = ((UtMailerHttp) mailer).guid.replace("-", "/");
+        cfgData.put("mailRemoteDir", mailToDir + guidPath);
+
+        //
+        IJdxMailer mailerLocal = new UtMailerLocalFiles();
+        mailerLocal.init(cfgData);
+
+
+        // Физически отправляем данные
+        sendInternal(mailerLocal);
+    }
+
     public void send() throws Exception {
+        sendInternal(mailer);
+    }
+
+    public void sendInternal(IJdxMailer mailer) throws Exception {
         // Узнаем сколько уже отправлено на сервер
         long srvSendAge = mailer.getSrvSate("from");
 

@@ -30,5 +30,20 @@ repl_setup = cm("Выгружает установочную реплику",
     ext.repl_setup(args)
 }
 
+//
+repl_send = cm("Записывает реплики в указанную папку",
+) {
+    def ext = createExt("jdtx.repl.main.Jdx_Ext")
+    ext.repl_send(args)
+}
+
+
+//
+repl_receive = cm("Забирает реплики из указанной папки",
+) {
+    def ext = createExt("jdtx.repl.main.Jdx_Ext")
+    ext.repl_receive(args)
+}
+
 
 
