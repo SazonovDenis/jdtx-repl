@@ -119,9 +119,6 @@ public class UtRepl {
                 JSONObject publicationTable = (JSONObject) publicationData.get(i);
                 String publicationTableName = (String) publicationTable.get("table");
                 if (stuctTableName.compareToIgnoreCase(publicationTableName) == 0) {
-                    log.info("readAuditData: " + stuctTableName);
-
-                    //
                     String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
                     utrr.readAuditData(stuctTableName, publicationFields, age - 1, age, writer);
                 }
@@ -152,6 +149,9 @@ public class UtRepl {
      * самая первая (установочная) реплика для сервера.
      */
     IReplica createReplicaFull(long wsId, IPublication publication, long age) throws Exception {
+        log.info("createReplicaFull");
+
+        //
         File file = File.createTempFile("~jdx-" + UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0') + "-full", ".xml");
         OutputStream outputStream = new FileOutputStream(file);
         JdxReplicaWriterXml writer = new JdxReplicaWriterXml(outputStream);

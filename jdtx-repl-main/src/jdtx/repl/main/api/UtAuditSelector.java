@@ -1,9 +1,13 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.db.*;
-import jandcode.utils.*;
-import jdtx.repl.main.api.struct.*;
-import org.apache.commons.logging.*;
+import jandcode.dbm.db.Db;
+import jandcode.dbm.db.DbQuery;
+import jandcode.utils.UtCnv;
+import jdtx.repl.main.api.struct.IJdxDbStruct;
+import jdtx.repl.main.api.struct.IJdxFieldStruct;
+import jdtx.repl.main.api.struct.IJdxTableStruct;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class UtAuditSelector {
 
@@ -36,6 +40,7 @@ public class UtAuditSelector {
                 dataWriter.startTable(tableName);
 
                 // Измененные данные помещаем в dataWriter
+                long n = 0;
                 while (!rsTableLog.eof()) {
                     dataWriter.append();
                     // Тип операции
@@ -65,7 +70,16 @@ public class UtAuditSelector {
                     }
                     //
                     rsTableLog.next();
+
+                    //
+                    n++;
+                    if (n % 1000 == 0) {
+                        log.info("readData: " + tableName + ", " + n);
+                    }
                 }
+
+                //
+                log.info("readData: " + tableName + ", total: " + n);
             }
 
             //

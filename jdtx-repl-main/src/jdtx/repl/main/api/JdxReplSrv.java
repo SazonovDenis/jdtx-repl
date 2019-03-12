@@ -23,12 +23,13 @@ public class JdxReplSrv {
     // Источник для чтения/отправки сообщений всех рабочих станций
     Map<Long, IJdxMailer> mailerList;
 
-
     //
     Db db;
 
+
     //
     protected static Log log = LogFactory.getLog("jdtx");
+
 
     //
     public JdxReplSrv(Db db) throws Exception {

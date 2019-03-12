@@ -2,16 +2,21 @@ package jdtx.repl.main.api;
 
 import jandcode.dbm.db.Db;
 import jandcode.dbm.db.DbQuery;
-import jandcode.utils.DataType;
-import jandcode.utils.UtString;
 import jdtx.repl.main.api.struct.IJdxDbStruct;
 import jdtx.repl.main.api.struct.IJdxTableStruct;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class UtDataSelector {
 
     Db db;
     IJdxDbStruct struct;
 
+    //
+    protected static Log log = LogFactory.getLog("jdtx");
+
+
+    //
     public UtDataSelector(Db db, IJdxDbStruct struct) {
         this.db = db;
         this.struct = struct;
@@ -21,12 +26,12 @@ public class UtDataSelector {
      * Обязана обеспечить правильный поток записей, если есть ссылка на самого себя
      */
     public void readFullData(String tableName, String tableFields, JdxReplicaWriterXml dataContainer) throws Exception {
-        //
         DbQuery rsTableLog = selectFullData(tableName, tableFields);
         try {
             dataContainer.startTable(tableName);
 
             // измененные данные помещаем в dataContainer
+            long n = 0;
             while (!rsTableLog.eof()) {
                 dataContainer.append();
                 // Тип операции
@@ -38,7 +43,16 @@ public class UtDataSelector {
                 }
                 //
                 rsTableLog.next();
+
+                //
+                n++;
+                if (n % 1000 == 0) {
+                    log.info("readData: " + tableName + ", " + n);
+                }
             }
+
+            //
+            log.info("readData: " + tableName + ", total: " + n);
 
             //
             dataContainer.flush();
