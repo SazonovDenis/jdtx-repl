@@ -26,5 +26,10 @@ project.event("waxBeforeProduct") {
 
 
 project.event("waxAfterProduct") { m->
+    // Лишний (иначе затирает наши настройки при обновлении)
     ant.delete(file: m.distr_dir+"/web/WEB-INF/_db-ini.rt")
+
+    // Наш вариант jc.bat (с настройками памяти)
+    ant.delete(file: m.distr_dir+"/web/WEB-INF/jc.bat")
+    ant.copy(file: wd("install/jc.bat"), tofile: m.distr_dir+"/web/WEB-INF/jc.bat")
 }
