@@ -6,13 +6,13 @@
         <!-- Сервер -->
         <bgtask name="server"
                 period="5000"
-                enabled="true"
+                enabled="false"
                 />
 
         <!-- Рабочая станция -->
         <bgtask name="ws"
-                period="5000"
-                enabled="false"
+                period="10000"
+                enabled="true"
                 />
 
     </service>
