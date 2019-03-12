@@ -3,14 +3,14 @@ include "db-project-product"
 
 
 //
-repl_create = cm("Инициализация",
+repl_create = cm("Инициализация рабочей станции",
 ) {
     def ext = createExt("jdtx.repl.main.Jdx_Ext")
     ext.repl_create(args)
 }
 
 //
-repl_info = cm("Информация",
+repl_info = cm("Информация по репликации",
 ) {
     def ext = createExt("jdtx.repl.main.Jdx_Ext")
     ext.repl_info(args)
@@ -24,7 +24,7 @@ repl_add_ws = cm("Добавляет рабочую станцию",
 }
 
 //
-repl_setup = cm("Создает установочную реплику",
+repl_setup = cm("Выгружает установочную реплику",
 ) {
     def ext = createExt("jdtx.repl.main.Jdx_Ext")
     ext.repl_setup(args)
