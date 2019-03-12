@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <!-- Настройки базы данных -->
+
+    <db name="default"
+        database="C:\Users\Public\Documents\Jadatex.PawnShop\db.gdb"
+    />
+
+
+</root>

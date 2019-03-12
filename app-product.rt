@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 
+
     <app appdir="#{path}"/>
 
     <x-include module="jdtx.repl.main"/>
@@ -9,9 +10,33 @@
         <resource name="app.webdir" path="#{path}/.."/>
     </web>
 
-    <!-- настройки базы данных -->
+
+    <!-- Фоновые задачи -->
+    <service name="jandcode.bgtasks.BgTasksService">
+
+        <!-- Сервер -->
+        <bgtask name="server"
+                period="10000"
+                enabled="false"
+                cfgFileName="#{path}/cfg/srv.json"
+                />
+
+        <!-- Рабочая станция -->
+        <bgtask name="ws"
+                period="60000"
+                enabled="false"
+                cfgFileName="#{path}/cfg/ws.json"
+                />
+
+    </service>
+
+
+    <!-- Настройки базы данных -->
     <x-include path="db-ini.rt"/>
 
-    <!-- перкрытие настроек -->
+
+    <!-- Перекрытие настроек -->
     <x-include path="_app.rt" required="false"/>
+
+
 </root>

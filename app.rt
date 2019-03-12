@@ -21,6 +21,5 @@
 
     <x-include path="app-product.rt"/>
     <x-include path="app-dev.rt"/>
-    <x-include path="_app.rt" required="false"/>
 
 </root>

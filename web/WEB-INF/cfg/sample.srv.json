@@ -1,0 +1,21 @@
+{
+  "queCommon_DirLocal": "data/srv/queCommon/",
+
+  "1": {
+    "url": "http://192.168.0.141/lombard.systems/repl/",
+    "guid": "b5781df573ca6ee6-97845f2f56f4d4dc",
+    "mailLocalDirTmp": "data/srv/ws_001_tmp/"
+  },
+
+  "2": {
+    "url": "http://192.168.0.141/lombard.systems/repl/",
+    "guid": "b5781df573ca6ee6-61ba238dfc94503e",
+    "mailLocalDirTmp": "data/srv/ws_002_tmp/"
+  },
+
+  "3": {
+    "url": "http://192.168.0.141/lombard.systems/repl/",
+    "guid": "b5781df573ca6ee6-84f3cc20bea645fa",
+    "mailLocalDirTmp": "data/srv/ws_003_tmp/"
+  }
+}

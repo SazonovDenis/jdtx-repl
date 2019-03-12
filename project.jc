@@ -23,3 +23,8 @@ libs_dev = libs_dev + []
 project.event("waxBeforeProduct") {
     wax_scripts_masks.add("ov-product.jc")
 }
+
+
+project.event("waxAfterProduct") { m->
+    ant.delete(file: m.distr_dir+"/web/WEB-INF/_db-ini.rt")
+}
