@@ -154,18 +154,17 @@ public class JdxReplWs {
             throw new XError("invalid auditAgeActual != auditAgeDone, auditAgeDone: " + auditAgeDone + ", auditAgeActual: " + auditAgeActual);
         }
 
-
-        // Увеличиваем возраст (установочная реплика просто сдвигает возраст БД)
-        long age = utr.incAuditAge();
-        log.info("createSetupReplica, new age: " + age);
-
         //
-        for (IPublication publication : publicationsOut) {
-            // Забираем установочную реплику
-            IReplica setupReplica = utr.createReplicaFull(wsId, publication, age);
+        db.startTran();
+        try {
+            // Увеличиваем возраст (установочная реплика просто сдвигает возраст БД)
+            long age = utr.incAuditAge();
+            log.info("createSetupReplica, new age: " + age);
 
-            db.startTran();
-            try {
+            //
+            for (IPublication publication : publicationsOut) {
+                // Забираем установочную реплику
+                IReplica setupReplica = utr.createReplicaFull(wsId, publication, age);
 
                 // Помещаем реплику в очередь
                 queOut.put(setupReplica);
@@ -173,12 +172,13 @@ public class JdxReplWs {
                 //
                 stateManager.setAuditAgeDone(age);
 
-                //
-                db.commit();
-            } catch (Exception e) {
-                db.rollback(e);
-                throw e;
             }
+
+            //
+            db.commit();
+        } catch (Exception e) {
+            db.rollback(e);
+            throw e;
         }
 
         //
