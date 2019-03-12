@@ -1,6 +1,7 @@
 package jdtx.repl.main
 
 import jandcode.app.App
+import jandcode.bgtasks.BgTasksService
 import jandcode.dbm.ModelService
 import jandcode.dbm.db.Db
 import jandcode.jc.AppProjectExt
@@ -9,9 +10,7 @@ import jandcode.utils.UtFile
 import jandcode.utils.UtLog
 import jandcode.utils.error.XError
 import jandcode.utils.variant.IVariantMap
-import jdtx.repl.main.api.JdxReplWs
-import jdtx.repl.main.api.UtDbObjectManager
-import jdtx.repl.main.api.UtRepl
+import jdtx.repl.main.api.*
 import jdtx.repl.main.api.struct.IJdxDbStruct
 import jdtx.repl.main.api.struct.IJdxDbStructReader
 import jdtx.repl.main.api.struct.JdxDbStructReader
@@ -55,25 +54,50 @@ class Jdx_Ext extends ProjectExt {
 
 
     void repl_info(IVariantMap args) {
-        String cfg = args.getValueString("cfg")
-        if (cfg == null || cfg.length() == 0) {
-            throw new XError("Не указан [cfg] - файл конфигурации")
-        }
+        BgTasksService bgTasksService = app.service(BgTasksService.class);
+        String cfgFileName_ws = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName");
+        String cfgFileName_server = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName");
 
+        //
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
+        // БД
+        System.out.println("База данных: " + db.getDbSource().getDatabase());
+
         //
         try {
-            // Рабочая станция, настройка
+            // Рабочая станция
+            System.out.println("");
+            System.out.println("Рабочая станция, cfgFileName: " + cfgFileName_ws);
+
             JdxReplWs ws = new JdxReplWs(db)
-            ws.init(cfg)
+            ws.init(cfgFileName_ws)
 
             //
-            System.out.println("wsId: " + ws.getWsId())
-            System.out.println("queIn.baseDir: " + ws.queIn.baseDir)
-            System.out.println("queOut.baseDir: " + ws.queOut.baseDir)
-            System.out.println("queOut.baseDir: " + ws.mailer.class)
+            System.out.println("ws.wsId: " + ws.getWsId())
+            System.out.println("  queIn.baseDir: " + ws.queIn.baseDir)
+            System.out.println("  queOut.baseDir: " + ws.queOut.baseDir)
+            System.out.println("  mailer.remoteUrl: " + ws.mailer.remoteUrl);
+            System.out.println("  mailer.guid: " + ws.mailer.guid);
+
+            // Сервер
+            System.out.println("");
+            System.out.println("Сервер, cfgFileName: " + cfgFileName_server);
+
+            //
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init(cfgFileName_server)
+
+            //
+            System.out.println("commonQue.baseDir: " + srv.commonQue.baseDir)
+            for (Object obj : srv.mailerList.entrySet()) {
+                Map.Entry entry = (Map.Entry) obj
+                UtMailerHttp mailer = (UtMailerHttp) entry.value
+                System.out.println("mailer.wsId: " + entry.key)
+                System.out.println("  remoteUrl: " + mailer.remoteUrl)
+                System.out.println("  guid: " + mailer.guid)
+            }
 
         } finally {
             db.disconnect()
@@ -83,6 +107,9 @@ class Jdx_Ext extends ProjectExt {
     void repl_create(IVariantMap args) {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
+
+        // БД
+        System.out.println("База данных: " + db.getDbSource().getDatabase());
 
         //
         try {
@@ -126,21 +153,29 @@ class Jdx_Ext extends ProjectExt {
 
 
     void repl_setup(IVariantMap args) {
-        String cfg = args.getValueString("cfg")
-        if (cfg == null || cfg.length() == 0) {
-            throw new XError("Не указан [cfg] - файл конфигурации")
-        }
+        BgTasksService bgTasksService = app.service(BgTasksService.class);
+        String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName");
 
+        //
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
+        // БД
+        System.out.println("База данных: " + db.getDbSource().getDatabase());
+
         //
         try {
-            // Рабочая станция, настройка
-            JdxReplWs ws = new JdxReplWs(db)
-            ws.init(cfg)
+            // Рабочая станция
+            System.out.println("");
+            System.out.println("Рабочая станция, cfgFileName: " + cfgFileName);
 
-            // Забираем установочную реплику
+            JdxReplWs ws = new JdxReplWs(db)
+            ws.init(cfgFileName)
+
+            //
+            System.out.println("ws.wsId: " + ws.getWsId())
+
+            // Формируем установочную реплику
             ws.createSetupReplica()
 
         } finally {
