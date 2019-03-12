@@ -27,9 +27,13 @@ public class WsBgTask extends BgTask {
 
     String cfgFileName;
 
+    public boolean runImmediate;
+
 
     //
     public void run() throws Exception {
+        runImmediate = false;
+
         try {
             step_ws();
         } catch (Exception e) {
@@ -39,6 +43,7 @@ public class WsBgTask extends BgTask {
             } else {
                 msg = e.getMessage();
             }
+            getLogger().put("state", "Рабочая станция: " + msg);
             log.error("Рабочая станция: " + msg);
             e.printStackTrace();
         }
@@ -47,7 +52,7 @@ public class WsBgTask extends BgTask {
 
     //
     void step_ws() throws Exception {
-        log.info("Рабочая станция: " + cfgFileName);
+        logInfo("Рабочая станция: " + cfgFileName);
 
         //
         ModelService app = getApp().service(ModelService.class);
@@ -56,33 +61,36 @@ public class WsBgTask extends BgTask {
 
         //
         try {
-            //
-            log.info("Рабочая станция, настройка");
+            logInfo("Рабочая станция, настройка");
             JdxReplWs ws = new JdxReplWs(db);
             ws.init(cfgFileName);
 
             //
-            log.info("Отслеживаем и обрабатываем свои изменения");
+            logInfo("Отслеживаем и обрабатываем свои изменения");
             ws.handleSelfAudit();
 
             //
-            log.info("Отправляем свои изменения");
+            logInfo("Отправляем свои изменения");
             ws.send();
 
             //
-            log.info("Забираем входящие реплики");
+            logInfo("Забираем входящие реплики");
             ws.receive();
 
             //
-            log.info("Применяем входящие реплики");
+            logInfo("Применяем входящие реплики");
             ws.handleQueIn();
 
             //
-            log.info("Рабочая станция завершена");
+            logInfo("Рабочая станция завершена");
         } finally {
             db.disconnect();
         }
     }
 
+    void logInfo(String s) {
+        log.info(s);
+        getLogger().put("state", s);
+    }
 
 }

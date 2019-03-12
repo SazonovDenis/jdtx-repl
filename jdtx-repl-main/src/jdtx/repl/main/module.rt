@@ -36,6 +36,8 @@
     <!-- Запуск по расписанию -->
     <service name="jandcode.bgtasks.BgTasksService">
 
+        <choicer name="JdxTaskPriorityChoicer" class="jdtx.repl.main.task.JdxTaskPriorityChoicer"/>
+
         <!-- Рабочая станция -->
         <bgtask name="ws"
                 class="jdtx.repl.main.task.WsBgTask"
