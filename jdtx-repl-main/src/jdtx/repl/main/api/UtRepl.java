@@ -252,7 +252,7 @@ public class UtRepl {
             IJdxMailer mailer = (IJdxMailer) en.getValue();
 
             //
-            long commonQueDoneNo = stateManager.getCommonQueNoDone(wsId);
+            long commonQueDoneNo = stateManager.getCommonQueDispatchDone(wsId);
             long commonQueMaxNo = commonQue.getMaxNo();
 
             //
@@ -266,7 +266,7 @@ public class UtRepl {
 
                 mailer.send(replica, no, "to"); // todo это тупо - так копировать и перекладывать файлы
 
-                stateManager.setCommonQueNoDone(wsId, no);
+                stateManager.setCommonQueDispatchDone(wsId, no);
             }
 
             //

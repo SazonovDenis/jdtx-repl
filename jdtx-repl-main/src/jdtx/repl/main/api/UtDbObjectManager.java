@@ -1,13 +1,20 @@
 package jdtx.repl.main.api;
 
 
-import jandcode.dbm.db.*;
-import jandcode.utils.*;
-import jdtx.repl.main.api.struct.*;
-import org.apache.commons.logging.*;
+import jandcode.dbm.db.Db;
+import jandcode.dbm.db.DbQuery;
+import jandcode.utils.UtCnv;
+import jdtx.repl.main.api.struct.IJdxDbStruct;
+import jdtx.repl.main.api.struct.IJdxFieldStruct;
+import jdtx.repl.main.api.struct.IJdxTableStruct;
+import jdtx.repl.main.api.struct.JdxDbStructReader;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class UtDbObjectManager {
 
@@ -50,13 +57,13 @@ public class UtDbObjectManager {
             db.execSql(sql);
 
 
-            // таблица состояния сервера: для хранения возраста созданных реплик, примененных реплик и т.п.
-            sql = "create table " + JdxUtils.sys_table_prefix + "state(id integer not null, que_out_age_done int not null, que_in_no_done int not null)";
+            // таблица собственного состояния (для рабочей станции): для хранения возраста созданных реплик, примененных реплик и т.п.
+            sql = "create table " + JdxUtils.sys_table_prefix + "state(id integer not null, que_out_age_done int not null, que_in_no_done int not null, mail_send_done int not null)";
             db.execSql(sql);
-            sql = "insert into " + JdxUtils.sys_table_prefix + "state(id, que_out_age_done, que_in_no_done) values (1, 0, 0)";
+            sql = "insert into " + JdxUtils.sys_table_prefix + "state(id, que_out_age_done, que_in_no_done, mail_send_done) values (1, 0, 0, 0)";
             db.execSql(sql);
-            // таблица состояния рабочих станций: для хранения возраста созданных реплик, примененных реплик и т.п.
-            sql = "create table " + JdxUtils.sys_table_prefix + "state_ws(id integer not null, ws_id int not null, que_common_no_done int not null, que_in_age_done int not null)";
+            // таблица состояния рабочих станций (для сервера): для хранения возраста созданных реплик, примененных реплик и т.п.
+            sql = "create table " + JdxUtils.sys_table_prefix + "state_ws(id integer not null, ws_id int not null, que_common_dispatch_done int not null, que_in_age_done int not null)";
             db.execSql(sql);
             sql = "create generator " + JdxUtils.sys_gen_prefix + "state_ws";
             db.execSql(sql);
@@ -66,13 +73,6 @@ public class UtDbObjectManager {
             db.execSql(sql);
             // генератор Id для списка рабочих станций
             sql = "create generator " + JdxUtils.sys_gen_prefix + "workstation_list";
-            db.execSql(sql);
-
-            // состояние рабочих станций
-            sql = "create table " + JdxUtils.sys_table_prefix + "workstation_state(id integer not null, que_out_send int not null)";
-            db.execSql(sql);
-            // генератор Id для списка рабочих станций
-            sql = "create generator " + JdxUtils.sys_gen_prefix + "workstation_state";
             db.execSql(sql);
 
             // очереди реплик
@@ -155,10 +155,10 @@ public class UtDbObjectManager {
         // таблицу для хранения возраста базы,
         // таблицу с флагом работы триггеров
         String[] jdx_sys_tables = new String[]{
-                "age", "flag_tab", "state", "state_ws", "workstation_list", "workstation_state", "table_list",
-                "que"+JdxQueType.table_suffix[JdxQueType.IN],
-                "que"+JdxQueType.table_suffix[JdxQueType.OUT],
-                "que"+JdxQueType.table_suffix[JdxQueType.COMMON]
+                "age", "flag_tab", "state", "state_ws", "workstation_list", "table_list",
+                "que" + JdxQueType.table_suffix[JdxQueType.IN],
+                "que" + JdxQueType.table_suffix[JdxQueType.OUT],
+                "que" + JdxQueType.table_suffix[JdxQueType.COMMON]
         };
         for (String jdx_sys_table : jdx_sys_tables) {
             try {
@@ -176,10 +176,10 @@ public class UtDbObjectManager {
 
         // Удаляем системные генераторы
         String[] jdx_sys_generators = new String[]{
-                "state", "state_ws", "workstation_list", "workstation_state", "table_list",
-                "que"+JdxQueType.table_suffix[JdxQueType.IN],
-                "que"+JdxQueType.table_suffix[JdxQueType.OUT],
-                "que"+JdxQueType.table_suffix[JdxQueType.COMMON]
+                "state", "state_ws", "workstation_list", "table_list",
+                "que" + JdxQueType.table_suffix[JdxQueType.IN],
+                "que" + JdxQueType.table_suffix[JdxQueType.OUT],
+                "que" + JdxQueType.table_suffix[JdxQueType.COMMON]
         };
         for (String jdx_sys_generator : jdx_sys_generators) {
             try {
@@ -321,7 +321,7 @@ public class UtDbObjectManager {
 
         //
         long id = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "state_ws");
-        sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws(id, ws_id, que_common_no_done, que_in_age_done) values (" + id + ", " + wsId + ", 0, 0)";
+        sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws(id, ws_id, que_common_dispatch_done, que_in_age_done) values (" + id + ", " + wsId + ", 0, 0)";
         db.execSql(sql);
 
         //

@@ -171,7 +171,6 @@ public class JdxReplWs {
 
                 //
                 stateManager.setAuditAgeDone(age);
-
             }
 
             //
@@ -283,7 +282,10 @@ public class JdxReplWs {
 
 
     public void receiveFrom(String cfgFileName, long age_from, long age_to, String mailFromDir) throws Exception {
+        // Готовим локальный мейлер
         mailFromDir = UtFile.unnormPath(mailFromDir) + "/";
+        String guidPath = ((UtMailerHttp) mailer).guid.replace("-", "/");
+        mailFromDir = mailFromDir + guidPath;
 
         //
         JSONObject cfgData = null;
@@ -295,8 +297,7 @@ public class JdxReplWs {
             r.close();
         }
         //
-        String guidPath = ((UtMailerHttp) mailer).guid.replace("-", "/");
-        cfgData.put("mailRemoteDir", mailFromDir + guidPath);
+        cfgData.put("mailRemoteDir", mailFromDir);
 
         //
         IJdxMailer mailerLocal = new UtMailerLocalFiles();
@@ -362,7 +363,10 @@ public class JdxReplWs {
 
 
     public void sendTo(String cfgFileName, long age_from, long age_to, String mailToDir) throws Exception {
+        // Готовим локальный мейлер
         mailToDir = UtFile.unnormPath(mailToDir) + "/";
+        String guidPath = ((UtMailerHttp) mailer).guid.replace("-", "/");
+        mailToDir = mailToDir + guidPath;
 
         //
         JSONObject cfgData = null;
@@ -374,8 +378,7 @@ public class JdxReplWs {
             r.close();
         }
         //
-        String guidPath = ((UtMailerHttp) mailer).guid.replace("-", "/");
-        cfgData.put("mailRemoteDir", mailToDir + guidPath);
+        cfgData.put("mailRemoteDir", mailToDir);
 
         //
         IJdxMailer mailerLocal = new UtMailerLocalFiles();
@@ -392,21 +395,25 @@ public class JdxReplWs {
 
     public void sendInternal(IJdxMailer mailer) throws Exception {
         // Узнаем сколько уже отправлено на сервер
-        long srvSendAge = mailer.getSrvSate("from");
+        JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
+        long srvSendAge = stateManager.getMailSendDone();
 
         // Узнаем сколько есть у нас в очереди на отправку
         long selfQueOutAge = queOut.getMaxAge();
 
         //
-        log.info("UtMailer, send.age: " + srvSendAge + ", que.age: " + selfQueOutAge);
+        log.info("UtMailer, sendDone.age: " + srvSendAge + ", que.age: " + selfQueOutAge);
 
         //
         long count = 0;
         for (long age = srvSendAge + 1; age <= selfQueOutAge; age++) {
-            log.info("UtMailer, send.age: " + age);
+            log.info("UtMailer, sending: " + age);
 
             // Физически отправляем данные
             mailer.send(queOut.getByAge(age), age, "from");
+
+            // Отмечаем факт отправки
+            stateManager.setMailSendDone(age);
 
             //
             count++;
@@ -416,7 +423,7 @@ public class JdxReplWs {
         mailer.ping("from");
 
         //
-        log.info("UtMailer, send done: " + count + ", age: " + selfQueOutAge);
+        log.info("UtMailer, send done count: " + count + ", up to age: " + selfQueOutAge);
     }
 
 
