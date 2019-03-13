@@ -1,20 +1,13 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.db.Db;
-import jandcode.utils.UtString;
-import jdtx.repl.main.api.struct.IJdxDbStruct;
-import jdtx.repl.main.api.struct.IJdxDbStructReader;
-import jdtx.repl.main.api.struct.IJdxTableStruct;
-import jdtx.repl.main.api.struct.JdxDbStructReader;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import jandcode.dbm.db.*;
+import jandcode.utils.*;
+import jdtx.repl.main.api.struct.*;
+import org.apache.commons.logging.*;
+import org.json.simple.*;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 /**
  * Главное API репликатора
@@ -210,11 +203,9 @@ public class UtRepl {
             long queMaxAge = mailer.getSrvSate("from");
 
             //
-            log.info("srvHandleCommonQue, wsId: " + wsId + ", queDoneAge: " + queDoneAge + ", queMaxAge: " + queMaxAge);
-
-            //
+            long count = 0;
             for (long age = queDoneAge + 1; age <= queMaxAge; age++) {
-                log.info("srvHandleCommonQue, wsId: " + wsId + ",  age: " + age);
+                log.info("srvHandleCommonQue, wsId: " + wsId + ", age: " + age);
 
                 // Физически забираем данные с почтового сервера
                 IReplica replica = mailer.receive(age, "from");
@@ -225,8 +216,10 @@ public class UtRepl {
                 db.startTran();
                 try {
                     commonQue.put(replica);
+
                     //
                     stateManager.setWsQueInAgeDone(wsId, age);
+
                     //
                     db.commit();
                 } catch (Exception e) {
@@ -236,6 +229,16 @@ public class UtRepl {
 
                 // Удаляем с почтового сервера
                 mailer.delete(age, "from");
+
+                //
+                count++;
+            }
+
+            //
+            if (count == 0) {
+                log.info("srvHandleCommonQue, wsId: " + wsId + ", que.age: " + queDoneAge + ", nothing to do");
+            } else {
+                log.info("srvHandleCommonQue, wsId: " + wsId + ", que.age: " + queDoneAge + " ->" + queMaxAge + ", done count: " + count);
             }
         }
     }
@@ -256,21 +259,32 @@ public class UtRepl {
             long commonQueMaxNo = commonQue.getMaxNo();
 
             //
-            log.info("srvDispatchReplicas, wsId: " + wsId + ", commonQueDoneNo: " + commonQueDoneNo + ", commonQueMaxNo: " + commonQueMaxNo);
-
-            //
+            long count = 0;
             for (long no = commonQueDoneNo + 1; no <= commonQueMaxNo; no++) {
                 log.info("srvDispatchReplicas, wsId: " + wsId + ", no: " + no);
 
+                //
                 IReplica replica = commonQue.getByNo(no);
 
+                //
                 mailer.send(replica, no, "to"); // todo это тупо - так копировать и перекладывать файлы
 
+                //
                 stateManager.setCommonQueDispatchDone(wsId, no);
+
+                //
+                count++;
             }
 
             //
             mailer.ping("to");
+
+            //
+            if (count == 0) {
+                log.info("srvDispatchReplicas, wsId: " + wsId + ", que.age: " + commonQueDoneNo + ", nothing to do");
+            } else {
+                log.info("srvDispatchReplicas, wsId: " + wsId + ", que.age: " + commonQueDoneNo + " ->" + commonQueMaxNo + ", done count: " + count);
+            }
         }
     }
 

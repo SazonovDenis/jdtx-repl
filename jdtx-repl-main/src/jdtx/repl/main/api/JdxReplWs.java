@@ -175,7 +175,7 @@ public class JdxReplWs {
         }
 
         //
-        log.info("createSetupReplica, done");
+        log.info("createSetupReplica, wsId: " + wsId + ", done");
     }
 
     /**
@@ -189,16 +189,15 @@ public class JdxReplWs {
         UtAuditAgeManager ut = new UtAuditAgeManager(db, struct);
         UtRepl utr = new UtRepl(db);
 
-        //
+        // Узнаем (и заодно фиксируем) возраст своего аудита
+        long auditAgeActual = ut.markAuditAge();
+
+        // До какого возраста сформировали реплики для своего аудита
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         long auditAgeDone = stateManager.getAuditAgeDone();
 
-        // Фиксируем возраст своего аудита
-        long auditAgeActual = ut.markAuditAge();
-        log.info("handleSelfAudit, auditAgeDone: " + auditAgeDone + ", auditAgeActual: " + auditAgeActual);
-
         // Формируем реплики (по собственным изменениям)
-        long n = 0;
+        long count = 0;
         for (long age = auditAgeDone + 1; age <= auditAgeActual; age++) {
             for (IPublication publication : publicationsOut) {
                 IReplica replica = utr.createReplicaFromAudit(wsId, publication, age);
@@ -222,18 +221,22 @@ public class JdxReplWs {
             }
 
             //
-            n++;
+            count++;
         }
 
         //
-        log.info("handleSelfAudit, done: " + n + ", up to age: " + auditAgeActual);
+        if (count == 0) {
+            log.info("handleSelfAudit, wsId: " + wsId + ", audit.age: " + auditAgeDone + ", nothing to do");
+        } else {
+            log.info("handleSelfAudit, wsId: " + wsId + ", audit.age: " + auditAgeDone + " -> " + auditAgeActual + ", done count: " + count);
+        }
     }
 
     /**
      * Применяем входящие реплики
      */
     public void handleQueIn() throws Exception {
-        log.info("handleQueIn");
+        log.info("handleQueIn, wsId: " + wsId);
 
         //
         UtAuditApplyer utaa = new UtAuditApplyer(db, struct);
@@ -246,12 +249,9 @@ public class JdxReplWs {
         long queInNoAvailable = queIn.getMaxNo();
 
         //
-        log.info("handleQueIn, done: " + queInNoDone + ", available: " + queInNoAvailable);
-
-        //
-        long n = 0;
+        long count = 0;
         for (long no = queInNoDone + 1; no <= queInNoAvailable; no++) {
-            log.info("handleQueIn, no: " + no + " (" + n + "/" + (queInNoAvailable - queInNoDone) + ")");
+            log.info("handleQueIn, wsId: " + wsId + ", no: " + no + " (" + count + "/" + (queInNoAvailable - queInNoDone) + ")");
 
             //
             IReplica replica = queIn.getByNo(no);
@@ -267,11 +267,15 @@ public class JdxReplWs {
             stateManager.setQueInNoDone(no);
 
             //
-            n++;
+            count++;
         }
 
         //
-        log.info("handleQueIn, done: " + n + ", up to: " + queInNoAvailable);
+        if (count == 0) {
+            log.info("handleQueIn, wsId: " + wsId + ", queIn: " + queInNoDone + ", nothing to do");
+        } else {
+            log.info("handleQueIn, wsId: " + wsId + ", queIn: " + queInNoDone + " -> " + queInNoAvailable + ", done count: " + count);
+        }
     }
 
 
@@ -314,12 +318,9 @@ public class JdxReplWs {
         long selfReceivedNo = queIn.getMaxNo();
 
         //
-        log.info("UtMailer, srv.available: " + srvAvailableNo + ", self.received: " + selfReceivedNo);
-
-        //
         long count = 0;
         for (long no = selfReceivedNo + 1; no <= srvAvailableNo; no++) {
-            log.info("UtMailer, receive no: " + no);
+            log.info("UtMailer, wsId: " + wsId + ", receiving.no: " + no);
 
             // Информацмия о реплике с почтового сервера
             JdxReplInfo info = mailer.getInfo(no, "to");
@@ -352,7 +353,11 @@ public class JdxReplWs {
         }
 
         //
-        log.info("UtMailer, receive done: " + count + ", no: " + srvAvailableNo);
+        if (count == 0) {
+            log.info("UtMailer, wsId: " + wsId + ", receive.no: " + selfReceivedNo + ", nothing to receive");
+        } else {
+            log.info("UtMailer, wsId: " + wsId + ", receive.no: " + selfReceivedNo + " -> " + srvAvailableNo + ", done count: " + count);
+        }
     }
 
 
@@ -396,12 +401,9 @@ public class JdxReplWs {
         long selfQueOutAge = queOut.getMaxAge();
 
         //
-        log.info("UtMailer, sendDone.age: " + srvSendAge + ", que.age: " + selfQueOutAge);
-
-        //
         long count = 0;
         for (long age = srvSendAge + 1; age <= selfQueOutAge; age++) {
-            log.info("UtMailer, sending: " + age);
+            log.info("UtMailer, wsId: " + wsId + ", sending.age: " + age);
 
             // Физически отправляем данные
             mailer.send(queOut.getByAge(age), age, "from");
@@ -417,7 +419,11 @@ public class JdxReplWs {
         mailer.ping("from");
 
         //
-        log.info("UtMailer, send done count: " + count + ", up to age: " + selfQueOutAge);
+        if (count == 0) {
+            log.info("UtMailer, wsId: " + wsId + ", send.age: " + srvSendAge + ", nothing to send");
+        } else {
+            log.info("UtMailer, wsId: " + wsId + ", send.age: " + srvSendAge + " -> " + selfQueOutAge + ", done count: " + count);
+        }
     }
 
 

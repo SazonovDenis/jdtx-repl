@@ -64,18 +64,24 @@ public class UtMailerLocalFiles implements IJdxMailer {
         return idx;
     }
 
-    public void send(IReplica repl, long n, String box) throws Exception {
+    public void send(IReplica repl, long no, String box) throws Exception {
+        log.info("mailer.send, wsId: " + repl.getWsId() + ", repl.age: " + repl.getAge() + ", no: " + no + ", remoteDir: " + remoteDir + "/" + box);
+
+        //
         UtFile.mkdirs(remoteDir + box);
         //
         File localFile = repl.getFile();
         //
-        String remoteFileName = getFileName(n);
+        String remoteFileName = getFileName(no);
         File remoteFile = new File(remoteDir + box + "/" + remoteFileName);
         //
         FileUtils.copyFile(localFile, remoteFile);
     }
 
     public IReplica receive(long no, String box) throws Exception {
+        log.info("mailer.receive, no: " + no + ", remoteDir: " + remoteDir + "/" + box);
+
+        //
         UtFile.mkdirs(remoteDir + box);
         //
         String remoteFileName = getFileName(no);
@@ -95,8 +101,11 @@ public class UtMailerLocalFiles implements IJdxMailer {
     }
 
     @Override
-    public void delete(long n, String box) throws Exception {
-        String remoteFileName = getFileName(n);
+    public void delete(long no, String box) throws Exception {
+        log.info("mailer.delete, no: " + no + ", remoteDir: " + remoteDir + "/" + box);
+
+        //
+        String remoteFileName = getFileName(no);
         File remoteFile = new File(remoteDir + box + "/" + remoteFileName);
 
         //

@@ -13,7 +13,7 @@ public class SrvBgTask extends BgTask {
 
 
     //
-    protected static Log log = LogFactory.getLog("BgTask");
+    protected static Log log = LogFactory.getLog("bgTask");
 
 
     //

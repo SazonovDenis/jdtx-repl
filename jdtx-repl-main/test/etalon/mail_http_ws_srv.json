@@ -2,7 +2,7 @@
   "wsId": 1,
 
   "url": "http://192.168.0.141/lombard.systems/repl/",
-  "guid": "b5781df573ca6ee6-97845f2f56f4d4dc",
+  "guid": "b5781df573ca6ee6-17845f2f56f4d4dc",
   "mailLocalDirTmp": "../_test-data/ws_srv/tmp",
 
   "queIn_DirLocal": "../_test-data/ws_srv/queIn",

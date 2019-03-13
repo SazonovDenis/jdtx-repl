@@ -1,28 +1,20 @@
 package jdtx.repl.main.api;
 
-import jandcode.utils.UtFile;
-import jandcode.utils.UtString;
-import jandcode.utils.error.XError;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
-import org.joda.time.DateTime;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import jandcode.utils.*;
+import jandcode.utils.error.*;
+import org.apache.commons.logging.*;
+import org.apache.http.*;
+import org.apache.http.client.methods.*;
+import org.apache.http.entity.*;
+import org.apache.http.entity.mime.*;
+import org.apache.http.entity.mime.content.*;
+import org.apache.http.impl.client.*;
+import org.apache.http.util.*;
+import org.joda.time.*;
+import org.json.simple.*;
+import org.json.simple.parser.*;
 
-import java.io.File;
-import java.io.Reader;
-import java.io.StringReader;
+import java.io.*;
 
 /**
  */
@@ -87,6 +79,9 @@ public class UtMailerHttp implements IJdxMailer {
 
     @Override
     public void send(IReplica repl, long no, String box) throws Exception {
+        log.info("mailer.send, wsId: " + repl.getWsId() + ", repl.age: " + repl.getAge() + ", no: " + no + ", remoteUrl: " + remoteUrl + "/" + box);
+
+        //
         DefaultHttpClient client = new DefaultHttpClient();
 
         //
@@ -135,6 +130,9 @@ public class UtMailerHttp implements IJdxMailer {
 
     @Override
     public IReplica receive(long no, String box) throws Exception {
+        log.info("mailer.receive, no: " + no + ", remoteUrl: " + remoteUrl + "/" + box);
+
+        //
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
@@ -163,11 +161,14 @@ public class UtMailerHttp implements IJdxMailer {
     }
 
     @Override
-    public void delete(long n, String box) throws Exception {
+    public void delete(long no, String box) throws Exception {
+        log.info("mailer.delete, no: " + no + ", remoteUrl: " + remoteUrl + "/" + box);
+
+        //
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_delete.php?" + "guid=" + guid + "&box=" + box + "&no=" + n);
+        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_delete.php?" + "guid=" + guid + "&box=" + box + "&no=" + no);
 
         //
         HttpResponse response = httpclient.execute(httpGet);

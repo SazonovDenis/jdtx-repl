@@ -5,6 +5,7 @@ import jandcode.dbm.data.*;
 import jandcode.utils.*;
 import org.junit.*;
 
+import java.io.*;
 import java.util.concurrent.*;
 
 public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
@@ -19,12 +20,19 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtFile.cleanDir("../_test-data/ws_srv");
         UtFile.cleanDir("../_test-data/ws2");
         UtFile.cleanDir("../_test-data/ws3");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/61ba238dfc94503e/from");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/61ba238dfc94503e/to");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/84f3cc20bea645fa/from");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/84f3cc20bea645fa/to");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/97845f2f56f4d4dc/from");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/97845f2f56f4d4dc/to");
+        new File("../_test-data/csv").delete();
+        new File("../_test-data/mail").delete();
+        new File("../_test-data/mail_local").delete();
+        new File("../_test-data/srv").delete();
+        new File("../_test-data/ws_srv").delete();
+        new File("../_test-data/ws2").delete();
+        new File("../_test-data/ws3").delete();
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/17845f2f56f4d4dc/from");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/17845f2f56f4d4dc/to");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/21ba238dfc94503e/from");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/21ba238dfc94503e/to");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/34f3cc20bea645fa/from");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/34f3cc20bea645fa/to");
         // db
         UtRepl utr = new UtRepl(db);
         utr.dropReplication();
@@ -159,13 +167,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         utt3.dumpTable("lic", "../_test-data/csv/ws3-lic.csv", "nameF");
         utt3.dumpTable("ulz", "../_test-data/csv/ws3-ulz.csv", "name");
 
-        DataStore st1 = db.loadSql("select Lic.nameF,  Lic.nameI,  Lic.nameO, Region.name as RegionName, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) order by Lic.NameF");
+        DataStore st1 = db.loadSql("select Lic.nameF, Lic.nameI, Lic.nameO, Region.name as RegionName, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) order by Lic.NameF");
         OutTableSaver svr1 = new OutTableSaver(st1);
         svr1.save().toFile("../_test-data/csv/ws1-all.csv");
-        DataStore st2 = db2.loadSql("select Lic.nameF,  Lic.nameI,  Lic.nameO, Region.name as RegionName, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) order by Lic.NameF");
+        DataStore st2 = db2.loadSql("select Lic.nameF, Lic.nameI, Lic.nameO, Region.name as RegionName, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) order by Lic.NameF");
         OutTableSaver svr2 = new OutTableSaver(st2);
         svr2.save().toFile("../_test-data/csv/ws2-all.csv");
-        DataStore st3 = db3.loadSql("select Lic.nameF,  Lic.nameI,  Lic.nameO, Region.name as RegionName, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) order by Lic.NameF");
+        DataStore st3 = db3.loadSql("select Lic.nameF, Lic.nameI, Lic.nameO, Region.name as RegionName, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) order by Lic.NameF");
         OutTableSaver svr3 = new OutTableSaver(st3);
         svr3.save().toFile("../_test-data/csv/ws3-all.csv");
     }
@@ -452,10 +460,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_loop_1_repl() throws Exception {
+    public void loop_1_repl() throws Exception {
         while (true) {
             try {
                 test_ws1_handleSelfAudit();
+                test_ws1_handleQueIn();
+                test_ws1_send_receive();
                 test_ws1_handleQueIn();
             } catch (Exception e) {
                 String msg;
@@ -464,9 +474,15 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 } else {
                     msg = e.getMessage();
                 }
-                if (msg.contains("deadlock") || msg.contains("Connection timed out: connect") || msg.contains("Connection refused: connect")) {
+                if (msg.contains("deadlock") ||
+                        msg.contains("Connection reset") ||
+                        msg.contains("Connection timed out: connect") ||
+                        msg.contains("Connection refused: connect") ||
+                        (msg.contains("Item info") && msg.contains("not found"))
+                        ) {
                     System.out.println(msg);
                     System.out.println(e.getMessage());
+                    e.printStackTrace();
                 } else {
                     throw e;
                 }
@@ -475,10 +491,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_loop_2_repl() throws Exception {
+    public void loop_2_repl() throws Exception {
         while (true) {
             try {
                 test_ws2_handleSelfAudit();
+                test_ws2_handleQueIn();
+                test_ws2_send_receive();
                 test_ws2_handleQueIn();
             } catch (Exception e) {
                 String msg;
@@ -487,9 +505,15 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 } else {
                     msg = e.getMessage();
                 }
-                if (msg.contains("deadlock") || msg.contains("Connection timed out: connect") || msg.contains("Connection refused: connect")) {
+                if (msg.contains("deadlock") ||
+                        msg.contains("Connection reset") ||
+                        msg.contains("Connection timed out: connect") ||
+                        msg.contains("Connection refused: connect") ||
+                        (msg.contains("Item info") && msg.contains("not found"))
+                        ) {
                     System.out.println(msg);
                     System.out.println(e.getMessage());
+                    e.printStackTrace();
                 } else {
                     throw e;
                 }
@@ -498,10 +522,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_loop_3_repl() throws Exception {
+    public void loop_3_repl() throws Exception {
         while (true) {
             try {
                 test_ws3_handleSelfAudit();
+                test_ws3_handleQueIn();
+                test_ws3_send_receive();
                 test_ws3_handleQueIn();
             } catch (Exception e) {
                 String msg;
@@ -510,9 +536,15 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 } else {
                     msg = e.getMessage();
                 }
-                if (msg.contains("deadlock") || msg.contains("Connection timed out: connect") || msg.contains("Connection refused: connect")) {
+                if (msg.contains("deadlock") ||
+                        msg.contains("Connection reset") ||
+                        msg.contains("Connection timed out: connect") ||
+                        msg.contains("Connection refused: connect") ||
+                        (msg.contains("Item info") && msg.contains("not found"))
+                        ) {
                     System.out.println(msg);
                     System.out.println(e.getMessage());
+                    e.printStackTrace();
                 } else {
                     throw e;
                 }
@@ -522,7 +554,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void test_loop_srv() throws Exception {
+    public void loop_srv() throws Exception {
         while (true) {
             try {
                 test_srv_handleQue();
@@ -536,6 +568,59 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 if (msg.contains("deadlock") || msg.contains("Connection timed out: connect") || msg.contains("Connection refused: connect")) {
                     System.out.println(msg);
                     System.out.println(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+
+    @Test
+    public void loop_srv_local() throws Exception {
+        while (true) {
+            try {
+                test_srv_handleQueLocal();
+                TimeUnit.SECONDS.sleep(10);
+            } catch (Exception e) {
+                String msg;
+                if (e.getCause() != null) {
+                    msg = e.getCause().getMessage();
+                } else {
+                    msg = e.getMessage();
+                }
+                if (msg.contains("deadlock")) {
+                    System.out.println(msg);
+                    System.out.println(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+
+    @Test
+    public void loop_ws_mail_Local() throws Exception {
+        while (true) {
+            try {
+                test_ws_sendLocal();
+                test_ws_receiveLocal();
+                TimeUnit.SECONDS.sleep(20);
+            } catch (Exception e) {
+                String msg;
+                if (e.getCause() != null) {
+                    msg = e.getCause().getMessage();
+                } else {
+                    msg = e.getMessage();
+                }
+                if (msg.contains("deadlock") ||
+                        (msg.contains("Item info") && msg.contains("not found"))||
+                        (msg.contains("Source") && msg.contains("does not exist"))
+                        ) {
+                    System.out.println(msg);
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
                 } else {
                     throw e;
                 }
