@@ -63,7 +63,7 @@ public class SrvBgTask extends BgTask {
 
             //
             log.info("Формирование общей очереди");
-            srv.srvFillCommonQue();
+            srv.srvHandleCommonQue();
 
             //
             log.info("Тиражирование реплик");

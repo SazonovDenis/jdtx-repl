@@ -199,7 +199,7 @@ public class UtRepl {
      * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
      * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
      */
-    public void srvFillCommonQue(Map<Long, IJdxMailer> mailerList, IJdxQueCommon commonQue) throws Exception {
+    public void srvHandleCommonQue(Map<Long, IJdxMailer> mailerList, IJdxQueCommon commonQue) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
         for (Map.Entry en : mailerList.entrySet()) {
             long wsId = (long) en.getKey();
@@ -210,11 +210,11 @@ public class UtRepl {
             long queMaxAge = mailer.getSrvSate("from");
 
             //
-            log.info("srvFillCommonQue, wsId: " + wsId + ", queDoneAge: " + queDoneAge + ", queMaxAge: " + queMaxAge);
+            log.info("srvHandleCommonQue, wsId: " + wsId + ", queDoneAge: " + queDoneAge + ", queMaxAge: " + queMaxAge);
 
             //
             for (long age = queDoneAge + 1; age <= queMaxAge; age++) {
-                log.info("srvFillCommonQue, wsId: " + wsId + ",  age: " + age);
+                log.info("srvHandleCommonQue, wsId: " + wsId + ",  age: " + age);
 
                 // Физически забираем данные с почтового сервера
                 IReplica replica = mailer.receive(age, "from");

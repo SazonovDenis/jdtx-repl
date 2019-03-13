@@ -81,7 +81,8 @@ public class UtMailerHttp implements IJdxMailer {
         }
 
         //
-        return Long.valueOf(String.valueOf(res.get("result")));
+        JSONObject result = (JSONObject) res.get("result");
+        return Long.valueOf(String.valueOf(result.get("max")));
     }
 
     @Override

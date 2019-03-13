@@ -1,22 +1,16 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.db.Db;
-import jandcode.utils.UtFile;
-import jandcode.utils.error.XError;
-import jdtx.repl.main.api.struct.IJdxDbStruct;
-import jdtx.repl.main.api.struct.IJdxDbStructReader;
-import jdtx.repl.main.api.struct.JdxDbStructReader;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import jandcode.dbm.db.*;
+import jandcode.utils.*;
+import jandcode.utils.error.*;
+import jdtx.repl.main.api.struct.*;
+import org.apache.commons.logging.*;
+import org.json.simple.*;
+import org.json.simple.parser.*;
 
-import java.io.FileReader;
-import java.io.Reader;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
+import java.sql.*;
+import java.util.*;
 
 /**
  * Контекст рабочей станции
@@ -232,7 +226,7 @@ public class JdxReplWs {
         }
 
         //
-        log.info("handleSelfAudit, done: " + n + ", age: " + auditAgeActual);
+        log.info("handleSelfAudit, done: " + n + ", up to age: " + auditAgeActual);
     }
 
     /**
@@ -277,7 +271,7 @@ public class JdxReplWs {
         }
 
         //
-        log.info("handleQueIn, done: " + n + ", no: " + queInNoAvailable);
+        log.info("handleQueIn, done: " + n + ", up to: " + queInNoAvailable);
     }
 
 

@@ -11,42 +11,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void test_all_0() throws Exception {
-        test_srv_setUp();
-        //
-        test_ws2_CreateSetupReplica();
-        test_ws3_CreateSetupReplica();
-        test_ws1_handleSelfAudit();
-        test_ws2_handleSelfAudit();
-        test_ws3_handleSelfAudit();
-        test_srv_handleQue();
-        test_ws1_ApplyReplica();
-        test_ws2_ApplyReplica();
-        test_ws3_ApplyReplica();
-        //
-        test_dumpTables();
-    }
-
-    @Test
-    public void test_all_1() throws Exception {
-        //test_ws1_makeChange();
-        test_ws2_makeChange();
-        test_ws3_makeChange();
-        test_ws1_handleSelfAudit();
-        test_ws2_handleSelfAudit();
-        test_ws3_handleSelfAudit();
-        test_srv_handleQue();
-        test_ws1_ApplyReplica();
-        test_ws2_ApplyReplica();
-        test_ws3_ApplyReplica();
-        //
-        test_dumpTables();
-    }
-
-    @Test
     public void test_srv_setUp() throws Exception {
         UtFile.cleanDir("../_test-data/csv");
         UtFile.cleanDir("../_test-data/mail");
+        UtFile.cleanDir("../_test-data/mail_local");
         UtFile.cleanDir("../_test-data/srv");
         UtFile.cleanDir("../_test-data/ws_srv");
         UtFile.cleanDir("../_test-data/ws2");
@@ -80,6 +48,81 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         System.out.println("wsId_3: " + wsId_3);
     }
 
+    @Test
+    public void test_all_0() throws Exception {
+        test_srv_setUp();
+        //
+        test_ws2_CreateSetupReplica();
+        test_ws3_CreateSetupReplica();
+        //
+        test_dumpTables();
+    }
+
+    @Test
+    public void test_all_1() throws Exception {
+        //test_ws1_makeChange();
+        test_ws2_makeChange();
+        test_ws3_makeChange();
+        test_ws1_handleSelfAudit();
+        test_ws2_handleSelfAudit();
+        test_ws3_handleSelfAudit();
+        test_ws1_send_receive();
+        test_ws2_send_receive();
+        test_ws3_send_receive();
+        test_srv_handleQue();
+        test_ws1_send_receive();
+        test_ws2_send_receive();
+        test_ws3_send_receive();
+        test_ws1_handleQueIn();
+        test_ws2_handleQueIn();
+        test_ws3_handleQueIn();
+        //
+        test_dumpTables();
+    }
+
+    @Test
+    public void test_all_2() throws Exception {
+        //test_ws1_makeChange();
+        test_ws2_makeChange();
+        test_ws3_makeChange();
+        test_ws1_handleSelfAudit();
+        test_ws2_handleSelfAudit();
+        test_ws3_handleSelfAudit();
+        test_ws_sendLocal();
+        test_ws_receiveLocal();
+        test_srv_handleQueLocal();
+        test_ws_sendLocal();
+        test_ws_receiveLocal();
+        test_ws1_handleQueIn();
+        test_ws2_handleQueIn();
+        test_ws3_handleQueIn();
+        //
+        test_dumpTables();
+    }
+
+
+    @Test
+    public void test_all_syncLocal() throws Exception {
+        test_ws1_handleSelfAudit();
+        test_ws2_handleSelfAudit();
+        test_ws3_handleSelfAudit();
+
+        test_ws_sendLocal();
+        test_ws_receiveLocal();
+
+        test_srv_handleQueLocal();
+
+        test_ws_sendLocal();
+        test_ws_receiveLocal();
+
+        test_ws1_handleQueIn();
+        test_ws2_handleQueIn();
+        test_ws3_handleQueIn();
+
+        //
+        test_dumpTables();
+    }
+
 
     @Test
     public void test_ws2_CreateSetupReplica() throws Exception {
@@ -88,11 +131,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         //ws2.init("test/etalon/ws2.json");
         ws2.init("test/etalon/mail_http_ws2.json");
 
-        // Забираем установочную реплику
+        // Создаем установочную реплику
         ws2.createSetupReplica();
-
-        //
-        ws2.send();
     }
 
     @Test
@@ -102,11 +142,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         //ws3.init("test/etalon/ws3.json");
         ws3.init("test/etalon/mail_http_ws3.json");
 
-        // Забираем установочную реплику
+        // Создаем установочную реплику
         ws3.createSetupReplica();
-
-        //
-        ws3.send();
     }
 
 
@@ -162,9 +199,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         // Отслеживаем и обрабатываем свои изменения
         ws.handleSelfAudit();
-
-        //
-        ws.send();
     }
 
     @Test
@@ -176,9 +210,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         // Отслеживаем и обрабатываем свои изменения
         ws.handleSelfAudit();
-
-        //
-        ws.send();
     }
 
     @Test
@@ -190,49 +221,74 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         // Отслеживаем и обрабатываем свои изменения
         ws.handleSelfAudit();
-
-        //
-        ws.send();
     }
 
 
     @Test
-    public void test_ws1_ApplyReplica() throws Exception {
+    public void test_ws1_send_receive() throws Exception {
+        // Рабочая станция, настройка
+        JdxReplWs ws = new JdxReplWs(db);
+        //ws.init("test/etalon/ws_srv.json");
+        ws.init("test/etalon/mail_http_ws_srv.json");
+
+        //
+        ws.send();
+        ws.receive();
+    }
+
+    @Test
+    public void test_ws2_send_receive() throws Exception {
+        // Рабочая станция, настройка
+        JdxReplWs ws = new JdxReplWs(db2);
+        //ws.init("test/etalon/ws2.json");
+        ws.init("test/etalon/mail_http_ws2.json");
+
+        //
+        ws.send();
+        ws.receive();
+    }
+
+    @Test
+    public void test_ws3_send_receive() throws Exception {
+        // Рабочая станция, настройка
+        JdxReplWs ws = new JdxReplWs(db3);
+        //ws.init("test/etalon/ws3.json");
+        ws.init("test/etalon/mail_http_ws3.json");
+
+        //
+        ws.send();
+        ws.receive();
+    }
+
+
+    @Test
+    public void test_ws1_handleQueIn() throws Exception {
         // Сервер, настройка
         JdxReplWs ws = new JdxReplWs(db);
         //ws.init("test/etalon/ws_srv.json");
         ws.init("test/etalon/mail_http_ws_srv.json");
 
-        // Забираем входящие реплики
-        ws.receive();
-
         // Применяем входящие реплики
         ws.handleQueIn();
     }
 
     @Test
-    public void test_ws2_ApplyReplica() throws Exception {
+    public void test_ws2_handleQueIn() throws Exception {
         // Сервер, настройка
         JdxReplWs ws = new JdxReplWs(db2);
         //ws.init("test/etalon/ws2.json");
         ws.init("test/etalon/mail_http_ws2.json");
 
-        // Забираем входящие реплики
-        ws.receive();
-
         // Применяем входящие реплики
         ws.handleQueIn();
     }
 
     @Test
-    public void test_ws3_ApplyReplica() throws Exception {
+    public void test_ws3_handleQueIn() throws Exception {
         // Сервер, настройка
         JdxReplWs ws = new JdxReplWs(db3);
         //ws.init("test/etalon/ws3.json");
         ws.init("test/etalon/mail_http_ws3.json");
-
-        // Забираем входящие реплики
-        ws.receive();
 
         // Применяем входящие реплики
         ws.handleQueIn();
@@ -242,6 +298,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws_sendLocal() throws Exception {
         // Рабочая станция, настройка
+        JdxReplWs ws1 = new JdxReplWs(db);
+        ws1.init("test/etalon/mail_http_ws_srv.json");
+        //
         JdxReplWs ws2 = new JdxReplWs(db2);
         ws2.init("test/etalon/mail_http_ws2.json");
         //
@@ -249,6 +308,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ws3.init("test/etalon/mail_http_ws3.json");
 
         //
+        ws1.sendTo("test/etalon/mail_http_ws_srv.json", 1, 3, "../_test-data/mail_local");
         ws2.sendTo("test/etalon/mail_http_ws2.json", 1, 3, "../_test-data/mail_local");
         ws3.sendTo("test/etalon/mail_http_ws3.json", 1, 1, "../_test-data/mail_local/");
     }
@@ -257,6 +317,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws_receiveLocal() throws Exception {
         // Рабочая станция, настройка
+        JdxReplWs ws1 = new JdxReplWs(db);
+        ws1.init("test/etalon/mail_http_ws_srv.json");
+        //
         JdxReplWs ws2 = new JdxReplWs(db2);
         ws2.init("test/etalon/mail_http_ws2.json");
         //
@@ -264,6 +327,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ws3.init("test/etalon/mail_http_ws3.json");
 
         //
+        ws1.receiveFrom("test/etalon/mail_http_ws_srv.json", 1, 3, "../_test-data/mail_local");
         ws2.receiveFrom("test/etalon/mail_http_ws2.json", 1, 3, "../_test-data/mail_local");
         ws3.receiveFrom("test/etalon/mail_http_ws3.json", 1, 1, "../_test-data/mail_local/");
     }
@@ -276,10 +340,24 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         srv.init("test/etalon/mail_http_srv.json");
 
         // Формирование общей очереди
-        srv.srvFillCommonQue();
+        srv.srvHandleCommonQue();
 
         // Тиражирование реплик
         srv.srvDispatchReplicas();
+    }
+
+    @Test
+    public void test_srv_handleQueLocal() throws Exception {
+        // Сервер, настройка
+        JdxReplSrv srv = new JdxReplSrv(db);
+        //srv.init("test/etalon/srv.json");
+        srv.init("test/etalon/mail_http_srv.json");
+
+        // Формирование общей очереди
+        srv.srvHandleCommonQueFrom("test/etalon/mail_http_srv.json", "../_test-data/mail_local");
+
+        // Тиражирование реплик
+        srv.srvDispatchReplicasTo("test/etalon/mail_http_srv.json", "../_test-data/mail_local");
     }
 
     @Test
@@ -304,7 +382,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         while (true) {
             //test_ws1_makeChange();
             test_ws1_handleSelfAudit();
-            test_ws1_ApplyReplica();
+            test_ws1_handleQueIn();
         }
     }
 
@@ -313,7 +391,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         while (true) {
             test_ws2_makeChange();
             test_ws2_handleSelfAudit();
-            test_ws2_ApplyReplica();
+            test_ws2_handleQueIn();
         }
     }
 
@@ -322,7 +400,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         while (true) {
             test_ws3_makeChange();
             test_ws3_handleSelfAudit();
-            test_ws3_ApplyReplica();
+            test_ws3_handleQueIn();
         }
     }
 
@@ -378,7 +456,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         while (true) {
             try {
                 test_ws1_handleSelfAudit();
-                test_ws1_ApplyReplica();
+                test_ws1_handleQueIn();
             } catch (Exception e) {
                 String msg;
                 if (e.getCause() != null) {
@@ -386,7 +464,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 } else {
                     msg = e.getMessage();
                 }
-                if (msg.contains("deadlock") || msg.contains("Connection timed out: connect")) {
+                if (msg.contains("deadlock") || msg.contains("Connection timed out: connect") || msg.contains("Connection refused: connect")) {
                     System.out.println(msg);
                     System.out.println(e.getMessage());
                 } else {
@@ -401,7 +479,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         while (true) {
             try {
                 test_ws2_handleSelfAudit();
-                test_ws2_ApplyReplica();
+                test_ws2_handleQueIn();
             } catch (Exception e) {
                 String msg;
                 if (e.getCause() != null) {
@@ -409,7 +487,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 } else {
                     msg = e.getMessage();
                 }
-                if (msg.contains("deadlock") || msg.contains("Connection timed out: connect")) {
+                if (msg.contains("deadlock") || msg.contains("Connection timed out: connect") || msg.contains("Connection refused: connect")) {
                     System.out.println(msg);
                     System.out.println(e.getMessage());
                 } else {
@@ -424,7 +502,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         while (true) {
             try {
                 test_ws3_handleSelfAudit();
-                test_ws3_ApplyReplica();
+                test_ws3_handleQueIn();
             } catch (Exception e) {
                 String msg;
                 if (e.getCause() != null) {
@@ -432,7 +510,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 } else {
                     msg = e.getMessage();
                 }
-                if (msg.contains("deadlock") || msg.contains("Connection timed out: connect")) {
+                if (msg.contains("deadlock") || msg.contains("Connection timed out: connect") || msg.contains("Connection refused: connect")) {
                     System.out.println(msg);
                     System.out.println(e.getMessage());
                 } else {
@@ -455,7 +533,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 } else {
                     msg = e.getMessage();
                 }
-                if (msg.contains("deadlock") || msg.contains("Connection timed out: connect")) {
+                if (msg.contains("deadlock") || msg.contains("Connection timed out: connect") || msg.contains("Connection refused: connect")) {
                     System.out.println(msg);
                     System.out.println(e.getMessage());
                 } else {
