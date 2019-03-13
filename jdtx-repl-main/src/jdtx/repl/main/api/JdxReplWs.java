@@ -400,7 +400,7 @@ public class JdxReplWs {
         long selfQueOutAge = queOut.getMaxAge();
 
         // Физически отправляем данные
-        sendInternal(mailer, srvSendAge, selfQueOutAge, true);
+        sendInternal(mailer, srvSendAge + 1, selfQueOutAge, true);
     }
 
     void sendInternal(IJdxMailer mailer, long srvSendAge, long selfQueOutAge, boolean doMarkDone) throws Exception {
@@ -408,7 +408,7 @@ public class JdxReplWs {
 
         //
         long count = 0;
-        for (long age = srvSendAge + 1; age <= selfQueOutAge; age++) {
+        for (long age = srvSendAge; age <= selfQueOutAge; age++) {
             log.info("UtMailer, wsId: " + wsId + ", sending.age: " + age);
 
             // Физически отправляем данные
