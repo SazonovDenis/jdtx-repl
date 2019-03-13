@@ -67,7 +67,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_all_1() throws Exception {
+    public void test_all_http() throws Exception {
         //test_ws1_makeChange();
         test_ws2_makeChange();
         test_ws3_makeChange();
@@ -89,7 +89,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_all_2() throws Exception {
+    public void test_all_local() throws Exception {
         //test_ws1_makeChange();
         test_ws2_makeChange();
         test_ws3_makeChange();
@@ -316,9 +316,22 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ws3.init("test/etalon/mail_http_ws3.json");
 
         //
-        ws1.sendTo("test/etalon/mail_http_ws_srv.json", 1, 3, "../_test-data/mail_local");
-        ws2.sendTo("test/etalon/mail_http_ws2.json", 1, 3, "../_test-data/mail_local");
-        ws3.sendTo("test/etalon/mail_http_ws3.json", 1, 1, "../_test-data/mail_local/");
+        JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
+        long srvSendAge = stateManager.getMailSendDone();
+        long selfQueOutAge = ws1.queOut.getMaxAge();
+        ws1.sendToDir("test/etalon/mail_http_ws_srv.json", srvSendAge, selfQueOutAge, "../_test-data/mail_local", true);
+
+        //
+        stateManager = new JdxStateManagerMail(db2);
+        srvSendAge = stateManager.getMailSendDone();
+        selfQueOutAge = ws2.queOut.getMaxAge();
+        ws2.sendToDir("test/etalon/mail_http_ws2.json", srvSendAge, selfQueOutAge, "../_test-data/mail_local", true);
+
+        //
+        stateManager = new JdxStateManagerMail(db3);
+        srvSendAge = stateManager.getMailSendDone();
+        selfQueOutAge = ws3.queOut.getMaxAge();
+        ws3.sendToDir("test/etalon/mail_http_ws3.json", srvSendAge, selfQueOutAge, "../_test-data/mail_local/", true);
     }
 
 
@@ -335,9 +348,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ws3.init("test/etalon/mail_http_ws3.json");
 
         //
-        ws1.receiveFrom("test/etalon/mail_http_ws_srv.json", 1, 3, "../_test-data/mail_local");
-        ws2.receiveFrom("test/etalon/mail_http_ws2.json", 1, 3, "../_test-data/mail_local");
-        ws3.receiveFrom("test/etalon/mail_http_ws3.json", 1, 1, "../_test-data/mail_local/");
+        ws1.receiveFromDir("test/etalon/mail_http_ws_srv.json", "../_test-data/mail_local");
+        ws2.receiveFromDir("test/etalon/mail_http_ws2.json", "../_test-data/mail_local");
+        ws3.receiveFromDir("test/etalon/mail_http_ws3.json", "../_test-data/mail_local/");
     }
 
     @Test
@@ -615,7 +628,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                     msg = e.getMessage();
                 }
                 if (msg.contains("deadlock") ||
-                        (msg.contains("Item info") && msg.contains("not found"))||
+                        (msg.contains("Item info") && msg.contains("not found")) ||
                         (msg.contains("Source") && msg.contains("does not exist"))
                         ) {
                     System.out.println(msg);

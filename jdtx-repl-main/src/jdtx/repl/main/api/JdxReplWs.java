@@ -279,7 +279,7 @@ public class JdxReplWs {
     }
 
 
-    public void receiveFrom(String cfgFileName, long age_from, long age_to, String mailFromDir) throws Exception {
+    public void receiveFromDir(String cfgFileName, String mailFromDir) throws Exception {
         // Готовим локальный мейлер
         mailFromDir = UtFile.unnormPath(mailFromDir) + "/";
         String guidPath = ((UtMailerHttp) mailer).guid.replace("-", "/");
@@ -306,16 +306,19 @@ public class JdxReplWs {
         receiveInternal(mailerLocal);
     }
 
+
+    // Физически забираем данные
     public void receive() throws Exception {
         receiveInternal(mailer);
     }
 
-    void receiveInternal(IJdxMailer mailer) throws Exception {
-        // Узнаем сколько есть на сервере
-        long srvAvailableNo = mailer.getSrvSate("to");
 
+    void receiveInternal(IJdxMailer mailer) throws Exception {
         // Узнаем сколько получено у нас
         long selfReceivedNo = queIn.getMaxNo();
+
+        // Узнаем сколько есть на сервере
+        long srvAvailableNo = mailer.getSrvSate("to");
 
         //
         long count = 0;
@@ -361,7 +364,7 @@ public class JdxReplWs {
     }
 
 
-    public void sendTo(String cfgFileName, long age_from, long age_to, String mailToDir) throws Exception {
+    public void sendToDir(String cfgFileName, long age_from, long age_to, String mailToDir, boolean doMarkDone) throws Exception {
         // Готовим локальный мейлер
         mailToDir = UtFile.unnormPath(mailToDir) + "/";
         String guidPath = ((UtMailerHttp) mailer).guid.replace("-", "/");
@@ -385,20 +388,23 @@ public class JdxReplWs {
 
 
         // Физически отправляем данные
-        sendInternal(mailerLocal);
+        sendInternal(mailerLocal, age_from, age_to, doMarkDone);
     }
 
     public void send() throws Exception {
-        sendInternal(mailer);
-    }
-
-    public void sendInternal(IJdxMailer mailer) throws Exception {
         // Узнаем сколько уже отправлено на сервер
         JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
         long srvSendAge = stateManager.getMailSendDone();
 
         // Узнаем сколько есть у нас в очереди на отправку
         long selfQueOutAge = queOut.getMaxAge();
+
+        // Физически отправляем данные
+        sendInternal(mailer, srvSendAge, selfQueOutAge, true);
+    }
+
+    void sendInternal(IJdxMailer mailer, long srvSendAge, long selfQueOutAge, boolean doMarkDone) throws Exception {
+        JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
 
         //
         long count = 0;
@@ -409,7 +415,9 @@ public class JdxReplWs {
             mailer.send(queOut.getByAge(age), age, "from");
 
             // Отмечаем факт отправки
-            stateManager.setMailSendDone(age);
+            if (doMarkDone) {
+                stateManager.setMailSendDone(age);
+            }
 
             //
             count++;
