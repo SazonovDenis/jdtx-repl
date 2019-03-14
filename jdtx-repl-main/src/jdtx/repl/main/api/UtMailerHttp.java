@@ -2,7 +2,6 @@ package jdtx.repl.main.api;
 
 import jandcode.utils.*;
 import jandcode.utils.error.*;
-import jandcode.web.*;
 import org.apache.commons.logging.*;
 import org.apache.http.*;
 import org.apache.http.client.methods.*;
@@ -80,7 +79,7 @@ public class UtMailerHttp implements IJdxMailer {
 
     @Override
     public void send(IReplica repl, long no, String box) throws Exception {
-        log.info("mailer.send, repl.wsId: " + repl.getWsId() + ", repl.age: " + repl.getAge() + ", no: " + no + ", remoteUrl: " + remoteUrl + "/" + box);
+        log.info("mailer.send, repl.wsId: " + repl.getWsId() + ", repl.age: " + repl.getAge() + ", no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 
         //
         DefaultHttpClient client = new DefaultHttpClient();
@@ -131,7 +130,7 @@ public class UtMailerHttp implements IJdxMailer {
 
     @Override
     public IReplica receive(long no, String box) throws Exception {
-        log.info("mailer.receive, no: " + no + ", remoteUrl: " + remoteUrl + "/" + box);
+        log.info("mailer.receive, no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 
         //
         DefaultHttpClient httpclient = new DefaultHttpClient();
@@ -163,7 +162,7 @@ public class UtMailerHttp implements IJdxMailer {
 
     @Override
     public void delete(long no, String box) throws Exception {
-        log.info("mailer.delete, no: " + no + ", remoteUrl: " + remoteUrl + "/" + box);
+        log.info("mailer.delete, no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 
         //
         DefaultHttpClient httpclient = new DefaultHttpClient();

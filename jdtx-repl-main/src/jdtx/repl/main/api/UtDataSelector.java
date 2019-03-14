@@ -31,7 +31,7 @@ public class UtDataSelector {
             dataContainer.startTable(tableName);
 
             // измененные данные помещаем в dataContainer
-            long n = 0;
+            long count = 0;
             while (!rsTableLog.eof()) {
                 dataContainer.append();
                 // Тип операции
@@ -45,14 +45,14 @@ public class UtDataSelector {
                 rsTableLog.next();
 
                 //
-                n++;
-                if (n % 1000 == 0) {
-                    log.info("readData: " + tableName + ", " + n);
+                count++;
+                if (count % 1000 == 0) {
+                    log.info("  readData: " + tableName + ", " + count);
                 }
             }
 
             //
-            log.info("readData: " + tableName + ", total: " + n);
+            log.info("  readData: " + tableName + ", total: " + count);
 
             //
             dataContainer.flush();

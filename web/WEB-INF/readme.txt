@@ -14,11 +14,23 @@ cfg/sample.ws.json
 
 
 
-Настройка сервера
+Настройка почтового сервера
 ---------------------------------
 
 
 Обязательно:
+
+Создать структуру почтовых каталогов, опираясь на guid из cfg/sample.srv.json
+
+
+
+Настройка БД сервера
+---------------------------------
+
+
+Обязательно:
+
+В файле _app.rt включить сервер (bgtask name="server") и рабочую станцию (bgtask name="ws")
 
 jc repl-info
 jc repl-create -id:1
@@ -37,11 +49,15 @@ jc repl-sync-srv -dir:f:\jdtx-repl\ -mark:true
 
 
 
-Настройка рабочей станции
+Настройка БД рабочей станции
 ---------------------------------
 
 
+
 Обязательно:
+
+В файле _app.rt отключить сервер (bgtask name="server"), стереть конфиг srv.json
+В файле _app.rt включить рабочую станцию (bgtask name="ws")
 
 jc repl-info
 jc repl-create -id:XXX
@@ -52,6 +68,13 @@ jc repl-create -id:XXX
 
 jc repl-snapshot
 jc repl-sync -dir:f:\jdtx-repl\ -mark:true
+
+
+
+Запуск
+---------------------------------
+
+jc run
 
 
 
