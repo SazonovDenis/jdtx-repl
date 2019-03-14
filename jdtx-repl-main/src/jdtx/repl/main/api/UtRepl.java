@@ -141,8 +141,8 @@ public class UtRepl {
      * Используется при включении новой БД в систему:
      * самая первая (установочная) реплика для сервера.
      */
-    IReplica createReplicaFull(long wsId, IPublication publication, long age) throws Exception {
-        log.info("createReplicaFull");
+    IReplica createReplicaSnapshot(long wsId, IPublication publication, long age) throws Exception {
+        log.info("createReplicaSnapshot");
 
         //
         File file = File.createTempFile("~jdx-" + UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0') + "-full", ".xml");
@@ -165,7 +165,7 @@ public class UtRepl {
                 String publicationTableName = (String) publicationTable.get("table");
                 if (stuctTableName.compareToIgnoreCase(publicationTableName) == 0) {
                     String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
-                    utrr.readFullData(stuctTableName, publicationFields, writer);
+                    utrr.readAllRecords(stuctTableName, publicationFields, writer);
                 }
             }
         }

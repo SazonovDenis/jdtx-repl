@@ -91,7 +91,7 @@ public class UtMailerHttp_Test extends ReplDatabase_Test {
         System.out.println("new AuditAge = " + age);
 
         // Забираем установочную реплику
-        IReplica replica = utr.createReplicaFull(1, publication, age);
+        IReplica replica = utr.createReplicaSnapshot(1, publication, age);
 
 
         // ---

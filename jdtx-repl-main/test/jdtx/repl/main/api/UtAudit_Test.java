@@ -134,7 +134,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         System.out.println("new AuditAge = " + age);
 
         // Забираем установочную реплику
-        IReplica replica = utr.createReplicaFull(1, publication, age);
+        IReplica replica = utr.createReplicaSnapshot(1, publication, age);
 
         //
         System.out.println(replica.getFile().getAbsolutePath());
@@ -189,7 +189,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_applyReplicaFull() throws Exception {
+    public void test_applyReplicaSnapshot() throws Exception {
         // Загружаем правила публикации
         IPublication publication = new Publication();
         Reader r = new FileReader("test/etalon/pub_full.json");

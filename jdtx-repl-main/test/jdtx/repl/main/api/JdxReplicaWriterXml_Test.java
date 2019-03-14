@@ -27,7 +27,7 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
 
         // Забираем установочную реплику
         UtRepl utr = new UtRepl(db2);
-        IReplica replica = utr.createReplicaFull(2, publication, 1);
+        IReplica replica = utr.createReplicaSnapshot(2, publication, 1);
         //
         File f = new File("../_test-data/ws2/tmp/000000001-src.xml");
         FileUtils.copyFile(replica.getFile(), f);
@@ -72,7 +72,7 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
 
         // Забираем установочную реплику
         UtRepl utr = new UtRepl(db2);
-        IReplica replica = utr.createReplicaFull(2, publication, 1);
+        IReplica replica = utr.createReplicaSnapshot(2, publication, 1);
         //
         File f = new File("../_test-data/ws2/tmp/000000001-src.xml");
         FileUtils.copyFile(replica.getFile(), f);

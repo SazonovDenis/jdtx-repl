@@ -33,7 +33,7 @@
 - При включении новой БД в систему первая реплика для сервера готовится как реплика на вставку
   всех существующих записей в этой БД.
 
-  IReplica createReplicaFull(IPublication publication)
+  IReplica createReplicaSnapshot(IPublication publication)
 
 
 

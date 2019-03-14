@@ -24,10 +24,10 @@ repl_add_ws = cm("Добавляет рабочую станцию",
 }
 
 //
-repl_setup = cm("Выгружает установочную реплику",
+repl_snapshot = cm("Создает реплику с полным снимком данных для рабочей станции",
 ) {
     def ext = createExt("jdtx.repl.main.Jdx_Ext")
-    ext.repl_setup(args)
+    ext.repl_snapshot(args)
 }
 
 //

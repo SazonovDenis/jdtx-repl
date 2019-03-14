@@ -151,7 +151,7 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
-    void repl_setup(IVariantMap args) {
+    void repl_snapshot(IVariantMap args) {
         BgTasksService bgTasksService = app.service(BgTasksService.class);
         String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName");
 
@@ -170,7 +170,7 @@ class Jdx_Ext extends ProjectExt {
             System.out.println("Рабочая станция, cfgFileName: " + cfgFileName + ", wsId: " + ws.getWsId());
 
             // Формируем установочную реплику
-            ws.createSetupReplica()
+            ws.createSnapshotReplica()
 
         } finally {
             db.disconnect()

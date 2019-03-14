@@ -25,8 +25,8 @@ public class UtDataSelector {
     /**
      * Обязана обеспечить правильный поток записей, если есть ссылка на самого себя
      */
-    public void readFullData(String tableName, String tableFields, JdxReplicaWriterXml dataContainer) throws Exception {
-        DbQuery rsTableLog = selectFullData(tableName, tableFields);
+    public void readAllRecords(String tableName, String tableFields, JdxReplicaWriterXml dataContainer) throws Exception {
+        DbQuery rsTableLog = selectAllRecords(tableName, tableFields);
         try {
             dataContainer.startTable(tableName);
 
@@ -61,7 +61,7 @@ public class UtDataSelector {
         }
     }
 
-    protected DbQuery selectFullData(String tableName, String tableFields) throws Exception {
+    protected DbQuery selectAllRecords(String tableName, String tableFields) throws Exception {
         //
         IJdxTableStruct tableFrom = struct.getTable(tableName);
 

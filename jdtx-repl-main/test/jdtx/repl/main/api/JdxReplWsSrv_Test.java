@@ -60,8 +60,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_all_0() throws Exception {
         test_srv_setUp();
         //
-        test_ws2_CreateSetupReplica();
-        test_ws3_CreateSetupReplica();
+        test_ws2_CreateSnapshotReplica();
+        test_ws3_CreateSnapshotReplica();
         //
         test_dumpTables();
     }
@@ -133,25 +133,25 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void test_ws2_CreateSetupReplica() throws Exception {
+    public void test_ws2_CreateSnapshotReplica() throws Exception {
         // Рабочая станция, настройка
         JdxReplWs ws2 = new JdxReplWs(db2);
         //ws2.init("test/etalon/ws2.json");
         ws2.init("test/etalon/mail_http_ws2.json");
 
         // Создаем установочную реплику
-        ws2.createSetupReplica();
+        ws2.createSnapshotReplica();
     }
 
     @Test
-    public void test_ws3_CreateSetupReplica() throws Exception {
+    public void test_ws3_CreateSnapshotReplica() throws Exception {
         // Рабочая станция, настройка
         JdxReplWs ws3 = new JdxReplWs(db3);
         //ws3.init("test/etalon/ws3.json");
         ws3.init("test/etalon/mail_http_ws3.json");
 
         // Создаем установочную реплику
-        ws3.createSetupReplica();
+        ws3.createSnapshotReplica();
     }
 
 

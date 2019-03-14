@@ -134,8 +134,8 @@ public class JdxReplWs {
     /**
      * Формируем установочную реплику
      */
-    public void createSetupReplica() throws Exception {
-        log.info("createSetupReplica, wsId: " + wsId);
+    public void createSnapshotReplica() throws Exception {
+        log.info("createReplicaSnapshot, wsId: " + wsId);
 
         //
         UtRepl utr = new UtRepl(db);
@@ -153,15 +153,15 @@ public class JdxReplWs {
         try {
             // Увеличиваем возраст (установочная реплика просто сдвигает возраст БД)
             long age = utr.incAuditAge();
-            log.info("createSetupReplica, new age: " + age);
+            log.info("createReplicaSnapshot, new age: " + age);
 
             //
             for (IPublication publication : publicationsOut) {
                 // Забираем установочную реплику
-                IReplica setupReplica = utr.createReplicaFull(wsId, publication, age);
+                IReplica replicaSnapshot = utr.createReplicaSnapshot(wsId, publication, age);
 
                 // Помещаем реплику в очередь
-                queOut.put(setupReplica);
+                queOut.put(replicaSnapshot);
 
                 //
                 stateManager.setAuditAgeDone(age);
@@ -175,7 +175,7 @@ public class JdxReplWs {
         }
 
         //
-        log.info("createSetupReplica, wsId: " + wsId + ", done");
+        log.info("createReplicaSnapshot, wsId: " + wsId + ", done");
     }
 
     /**
