@@ -23,7 +23,6 @@ class Jdx_Ext extends ProjectExt {
 
     private static AppProjectExt _appProjectExt
 
-/*
     public Jdx_Ext() {
         if (UtFile.exists("_log.properties")) {
             UtLog.loadProperties("_log.properties")
@@ -35,7 +34,6 @@ class Jdx_Ext extends ProjectExt {
             System.out.println("Файл log.properties или _log.properties не найден, логирование отключено")
         }
     }
-*/
 
     /**
      * Расширение для приложения
@@ -105,6 +103,11 @@ class Jdx_Ext extends ProjectExt {
     }
 
     void repl_create(IVariantMap args) {
+        long wsId = args.getValueLong("id")
+        if (wsId == 0L) {
+            throw new XError("Не указан [id] - код рабочей станции ")
+        }
+
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -116,7 +119,7 @@ class Jdx_Ext extends ProjectExt {
             // Создаем объекты
             UtRepl utr = new UtRepl(db)
             utr.dropReplication()
-            utr.createReplication()
+            utr.createReplication(wsId)
 
         } finally {
             db.disconnect()

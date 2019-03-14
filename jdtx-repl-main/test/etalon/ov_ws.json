@@ -3,10 +3,10 @@
   "1": {
     "url": "http://192.168.0.141/lombard.systems/repl/",
     "guid": "b5781df573ca6ee6-17845f2f56f4d401",
-    "mailLocalDirTmp": "../_test-data/ws_001/tmp",
+    "mailLocalDirTmp": "Z:/jdtx-repl/_test-data/ws_001/tmp",
 
-    "queIn_DirLocal": "../_test-data/ws_001/queIn",
-    "queOut_DirLocal": "../_test-data/ws_001/queOut",
+    "queIn_DirLocal": "Z:/jdtx-repl/_test-data/ws_001/queIn",
+    "queOut_DirLocal": "Z:/jdtx-repl/_test-data/ws_001/queOut",
 
     "publicationsIn": ["publication_full"],
     "publicationsOut": ["publication_full"]
@@ -15,10 +15,10 @@
   "2": {
     "url": "http://192.168.0.141/lombard.systems/repl/",
     "guid": "b5781df573ca6ee6-21ba238dfc945002",
-    "mailLocalDirTmp": "../_test-data/ws_002/tmp",
+    "mailLocalDirTmp": "Z:/jdtx-repl/_test-data/ws_002/tmp",
 
-    "queIn_DirLocal": "../_test-data/ws_002/queIn",
-    "queOut_DirLocal": "../_test-data/ws_002/queOut",
+    "queIn_DirLocal": "Z:/jdtx-repl/_test-data/ws_002/queIn",
+    "queOut_DirLocal": "Z:/jdtx-repl/_test-data/ws_002/queOut",
 
     "publicationsIn": ["publication_full"],
     "publicationsOut": ["publication_full"]
@@ -27,10 +27,10 @@
   "3": {
     "url": "http://192.168.0.141/lombard.systems/repl/",
     "guid": "b5781df573ca6ee6-34f3cc20bea64503",
-    "mailLocalDirTmp": "../_test-data/ws_003/tmp",
+    "mailLocalDirTmp": "Z:/jdtx-repl/_test-data/ws_003/tmp",
 
-    "queIn_DirLocal": "../_test-data/ws_003/queIn",
-    "queOut_DirLocal": "../_test-data/ws_003/queOut",
+    "queIn_DirLocal": "Z:/jdtx-repl/_test-data/ws_003/queIn",
+    "queOut_DirLocal": "Z:/jdtx-repl/_test-data/ws_003/queOut",
 
     "publicationsIn": ["publication_full"],
     "publicationsOut": ["publication_full"]

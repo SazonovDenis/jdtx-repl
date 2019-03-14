@@ -20,19 +20,19 @@ cfg/sample.ws.json
 
 Обязательно:
 
-jc repl_info
-jc repl_create
+jc repl-info
+jc repl-create -id:1
 
-jc repl_add_ws -id:1 -name:"Sever"
-jc repl_add_ws -id:2 -name:"ws filial 2"
-jc repl_add_ws -id:3 -name:"ws filial 3"
+jc repl-add-ws -id:1 -name:"Sever"
+jc repl-add-ws -id:2 -name:"ws filial 2"
+jc repl-add-ws -id:3 -name:"ws filial 3"
 ...
 и т.д.
 
 
 Опционально:
 
-jc repl_snapshot
+jc repl-snapshot
 jc repl-sync-srv -dir:f:\jdtx-repl\ -mark:true
 
 
@@ -43,14 +43,14 @@ jc repl-sync-srv -dir:f:\jdtx-repl\ -mark:true
 
 Обязательно:
 
-jc repl_info
-jc repl_create
+jc repl-info
+jc repl-create -id:XXX
 
 
 Опционально:
 
 
-jc repl_snapshot
+jc repl-snapshot
 jc repl-sync -dir:f:\jdtx-repl\ -mark:true
 
 

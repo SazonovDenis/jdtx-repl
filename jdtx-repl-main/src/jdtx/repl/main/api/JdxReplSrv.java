@@ -116,13 +116,17 @@ public class JdxReplSrv {
             long queMaxAge = mailer.getSrvSate("from");
 
             //
+            log.info("srvHandleCommonQue, from.wsId: " + wsId);
+
+            //
             long count = 0;
             for (long age = queDoneAge + 1; age <= queMaxAge; age++) {
-                log.info("srvHandleCommonQue, wsId: " + wsId + ", age: " + age);
-
                 // Физически забираем данные с почтового сервера
                 IReplica replica = mailer.receive(age, "from");
                 JdxReplicaReaderXml.readReplicaInfo(replica);
+
+                //
+                log.debug("replica.age: " + replica.getAge() + ", replica.wsId: " + replica.getWsId());
 
                 // Помещаем полученные данные в общую очередь
                 db.startTran();
@@ -148,9 +152,9 @@ public class JdxReplSrv {
 
             //
             if (count == 0) {
-                log.info("srvHandleCommonQue, wsId: " + wsId + ", que.age: " + queDoneAge + ", nothing to do");
+                log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.age: " + queDoneAge + ", nothing to do");
             } else {
-                log.info("srvHandleCommonQue, wsId: " + wsId + ", que.age: " + queDoneAge + " ->" + queMaxAge + ", done count: " + count);
+                log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.age: " + queDoneAge + " -> " + queMaxAge + ", done count: " + count);
             }
         }
     }
@@ -174,6 +178,9 @@ public class JdxReplSrv {
             long wsId = (long) en.getKey();
             IJdxMailer mailer = (IJdxMailer) en.getValue();
 
+            //
+            log.info("srvDispatchReplicas, to.wsId: " + wsId);
+
             // Сколько уже отправлено для этой рабочей станции
             long commonQueDoneNo_Ws = stateManager.getCommonQueDispatchDone(wsId);
 
@@ -185,10 +192,11 @@ public class JdxReplSrv {
             //
             long count = 0;
             for (long no = age_from; no <= age_to; no++) {
-                log.info("srvDispatchReplicas, wsId: " + wsId + ", no: " + no);
-
                 // Берем реплику
                 IReplica replica = commonQue.getByNo(no);
+
+                //
+                log.debug("replica.age: " + replica.getAge() + ", replica.wsId: " + replica.getWsId());
 
                 // Физически отправим реплику
                 mailer.send(replica, no, "to"); // todo это тупо - вот так копировать и перекладывать файлы из папки в папку???
@@ -207,9 +215,9 @@ public class JdxReplSrv {
 
             //
             if (count == 0) {
-                log.info("srvDispatchReplicas, wsId: " + wsId + ", que.age: " + commonQueDoneNo_Ws + ", nothing to do");
+                log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + commonQueDoneNo_Ws + ", nothing to do");
             } else {
-                log.info("srvDispatchReplicas, wsId: " + wsId + ", que.age: " + commonQueDoneNo_Ws + " ->" + commonQueMaxNo + ", done count: " + count);
+                log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + commonQueDoneNo_Ws + " -> " + commonQueMaxNo + ", done count: " + count);
             }
         }
     }

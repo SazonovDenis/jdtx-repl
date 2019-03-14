@@ -27,12 +27,17 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         new File("../_test-data/ws_srv").delete();
         new File("../_test-data/ws2").delete();
         new File("../_test-data/ws3").delete();
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/17845f2f56f4d4dc/from");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/17845f2f56f4d4dc/to");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/21ba238dfc94503e/from");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/21ba238dfc94503e/to");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/34f3cc20bea645fa/from");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/34f3cc20bea645fa/to");
+        new File("d:/temp/dbm.log").delete();
+        new File("d:/temp/jdtx.log").delete();
+        UtFile.cleanDir("s:/xxx");
+        new File("s:/xxx").delete();
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/17845f2f56f4d401/from");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/17845f2f56f4d401/to");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/21ba238dfc945002/from");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/21ba238dfc945002/to");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/34f3cc20bea64503/from");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/34f3cc20bea64503/to");
 
 
         // db
