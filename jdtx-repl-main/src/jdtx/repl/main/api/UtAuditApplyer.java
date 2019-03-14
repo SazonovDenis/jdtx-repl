@@ -1,20 +1,14 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.db.Db;
-import jandcode.utils.DataType;
-import jandcode.utils.UtString;
-import jandcode.utils.error.XError;
-import jdtx.repl.main.api.struct.IJdxDbStruct;
-import jdtx.repl.main.api.struct.IJdxFieldStruct;
-import jdtx.repl.main.api.struct.IJdxTableStruct;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.joda.time.DateTime;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import jandcode.dbm.db.*;
+import jandcode.utils.*;
+import jandcode.utils.error.*;
+import jdtx.repl.main.api.struct.*;
+import org.apache.commons.logging.*;
+import org.joda.time.*;
+import org.json.simple.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Применяет реплики
@@ -102,6 +96,7 @@ public class UtAuditApplyer {
 
                 // Перебираем записи
                 Map recValues = replicaReader.nextRec();
+                long count = 0;
                 while (recValues != null) {
                     //log.debug("  " + recValues);
 
@@ -170,7 +165,16 @@ public class UtAuditApplyer {
 
                     //
                     recValues = replicaReader.nextRec();
+
+                    //
+                    count++;
+                    if (count % 200 == 0) {
+                        log.info("  writeData: " + tableName + ", " + count);
+                    }
                 }
+
+                //
+                log.info("  writeData: " + tableName + ", total: " + count);
 
                 //
                 tableName = replicaReader.nextTable();
