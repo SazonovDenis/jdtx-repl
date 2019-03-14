@@ -21,11 +21,7 @@ public class JdxStateManagerWs {
     public long getAuditAgeDone() throws Exception {
         String sql = "select * from " + JdxUtils.sys_table_prefix + "state";
         DataRecord rec = db.loadSql(sql).getCurRec();
-        if (rec.getValueLong("id") == 0) {
-            return -1;
-        } else {
-            return rec.getValueLong("que_out_age_done");
-        }
+        return rec.getValueLong("que_out_age_done");
     }
 
     public void setAuditAgeDone(long queOutAgeDone) throws Exception {
@@ -40,13 +36,7 @@ public class JdxStateManagerWs {
     public long getQueInNoDone() throws Exception {
         String sql = "select * from " + JdxUtils.sys_table_prefix + "state";
         DataRecord rec = db.loadSql(sql).getCurRec();
-        if (rec.getValueLong("id") == 0) {
-            // Номер в очередях (в отличие от возраста) начинается от 1,
-            // но возраст в очередях может начаться с 0
-            return 0;
-        } else {
-            return rec.getValueLong("que_in_no_done");
-        }
+        return rec.getValueLong("que_in_no_done");
     }
 
     public void setQueInNoDone(long queInNoDone) throws Exception {

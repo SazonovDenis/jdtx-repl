@@ -3,7 +3,7 @@ include "db-project-product"
 
 
 //
-repl_create = cm("Инициализация рабочей станции",
+repl_create = cm("Инициализация базы",
 ) {
     def ext = createExt("jdtx.repl.main.Jdx_Ext")
     ext.repl_create(args)
@@ -17,7 +17,7 @@ repl_info = cm("Информация по репликации",
 }
 
 //
-repl_add_ws = cm("Добавляет рабочую станцию",
+repl_add_ws = cm("Добавляет рабочую станцию на сервер",
 ) {
     def ext = createExt("jdtx.repl.main.Jdx_Ext")
     ext.repl_add_ws(args)
@@ -31,18 +31,25 @@ repl_snapshot = cm("Создает реплику с полным снимком
 }
 
 //
-repl_send = cm("Записывает реплики в указанную папку",
+repl_sync = cm("Сеанс синхронизации рабочей станции (прием и отправка) через каталог",
+   "dir": [value: null, help: "Каталог для обмена"],
+   "from": [value: null, help: "Начальный возраст отправляемых реплик"],
+   "to": [value: null, help: "Конечный возраст отправляемых реплик"],
+   "mark": [value: false, help: "Делать отметку 'отправлено' для отправленных реплик"],
 ) {
     def ext = createExt("jdtx.repl.main.Jdx_Ext")
-    ext.repl_send(args)
+    ext.repl_sync(args)
 }
 
-
 //
-repl_receive = cm("Забирает реплики из указанной папки",
+repl_sync_srv = cm("Сеанс синхронизации для сервера (прием и тиражирование) через каталог",
+   "dir": [value: null, help: "Каталог для обмена"],
+   "from": [value: null, help: "Начальный номер отправляемых реплик"],
+   "to": [value: null, help: "Конечный номер отправляемых реплик"],
+   "mark": [value: false, help: "Делать отметку 'отправлено' для отправленных реплик"],
 ) {
     def ext = createExt("jdtx.repl.main.Jdx_Ext")
-    ext.repl_receive(args)
+    ext.repl_sync_srv(args)
 }
 
 

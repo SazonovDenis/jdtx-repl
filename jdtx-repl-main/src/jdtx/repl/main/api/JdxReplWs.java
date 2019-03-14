@@ -279,11 +279,11 @@ public class JdxReplWs {
     }
 
 
-    public void receiveFromDir(String cfgFileName, String mailFromDir) throws Exception {
+    public void receiveFromDir(String cfgFileName, String mailDir) throws Exception {
         // Готовим локальный мейлер
-        mailFromDir = UtFile.unnormPath(mailFromDir) + "/";
+        mailDir = UtFile.unnormPath(mailDir) + "/";
         String guidPath = ((UtMailerHttp) mailer).guid.replace("-", "/");
-        mailFromDir = mailFromDir + guidPath;
+        mailDir = mailDir + guidPath;
 
         //
         JSONObject cfgData = null;
@@ -295,7 +295,7 @@ public class JdxReplWs {
             r.close();
         }
         //
-        cfgData.put("mailRemoteDir", mailFromDir);
+        cfgData.put("mailRemoteDir", mailDir);
 
         //
         IJdxMailer mailerLocal = new UtMailerLocalFiles();
@@ -332,7 +332,7 @@ public class JdxReplWs {
             IReplica replica;
             if (info.wsId == wsId && info.replicaType == JdxReplicaType.EXPORT) {
                 // Свои собственные установочные реплики можно не скачивать (и не применять)
-                log.info("Found self setup replica, age: " + info.age);
+                log.info("Found self snapshot replica, age: " + info.age);
                 //
                 replica = new ReplicaFile();
                 replica.setWsId(info.wsId);
@@ -364,11 +364,11 @@ public class JdxReplWs {
     }
 
 
-    public void sendToDir(String cfgFileName, long age_from, long age_to, String mailToDir, boolean doMarkDone) throws Exception {
+    public void sendToDir(String cfgFileName, String mailDir, long age_from, long age_to, boolean doMarkDone) throws Exception {
         // Готовим локальный мейлер
-        mailToDir = UtFile.unnormPath(mailToDir) + "/";
+        mailDir = UtFile.unnormPath(mailDir) + "/";
         String guidPath = ((UtMailerHttp) mailer).guid.replace("-", "/");
-        mailToDir = mailToDir + guidPath;
+        mailDir = mailDir + guidPath;
 
         //
         JSONObject cfgData = null;
@@ -380,11 +380,28 @@ public class JdxReplWs {
             r.close();
         }
         //
-        cfgData.put("mailRemoteDir", mailToDir);
+        cfgData.put("mailRemoteDir", mailDir);
 
         //
         IJdxMailer mailerLocal = new UtMailerLocalFiles();
         mailerLocal.init(cfgData);
+
+
+        // Сколько уже отправлено на сервер
+        JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
+        long srvSendAge = stateManager.getMailSendDone();
+
+        // Узнаем сколько есть у нас в очереди на отправку
+        long selfQueOutAge = queOut.getMaxAge();
+
+        // Узнаем сами, если не указано - сколько уже отправлено на сервер
+        if (age_from == 0L) {
+            age_from = srvSendAge + 1;
+        }
+        // Узнаем сами, если не указано - сколько есть у нас в очереди на отправку
+        if (age_to == 0L) {
+            age_to = selfQueOutAge;
+        }
 
 
         // Физически отправляем данные
@@ -411,8 +428,11 @@ public class JdxReplWs {
         for (long age = srvSendAge; age <= selfQueOutAge; age++) {
             log.info("UtMailer, wsId: " + wsId + ", sending.age: " + age);
 
-            // Физически отправляем данные
-            mailer.send(queOut.getByAge(age), age, "from");
+            // Берем реплику
+            IReplica replica = queOut.getByAge(age);
+
+            // Физически отправляем реплику
+            mailer.send(replica, age, "from");
 
             // Отмечаем факт отправки
             if (doMarkDone) {

@@ -25,40 +25,46 @@ public class JdxStateManagerSrv {
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("ws_id") == 0) {
             throw new XError("Не найдена запись для ws_id [" + wsId + "] в " + JdxUtils.sys_table_prefix + "state_ws");
-        } else {
-            return rec.getValueLong("que_in_age_done");
         }
+        //
+        return rec.getValueLong("que_in_age_done");
     }
 
     public void setWsQueInAgeDone(long wsId, long queInAgeDone) throws Exception {
-        String sql = "update " + JdxUtils.sys_table_prefix + "state_ws set que_in_age_done = " + queInAgeDone + " where ws_id = " + wsId;
-        db.execSql(sql);
+        String sql = "select * from " + JdxUtils.sys_table_prefix + "state_ws where ws_id = " + wsId;
+        DataRecord rec = db.loadSql(sql).getCurRec();
+        if (rec.getValueLong("ws_id") == 0) {
+            throw new XError("Не найдена запись для ws_id [" + wsId + "] в " + JdxUtils.sys_table_prefix + "state_ws");
+        }
+        //
+        String sqlUpd = "update " + JdxUtils.sys_table_prefix + "state_ws set que_in_age_done = " + queInAgeDone + " where ws_id = " + wsId;
+        db.execSql(sqlUpd);
     }
 
 
     /**
      * @return Номер реплики, до которого обработана общая очередь
-     * при тиражировании реплик
+     * при тиражировании реплик для рабочей станции wsId
      */
     public long getCommonQueDispatchDone(long wsId) throws Exception {
         String sql = "select * from " + JdxUtils.sys_table_prefix + "state_ws where ws_id = " + wsId;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("ws_id") == 0) {
             throw new XError("Не найдена запись для ws_id [" + wsId + "] в " + JdxUtils.sys_table_prefix + "state_ws");
-        } else {
-            long no = rec.getValueLong("que_common_dispatch_done");
-            // Номер в очередях (в отличие от возраста) начинается от 1,
-            // но возраст в очередях может начаться с 0
-            if (no == -1) {
-                no = 0;
-            }
-            return no;
         }
+        //
+        return rec.getValueLong("que_common_dispatch_done");
     }
 
     public void setCommonQueDispatchDone(long wsId, long queCommonNoDone) throws Exception {
-        String sql = "update " + JdxUtils.sys_table_prefix + "state_ws set que_common_dispatch_done = " + queCommonNoDone + " where ws_id = " + wsId;
-        db.execSql(sql);
+        String sql = "select * from " + JdxUtils.sys_table_prefix + "state_ws where ws_id = " + wsId;
+        DataRecord rec = db.loadSql(sql).getCurRec();
+        if (rec.getValueLong("ws_id") == 0) {
+            throw new XError("Не найдена запись для ws_id [" + wsId + "] в " + JdxUtils.sys_table_prefix + "state_ws");
+        }
+        //
+        String sqlUpd = "update " + JdxUtils.sys_table_prefix + "state_ws set que_common_dispatch_done = " + queCommonNoDone + " where ws_id = " + wsId;
+        db.execSql(sqlUpd);
     }
 
 

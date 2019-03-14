@@ -7,10 +7,10 @@ import org.apache.commons.logging.*;
 import org.json.simple.*;
 
 import java.io.*;
-import java.util.*;
 
 /**
  * Главное API репликатора
+ * todo: НЕ главное API - просто утилитный класс. Зачем он вообще нужен в таком виде - неясно
  */
 public class UtRepl {
 
@@ -183,109 +183,6 @@ public class UtRepl {
 
         //
         return replica;
-    }
-
-
-    /**
-     * Сервер: считывание очередей рабочих станций и формирование общей очереди
-     * <p>
-     * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
-     * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
-     */
-    public void srvHandleCommonQue(Map<Long, IJdxMailer> mailerList, IJdxQueCommon commonQue) throws Exception {
-        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
-        for (Map.Entry en : mailerList.entrySet()) {
-            long wsId = (long) en.getKey();
-            IJdxMailer mailer = (IJdxMailer) en.getValue();
-
-            //
-            long queDoneAge = stateManager.getWsQueInAgeDone(wsId);
-            long queMaxAge = mailer.getSrvSate("from");
-
-            //
-            long count = 0;
-            for (long age = queDoneAge + 1; age <= queMaxAge; age++) {
-                log.info("srvHandleCommonQue, wsId: " + wsId + ", age: " + age);
-
-                // Физически забираем данные с почтового сервера
-                IReplica replica = mailer.receive(age, "from");
-                //
-                JdxReplicaReaderXml.readReplicaInfo(replica);
-
-                // Помещаем полученные данные в общую очередь
-                db.startTran();
-                try {
-                    commonQue.put(replica);
-
-                    //
-                    stateManager.setWsQueInAgeDone(wsId, age);
-
-                    //
-                    db.commit();
-                } catch (Exception e) {
-                    db.rollback();
-                    throw e;
-                }
-
-                // Удаляем с почтового сервера
-                mailer.delete(age, "from");
-
-                //
-                count++;
-            }
-
-            //
-            if (count == 0) {
-                log.info("srvHandleCommonQue, wsId: " + wsId + ", que.age: " + queDoneAge + ", nothing to do");
-            } else {
-                log.info("srvHandleCommonQue, wsId: " + wsId + ", que.age: " + queDoneAge + " ->" + queMaxAge + ", done count: " + count);
-            }
-        }
-    }
-
-    /**
-     * Сервер: распределение общей очереди по рабочим станциям
-     */
-    public void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IJdxMailer> mailerList) throws Exception {
-        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
-
-        //
-        for (Map.Entry en : mailerList.entrySet()) {
-            long wsId = (long) en.getKey();
-            IJdxMailer mailer = (IJdxMailer) en.getValue();
-
-            //
-            long commonQueDoneNo = stateManager.getCommonQueDispatchDone(wsId);
-            long commonQueMaxNo = commonQue.getMaxNo();
-
-            //
-            long count = 0;
-            for (long no = commonQueDoneNo + 1; no <= commonQueMaxNo; no++) {
-                log.info("srvDispatchReplicas, wsId: " + wsId + ", no: " + no);
-
-                //
-                IReplica replica = commonQue.getByNo(no);
-
-                //
-                mailer.send(replica, no, "to"); // todo это тупо - так копировать и перекладывать файлы
-
-                //
-                stateManager.setCommonQueDispatchDone(wsId, no);
-
-                //
-                count++;
-            }
-
-            //
-            mailer.ping("to");
-
-            //
-            if (count == 0) {
-                log.info("srvDispatchReplicas, wsId: " + wsId + ", que.age: " + commonQueDoneNo + ", nothing to do");
-            } else {
-                log.info("srvDispatchReplicas, wsId: " + wsId + ", que.age: " + commonQueDoneNo + " ->" + commonQueMaxNo + ", done count: " + count);
-            }
-        }
     }
 
 

@@ -178,19 +178,14 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
-    void repl_send(IVariantMap args) {
-        String mailToDir = args.getValueString("dir")
-        long age_from = args.getValueLong("age_from")
-        long age_to = args.getValueLong("age_to")
-        boolean doMarkDone = args.getValueBoolean("mark_done", false)
-        if (mailToDir == null || mailToDir.length() == 0) {
+    void repl_sync(IVariantMap args) {
+        String mailDir = args.getValueString("dir")
+        long age_from = args.getValueLong("from")
+        long age_to = args.getValueLong("to")
+        boolean doMarkDone = args.getValueBoolean("mark", false)
+        //
+        if (mailDir == null || mailDir.length() == 0) {
             throw new XError("Не указан [dir] - почтовый каталог")
-        }
-        if (age_from == 0L) {
-            throw new XError("Не указан [age_from] - начальный возраст")
-        }
-        if (age_to == 0L) {
-            throw new XError("Не указан [age_to] - конечный возраст")
         }
 
         //
@@ -208,29 +203,42 @@ class Jdx_Ext extends ProjectExt {
             // Рабочая станция
             JdxReplWs ws = new JdxReplWs(db)
             ws.init(cfgFileName)
-            //
             System.out.println("Рабочая станция, cfgFileName: " + cfgFileName + ", wsId: " + ws.getWsId());
 
-            // Физически отправляем данные
-            ws.sendToDir(cfgFileName, age_from, age_to, mailToDir, doMarkDone)
+            //
+            System.out.println("Отслеживаем и обрабатываем свои изменения");
+            ws.handleSelfAudit();
 
+            //
+            System.out.println("Отправляем свои изменения");
+            ws.sendToDir(cfgFileName, mailDir, age_from, age_to, doMarkDone)
+
+            //
+            System.out.println("Забираем входящие реплики");
+            ws.receiveFromDir(cfgFileName, mailDir)
+
+            //
+            System.out.println("Применяем входящие реплики");
+            ws.handleQueIn();
         } finally {
             db.disconnect()
         }
     }
 
 
-    void repl_receive(IVariantMap args) {
-        String mailToDir = args.getValueString("dir")
-        long age_from = args.getValueLong("age_from")
-        long age_to = args.getValueLong("age_to")
-        if (mailToDir == null || mailToDir.length() == 0) {
+    void repl_sync_srv(IVariantMap args) {
+        String mailDir = args.getValueString("dir")
+        long age_from = args.getValueLong("from")
+        long age_to = args.getValueLong("to")
+        boolean doMarkDone = args.getValueBoolean("mark", false)
+        //
+        if (mailDir == null || mailDir.length() == 0) {
             throw new XError("Не указан [dir] - почтовый каталог")
         }
 
         //
         BgTasksService bgTasksService = app.service(BgTasksService.class);
-        String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName");
+        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName");
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -240,15 +248,18 @@ class Jdx_Ext extends ProjectExt {
 
         //
         try {
-            // Рабочая станция
-            JdxReplWs ws = new JdxReplWs(db)
-            ws.init(cfgFileName)
+            // ---
+            // Сервер
+            JdxReplSrv srv = new JdxReplSrv(db);
+            srv.init(cfgFileName_srv);
             //
-            System.out.println("Рабочая станция, cfgFileName: " + cfgFileName + ", wsId: " + ws.getWsId());
+            System.out.println("Сервер, cfgFileName: " + cfgFileName_srv);
 
-            // Физически забираем данные
-            ws.receiveFromDir(cfgFileName, mailToDir)
+            // Формирование общей очереди
+            srv.srvHandleCommonQueFrom(cfgFileName_srv, mailDir);
 
+            // Тиражирование реплик
+            srv.srvDispatchReplicasToDir(cfgFileName_srv, mailDir, age_from, age_to, doMarkDone);
         } finally {
             db.disconnect()
         }

@@ -79,7 +79,7 @@ public class UtMailerHttp implements IJdxMailer {
 
     @Override
     public void send(IReplica repl, long no, String box) throws Exception {
-        log.info("mailer.send, wsId: " + repl.getWsId() + ", repl.age: " + repl.getAge() + ", no: " + no + ", remoteUrl: " + remoteUrl + "/" + box);
+        log.info("mailer.send, repl.wsId: " + repl.getWsId() + ", repl.age: " + repl.getAge() + ", no: " + no + ", remoteUrl: " + remoteUrl + "/" + box);
 
         //
         DefaultHttpClient client = new DefaultHttpClient();

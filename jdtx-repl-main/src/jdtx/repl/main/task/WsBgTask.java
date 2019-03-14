@@ -52,7 +52,7 @@ public class WsBgTask extends BgTask {
 
     //
     void step_ws() throws Exception {
-        logInfo("Рабочая станция: " + cfgFileName);
+        logInfo("Рабочая станция, настройка: " + cfgFileName);
 
         //
         ModelService app = getApp().service(ModelService.class);
@@ -61,9 +61,9 @@ public class WsBgTask extends BgTask {
 
         //
         try {
-            logInfo("Рабочая станция, настройка");
             JdxReplWs ws = new JdxReplWs(db);
             ws.init(cfgFileName);
+            logInfo("Рабочая станция, wsId: " + ws.getWsId());
 
             //
             logInfo("Отслеживаем и обрабатываем свои изменения");

@@ -1,14 +1,13 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.data.DataRecord;
-import jandcode.dbm.db.Db;
-import jandcode.utils.UtCnv;
-import jandcode.utils.UtFile;
-import jandcode.utils.UtString;
-import jandcode.utils.error.XError;
-import org.apache.commons.io.FileUtils;
+import jandcode.dbm.data.*;
+import jandcode.dbm.db.*;
+import jandcode.utils.*;
+import jandcode.utils.error.*;
+import org.apache.commons.io.*;
+import org.apache.commons.logging.*;
 
-import java.io.File;
+import java.io.*;
 
 /**
  *
@@ -20,6 +19,10 @@ public class JdxQueCommonFile implements IJdxQueCommon {
     private String baseDir;
 
     private Db db;
+
+    //
+    protected static Log log = LogFactory.getLog("jdtx");
+
 
     public JdxQueCommonFile(Db db, int queType) throws Exception {
         if (queType <= JdxQueType.NONE) {
@@ -67,14 +70,22 @@ public class JdxQueCommonFile implements IJdxQueCommon {
         // Генерим следующий номер
         long queNextNo = getMaxNo() + 1;
 
-        // Помещаем в очередь
+        // Помещаем файл на место хранения файлов очереди.
+        // Если file, указанный у реплики не совпадает с постоянным местом хранения, то файл переносим на постоянное место.
+        // Если какой-то файл уже находится на постоянном месте, то этого самозванца сначала удаляем.
         String actualFileName = genFileName(queNextNo);
         File actualFile = new File(baseDir + actualFileName);
         if (replicaFile != null && replicaFile.getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
+            // Место случайно не занято?
+            if (actualFile.exists()) {
+                log.debug("actualFile.exists: " + actualFile.getAbsolutePath());
+                actualFile.delete();
+            }
+            // Переносим файл на постоянное место
             FileUtils.moveFile(replicaFile, actualFile);
         }
 
-        //
+        // Отмечаем в БД
         String sql = "insert into " + JdxUtils.sys_table_prefix + "que" + queType + " (id, ws_id, age, replica_type) values (:id, :ws_id, :age, :replica_type)";
         db.execSql(sql, UtCnv.toMap(
                 "id", queNextNo,

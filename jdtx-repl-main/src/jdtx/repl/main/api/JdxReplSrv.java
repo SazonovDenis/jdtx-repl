@@ -82,39 +82,150 @@ public class JdxReplSrv {
     }
 
     public void srvHandleCommonQue() throws Exception {
-        UtRepl utr = new UtRepl(db);
-        utr.srvHandleCommonQue(mailerList, commonQue);
+        srvHandleCommonQue(mailerList, commonQue);
     }
 
     public void srvDispatchReplicas() throws Exception {
-        UtRepl utr = new UtRepl(db);
-        utr.srvDispatchReplicas(commonQue, mailerList);
+        srvDispatchReplicas(commonQue, mailerList, 0, 0, true);
     }
 
-    public void srvHandleCommonQueFrom(String cfgFileName, String mailFromDir) throws Exception {
+    public void srvHandleCommonQueFrom(String cfgFileName, String mailDir) throws Exception {
         // Готовим локальных курьеров (через папку)
         Map<Long, IJdxMailer> mailerListLocal = new HashMap<>();
-        fillMailerListLocal(mailerListLocal, cfgFileName, mailFromDir);
+        fillMailerListLocal(mailerListLocal, cfgFileName, mailDir);
 
         // Физически забираем данные
-        UtRepl utr = new UtRepl(db);
-        utr.srvHandleCommonQue(mailerListLocal, commonQue);
+        srvHandleCommonQue(mailerListLocal, commonQue);
     }
 
-    public void srvDispatchReplicasTo(String cfgFileName, String mailFromDir) throws Exception {
+    public void srvDispatchReplicasToDir(String cfgFileName, String mailDir, long age_from, long age_to, boolean doMarkDone) throws Exception {
         // Готовим локальных курьеров (через папку)
         Map<Long, IJdxMailer> mailerListLocal = new HashMap<>();
-        fillMailerListLocal(mailerListLocal, cfgFileName, mailFromDir);
+        fillMailerListLocal(mailerListLocal, cfgFileName, mailDir);
 
         // Физически отправляем данные
-        UtRepl utr = new UtRepl(db);
-        utr.srvDispatchReplicas(commonQue, mailerListLocal);
+        srvDispatchReplicas(commonQue, mailerListLocal, age_from, age_to, doMarkDone);
+    }
+
+    /**
+     * Сервер: считывание очередей рабочих станций и формирование общей очереди
+     * <p>
+     * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
+     * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
+     */
+    private void srvHandleCommonQue(Map<Long, IJdxMailer> mailerList, IJdxQueCommon commonQue) throws Exception {
+        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
+        for (Map.Entry en : mailerList.entrySet()) {
+            long wsId = (long) en.getKey();
+            IJdxMailer mailer = (IJdxMailer) en.getValue();
+
+            //
+            long queDoneAge = stateManager.getWsQueInAgeDone(wsId);
+            long queMaxAge = mailer.getSrvSate("from");
+
+            //
+            long count = 0;
+            for (long age = queDoneAge + 1; age <= queMaxAge; age++) {
+                log.info("srvHandleCommonQue, wsId: " + wsId + ", age: " + age);
+
+                // Физически забираем данные с почтового сервера
+                IReplica replica = mailer.receive(age, "from");
+                JdxReplicaReaderXml.readReplicaInfo(replica);
+
+                // Помещаем полученные данные в общую очередь
+                db.startTran();
+                try {
+                    commonQue.put(replica);
+
+                    //
+                    stateManager.setWsQueInAgeDone(wsId, age);
+
+                    //
+                    db.commit();
+                } catch (Exception e) {
+                    db.rollback();
+                    throw e;
+                }
+
+                // Удаляем с почтового сервера
+                mailer.delete(age, "from");
+
+                //
+                count++;
+            }
+
+            //
+            if (count == 0) {
+                log.info("srvHandleCommonQue, wsId: " + wsId + ", que.age: " + queDoneAge + ", nothing to do");
+            } else {
+                log.info("srvHandleCommonQue, wsId: " + wsId + ", que.age: " + queDoneAge + " ->" + queMaxAge + ", done count: " + count);
+            }
+        }
+    }
+
+    /**
+     * Сервер: распределение общей очереди по рабочим станциям
+     */
+    private void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IJdxMailer> mailerList, long age_from, long age_to, boolean doMarkDone) throws Exception {
+        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
+
+        // Узнаем сами, если не указано - сколько у нас есть на раздачу
+        long commonQueMaxNo = commonQue.getMaxNo();
+
+        // Узнаем сами, если не указано - сколько у нас есть
+        if (age_to == 0L) {
+            age_to = commonQueMaxNo;
+        }
+
+        //
+        for (Map.Entry en : mailerList.entrySet()) {
+            long wsId = (long) en.getKey();
+            IJdxMailer mailer = (IJdxMailer) en.getValue();
+
+            // Сколько уже отправлено для этой рабочей станции
+            long commonQueDoneNo_Ws = stateManager.getCommonQueDispatchDone(wsId);
+
+            // Узнаем сами, если не указано - от какого возраста нужно отправлять для этой рабочей станции
+            if (age_from == 0L) {
+                age_from = commonQueDoneNo_Ws + 1;
+            }
+
+            //
+            long count = 0;
+            for (long no = age_from; no <= age_to; no++) {
+                log.info("srvDispatchReplicas, wsId: " + wsId + ", no: " + no);
+
+                // Берем реплику
+                IReplica replica = commonQue.getByNo(no);
+
+                // Физически отправим реплику
+                mailer.send(replica, no, "to"); // todo это тупо - вот так копировать и перекладывать файлы из папки в папку???
+
+                // Отметим отправку
+                if (doMarkDone) {
+                    stateManager.setCommonQueDispatchDone(wsId, no);
+                }
+
+                //
+                count++;
+            }
+
+            //
+            mailer.ping("to");
+
+            //
+            if (count == 0) {
+                log.info("srvDispatchReplicas, wsId: " + wsId + ", que.age: " + commonQueDoneNo_Ws + ", nothing to do");
+            } else {
+                log.info("srvDispatchReplicas, wsId: " + wsId + ", que.age: " + commonQueDoneNo_Ws + " ->" + commonQueMaxNo + ", done count: " + count);
+            }
+        }
     }
 
 
-    private void fillMailerListLocal(Map<Long, IJdxMailer> mailerListLocal, String cfgFileName, String mailFromDir) throws Exception {
+    private void fillMailerListLocal(Map<Long, IJdxMailer> mailerListLocal, String cfgFileName, String mailDir) throws Exception {
         // Готовим локальный мейлер
-        mailFromDir = UtFile.unnormPath(mailFromDir) + "/";
+        mailDir = UtFile.unnormPath(mailDir) + "/";
 
         //
         JSONObject cfgData;
@@ -137,7 +248,7 @@ public class JdxReplSrv {
             JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wdId));
             String guidPath = (String) cfgWs.get("guid");
             guidPath = guidPath.replace("-", "/");
-            cfgWs.put("mailRemoteDir", mailFromDir + guidPath);
+            cfgWs.put("mailRemoteDir", mailDir + guidPath);
             //
             IJdxMailer mailerLocal = new UtMailerLocalFiles();
             mailerLocal.init(cfgWs);

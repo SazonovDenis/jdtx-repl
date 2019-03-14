@@ -12,7 +12,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void test_srv_setUp() throws Exception {
+    public void test_all_setUp() throws Exception {
         UtFile.cleanDir("../_test-data/csv");
         UtFile.cleanDir("../_test-data/mail");
         UtFile.cleanDir("../_test-data/mail_local");
@@ -57,8 +57,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_all_0() throws Exception {
-        test_srv_setUp();
+    public void test_all_start() throws Exception {
+        test_all_setUp();
         //
         test_ws2_CreateSnapshotReplica();
         test_ws3_CreateSnapshotReplica();
@@ -71,19 +71,25 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         //test_ws1_makeChange();
         test_ws2_makeChange();
         test_ws3_makeChange();
+
         test_ws1_handleSelfAudit();
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
+
         test_ws1_send_receive();
         test_ws2_send_receive();
         test_ws3_send_receive();
+
         test_srv_handleQue();
+
         test_ws1_send_receive();
         test_ws2_send_receive();
         test_ws3_send_receive();
+
         test_ws1_handleQueIn();
         test_ws2_handleQueIn();
         test_ws3_handleQueIn();
+
         //
         test_dumpTables();
     }
@@ -93,17 +99,23 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         //test_ws1_makeChange();
         test_ws2_makeChange();
         test_ws3_makeChange();
+
         test_ws1_handleSelfAudit();
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
+
         test_ws_sendLocal();
         test_ws_receiveLocal();
+
         test_srv_handleQueLocal();
+
         test_ws_sendLocal();
         test_ws_receiveLocal();
+
         test_ws1_handleQueIn();
         test_ws2_handleQueIn();
         test_ws3_handleQueIn();
+
         //
         test_dumpTables();
     }
@@ -316,22 +328,22 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ws3.init("test/etalon/mail_http_ws3.json");
 
         //
-        JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
-        long srvSendAge = stateManager.getMailSendDone();
-        long selfQueOutAge = ws1.queOut.getMaxAge();
-        ws1.sendToDir("test/etalon/mail_http_ws_srv.json", srvSendAge, selfQueOutAge, "../_test-data/mail_local", true);
+        //JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
+        //long srvSendAge = stateManager.getMailSendDone();
+        //long selfQueOutAge = ws1.queOut.getMaxAge();
+        ws1.sendToDir("test/etalon/mail_http_ws_srv.json", "../_test-data/mail_local", 0, 0, false);
 
         //
-        stateManager = new JdxStateManagerMail(db2);
-        srvSendAge = stateManager.getMailSendDone();
-        selfQueOutAge = ws2.queOut.getMaxAge();
-        ws2.sendToDir("test/etalon/mail_http_ws2.json", srvSendAge, selfQueOutAge, "../_test-data/mail_local", true);
+        //stateManager = new JdxStateManagerMail(db2);
+        //srvSendAge = stateManager.getMailSendDone();
+        //selfQueOutAge = ws2.queOut.getMaxAge();
+        ws2.sendToDir("test/etalon/mail_http_ws2.json", "../_test-data/mail_local", 0, 0, false);
 
         //
-        stateManager = new JdxStateManagerMail(db3);
-        srvSendAge = stateManager.getMailSendDone();
-        selfQueOutAge = ws3.queOut.getMaxAge();
-        ws3.sendToDir("test/etalon/mail_http_ws3.json", srvSendAge, selfQueOutAge, "../_test-data/mail_local/", true);
+        //stateManager = new JdxStateManagerMail(db3);
+        //srvSendAge = stateManager.getMailSendDone();
+        //selfQueOutAge = ws3.queOut.getMaxAge();
+        ws3.sendToDir("test/etalon/mail_http_ws3.json", "../_test-data/mail_local/", 0, 0, false);
     }
 
 
@@ -378,7 +390,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         srv.srvHandleCommonQueFrom("test/etalon/mail_http_srv.json", "../_test-data/mail_local");
 
         // Тиражирование реплик
-        srv.srvDispatchReplicasTo("test/etalon/mail_http_srv.json", "../_test-data/mail_local");
+        srv.srvDispatchReplicasToDir("test/etalon/mail_http_srv.json", "../_test-data/mail_local", 0, 0, false);
     }
 
     @Test

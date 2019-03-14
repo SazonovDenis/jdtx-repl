@@ -1,18 +1,14 @@
 package jdtx.repl.main.api;
 
-import jandcode.utils.UtFile;
-import jandcode.utils.UtString;
-import jandcode.utils.error.XError;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOCase;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.joda.time.DateTime;
-import org.json.simple.JSONObject;
+import jandcode.utils.*;
+import jandcode.utils.error.*;
+import org.apache.commons.io.*;
+import org.apache.commons.io.filefilter.*;
+import org.apache.commons.logging.*;
+import org.joda.time.*;
+import org.json.simple.*;
 
-import java.io.File;
-import java.io.FileFilter;
+import java.io.*;
 
 /**
  * Отправляет и забирает реплики через локальные каталоги.
@@ -65,7 +61,7 @@ public class UtMailerLocalFiles implements IJdxMailer {
     }
 
     public void send(IReplica repl, long no, String box) throws Exception {
-        log.info("mailer.send, wsId: " + repl.getWsId() + ", repl.age: " + repl.getAge() + ", no: " + no + ", remoteDir: " + remoteDir + "/" + box);
+        log.info("mailer.send, repl.wsId: " + repl.getWsId() + ", repl.age: " + repl.getAge() + ", no: " + no + ", remoteDir: " + remoteDir + "/" + box);
 
         //
         UtFile.mkdirs(remoteDir + box);
@@ -74,6 +70,7 @@ public class UtMailerLocalFiles implements IJdxMailer {
         //
         String remoteFileName = getFileName(no);
         File remoteFile = new File(remoteDir + box + "/" + remoteFileName);
+
         //
         FileUtils.copyFile(localFile, remoteFile);
     }
@@ -90,6 +87,10 @@ public class UtMailerLocalFiles implements IJdxMailer {
         File localFile = new File(localDirTmp + localFileName);
 
         //
+        if (localFile.exists()) {
+            log.debug("localFile.exists: "+localFile.getAbsolutePath());
+            localFile.delete();
+        }
         FileUtils.copyFile(remoteFile, localFile);
 
         //

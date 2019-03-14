@@ -31,10 +31,9 @@ jc repl_add_ws -name:"ws_filial 3"
 
 Опционально:
 
-jc repl_setup
+jc repl_snapshot
+jc repl-sync-srv -dir:f:\jdtx-repl\ -mark:true
 
-jc repl-receive -dir:f:\jdtx-repl\
-jc repl-send -dir:f:\jdtx-repl\ -age_from:1 -age_to:999 -mark_done:true
 
 
 Настройка рабочей станции
@@ -50,8 +49,9 @@ jc repl_create
 Опционально:
 
 
-jc repl_setup
-jc repl-send -dir:f:\jdtx-repl\ -age_from:1 -age_to:999 -mark_done:true
+jc repl_snapshot
+jc repl-sync -dir:f:\jdtx-repl\ -mark:true
+
 
 
 Разное
