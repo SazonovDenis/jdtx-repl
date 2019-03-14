@@ -100,11 +100,6 @@ public class UtDbObjectManager {
             sql = "create table " + JdxUtils.sys_table_prefix + "age (age int not null, table_name varchar(50) not null, " + JdxUtils.prefix + "id int not null, dt timestamp not null)";
             db.execSql(sql);
 
-            // метка с номером БД
-            db.execSql("create table " + JdxUtils.sys_table_prefix + "db_info (ws_id integer)");
-            sql = "insert into " + JdxUtils.sys_table_prefix + "db_info (ws_id) values (" + wsId + ")";
-            db.execSql(sql);
-
 
             // Вставляем в таблицу table_list названия всех таблиц
             log.info("createAudit - объекты базы данных");
@@ -124,6 +119,13 @@ public class UtDbObjectManager {
                 createAuditTable(table.getName());
             }
 
+
+            // метка с номером БД
+            db.execSql("create table " + JdxUtils.sys_table_prefix + "db_info (ws_id integer)");
+            sql = "insert into " + JdxUtils.sys_table_prefix + "db_info (ws_id) values (" + wsId + ")";
+            db.execSql(sql);
+            //
+            log.info("db_info, ws_id: " + wsId);
         } finally {
             if (query != null) {
                 query.close();
