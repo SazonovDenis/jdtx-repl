@@ -3,11 +3,10 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.web.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
-import org.json.simple.parser.*;
 
-import java.io.*;
 import java.util.*;
 
 
@@ -47,14 +46,7 @@ public class JdxReplSrv {
      * @param cfgFileName json-файл с конфигурацией
      */
     public void init(String cfgFileName) throws Exception {
-        JSONObject cfgData;
-        Reader r = new FileReader(cfgFileName);
-        try {
-            JSONParser p = new JSONParser();
-            cfgData = (JSONObject) p.parse(r);
-        } finally {
-            r.close();
-        }
+        JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
 
         // Список рабочих станций
         DataStore t = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list");
@@ -228,14 +220,7 @@ public class JdxReplSrv {
         mailDir = UtFile.unnormPath(mailDir) + "/";
 
         //
-        JSONObject cfgData;
-        Reader r = new FileReader(cfgFileName);
-        try {
-            JSONParser p = new JSONParser();
-            cfgData = (JSONObject) p.parse(r);
-        } finally {
-            r.close();
-        }
+        JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
 
         //
         DataStore t = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list");

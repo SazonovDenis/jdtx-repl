@@ -1,9 +1,9 @@
 package jdtx.repl.main.api;
 
+import jandcode.utils.*;
+import jandcode.web.*;
 import org.json.simple.*;
-import org.json.simple.parser.*;
 
-import java.io.*;
 import java.util.*;
 
 /**
@@ -18,14 +18,7 @@ public class RefDecodeStrategy {
     protected Map<String, RefDecodeStrategyItem> tablesDecodeStrategy;
 
     public void init(String cfgFileName) throws Exception {
-        JSONArray data;
-        Reader r = new FileReader(cfgFileName);
-        try {
-            JSONParser p = new JSONParser();
-            data = (JSONArray) p.parse(r);
-        } finally {
-            r.close();
-        }
+        JSONArray data = (JSONArray) UtJson.toObject(UtFile.loadString(cfgFileName));
 
         // Стратегии перекодировки каждой таблицы
         tablesDecodeStrategy = new HashMap<>();

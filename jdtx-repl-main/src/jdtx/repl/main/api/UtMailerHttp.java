@@ -2,6 +2,7 @@ package jdtx.repl.main.api;
 
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jandcode.web.*;
 import org.apache.commons.logging.*;
 import org.apache.http.*;
 import org.apache.http.client.methods.*;

@@ -7,7 +7,6 @@ import jandcode.web.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
-import org.json.simple.parser.*;
 
 import java.io.*;
 import java.sql.*;
@@ -68,14 +67,7 @@ public class JdxReplWs {
         }
 
         //
-        JSONObject cfgData;
-        Reader r = new FileReader(cfgFileName);
-        try {
-            JSONParser p = new JSONParser();
-            cfgData = (JSONObject) p.parse(r);
-        } finally {
-            r.close();
-        }
+        JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
         cfgData = (JSONObject) cfgData.get(String.valueOf(wsId));
 
         // Читаем из этой очереди
@@ -289,14 +281,7 @@ public class JdxReplWs {
         mailDir = mailDir + guidPath;
 
         //
-        JSONObject cfgData = null;
-        Reader r = new FileReader(cfgFileName);
-        try {
-            JSONParser p = new JSONParser();
-            cfgData = (JSONObject) p.parse(r);
-        } finally {
-            r.close();
-        }
+        JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
         cfgData = (JSONObject) cfgData.get(String.valueOf(wsId));
         //
         cfgData.put("mailRemoteDir", mailDir);
@@ -375,14 +360,7 @@ public class JdxReplWs {
         mailDir = mailDir + guidPath;
 
         //
-        JSONObject cfgData = null;
-        Reader r = new FileReader(cfgFileName);
-        try {
-            JSONParser p = new JSONParser();
-            cfgData = (JSONObject) p.parse(r);
-        } finally {
-            r.close();
-        }
+        JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
         cfgData = (JSONObject) cfgData.get(String.valueOf(wsId));
         //
         cfgData.put("mailRemoteDir", mailDir);

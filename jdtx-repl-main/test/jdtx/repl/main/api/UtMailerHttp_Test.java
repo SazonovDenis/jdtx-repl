@@ -1,12 +1,12 @@
 package jdtx.repl.main.api;
 
-import org.joda.time.DateTime;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.junit.Test;
+import jandcode.utils.*;
+import jandcode.web.*;
+import org.joda.time.*;
+import org.json.simple.*;
+import org.junit.*;
 
-import java.io.FileReader;
-import java.io.Reader;
+import java.io.*;
 
 /**
  */
@@ -21,14 +21,7 @@ public class UtMailerHttp_Test extends ReplDatabase_Test {
     public void setUp() throws Exception {
         super.setUp();
 
-        Reader r = new FileReader("test/etalon/mail_http_ws.json");
-        try {
-            JSONParser p = new JSONParser();
-            cfgData = (JSONObject) p.parse(r);
-        } finally {
-            r.close();
-        }
-
+        JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/mail_http_ws.json"));
 
         mailer = new UtMailerHttp();
         mailer.init(cfgData);

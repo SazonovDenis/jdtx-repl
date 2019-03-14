@@ -1,13 +1,12 @@
 package jdtx.repl.main.api;
 
-import org.apache.commons.io.FileUtils;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.junit.Test;
+import jandcode.utils.*;
+import jandcode.web.*;
+import org.apache.commons.io.*;
+import org.json.simple.*;
+import org.junit.*;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.Reader;
+import java.io.*;
 
 /**
  *
@@ -37,14 +36,7 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
 
 
         //////////
-        JSONObject cfgData;
-        Reader r1 = new FileReader("test/etalon/mail_http_ws.json");
-        try {
-            JSONParser p = new JSONParser();
-            cfgData = (JSONObject) p.parse(r1);
-        } finally {
-            r1.close();
-        }
+        JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/mail_http_ws.json"));
 
         IJdxMailer mailer = new UtMailerHttp();
         mailer.init(cfgData);
