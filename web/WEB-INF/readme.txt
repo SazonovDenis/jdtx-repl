@@ -23,8 +23,9 @@ cfg/sample.ws.json
 jc repl_info
 jc repl_create
 
-jc repl_add_ws -name:"ws_filial 2"
-jc repl_add_ws -name:"ws_filial 3"
+jc repl_add_ws -id:1 -name:"Sever"
+jc repl_add_ws -id:2 -name:"ws filial 2"
+jc repl_add_ws -id:3 -name:"ws filial 3"
 ...
 è ò.ä.
 

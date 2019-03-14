@@ -1,6 +1,6 @@
 package jdtx.repl.main.api;
 
-import org.junit.Test;
+import org.junit.*;
 
 /**
  */
@@ -15,11 +15,12 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
     public void test_StateManager_setUp() throws Exception {
         UtDbObjectManager ut = new UtDbObjectManager(db, struct);
         ut.dropAudit();
-        ut.createAudit();
+        ut.createAudit(wsId_1);
 
         //
-        wsId_2 = ut.addWorkstation("ws 2");
-        wsId_3 = ut.addWorkstation("ws 3");
+        ut.addWorkstation(wsId_1, "srv");
+        ut.addWorkstation(wsId_2, "ws 2");
+        ut.addWorkstation(wsId_3, "ws 3");
 
         //
         System.out.println("wsId_2: " + wsId_2);
@@ -120,7 +121,6 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
         System.out.println("mailSendDone: " + stateMailManager.getMailSendDone());
         System.out.println("mailSendDone: " + stateMailManager.getMailSendDone());
     }
-
 
 
     @Test

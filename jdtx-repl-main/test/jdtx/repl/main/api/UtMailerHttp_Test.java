@@ -21,7 +21,7 @@ public class UtMailerHttp_Test extends ReplDatabase_Test {
     public void setUp() throws Exception {
         super.setUp();
 
-        Reader r = new FileReader("test/etalon/mail_http_ws2.json");
+        Reader r = new FileReader("test/etalon/mail_http_ws.json");
         try {
             JSONParser p = new JSONParser();
             cfgData = (JSONObject) p.parse(r);

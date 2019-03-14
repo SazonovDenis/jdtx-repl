@@ -1,20 +1,13 @@
 package jdtx.repl.main.api;
 
 
-import jandcode.dbm.db.Db;
-import jandcode.dbm.db.DbQuery;
-import jandcode.utils.UtCnv;
-import jdtx.repl.main.api.struct.IJdxDbStruct;
-import jdtx.repl.main.api.struct.IJdxFieldStruct;
-import jdtx.repl.main.api.struct.IJdxTableStruct;
-import jdtx.repl.main.api.struct.JdxDbStructReader;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import jandcode.dbm.db.*;
+import jandcode.utils.*;
+import jdtx.repl.main.api.struct.*;
+import org.apache.commons.logging.*;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.*;
+import java.util.*;
 
 public class UtDbObjectManager {
 
@@ -32,7 +25,7 @@ public class UtDbObjectManager {
     }
 
 
-    public void createAudit() throws Exception {
+    public void createAudit(long wsId) throws Exception {
         String sql;
         DbQuery query = null;
         try {
@@ -41,10 +34,8 @@ public class UtDbObjectManager {
             // таблица table_list со списком названий таблиц, за изменениями в которых надо следить
             sql = "create table " + JdxUtils.sys_table_prefix + "table_list(id int not null, name varchar(150) default '' not null)";
             db.execSql(sql);
-            // первичный ключ
-            sql = "alter table " + JdxUtils.sys_table_prefix + "table_list add constraint pk_" + JdxUtils.audit_table_prefix + "tableList_id primary key (id)";
+            sql = "alter table " + JdxUtils.sys_table_prefix + "table_list add constraint pk_" + JdxUtils.sys_table_prefix + "table_list primary key (id)";
             db.execSql(sql);
-            // генератор Id для новой таблицы
             sql = "create generator " + JdxUtils.sys_gen_prefix + "table_list";
             db.execSql(sql);
             sql = "set generator " + JdxUtils.sys_gen_prefix + "table_list to 0";
@@ -56,27 +47,31 @@ public class UtDbObjectManager {
             sql = "insert into " + JdxUtils.sys_table_prefix + "flag_tab(id, trigger_flag) values (1, 1)";
             db.execSql(sql);
 
-
             // таблица собственного состояния (для рабочей станции): для хранения возраста созданных реплик, примененных реплик и т.п.
             sql = "create table " + JdxUtils.sys_table_prefix + "state(id integer not null, que_out_age_done int not null, que_in_no_done int not null, mail_send_done int not null)";
             db.execSql(sql);
             sql = "insert into " + JdxUtils.sys_table_prefix + "state(id, que_out_age_done, que_in_no_done, mail_send_done) values (1, 0, 0, 0)";
             db.execSql(sql);
+
             // таблица состояния рабочих станций (для сервера): для хранения возраста созданных реплик, примененных реплик и т.п.
             sql = "create table " + JdxUtils.sys_table_prefix + "state_ws(id integer not null, ws_id int not null, que_common_dispatch_done int not null, que_in_age_done int not null)";
+            db.execSql(sql);
+            sql = "alter table " + JdxUtils.sys_table_prefix + "state_ws add constraint pk_" + JdxUtils.sys_table_prefix + "state_ws primary key (id)";
             db.execSql(sql);
             sql = "create generator " + JdxUtils.sys_gen_prefix + "state_ws";
             db.execSql(sql);
 
             // список рабочих станций
-            sql = "create table " + JdxUtils.sys_table_prefix + "workstation_list(id integer not null, parent integer, name varchar(50) not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "workstation_list(id integer not null, name varchar(50) not null)";
             db.execSql(sql);
-            // генератор Id для списка рабочих станций
-            sql = "create generator " + JdxUtils.sys_gen_prefix + "workstation_list";
+            // первичный ключ
+            sql = "alter table " + JdxUtils.sys_table_prefix + "workstation_list add constraint pk_" + JdxUtils.sys_table_prefix + "workstation_list primary key (id)";
             db.execSql(sql);
 
             // очереди реплик
             sql = "create table " + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.IN] + "(id integer not null, ws_id int not null, age int not null, replica_type int not null)";
+            db.execSql(sql);
+            sql = "alter table " + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.IN] + " add constraint pk_" + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.IN] + " primary key (id)";
             db.execSql(sql);
             sql = "create generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.IN];
             db.execSql(sql);
@@ -85,6 +80,8 @@ public class UtDbObjectManager {
             //
             sql = "create table " + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.OUT] + "(id integer not null, ws_id int not null, age int not null, replica_type int not null)";
             db.execSql(sql);
+            sql = "alter table " + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.OUT] + " add constraint pk_" + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.OUT] + " primary key (id)";
+            db.execSql(sql);
             sql = "create generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.OUT];
             db.execSql(sql);
             sql = "set generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.OUT] + " to 0";
@@ -92,22 +89,28 @@ public class UtDbObjectManager {
             //
             sql = "create table " + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.COMMON] + "(id integer not null, ws_id int not null, age int not null, replica_type int not null)";
             db.execSql(sql);
+            sql = "alter table " + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.COMMON] + " add constraint pk_" + JdxUtils.sys_table_prefix + "que" + JdxQueType.table_suffix[JdxQueType.COMMON] + " primary key (id)";
+            db.execSql(sql);
             sql = "create generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.COMMON];
             db.execSql(sql);
             sql = "set generator " + JdxUtils.sys_gen_prefix + "que" + JdxQueType.table_suffix[JdxQueType.COMMON] + " to 0";
             db.execSql(sql);
 
             // таблица для хранения возраста таблиц
-            sql = "create table " + JdxUtils.sys_table_prefix + "age(age int not null, table_name varchar(50) not null, " + JdxUtils.audit_table_prefix + "id int not null, dt timestamp not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "age (age int not null, table_name varchar(50) not null, " + JdxUtils.prefix + "id int not null, dt timestamp not null)";
+            db.execSql(sql);
+
+            // метка с номером БД
+            db.execSql("create table " + JdxUtils.sys_table_prefix + "db_info (ws_id integer)");
+            sql = "insert into " + JdxUtils.sys_table_prefix + "db_info (ws_id) values (" + wsId + ")";
             db.execSql(sql);
 
 
-            // Вставляем в созданную таблицу названия всех таблиц
-
+            // Вставляем в таблицу table_list названия всех таблиц
             log.info("createAudit - объекты базы данных");
 
             // запрос на вставку в таблицу table_list названий всех таблиц из базы
-            query = db.createQuery("insert into " + JdxUtils.sys_table_prefix + "table_list(Id, Name) values (GEN_ID(" + JdxUtils.sys_gen_prefix + "table_list, 1), :Name)");
+            query = db.createQuery("insert into " + JdxUtils.sys_table_prefix + "table_list (id, Name) values (GEN_ID(" + JdxUtils.sys_gen_prefix + "table_list, 1), :Name)");
             ArrayList<IJdxTableStruct> tables = struct.getTables();
             long n = 0;
             for (IJdxTableStruct table : tables) {
@@ -126,10 +129,6 @@ public class UtDbObjectManager {
                 query.close();
             }
         }
-
-
-        // Добавляем сервер
-        addWorkstation(UtCnv.toMap("name", "Сервер"));
     }
 
     public void dropAudit() throws Exception {
@@ -153,9 +152,10 @@ public class UtDbObjectManager {
         // для хранения состояния, список рабочих станций,
         // исходящая и входящая очереди,
         // таблицу для хранения возраста базы,
-        // таблицу с флагом работы триггеров
+        // таблицу с флагом работы триггеров,
+        // таблицу с меткой БД
         String[] jdx_sys_tables = new String[]{
-                "age", "flag_tab", "state", "state_ws", "workstation_list", "table_list",
+                "age", "flag_tab", "state", "state_ws", "workstation_list", "table_list", "db_info",
                 "que" + JdxQueType.table_suffix[JdxQueType.IN],
                 "que" + JdxQueType.table_suffix[JdxQueType.OUT],
                 "que" + JdxQueType.table_suffix[JdxQueType.COMMON]
@@ -176,7 +176,7 @@ public class UtDbObjectManager {
 
         // Удаляем системные генераторы
         String[] jdx_sys_generators = new String[]{
-                "state", "state_ws", "workstation_list", "table_list",
+                "state", "state_ws", "table_list",
                 "que" + JdxQueType.table_suffix[JdxQueType.IN],
                 "que" + JdxQueType.table_suffix[JdxQueType.OUT],
                 "que" + JdxQueType.table_suffix[JdxQueType.COMMON]
@@ -303,29 +303,25 @@ public class UtDbObjectManager {
         }
     }
 
-    public long addWorkstation(String wsName) throws Exception {
+    public void addWorkstation(long wsId, String wsName) throws Exception {
         Map params = new HashMap<>();
-        params.put("parent", 1);
+        params.put("id", wsId);
         params.put("name", wsName);
-        return addWorkstation(params);
+        addWorkstation(params);
     }
 
-    private long addWorkstation(Map<String, Object> params) throws Exception {
+    private void addWorkstation(Map<String, Object> params) throws Exception {
         DbUtils dbu = new DbUtils(db, struct);
 
         //
-        long wsId = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "workstation_list");
-        params.put("id", wsId);
-        String sql = "insert into " + JdxUtils.sys_table_prefix + "workstation_list(id, parent, name) values (:id, :parent, :name)";
+        String sql = "insert into " + JdxUtils.sys_table_prefix + "workstation_list(id, name) values (:id, :name)";
         db.execSql(sql, params);
 
         //
+        long wsId = (long) params.get("id");
         long id = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "state_ws");
         sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws(id, ws_id, que_common_dispatch_done, que_in_age_done) values (" + id + ", " + wsId + ", 0, 0)";
         db.execSql(sql);
-
-        //
-        return wsId;
     }
 
 }

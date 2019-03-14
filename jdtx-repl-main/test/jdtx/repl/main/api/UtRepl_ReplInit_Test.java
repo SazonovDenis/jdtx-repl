@@ -27,15 +27,15 @@ public class UtRepl_ReplInit_Test extends ReplDatabase_Test {
         // db
         UtRepl utr = new UtRepl(db);
         utr.dropReplication();
-        utr.createReplication();
+        utr.createReplication(1);
         // db1
         UtRepl utr1 = new UtRepl(db2);
         utr1.dropReplication();
-        utr1.createReplication();
+        utr1.createReplication(2);
         // db2
         UtRepl utr2 = new UtRepl(db3);
         utr2.dropReplication();
-        utr2.createReplication();
+        utr2.createReplication(3);
     }
 
     @Test
@@ -56,7 +56,7 @@ public class UtRepl_ReplInit_Test extends ReplDatabase_Test {
         struct_rw.write(struct_1, "../_test-data/dbStruct_1.xml");
 
         //
-        utr.createReplication();
+        utr.createReplication(1);
         //
         utr.dropReplication();
 

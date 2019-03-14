@@ -23,6 +23,7 @@ class Jdx_Ext extends ProjectExt {
 
     private static AppProjectExt _appProjectExt
 
+/*
     public Jdx_Ext() {
         if (UtFile.exists("_log.properties")) {
             UtLog.loadProperties("_log.properties")
@@ -34,6 +35,7 @@ class Jdx_Ext extends ProjectExt {
             System.out.println("Файл log.properties или _log.properties не найден, логирование отключено")
         }
     }
+*/
 
     /**
      * Расширение для приложения
@@ -124,8 +126,12 @@ class Jdx_Ext extends ProjectExt {
 
     void repl_add_ws(IVariantMap args) {
         String name = args.getValueString("name")
+        long wsId = args.getValueLong("id")
         if (name == null || name.length() == 0) {
             throw new XError("Не указано [name] - название рабочей станции ")
+        }
+        if (wsId == 0L) {
+            throw new XError("Не указан [id] - код рабочей станции ")
         }
 
         // БД
@@ -141,7 +147,7 @@ class Jdx_Ext extends ProjectExt {
             IJdxDbStruct struct = reader.readDbStruct()
             //
             UtDbObjectManager ut = new UtDbObjectManager(db, struct)
-            long wsId = ut.addWorkstation(name)
+            ut.addWorkstation(wsId, name)
             //
             System.out.println("new wsId: " + wsId)
 

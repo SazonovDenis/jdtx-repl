@@ -3,6 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jandcode.web.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
@@ -60,6 +61,13 @@ public class JdxReplWs {
      * @param cfgFileName json-файл с конфигурацией
      */
     public void init(String cfgFileName) throws Exception {
+        // Код нашей станции
+        this.wsId = db.loadSql("select ws_id from " + JdxUtils.sys_table_prefix + "db_info").getCurRec().getValueLong("ws_id");
+        if (this.wsId == 0) {
+            throw new XError("Invalid wsId == 0");
+        }
+
+        //
         JSONObject cfgData;
         Reader r = new FileReader(cfgFileName);
         try {
@@ -68,12 +76,7 @@ public class JdxReplWs {
         } finally {
             r.close();
         }
-
-        // Код нашей станции
-        if (cfgData.get("wsId") == null || ((Long) cfgData.get("wsId") == 0)) {
-            throw new XError("Invalid wsId");
-        }
-        this.wsId = (Long) cfgData.get("wsId");
+        cfgData = (JSONObject) cfgData.get(String.valueOf(wsId));
 
         // Читаем из этой очереди
         queIn = new JdxQueCommonFile(db, JdxQueType.IN);
@@ -294,6 +297,7 @@ public class JdxReplWs {
         } finally {
             r.close();
         }
+        cfgData = (JSONObject) cfgData.get(String.valueOf(wsId));
         //
         cfgData.put("mailRemoteDir", mailDir);
 
@@ -379,6 +383,7 @@ public class JdxReplWs {
         } finally {
             r.close();
         }
+        cfgData = (JSONObject) cfgData.get(String.valueOf(wsId));
         //
         cfgData.put("mailRemoteDir", mailDir);
 

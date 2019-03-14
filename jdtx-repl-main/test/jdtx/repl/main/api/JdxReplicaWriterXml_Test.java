@@ -38,7 +38,7 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
 
         //////////
         JSONObject cfgData;
-        Reader r1 = new FileReader("test/etalon/mail_http_ws2.json");
+        Reader r1 = new FileReader("test/etalon/mail_http_ws.json");
         try {
             JSONParser p = new JSONParser();
             cfgData = (JSONObject) p.parse(r1);

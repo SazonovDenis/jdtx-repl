@@ -1,4 +1,5 @@
 {
+
   "queCommon_DirLocal": "../_test-data/srv/queCommon/",
 
   "1": {
@@ -18,4 +19,5 @@
     "guid": "b5781df573ca6ee6-34f3cc20bea645fa",
     "mailLocalDirTmp": "../_test-data/ws3/tmp"
   }
+
 }

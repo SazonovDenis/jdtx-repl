@@ -29,15 +29,19 @@ public class UtRepl {
 
 
     /**
+     * Инициализация рабочей станции:
+     * <p>
      * Создать репликационные структуры
      * - триггеры и таблицы аудита
      * - таблица возрастов таблиц
      * - таблицы перекодировок
+     * <p>
+     * Поставить метку wsId
      */
-    public void createReplication() throws Exception {
+    public void createReplication(long wsId) throws Exception {
         // создание всего аудита
         UtDbObjectManager ut = new UtDbObjectManager(db, struct);
-        ut.createAudit();
+        ut.createAudit(wsId);
 
         // создаем необходимые для перекодировки таблицы
         UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);
