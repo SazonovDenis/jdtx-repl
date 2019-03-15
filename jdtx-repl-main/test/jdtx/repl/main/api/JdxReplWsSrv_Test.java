@@ -54,13 +54,46 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         utr3.createReplication(3);
 
 
-        // Добавляем Рабочие станции для режима сервера
+        // Добавляем рабочие станции для режима сервера
         UtDbObjectManager om = new UtDbObjectManager(db, struct);
         om.addWorkstation(1, "Сервер");
         om.addWorkstation(2, "ws 2");
         om.addWorkstation(3, "ws 3");
+        om.addWorkstation(4, "ws 4");
+        // Активируем рабочие станции
+        om.enableWorkstation(1);
+        om.enableWorkstation(2);
+        om.enableWorkstation(3);
         //
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
+    }
+
+    @Test
+    public void test_enable() throws Exception {
+        UtDbObjectManager om = new UtDbObjectManager(db, struct);
+
+        om.disableWorkstation(1);
+        om.enableWorkstation(2);
+        om.disableWorkstation(3);
+        om.enableWorkstation(4);
+        //
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info"));
+
+        // Активируем рабочие станции
+        om.enableWorkstation(1);
+        om.enableWorkstation(2);
+        om.enableWorkstation(3);
+        om.enableWorkstation(4);
+        //
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info"));
+
+        //
+        om.disableWorkstation(4);
+        //
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info"));
     }
 
     @Test
@@ -397,7 +430,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         srv.srvHandleCommonQueFrom("test/etalon/mail_http_srv.json", "../_test-data/mail_local");
 
         // Тиражирование реплик
-        srv.srvDispatchReplicasToDir("test/etalon/mail_http_srv.json", "../_test-data/mail_local", 0, 0, false);
+        srv.srvDispatchReplicasToDir("test/etalon/mail_http_srv.json", "../_test-data/mail_local", 0, 0, 0, false);
     }
 
     @Test

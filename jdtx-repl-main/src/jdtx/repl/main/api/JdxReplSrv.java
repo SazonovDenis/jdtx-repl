@@ -48,11 +48,11 @@ public class JdxReplSrv {
     public void init(String cfgFileName) throws Exception {
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
 
-        // Список рабочих станций
-        DataStore t = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list");
+        // Список активных рабочих станций
+        DataStore st = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list where enabled = 1");
 
-        // Почтовые курьеры
-        for (DataRecord rec : t) {
+        // Почтовые курьеры, отдельные для каждой станции
+        for (DataRecord rec : st) {
             long wdId = rec.getValueLong("id");
             JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wdId));
             //
@@ -78,7 +78,7 @@ public class JdxReplSrv {
     }
 
     public void srvDispatchReplicas() throws Exception {
-        srvDispatchReplicas(commonQue, mailerList, 0, 0, true);
+        srvDispatchReplicas(commonQue, mailerList, 0, 0, 0, true);
     }
 
     public void srvHandleCommonQueFrom(String cfgFileName, String mailDir) throws Exception {
@@ -90,13 +90,13 @@ public class JdxReplSrv {
         srvHandleCommonQue(mailerListLocal, commonQue);
     }
 
-    public void srvDispatchReplicasToDir(String cfgFileName, String mailDir, long age_from, long age_to, boolean doMarkDone) throws Exception {
+    public void srvDispatchReplicasToDir(String cfgFileName, String mailDir, long age_from, long age_to, long destinationWsId, boolean doMarkDone) throws Exception {
         // Готовим локальных курьеров (через папку)
         Map<Long, IJdxMailer> mailerListLocal = new HashMap<>();
         fillMailerListLocal(mailerListLocal, cfgFileName, mailDir);
 
         // Физически отправляем данные
-        srvDispatchReplicas(commonQue, mailerListLocal, age_from, age_to, doMarkDone);
+        srvDispatchReplicas(commonQue, mailerListLocal, age_from, age_to, destinationWsId, doMarkDone);
     }
 
     /**
@@ -162,7 +162,7 @@ public class JdxReplSrv {
     /**
      * Сервер: распределение общей очереди по рабочим станциям
      */
-    private void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IJdxMailer> mailerList, long age_from, long age_to, boolean doMarkDone) throws Exception {
+    private void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IJdxMailer> mailerList, long age_from, long age_to, long destinationWsId, boolean doMarkDone) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
 
         // Узнаем сами, если не указано - сколько у нас есть на раздачу
@@ -177,6 +177,11 @@ public class JdxReplSrv {
         for (Map.Entry en : mailerList.entrySet()) {
             long wsId = (long) en.getKey();
             IJdxMailer mailer = (IJdxMailer) en.getValue();
+
+            // Указана конкретная станция-получатель - выгружаем только ее, остальные пропускаем
+            if (destinationWsId != 0 && wsId != destinationWsId) {
+                continue;
+            }
 
             //
             log.info("srvDispatchReplicas, to.wsId: " + wsId);
@@ -230,11 +235,11 @@ public class JdxReplSrv {
         //
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
 
-        //
-        DataStore t = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list");
+        // Список активных рабочих станций
+        DataStore st = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list where enabled = 1");
 
-        // Готовим локальных курьеров (через папку)
-        for (DataRecord rec : t) {
+        // Готовим локальных курьеров (через папку), отдельные для каждой станции
+        for (DataRecord rec : st) {
             long wdId = rec.getValueLong("id");
 
             //

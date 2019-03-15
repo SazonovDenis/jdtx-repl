@@ -62,7 +62,7 @@ public class UtDbObjectManager {
             db.execSql(sql);
 
             // список рабочих станций
-            sql = "create table " + JdxUtils.sys_table_prefix + "workstation_list(id integer not null, name varchar(50) not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "workstation_list(id integer not null, name varchar(50) not null, enabled integer not null)";
             db.execSql(sql);
             // первичный ключ
             sql = "alter table " + JdxUtils.sys_table_prefix + "workstation_list add constraint pk_" + JdxUtils.sys_table_prefix + "workstation_list primary key (id)";
@@ -121,8 +121,8 @@ public class UtDbObjectManager {
 
 
             // метка с номером БД
-            db.execSql("create table " + JdxUtils.sys_table_prefix + "db_info (ws_id integer)");
-            sql = "insert into " + JdxUtils.sys_table_prefix + "db_info (ws_id) values (" + wsId + ")";
+            db.execSql("create table " + JdxUtils.sys_table_prefix + "db_info (ws_id integer not null, enabled integer not null)");
+            sql = "insert into " + JdxUtils.sys_table_prefix + "db_info (ws_id, enabled) values (" + wsId + ", 0)";
             db.execSql(sql);
             //
             log.info("db_info, ws_id: " + wsId);
@@ -312,11 +312,32 @@ public class UtDbObjectManager {
         addWorkstation(params);
     }
 
+    public void enableWorkstation(long wsId) throws Exception {
+        log.info("enable workstation, wsId: " + wsId);
+        //
+        String sql = "update " + JdxUtils.sys_table_prefix + "workstation_list set enabled = 1 where id = " + wsId;
+        db.execSql(sql);
+        sql = "update " + JdxUtils.sys_table_prefix + "db_info set enabled = 1 where ws_id = " + wsId;
+        db.execSql(sql);
+    }
+
+    public void disableWorkstation(long wsId) throws Exception {
+        log.info("disable workstation, wsId: " + wsId);
+        //
+        String sql = "update " + JdxUtils.sys_table_prefix + "workstation_list set enabled = 0 where id = " + wsId;
+        db.execSql(sql);
+        sql = "update " + JdxUtils.sys_table_prefix + "db_info set enabled = 0 where ws_id = " + wsId;
+        db.execSql(sql);
+    }
+
     private void addWorkstation(Map<String, Object> params) throws Exception {
+        log.info("disable workstation, params: " + params);
+
+        //
         DbUtils dbu = new DbUtils(db, struct);
 
         //
-        String sql = "insert into " + JdxUtils.sys_table_prefix + "workstation_list(id, name) values (:id, :name)";
+        String sql = "insert into " + JdxUtils.sys_table_prefix + "workstation_list(id, name, enabled) values (:id, :name, 0)";
         db.execSql(sql, params);
 
         //

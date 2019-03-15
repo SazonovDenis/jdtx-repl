@@ -1,20 +1,11 @@
-package jdtx.repl.main
+package jdtx.repl.main.ext
 
 import jandcode.app.test.AppTestCase
-import jandcode.bgtasks.BgTasksService
-import jandcode.dbm.ModelService
-import jandcode.dbm.db.Db
 import jandcode.utils.UtClass
-import jandcode.utils.error.XError
 import jandcode.utils.variant.IVariantMap
 import jandcode.utils.variant.VariantMap
-import jdtx.repl.main.api.IJdxMailer
-import jdtx.repl.main.api.JdxReplWs
-import jdtx.repl.main.api.UtMailerLocalFiles
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
-import org.json.simple.JSONObject
-import org.json.simple.parser.JSONParser
 import org.junit.Test
 
 /**

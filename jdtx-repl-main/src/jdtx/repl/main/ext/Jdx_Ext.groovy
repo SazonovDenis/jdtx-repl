@@ -1,4 +1,4 @@
-package jdtx.repl.main
+package jdtx.repl.main.ext
 
 import jandcode.app.App
 import jandcode.bgtasks.BgTasksService
@@ -103,9 +103,9 @@ class Jdx_Ext extends ProjectExt {
     }
 
     void repl_create(IVariantMap args) {
-        long wsId = args.getValueLong("id")
+        long wsId = args.getValueLong("ws")
         if (wsId == 0L) {
-            throw new XError("Не указан [id] - код рабочей станции ")
+            throw new XError("Не указан [ws] - код рабочей станции ")
         }
 
         // БД
@@ -129,12 +129,12 @@ class Jdx_Ext extends ProjectExt {
 
     void repl_add_ws(IVariantMap args) {
         String name = args.getValueString("name")
-        long wsId = args.getValueLong("id")
+        long wsId = args.getValueLong("ws")
         if (name == null || name.length() == 0) {
-            throw new XError("Не указано [name] - название рабочей станции ")
+            throw new XError("Не указано [name] - название рабочей станции")
         }
         if (wsId == 0L) {
-            throw new XError("Не указан [id] - код рабочей станции ")
+            throw new XError("Не указан [ws] - код рабочей станции")
         }
 
         // БД
@@ -153,6 +153,48 @@ class Jdx_Ext extends ProjectExt {
             ut.addWorkstation(wsId, name)
             //
             System.out.println("new wsId: " + wsId)
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
+
+    void repl_enable(IVariantMap args) {
+        long wsId = args.getValueLong("ws")
+        if (wsId == 0L) {
+            throw new XError("Не указан [ws] - код рабочей станции")
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+        //
+        System.out.println("База данных: " + db.getDbSource().getDatabase());
+
+        //
+        try {
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
+
+    void repl_disable(IVariantMap args) {
+        long wsId = args.getValueLong("ws")
+        if (wsId == 0L) {
+            throw new XError("Не указан [ws] - код рабочей станции")
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+        //
+        System.out.println("База данных: " + db.getDbSource().getDatabase());
+
+        //
+        try {
 
         } finally {
             db.disconnect()
@@ -240,9 +282,13 @@ class Jdx_Ext extends ProjectExt {
         long age_from = args.getValueLong("from")
         long age_to = args.getValueLong("to")
         boolean doMarkDone = args.getValueBoolean("mark", false)
+        long destinationWsId = args.getValueLong("ws")
         //
         if (mailDir == null || mailDir.length() == 0) {
             throw new XError("Не указан [dir] - почтовый каталог")
+        }
+        if (doMarkDone && destinationWsId == 0L) {
+            throw new XError("Не указан [ws] - код рабочей станции, для которой готовятся реплики")
         }
 
         //
@@ -268,7 +314,7 @@ class Jdx_Ext extends ProjectExt {
             srv.srvHandleCommonQueFrom(cfgFileName_srv, mailDir);
 
             // Тиражирование реплик
-            srv.srvDispatchReplicasToDir(cfgFileName_srv, mailDir, age_from, age_to, doMarkDone);
+            srv.srvDispatchReplicasToDir(cfgFileName_srv, mailDir, age_from, age_to, destinationWsId, doMarkDone);
         } finally {
             db.disconnect()
         }
