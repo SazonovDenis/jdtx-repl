@@ -10,9 +10,12 @@ import java.util.*;
 
 /**
  * Перекодировщик ссылок.
+ * Работает на допущении, что до определенного id записи принадлежат этой рабочей станции,
+ * а выше некоторого id - это места для перекодированных записей с других станций.
  */
 public class RefDecoder implements IRefDecoder {
 
+    // Своими записи считаются значения id в диапазоне от 0 до 100 000 000
     long SLOT_SIZE = 1000000;
     long SLOT_START_NUMBER = 100;  //todo: политика назначения диапазонов
 
@@ -101,7 +104,7 @@ public class RefDecoder implements IRefDecoder {
         // Ищем наш слот
         JdxDecoderSlot sl = slotToWs.get(own_slot_no);
         if (sl == null) {
-            throw new XError("this own_id: " + own_id + " was not inserted ever");
+            throw new XError("Trying to decode key, than was not inserted, id: " + own_id + " , table: " + tableName + ", ws_id: " + this.self_ws_id);
         }
 
         // По нашему номеру слота определяем ws_id и ws_slot_no
