@@ -331,7 +331,7 @@ public class UtDbObjectManager {
     }
 
     private void addWorkstation(Map<String, Object> params) throws Exception {
-        log.info("disable workstation, params: " + params);
+        log.info("add workstation, params: " + params);
 
         //
         DbUtils dbu = new DbUtils(db, struct);

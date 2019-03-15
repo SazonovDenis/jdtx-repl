@@ -18,6 +18,18 @@
     "url": "http://192.168.0.141/lombard.systems/repl/",
     "guid": "b5781df573ca6ee6-34f3cc20bea64503",
     "mailLocalDirTmp": "../_test-data/ws_003/tmp"
+  },
+
+  "4": {
+    "url": "http://192.168.0.141/lombard.systems/repl/",
+    "guid": "b5781df573ca6ee6-44f3cc20bea64504",
+    "mailLocalDirTmp": "../_test-data/ws_003/tmp"
+  },
+
+  "5": {
+    "url": "http://192.168.0.141/lombard.systems/repl/",
+    "guid": "b5781df573ca6ee6-55f3cc20bea64505",
+    "mailLocalDirTmp": "../_test-data/ws_003/tmp"
   }
 
 }

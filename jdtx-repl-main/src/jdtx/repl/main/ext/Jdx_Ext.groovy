@@ -3,6 +3,7 @@ package jdtx.repl.main.ext
 import jandcode.app.App
 import jandcode.bgtasks.BgTasksService
 import jandcode.dbm.ModelService
+import jandcode.dbm.data.UtData
 import jandcode.dbm.db.Db
 import jandcode.jc.AppProjectExt
 import jandcode.jc.ProjectExt
@@ -97,6 +98,29 @@ class Jdx_Ext extends ProjectExt {
                 System.out.println("  guid: " + mailer.guid)
             }
 
+            //
+            String sql_ws = """
+select
+  z_z_db_info.ws_id as self_ws_id,
+  z_z_state.que_in_no_done,    -- получено
+  z_z_state.que_out_age_done,  -- сформировано
+  z_z_state.mail_send_done     -- отправлено
+from
+  z_z_db_info
+  join z_z_state on (1=1)
+"""
+            String sql_srv = """
+select
+  z_z_workstation_list.*,
+  z_z_state_ws.que_in_age_done as que_in_done,             -- получено
+  z_z_state_ws.que_common_dispatch_done as dispatch_done   -- отправлено
+from
+  z_z_workstation_list
+  join z_z_state_ws on (z_z_workstation_list.id = z_z_state_ws.ws_id)
+"""
+            UtData.outTable(db.loadSql(sql_srv));
+            UtData.outTable(db.loadSql(sql_ws));
+
         } finally {
             db.disconnect()
         }
@@ -174,7 +198,12 @@ class Jdx_Ext extends ProjectExt {
 
         //
         try {
-
+            IJdxDbStructReader reader = new JdxDbStructReader()
+            reader.setDb(db)
+            IJdxDbStruct struct = reader.readDbStruct()
+            //
+            UtDbObjectManager om = new UtDbObjectManager(db, struct);
+            om.enableWorkstation(wsId);
         } finally {
             db.disconnect()
         }
@@ -195,7 +224,12 @@ class Jdx_Ext extends ProjectExt {
 
         //
         try {
-
+            IJdxDbStructReader reader = new JdxDbStructReader()
+            reader.setDb(db)
+            IJdxDbStruct struct = reader.readDbStruct()
+            //
+            UtDbObjectManager om = new UtDbObjectManager(db, struct);
+            om.disableWorkstation(wsId);
         } finally {
             db.disconnect()
         }
