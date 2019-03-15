@@ -81,21 +81,25 @@ class Jdx_Ext extends ProjectExt {
             System.out.println("  mailer.guid: " + ws.mailer.guid);
 
             // Сервер
-            System.out.println("");
-            System.out.println("Сервер, cfgFileName: " + cfgFileName_server);
+            try {
+                System.out.println("");
+                System.out.println("Сервер, cfgFileName: " + cfgFileName_server);
 
-            //
-            JdxReplSrv srv = new JdxReplSrv(db)
-            srv.init(cfgFileName_server)
+                //
+                JdxReplSrv srv = new JdxReplSrv(db)
+                srv.init(cfgFileName_server)
 
-            //
-            System.out.println("commonQue.baseDir: " + srv.commonQue.baseDir)
-            for (Object obj : srv.mailerList.entrySet()) {
-                Map.Entry entry = (Map.Entry) obj
-                UtMailerHttp mailer = (UtMailerHttp) entry.value
-                System.out.println("mailer.wsId: " + entry.key)
-                System.out.println("  remoteUrl: " + mailer.remoteUrl)
-                System.out.println("  guid: " + mailer.guid)
+                //
+                System.out.println("commonQue.baseDir: " + srv.commonQue.baseDir)
+                for (Object obj : srv.mailerList.entrySet()) {
+                    Map.Entry entry = (Map.Entry) obj
+                    UtMailerHttp mailer = (UtMailerHttp) entry.value
+                    System.out.println("mailer.wsId: " + entry.key)
+                    System.out.println("  remoteUrl: " + mailer.remoteUrl)
+                    System.out.println("  guid: " + mailer.guid)
+                }
+            } catch (Exception e) {
+                System.out.println(e.message)
             }
 
             //
