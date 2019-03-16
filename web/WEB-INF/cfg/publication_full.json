@@ -36,18 +36,6 @@
     "fields": "*"
   },
   {
-    "table": "categoryhist",
-    "fields": "*"
-  },
-  {
-    "table": "categoryprice",
-    "fields": "*"
-  },
-  {
-    "table": "categorysubjectval",
-    "fields": "*"
-  },
-  {
     "table": "commenttext",
     "fields": "*"
   },

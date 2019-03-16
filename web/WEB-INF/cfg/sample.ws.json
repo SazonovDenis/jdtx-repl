@@ -8,8 +8,8 @@
     "queIn_DirLocal": "data/ws_001/queIn",
     "queOut_DirLocal": "data/ws_001/queOut",
 
-    "publicationsIn": ["publication_full"],
-    "publicationsOut": ["publication_full"]
+    "publicationsIn": ["publication_full_152"],
+    "publicationsOut": ["publication_full_152"]
   },
 
   "2": {
@@ -21,7 +21,7 @@
     "queOut_DirLocal": "data/ws_002/queOut",
 
     "publicationsIn": [],
-    "publicationsOut": ["publication_full"]
+    "publicationsOut": ["publication_full_152"]
   },
 
   "3": {
@@ -33,7 +33,7 @@
     "queOut_DirLocal": "data/ws_003/queOut",
 
     "publicationsIn": [],
-    "publicationsOut": ["publication_full"]
+    "publicationsOut": ["publication_full_152"]
   }
 
 }

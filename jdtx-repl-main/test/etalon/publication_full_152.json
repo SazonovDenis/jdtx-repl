@@ -228,7 +228,11 @@
     "fields": "*"
   },
   {
-    "table": "tariffplanref",
+    "table": "tariffplanreflic",
+    "fields": "*"
+  },
+  {
+    "table": "tariffplanrefsubjecttip",
     "fields": "*"
   },
   {
@@ -280,5 +284,3 @@
     "fields": "*"
   }
 ]
-
-
