@@ -434,6 +434,28 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
+    public void test_srvDispatchReplicasToDir_ws2() throws Exception {
+        // Сервер, настройка
+        JdxReplSrv srv = new JdxReplSrv(db);
+        //srv.init("test/etalon/srv.json");
+        srv.init("test/etalon/mail_http_srv.json");
+
+        // Тиражирование реплик
+        srv.srvDispatchReplicasToDir("test/etalon/mail_http_srv.json", "../_test-data/mail_local", 0, 0, 2, false);
+    }
+
+    @Test
+    public void test_srvDispatchReplicasToDir_wsAll() throws Exception {
+        // Сервер, настройка
+        JdxReplSrv srv = new JdxReplSrv(db);
+        //srv.init("test/etalon/srv.json");
+        srv.init("test/etalon/mail_http_srv.json");
+
+        // Тиражирование реплик
+        srv.srvDispatchReplicasToDir("test/etalon/mail_http_srv.json", "../_test-data/mail_local", 0, 0, 0, false);
+    }
+
+    @Test
     public void test_z() throws Exception {
         BgTasksService bgTasksService = app.service(BgTasksService.class);
         String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName");
