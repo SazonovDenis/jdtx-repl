@@ -29,8 +29,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         new File("../_test-data/ws_003").delete();
         new File("d:/temp/dbm.log").delete();
         new File("d:/temp/jdtx.log").delete();
-        UtFile.cleanDir("s:/xxx");
-        new File("s:/xxx").delete();
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6");
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/17845f2f56f4d401/from");
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/17845f2f56f4d401/to");
@@ -120,7 +118,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws2_send_receive();
         test_ws3_send_receive();
 
-        test_srv_handleQue();
+        test_sync_srv();
 
         test_ws1_send_receive();
         test_ws2_send_receive();
@@ -147,7 +145,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws_sendLocal();
         test_ws_receiveLocal();
 
-        test_srv_handleQueLocal();
+        test_sync_srv_Local();
 
         test_ws_sendLocal();
         test_ws_receiveLocal();
@@ -170,7 +168,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws_sendLocal();
         test_ws_receiveLocal();
 
-        test_srv_handleQueLocal();
+        test_sync_srv_Local();
 
         test_ws_sendLocal();
         test_ws_receiveLocal();
@@ -406,7 +404,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_srv_handleQue() throws Exception {
+    public void test_sync_srv() throws Exception {
         // Сервер, настройка
         JdxReplSrv srv = new JdxReplSrv(db);
         //srv.init("test/etalon/srv.json");
@@ -420,7 +418,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_srv_handleQueLocal() throws Exception {
+    public void test_sync_srv_Local() throws Exception {
         // Сервер, настройка
         JdxReplSrv srv = new JdxReplSrv(db);
         //srv.init("test/etalon/srv.json");
@@ -468,7 +466,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_run_srv() throws Exception {
         while (true) {
-            test_srv_handleQue();
+            test_sync_srv();
         }
     }
 
@@ -511,7 +509,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 */
 
     @Test
-    public void test_loop_2_change() throws Exception {
+    public void loop_2_change() throws Exception {
         while (true) {
             try {
                 test_ws2_makeChange();
@@ -529,7 +527,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_loop_3_change() throws Exception {
+    public void loop_3_change() throws Exception {
         while (true) {
             try {
                 test_ws3_makeChange();
@@ -644,7 +642,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void loop_srv() throws Exception {
         while (true) {
             try {
-                test_srv_handleQue();
+                test_sync_srv();
+                TimeUnit.SECONDS.sleep(5);
             } catch (Exception e) {
                 String msg;
                 if (e.getCause() != null) {
@@ -667,7 +666,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void loop_srv_local() throws Exception {
         while (true) {
             try {
-                test_srv_handleQueLocal();
+                test_sync_srv_Local();
                 TimeUnit.SECONDS.sleep(10);
             } catch (Exception e) {
                 String msg;

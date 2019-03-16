@@ -269,8 +269,8 @@ from
 
     void repl_sync(IVariantMap args) {
         String mailDir = args.getValueString("dir")
-        long age_from = args.getValueLong("from")
-        long age_to = args.getValueLong("to")
+        long age_from = args.getValueLong("from", 0)
+        long age_to = args.getValueLong("to", 0)
         boolean doMarkDone = args.getValueBoolean("mark", false)
         //
         if (mailDir == null || mailDir.length() == 0) {
@@ -317,8 +317,8 @@ from
 
     void repl_sync_srv(IVariantMap args) {
         String mailDir = args.getValueString("dir")
-        long age_from = args.getValueLong("from")
-        long age_to = args.getValueLong("to")
+        long age_from = args.getValueLong("from", 0)
+        long age_to = args.getValueLong("to", 0)
         boolean doMarkDone = args.getValueBoolean("mark", false)
         long destinationWsId = args.getValueLong("ws")
         //

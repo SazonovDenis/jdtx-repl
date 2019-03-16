@@ -377,11 +377,12 @@ public class JdxReplWs {
         // Узнаем сколько есть у нас в очереди на отправку
         long selfQueOutAge = queOut.getMaxAge();
 
-        // Узнаем сами, если не указано - сколько уже отправлено на сервер
+        // От какого возраста отправлять. Если не указано - начнем от ранее отправленного
         if (age_from == 0L) {
             age_from = srvSendAge + 1;
         }
-        // Узнаем сами, если не указано - сколько есть у нас в очереди на отправку
+
+        // До какого возраста отправлять. Если не указано - все у нас что есть в очереди на отправку
         if (age_to == 0L) {
             age_to = selfQueOutAge;
         }
@@ -403,12 +404,12 @@ public class JdxReplWs {
         sendInternal(mailer, srvSendAge + 1, selfQueOutAge, true);
     }
 
-    void sendInternal(IJdxMailer mailer, long srvSendAge, long selfQueOutAge, boolean doMarkDone) throws Exception {
+    void sendInternal(IJdxMailer mailer, long age_from, long age_to, boolean doMarkDone) throws Exception {
         JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
 
         //
         long count = 0;
-        for (long age = srvSendAge; age <= selfQueOutAge; age++) {
+        for (long age = age_from; age <= age_to; age++) {
             log.info("UtMailer, wsId: " + wsId + ", sending.age: " + age);
 
             // Берем реплику
@@ -431,9 +432,9 @@ public class JdxReplWs {
 
         //
         if (count == 0) {
-            log.info("UtMailer, wsId: " + wsId + ", send.age: " + srvSendAge + ", nothing to send");
+            log.info("UtMailer, wsId: " + wsId + ", send.age: " + age_from + ", nothing to send");
         } else {
-            log.info("UtMailer, wsId: " + wsId + ", send.age: " + srvSendAge + " -> " + selfQueOutAge + ", done count: " + count);
+            log.info("UtMailer, wsId: " + wsId + ", send.age: " + age_from + " -> " + age_to + ", done count: " + count);
         }
     }
 
