@@ -53,14 +53,14 @@ public class JdxReplSrv {
 
         // Почтовые курьеры, отдельные для каждой станции
         for (DataRecord rec : st) {
-            long wdId = rec.getValueLong("id");
-            JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wdId));
+            long wsId = rec.getValueLong("id");
+            JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
             //
             //IJdxMailer mailer = new UtMailerLocalFiles();
             IJdxMailer mailer = new UtMailerHttp();
             mailer.init(cfgWs);
             //
-            mailerList.put(wdId, mailer);
+            mailerList.put(wsId, mailer);
         }
 
         // Общая очередь
