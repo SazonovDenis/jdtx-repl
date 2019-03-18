@@ -15,6 +15,7 @@ import org.json.simple.*;
 import org.json.simple.parser.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  */
@@ -24,6 +25,7 @@ public class UtMailerHttp implements IJdxMailer {
     String remoteUrl;
     String guid;
     String localDirTmp;
+    Random rnd;
 
     protected static Log log = LogFactory.getLog("jdtx");
 
@@ -47,6 +49,9 @@ public class UtMailerHttp implements IJdxMailer {
         localDirTmp = UtFile.unnormPath(localDirTmp) + "/";
         //
         UtFile.mkdirs(localDirTmp);
+        //
+        rnd = new Random();
+        rnd.setSeed(new DateTime().getMillis());
     }
 
 
@@ -55,7 +60,7 @@ public class UtMailerHttp implements IJdxMailer {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_get_state.php?" + "guid=" + guid + "&box=" + box);
+        HttpGet httpGet = new HttpGet(getUrl("repl_get_state") + "&guid=" + guid + "&box=" + box);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -85,7 +90,7 @@ public class UtMailerHttp implements IJdxMailer {
         DefaultHttpClient client = new DefaultHttpClient();
 
         //
-        HttpPost post = new HttpPost(remoteUrl + "/repl_send.php");
+        HttpPost post = new HttpPost(remoteUrl + "repl_send.php");
 
         //
         JdxReplInfo info = new JdxReplInfo();
@@ -136,7 +141,7 @@ public class UtMailerHttp implements IJdxMailer {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_receive.php?" + "guid=" + guid + "&box=" + box + "&no=" + no);
+        HttpGet httpGet = new HttpGet(getUrl("repl_receive") + "&guid=" + guid + "&box=" + box + "&no=" + no);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -168,7 +173,7 @@ public class UtMailerHttp implements IJdxMailer {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_delete.php?" + "guid=" + guid + "&box=" + box + "&no=" + no);
+        HttpGet httpGet = new HttpGet(getUrl("repl_delete") + "&guid=" + guid + "&box=" + box + "&no=" + no);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -191,7 +196,7 @@ public class UtMailerHttp implements IJdxMailer {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_ping.php?" + "guid=" + guid + "&box=" + box);
+        HttpGet httpGet = new HttpGet(getUrl("repl_ping") + "&guid=" + guid + "&box=" + box);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -214,7 +219,7 @@ public class UtMailerHttp implements IJdxMailer {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_get_ping_dt.php?" + "guid=" + guid + "&box=" + box);
+        HttpGet httpGet = new HttpGet(getUrl("repl_get_ping_dt") + "&guid=" + guid + "&box=" + box);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -245,7 +250,7 @@ public class UtMailerHttp implements IJdxMailer {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_get_info.php?" + "guid=" + guid + "&box=" + box + "&no=" + no);
+        HttpGet httpGet = new HttpGet(getUrl("repl_get_info") + "&guid=" + guid + "&box=" + box + "&no=" + no);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -267,6 +272,11 @@ public class UtMailerHttp implements IJdxMailer {
         return info;
     }
 
+
+    /**
+     * Утилиты
+     */
+
     JSONObject parseJson(String jsonStr) throws Exception {
         JSONObject cfgData;
         try {
@@ -287,8 +297,17 @@ public class UtMailerHttp implements IJdxMailer {
         return cfgData;
     }
 
+    String seed() {
+        return String.valueOf(rnd.nextLong());
+    }
+
+    private String getUrl(String url) {
+        return remoteUrl + url + ".php?seed=" + seed();
+    }
+
     String getFileName(long no) {
         return UtString.padLeft(String.valueOf(no), 9, '0') + ".xml";
     }
+
 
 }

@@ -70,7 +70,7 @@ public class UtMailerHttpManager {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_get_state.php?nonce=" + nonce() + "&guid=" + guid + "&box=" + box);
+        HttpGet httpGet = new HttpGet(getUrl("repl_get_state") + "&guid=" + guid + "&box=" + box);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -96,7 +96,7 @@ public class UtMailerHttpManager {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(remoteUrl + "/repl_create_box.php?nonce=" + nonce() + "&guid=" + guid + "&box=" + box);
+        HttpGet httpGet = new HttpGet(getUrl("repl_create_box") + "&guid=" + guid + "&box=" + box);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -118,8 +118,12 @@ public class UtMailerHttpManager {
      * Утилиты
      */
 
-    String nonce() {
+    String seed() {
         return String.valueOf(rnd.nextLong());
+    }
+
+    private String getUrl(String url) {
+        return remoteUrl + "/" + url + ".php?seed=" + seed();
     }
 
     JSONObject parseJson(String jsonStr) throws Exception {
