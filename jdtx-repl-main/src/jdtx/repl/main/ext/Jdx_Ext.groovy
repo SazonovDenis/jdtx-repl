@@ -359,4 +359,29 @@ from
     }
 
 
+    void repl_check_mail(IVariantMap args) {
+        long wsId = args.getValueLong("ws")
+        boolean doCreate = args.getValueBoolean("create")
+        //
+        if (wsId == 0L) {
+            throw new XError("Не указан [ws] - код рабочей станции")
+        }
+
+        //
+        BgTasksService bgTasksService = app.service(BgTasksService.class);
+        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName");
+
+        // ---
+        UtMailerHttpManager mgr = new UtMailerHttpManager();
+        mgr.init(cfgFileName_srv, wsId);
+
+        //
+        if (doCreate) {
+            mgr.createMail()
+        } else {
+            mgr.checkMail()
+        }
+    }
+
+
 }
