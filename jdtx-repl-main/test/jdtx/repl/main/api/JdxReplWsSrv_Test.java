@@ -590,6 +590,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 } else {
                     msg = e.getMessage();
                 }
+                if (msg == null) {
+                    msg = e.toString();
+                }
                 if (msg.contains("deadlock") ||
                         msg.contains("Connection reset") ||
                         msg.contains("Connection timed out: connect") ||
@@ -621,6 +624,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 } else {
                     msg = e.getMessage();
                 }
+                if (msg == null) {
+                    msg = e.toString();
+                }
                 if (msg.contains("deadlock") ||
                         msg.contains("Connection reset") ||
                         msg.contains("Connection timed out: connect") ||
@@ -650,6 +656,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                     msg = e.getCause().getMessage();
                 } else {
                     msg = e.getMessage();
+                }
+                if (msg == null) {
+                    msg = e.toString();
                 }
                 if (msg.contains("deadlock") || msg.contains("Connection timed out: connect") || msg.contains("Connection refused: connect")) {
                     System.out.println(msg);
