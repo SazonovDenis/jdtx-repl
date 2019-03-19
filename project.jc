@@ -32,4 +32,25 @@ project.event("waxAfterProduct") { m->
     // Наш вариант jc.bat (с настройками памяти)
     ant.delete(file: m.distr_dir+"/web/WEB-INF/jc.bat")
     ant.copy(file: wd("install/jc.bat"), tofile: m.distr_dir+"/web/WEB-INF/jc.bat")
+    //
+    ant.copy(file: wd("install/run.bat"), tofile: m.distr_dir+"/run.bat")
+    ant.copy(file: wd("install/run-jc.bat"), tofile: m.distr_dir+"/run-jc.bat")
+
+
+    // Через inno
+    ut.runexe(showout: true, cmd: "cmd /C copy install\\install.iss install\\temp1.iss")
+
+    // номер версии
+    ut.runexe(showout: true, cmd: "cmd /C hg log -l 1 --template {rev} > install\\rev.txt")
+    ut.runexe(showout: true, cmd: "tfu replstrf -i install\\temp1.iss -o install\\temp0.iss -s0 _CFG_APP_VERSION  -r install\\rev.txt -u")
+
+    // соберем дистрибутив
+    ut.runexe(showout: true, cmd: "cmd /C iscc install\\temp0.iss")
+
+    //
+    ut.runexe(showout: true, cmd: "cmd /C del install\\temp0.iss")
+    ut.runexe(showout: true, cmd: "cmd /C del install\\temp1.iss")
+    ut.runexe(showout: true, cmd: "cmd /C del install\\rev.txt")
 }
+
+

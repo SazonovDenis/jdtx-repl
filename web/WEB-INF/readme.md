@@ -117,7 +117,7 @@ jc repl-enable -ws:3
 
 jc repl-info
 
-jc repl-create -id:XXX
+jc repl-create -ws:XXX
 
 
 #### Опционально:
