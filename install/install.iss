@@ -61,13 +61,13 @@ LanguageID=$313D
 
 
 [Files]
-Source: temp\distr\*.*; DestDir: {app}\jc; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: temp\distr\*.*; DestDir: {app}; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: C:\jdk1.8.0_45\jre\*.*; DestDir: {app}\jre; Flags: ignoreversion recursesubdirs createallsubdirs
 
 
 [Run]
 Filename: SCHTASKS; Parameters: /Delete /TN JadatexSync /f; WorkingDir: {app}
-Filename: SCHTASKS; Parameters: /Create /TN JadatexSync /TR {app}\jc\run.bat /SC MINUTE /MO 5; WorkingDir: {app}
+Filename: SCHTASKS; Parameters: "/Create /TN JadatexSync /TR ""{app}\run.bat"" /SC MINUTE /MO 5"; WorkingDir: {app}
 
 [Messages]
 WelcomeLabel1=[name].
