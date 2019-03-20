@@ -16,7 +16,7 @@ AppUpdatesURL=http://jadatex.com/wiki/downloads_list
 OutputBaseFilename={#App}-{#AppVersion}
 AppName={#AppName}
 AppVerName={#App} (Версия {#AppVersion})
-DefaultDirName={pf}\{#DefaultDir}
+DefaultDirName={commondocs}\{#DefaultDir}
 DefaultGroupName=Jadatex PawnShop
 
 OutputDir=Z:\jdtx-repl\install
@@ -38,6 +38,7 @@ Compression=lzma/ultra
 SolidCompression=true
 InternalCompressLevel=ultra
 ;SetupIconFile=Images\PawnshopApp_install_icon.ico
+PrivilegesRequired=admin
 
 
 [Languages]
