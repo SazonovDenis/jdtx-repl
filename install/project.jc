@@ -1,0 +1,10 @@
+//
+project.name = 'jdtx-repl-product'
+//
+include "db-project-product.jc"
+include "ov-product.jc"
+include "wax-project-product.jc"
+include "wax-verdb-project-product.jc"
+//
+if (fu.exists(wd("_project.jc"))) include wd("_project.jc")
+//

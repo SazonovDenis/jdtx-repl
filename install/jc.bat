@@ -11,4 +11,4 @@ set JVM=%JVM% -Djandcode.appdir=%~dp0
 set JVM=%JVM% -Djandcode.consolecharset=866
 set JVM=%JVM% -Dfile.encoding=UTF-8
 
-..\..\..\jdk1.8.0_45\bin\java.exe -Xms256m -Xmx1024m %JVM% %JC_JVM% jandcode.jc.Main %JC_CLI% -npp %*
+..\..\jre\bin\java.exe -Xms256m -Xmx1024m %JVM% %JC_JVM% jandcode.jc.Main %JC_CLI% -npp %*

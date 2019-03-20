@@ -1,9 +1,22 @@
 #define App "JadatexSync"
-#define DefaultDir "JadatexSync"
+#define DefaultDir "Jadatex.Sync"
 #define AppName "Jadatex. Служба синхронизации"
+
+#define OutputDir "Z:\jdtx-repl\install"
+#define SourceDir "Z:\jdtx-repl\"
+#define SourceDirJre "C:\jdk1.8.0_45\jre\"
+
 
 
 #define AppVersion "_CFG_APP_VERSION"
+#define _CFG_INSTALL_JRE
+
+#ifdef installJre
+  #define FilenameSuffixJre = ".jre"
+#else
+  #define FilenameSuffixJre = ""
+#endif
+
 
 
 [Setup]
@@ -13,14 +26,14 @@ AppPublisherURL=http://jadatex.com
 AppSupportURL=http://jadatex.com/wiki/contacts
 AppUpdatesURL=http://jadatex.com/wiki/downloads_list
 
-OutputBaseFilename={#App}-{#AppVersion}
+OutputBaseFilename={#App}-{#AppVersion}{#FilenameSuffixJre}
 AppName={#AppName}
 AppVerName={#App} (Версия {#AppVersion})
 DefaultDirName={commondocs}\{#DefaultDir}
 DefaultGroupName=Jadatex PawnShop
 
-OutputDir=Z:\jdtx-repl\install
-SourceDir=Z:\jdtx-repl\
+OutputDir={#OutputDir}
+SourceDir={#SourceDir}
 
 ;WizardImageFile=Images\PawnshopApp_install.bmp
 ;WizardSmallImageFile=Images\PawnshopApp_install_48.bmp
@@ -30,7 +43,7 @@ DisableReadyPage=true
 DisableStartupPrompt=true
 UninstallRestartComputer=false
 DisableProgramGroupPage=true
-DisableDirPage=true
+;DisableDirPage=true
 DisableFinishedPage=true
 AlwaysShowComponentsList=true
 
@@ -38,7 +51,6 @@ Compression=lzma/ultra
 SolidCompression=true
 InternalCompressLevel=ultra
 ;SetupIconFile=Images\PawnshopApp_install_icon.ico
-PrivilegesRequired=admin
 
 
 [Languages]
@@ -63,7 +75,9 @@ LanguageID=$313D
 
 [Files]
 Source: temp\distr\*.*; DestDir: {app}; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: C:\jdk1.8.0_45\jre\*.*; DestDir: {app}\jre; Flags: ignoreversion recursesubdirs createallsubdirs
+#ifdef installJre
+Source: {#SourceDirJre}\*.*; DestDir: {app}\jre; Flags: ignoreversion recursesubdirs createallsubdirs
+#endif
 
 
 [Run]

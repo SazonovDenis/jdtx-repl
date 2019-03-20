@@ -10,6 +10,7 @@ _product
 -TEMPLATE
 temp
 out
+install/JadatexSync*.exe
 
 _test-data/*
 
