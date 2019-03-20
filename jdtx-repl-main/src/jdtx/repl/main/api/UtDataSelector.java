@@ -1,11 +1,8 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.db.Db;
-import jandcode.dbm.db.DbQuery;
-import jdtx.repl.main.api.struct.IJdxDbStruct;
-import jdtx.repl.main.api.struct.IJdxTableStruct;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import jandcode.dbm.db.*;
+import jdtx.repl.main.api.struct.*;
+import org.apache.commons.logging.*;
 
 public class UtDataSelector {
 
@@ -23,7 +20,7 @@ public class UtDataSelector {
     }
 
     /**
-     * Обязана обеспечить правильный поток записей, если есть ссылка на самого себя
+     * Если в таблице есть ссылка на самого себя, обязана обеспечить правильную последовательность записей.
      */
     public void readAllRecords(String tableName, String tableFields, JdxReplicaWriterXml dataContainer) throws Exception {
         DbQuery rsTableLog = selectAllRecords(tableName, tableFields);
@@ -73,8 +70,16 @@ public class UtDataSelector {
     }
 
     protected String getSql(IJdxTableStruct tableFrom, String tableFields) {
-        // Пока так реализуем правильный поток записей, если есть ссылка на самого себя
-        return "select " + tableFields + " from " + tableFrom.getName() + " order by id";
+        for (IJdxForeignKey fk : tableFrom.getForeignKeys()) {
+            if (fk.getTable().getName().equals(tableFrom.getName())) {
+                // todo: Пока так реализуем правильную последовательность записей (если есть ссылка на самого себя)
+                return "select " + tableFields + " from " + tableFrom.getName() + " where " + fk.getField().getName() + " = 0\n" +
+                        "union\n" +
+                        "select " + tableFields + " from " + tableFrom.getName() + " where " + fk.getField().getName() + " <> 0";
+            }
+        }
+        //
+        return "select " + tableFields + " from " + tableFrom.getName();
     }
 
 
