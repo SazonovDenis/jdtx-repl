@@ -97,7 +97,7 @@ public class UtMailerHttp implements IJdxMailer {
         info.wsId = repl.getWsId();
         info.age = repl.getAge();
         info.replicaType = repl.getReplicaType();
-        info.crc = UtString.md5Str(UtFile.loadString(repl.getFile()));
+        info.crc = JdxUtils.getMd5File(repl.getFile());
 
         //
         StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);

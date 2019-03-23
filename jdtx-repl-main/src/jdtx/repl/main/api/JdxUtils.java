@@ -1,7 +1,10 @@
 package jdtx.repl.main.api;
 
+import jandcode.utils.*;
 import jdtx.repl.main.api.struct.*;
 
+import java.io.*;
+import java.security.*;
 import java.util.*;
 
 public class JdxUtils {
@@ -88,5 +91,27 @@ public class JdxUtils {
         return sortLst;
     }
 
+    public static String getMd5File(File file) throws Exception {
+        int buffSize = 1024 * 10;
+        byte[] buffer = new byte[buffSize];
+
+        try (
+                FileInputStream inputStream = new FileInputStream(file)
+        ) {
+            MessageDigest md = MessageDigest.getInstance("MD5"); //NON-NLS
+            md.reset();
+
+            //
+            while (inputStream.available() > 0) {
+                int n = inputStream.read(buffer);
+                md.update(buffer, 0, n);
+            }
+            //
+            byte[] a = md.digest();
+
+            //
+            return UtString.toHexString(a);
+        }
+    }
 
 }
