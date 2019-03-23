@@ -130,6 +130,7 @@ public class JdxReplSrv {
             for (long age = queDoneAge + 1; age <= queMaxAge; age++) {
                 // Физически забираем данные с почтового сервера
                 IReplica replica = mailer.receive(age, "from");
+                //
                 JdxReplicaReaderXml.readReplicaInfo(replica);
 
                 //
