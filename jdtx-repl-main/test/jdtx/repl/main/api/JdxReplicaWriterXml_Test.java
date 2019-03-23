@@ -56,7 +56,7 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
         replica.setFile(f);
 
         //
-        JdxReplicaReaderXml.readReplicaInfo_zip(replica);
+        JdxReplicaReaderXml.readReplicaInfo(replica);
         System.out.println("replica: " + f);
         System.out.println("replica.wsId = " + replica.getWsId());
         System.out.println("replica.age = " + replica.getAge());
@@ -91,7 +91,7 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
         File f = new File("../_test-data/ws_002/tmp/000000001-src.zip");
         IReplica replica = new ReplicaFile();
         replica.setFile(f);
-        JdxReplicaReaderXml.readReplicaInfo_zip(replica);
+        JdxReplicaReaderXml.readReplicaInfo(replica);
         mailer.send(replica, 1, "from");
 
 
@@ -127,7 +127,7 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
     public void test_zipReadHead() throws Exception {
         File fZip = new File("../_test-data/test.zip");
         //
-        printContent(fZip);
+        printZipContent(fZip);
     }
 
     void zip(File[] fInArr, File fZip) throws IOException {
@@ -188,18 +188,18 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
     }
 
 
-    void printContent(File fZip) throws Exception {
+    void printZipContent(File fZip) throws Exception {
         int buffSize = 1024 * 10;
         byte[] buffer = new byte[buffSize];
 
 
         try (
-                ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(fZip))
+                ZipInputStream inputStream = new ZipInputStream(new FileInputStream(fZip))
         ) {
             System.out.println(fZip);
 
             ZipEntry entry;
-            while ((entry = zipInputStream.getNextEntry()) != null) {
+            while ((entry = inputStream.getNextEntry()) != null) {
                 StopWatch sw = new StopWatch();
                 sw.start();
 
@@ -213,7 +213,7 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
                     String outFileName = fZip.getParent() + "/" + name;
                     FileOutputStream outputStream = new FileOutputStream(outFileName);
                     //
-                    for (int n = zipInputStream.read(buffer); n > 0; n = zipInputStream.read(buffer)) {
+                    for (int n = inputStream.read(buffer); n > 0; n = inputStream.read(buffer)) {
                         outputStream.write(buffer, 0, n);
                     }
                     //
@@ -227,7 +227,7 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
 
 
                 //
-                zipInputStream.closeEntry();
+                inputStream.closeEntry();
 
                 //
                 sw.stop();

@@ -1,10 +1,12 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.test.*;
+import jandcode.utils.error.*;
 import org.junit.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.zip.*;
 
 /**
  *
@@ -23,8 +25,11 @@ public class JdxReplicaReaderXml_Test extends DbmTestCase {
         IReplica replica = new ReplicaFile();
         replica.setFile(new File("../_test-data/ws_002/tmp/000000001-src.zip"));
 
+        // Откроем Zip-файл
+        InputStream inputStream = UtRepl.createReplicaInputStream(replica);
+
         //
-        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(replica.getFile());
+        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(inputStream);
         System.out.println("WsId = " + reader.getWsId());
         System.out.println("Age = " + reader.getAge());
         System.out.println("ReplicaType = " + reader.getReplicaType());
@@ -45,6 +50,9 @@ public class JdxReplicaReaderXml_Test extends DbmTestCase {
 
             tableName = reader.nextTable();
         }
+
+        // Закроем читателя Zip-файла
+        inputStream.close();
     }
 
     @Test
@@ -52,8 +60,11 @@ public class JdxReplicaReaderXml_Test extends DbmTestCase {
         IReplica replica = new ReplicaFile();
         replica.setFile(new File("../_test-data/000000001-big.zip"));
 
+        // Откроем Zip-файл
+        InputStream inputStream = UtRepl.createReplicaInputStream(replica);
+
         //
-        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(replica.getFile());
+        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(inputStream);
         System.out.println("WsId = " + reader.getWsId());
         System.out.println("Age = " + reader.getAge());
         System.out.println("ReplicaType = " + reader.getReplicaType());
@@ -76,6 +87,9 @@ public class JdxReplicaReaderXml_Test extends DbmTestCase {
 
             tableName = reader.nextTable();
         }
+
+        // Закроем читателя Zip-файла
+        inputStream.close();
     }
 
 }

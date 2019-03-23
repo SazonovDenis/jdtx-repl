@@ -213,9 +213,12 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         IReplica replica = new ReplicaFile();
         replica.setFile(new File("../_test-data/~tmp_csv.xml"));
 
+        //
+        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(new FileInputStream(replica.getFile()));
+
         // Применяем реплики
         UtAuditApplyer utaa = new UtAuditApplyer(db2, struct);
-        utaa.applyReplica(replica, publication, 2);
+        utaa.applyReplica(reader, publication, 2);
     }
 
     @Test
@@ -233,9 +236,12 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         IReplica replica = new ReplicaFile();
         replica.setFile(new File("../_test-data/csv_full.xml"));
 
+        //
+        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(new FileInputStream(replica.getFile()));
+
         // Применяем реплики
         UtAuditApplyer utaa = new UtAuditApplyer(db2, struct);
-        utaa.applyReplica(replica, publication, 2);
+        utaa.applyReplica(reader, publication, 2);
     }
 
     @Test
@@ -253,9 +259,12 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         IReplica replica = new ReplicaFile();
         replica.setFile(new File("../_test-data/000000001-big.zip"));
 
+        //
+        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(new FileInputStream(replica.getFile()));
+
         // Применяем реплики
         UtAuditApplyer utaa = new UtAuditApplyer(db2, struct);
-        utaa.applyReplica(replica, publication, 2);
+        utaa.applyReplica(reader, publication, 2);
     }
 
 }

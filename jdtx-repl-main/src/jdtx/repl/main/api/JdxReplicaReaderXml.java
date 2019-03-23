@@ -1,18 +1,12 @@
 package jdtx.repl.main.api;
 
-import groovy.json.StringEscapeUtils;
-import jandcode.utils.error.*;
+import groovy.json.*;
 import org.json.simple.*;
 import org.json.simple.parser.*;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.*;
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.zip.*;
+import java.util.*;
 
 /**
  * ^c Читатель (JdxReplicaReader) создается из файла, а писатель - почему-то из потока
@@ -25,8 +19,10 @@ public class JdxReplicaReaderXml {
     private long age;
     private int replicaType;
 
-    public JdxReplicaReaderXml(File file) throws Exception {
-        inputStream = new FileInputStream(file);
+    public JdxReplicaReaderXml(InputStream inputStream) throws Exception {
+        this.inputStream = inputStream;
+
+        //
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         reader = xmlInputFactory.createXMLStreamReader(inputStream, "utf-8");
 
@@ -100,48 +96,19 @@ public class JdxReplicaReaderXml {
     }
 
     public void close() throws XMLStreamException, IOException {
-        //reader.close();
         inputStream.close();
     }
 
-
     public static void readReplicaInfo(IReplica replica) throws Exception {
-        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(replica.getFile());
-        try {
-            replica.setWsId(reader.getWsId());
-            replica.setAge(reader.getAge());
-            replica.setReplicaType(reader.getReplicaType());
-        } finally {
-            reader.close();
-        }
-    }
-
-    public static void readReplicaInfo_zip(IReplica replica) throws Exception {
-        JdxReplInfo info = null;
+        JdxReplInfo info;
         try (
-                ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(replica.getFile()))
+                InputStream zipInputStream = UtRepl.createInputStream(replica, ".info")
         ) {
-            ZipEntry entry;
-            while ((entry = zipInputStream.getNextEntry()) != null) {
-                String name = entry.getName(); // получим название файла
-
-                //
-                if (name.endsWith(".info")) {
-                    JSONObject jsonObject;
-                    Reader reader = new InputStreamReader(zipInputStream);
-                    JSONParser parser = new JSONParser();
-                    jsonObject = (JSONObject) parser.parse(reader);
-                    info = JdxReplInfo.fromJSONObject(jsonObject);
-                }
-
-                //
-                zipInputStream.closeEntry();
-            }
-        }
-
-        //
-        if (info == null) {
-            throw new XError("Replica .info not found");
+            JSONObject jsonObject;
+            Reader reader = new InputStreamReader(zipInputStream);
+            JSONParser parser = new JSONParser();
+            jsonObject = (JSONObject) parser.parse(reader);
+            info = JdxReplInfo.fromJSONObject(jsonObject);
         }
 
         //

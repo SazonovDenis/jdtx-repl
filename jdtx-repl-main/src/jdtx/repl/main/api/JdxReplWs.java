@@ -242,7 +242,7 @@ public class JdxReplWs {
         log.info("handleQueIn, wsId: " + wsId);
 
         //
-        UtAuditApplyer utaa = new UtAuditApplyer(db, struct);
+        UtAuditApplyer applyer = new UtAuditApplyer(db, struct);
 
         //
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
@@ -262,7 +262,22 @@ public class JdxReplWs {
             // Свои собственные установочные реплики можно не применять
             if (replica.getWsId() != wsId || replica.getReplicaType() != JdxReplicaType.EXPORT) {
                 for (IPublication publication : publicationsIn) {
-                    utaa.applyReplica(replica, publication, wsId);
+                    InputStream inputStream = null;
+                    try {
+                        // Откроем Zip-файл
+                        inputStream = UtRepl.createReplicaInputStream(replica);
+
+                        //
+                        JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
+
+                        //
+                        applyer.applyReplica(replicaReader, publication, wsId);
+                    } finally {
+                        // Закроем читателя Zip-файла
+                        if (inputStream != null) {
+                            inputStream.close();
+                        }
+                    }
                 }
             }
 
@@ -340,8 +355,11 @@ public class JdxReplWs {
                 // Физически забираем данные реплики с сервера
                 replica = mailer.receive(no, "to");
                 //
-                String md5 = JdxUtils.getMd5File(replica.getFile());
-                if (!md5.equals(info.crc)) {
+                String md5file = JdxUtils.getMd5File(replica.getFile());
+                if (!md5file.equals(info.crc)) {
+                    log.error("receive.replica: " + replica.getFile());
+                    log.error("receive.replica.md5: " + md5file);
+                    log.error("mailer.info.crc: " + info.crc);
                     throw new XError("receive.replica.md5 <> mailer.info.crc");
                 }
                 //

@@ -2,6 +2,7 @@ package jdtx.repl.main.api;
 
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.utils.error.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
@@ -107,14 +108,14 @@ public class UtRepl {
         ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
 
         // Zip-файл (заголовок)
-        ZipEntry zipEntryHead = new ZipEntry("dat.json");
+        ZipEntry zipEntryHead = new ZipEntry("dat.info");
         zipOutputStream.putNextEntry(zipEntryHead);
         String json = "{\"wsId\": " + wsId + ", \"age\": " + age + ", \"replicaType\": " + JdxReplicaType.IDE + "}";
         zipOutputStream.write(json.getBytes("utf-8"));
         zipOutputStream.closeEntry();
 
         // Zip-файл (данные)
-        ZipEntry zipEntry = new ZipEntry("dat.dat");
+        ZipEntry zipEntry = new ZipEntry("dat.xml");
         zipOutputStream.putNextEntry(zipEntry);
 
         // XML-файл
@@ -190,7 +191,7 @@ public class UtRepl {
         zipOutputStream.closeEntry();
 
         // Zip-файл (данные)
-        ZipEntry zipEntry = new ZipEntry("dat.dat");
+        ZipEntry zipEntry = new ZipEntry("dat.xml");
         zipOutputStream.putNextEntry(zipEntry);
 
         // XML-файл
@@ -237,6 +238,28 @@ public class UtRepl {
 
         //
         return replica;
+    }
+
+    public static InputStream createReplicaInputStream(IReplica replica) throws IOException {
+        return createInputStream(replica, ".xml");
+    }
+
+    public static InputStream createInputStream(IReplica replica, String mask) throws IOException {
+        InputStream inputStream = null;
+        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(replica.getFile()));
+        ZipEntry entry;
+        while ((entry = zipInputStream.getNextEntry()) != null) {
+            String name = entry.getName();
+            if (name.endsWith(mask)) {
+                inputStream = zipInputStream;
+                break;
+            }
+        }
+        if (inputStream == null) {
+            throw new XError("Not found [" + mask + "] in replica: " + replica.getFile());
+        }
+
+        return inputStream;
     }
 
 

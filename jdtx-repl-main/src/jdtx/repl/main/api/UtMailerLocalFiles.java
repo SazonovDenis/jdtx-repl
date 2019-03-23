@@ -101,7 +101,7 @@ public class UtMailerLocalFiles implements IJdxMailer {
 
         //
         if (localFile.exists()) {
-            log.debug("localFile.exists: "+localFile.getAbsolutePath());
+            log.debug("localFile.exists: " + localFile.getAbsolutePath());
             localFile.delete();
         }
         FileUtils.copyFile(remoteFile, localFile);
@@ -137,11 +137,15 @@ public class UtMailerLocalFiles implements IJdxMailer {
     }
 
     @Override
-    public JdxReplInfo getInfo(long n, String box) throws Exception {
+    public JdxReplInfo getInfo(long no, String box) throws Exception {
         JdxReplInfo info = new JdxReplInfo();
+
+        String remoteFileName = getFileName(no);
+        File remoteFile = new File(remoteDir + box + "/" + remoteFileName);
+        info.crc = JdxUtils.getMd5File(remoteFile);
+
         return info;
     }
-
 
     String getFileName(long no) {
         return UtString.padLeft(String.valueOf(no), 9, '0') + ".zip";

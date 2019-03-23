@@ -29,10 +29,11 @@ public class UtAuditApplyer {
     }
 
     /**
-     * Применить реплику replica на рабочей станции wsId
+     * Применить данные из dataReader на рабочей станции selfWsId
      */
-    public void applyReplica(IReplica replica, IPublication publication, long selfWsId) throws Exception {
+    public void applyReplica(JdxReplicaReaderXml dataReader, IPublication publication, long selfWsId) throws Exception {
         log.info("applyReplica, self.WsId: " + selfWsId);
+        log.info("  replica.WsId: " + dataReader.getWsId() + ", replica.age: " + dataReader.getAge());
 
         //
         List<IJdxTableStruct> tables = struct.getTables();
@@ -45,28 +46,21 @@ public class UtAuditApplyer {
         JSONArray publicationData = publication.getData();
 
         //
-        String publicationFields = null;
-        IJdxTableStruct table = null;
-
-        DbAuditTriggersManager trm = new DbAuditTriggersManager(db);
-
-        //
-        JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(replica.getFile());
-        log.info("  replica.WsId: " + replicaReader.getWsId() + ", replica.age: " + replicaReader.getAge());
+        DbAuditTriggersManager triggersManager = new DbAuditTriggersManager(db);
 
         //
         IRefDecoder decoder = new RefDecoder(db, selfWsId);
+
 
         //
         db.startTran();
 
         //
         try {
-            trm.setTriggersOff();
-
+            triggersManager.setTriggersOff();
 
             //
-            String tableName = replicaReader.nextTable();
+            String tableName = dataReader.nextTable();
             while (tableName != null) {
                 //log.debug("  table: " + tableName);
 
@@ -79,12 +73,13 @@ public class UtAuditApplyer {
                     }
                 }
                 if (n == -1) {
-                    throw new XError("table [" + tableName + "] found in replica, but not found in struct");
+                    throw new XError("table [" + tableName + "] found in replica data, but not found in struct");
                 }
                 tIdx = n;
-                table = tables.get(n);
+                IJdxTableStruct table = tables.get(n);
 
                 // Поиск полей таблицы в публикации (поля берем именно из правил публикаций)
+                String publicationFields = null;
                 for (int i = 0; i < publicationData.size(); i++) {
                     JSONObject publicationTable = (JSONObject) publicationData.get(i);
                     String publicationTableName = (String) publicationTable.get("table");
@@ -95,7 +90,7 @@ public class UtAuditApplyer {
                 }
 
                 // Перебираем записи
-                Map recValues = replicaReader.nextRec();
+                Map recValues = dataReader.nextRec();
                 long count = 0;
                 while (recValues != null) {
                     //log.debug("  " + recValues);
@@ -133,7 +128,7 @@ public class UtAuditApplyer {
                             }
                             JdxRef ref = JdxRef.parse((String) recValues.get(fieldName));
                             if (ref.ws_id == -1) {
-                                ref.ws_id = replicaReader.getWsId();
+                                ref.ws_id = dataReader.getWsId();
                             }
                             // Перекодировка ссылки
                             long ref_own = decoder.get_id_own(refTableName, ref.ws_id, ref.id);
@@ -164,7 +159,7 @@ public class UtAuditApplyer {
                     }
 
                     //
-                    recValues = replicaReader.nextRec();
+                    recValues = dataReader.nextRec();
 
                     //
                     count++;
@@ -177,29 +172,24 @@ public class UtAuditApplyer {
                 log.info("  writeData: " + tableName + ", total: " + count);
 
                 //
-                tableName = replicaReader.nextTable();
+                tableName = dataReader.nextTable();
             }
 
 
             //
-            trm.setTriggersOn();
+            triggersManager.setTriggersOn();
 
             //
             db.commit();
 
-            //
-            replicaReader.close();
 
         } catch (Exception e) {
-            if (!trm.triggersIsOn()) {
-                trm.setTriggersOn();
+            if (!triggersManager.triggersIsOn()) {
+                triggersManager.setTriggersOn();
             }
 
             //
             db.rollback();
-
-            //
-            replicaReader.close();
 
             //
             throw e;
