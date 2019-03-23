@@ -165,14 +165,17 @@ public class UtMailerHttp implements IJdxMailer {
         }
 
         //
-        String localFileName = getFileName(no);
-        File file = new File(localDirTmp + localFileName);
-        String resStr = EntityUtils.toString(response.getEntity());
-        UtFile.saveString(resStr, file);
+        byte[] res = EntityUtils.toByteArray(response.getEntity());
+        //
+        String localFileName = "~" + getFileName(no);
+        File replicaFile = new File(localDirTmp + localFileName);
+        FileOutputStream outputStream = new FileOutputStream(replicaFile);
+        outputStream.write(res);
+        outputStream.close();
 
         //
         IReplica replica = new ReplicaFile();
-        replica.setFile(file);
+        replica.setFile(replicaFile);
 
         //
         return replica;
