@@ -13,8 +13,15 @@ public class JdxReplicaReaderXml_Test extends DbmTestCase {
 
     @Test
     public void test_1() throws Exception {
+        JdxReplicaWriterXml_Test writerXml_test = new JdxReplicaWriterXml_Test();
+        writerXml_test.setUp();
+        writerXml_test.test_getFull();
+        //
+        System.out.println("==================");
+
+        //
         IReplica replica = new ReplicaFile();
-        replica.setFile(new File("../_test-data/~tmp_csv.xml"));
+        replica.setFile(new File("../_test-data/ws_002/tmp/000000001-src.zip"));
 
         //
         JdxReplicaReaderXml reader = new JdxReplicaReaderXml(replica.getFile());
@@ -30,7 +37,7 @@ public class JdxReplicaReaderXml_Test extends DbmTestCase {
             // Перебираем записи
             Map rec = reader.nextRec();
             while (rec != null) {
-                System.out.println("rec=" + rec);
+                System.out.println("  " + rec);
 
                 //
                 rec = reader.nextRec();
@@ -43,7 +50,7 @@ public class JdxReplicaReaderXml_Test extends DbmTestCase {
     @Test
     public void test_big() throws Exception {
         IReplica replica = new ReplicaFile();
-        replica.setFile(new File("Z:/jdtx-repl/temp/000000001.xml"));
+        replica.setFile(new File("../_test-data/000000001-big.zip"));
 
         //
         JdxReplicaReaderXml reader = new JdxReplicaReaderXml(replica.getFile());

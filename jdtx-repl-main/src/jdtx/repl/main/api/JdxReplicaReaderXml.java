@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.zip.*;
 
 /**
+ * ^c Читатель (JdxReplicaReader) создается из файла, а писатель - почему-то из потока
  */
 public class JdxReplicaReaderXml {
 
