@@ -340,6 +340,11 @@ public class JdxReplWs {
                 // Физически забираем данные реплики с сервера
                 replica = mailer.receive(no, "to");
                 //
+                String md5 = JdxUtils.getMd5File(replica.getFile());
+                if (!md5.equals(info.crc)) {
+                    throw new XError("receive.replica.md5 <> mailer.info.crc");
+                }
+                //
                 JdxReplicaReaderXml.readReplicaInfo(replica);
             }
 
