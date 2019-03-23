@@ -47,6 +47,8 @@ public class JdxReplSrv {
      */
     public void init(String cfgFileName) throws Exception {
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
+        //
+        String url = (String) cfgData.get("url");
 
         // Список активных рабочих станций
         DataStore st = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list where enabled = 1");
@@ -54,11 +56,16 @@ public class JdxReplSrv {
         // Почтовые курьеры, отдельные для каждой станции
         for (DataRecord rec : st) {
             long wsId = rec.getValueLong("id");
+
+            // Конфиг для мейлера
             JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
-            //
-            //IJdxMailer mailer = new UtMailerLocalFiles();
+            cfgWs.put("guid", rec.getValueString("guid"));
+            cfgWs.put("url", url);
+
+            // Мейлер
             IJdxMailer mailer = new UtMailerHttp();
             mailer.init(cfgWs);
+
             //
             mailerList.put(wsId, mailer);
         }
@@ -246,13 +253,14 @@ public class JdxReplSrv {
         //
         for (DataRecord rec : st) {
             long wdId = rec.getValueLong("id");
+            String guid = rec.getValueString("guid");
+            String guidPath = guid.replace("-", "/");
 
-            //
+            // Конфиг для мейлера
             JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wdId));
-            String guidPath = (String) cfgWs.get("guid");
-            guidPath = guidPath.replace("-", "/");
             cfgWs.put("mailRemoteDir", mailDir + guidPath);
-            //
+
+            // Мейлер
             IJdxMailer mailerLocal = new UtMailerLocalFiles();
             mailerLocal.init(cfgWs);
 

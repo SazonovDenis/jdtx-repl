@@ -38,10 +38,10 @@ public class UtRepl {
      * <p>
      * Поставить метку wsId
      */
-    public void createReplication(long wsId) throws Exception {
+    public void createReplication(long wsId, String guid) throws Exception {
         // создание всего аудита
         UtDbObjectManager ut = new UtDbObjectManager(db, struct);
-        ut.createAudit(wsId);
+        ut.createRepl(wsId, guid);
 
         // создаем необходимые для перекодировки таблицы
         UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);

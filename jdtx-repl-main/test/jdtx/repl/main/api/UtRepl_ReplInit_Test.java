@@ -10,35 +10,6 @@ public class UtRepl_ReplInit_Test extends ReplDatabase_Test {
 
 
     @Test
-    public void test_DropReplication() throws Exception {
-        // db
-        UtRepl utr = new UtRepl(db);
-        utr.dropReplication();
-        // db1
-        UtRepl utr1 = new UtRepl(db2);
-        utr1.dropReplication();
-        // db2
-        UtRepl utr2 = new UtRepl(db3);
-        utr2.dropReplication();
-    }
-
-    @Test
-    public void test_PrepareReplication() throws Exception {
-        // db
-        UtRepl utr = new UtRepl(db);
-        utr.dropReplication();
-        utr.createReplication(1);
-        // db1
-        UtRepl utr1 = new UtRepl(db2);
-        utr1.dropReplication();
-        utr1.createReplication(2);
-        // db2
-        UtRepl utr2 = new UtRepl(db3);
-        utr2.dropReplication();
-        utr2.createReplication(3);
-    }
-
-    @Test
     /**
      * Проверим неизменность структуры
      * после создания и последующего удаления репликационных структур
@@ -56,7 +27,7 @@ public class UtRepl_ReplInit_Test extends ReplDatabase_Test {
         struct_rw.write(struct_1, "../_test-data/dbStruct_1.xml");
 
         //
-        utr.createReplication(1);
+        utr.createReplication(1, "");
         //
         utr.dropReplication();
 

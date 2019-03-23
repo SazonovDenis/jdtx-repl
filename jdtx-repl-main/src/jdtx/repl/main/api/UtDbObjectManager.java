@@ -25,11 +25,11 @@ public class UtDbObjectManager {
     }
 
 
-    public void createAudit(long wsId) throws Exception {
+    public void createRepl(long wsId, String guid) throws Exception {
         String sql;
         DbQuery query = null;
         try {
-            log.info("createAudit - системные объекты");
+            log.info("createRepl - системные таблицы");
 
             // таблица table_list со списком названий таблиц, за изменениями в которых надо следить
             sql = "create table " + JdxUtils.sys_table_prefix + "table_list(id int not null, name varchar(150) default '' not null)";
@@ -62,10 +62,15 @@ public class UtDbObjectManager {
             db.execSql(sql);
 
             // список рабочих станций
-            sql = "create table " + JdxUtils.sys_table_prefix + "workstation_list(id integer not null, name varchar(50) not null, enabled integer not null)";
+            sql = "create table " + JdxUtils.sys_table_prefix + "workstation_list(id integer not null, name varchar(50) not null, guid varchar(150) not null, enabled integer not null)";
             db.execSql(sql);
             // первичный ключ
             sql = "alter table " + JdxUtils.sys_table_prefix + "workstation_list add constraint pk_" + JdxUtils.sys_table_prefix + "workstation_list primary key (id)";
+            db.execSql(sql);
+            // уникальность
+            sql = "create unique index " + JdxUtils.sys_table_prefix + "workstation_list_idx1 on " + JdxUtils.sys_table_prefix + "workstation_list (name)";
+            db.execSql(sql);
+            sql = "create unique index " + JdxUtils.sys_table_prefix + "workstation_list_idx2 on " + JdxUtils.sys_table_prefix + "workstation_list (guid)";
             db.execSql(sql);
 
             // очереди реплик
@@ -102,7 +107,7 @@ public class UtDbObjectManager {
 
 
             // Вставляем в таблицу table_list названия всех таблиц
-            log.info("createAudit - объекты базы данных");
+            log.info("createRepl - таблицы базы данных");
 
             // запрос на вставку в таблицу table_list названий всех таблиц из базы
             query = db.createQuery("insert into " + JdxUtils.sys_table_prefix + "table_list (id, Name) values (GEN_ID(" + JdxUtils.sys_gen_prefix + "table_list, 1), :Name)");
@@ -110,7 +115,7 @@ public class UtDbObjectManager {
             long n = 0;
             for (IJdxTableStruct table : tables) {
                 n++;
-                log.info("createAudit " + n + "/" + tables.size() + " " + table.getName());
+                log.info("createRepl, createAudit " + n + "/" + tables.size() + " " + table.getName());
 
                 // Вставка в таблицу table_list названия таблицы
                 query.setParams(UtCnv.toMap("Name", table.getName()));
@@ -121,8 +126,8 @@ public class UtDbObjectManager {
 
 
             // метка с номером БД
-            db.execSql("create table " + JdxUtils.sys_table_prefix + "db_info (ws_id integer not null, enabled integer not null)");
-            sql = "insert into " + JdxUtils.sys_table_prefix + "db_info (ws_id, enabled) values (" + wsId + ", 0)";
+            db.execSql("create table " + JdxUtils.sys_table_prefix + "db_info (ws_id integer not null, guid varchar(150) not null, enabled integer not null)");
+            sql = "insert into " + JdxUtils.sys_table_prefix + "db_info (ws_id, guid, enabled) values (" + wsId + ", '" + guid + "', 0)";
             db.execSql(sql);
             //
             log.info("db_info, ws_id: " + wsId);
@@ -305,10 +310,11 @@ public class UtDbObjectManager {
         }
     }
 
-    public void addWorkstation(long wsId, String wsName) throws Exception {
+    public void addWorkstation(long wsId, String wsName, String wsGuid) throws Exception {
         Map params = new HashMap<>();
         params.put("id", wsId);
         params.put("name", wsName);
+        params.put("guid", wsGuid);
         addWorkstation(params);
     }
 
@@ -331,13 +337,13 @@ public class UtDbObjectManager {
     }
 
     private void addWorkstation(Map<String, Object> params) throws Exception {
-        log.info("add workstation, params: " + params);
+        log.info("add workstation, id: " + params.get("id") + ", name: " + params.get("name"));
 
         //
         DbUtils dbu = new DbUtils(db, struct);
 
         //
-        String sql = "insert into " + JdxUtils.sys_table_prefix + "workstation_list(id, name, enabled) values (:id, :name, 0)";
+        String sql = "insert into " + JdxUtils.sys_table_prefix + "workstation_list(id, name, guid, enabled) values (:id, :name, :guid, 0)";
         db.execSql(sql, params);
 
         //

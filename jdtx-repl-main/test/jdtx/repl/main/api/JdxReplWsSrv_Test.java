@@ -20,6 +20,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtFile.cleanDir("../_test-data/ws_001");
         UtFile.cleanDir("../_test-data/ws_002");
         UtFile.cleanDir("../_test-data/ws_003");
+        UtFile.cleanDir("../_test-data/ws_004");
         new File("../_test-data/csv").delete();
         new File("../_test-data/mail").delete();
         new File("../_test-data/mail_local").delete();
@@ -27,6 +28,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         new File("../_test-data/ws_001").delete();
         new File("../_test-data/ws_002").delete();
         new File("../_test-data/ws_003").delete();
+        new File("../_test-data/ws_004").delete();
         new File("d:/temp/dbm.log").delete();
         new File("d:/temp/jdtx.log").delete();
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6");
@@ -36,28 +38,30 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/21ba238dfc945002/to");
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/34f3cc20bea64503/from");
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/34f3cc20bea64503/to");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/444fed23da93ab04/from");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/444fed23da93ab04/to");
 
 
         // db
         UtRepl utr = new UtRepl(db);
         utr.dropReplication();
-        utr.createReplication(1);
+        utr.createReplication(1, "b5781df573ca6ee6-17845f2f56f4d401");
         // db2
         UtRepl utr2 = new UtRepl(db2);
         utr2.dropReplication();
-        utr2.createReplication(2);
+        utr2.createReplication(2, "b5781df573ca6ee6-21ba238dfc945002");
         // db3
         UtRepl utr3 = new UtRepl(db3);
         utr3.dropReplication();
-        utr3.createReplication(3);
+        utr3.createReplication(3, "b5781df573ca6ee6-34f3cc20bea64503");
 
 
         // Добавляем рабочие станции для режима сервера
         UtDbObjectManager om = new UtDbObjectManager(db, struct);
-        om.addWorkstation(1, "Сервер");
-        om.addWorkstation(2, "ws 2");
-        om.addWorkstation(3, "ws 3");
-        om.addWorkstation(4, "ws 4");
+        om.addWorkstation(1, "Сервер", "b5781df573ca6ee6-17845f2f56f4d401");
+        om.addWorkstation(2, "ws 2", "b5781df573ca6ee6-21ba238dfc945002");
+        om.addWorkstation(3, "ws 3", "b5781df573ca6ee6-34f3cc20bea64503");
+        om.addWorkstation(4, "ws 4", "b5781df573ca6ee6-444fed23da93ab04");
         // Активируем рабочие станции
         om.enableWorkstation(1);
         om.enableWorkstation(2);

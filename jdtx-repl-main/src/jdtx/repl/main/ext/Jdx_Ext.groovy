@@ -132,8 +132,12 @@ from
 
     void repl_create(IVariantMap args) {
         long wsId = args.getValueLong("ws")
+        String guid = args.getValueString("guid")
         if (wsId == 0L) {
-            throw new XError("Не указан [ws] - код рабочей станции ")
+            throw new XError("Не указан [ws] - код рабочей станции")
+        }
+        if (guid == null || guid.length() == 0) {
+            throw new XError("Не указан [guid] - guid рабочей станции")
         }
 
         // БД
@@ -147,7 +151,7 @@ from
             // Создаем объекты
             UtRepl utr = new UtRepl(db)
             utr.dropReplication()
-            utr.createReplication(wsId)
+            utr.createReplication(wsId, guid)
 
         } finally {
             db.disconnect()
@@ -156,13 +160,17 @@ from
 
 
     void repl_add_ws(IVariantMap args) {
-        String name = args.getValueString("name")
         long wsId = args.getValueLong("ws")
+        String name = args.getValueString("name")
+        String guid = args.getValueString("guid")
+        if (wsId == 0L) {
+            throw new XError("Не указан [ws] - код рабочей станции")
+        }
         if (name == null || name.length() == 0) {
             throw new XError("Не указано [name] - название рабочей станции")
         }
-        if (wsId == 0L) {
-            throw new XError("Не указан [ws] - код рабочей станции")
+        if (guid == null || guid.length() == 0) {
+            throw new XError("Не указан [guid] - guid рабочей станции")
         }
 
         // БД
@@ -178,7 +186,9 @@ from
             IJdxDbStruct struct = reader.readDbStruct()
             //
             UtDbObjectManager ut = new UtDbObjectManager(db, struct)
-            ut.addWorkstation(wsId, name)
+            ut.addWorkstation(wsId, name, guid)
+            //
+
             //
             System.out.println("new wsId: " + wsId)
 

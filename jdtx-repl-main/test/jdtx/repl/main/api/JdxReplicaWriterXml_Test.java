@@ -24,9 +24,12 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
             r0.close();
         }
 
+        long wsId = 2;
+        String guid = "b5781df573ca6ee6-21ba238dfc945002";
+
         // Забираем установочную реплику
         UtRepl utr = new UtRepl(db2);
-        IReplica replica = utr.createReplicaSnapshot(2, publication, 1);
+        IReplica replica = utr.createReplicaSnapshot(wsId, publication, 1);
         //
         File f = new File("../_test-data/ws2/tmp/000000001-src.xml");
         FileUtils.copyFile(replica.getFile(), f);
@@ -37,9 +40,14 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
 
         //////////
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/mail_http_ws.json"));
+        String url = (String) cfgData.get("url");
+
+        JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
+        cfgWs.put("guid", guid);
+        cfgWs.put("url", url);
 
         IJdxMailer mailer = new UtMailerHttp();
-        mailer.init(cfgData);
+        mailer.init(cfgWs);
 
 
         //////////
@@ -64,7 +72,8 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
 
         // Забираем установочную реплику
         UtRepl utr = new UtRepl(db2);
-        IReplica replica = utr.createReplicaSnapshot(2, publication, 1);
+        long wsId = 2;
+        IReplica replica = utr.createReplicaSnapshot(wsId, publication, 1);
         //
         File f = new File("../_test-data/ws2/tmp/000000001-src.xml");
         FileUtils.copyFile(replica.getFile(), f);

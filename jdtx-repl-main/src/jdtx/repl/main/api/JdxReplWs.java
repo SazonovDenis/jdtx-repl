@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
@@ -61,29 +62,33 @@ public class JdxReplWs {
      */
     public void init(String cfgFileName) throws Exception {
         // Код нашей станции
-        this.wsId = db.loadSql("select ws_id from " + JdxUtils.sys_table_prefix + "db_info").getCurRec().getValueLong("ws_id");
-        if (this.wsId == 0) {
-            throw new XError("Invalid wsId == 0");
+        DataRecord rec = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info").getCurRec();
+        if (rec.getValueLong("ws_id") == 0) {
+            throw new XError("Invalid rec.ws_id == 0");
         }
+        this.wsId = rec.getValueLong("ws_id");
 
         //
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
-        cfgData = (JSONObject) cfgData.get(String.valueOf(wsId));
+        String url = (String) cfgData.get("url");
+
+        //
+        JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
 
         // Читаем из этой очереди
         queIn = new JdxQueCommonFile(db, JdxQueType.IN);
-        queIn.setBaseDir((String) cfgData.get("queIn_DirLocal"));
+        queIn.setBaseDir((String) cfgWs.get("queIn_DirLocal"));
 
         // Пишем в эту очередь
         queOut = new JdxQuePersonalFile(db, JdxQueType.OUT);
-        queOut.setBaseDir((String) cfgData.get("queOut_DirLocal"));
+        queOut.setBaseDir((String) cfgWs.get("queOut_DirLocal"));
 
         // Правила публикации
         publicationsIn = new ArrayList<>();
         publicationsOut = new ArrayList<>();
 
         // Загружаем правила публикации
-        JSONArray publicationsIn = (JSONArray) cfgData.get("publicationsIn");
+        JSONArray publicationsIn = (JSONArray) cfgWs.get("publicationsIn");
         for (int i = 0; i < publicationsIn.size(); i++) {
             IPublication publication = new Publication();
             String publicationCfgName = (String) publicationsIn.get(i);
@@ -97,7 +102,7 @@ public class JdxReplWs {
             this.publicationsIn.add(publication);
         }
 
-        JSONArray publicationsOut = (JSONArray) cfgData.get("publicationsOut");
+        JSONArray publicationsOut = (JSONArray) cfgWs.get("publicationsOut");
         for (int i = 0; i < publicationsOut.size(); i++) {
             IPublication publication = new Publication();
             String publicationCfgName = (String) publicationsOut.get(i);
@@ -112,10 +117,13 @@ public class JdxReplWs {
             this.publicationsOut.add(publication);
         }
 
-        //
-        //mailer = new UtMailerLocalFiles();
+        // Конфиг для мейлера
+        cfgWs.put("guid", rec.getValueString("guid"));
+        cfgWs.put("url", url);
+
+        // Мейлер
         mailer = new UtMailerHttp();
-        mailer.init(cfgData);
+        mailer.init(cfgWs);
 
         // Стратегии перекодировки каждой таблицы
         String strategyCfgName = "decode_strategy";
@@ -277,18 +285,19 @@ public class JdxReplWs {
     public void receiveFromDir(String cfgFileName, String mailDir) throws Exception {
         // Готовим локальный мейлер
         mailDir = UtFile.unnormPath(mailDir) + "/";
-        String guidPath = ((UtMailerHttp) mailer).guid.replace("-", "/");
-        mailDir = mailDir + guidPath;
+        String guid = ((UtMailerHttp) mailer).guid;
+        String guidPath = guid.replace("-", "/");
 
         //
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
-        cfgData = (JSONObject) cfgData.get(String.valueOf(wsId));
-        //
-        cfgData.put("mailRemoteDir", mailDir);
 
-        //
+        // Конфиг для мейлера
+        JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
+        cfgWs.put("mailRemoteDir", mailDir + guidPath);
+
+        // Мейлер
         IJdxMailer mailerLocal = new UtMailerLocalFiles();
-        mailerLocal.init(cfgData);
+        mailerLocal.init(cfgWs);
 
 
         // Физически забираем данные
@@ -355,17 +364,17 @@ public class JdxReplWs {
 
     public void sendToDir(String cfgFileName, String mailDir, long age_from, long age_to, boolean doMarkDone) throws Exception {
         // Готовим локальный мейлер
-        mailDir = UtFile.unnormPath(mailDir) + "/";
-        String guidPath = ((UtMailerHttp) mailer).guid.replace("-", "/");
-        mailDir = mailDir + guidPath;
-
-        //
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
-        cfgData = (JSONObject) cfgData.get(String.valueOf(wsId));
         //
-        cfgData.put("mailRemoteDir", mailDir);
+        mailDir = UtFile.unnormPath(mailDir) + "/";
+        String guid = ((UtMailerHttp) mailer).guid;
+        String guidPath = guid.replace("-", "/");
 
-        //
+        // Конфиг для мейлера
+        cfgData = (JSONObject) cfgData.get(String.valueOf(wsId));
+        cfgData.put("mailRemoteDir", mailDir + guidPath);
+
+        // Мейлер
         IJdxMailer mailerLocal = new UtMailerLocalFiles();
         mailerLocal.init(cfgData);
 
