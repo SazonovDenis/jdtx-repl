@@ -21,7 +21,7 @@ public class UtMailerLocalFiles implements IJdxMailer {
 
     protected static Log log = LogFactory.getLog("jdtx");
 
-    private String inFileMask = "*.xml";
+    private String inFileMask = "*.zip";
 
 
     public void init(JSONObject cfg) {
@@ -144,7 +144,7 @@ public class UtMailerLocalFiles implements IJdxMailer {
 
 
     String getFileName(long no) {
-        return UtString.padLeft(String.valueOf(no), 9, '0') + ".xml";
+        return UtString.padLeft(String.valueOf(no), 9, '0') + ".zip";
     }
 
     long getNo(String fileName) {

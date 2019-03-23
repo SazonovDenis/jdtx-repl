@@ -7,6 +7,7 @@ import org.apache.commons.logging.*;
 import org.json.simple.*;
 
 import java.io.*;
+import java.util.zip.*;
 
 /**
  * Главное API репликатора
@@ -97,13 +98,30 @@ public class UtRepl {
     IReplica createReplicaFromAudit(long wsId, IPublication publication, long age) throws Exception {
         log.info("createReplicaFromAudit");
 
-        //
-        File file = File.createTempFile("~jdx-" + UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0') + "-", ".xml");
+        // Файл
+        String fileName = UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0');
+        File file = File.createTempFile("~jdx-" + fileName + "-", ".zip");
         OutputStream outputStream = new FileOutputStream(file);
-        JdxReplicaWriterXml writer = new JdxReplicaWriterXml(outputStream);
+
+        // Zip-файл
+        ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
+
+        // Zip-файл (заголовок)
+        ZipEntry zipEntryHead = new ZipEntry("dat.json");
+        zipOutputStream.putNextEntry(zipEntryHead);
+        String json = "{\"wsId\": " + wsId + ", \"age\": " + age + ", \"replicaType\": " + JdxReplicaType.IDE + "}";
+        zipOutputStream.write(json.getBytes("utf-8"));
+        zipOutputStream.closeEntry();
+
+        // Zip-файл (данные)
+        ZipEntry zipEntry = new ZipEntry("dat.dat");
+        zipOutputStream.putNextEntry(zipEntry);
+
+        // XML-файл
+        JdxReplicaWriterXml writerXml = new JdxReplicaWriterXml(zipOutputStream);
 
         //
-        writer.writeReplicaInfo(wsId, age, JdxReplicaType.IDE);
+        writerXml.writeReplicaInfo(wsId, age, JdxReplicaType.IDE);
 
         //
         UtAuditSelector utrr = new UtAuditSelector(db, struct, wsId);
@@ -117,15 +135,23 @@ public class UtRepl {
                 String publicationTableName = (String) publicationTable.get("table");
                 if (stuctTableName.compareToIgnoreCase(publicationTableName) == 0) {
                     String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
-                    utrr.readAuditData(stuctTableName, publicationFields, age - 1, age, writer);
+                    utrr.readAuditData(stuctTableName, publicationFields, age - 1, age, writerXml);
                 }
             }
         }
 
 
-        //
-        writer.close();
+        // Заканчиваем запись в XML-файл
+        writerXml.close();
+
+        // Заканчиваем запись в в zip-файл
+        zipOutputStream.closeEntry();
+        zipOutputStream.finish();
+        zipOutputStream.close();
+
+        // Закрываем файл
         outputStream.close();
+
 
         //
         IReplica res = new ReplicaFile();
@@ -148,13 +174,30 @@ public class UtRepl {
     IReplica createReplicaSnapshot(long wsId, IPublication publication, long age) throws Exception {
         log.info("createReplicaSnapshot");
 
-        //
-        File file = File.createTempFile("~jdx-" + UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0') + "-full", ".xml");
+        // Файл
+        String fileName = UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0') + "-full";
+        File file = File.createTempFile("~jdx-" + fileName + "-", ".zip");
         OutputStream outputStream = new FileOutputStream(file);
-        JdxReplicaWriterXml writer = new JdxReplicaWriterXml(outputStream);
+
+        // Zip-файл
+        ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
+
+        // Zip-файл (заголовок)
+        ZipEntry zipEntryHead = new ZipEntry("dat.info");
+        zipOutputStream.putNextEntry(zipEntryHead);
+        String info = "{\"wsId\": " + wsId + ", \"age\": " + age + ", \"replicaType\": " + JdxReplicaType.EXPORT + "}";
+        zipOutputStream.write(info.getBytes("utf-8"));
+        zipOutputStream.closeEntry();
+
+        // Zip-файл (данные)
+        ZipEntry zipEntry = new ZipEntry("dat.dat");
+        zipOutputStream.putNextEntry(zipEntry);
+
+        // XML-файл
+        JdxReplicaWriterXml writerXml = new JdxReplicaWriterXml(zipOutputStream);
 
         //
-        writer.writeReplicaInfo(wsId, age, JdxReplicaType.EXPORT);
+        writerXml.writeReplicaInfo(wsId, age, JdxReplicaType.EXPORT);
 
         //
         UtDataSelector utrr = new UtDataSelector(db, struct);
@@ -169,13 +212,20 @@ public class UtRepl {
                 String publicationTableName = (String) publicationTable.get("table");
                 if (stuctTableName.compareToIgnoreCase(publicationTableName) == 0) {
                     String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
-                    utrr.readAllRecords(stuctTableName, publicationFields, writer);
+                    utrr.readAllRecords(stuctTableName, publicationFields, writerXml);
                 }
             }
         }
 
-        //
-        writer.close();
+        // Заканчиваем запись в XML-файл
+        writerXml.close();
+
+        // Заканчиваем запись в в zip-файл (данные)
+        zipOutputStream.closeEntry();
+        zipOutputStream.finish();
+        zipOutputStream.close();
+
+        // Закрываем файл
         outputStream.close();
 
         //

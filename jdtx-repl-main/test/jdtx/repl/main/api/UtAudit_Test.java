@@ -90,26 +90,30 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_readAuditData() throws Exception {
-        UtRepl utr = new UtRepl(db);
+        UtRepl utr = new UtRepl(db2);
+        long wsId = 2;
 
         // Делаем изменения
-        UtTest utTest = new UtTest(db);
-        utTest.makeChange(struct, 1);
+        UtTest utTest = new UtTest(db2);
+        utTest.makeChange(struct, wsId);
 
         // Фиксируем возраст
         long selfAuditAge = utr.markAuditAge();
         System.out.println("selfAuditAge = " + selfAuditAge);
 
-        // Забираем реплики
-        UtAuditSelector utrr = new UtAuditSelector(db, struct, 1);
-
+        // Готовим writer
         OutputStream ost = new FileOutputStream("../_test-data/~tmp_csv.xml");
         JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
         //
-        utrr.readAuditData("lic", "*", selfAuditAge, selfAuditAge, wr);
-        utrr.readAuditData("usr", "*", selfAuditAge, selfAuditAge, wr);
-        utrr.readAuditData("region", "*", selfAuditAge, selfAuditAge, wr);
-        utrr.readAuditData("ulz", "*", selfAuditAge, selfAuditAge, wr);
+        wr.writeReplicaInfo(wsId, 1, JdxReplicaType.IDE);
+
+        // Забираем реплики
+        UtAuditSelector utrr = new UtAuditSelector(db2, struct, wsId);
+        //
+        utrr.readAuditData("lic", "id,nameF,nameI,nameO", selfAuditAge, selfAuditAge, wr);
+        utrr.readAuditData("usr", "id,name,userName", selfAuditAge, selfAuditAge, wr);
+        utrr.readAuditData("region", "id,parent,name", selfAuditAge, selfAuditAge, wr);
+        utrr.readAuditData("ulz", "id,region,name", selfAuditAge, selfAuditAge, wr);
         //
         wr.close();
     }
@@ -247,7 +251,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
         // Реплики
         IReplica replica = new ReplicaFile();
-        replica.setFile(new File("Z:/jdtx-repl/temp/000000001.xml"));
+        replica.setFile(new File("../_test-data/000000001-big.zip"));
 
         // Применяем реплики
         UtAuditApplyer utaa = new UtAuditApplyer(db2, struct);

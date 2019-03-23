@@ -322,7 +322,7 @@ public class UtMailerHttp implements IJdxMailer {
     }
 
     String getFileName(long no) {
-        return UtString.padLeft(String.valueOf(no), 9, '0') + ".xml";
+        return UtString.padLeft(String.valueOf(no), 9, '0') + ".zip";
     }
 
 

@@ -1,17 +1,18 @@
 package jdtx.repl.main.api;
 
 import groovy.json.StringEscapeUtils;
+import jandcode.utils.error.*;
+import org.json.simple.*;
+import org.json.simple.parser.*;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.*;
 
 /**
  */
@@ -112,6 +113,40 @@ public class JdxReplicaReaderXml {
         } finally {
             reader.close();
         }
+    }
+
+    public static void readReplicaInfo_zip(IReplica replica) throws Exception {
+        JdxReplInfo info = null;
+        try (
+                ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(replica.getFile()))
+        ) {
+            ZipEntry entry;
+            while ((entry = zipInputStream.getNextEntry()) != null) {
+                String name = entry.getName(); // получим название файла
+
+                //
+                if (name.endsWith(".info")) {
+                    JSONObject jsonObject;
+                    Reader reader = new InputStreamReader(zipInputStream);
+                    JSONParser parser = new JSONParser();
+                    jsonObject = (JSONObject) parser.parse(reader);
+                    info = JdxReplInfo.fromJSONObject(jsonObject);
+                }
+
+                //
+                zipInputStream.closeEntry();
+            }
+        }
+
+        //
+        if (info == null) {
+            throw new XError("Replica .info not found");
+        }
+
+        //
+        replica.setWsId(info.wsId);
+        replica.setAge(info.age);
+        replica.setReplicaType(info.replicaType);
     }
 
 

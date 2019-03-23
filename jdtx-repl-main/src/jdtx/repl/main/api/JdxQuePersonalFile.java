@@ -136,7 +136,7 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
 
 
     String genFileName(long age) {
-        return UtString.padLeft(String.valueOf(age), 9, '0') + ".xml";
+        return UtString.padLeft(String.valueOf(age), 9, '0') + ".zip";
     }
 
 }
