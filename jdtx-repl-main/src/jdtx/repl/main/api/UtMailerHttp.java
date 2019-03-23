@@ -86,6 +86,19 @@ public class UtMailerHttp implements IJdxMailer {
     public void send(IReplica repl, long no, String box) throws Exception {
         log.info("mailer.send, repl.wsId: " + repl.getWsId() + ", repl.age: " + repl.getAge() + ", no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 
+        // Проверки: правильность типа реплики
+        if (repl.getReplicaType() <= 0) {
+            throw new XError("invalid replica.replicaType");
+        }
+        // Проверки: правильность возраста реплики
+        if (repl.getAge() == -1) {
+            throw new XError("invalid replica.age");
+        }
+        // Проверки: правильность кода рабочей станции
+        if (repl.getWsId() <= 0) {
+            throw new XError("invalid replica.wsId");
+        }
+
         //
         DefaultHttpClient client = new DefaultHttpClient();
 

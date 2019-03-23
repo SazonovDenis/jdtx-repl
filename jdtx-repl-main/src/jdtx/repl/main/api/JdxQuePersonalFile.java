@@ -62,6 +62,10 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
 
 
     public void put(IReplica replica) throws Exception {
+        // Проверки: правильность типа реплики
+        if (replica.getReplicaType() <= 0) {
+            throw new XError("invalid replica.replicaType");
+        }
         // Проверки: правильность номера реплики
         if (replica.getAge() == -1) {
             throw new XError("invalid replica.age");

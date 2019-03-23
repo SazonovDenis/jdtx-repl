@@ -48,6 +48,10 @@ public class JdxQueCommonFile implements IJdxQueCommon {
     }
 
     public long put(IReplica replica) throws Exception {
+        // Проверки: правильность типа реплики
+        if (replica.getReplicaType() <= 0) {
+            throw new XError("invalid replica.replicaType");
+        }
         // Проверки: правильность возраста реплики
         if (replica.getAge() == -1) {
             throw new XError("invalid replica.age");
