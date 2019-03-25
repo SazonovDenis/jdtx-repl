@@ -52,12 +52,12 @@ public class UtMailerHttpManager {
      * IJdxMailerManager
      */
 
-    public void createMail() throws Exception {
+    public void mailCreate() throws Exception {
         createMailBox(guid, "from");
         createMailBox(guid, "to");
     }
 
-    public void checkMail() throws Exception {
+    public void mailCheck() throws Exception {
         checkMailBox(guid, "from");
         checkMailBox(guid, "to");
     }

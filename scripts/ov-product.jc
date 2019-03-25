@@ -43,21 +43,21 @@ repl_disable = cm("Отключает рабочую станцию",
 }
 
 //
-repl_snapshot = cm("Создает реплику с полным снимком данных для рабочей станции",
+repl_snapshot = cm("Создает реплику с полным снимком данных рабочей станции",
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_snapshot(args)
 }
 
 //
-repl_sync = cm("Сеанс синхронизации рабочей станции (прием и отправка) через каталог",
+repl_sync_ws = cm("Сеанс синхронизации рабочей станции (прием и отправка) через каталог",
    "dir": [value: null, help: "Каталог для обмена"],
    "from": [value: 0, help: "Начальный возраст отправляемых реплик"],
    "to": [value: 0, help: "Конечный возраст отправляемых реплик"],
    "mark": [value: false, help: "Делать отметку 'отправлено' для отправленных реплик"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    ext.repl_sync(args)
+    ext.repl_sync_ws(args)
 }
 
 //
@@ -73,7 +73,7 @@ repl_sync_srv = cm("Сеанс синхронизации для сервера 
 }
 
 //
-repl_check_mail = cm("Инициализация/проверка почты",
+repl_mail_check = cm("Инициализация или проверка почты",
    "ws": [value: 0, help: "Код рабочей станции"],
    "create": [value: false, help: "Создать ящики для рабочей станции"],
 ) {

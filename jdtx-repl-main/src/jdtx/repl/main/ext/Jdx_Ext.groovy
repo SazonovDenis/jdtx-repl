@@ -277,7 +277,7 @@ from
     }
 
 
-    void repl_sync(IVariantMap args) {
+    void repl_sync_ws(IVariantMap args) {
         String mailDir = args.getValueString("dir")
         long age_from = args.getValueLong("from", 0)
         long age_to = args.getValueLong("to", 0)
@@ -369,7 +369,7 @@ from
     }
 
 
-    void repl_check_mail(IVariantMap args) {
+    void repl_mail_check(IVariantMap args) {
         long wsId = args.getValueLong("ws")
         boolean doCreate = args.getValueBoolean("create")
         //
@@ -387,9 +387,9 @@ from
 
         //
         if (doCreate) {
-            mgr.createMail()
+            mgr.mailCreate()
         } else {
-            mgr.checkMail()
+            mgr.mailCheck()
         }
     }
 
