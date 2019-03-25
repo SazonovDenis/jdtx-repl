@@ -27,17 +27,24 @@ project.event("waxBeforeProduct") {
 
 project.event("waxAfterProduct") { m->
     // Лишний (иначе затирает наши настройки при обновлении)
-    ant.delete(file: m.distr_dir+"/web/WEB-INF/_db-ini.rt")
+    ant.delete(file: m.distr_dir + "/web/WEB-INF/_db-ini.rt")
 
     // Наш вариант jc.bat (с настройками памяти)
-    ant.delete(file: m.distr_dir+"/web/WEB-INF/jc.bat")
-    ant.copy(file: wd("install/jc.bat"), tofile: m.distr_dir+"/web/WEB-INF/jc.bat")
+    ant.delete(file: m.distr_dir + "/web/WEB-INF/jc.bat")
+    ant.copy(file: wd("install/jc.bat"), tofile: m.distr_dir + "/web/WEB-INF/jc.bat")
     //
-    ant.copy(file: wd("install/run.bat"), tofile: m.distr_dir+"/run.bat")
-    ant.copy(file: wd("install/run-jc.bat"), tofile: m.distr_dir+"/run-jc.bat")
+    ant.copy(file: wd("install/run.bat"), tofile: m.distr_dir + "/run.bat")
+    ant.copy(file: wd("install/run-jc.bat"), tofile: m.distr_dir + "/run-jc.bat")
 
     // Глюк - project.jc не попадает в нужное место на момент запуска inno
-    ant.copy(file: wd("install/project.jc"), tofile: m.distr_dir+"/web/WEB-INF/project.jc")
+    ant.copy(file: wd("install/project.jc"), tofile: m.distr_dir + "/web/WEB-INF/project.jc")
+
+    // jc без команд db-create
+    ant.delete(file: m.distr_dir + "/web/WEB-INF/scripts/db-project-product.jc")
+    ant.copy(file: wd("install/db-project-product.jc"), tofile: m.distr_dir + "/web/WEB-INF/scripts/db-project-product.jc")
+
+
+
 
     // Через inno
     ut.runexe(showout: true, cmd: "cmd /C copy install\\install.iss install\\temp2.iss")

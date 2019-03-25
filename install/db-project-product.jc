@@ -1,0 +1,18 @@
+// jc без команд db-create
+import jandcode.dbm.jc.*
+
+DbmProjectExt dbmext = createExt(DbmProjectExt)
+dbmext.dbscript_dir = "scripts/dbscript"
+// help по умолчанию для указания модели
+def HELP_M = [value: "default", help: "Имя зарегистрированной модели. По умолчанию 'default'"]
+
+/////////////////////
+
+db_info = cm("Информация о базе данных и проверка соединения",
+        m: HELP_M
+) {
+    dbmext.modelName = args.m
+    dbmext.printDbInfo()
+    dbmext.checkConnect()
+}
+

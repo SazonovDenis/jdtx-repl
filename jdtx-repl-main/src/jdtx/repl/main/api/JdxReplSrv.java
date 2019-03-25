@@ -3,6 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.utils.error.*;
 import jandcode.web.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
@@ -59,6 +60,10 @@ public class JdxReplSrv {
 
             // Конфиг для мейлера
             JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
+            if (cfgWs == null) {
+                throw new XError("JdxReplSrv.init: not found cfg, wsId: " + wsId + ", cfgFileName: " + cfgFileName);
+            }
+            //
             cfgWs.put("guid", rec.getValueString("guid"));
             cfgWs.put("url", url);
 

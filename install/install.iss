@@ -51,6 +51,7 @@ Compression=lzma/ultra
 SolidCompression=true
 InternalCompressLevel=ultra
 ;SetupIconFile=Images\PawnshopApp_install_icon.ico
+DirExistsWarning=no
 
 
 [Languages]
@@ -67,10 +68,12 @@ EnableISX=true
 LanguageID=$313D
 
 
+
 [Dirs]
 ;Name: {commondocs}\Jadatex.PawnShop; Flags: uninsneveruninstall
 ;Name: {commondocs}\Jadatex.PawnShop\ReportCustom; Flags: uninsneveruninstall
 ;Name: {commondocs}\Jadatex.PawnShop\Install; Flags: uninsneveruninstall
+
 
 
 [Files]
@@ -79,10 +82,30 @@ Source: temp\distr\*.*; DestDir: {app}; Flags: ignoreversion recursesubdirs crea
 Source: {#SourceDirJre}\*.*; DestDir: {app}\jre; Flags: ignoreversion recursesubdirs createallsubdirs
 #endif
 
+Source: web\WEB-INF\sample._app.rt; DestDir: {app}\web\WEB-INF; DestName: _app.rt; Flags: onlyifdoesntexist
+Source: web\WEB-INF\sample._db-ini.rt; DestDir: {app}\web\WEB-INF; Flags: onlyifdoesntexist; DestName: _db-ini.rt
+Source: web\WEB-INF\sample.log.properties; DestDir: {app}\web\WEB-INF; Flags: onlyifdoesntexist; DestName: log.properties
+;Source: web\WEB-INF\cfg\sample.srv.json; DestDir: {app}\web\WEB-INF\cfg\srv.json; Flags: onlyifdoesntexist
+Source: web\WEB-INF\cfg\sample.ws.json; DestDir: {app}\web\WEB-INF\cfg; Flags: onlyifdoesntexist; DestName: ws.json
+
+
 
 [Run]
 Filename: SCHTASKS; Parameters: /Delete /TN JadatexSync /f; WorkingDir: {app}
 Filename: SCHTASKS; Parameters: "/Create /TN JadatexSync /TR ""{app}\run.bat"" /SC MINUTE /MO 5"; WorkingDir: {app}
+
+
+
+[UninstallRun]
+Filename: SCHTASKS; Parameters: /Delete /TN JadatexSync /f; WorkingDir: {app}
+
+
+
+[UninstallDelete]
+Name: {app}\output.err; Type: files
+Name: {app}\output.msg; Type: files
+
+
 
 [Messages]
 WelcomeLabel1=[name].

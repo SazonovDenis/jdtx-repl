@@ -1,34 +1,14 @@
 {
 
-  "url": "http://192.168.0.141/lombard.systems/repl/",
+  "url": "http://lombard.systems/repl/",
 
-  "1": {
-    "mailLocalDirTmp": "data/ws_001/tmp",
+  "XXX": {
+    "mailLocalDirTmp": "data/ws_XXX/tmp",
 
-    "queIn_DirLocal": "data/ws_001/queIn",
-    "queOut_DirLocal": "data/ws_001/queOut",
+    "queIn_DirLocal": "data/ws_XXX/queIn",
+    "queOut_DirLocal": "data/ws_XXX/queOut",
 
     "publicationsIn": ["publication_full_152"],
-    "publicationsOut": ["publication_full_152"]
-  },
-
-  "2": {
-    "mailLocalDirTmp": "data/ws_002/tmp",
-
-    "queIn_DirLocal": "data/ws_002/queIn",
-    "queOut_DirLocal": "data/ws_002/queOut",
-
-    "publicationsIn": [],
-    "publicationsOut": ["publication_full_152"]
-  },
-
-  "3": {
-    "mailLocalDirTmp": "data/ws_003/tmp",
-
-    "queIn_DirLocal": "data/ws_003/queIn",
-    "queOut_DirLocal": "data/ws_003/queOut",
-
-    "publicationsIn": [],
     "publicationsOut": ["publication_full_152"]
   }
 

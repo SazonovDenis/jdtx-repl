@@ -6,7 +6,11 @@ include "db-project-product"
 repl_info = cm("Информация по репликации",
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    ext.repl_info(args)
+    try {
+        ext.repl_info(args)
+    } catch (Exception e) {
+        e.printStackTrace()
+    }
 }
 
 //
@@ -78,7 +82,7 @@ repl_mail_check = cm("Инициализация или проверка поч�
    "create": [value: false, help: "Создать ящики для рабочей станции"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    ext.repl_check_mail(args)
+    ext.repl_mail_check(args)
 }
 
 
