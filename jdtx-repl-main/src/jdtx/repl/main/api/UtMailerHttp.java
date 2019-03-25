@@ -29,6 +29,9 @@ public class UtMailerHttp implements IJdxMailer {
 
     protected static Log log = LogFactory.getLog("jdtx");
 
+    // 32 Mb
+    int HTTP_FILE_MAX_SIZE = 1024 * 1024 * 32;
+
 
     @Override
     public void init(JSONObject cfg) {
@@ -66,16 +69,9 @@ public class UtMailerHttp implements IJdxMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        if (response.getStatusLine().getStatusCode() != 200) {
-            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
-        }
-
+        handleErrors(response);
         //
-        String resStr = EntityUtils.toString(response.getEntity());
-        JSONObject res = parseJson(resStr);
-        if (res.get("error") != null) {
-            throw new XError(String.valueOf(res.get("error")));
-        }
+        JSONObject res = parseResult(response);
 
         //
         JSONObject result = (JSONObject) res.get("result");
@@ -85,6 +81,7 @@ public class UtMailerHttp implements IJdxMailer {
     @Override
     public void send(IReplica repl, long no, String box) throws Exception {
         log.info("mailer.send, repl.wsId: " + repl.getWsId() + ", repl.age: " + repl.getAge() + ", no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
+
 
         // Проверки: правильность типа реплики
         if (repl.getReplicaType() <= 0) {
@@ -99,13 +96,55 @@ public class UtMailerHttp implements IJdxMailer {
             throw new XError("invalid replica.wsId");
         }
 
-        //
+
+        // Закачиваем
         DefaultHttpClient client = new DefaultHttpClient();
 
-        //
-        HttpPost post = new HttpPost(remoteUrl + "repl_send.php");
+        // Закачиваем по частям
+        int part = 0;
+        long sendBytes = 0;
+        long totalBytes = repl.getFile().length();
 
         //
+        while (sendBytes < totalBytes) {
+            //
+            HttpPost post = new HttpPost(remoteUrl + "repl_part_send.php");
+
+            //
+            StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
+            StringBody stringBody_box = new StringBody(box, ContentType.MULTIPART_FORM_DATA);
+            StringBody stringBody_no = new StringBody(String.valueOf(no), ContentType.MULTIPART_FORM_DATA);
+            StringBody stringBody_part = new StringBody(String.valueOf(part), ContentType.MULTIPART_FORM_DATA);
+            byte[] buff = readFilePart(repl.getFile(), sendBytes, HTTP_FILE_MAX_SIZE);
+            ByteArrayBody byteBody = new ByteArrayBody(buff, "file");
+
+            //
+            MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+            builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+            builder.addPart("guid", stringBody_guid);
+            builder.addPart("box", stringBody_box);
+            builder.addPart("no", stringBody_no);
+            builder.addPart("file_part", stringBody_part);
+            builder.addPart("file", byteBody);
+            HttpEntity entity = builder.build();
+            //
+            post.setEntity(entity);
+
+            //
+            HttpResponse response = client.execute(post);
+
+            //
+            handleErrors(response);
+            //
+            parseResult(response);
+
+            //
+            part = part + 1;
+            sendBytes = sendBytes + buff.length;
+        }
+
+
+        // Завершение закачки
         JdxReplInfo info = new JdxReplInfo();
         info.wsId = repl.getWsId();
         info.age = repl.getAge();
@@ -113,65 +152,51 @@ public class UtMailerHttp implements IJdxMailer {
         info.crc = JdxUtils.getMd5File(repl.getFile());
 
         //
-        StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
-        StringBody stringBody_box = new StringBody(box, ContentType.MULTIPART_FORM_DATA);
-        StringBody stringBody_no = new StringBody(String.valueOf(no), ContentType.MULTIPART_FORM_DATA);
-        StringBody stringBody_info = new StringBody(info.toString(), ContentType.MULTIPART_FORM_DATA);
-        FileBody fileBody = new FileBody(repl.getFile(), ContentType.DEFAULT_BINARY);
-
-        //
-        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-        builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-        builder.addPart("guid", stringBody_guid);
-        builder.addPart("box", stringBody_box);
-        builder.addPart("no", stringBody_no);
-        builder.addPart("info", stringBody_info);
-        builder.addPart("file", fileBody);
-        HttpEntity entity = builder.build();
-        //
-        post.setEntity(entity);
-
-        //
-        HttpResponse response = client.execute(post);
-
-        //
-        if (response.getStatusLine().getStatusCode() != 200) {
-            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
-        }
-        //
-        String resStr = EntityUtils.toString(response.getEntity());
-        JSONObject res = parseJson(resStr);
-        if (res.get("error") != null) {
-            throw new XError(String.valueOf(res.get("error")));
-        }
+        sendCommit_internal(no, box, info, part);
     }
+
 
     @Override
     public IReplica receive(long no, String box) throws Exception {
         log.info("mailer.receive, no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 
         //
+        String localFileName = "~" + getFileName(no);
+        File replicaFile = new File(localDirTmp + localFileName);
+        replicaFile.delete();
+
+        //
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
-        HttpGet httpGet = new HttpGet(getUrl("repl_receive") + "&guid=" + guid + "&box=" + box + "&no=" + no);
+        JSONObject fileInfo = getInfo_internal(no, box);
+        int filePartsCount = Integer.valueOf(String.valueOf(fileInfo.get("partsCount")));  // так сложно - потому что в res.get("partsCount") оказывается Long
 
         //
-        HttpResponse response = httpclient.execute(httpGet);
+        int filePart = 0;
+        while (true) {
+            //
+            HttpGet httpGet = new HttpGet(getUrl("repl_part_receive") + "&guid=" + guid + "&box=" + box + "&no=" + no + "&file_part=" + filePart);
 
-        //
-        if (response.getStatusLine().getStatusCode() != 200) {
-            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
+            //
+            HttpResponse response = httpclient.execute(httpGet);
+
+            //
+            handleErrors(response);
+
+            //
+            byte[] res = EntityUtils.toByteArray(response.getEntity());
+            //
+            FileOutputStream outputStream = new FileOutputStream(replicaFile, true);
+            outputStream.write(res);
+            outputStream.close();
+
+            //
+            filePart = filePart + 1;
+            if (filePart == filePartsCount) {
+                break;
+            }
         }
-
-        //
-        byte[] res = EntityUtils.toByteArray(response.getEntity());
-        //
-        String localFileName = "~" + getFileName(no);
-        File replicaFile = new File(localDirTmp + localFileName);
-        FileOutputStream outputStream = new FileOutputStream(replicaFile);
-        outputStream.write(res);
-        outputStream.close();
 
         //
         IReplica replica = new ReplicaFile();
@@ -180,6 +205,7 @@ public class UtMailerHttp implements IJdxMailer {
         //
         return replica;
     }
+
 
     @Override
     public void delete(long no, String box) throws Exception {
@@ -195,17 +221,12 @@ public class UtMailerHttp implements IJdxMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        if (response.getStatusLine().getStatusCode() != 200) {
-            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
-        }
+        handleErrors(response);
 
         //
-        String resStr = EntityUtils.toString(response.getEntity());
-        JSONObject res = parseJson(resStr);
-        if (res.get("error") != null) {
-            throw new XError(String.valueOf(res.get("error")));
-        }
+        JSONObject res = parseResult(response);
     }
+
 
     @Override
     public void ping(String box) throws Exception {
@@ -218,17 +239,12 @@ public class UtMailerHttp implements IJdxMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        if (response.getStatusLine().getStatusCode() != 200) {
-            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
-        }
+        handleErrors(response);
 
         //
-        String resStr = EntityUtils.toString(response.getEntity());
-        JSONObject res = parseJson(resStr);
-        if (res.get("error") != null) {
-            throw new XError(String.valueOf(res.get("error")));
-        }
+        JSONObject res = parseResult(response);
     }
+
 
     @Override
     public DateTime getPingDt(String box) throws Exception {
@@ -241,16 +257,10 @@ public class UtMailerHttp implements IJdxMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        if (response.getStatusLine().getStatusCode() != 200) {
-            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
-        }
+        handleErrors(response);
 
         //
-        String resStr = EntityUtils.toString(response.getEntity());
-        JSONObject res = parseJson(resStr);
-        if (res.get("error") != null) {
-            throw new XError(String.valueOf(res.get("error")));
-        }
+        JSONObject res = parseResult(response);
 
         //
         String state_dt = (String) res.get("state_dt");
@@ -261,8 +271,24 @@ public class UtMailerHttp implements IJdxMailer {
         return new DateTime(state_dt);
     }
 
+
     @Override
     public JdxReplInfo getInfo(long no, String box) throws Exception {
+        JSONObject res = getInfo_internal(no, box);
+
+        //
+        JdxReplInfo info = JdxReplInfo.fromJSONObject(res);
+
+        //
+        return info;
+    }
+
+
+    /**
+     * Утилиты
+     */
+
+    JSONObject getInfo_internal(long no, String box) throws Exception {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
@@ -272,26 +298,74 @@ public class UtMailerHttp implements IJdxMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        if (response.getStatusLine().getStatusCode() != 200) {
-            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
-        }
+        handleErrors(response);
+        //
+        JSONObject res = parseResult(response);
 
         //
+        return res;
+    }
+
+    void sendCommit_internal(long no, String box, JdxReplInfo info, int partsCount) throws Exception {
+        DefaultHttpClient client = new DefaultHttpClient();
+
+        HttpPost post = new HttpPost(remoteUrl + "repl_part_commit.php");
+
+        //
+        JSONObject infoJson = info.toJSONObject();
+        infoJson.put("partsCount", partsCount);
+
+        //
+        StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
+        StringBody stringBody_box = new StringBody(box, ContentType.MULTIPART_FORM_DATA);
+        StringBody stringBody_no = new StringBody(String.valueOf(no), ContentType.MULTIPART_FORM_DATA);
+        StringBody stringBody_info = new StringBody(infoJson.toString(), ContentType.MULTIPART_FORM_DATA);
+
+        //
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+        builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        builder.addPart("guid", stringBody_guid);
+        builder.addPart("box", stringBody_box);
+        builder.addPart("no", stringBody_no);
+        builder.addPart("info", stringBody_info);
+        HttpEntity entity = builder.build();
+        //
+        post.setEntity(entity);
+
+        //
+        HttpResponse response = client.execute(post);
+
+        //
+        handleErrors(response);
+        //
+        parseResult(response);
+    }
+
+    byte[] readFilePart(File file, long pos, int file_max_size) throws IOException {
+        long lenMax = file.length();
+        int len = (int) Math.min(lenMax - pos, file_max_size);
+        byte[] buff = new byte[len];
+        FileInputStream fis = new FileInputStream(file);
+        fis.skip(pos);
+        fis.read(buff);
+        return buff;
+    }
+
+    void handleErrors(HttpResponse response) throws IOException {
+        if (response.getStatusLine().getStatusCode() != 200) {
+            String resStr = EntityUtils.toString(response.getEntity());
+            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode() + ", " + resStr);
+        }
+    }
+
+    JSONObject parseResult(HttpResponse response) throws Exception {
         String resStr = EntityUtils.toString(response.getEntity());
         JSONObject res = parseJson(resStr);
         if (res.get("error") != null) {
             throw new XError(String.valueOf(res.get("error")));
         }
-
-        //
-        JdxReplInfo info = JdxReplInfo.fromJSONObject(res);
-        return info;
+        return res;
     }
-
-
-    /**
-     * Утилиты
-     */
 
     JSONObject parseJson(String jsonStr) throws Exception {
         JSONObject jsonObject;
@@ -317,7 +391,7 @@ public class UtMailerHttp implements IJdxMailer {
         return String.valueOf(rnd.nextLong());
     }
 
-    private String getUrl(String url) {
+    String getUrl(String url) {
         return remoteUrl + url + ".php?seed=" + seed();
     }
 
