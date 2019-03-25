@@ -1,7 +1,7 @@
 {
 
   "queCommon_DirLocal": "../_test-data/srv/queCommon/",
-  "url": "http://192.168.0.141/lombard.systems/repl/",
+  "url": "http://localhost/lombard.systems/repl/",
 
   "1": {
     "mailLocalDirTmp": "../_test-data/ws_001/tmp"
