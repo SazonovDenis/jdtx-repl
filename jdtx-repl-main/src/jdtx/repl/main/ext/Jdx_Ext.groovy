@@ -370,26 +370,53 @@ from
 
 
     void repl_mail_check(IVariantMap args) {
-        long wsId = args.getValueLong("ws")
         boolean doCreate = args.getValueBoolean("create")
-        //
-        if (wsId == 0L) {
-            throw new XError("Не указан [ws] - код рабочей станции")
-        }
 
         //
         BgTasksService bgTasksService = app.service(BgTasksService.class);
         String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName");
 
-        // ---
-        UtMailerHttpManager mgr = new UtMailerHttpManager();
-        mgr.init(cfgFileName_srv, wsId);
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+        //
 
         //
-        if (doCreate) {
-            mgr.mailCreate()
-        } else {
-            mgr.mailCheck()
+        try {
+            JdxReplSrv srv = new JdxReplSrv(db);
+            srv.init(cfgFileName_srv);
+            //
+            System.out.println("Сервер, cfgFileName: " + cfgFileName_srv);
+
+            //
+            String[] boxes = ["from", "to"]
+            for (Map.Entry en : srv.mailerList.entrySet()) {
+                long wsId = (long) en.getKey();
+
+                for (String box : boxes) {
+                    //System.out.println("wsId: " + wsId + ", box: " + box);
+
+                    //
+                    UtMailerHttp mailer = (UtMailerHttp) en.getValue();
+                    try {
+                        if (doCreate) {
+                            mailer.createMailBox(box);
+                        } else {
+                            mailer.checkMailBox(box);
+                        }
+                        System.out.println("wsId: " + wsId + ", box: " + box + " - ok")
+                    } catch (Exception e) {
+                        System.out.println("wsId: " + wsId + ", box: " + box + ", error: " + e.message)
+                    }
+
+                    //
+                    System.out.println("")
+                }
+
+            }
+
+        } finally {
+            db.disconnect()
         }
     }
 

@@ -399,5 +399,57 @@ public class UtMailerHttp implements IJdxMailer {
         return UtString.padLeft(String.valueOf(no), 9, '0') + ".zip";
     }
 
+    void createMailBox(String box) throws Exception {
+        log.info("createMailBox, url: " + remoteUrl);
+        log.info("createMailBox, guid: " + guid + ", box: " + box);
+
+        //
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+
+        //
+        HttpGet httpGet = new HttpGet(getUrl("repl_create_box") + "&guid=" + guid + "&box=" + box);
+
+        //
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        if (response.getStatusLine().getStatusCode() != 200) {
+            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
+        }
+
+        //
+        String resStr = EntityUtils.toString(response.getEntity());
+        JSONObject res = parseJson(resStr);
+        if (res.get("error") != null) {
+            throw new XError(String.valueOf(res.get("error")));
+        }
+    }
+
+
+    void checkMailBox(String box) throws Exception {
+        log.info("checkMailBox, url: " + remoteUrl);
+        log.info("checkMailBox, guid: " + guid + ", box: " + box);
+
+        //
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+
+        //
+        HttpGet httpGet = new HttpGet(getUrl("repl_get_state") + "&guid=" + guid + "&box=" + box);
+
+        //
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        if (response.getStatusLine().getStatusCode() != 200) {
+            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
+        }
+
+        //
+        String resStr = EntityUtils.toString(response.getEntity());
+        JSONObject res = parseJson(resStr);
+        if (res.get("error") != null) {
+            throw new XError(String.valueOf(res.get("error")));
+        }
+    }
 
 }
