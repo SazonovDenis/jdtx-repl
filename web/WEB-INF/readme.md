@@ -7,6 +7,8 @@
 	
 В каталоге web\WEB-INF\cfg\ переименовать sample.srv.json в srv.json
 
+В файле web\WEB-INF\cfg\ws.json выбрать publication_full_152 или publication_full
+
 В файле _app.rt включить сервер (bgtask name="server" enabled="true") 
 
 

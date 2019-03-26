@@ -18,7 +18,7 @@
     "queIn_DirLocal": "data/ws_002/queIn",
     "queOut_DirLocal": "data/ws_002/queOut",
 
-    "publicationsIn": ["publication_full_152"],
+    "publicationsIn": [],
     "publicationsOut": ["publication_full_152"]
   },
 
@@ -28,7 +28,7 @@
     "queIn_DirLocal": "data/ws_003/queIn",
     "queOut_DirLocal": "data/ws_003/queOut",
 
-    "publicationsIn": ["publication_full_152"],
+    "publicationsIn": [],
     "publicationsOut": ["publication_full_152"]
   },
 
@@ -38,7 +38,7 @@
     "queIn_DirLocal": "data/ws_004/queIn",
     "queOut_DirLocal": "data/ws_004/queOut",
 
-    "publicationsIn": ["publication_full_152"],
+    "publicationsIn": [],
     "publicationsOut": ["publication_full_152"]
   },
 
@@ -48,7 +48,7 @@
     "queIn_DirLocal": "data/ws_005/queIn",
     "queOut_DirLocal": "data/ws_005/queOut",
 
-    "publicationsIn": ["publication_full_152"],
+    "publicationsIn": [],
     "publicationsOut": ["publication_full_152"]
   }
 

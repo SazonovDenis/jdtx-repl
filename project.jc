@@ -33,7 +33,7 @@ project.event("waxAfterProduct") { m->
     ant.delete(file: m.distr_dir + "/web/WEB-INF/jc.bat")
     ant.copy(file: wd("install/jc.bat"), tofile: m.distr_dir + "/web/WEB-INF/jc.bat")
     //
-    ant.copy(file: wd("install/run.bat"), tofile: m.distr_dir + "/run.bat")
+    ant.copy(file: wd("install/run.bat"), tofile: m.distr_dir + "/run.bat_")
     ant.copy(file: wd("install/run-jc.bat"), tofile: m.distr_dir + "/run-jc.bat")
 
     // Глюк - project.jc не попадает в нужное место на момент запуска inno
