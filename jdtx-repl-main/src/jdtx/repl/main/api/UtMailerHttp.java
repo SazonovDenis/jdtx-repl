@@ -141,6 +141,9 @@ public class UtMailerHttp implements IJdxMailer {
             //
             part = part + 1;
             sendBytes = sendBytes + buff.length;
+
+            //
+            log.info("mailer.send, part: " + part + ", sendBytes: " + sendBytes + "/" + totalBytes);
         }
 
 
