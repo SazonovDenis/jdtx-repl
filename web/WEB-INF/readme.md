@@ -1,38 +1,19 @@
-## Настройка БД сервера (как рабочей станции)
+## Настройка БД сервера
 
 
 
 #### Обязательно:
+
+	
+В каталоге web\WEB-INF\cfg\ переименовать sample.srv.json в srv.json
+
+В файле _app.rt включить сервер (bgtask name="server" enabled="true") 
 
 
 Создать репликационные структры с указанием кода станции:
 
 >jc repl-create -ws:1 -guid:XXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXX
                            
-
-
-#### Опционально:
-
-
-Выгрузить все данные на сервер:
-
->jc repl-snapshot
-
-
-Отправить данные через флешку:
-
->jc repl-sync-srv -dir:f:\jdtx-repl\ -mark:true
-
-
-
-## Настройка БД сервера (как сервера)
-
-
-
-#### Обязательно:
-
-
-В файле _app.rt включить сервер (bgtask name="server" enabled="true") 
 
 
 Добавить все рабочие станции:
@@ -65,6 +46,7 @@
 #### Опционально:
 
 
+
 Создать структуру почтовых каталогов:
 
 >jc repl-mail-check -create:true
@@ -74,8 +56,20 @@
 и т.д.
 
 
+Выгрузить все данные (для сервера):
 
-## Настройка БД рабочей станции
+>jc repl-snapshot
+
+
+Отправить данные через флешку:
+
+>jc repl-sync-srv -dir:f:\jdtx-repl\ -mark:true
+
+
+
+
+
+## Настройка рабочей станции
 
 
 
@@ -86,11 +80,6 @@
 
 >jc repl-create -ws:XXX -guid:XXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXX
                            
-
-
-Проверть репликационные структры:
-
->jc repl-info
 
 
 

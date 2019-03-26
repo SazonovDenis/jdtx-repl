@@ -75,7 +75,7 @@ public class JdxReplWs {
         //
         JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
         if (cfgWs == null) {
-            throw new XError("JdxReplWs.init: not found cfg, wsId: " + wsId + ", cfgFileName: " + cfgFileName);
+            throw new XError("JdxReplWs.init: cfgWs == null, wsId: " + wsId + ", cfgFileName: " + cfgFileName);
         }
 
         // Читаем из этой очереди

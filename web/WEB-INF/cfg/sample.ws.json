@@ -2,11 +2,51 @@
 
   "url": "http://lombard.systems/repl/",
 
-  "XXX": {
-    "mailLocalDirTmp": "data/ws_XXX/tmp",
+  "1": {
+    "mailLocalDirTmp": "data/ws_001/tmp",
 
-    "queIn_DirLocal": "data/ws_XXX/queIn",
-    "queOut_DirLocal": "data/ws_XXX/queOut",
+    "queIn_DirLocal": "data/ws_001/queIn",
+    "queOut_DirLocal": "data/ws_001/queOut",
+
+    "publicationsIn": ["publication_full_152"],
+    "publicationsOut": ["publication_full_152"]
+  },
+
+  "2": {
+    "mailLocalDirTmp": "data/ws_002/tmp",
+
+    "queIn_DirLocal": "data/ws_002/queIn",
+    "queOut_DirLocal": "data/ws_002/queOut",
+
+    "publicationsIn": ["publication_full_152"],
+    "publicationsOut": ["publication_full_152"]
+  },
+
+  "3": {
+    "mailLocalDirTmp": "data/ws_003/tmp",
+
+    "queIn_DirLocal": "data/ws_003/queIn",
+    "queOut_DirLocal": "data/ws_003/queOut",
+
+    "publicationsIn": ["publication_full_152"],
+    "publicationsOut": ["publication_full_152"]
+  },
+
+  "4": {
+    "mailLocalDirTmp": "data/ws_004/tmp",
+
+    "queIn_DirLocal": "data/ws_004/queIn",
+    "queOut_DirLocal": "data/ws_004/queOut",
+
+    "publicationsIn": ["publication_full_152"],
+    "publicationsOut": ["publication_full_152"]
+  },
+
+  "5": {
+    "mailLocalDirTmp": "data/ws_005/tmp",
+
+    "queIn_DirLocal": "data/ws_005/queIn",
+    "queOut_DirLocal": "data/ws_005/queOut",
 
     "publicationsIn": ["publication_full_152"],
     "publicationsOut": ["publication_full_152"]

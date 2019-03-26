@@ -61,7 +61,7 @@ public class JdxReplSrv {
             // Конфиг для мейлера
             JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
             if (cfgWs == null) {
-                throw new XError("JdxReplSrv.init: not found cfg, wsId: " + wsId + ", cfgFileName: " + cfgFileName);
+                throw new XError("JdxReplSrv.init: cfgWs == null, wsId: " + wsId + ", cfgFileName: " + cfgFileName);
             }
             //
             cfgWs.put("guid", rec.getValueString("guid"));
