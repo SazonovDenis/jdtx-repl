@@ -73,9 +73,10 @@ public class UtDataSelector {
         for (IJdxForeignKey fk : tableFrom.getForeignKeys()) {
             if (fk.getTable().getName().equals(tableFrom.getName())) {
                 // todo: Пока так реализуем правильную последовательность записей (если есть ссылка на самого себя)
-                return "select " + tableFields + " from " + tableFrom.getName() + " where " + fk.getField().getName() + " = 0\n" +
+                return "select 0 as dummySortField, " + tableFields + " from " + tableFrom.getName() + " where " + fk.getField().getName() + " = 0\n" +
                         "union\n" +
-                        "select " + tableFields + " from " + tableFrom.getName() + " where " + fk.getField().getName() + " <> 0";
+                        "select 1 as dummySortField, " + tableFields + " from " + tableFrom.getName() + " where " + fk.getField().getName() + " <> 0\n"+
+                        "order by 1";
             }
         }
         //
