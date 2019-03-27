@@ -75,8 +75,10 @@ public class UtAuditApplyer {
                 if (n == -1) {
                     throw new XError("table [" + tableName + "] found in replica data, but not found in struct");
                 }
+                //
                 tIdx = n;
                 IJdxTableStruct table = tables.get(n);
+                String idFieldName = table.getPrimaryKey().get(0).getName();
 
                 // Поиск полей таблицы в публикации (поля берем именно из правил публикаций)
                 String publicationFields = null;
@@ -155,7 +157,7 @@ public class UtAuditApplyer {
                     } else if (oprType == JdxOprType.OPR_UPD) {
                         dbu.updateRec(table.getName(), recValues, publicationFields, null);
                     } else if (oprType == JdxOprType.OPR_DEL) {
-                        dbu.deleteRec(table.getName(), (Long) recValues.get("id"));
+                        dbu.deleteRec(table.getName(), (Long) recValues.get(idFieldName));
                     }
 
                     //
@@ -164,12 +166,12 @@ public class UtAuditApplyer {
                     //
                     count++;
                     if (count % 200 == 0) {
-                        log.info("  writeData: " + tableName + ", " + count);
+                        log.info("  table: " + tableName + ", " + count);
                     }
                 }
 
                 //
-                log.info("  writeData: " + tableName + ", total: " + count);
+                log.info("  table: " + tableName + ", total: " + count);
 
                 //
                 tableName = dataReader.nextTable();
