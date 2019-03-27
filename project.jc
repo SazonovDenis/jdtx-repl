@@ -54,7 +54,7 @@ project.event("waxAfterProduct") { m->
     ut.runexe(showout: true, cmd: "tfu replstrf -i install\\temp2.iss -o install\\temp1.iss -s0 _CFG_APP_VERSION  -r install\\rev.txt -u")
 
     //
-    boolean installJre = true
+    boolean installJre = false
     if (installJre) {
         // с дистрибутивом Java
         ut.runexe(showout: true, cmd: "tfu replstr  -i install\\temp1.iss -o install\\temp0.iss -s0 _CFG_INSTALL_JRE -r0 installJre -u")

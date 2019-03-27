@@ -51,6 +51,7 @@ Compression=lzma/ultra
 SolidCompression=true
 InternalCompressLevel=ultra
 ;SetupIconFile=Images\PawnshopApp_install_icon.ico
+
 DirExistsWarning=no
 
 
