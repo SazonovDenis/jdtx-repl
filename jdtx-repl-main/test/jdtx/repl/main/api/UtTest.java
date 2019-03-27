@@ -74,6 +74,20 @@ public class UtTest extends UtilsTestCase {
 
 
         //
+        if (rnd.nextInt(5) == 0) {
+            long id_del = db.loadSql("select min(id) id from lic where id > 1360").getCurRec().getValueLong("id");
+            if (id_del > 0) {
+                dbu.deleteRec("lic", id_del);
+            }
+        }
+        if (rnd.nextInt(5) == 0) {
+            long id_del = db.loadSql("select min(id) id from lic where id > 101001360").getCurRec().getValueLong("id");
+            if (id_del > 0) {
+                dbu.deleteRec("lic", id_del);
+            }
+        }
+
+        //
         long id01 = db.loadSql("select min(id) id from lic where id > 0").getCurRec().getValueLong("id");
         long id02 = db.loadSql("select max(id) id from lic where id > " + (id01 + 100)).getCurRec().getValueLong("id");
 
