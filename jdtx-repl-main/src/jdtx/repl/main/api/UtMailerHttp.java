@@ -354,10 +354,15 @@ public class UtMailerHttp implements IJdxMailer {
         return buff;
     }
 
-    void handleErrors(HttpResponse response) throws IOException {
+    void handleErrors(HttpResponse response) throws Exception {
         if (response.getStatusLine().getStatusCode() != 200) {
             String resStr = EntityUtils.toString(response.getEntity());
-            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode() + ", " + resStr);
+            JSONObject res = parseJson(resStr);
+            if (res.get("error") != null) {
+                throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode() + ", error: " + String.valueOf(res.get("error")));
+            } else {
+                throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode() + ", " + resStr);
+            }
         }
     }
 
