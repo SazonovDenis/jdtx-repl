@@ -123,51 +123,57 @@ public class JdxReplSrv {
             long wsId = (long) en.getKey();
             IJdxMailer mailer = (IJdxMailer) en.getValue();
 
-            //
-            long queDoneAge = stateManager.getWsQueInAgeDone(wsId);
-            long queMaxAge = mailer.getSrvSate("from");
-
-            //
-            log.info("srvHandleCommonQue, from.wsId: " + wsId);
-
-            //
-            long count = 0;
-            for (long age = queDoneAge + 1; age <= queMaxAge; age++) {
-                // Физически забираем данные с почтового сервера
-                IReplica replica = mailer.receive(age, "from");
-                //
-                JdxReplicaReaderXml.readReplicaInfo(replica);
+            // Обрабатываем каждую станцию
+            try {
+                log.info("srvHandleCommonQue, from.wsId: " + wsId);
 
                 //
-                log.debug("replica.age: " + replica.getAge() + ", replica.wsId: " + replica.getWsId());
+                long queDoneAge = stateManager.getWsQueInAgeDone(wsId);
+                long queMaxAge = mailer.getSrvSate("from");
 
-                // Помещаем полученные данные в общую очередь
-                db.startTran();
-                try {
-                    commonQue.put(replica);
+                //
+                long count = 0;
+                for (long age = queDoneAge + 1; age <= queMaxAge; age++) {
+                    // Физически забираем данные с почтового сервера
+                    IReplica replica = mailer.receive(age, "from");
+                    //
+                    JdxReplicaReaderXml.readReplicaInfo(replica);
 
                     //
-                    stateManager.setWsQueInAgeDone(wsId, age);
+                    log.debug("replica.age: " + replica.getAge() + ", replica.wsId: " + replica.getWsId());
+
+                    // Помещаем полученные данные в общую очередь
+                    db.startTran();
+                    try {
+                        commonQue.put(replica);
+
+                        //
+                        stateManager.setWsQueInAgeDone(wsId, age);
+
+                        //
+                        db.commit();
+                    } catch (Exception e) {
+                        db.rollback();
+                        throw e;
+                    }
+
+                    // Удаляем с почтового сервера
+                    mailer.delete(age, "from");
 
                     //
-                    db.commit();
-                } catch (Exception e) {
-                    db.rollback();
-                    throw e;
+                    count++;
                 }
 
-                // Удаляем с почтового сервера
-                mailer.delete(age, "from");
-
                 //
-                count++;
-            }
+                if (count == 0) {
+                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.age: " + queDoneAge + ", nothing done");
+                } else {
+                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.age: " + queDoneAge + " -> " + queMaxAge + ", done count: " + count);
+                }
 
-            //
-            if (count == 0) {
-                log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.age: " + queDoneAge + ", nothing done");
-            } else {
-                log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.age: " + queDoneAge + " -> " + queMaxAge + ", done count: " + count);
+            } catch (Exception e) {
+                // Ошибка для станции - пропускаем, идем дальше
+                log.error("Error in srvHandleCommonQue, from.wsId: " + wsId + ", error: " + e.getMessage());
             }
         }
     }
@@ -190,46 +196,53 @@ public class JdxReplSrv {
             long wsId = (long) en.getKey();
             IJdxMailer mailer = (IJdxMailer) en.getValue();
 
-            //
-            log.info("srvDispatchReplicas, to.wsId: " + wsId);
+            // Обрабатываем каждую станцию
+            try {
+                log.info("srvDispatchReplicas, to.wsId: " + wsId);
 
-            // От какого возраста нужно отправлять для этой рабочей станции
-            long age_from_ws = age_from;
-            if (age_from_ws == 0L) {
-                // Не указано - зададим сами (от последней отправленной)
-                age_from_ws = stateManager.getCommonQueDispatchDone(wsId) + 1;
-            }
-
-            //
-            long count = 0;
-            for (long no = age_from_ws; no <= age_to_ws; no++) {
-                // Берем реплику
-                IReplica replica = commonQue.getByNo(no);
-
-                //
-                log.debug("replica.age: " + replica.getAge() + ", replica.wsId: " + replica.getWsId());
-
-                // Физически отправим реплику
-                mailer.send(replica, no, "to"); // todo это тупо - вот так копировать и перекладывать файлы из папки в папку???
-
-                // Отметим отправку
-                if (doMarkDone) {
-                    stateManager.setCommonQueDispatchDone(wsId, no);
+                // От какого возраста нужно отправлять для этой рабочей станции
+                long age_from_ws = age_from;
+                if (age_from_ws == 0L) {
+                    // Не указано - зададим сами (от последней отправленной)
+                    age_from_ws = stateManager.getCommonQueDispatchDone(wsId) + 1;
                 }
 
                 //
-                count++;
+                long count = 0;
+                for (long no = age_from_ws; no <= age_to_ws; no++) {
+                    // Берем реплику
+                    IReplica replica = commonQue.getByNo(no);
+
+                    //
+                    log.debug("replica.age: " + replica.getAge() + ", replica.wsId: " + replica.getWsId());
+
+                    // Физически отправим реплику
+                    mailer.send(replica, no, "to"); // todo это тупо - вот так копировать и перекладывать файлы из папки в папку???
+
+                    // Отметим отправку
+                    if (doMarkDone) {
+                        stateManager.setCommonQueDispatchDone(wsId, no);
+                    }
+
+                    //
+                    count++;
+                }
+
+                //
+                mailer.ping("to");
+
+                //
+                if (count == 0) {
+                    log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + age_from_ws + ", nothing done");
+                } else {
+                    log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + age_from_ws + " -> " + age_to_ws + ", done count: " + count);
+                }
+
+            } catch (Exception e) {
+                // Ошибка для станции - пропускаем, идем дальше
+                log.error("Error in srvDispatchReplicas, to.wsId: " + wsId + ", error: " + e.getMessage());
             }
 
-            //
-            mailer.ping("to");
-
-            //
-            if (count == 0) {
-                log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + age_from_ws + ", nothing done");
-            } else {
-                log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + age_from_ws + " -> " + age_to_ws + ", done count: " + count);
-            }
         }
     }
 
