@@ -1,11 +1,10 @@
 package jdtx.repl.main.task;
 
-import jandcode.bgtasks.BgTask;
-import jandcode.dbm.ModelService;
-import jandcode.dbm.db.Db;
-import jdtx.repl.main.api.JdxReplWs;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import jandcode.bgtasks.*;
+import jandcode.dbm.*;
+import jandcode.dbm.db.*;
+import jdtx.repl.main.api.*;
+import org.apache.commons.logging.*;
 
 /**
  */
@@ -37,14 +36,7 @@ public class WsBgTask extends BgTask {
         try {
             step_ws();
         } catch (Exception e) {
-            String msg;
-            if (e.getCause() != null) {
-                msg = e.getCause().getMessage();
-            } else {
-                msg = e.getMessage();
-            }
-            getLogger().put("state", "Рабочая станция: " + msg);
-            log.error("Рабочая станция: " + msg);
+            logError("Рабочая станция: " + extractMsg(e));
             e.printStackTrace();
         }
     }
@@ -67,19 +59,35 @@ public class WsBgTask extends BgTask {
 
             //
             logInfo("Отслеживаем и обрабатываем свои изменения");
-            ws.handleSelfAudit();
+            try {
+                ws.handleSelfAudit();
+            } catch (Exception e) {
+                logError(extractMsg(e));
+            }
 
             //
-            logInfo("Отправляем свои изменения");
-            ws.send();
+            logInfo("Отправляем свои реплики");
+            try {
+                ws.send();
+            } catch (Exception e) {
+                logError(extractMsg(e));
+            }
 
             //
             logInfo("Забираем входящие реплики");
-            ws.receive();
+            try {
+                ws.receive();
+            } catch (Exception e) {
+                logError(extractMsg(e));
+            }
 
             //
             logInfo("Применяем входящие реплики");
-            ws.handleQueIn();
+            try {
+                ws.handleQueIn();
+            } catch (Exception e) {
+                logError(extractMsg(e));
+            }
 
             //
             logInfo("Рабочая станция завершена");
@@ -88,8 +96,23 @@ public class WsBgTask extends BgTask {
         }
     }
 
+    String extractMsg(Exception e) {
+        String msg;
+        if (e.getCause() != null) {
+            msg = e.getCause().getMessage();
+        } else {
+            msg = e.getMessage();
+        }
+        return msg;
+    }
+
     void logInfo(String s) {
         log.info(s);
+        getLogger().put("state", s);
+    }
+
+    void logError(String s) {
+        log.error(s);
         getLogger().put("state", s);
     }
 
