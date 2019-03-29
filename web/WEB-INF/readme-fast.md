@@ -7,6 +7,7 @@
 
 В файле web\WEB-INF\cfg\ws.json выбрать: publication_full_152 или publication_full
 
+Запустить:
 
 >setup.***.srv.bat
 
@@ -20,6 +21,8 @@
 В файле web\WEB-INF\cfg\ws.json выбрать: publication_full_152 или publication_full
 
 В файле setup.***.ws.bat раскоментить нужную станцию
+
+Запустить:
 
 >setup.***.ws.bat
 
