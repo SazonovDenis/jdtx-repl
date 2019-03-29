@@ -167,7 +167,6 @@ public class UtMailerHttp implements IJdxMailer {
         String localFileName = "~" + getFileName(no);
         File replicaFile = new File(localDirTmp + localFileName);
         replicaFile.delete();
-        log.debug("  0, dest file deleted");
 
         //
         DefaultHttpClient httpclient = new DefaultHttpClient();
@@ -175,7 +174,7 @@ public class UtMailerHttp implements IJdxMailer {
         //
         JSONObject fileInfo = getInfo_internal(no, box);
         int filePartsCount = Integer.valueOf(String.valueOf(fileInfo.get("partsCount")));  // так сложно - потому что в res.get("partsCount") оказывается Long
-        log.debug("  1, getInfo_internal ok, filePartsCount: " + filePartsCount);
+        log.debug("  filePartsCount: " + filePartsCount);
 
         //
         int filePart = 0;
@@ -185,31 +184,26 @@ public class UtMailerHttp implements IJdxMailer {
 
             //
             HttpResponse response = httpclient.execute(httpGet);
-            log.debug("  2, httpclient.execute ok");
 
             //
             handleErrors(response);
-            log.debug("  3, handleErrors ok");
 
             //
             HttpEntity entity = response.getEntity();
-            log.debug("  4, getEntity ok");
-            //byte[] res = EntityUtils.toByteArray(entity);
-            byte[] res = EntityUtils_toByteArray(entity);
-            log.debug("  5, read toByteArray done, res.length: " + res.length);
+            byte[] res = EntityUtils.toByteArray(entity);
             //
             FileOutputStream outputStream = new FileOutputStream(replicaFile, true);
-            log.debug("  6, file outputStream created");
             outputStream.write(res);
-            log.debug("  7, write ok");
             outputStream.close();
-            log.debug("  8, file outputStream closed");
 
             //
             filePart = filePart + 1;
             if (filePart == filePartsCount) {
                 break;
             }
+
+            //
+            log.info("  part done: " + filePart + "/" + filePartsCount);
         }
 
         //
@@ -218,40 +212,6 @@ public class UtMailerHttp implements IJdxMailer {
 
         //
         return replica;
-    }
-
-    private byte[] EntityUtils_toByteArray(HttpEntity entity) throws IOException {
-        log.debug("  toByteArray");
-
-        Args.notNull(entity, "Entity");
-        InputStream inStream = entity.getContent();
-        log.debug("  toByteArray, entity.getContent");
-
-        if (inStream == null) {
-            return null;
-        } else {
-            try {
-                Args.check(entity.getContentLength() <= 2147483647L, "HTTP entity too large to be buffered in memory");
-                int capacity = (int) entity.getContentLength();
-                if (capacity < 0) {
-                    capacity = 4096;
-                }
-
-                ByteArrayBuffer buffer = new ByteArrayBuffer(capacity);
-                byte[] tmp = new byte[4096];
-
-                int l;
-                while ((l = inStream.read(tmp)) != -1) {
-                    buffer.append(tmp, 0, l);
-                    log.debug("  toByteArray, buffer.append, buffer.length: " + buffer.length());
-                }
-
-                byte[] var6 = buffer.toByteArray();
-                return var6;
-            } finally {
-                inStream.close();
-            }
-        }
     }
 
     @Override
