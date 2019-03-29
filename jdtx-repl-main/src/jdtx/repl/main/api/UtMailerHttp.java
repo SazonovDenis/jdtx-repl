@@ -102,11 +102,11 @@ public class UtMailerHttp implements IJdxMailer {
 
         // Закачиваем по частям
         int part = 0;
-        long sendBytes = 0;
+        long sentBytes = 0;
         long totalBytes = repl.getFile().length();
 
         //
-        while (sendBytes < totalBytes) {
+        while (sentBytes < totalBytes) {
             //
             HttpPost post = new HttpPost(remoteUrl + "repl_part_send.php");
 
@@ -115,7 +115,7 @@ public class UtMailerHttp implements IJdxMailer {
             StringBody stringBody_box = new StringBody(box, ContentType.MULTIPART_FORM_DATA);
             StringBody stringBody_no = new StringBody(String.valueOf(no), ContentType.MULTIPART_FORM_DATA);
             StringBody stringBody_part = new StringBody(String.valueOf(part), ContentType.MULTIPART_FORM_DATA);
-            byte[] buff = readFilePart(repl.getFile(), sendBytes, HTTP_FILE_MAX_SIZE);
+            byte[] buff = readFilePart(repl.getFile(), sentBytes, HTTP_FILE_MAX_SIZE);
             ByteArrayBody byteBody = new ByteArrayBody(buff, "file");
 
             //
@@ -140,10 +140,10 @@ public class UtMailerHttp implements IJdxMailer {
 
             //
             part = part + 1;
-            sendBytes = sendBytes + buff.length;
+            sentBytes = sentBytes + buff.length;
 
             //
-            log.info("mailer.send, part: " + part + ", sendBytes: " + sendBytes + "/" + totalBytes);
+            log.info("mailer.send, part: " + part + ", sentBytes: " + sentBytes + "/" + totalBytes);
         }
 
 
@@ -174,36 +174,38 @@ public class UtMailerHttp implements IJdxMailer {
         //
         JSONObject fileInfo = getInfo_internal(no, box);
         int filePartsCount = Integer.valueOf(String.valueOf(fileInfo.get("partsCount")));  // так сложно - потому что в res.get("partsCount") оказывается Long
-        log.debug("  filePartsCount: " + filePartsCount);
+        if (filePartsCount > 1) {
+            log.info("mailer.receive, filePartsCount: " + filePartsCount);
+        }
+
+        // Закачиваем по частям
+        int filePart = 0;
+        int receivedBytes = 0;
 
         //
-        int filePart = 0;
-        while (true) {
+        while (filePart < filePartsCount) {
             //
             HttpGet httpGet = new HttpGet(getUrl("repl_part_receive") + "&guid=" + guid + "&box=" + box + "&no=" + no + "&file_part=" + filePart);
 
             //
             HttpResponse response = httpclient.execute(httpGet);
-
             //
             handleErrors(response);
 
             //
             HttpEntity entity = response.getEntity();
-            byte[] res = EntityUtils.toByteArray(entity);
+            byte[] buff = EntityUtils.toByteArray(entity);
             //
             FileOutputStream outputStream = new FileOutputStream(replicaFile, true);
-            outputStream.write(res);
+            outputStream.write(buff);
             outputStream.close();
 
             //
             filePart = filePart + 1;
-            if (filePart == filePartsCount) {
-                break;
-            }
+            receivedBytes = receivedBytes + buff.length;
 
             //
-            log.info("  part done: " + filePart + "/" + filePartsCount);
+            log.info("mailer.receive, part: " + filePart + "/" + filePartsCount + ", receivedBytes: " + receivedBytes);
         }
 
         //
