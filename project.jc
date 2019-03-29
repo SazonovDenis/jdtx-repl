@@ -44,8 +44,14 @@ project.event("waxAfterProduct") { m->
     ant.copy(file: wd("install/db-project-product.jc"), tofile: m.distr_dir + "/web/WEB-INF/scripts/db-project-product.jc")
 
 
+    // Через inno
+    inno()
+}
 
 
+//
+inno = cm("inno",
+) {
     // Через inno
     ut.runexe(showout: true, cmd: "cmd /C copy install\\install.iss install\\temp2.iss")
 
@@ -72,5 +78,3 @@ project.event("waxAfterProduct") { m->
     ut.runexe(showout: true, cmd: "cmd /C del install\\temp2.iss")
     ut.runexe(showout: true, cmd: "cmd /C del install\\rev.txt")
 }
-
-
