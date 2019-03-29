@@ -167,6 +167,7 @@ public class UtMailerHttp implements IJdxMailer {
         String localFileName = "~" + getFileName(no);
         File replicaFile = new File(localDirTmp + localFileName);
         replicaFile.delete();
+        log.debug("  0, dest file deleted");
 
         //
         DefaultHttpClient httpclient = new DefaultHttpClient();
@@ -174,6 +175,7 @@ public class UtMailerHttp implements IJdxMailer {
         //
         JSONObject fileInfo = getInfo_internal(no, box);
         int filePartsCount = Integer.valueOf(String.valueOf(fileInfo.get("partsCount")));  // так сложно - потому что в res.get("partsCount") оказывается Long
+        log.debug("  1, getInfo_internal ok, filePartsCount: "+filePartsCount);
 
         //
         int filePart = 0;
@@ -183,16 +185,22 @@ public class UtMailerHttp implements IJdxMailer {
 
             //
             HttpResponse response = httpclient.execute(httpGet);
+            log.debug("  2, httpclient.execute ok");
 
             //
             handleErrors(response);
+            log.debug("  3, handleErrors ok");
 
             //
             byte[] res = EntityUtils.toByteArray(response.getEntity());
+            log.debug("  4, read toByteArray done");
             //
             FileOutputStream outputStream = new FileOutputStream(replicaFile, true);
+            log.debug("  5, file outputStream created");
             outputStream.write(res);
+            log.debug("  6, write ok");
             outputStream.close();
+            log.debug("  7, file outputStream closed");
 
             //
             filePart = filePart + 1;
