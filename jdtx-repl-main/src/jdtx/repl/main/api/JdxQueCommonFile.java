@@ -67,7 +67,7 @@ public class JdxQueCommonFile implements IJdxQueCommon {
         }
         // Проверки: обязательность файла
         File replicaFile = replica.getFile();
-        if (replicaFile == null && replica.getReplicaType() != JdxReplicaType.EXPORT) {
+        if (replicaFile == null && replica.getReplicaType() != JdxReplicaType.SNAPSHOT) {
             throw new XError("invalid replica.file is null");
         }
 

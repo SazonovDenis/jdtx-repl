@@ -408,6 +408,16 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
+    public void test_srvMiteAll() throws Exception {
+        // Рабочая станция, настройка
+        JdxReplWs ws1 = new JdxReplWs(db);
+        ws1.init("test/etalon/mail_http_ws.json");
+
+        // Команда "MITE" в общую очередь
+        ws1.srvMiteAll();
+    }
+
+    @Test
     public void test_sync_srv() throws Exception {
         // Сервер, настройка
         JdxReplSrv srv = new JdxReplSrv(db);

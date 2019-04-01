@@ -38,7 +38,7 @@ public class UtAuditAgeManager {
 
         //
         try {
-            // Предыдущий записанный возраст аудита для каждой таблицы (максимальный z_id из аудита)
+            // Скопируем предыдущий записанный возраст аудита для каждой таблицы (максимальный z_id из аудита)
             Map maxIdsFixed = new HashMap<>();
             fillMaxIdsFixed(auditAgeFixed, maxIdsFixed);
 

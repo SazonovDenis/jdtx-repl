@@ -147,17 +147,15 @@ public class JdxReplWs {
         UtRepl utr = new UtRepl(db);
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
-        // Проверяем, что весь свой аудит мы уже выложили в очередь
-        long auditAgeDone = stateManager.getAuditAgeDone();
-        long auditAgeActual = utr.getAuditAge();
-        if (auditAgeActual != auditAgeDone) {
-            throw new XError("invalid auditAgeActual != auditAgeDone, auditAgeDone: " + auditAgeDone + ", auditAgeActual: " + auditAgeActual);
-        }
+        // Весь свой аудит выкладываем в очередь.
+        // Это делается потому, что queOut.put() следит за монотонным увеличением возраста,
+        // а ним надо сделать искусственное увеличение возраста.
+        handleSelfAudit();
 
         //
         db.startTran();
         try {
-            // Увеличиваем возраст (установочная реплика просто сдвигает возраст БД)
+            // Искусственно увеличиваем возраст (установочная реплика сдвигает возраст БД на 1)
             long age = utr.incAuditAge();
             log.info("createReplicaSnapshot, new age: " + age);
 
@@ -223,7 +221,6 @@ public class JdxReplWs {
                     db.rollback(e);
                     throw e;
                 }
-
             }
 
             //
@@ -263,7 +260,7 @@ public class JdxReplWs {
             IReplica replica = queIn.getByNo(no);
 
             // Свои собственные установочные реплики можно не применять
-            if (replica.getWsId() != wsId || replica.getReplicaType() != JdxReplicaType.EXPORT) {
+            if (replica.getWsId() != wsId || replica.getReplicaType() != JdxReplicaType.SNAPSHOT) {
                 for (IPublication publication : publicationsIn) {
                     InputStream inputStream = null;
                     try {
@@ -299,6 +296,50 @@ public class JdxReplWs {
         }
     }
 
+
+    /**
+     * Сервер: отправка команды "всем молчать" общей очереди
+     */
+    public void srvMiteAll() throws Exception {
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+        UtRepl utr = new UtRepl(db);
+
+        // Весь свой аудит предварительно выкладываем в очередь.
+        // Это делается потому, что queOut.put() следит за монотонным увеличением возраста,
+        // а ним надо сделать искусственное увеличение возраста.
+        handleSelfAudit();
+
+        // Искусственно увеличиваем возраст (системная реплика сдвигает возраст БД на 1)
+        long age = utr.incAuditAge();
+        log.info("srvMiteAll, new age: " + age);
+
+        //
+        IReplica replica = new ReplicaFile();
+        replica.setReplicaType(JdxReplicaType.MITE);
+        replica.setWsId(wsId);
+        replica.setAge(age);
+
+        //
+        utr.createOutput(replica);
+        utr.closeOutput();
+
+        //
+        db.startTran();
+        try {
+            // Системная реплика - в исходящую очередь реплик
+            queOut.put(replica);
+
+            // Системная реплика - отметка об отправке
+            stateManager.setAuditAgeDone(age);
+
+            //
+            db.commit();
+        } catch (Exception e) {
+            db.rollback(e);
+            throw e;
+        }
+
+    }
 
     public void receiveFromDir(String cfgFileName, String mailDir) throws Exception {
         // Готовим локальный мейлер
@@ -346,7 +387,7 @@ public class JdxReplWs {
 
             // Нужно ли скачивать эту реплику с сервера?
             IReplica replica;
-            if (info.wsId == wsId && info.replicaType == JdxReplicaType.EXPORT) {
+            if (info.wsId == wsId && info.replicaType == JdxReplicaType.SNAPSHOT) {
                 // Свои собственные установочные реплики можно не скачивать (и не применять)
                 log.info("Found self snapshot replica, age: " + info.age);
                 //
