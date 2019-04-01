@@ -125,6 +125,7 @@ public class UtDbObjectManager {
             }
 
 
+            // todo: state путается с db_info
             // метка с номером БД
             db.execSql("create table " + JdxUtils.sys_table_prefix + "db_info (ws_id integer not null, guid varchar(150) not null, enabled integer not null)");
             sql = "insert into " + JdxUtils.sys_table_prefix + "db_info (ws_id, guid, enabled) values (" + wsId + ", '" + guid + "', 0)";
