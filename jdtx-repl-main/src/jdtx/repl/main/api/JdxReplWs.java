@@ -246,6 +246,7 @@ public class JdxReplWs {
 
         //
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+        JdxMiteManagerWs miteManager = new JdxMiteManagerWs(db);
 
         //
         long queInNoDone = stateManager.getQueInNoDone();
@@ -259,25 +260,56 @@ public class JdxReplWs {
             //
             IReplica replica = queIn.getByNo(no);
 
-            // Свои собственные установочные реплики можно не применять
-            if (replica.getWsId() != wsId || replica.getReplicaType() != JdxReplicaType.SNAPSHOT) {
-                for (IPublication publication : publicationsIn) {
-                    InputStream inputStream = null;
-                    try {
-                        // Откроем Zip-файл
-                        inputStream = UtRepl.createReplicaInputStream(replica);
+            switch (replica.getReplicaType()) {
+                case JdxReplicaType.MITE: {
+                    // Реакция на команду - перевод в режим "MUTE"
+                    miteManager.miteWorkstation(wsId);
 
-                        //
-                        JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
+                    // Обработка собственного аудита
+                    handleSelfAudit();
 
-                        //
-                        applyer.applyReplica(replicaReader, publication, wsId);
-                    } finally {
-                        // Закроем читателя Zip-файла
-                        if (inputStream != null) {
-                            inputStream.close();
+                    // Выкладывание реплики "Я замолчал"
+                    srvMiteDone();
+
+                    //
+                    break;
+                }
+                case JdxReplicaType.UNMITE: {
+                    // Реакция на команду - отключение режима "MUTE"
+                    miteManager.unmuteWorkstation(wsId);
+
+                    //
+                    break;
+                }
+                case JdxReplicaType.IDE:
+                case JdxReplicaType.SNAPSHOT: {
+                    // Свои собственные установочные реплики можно не применять
+                    if (replica.getWsId() == wsId && replica.getReplicaType() == JdxReplicaType.SNAPSHOT) {
+                        break;
+                    }
+
+                    // Применение реплик
+                    for (IPublication publication : publicationsIn) {
+                        InputStream inputStream = null;
+                        try {
+                            // Откроем Zip-файл
+                            inputStream = UtRepl.createReplicaInputStream(replica);
+
+                            //
+                            JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
+
+                            //
+                            applyer.applyReplica(replicaReader, publication, wsId);
+                        } finally {
+                            // Закроем читателя Zip-файла
+                            if (inputStream != null) {
+                                inputStream.close();
+                            }
                         }
                     }
+
+                    //
+                    break;
                 }
             }
 
@@ -339,6 +371,46 @@ public class JdxReplWs {
             throw e;
         }
 
+    }
+
+    public void srvMiteDone() throws Exception {
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+        UtRepl utr = new UtRepl(db);
+
+        // Весь свой аудит предварительно выкладываем в очередь.
+        // Это делается потому, что queOut.put() следит за монотонным увеличением возраста,
+        // а ним надо сделать искусственное увеличение возраста.
+        handleSelfAudit();
+
+        // Искусственно увеличиваем возраст (системная реплика сдвигает возраст БД на 1)
+        long age = utr.incAuditAge();
+        log.info("srvMiteDone, new age: " + age);
+
+        //
+        IReplica replica = new ReplicaFile();
+        replica.setReplicaType(JdxReplicaType.MITE_DONE);
+        replica.setWsId(wsId);
+        replica.setAge(age);
+
+        //
+        utr.createOutput(replica);
+        utr.closeOutput();
+
+        //
+        db.startTran();
+        try {
+            // Системная реплика - в исходящую очередь реплик
+            queOut.put(replica);
+
+            // Системная реплика - отметка об отправке
+            stateManager.setAuditAgeDone(age);
+
+            //
+            db.commit();
+        } catch (Exception e) {
+            db.rollback(e);
+            throw e;
+        }
     }
 
     public void receiveFromDir(String cfgFileName, String mailDir) throws Exception {
