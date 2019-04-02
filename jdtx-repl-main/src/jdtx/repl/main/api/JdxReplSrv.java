@@ -85,6 +85,43 @@ public class JdxReplSrv {
         RefDecodeStrategy.instance.init(strategyCfgName);
     }
 
+    public void addWorkstation(long wsId, String wsName, String wsGuid) throws Exception {
+        log.info("add workstation, wsId: " + wsId + ", name: " + wsName);
+
+        // workstation_list
+        Map params = UtCnv.toMap(
+                "id", wsId,
+                "name", wsName,
+                "guid", wsGuid
+        );
+        String sql = "insert into " + JdxUtils.sys_table_prefix + "workstation_list (id, name, guid, enabled) values (:id, :name, :guid, 0)";
+        db.execSql(sql, params);
+
+        // state_ws
+        DbUtils dbu = new DbUtils(db, null);
+        long id = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "state_ws");
+        sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws (id, ws_id, que_common_dispatch_done, que_in_age_done) values (" + id + ", " + wsId + ", 0, 0)";
+        db.execSql(sql);
+    }
+
+    public void enableWorkstation(long wsId) throws Exception {
+        log.info("enable workstation, wsId: " + wsId);
+        //
+        String sql = "update " + JdxUtils.sys_table_prefix + "workstation_list set enabled = 1 where id = " + wsId;
+        db.execSql(sql);
+        sql = "update " + JdxUtils.sys_table_prefix + "db_info set enabled = 1 where ws_id = " + wsId;
+        db.execSql(sql);
+    }
+
+    public void disableWorkstation(long wsId) throws Exception {
+        log.info("disable workstation, wsId: " + wsId);
+        //
+        String sql = "update " + JdxUtils.sys_table_prefix + "workstation_list set enabled = 0 where id = " + wsId;
+        db.execSql(sql);
+        sql = "update " + JdxUtils.sys_table_prefix + "db_info set enabled = 0 where ws_id = " + wsId;
+        db.execSql(sql);
+    }
+
     public void srvHandleCommonQue() throws Exception {
         srvHandleCommonQue(mailerList, commonQue);
     }

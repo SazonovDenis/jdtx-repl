@@ -57,42 +57,42 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
         // Добавляем рабочие станции для режима сервера
-        UtDbObjectManager om = new UtDbObjectManager(db, struct);
-        om.addWorkstation(1, "Сервер", "b5781df573ca6ee6-17845f2f56f4d401");
-        om.addWorkstation(2, "ws 2", "b5781df573ca6ee6-21ba238dfc945002");
-        om.addWorkstation(3, "ws 3", "b5781df573ca6ee6-34f3cc20bea64503");
-        om.addWorkstation(4, "ws 4", "b5781df573ca6ee6-444fed23da93ab04");
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.addWorkstation(1, "Сервер", "b5781df573ca6ee6-17845f2f56f4d401");
+        srv.addWorkstation(2, "ws 2", "b5781df573ca6ee6-21ba238dfc945002");
+        srv.addWorkstation(3, "ws 3", "b5781df573ca6ee6-34f3cc20bea64503");
+        srv.addWorkstation(4, "ws 4", "b5781df573ca6ee6-444fed23da93ab04");
         // Активируем рабочие станции
-        om.enableWorkstation(1);
-        om.enableWorkstation(2);
-        om.enableWorkstation(3);
+        srv.enableWorkstation(1);
+        srv.enableWorkstation(2);
+        srv.enableWorkstation(3);
         //
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
     }
 
     @Test
     public void test_enable() throws Exception {
-        UtDbObjectManager om = new UtDbObjectManager(db, struct);
+        JdxReplSrv srv = new JdxReplSrv(db);
 
-        om.disableWorkstation(1);
-        om.enableWorkstation(2);
-        om.disableWorkstation(3);
-        om.enableWorkstation(4);
+        srv.disableWorkstation(1);
+        srv.enableWorkstation(2);
+        srv.disableWorkstation(3);
+        srv.enableWorkstation(4);
         //
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info"));
 
         // Активируем рабочие станции
-        om.enableWorkstation(1);
-        om.enableWorkstation(2);
-        om.enableWorkstation(3);
-        om.enableWorkstation(4);
+        srv.enableWorkstation(1);
+        srv.enableWorkstation(2);
+        srv.enableWorkstation(3);
+        srv.enableWorkstation(4);
         //
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info"));
 
         //
-        om.disableWorkstation(4);
+        srv.disableWorkstation(4);
         //
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info"));

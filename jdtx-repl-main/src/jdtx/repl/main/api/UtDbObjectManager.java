@@ -26,26 +26,24 @@ public class UtDbObjectManager {
 
 
     public void createRepl(long wsId, String guid) throws Exception {
+        String sql;
+
+        //
         log.info("createRepl - системные таблицы");
 
         //
-        String[] sqls = UtFile.loadString("res:jdtx/repl/main/api/UtDbObjectManager.sql").split(";");
-        for (String sql : sqls) {
-            if (sql.trim().length() != 0) {
-                db.execSql(sql);
-            }
-        }
-
+        sql = UtFile.loadString("res:jdtx/repl/main/api/UtDbObjectManager.sql");
+        execScript(sql, db);
 
         // создаем таблицу журнала изменений для каждой таблицы
-        log.info("createRepl - таблицы базы данных");
+        log.info("createRepl - таблицы журналов данных");
 
         //
         long n = 0;
         ArrayList<IJdxTableStruct> tables = struct.getTables();
         for (IJdxTableStruct table : tables) {
             n++;
-            log.info("createRepl, createAudit " + n + "/" + tables.size() + " " + table.getName());
+            log.debug("createRepl, createAudit " + n + "/" + tables.size() + " " + table.getName());
 
             //
             createAuditTable(table.getName());
@@ -54,7 +52,7 @@ public class UtDbObjectManager {
 
         // todo: state путается с db_info
         // метка с номером БД
-        String sql = "insert into " + JdxUtils.sys_table_prefix + "db_info (ws_id, guid, enabled) values (" + wsId + ", '" + guid + "', 0)";
+        sql = "insert into " + JdxUtils.sys_table_prefix + "db_info (ws_id, guid, enabled) values (" + wsId + ", '" + guid + "', 0)";
         db.execSql(sql);
 
         //
@@ -62,58 +60,26 @@ public class UtDbObjectManager {
     }
 
     public void dropAudit() throws Exception {
-        String query;
-
-        log.info("dropAudit - объекты базы данных");
+        log.info("dropAudit - объекты журналов данных");
 
         // Удаляем связанную с каждой таблицей таблицу журнала изменений
         ArrayList<IJdxTableStruct> tables = struct.getTables();
         long n = 0;
         for (IJdxTableStruct table : tables) {
             n++;
-            log.info("dropAudit " + n + "/" + tables.size() + " " + table.getName());
+            log.debug("dropAudit " + n + "/" + tables.size() + " " + table.getName());
             //
             dropAuditTable(table.getName());
         }
 
         log.info("dropAudit - системные объекты");
 
-        // Удаляем системные таблицы:
+        // Удаляем системные таблицы и генераторы
         String[] jdx_sys_tables = new String[]{
                 "age", "flag_tab", "state", "state_ws", "workstation_list", "table_list", "db_info",
                 "que_in", "que_out", "que_common"
         };
-        for (String jdx_sys_table : jdx_sys_tables) {
-            try {
-                // удаляем таблицу
-                query = "drop table " + JdxUtils.sys_table_prefix + jdx_sys_table;
-                db.execSql(query);
-            } catch (Exception e) {
-                // если удаляемый объект не будет найден, программа продолжит работу
-                if (!e.getCause().toString().contains("does not exist")) {
-                    System.out.println(e.getMessage());
-                    System.out.println(e.getCause().toString());
-                }
-            }
-        }
-
-        // Удаляем системные генераторы
-        String[] jdx_sys_generators = new String[]{
-                "state", "state_ws", "table_list",
-                "que_in", "que_out", "que_common"
-        };
-        for (String jdx_sys_generator : jdx_sys_generators) {
-            try {
-                query = "drop generator " + JdxUtils.sys_gen_prefix + jdx_sys_generator;
-                db.execSql(query);
-            } catch (Exception e) {
-                // если удаляемый объект не будет найден, программа продолжит работу
-                if (!e.getCause().toString().contains("Generator not found")) {
-                    System.out.println(e.getMessage());
-                    System.out.println(e.getCause().toString());
-                }
-            }
-        }
+        dropAll(jdx_sys_tables, db);
     }
 
     private void createAuditTable(String tableName) throws Exception {
@@ -224,47 +190,48 @@ public class UtDbObjectManager {
         }
     }
 
-    public void addWorkstation(long wsId, String wsName, String wsGuid) throws Exception {
-        Map params = new HashMap<>();
-        params.put("id", wsId);
-        params.put("name", wsName);
-        params.put("guid", wsGuid);
-        addWorkstation(params);
+
+    /**
+     * Утилиты
+     */
+
+    static void execScript(String sqls, Db db) throws Exception {
+        String[] sqlArr = sqls.split(";");
+        for (String sql : sqlArr) {
+            if (sql.trim().length() != 0) {
+                db.execSql(sql);
+            }
+        }
     }
 
-    public void enableWorkstation(long wsId) throws Exception {
-        log.info("enable workstation, wsId: " + wsId);
-        //
-        String sql = "update " + JdxUtils.sys_table_prefix + "workstation_list set enabled = 1 where id = " + wsId;
-        db.execSql(sql);
-        sql = "update " + JdxUtils.sys_table_prefix + "db_info set enabled = 1 where ws_id = " + wsId;
-        db.execSql(sql);
-    }
+    static void dropAll(String[] sys_names, Db db) {
+        // удаляем генераторы
+        for (String jdx_sys_generator : sys_names) {
+            try {
+                String query = "drop generator " + JdxUtils.sys_gen_prefix + jdx_sys_generator;
+                db.execSql(query);
+            } catch (Exception e) {
+                // если удаляемый объект не будет найден, программа продолжит работу
+                if (!e.getCause().toString().contains("Generator not found")) {
+                    System.out.println(e.getMessage());
+                    System.out.println(e.getCause().toString());
+                }
+            }
+        }
 
-    public void disableWorkstation(long wsId) throws Exception {
-        log.info("disable workstation, wsId: " + wsId);
-        //
-        String sql = "update " + JdxUtils.sys_table_prefix + "workstation_list set enabled = 0 where id = " + wsId;
-        db.execSql(sql);
-        sql = "update " + JdxUtils.sys_table_prefix + "db_info set enabled = 0 where ws_id = " + wsId;
-        db.execSql(sql);
-    }
-
-    private void addWorkstation(Map<String, Object> params) throws Exception {
-        log.info("add workstation, id: " + params.get("id") + ", name: " + params.get("name"));
-
-        //
-        DbUtils dbu = new DbUtils(db, struct);
-
-        //
-        String sql = "insert into " + JdxUtils.sys_table_prefix + "workstation_list(id, name, guid, enabled) values (:id, :name, :guid, 0)";
-        db.execSql(sql, params);
-
-        //
-        long wsId = (long) params.get("id");
-        long id = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "state_ws");
-        sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws(id, ws_id, que_common_dispatch_done, que_in_age_done) values (" + id + ", " + wsId + ", 0, 0)";
-        db.execSql(sql);
+        // удаляем таблицу
+        for (String jdx_sys_table : sys_names) {
+            try {
+                String query = "drop table " + JdxUtils.sys_table_prefix + jdx_sys_table;
+                db.execSql(query);
+            } catch (Exception e) {
+                // если удаляемый объект не будет найден, программа продолжит работу
+                if (!e.getCause().toString().contains("does not exist")) {
+                    System.out.println(e.getMessage());
+                    System.out.println(e.getCause().toString());
+                }
+            }
+        }
     }
 
 }

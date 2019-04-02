@@ -18,9 +18,10 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
         ut.createRepl(wsId_1, "");
 
         //
-        ut.addWorkstation(wsId_1, "srv", "");
-        ut.addWorkstation(wsId_2, "ws 2", "");
-        ut.addWorkstation(wsId_3, "ws 3", "");
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.addWorkstation(wsId_1, "srv", "");
+        srv.addWorkstation(wsId_2, "ws 2", "");
+        srv.addWorkstation(wsId_3, "ws 3", "");
 
         //
         System.out.println("wsId_2: " + wsId_2);
