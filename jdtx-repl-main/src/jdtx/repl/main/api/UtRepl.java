@@ -3,6 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;

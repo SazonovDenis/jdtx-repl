@@ -119,3 +119,5 @@ CREATE TABLE Z_Z_db_info (
   guid    VARCHAR(150) NOT NULL,
   enabled INTEGER      NOT NULL
 );
+
+INSERT INTO Z_Z_db_info (ws_id, guid, enabled) VALUES (0, '', 0);

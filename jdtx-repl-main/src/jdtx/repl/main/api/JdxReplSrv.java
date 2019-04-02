@@ -5,6 +5,8 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
+import jdtx.repl.main.api.jdx_db_object.*;
+import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
 
@@ -24,6 +26,7 @@ public class JdxReplSrv {
 
     //
     Db db;
+    private IJdxDbStruct struct;
 
 
     //
@@ -39,6 +42,11 @@ public class JdxReplSrv {
 
         // Почтовые курьеры для чтения/отправки сообщений, для каждой рабочей станции
         mailerList = new HashMap<>();
+
+        // чтение структуры
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(db);
+        struct = reader.readDbStruct();
     }
 
     /**
@@ -47,7 +55,13 @@ public class JdxReplSrv {
      * @param cfgFileName json-файл с конфигурацией
      */
     public void init(String cfgFileName) throws Exception {
+        // Проверка структур аудита
+        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
+        ut.checkReplVerDb();
+
+        //
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
+
         //
         String url = (String) cfgData.get("url");
 
@@ -109,7 +123,7 @@ public class JdxReplSrv {
         //
         String sql = "update " + JdxUtils.sys_table_prefix + "workstation_list set enabled = 1 where id = " + wsId;
         db.execSql(sql);
-        sql = "update " + JdxUtils.sys_table_prefix + "db_info set enabled = 1 where ws_id = " + wsId;
+        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 1 where id = " + wsId;
         db.execSql(sql);
     }
 
@@ -118,7 +132,7 @@ public class JdxReplSrv {
         //
         String sql = "update " + JdxUtils.sys_table_prefix + "workstation_list set enabled = 0 where id = " + wsId;
         db.execSql(sql);
-        sql = "update " + JdxUtils.sys_table_prefix + "db_info set enabled = 0 where ws_id = " + wsId;
+        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 0 where id = " + wsId;
         db.execSql(sql);
     }
 

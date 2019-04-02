@@ -1,5 +1,6 @@
-package jdtx.repl.main.api;
+package jdtx.repl.main.api.jdx_db_object;
 
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
@@ -24,7 +25,7 @@ public class UtDbObject_Test extends ReplDatabase_Test {
 
         //
         IJdxDbStruct struct_1 = reader.readDbStruct(false);
-        struct_rw.write(struct_1, "../_test-data/dbStruct_1.xml");
+        struct_rw.write(struct_1, "../../_test-data/dbStruct_1.xml");
 
         //
         utr.createReplication(1, "");
@@ -33,7 +34,7 @@ public class UtDbObject_Test extends ReplDatabase_Test {
 
         //
         IJdxDbStruct struct_2 = reader.readDbStruct(false);
-        struct_rw.write(struct_2, "../_test-data/dbStruct_2.xml");
+        struct_rw.write(struct_2, "../../_test-data/dbStruct_2.xml");
 
         // Проверим совпадение
         UtTest utTest = new UtTest(db);

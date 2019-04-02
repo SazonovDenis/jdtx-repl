@@ -1,4 +1,4 @@
-package jdtx.repl.main.api;
+package jdtx.repl.main.api.jdx_db_object;
 
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
@@ -12,7 +12,7 @@ public class UtDbObjectDecodeManager {
     }
 
     public void createRefDecodeObject() throws Exception {
-        String sql = UtFile.loadString("res:jdtx/repl/main/api/UtDbObjectDecodeManager.sql");
+        String sql = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/UtDbObjectDecodeManager.sql");
         UtDbObjectManager.execScript(sql, db);
     }
 

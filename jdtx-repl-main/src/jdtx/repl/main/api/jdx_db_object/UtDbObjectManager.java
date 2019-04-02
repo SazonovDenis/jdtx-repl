@@ -1,8 +1,11 @@
-package jdtx.repl.main.api;
+package jdtx.repl.main.api.jdx_db_object;
 
 
+import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.utils.error.*;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 
@@ -25,17 +28,84 @@ public class UtDbObjectManager {
     }
 
 
+    public void checkReplVerDb() throws Exception {
+        long ver_to = 1;
+
+        // Проверяем, что репликация инициализировалась
+        try {
+            db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info");
+        } catch (Exception e) {
+            if (e.getCause().getMessage().contains("Table unknown")) {
+                throw new XError("Replication is not initialized");
+            }
+        }
+
+        // Версия в исходном состоянии
+        int ver = 0;
+        int ver_step = 0;
+
+        // Читаем версию БД
+        try {
+            DataRecord rec = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "verdb where id = 1").getCurRec();
+            ver = rec.getValueInt("ver");
+            ver_step = rec.getValueInt("ver_step");
+        } catch (Exception e) {
+            if (e.getCause().getMessage().contains("Table unknown")) {
+                // Создаем таблицу verdb
+                log.info("Создаем таблицу " + JdxUtils.sys_table_prefix + "verdb");
+                //
+                String sql = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/UtDbObjectManager.verdb.sql");
+                execScript(sql, db);
+            }
+        }
+
+        // Обновляем версию
+        int ver_i = ver;
+        int ver_step_i = ver_step;
+        while (ver_i < ver_to) {
+            log.info("Смена версии: " + ver_i + "." + ver_step_i + " -> " + (ver_i + 1) + ".0");
+
+            //
+            String updateFileName = "update_" + UtString.padLeft(String.valueOf(ver_i), 3, "0") + "_" + UtString.padLeft(String.valueOf(ver_i + 1), 3, "0") + ".sql";
+            String sqls = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/" + updateFileName);
+
+            //
+            String[] sqlArr = sqls.split(";");
+            for (ver_step_i = ver_step; ver_step_i < sqlArr.length; ver_step_i = ver_step_i + 1) {
+                sqls = sqlArr[ver_step_i];
+                //
+                log.info("Смена версии, шаг: " + ver_i + "." + (ver_step_i + 1));
+                //
+                db.execSql(sqls);
+                //
+                db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + (ver_step_i + 1) + " where id = 1");
+            }
+
+            //
+            ver_i = ver_i + 1;
+            //
+            db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = 0 where id = 1");
+
+            //
+            log.info("Смена версии до: " + (ver_i) + ".0 - ok");
+        }
+    }
+
     public void createRepl(long wsId, String guid) throws Exception {
         String sql;
 
         //
         log.info("createRepl - системные таблицы");
 
-        //
-        sql = UtFile.loadString("res:jdtx/repl/main/api/UtDbObjectManager.sql");
+        // Начальная структура
+        sql = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/UtDbObjectManager.sql");
         execScript(sql, db);
 
-        // создаем таблицу журнала изменений для каждой таблицы
+        // Обновления структуры
+        checkReplVerDb();
+
+
+        // Создаем для каждой таблицы в БД собственную таблицу журнала изменений
         log.info("createRepl - таблицы журналов данных");
 
         //
@@ -50,9 +120,8 @@ public class UtDbObjectManager {
         }
 
 
-        // todo: state путается с db_info
         // метка с номером БД
-        sql = "insert into " + JdxUtils.sys_table_prefix + "db_info (ws_id, guid, enabled) values (" + wsId + ", '" + guid + "', 0)";
+        sql = "update " + JdxUtils.sys_table_prefix + "db_info set ws_id = " + wsId + ", guid = '" + guid + "'";
         db.execSql(sql);
 
         //
@@ -77,7 +146,7 @@ public class UtDbObjectManager {
         // Удаляем системные таблицы и генераторы
         String[] jdx_sys_tables = new String[]{
                 "age", "flag_tab", "state", "state_ws", "workstation_list", "table_list", "db_info",
-                "que_in", "que_out", "que_common"
+                "que_in", "que_out", "que_common", "verdb"
         };
         dropAll(jdx_sys_tables, db);
     }

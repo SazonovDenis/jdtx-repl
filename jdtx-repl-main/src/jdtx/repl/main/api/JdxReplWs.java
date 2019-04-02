@@ -5,6 +5,7 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
+import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
@@ -42,10 +43,12 @@ public class JdxReplWs {
     //
     public JdxReplWs(Db db) throws Exception {
         this.db = db;
+
         // чтение структуры
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         struct = reader.readDbStruct();
+
         // Строго обязательно REPEATABLE_READ, иначе сохранение в age возраста аудита
         // будет не синхронно с изменениями в таблицах аудита.
         this.db.getConnection().setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
@@ -61,6 +64,10 @@ public class JdxReplWs {
      * @param cfgFileName json-файл с конфигурацией
      */
     public void init(String cfgFileName) throws Exception {
+        // Проверка структур аудита
+        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
+        ut.checkReplVerDb();
+
         // Код нашей станции
         DataRecord rec = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info").getCurRec();
         if (rec.getValueLong("ws_id") == 0) {

@@ -14,9 +14,9 @@ import java.sql.*;
 public class ReplDatabase_Test extends AppTestCase {
 
     // Экземпляры db и db2, db3
-    Db db;
-    Db db2;
-    Db db3;
+    protected Db db;
+    protected Db db2;
+    protected Db db3;
 
     public void setUp() throws Exception {
         //
