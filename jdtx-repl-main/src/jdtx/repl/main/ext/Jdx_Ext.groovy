@@ -181,12 +181,8 @@ from
 
         //
         try {
-            IJdxDbStructReader reader = new JdxDbStructReader()
-            reader.setDb(db)
-            IJdxDbStruct struct = reader.readDbStruct()
-            //
-            UtDbObjectManager ut = new UtDbObjectManager(db, struct)
-            ut.addWorkstation(wsId, name, guid)
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.addWorkstation(wsId, name, guid)
             //
 
             //
@@ -212,12 +208,8 @@ from
 
         //
         try {
-            IJdxDbStructReader reader = new JdxDbStructReader()
-            reader.setDb(db)
-            IJdxDbStruct struct = reader.readDbStruct()
-            //
-            UtDbObjectManager om = new UtDbObjectManager(db, struct);
-            om.enableWorkstation(wsId);
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.enableWorkstation(wsId);
         } finally {
             db.disconnect()
         }
@@ -238,12 +230,8 @@ from
 
         //
         try {
-            IJdxDbStructReader reader = new JdxDbStructReader()
-            reader.setDb(db)
-            IJdxDbStruct struct = reader.readDbStruct()
-            //
-            UtDbObjectManager om = new UtDbObjectManager(db, struct);
-            om.disableWorkstation(wsId);
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.disableWorkstation(wsId);
         } finally {
             db.disconnect()
         }
