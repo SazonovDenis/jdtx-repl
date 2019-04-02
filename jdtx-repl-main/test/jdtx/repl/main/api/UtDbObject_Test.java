@@ -6,7 +6,7 @@ import org.junit.*;
 /**
  * Создание/удаление репликационных структур
  */
-public class UtRepl_ReplInit_Test extends ReplDatabase_Test {
+public class UtDbObject_Test extends ReplDatabase_Test {
 
 
     @Test
