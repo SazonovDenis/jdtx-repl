@@ -14,6 +14,8 @@ import java.util.*;
 
 public class UtDbObjectManager {
 
+    int CURRENT_VER_DB = 2;
+
     IJdxDbStruct struct;
     Db db;
 
@@ -29,7 +31,6 @@ public class UtDbObjectManager {
 
 
     public void checkReplVerDb() throws Exception {
-        long ver_to = 1;
 
         // Проверяем, что репликация инициализировалась
         try {
@@ -61,6 +62,7 @@ public class UtDbObjectManager {
 
         // Обновляем версию
         int ver_i = ver;
+        long ver_to = CURRENT_VER_DB;
         int ver_step_i = ver_step;
         while (ver_i < ver_to) {
             log.info("Смена версии: " + ver_i + "." + ver_step_i + " -> " + (ver_i + 1) + ".0");

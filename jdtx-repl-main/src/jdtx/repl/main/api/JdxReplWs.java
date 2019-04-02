@@ -197,6 +197,14 @@ public class JdxReplWs {
         log.info("handleSelfAudit, wsId: " + wsId);
 
         //
+        JdxMuteManagerWs utmm = new JdxMuteManagerWs(db);
+        if (utmm.isMute()) {
+            log.info("handleSelfAudit, workstation is mute");
+            return;
+        }
+
+
+        //
         UtAuditAgeManager ut = new UtAuditAgeManager(db, struct);
         UtRepl utr = new UtRepl(db);
 
@@ -253,7 +261,7 @@ public class JdxReplWs {
 
         //
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-        JdxMiteManagerWs miteManager = new JdxMiteManagerWs(db);
+        JdxMuteManagerWs muteManager = new JdxMuteManagerWs(db);
 
         //
         long queInNoDone = stateManager.getQueInNoDone();
@@ -268,22 +276,22 @@ public class JdxReplWs {
             IReplica replica = queIn.getByNo(no);
 
             switch (replica.getReplicaType()) {
-                case JdxReplicaType.MITE: {
+                case JdxReplicaType.MUTE: {
                     // Реакция на команду - перевод в режим "MUTE"
-                    miteManager.miteWorkstation(wsId);
+                    muteManager.muteWorkstation();
 
                     // Обработка собственного аудита
                     handleSelfAudit();
 
                     // Выкладывание реплики "Я замолчал"
-                    srvMiteDone();
+                    srvMuteDone();
 
                     //
                     break;
                 }
-                case JdxReplicaType.UNMITE: {
+                case JdxReplicaType.UNMUTE: {
                     // Реакция на команду - отключение режима "MUTE"
-                    miteManager.unmuteWorkstation(wsId);
+                    muteManager.unmuteWorkstation();
 
                     //
                     break;
@@ -339,7 +347,7 @@ public class JdxReplWs {
     /**
      * Сервер: отправка команды "всем молчать" общей очереди
      */
-    public void srvMiteAll() throws Exception {
+    public void srvMuteAll() throws Exception {
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         UtRepl utr = new UtRepl(db);
 
@@ -350,11 +358,11 @@ public class JdxReplWs {
 
         // Искусственно увеличиваем возраст (системная реплика сдвигает возраст БД на 1)
         long age = utr.incAuditAge();
-        log.info("srvMiteAll, new age: " + age);
+        log.info("srvMuteAll, new age: " + age);
 
         //
         IReplica replica = new ReplicaFile();
-        replica.setReplicaType(JdxReplicaType.MITE);
+        replica.setReplicaType(JdxReplicaType.MUTE);
         replica.setWsId(wsId);
         replica.setAge(age);
 
@@ -380,7 +388,7 @@ public class JdxReplWs {
 
     }
 
-    public void srvMiteDone() throws Exception {
+    public void srvMuteDone() throws Exception {
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         UtRepl utr = new UtRepl(db);
 
@@ -391,11 +399,11 @@ public class JdxReplWs {
 
         // Искусственно увеличиваем возраст (системная реплика сдвигает возраст БД на 1)
         long age = utr.incAuditAge();
-        log.info("srvMiteDone, new age: " + age);
+        log.info("srvMuteDone, new age: " + age);
 
         //
         IReplica replica = new ReplicaFile();
-        replica.setReplicaType(JdxReplicaType.MITE_DONE);
+        replica.setReplicaType(JdxReplicaType.MUTE_DONE);
         replica.setWsId(wsId);
         replica.setAge(age);
 

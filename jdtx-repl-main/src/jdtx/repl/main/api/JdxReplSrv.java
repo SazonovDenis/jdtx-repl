@@ -123,7 +123,7 @@ public class JdxReplSrv {
         //
         String sql = "update " + JdxUtils.sys_table_prefix + "workstation_list set enabled = 1 where id = " + wsId;
         db.execSql(sql);
-        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 1 where id = " + wsId;
+        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 1 where id = 1";
         db.execSql(sql);
     }
 
@@ -132,7 +132,7 @@ public class JdxReplSrv {
         //
         String sql = "update " + JdxUtils.sys_table_prefix + "workstation_list set enabled = 0 where id = " + wsId;
         db.execSql(sql);
-        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 0 where id = " + wsId;
+        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 0 where id = 1";
         db.execSql(sql);
     }
 
