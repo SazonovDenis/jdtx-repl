@@ -2,7 +2,7 @@ package jdtx.repl.main.api;
 
 import org.junit.*;
 
-public class JdxMuteManager_Test extends ReplDatabaseStruct_Test {
+public class JdxMuteManagerWs_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_0() throws Exception {
