@@ -109,12 +109,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_dumpTables();
     }
 
-    @Test
-    public void test_all_http() throws Exception {
-        //test_ws1_makeChange();
-        test_ws2_makeChange();
-        test_ws3_makeChange();
-
+    void sync_http() throws Exception {
         test_ws1_handleSelfAudit();
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
@@ -132,6 +127,15 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws1_handleQueIn();
         test_ws2_handleQueIn();
         test_ws3_handleQueIn();
+    }
+
+    @Test
+    public void test_all_http() throws Exception {
+        //test_ws1_makeChange();
+        test_ws2_makeChange();
+        test_ws3_makeChange();
+
+        sync_http();
 
         //
         test_dumpTables();
