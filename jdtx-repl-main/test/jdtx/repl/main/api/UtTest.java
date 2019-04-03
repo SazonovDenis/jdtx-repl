@@ -31,6 +31,14 @@ public class UtTest extends UtilsTestCase {
         svr.save().toFile(outFileName);
     }
 
+    public void changeDbStruct(String tableName) throws Exception {
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(db);
+        IJdxDbStruct struct = reader.readDbStruct();
+        String fieldName = "test_field_" + (struct.getTable(tableName).getFields().size() + 1);
+        db.execSql("alter table " + tableName + " add " + fieldName + " varchar(20)");
+    }
+
     public void makeChange(IJdxDbStruct struct, long ws_id) throws Exception {
         Random rnd = new Random();
         DbUtils dbu = new DbUtils(db, struct);

@@ -3,6 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.bgtasks.*;
 import jandcode.dbm.data.*;
 import jandcode.utils.*;
+import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
 import java.io.*;
@@ -232,6 +233,26 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         svr3.save().toFile("../_test-data/csv/ws3-all.csv");
     }
 
+
+    @Test
+    public void test_ws1_changeDbStruct() throws Exception {
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(db);
+        IJdxDbStruct struct;
+
+        //
+        struct = reader.readDbStruct();
+        struct_rw.write(struct, "../_test-data/dbStruct_0.xml");
+
+        //
+        UtTest utTest = new UtTest(db);
+        utTest.changeDbStruct("region");
+
+        //
+        struct = reader.readDbStruct();
+        struct_rw.write(struct, "../_test-data/dbStruct_1.xml");
+    }
 
     @Test
     public void test_ws1_makeChange() throws Exception {
