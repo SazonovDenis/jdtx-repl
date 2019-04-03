@@ -164,6 +164,34 @@ public class JdxReplSrv {
     }
 
     /**
+     * Сервер: отправка команды "всем молчать" в общую очередь
+     */
+    public void srvMuteAll() throws Exception {
+        log.info("srvMuteAll");
+
+        //
+        UtRepl utr = new UtRepl(db);
+        IReplica replica = utr.createReplicaMute();
+
+        // Системная команда - в исходящую очередь реплик
+        commonQue.put(replica);
+    }
+
+    /**
+     * Сервер: отправка команды "всем говорить" в общую очередь
+     */
+    public void srvUnmuteAll() throws Exception {
+        log.info("srvUnmuteAll");
+
+        //
+        UtRepl utr = new UtRepl(db);
+        IReplica replica = utr.createReplicaUnmute();
+
+        // Системная команда - в исходящую очередь реплик
+        commonQue.put(replica);
+    }
+
+    /**
      * Сервер: считывание очередей рабочих станций и формирование общей очереди
      * <p>
      * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.

@@ -14,19 +14,40 @@ public class JdxReplicaWriterXml {
 
     // Статусы писателя
     boolean currentElement_replica = false;
-    boolean currentElement_rec = false;
     boolean currentElement_table = false;
+    boolean currentElement_rec = false;
 
     //
     public JdxReplicaWriterXml(OutputStream ost) throws XMLStreamException {
         XMLOutputFactory xof = XMLOutputFactory.newInstance();
         writer = xof.createXMLStreamWriter(ost, "utf-8");
-        //
+    }
+
+    public void startDocument() throws XMLStreamException {
         writer.writeStartDocument();
         writer.writeStartElement("root");
     }
 
-    public void append() throws XMLStreamException {
+    public void closeDocument() throws Exception {
+        // <replica>
+        if (currentElement_replica) {
+            writer.writeEndElement();
+        }
+        // <rec>
+        if (currentElement_rec) {
+            writer.writeEndElement();
+        }
+        // <table>
+        if (currentElement_table) {
+            writer.writeEndElement();
+        }
+        // <root>
+        writer.writeEndElement();
+        //
+        writer.writeEndDocument();
+    }
+
+    public void appendRec() throws XMLStreamException {
         // <table>
         if (!currentElement_table) {
             throw new XMLStreamException("Not started currentElement_table");
@@ -70,23 +91,6 @@ public class JdxReplicaWriterXml {
     }
 
     public void close() throws Exception {
-        // <replica>
-        if (currentElement_replica) {
-            writer.writeEndElement();
-        }
-        // <rec>
-        if (currentElement_rec) {
-            writer.writeEndElement();
-        }
-        // <table>
-        if (currentElement_table) {
-            writer.writeEndElement();
-        }
-        // <root>
-        writer.writeEndElement();
-        //
-        writer.writeEndDocument();
-        //
         writer.close();
     }
 
@@ -135,5 +139,6 @@ public class JdxReplicaWriterXml {
         writer.writeAttribute("AGE", String.valueOf(age));
         writer.writeAttribute("REPLICA_TYPE", String.valueOf(replicaType));
     }
+
 
 }

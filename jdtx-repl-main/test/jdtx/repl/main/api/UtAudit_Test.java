@@ -115,7 +115,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         utrr.readAuditData("region", "id,parent,name", selfAuditAge, selfAuditAge, wr);
         utrr.readAuditData("ulz", "id,region,name", selfAuditAge, selfAuditAge, wr);
         //
-        wr.close();
+        wr.closeDocument();
     }
 
     @Test

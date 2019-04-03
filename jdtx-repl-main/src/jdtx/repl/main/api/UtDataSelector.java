@@ -30,7 +30,7 @@ public class UtDataSelector {
             // измененные данные помещаем в dataContainer
             long count = 0;
             while (!rsTableLog.eof()) {
-                dataContainer.append();
+                dataContainer.appendRec();
                 // Тип операции
                 dataContainer.setOprType(JdxOprType.OPR_INS);
                 // Тело записи

@@ -42,7 +42,7 @@ public class UtAuditSelector {
                 // Измененные данные помещаем в dataWriter
                 long n = 0;
                 while (!rsTableLog.eof()) {
-                    dataWriter.append();
+                    dataWriter.appendRec();
                     // Тип операции
                     dataWriter.setOprType(rsTableLog.getValueInt(JdxUtils.prefix + "opr_type"));
                     // Тело записи

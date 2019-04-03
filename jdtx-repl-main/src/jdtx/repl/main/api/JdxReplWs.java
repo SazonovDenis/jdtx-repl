@@ -322,7 +322,7 @@ public class JdxReplWs {
                         InputStream inputStream = null;
                         try {
                             // Откроем Zip-файл
-                            inputStream = UtRepl.createReplicaInputStream(replica);
+                            inputStream = UtRepl.getReplicaInputStream(replica);
 
                             //
                             JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
@@ -357,50 +357,6 @@ public class JdxReplWs {
         }
     }
 
-
-    /**
-     * Сервер: отправка команды "всем молчать" общей очереди
-     */
-    public void srvMuteAll() throws Exception {
-        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-        UtRepl utr = new UtRepl(db);
-
-        // Весь свой аудит предварительно выкладываем в очередь.
-        // Это делается потому, что queOut.put() следит за монотонным увеличением возраста,
-        // а ним надо сделать искусственное увеличение возраста.
-        handleSelfAudit();
-
-        // Искусственно увеличиваем возраст (системная реплика сдвигает возраст БД на 1)
-        long age = utr.incAuditAge();
-        log.info("srvMuteAll, new age: " + age);
-
-        //
-        IReplica replica = new ReplicaFile();
-        replica.setReplicaType(JdxReplicaType.MUTE);
-        replica.setWsId(wsId);
-        replica.setAge(age);
-
-        //
-        utr.createOutput(replica);
-        utr.closeOutput();
-
-        //
-        db.startTran();
-        try {
-            // Системная реплика - в исходящую очередь реплик
-            queOut.put(replica);
-
-            // Системная реплика - отметка об отправке
-            stateManager.setAuditAgeDone(age);
-
-            //
-            db.commit();
-        } catch (Exception e) {
-            db.rollback(e);
-            throw e;
-        }
-
-    }
 
     /**
      * Рабочая станция: отправка ответа "я замолчал" в исходящую очередь

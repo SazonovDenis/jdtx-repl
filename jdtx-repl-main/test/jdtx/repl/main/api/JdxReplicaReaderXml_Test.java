@@ -1,12 +1,10 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.test.*;
-import jandcode.utils.error.*;
 import org.junit.*;
 
 import java.io.*;
 import java.util.*;
-import java.util.zip.*;
 
 /**
  *
@@ -26,7 +24,7 @@ public class JdxReplicaReaderXml_Test extends DbmTestCase {
         replica.setFile(new File("../_test-data/ws_002/tmp/000000001-src.zip"));
 
         // Откроем Zip-файл
-        InputStream inputStream = UtRepl.createReplicaInputStream(replica);
+        InputStream inputStream = UtRepl.getReplicaInputStream(replica);
 
         //
         JdxReplicaReaderXml reader = new JdxReplicaReaderXml(inputStream);
@@ -61,7 +59,7 @@ public class JdxReplicaReaderXml_Test extends DbmTestCase {
         replica.setFile(new File("../_test-data/000000001-big.zip"));
 
         // Откроем Zip-файл
-        InputStream inputStream = UtRepl.createReplicaInputStream(replica);
+        InputStream inputStream = UtRepl.getReplicaInputStream(replica);
 
         //
         JdxReplicaReaderXml reader = new JdxReplicaReaderXml(inputStream);

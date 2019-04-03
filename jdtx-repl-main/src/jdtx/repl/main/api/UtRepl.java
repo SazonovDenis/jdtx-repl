@@ -162,11 +162,12 @@ public class UtRepl {
         replica.setAge(age);
         replica.setReplicaType(JdxReplicaType.IDE);
 
-        //
+        // Открываем запись
         createOutput(replica);
 
 
-        //
+        // Пишем
+        writerXml.startDocument();
         writerXml.writeReplicaInfo(wsId, age, JdxReplicaType.IDE);
 
         //
@@ -187,6 +188,7 @@ public class UtRepl {
         }
 
         //
+        writerXml.closeDocument();
         closeOutput();
 
 
@@ -210,10 +212,12 @@ public class UtRepl {
         replica.setAge(age);
         replica.setReplicaType(JdxReplicaType.SNAPSHOT);
 
-        // Начинаем запись
+        // Открываем запись
         createOutput(replica);
 
-        //
+
+        // Пишем
+        writerXml.startDocument();
         writerXml.writeReplicaInfo(wsId, age, JdxReplicaType.SNAPSHOT);
 
         //
@@ -236,6 +240,7 @@ public class UtRepl {
 
 
         // Заканчиваем запись
+        writerXml.closeDocument();
         closeOutput();
 
 
@@ -243,7 +248,45 @@ public class UtRepl {
         return replica;
     }
 
-    public static InputStream createReplicaInputStream(IReplica replica) throws IOException {
+    public IReplica createReplicaUnmute() throws Exception {
+        IReplica replica = new ReplicaFile();
+        replica.setReplicaType(JdxReplicaType.UNMUTE);
+        //replica.setWsId(wsId);
+        //replica.setAge(age);
+
+        // Открываем запись
+        createOutput(replica);
+
+        // Файл с описанием текущей структуры БД
+        UtDbStruct_RW struct_rw = new UtDbStruct_RW();
+        zipOutputStream.write(struct_rw.write(struct));
+
+        // Заканчиваем запись
+        closeOutput();
+
+        //
+        return replica;
+    }
+
+    public IReplica createReplicaMute() throws Exception {
+        IReplica replica = new ReplicaFile();
+        replica.setReplicaType(JdxReplicaType.MUTE);
+        //replica.setWsId(wsId);
+        //replica.setAge(age);
+
+        // Открываем запись
+        createOutput(replica);
+
+        // Писать нечего
+
+        // Заканчиваем запись
+        closeOutput();
+
+        //
+        return replica;
+    }
+
+    public static InputStream getReplicaInputStream(IReplica replica) throws IOException {
         return createInputStream(replica, ".xml");
     }
 

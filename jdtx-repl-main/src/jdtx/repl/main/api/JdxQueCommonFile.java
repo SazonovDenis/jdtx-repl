@@ -51,24 +51,29 @@ public class JdxQueCommonFile implements IJdxQueCommon {
         // Проверки: правильность типа реплики
         if (replica.getReplicaType() <= 0) {
             throw new XError("invalid replica.replicaType");
-        }
-        // Проверки: правильность возраста реплики
-        if (replica.getAge() == -1) {
-            throw new XError("invalid replica.age");
-        }
-        // Проверки: правильность кода рабочей станции
-        if (replica.getWsId() <= 0) {
-            throw new XError("invalid replica.wsId");
-        }
-        // Проверки: правильность очередности реплик
-        long queMaxAge = getMaxAge(replica.getWsId());
-        if (replica.getAge() != queMaxAge + 1) {
-            throw new XError("invalid replica.age: " + replica.getAge() + ", que.age: " + queMaxAge);
-        }
-        // Проверки: обязательность файла
-        File replicaFile = replica.getFile();
-        if (replicaFile == null && replica.getReplicaType() != JdxReplicaType.SNAPSHOT) {
-            throw new XError("invalid replica.file is null");
+        } else if (replica.getReplicaType() == JdxReplicaType.MUTE || replica.getReplicaType() == JdxReplicaType.UNMUTE) {
+            // Реплика - системная команда
+
+        } else {
+            // Проверки: правильность возраста реплики
+            if (replica.getAge() <= -1) {
+                throw new XError("invalid replica.age");
+            }
+            // Проверки: правильность кода рабочей станции
+            if (replica.getWsId() <= 0) {
+                throw new XError("invalid replica.wsId");
+            }
+            // Проверки: правильность очередности реплик
+            long queMaxAge = getMaxAge(replica.getWsId());
+            if (replica.getAge() != queMaxAge + 1) {
+                throw new XError("invalid replica.age: " + replica.getAge() + ", que.age: " + queMaxAge);
+            }
+            // Проверки: обязательность файла
+            File replicaFile = replica.getFile();
+            //if (replicaFile == null && replica.getReplicaType() != JdxReplicaType.SNAPSHOT) {
+            if (replicaFile == null) {
+                throw new XError("invalid replica.file is null");
+            }
         }
 
         // Генерим следующий номер
@@ -79,6 +84,7 @@ public class JdxQueCommonFile implements IJdxQueCommon {
         // Если какой-то файл уже находится на постоянном месте, то этого самозванца сначала удаляем.
         String actualFileName = genFileName(queNextNo);
         File actualFile = new File(baseDir + actualFileName);
+        File replicaFile = replica.getFile();
         if (replicaFile != null && replicaFile.getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
             // Место случайно не занято?
             if (actualFile.exists()) {

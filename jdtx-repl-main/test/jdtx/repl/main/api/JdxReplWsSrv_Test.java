@@ -409,19 +409,28 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_srvMuteAll() throws Exception {
-        // Рабочая станция, настройка
-        JdxReplWs ws1 = new JdxReplWs(db);
-        ws1.init("test/etalon/mail_http_ws.json");
+        // Сервер, настройка
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init("test/etalon/mail_http_srv.json");
 
         // Команда "MUTE" в общую очередь
-        ws1.srvMuteAll();
+        srv.srvMuteAll();
+    }
+
+    @Test
+    public void test_srvUnmuteAll() throws Exception {
+        // Сервер, настройка
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init("test/etalon/mail_http_srv.json");
+
+        // Команда "UNMUTE" в общую очередь
+        srv.srvUnmuteAll();
     }
 
     @Test
     public void test_sync_srv() throws Exception {
         // Сервер, настройка
         JdxReplSrv srv = new JdxReplSrv(db);
-        //srv.init("test/etalon/srv.json");
         srv.init("test/etalon/mail_http_srv.json");
 
         // Формирование общей очереди
