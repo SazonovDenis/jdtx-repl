@@ -3,6 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.utils.*;
 import jandcode.utils.test.*;
 import jandcode.web.*;
+import jdtx.repl.main.api.struct.*;
 import org.apache.http.*;
 import org.apache.http.client.methods.*;
 import org.apache.http.impl.client.*;
@@ -55,7 +56,10 @@ public class UtMailerHttp_Test extends ReplDatabase_Test {
 
 
         // ---
-        UtRepl utr = new UtRepl(db);
+        IJdxDbStructReader dbStructReader = new JdxDbStructReader();
+        dbStructReader.setDb(db);
+        IJdxDbStruct struct = dbStructReader.readDbStruct();
+        UtRepl utRepl = new UtRepl(db, struct);
 
         // Загружаем правила публикации
         IPublication publication = new Publication();
@@ -67,7 +71,7 @@ public class UtMailerHttp_Test extends ReplDatabase_Test {
         }
 
         // Забираем установочную реплику
-        IReplica replica = utr.createReplicaSnapshot(1, publication, 999);
+        IReplica replica = utRepl.createReplicaSnapshot(1, publication, 999);
 
 
         // ---

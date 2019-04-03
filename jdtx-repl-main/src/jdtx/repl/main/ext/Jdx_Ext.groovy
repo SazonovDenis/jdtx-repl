@@ -148,10 +148,15 @@ from
 
         //
         try {
+            //
+            IJdxDbStructReader dbStructReader = new JdxDbStructReader();
+            dbStructReader.setDb(db);
+            IJdxDbStruct struct = dbStructReader.readDbStruct();
+            UtRepl utRepl = new UtRepl(db, struct)
+
             // Создаем объекты
-            UtRepl utr = new UtRepl(db)
-            utr.dropReplication()
-            utr.createReplication(wsId, guid)
+            utRepl.dropReplication()
+            utRepl.createReplication(wsId, guid)
 
         } finally {
             db.disconnect()

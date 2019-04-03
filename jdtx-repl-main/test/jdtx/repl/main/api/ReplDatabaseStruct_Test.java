@@ -31,7 +31,7 @@ public class ReplDatabaseStruct_Test extends ReplDatabase_Test {
     @Test
     public void test_1() throws Exception {
         // структура подключенной БД - в файл
-        UtDbStruct_RW struct_rw = new UtDbStruct_RW();
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         struct_rw.write(struct, "../_test-data/dbStruct.xml");
 
         // проверим, что структура подключенной БД нетривиальна
@@ -51,7 +51,7 @@ public class ReplDatabaseStruct_Test extends ReplDatabase_Test {
     public void test_2() throws Exception {
 /*
         // структура подключенной БД - в файл
-        UtDbStruct_RW struct_rw = new UtDbStruct_RW();
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         struct_rw.write(struct, "../_test-data/dbStruct.xml");
 
         // прочитаем из файла
@@ -68,7 +68,7 @@ public class ReplDatabaseStruct_Test extends ReplDatabase_Test {
         System.out.println(structDiff1.getTables().size());
         System.out.println(structDiff2.getTables().size());
         //
-        UtDbStruct_RW struct_rw = new UtDbStruct_RW();
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         //struct_rw.write(structDiff0, "../_test-data/structDiff0.xml");
         struct_rw.write(structDiff1, "../_test-data/structDiff1.xml");
         struct_rw.write(structDiff2, "../_test-data/structDiff2.xml");
@@ -81,8 +81,8 @@ public class ReplDatabaseStruct_Test extends ReplDatabase_Test {
         IJdxDbStruct structDiff2 = new JdxDbStruct();
 
         //
-        UtDbStruct_RW struct_rw = new UtDbStruct_RW();
-        UtRepl ut = new UtRepl(db);
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        UtRepl ut = new UtRepl(db, struct);
 
 
         // Сохраняем структуру в БД

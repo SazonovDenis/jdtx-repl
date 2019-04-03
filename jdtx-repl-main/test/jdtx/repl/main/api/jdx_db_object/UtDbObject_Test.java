@@ -16,25 +16,25 @@ public class UtDbObject_Test extends ReplDatabase_Test {
      * после создания и последующего удаления репликационных структур
      */
     public void test_compareCreateDrop() throws Exception {
-        UtRepl utr = new UtRepl(db);
+        JdxDbStructReader dbStructReader = new JdxDbStructReader();
+        dbStructReader.setDb(db);
+        IJdxDbStruct struct = dbStructReader.readDbStruct();
+        UtRepl utRepl = new UtRepl(db, struct);
+        //
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
 
         //
-        JdxDbStructReader reader = new JdxDbStructReader();
-        reader.setDb(db);
-        UtDbStruct_RW struct_rw = new UtDbStruct_RW();
+        IJdxDbStruct struct_1 = dbStructReader.readDbStruct(false);
+        struct_rw.write(struct_1, "../_test-data/dbStruct_1.xml");
 
         //
-        IJdxDbStruct struct_1 = reader.readDbStruct(false);
-        struct_rw.write(struct_1, "../../_test-data/dbStruct_1.xml");
+        utRepl.createReplication(1, "");
+        //
+        utRepl.dropReplication();
 
         //
-        utr.createReplication(1, "");
-        //
-        utr.dropReplication();
-
-        //
-        IJdxDbStruct struct_2 = reader.readDbStruct(false);
-        struct_rw.write(struct_2, "../../_test-data/dbStruct_2.xml");
+        IJdxDbStruct struct_2 = dbStructReader.readDbStruct(false);
+        struct_rw.write(struct_2, "../_test-data/dbStruct_2.xml");
 
         // Проверим совпадение
         UtTest utTest = new UtTest(db);

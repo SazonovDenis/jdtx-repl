@@ -170,8 +170,8 @@ public class JdxReplSrv {
         log.info("srvMuteAll");
 
         //
-        UtRepl utr = new UtRepl(db);
-        IReplica replica = utr.createReplicaMute();
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.createReplicaMute();
 
         // Системная команда - в исходящую очередь реплик
         commonQue.put(replica);
@@ -184,8 +184,8 @@ public class JdxReplSrv {
         log.info("srvUnmuteAll");
 
         //
-        UtRepl utr = new UtRepl(db);
-        IReplica replica = utr.createReplicaUnmute();
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.createReplicaUnmute();
 
         // Системная команда - в исходящую очередь реплик
         commonQue.put(replica);

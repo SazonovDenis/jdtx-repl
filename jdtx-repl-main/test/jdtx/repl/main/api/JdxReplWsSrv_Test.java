@@ -43,15 +43,15 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
         // db
-        UtRepl utr = new UtRepl(db);
-        utr.dropReplication();
-        utr.createReplication(1, "b5781df573ca6ee6-17845f2f56f4d401");
+        UtRepl utRepl = new UtRepl(db, struct);
+        utRepl.dropReplication();
+        utRepl.createReplication(1, "b5781df573ca6ee6-17845f2f56f4d401");
         // db2
-        UtRepl utr2 = new UtRepl(db2);
+        UtRepl utr2 = new UtRepl(db2, struct2);
         utr2.dropReplication();
         utr2.createReplication(2, "b5781df573ca6ee6-21ba238dfc945002");
         // db3
-        UtRepl utr3 = new UtRepl(db3);
+        UtRepl utr3 = new UtRepl(db3, struct3);
         utr3.dropReplication();
         utr3.createReplication(3, "b5781df573ca6ee6-34f3cc20bea64503");
 

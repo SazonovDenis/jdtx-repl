@@ -3,7 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.utils.easyxml.*;
 import jdtx.repl.main.api.struct.*;
 
-public class UtDbStruct_RW {
+public class UtDbStruct_XmlRW {
 
     public void write(IJdxDbStruct struct, String fileName) throws Exception {
         EasyXml xml = new EasyXml();

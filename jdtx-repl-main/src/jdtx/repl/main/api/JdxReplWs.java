@@ -151,7 +151,7 @@ public class JdxReplWs {
         log.info("createReplicaSnapshot, wsId: " + wsId);
 
         //
-        UtRepl utr = new UtRepl(db);
+        UtRepl utRepl = new UtRepl(db, struct);
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
         // Весь свой аудит выкладываем в очередь.
@@ -163,13 +163,13 @@ public class JdxReplWs {
         db.startTran();
         try {
             // Искусственно увеличиваем возраст (установочная реплика сдвигает возраст БД на 1)
-            long age = utr.incAuditAge();
+            long age = utRepl.incAuditAge();
             log.info("createReplicaSnapshot, new age: " + age);
 
             //
             for (IPublication publication : publicationsOut) {
                 // Забираем установочную реплику
-                IReplica replicaSnapshot = utr.createReplicaSnapshot(wsId, publication, age);
+                IReplica replicaSnapshot = utRepl.createReplicaSnapshot(wsId, publication, age);
 
                 // Помещаем реплику в очередь
                 queOut.put(replicaSnapshot);
@@ -198,7 +198,7 @@ public class JdxReplWs {
 
         //
         UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
-        UtRepl utRepl = new UtRepl(db);
+        UtRepl utRepl = new UtRepl(db, struct);
 
         // Если в стостоянии "я замолчал", то молчим
         JdxMuteManagerWs utmm = new JdxMuteManagerWs(db);
@@ -301,7 +301,7 @@ public class JdxReplWs {
                     // Реакция на команду - отключение режима "MUTE"
 
                     // В этой реплике - новая утвержденная структура
-                    UtRepl utRepl = new UtRepl(db);
+                    UtRepl utRepl = new UtRepl(db, struct);
                     utRepl.dbStructSave(replica.getFile());
 
                     // Выход из состояния "Я замолчал"
@@ -363,7 +363,7 @@ public class JdxReplWs {
      */
     public void reportMuteDone() throws Exception {
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-        UtRepl utr = new UtRepl(db);
+        UtRepl utRepl = new UtRepl(db, struct);
 
         // Весь свой аудит предварительно выкладываем в очередь.
         // Это делается потому, что queOut.put() следит за монотонным увеличением возраста,
@@ -371,7 +371,7 @@ public class JdxReplWs {
         handleSelfAudit();
 
         // Искусственно увеличиваем возраст (системная реплика сдвигает возраст БД на 1)
-        long age = utr.incAuditAge();
+        long age = utRepl.incAuditAge();
         log.info("reportMuteDone, new age: " + age);
 
         //
@@ -381,8 +381,8 @@ public class JdxReplWs {
         replica.setAge(age);
 
         //
-        utr.createOutput(replica);
-        utr.closeOutput();
+        utRepl.createOutput(replica);
+        utRepl.closeOutput();
 
         //
         db.startTran();

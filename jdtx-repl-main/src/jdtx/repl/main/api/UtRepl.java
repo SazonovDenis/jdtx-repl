@@ -29,12 +29,9 @@ public class UtRepl {
     private JdxReplicaWriterXml writerXml = null;
 
 
-    public UtRepl(Db db) throws Exception {
+    public UtRepl(Db db, IJdxDbStruct struct) throws Exception {
         this.db = db;
-        // чтение структуры
-        IJdxDbStructReader reader = new JdxDbStructReader();
-        reader.setDb(db);
-        struct = reader.readDbStruct();
+        this.struct = struct;
     }
 
 
@@ -258,7 +255,7 @@ public class UtRepl {
         createOutput(replica);
 
         // Файл с описанием текущей структуры БД
-        UtDbStruct_RW struct_rw = new UtDbStruct_RW();
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         zipOutputStream.write(struct_rw.write(struct));
 
         // Заканчиваем запись
@@ -317,12 +314,12 @@ public class UtRepl {
             return null;
         }
         //
-        UtDbStruct_RW struct_rw = new UtDbStruct_RW();
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         return struct_rw.read(db_struct);
     }
 
     public void dbStructSave(File file) throws Exception {
-        UtDbStruct_RW struct_rw = new UtDbStruct_RW();
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         IJdxDbStruct struct = struct_rw.read(file.getPath());
         //
         byte[] db_struct = struct_rw.write(struct);
@@ -330,7 +327,7 @@ public class UtRepl {
     }
 
     public void dbStructSave(IJdxDbStruct struct) throws Exception {
-        UtDbStruct_RW struct_rw = new UtDbStruct_RW();
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         byte[] db_struct = struct_rw.write(struct);
         db.execSql("update Z_Z_state set db_struct = :db_struct where id = 1", UtCnv.toMap("db_struct", db_struct));
     }

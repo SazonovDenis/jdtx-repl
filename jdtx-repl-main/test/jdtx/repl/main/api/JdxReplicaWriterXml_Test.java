@@ -30,8 +30,8 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
 
 
         // Забираем установочную реплику
-        UtRepl utr = new UtRepl(db2);
-        IReplica replica = utr.createReplicaSnapshot(wsId, publication, 1);
+        UtRepl utRepl = new UtRepl(db2, struct2);
+        IReplica replica = utRepl.createReplicaSnapshot(wsId, publication, 1);
 
 
         // Копируем ее для анализа
