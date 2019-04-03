@@ -28,7 +28,7 @@ public class UtRepl_dbStruct_Test extends ReplDatabaseStruct_Test {
         IJdxDbStruct structLoad = utRepl.dbStructLoad();
 
         // Сравниваем
-        assertEquals(true, DbComparer.dbStructIsEqual(struct, structLoad, structNoDiff, structDiff1, structDiff2));
+        assertEquals(true, UtDbComparer.dbStructIsEqual(struct, structLoad, structNoDiff, structDiff1, structDiff2));
 
 
         // Сохраняем структуру (через файл) в БД
@@ -40,7 +40,7 @@ public class UtRepl_dbStruct_Test extends ReplDatabaseStruct_Test {
         IJdxDbStruct structLoad1 = utRepl.dbStructLoad();
 
         // Сравниваем
-        assertEquals(true, DbComparer.dbStructIsEqual(struct, structLoad1, structNoDiff, structDiff1, structDiff2));
+        assertEquals(true, UtDbComparer.dbStructIsEqual(struct, structLoad1, structNoDiff, structDiff1, structDiff2));
     }
 
 

@@ -24,7 +24,7 @@ public class UtDbStruct_XmlRW_Test extends ReplDatabaseStruct_Test {
 
         // проверим совпадение
         UtTest utTest = new UtTest(db);
-        assertEquals(true, DbComparer.dbStructIsEqual(struct, structXml));
+        assertEquals(true, UtDbComparer.dbStructIsEqual(struct, structXml));
     }
 
     @Test
@@ -33,7 +33,7 @@ public class UtDbStruct_XmlRW_Test extends ReplDatabaseStruct_Test {
         IJdxDbStruct structNoDiff = new JdxDbStruct();
         IJdxDbStruct structDiff1 = new JdxDbStruct();
         IJdxDbStruct structDiff2 = new JdxDbStruct();
-        DbComparer.dbStructIsEqual(struct, struct2, structNoDiff, structDiff1, structDiff2);
+        UtDbComparer.dbStructIsEqual(struct, struct2, structNoDiff, structDiff1, structDiff2);
         //
         System.out.println(structNoDiff.getTables().size());
         System.out.println(structDiff1.getTables().size());

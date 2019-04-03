@@ -12,6 +12,7 @@ import jandcode.utils.UtLog
 import jandcode.utils.error.XError
 import jandcode.utils.variant.IVariantMap
 import jdtx.repl.main.api.*
+import jdtx.repl.main.api.mailer.MailerHttp
 import jdtx.repl.main.api.struct.IJdxDbStruct
 import jdtx.repl.main.api.struct.IJdxDbStructReader
 import jdtx.repl.main.api.struct.JdxDbStructReader
@@ -93,7 +94,7 @@ class Jdx_Ext extends ProjectExt {
                 System.out.println("commonQue.baseDir: " + srv.commonQue.baseDir)
                 for (Object obj : srv.mailerList.entrySet()) {
                     Map.Entry entry = (Map.Entry) obj
-                    UtMailerHttp mailer = (UtMailerHttp) entry.value
+                    MailerHttp mailer = (MailerHttp) entry.value
                     System.out.println("mailer.wsId: " + entry.key)
                     System.out.println("  remoteUrl: " + mailer.remoteUrl)
                     System.out.println("  guid: " + mailer.guid)
@@ -390,7 +391,7 @@ from
                     //System.out.println("wsId: " + wsId + ", box: " + box);
 
                     //
-                    UtMailerHttp mailer = (UtMailerHttp) en.getValue();
+                    MailerHttp mailer = (MailerHttp) en.getValue();
                     try {
                         if (doCreate) {
                             mailer.createMailBox(box);

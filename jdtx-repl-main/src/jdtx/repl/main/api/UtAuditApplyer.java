@@ -3,6 +3,9 @@ package jdtx.repl.main.api;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.decoder.*;
+import jdtx.repl.main.api.publication.*;
+import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.joda.time.*;
@@ -73,7 +76,7 @@ public class UtAuditApplyer {
                     }
                 }
                 if (n == -1) {
-                    throw new XError("table [" + tableName + "] found in replica data, but not found in struct");
+                    throw new XError("table [" + tableName + "] found in replica data, but not found in dbstruct");
                 }
                 //
                 tIdx = n;

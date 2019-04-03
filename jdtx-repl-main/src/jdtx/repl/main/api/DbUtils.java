@@ -15,7 +15,7 @@ public class DbUtils {
     Db db;
     IJdxDbStruct struct;
 
-    static String ID_FIELD = "ID";
+    public static String ID_FIELD = "ID";
 
     public DbUtils(Db db, IJdxDbStruct struct) {
         this.db = db;

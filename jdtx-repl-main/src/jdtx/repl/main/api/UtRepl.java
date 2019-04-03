@@ -5,6 +5,8 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.jdx_db_object.*;
+import jdtx.repl.main.api.publication.*;
+import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
@@ -149,7 +151,7 @@ public class UtRepl {
      * Собрать аудит и подготовить реплику по правилам публикации publication
      * от для возраста age.
      */
-    IReplica createReplicaFromAudit(long wsId, IPublication publication, long age) throws Exception {
+    public IReplica createReplicaFromAudit(long wsId, IPublication publication, long age) throws Exception {
         log.info("createReplicaFromAudit");
 
         //
@@ -199,7 +201,7 @@ public class UtRepl {
      * Используется при включении новой БД в систему:
      * самая первая (установочная) реплика для сервера.
      */
-    IReplica createReplicaSnapshot(long wsId, IPublication publication, long age) throws Exception {
+    public IReplica createReplicaSnapshot(long wsId, IPublication publication, long age) throws Exception {
         log.info("createReplicaSnapshot");
 
         //

@@ -5,7 +5,11 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
+import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.jdx_db_object.*;
+import jdtx.repl.main.api.mailer.*;
+import jdtx.repl.main.api.que.*;
+import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
@@ -22,7 +26,7 @@ public class JdxReplSrv {
     IJdxQueCommon commonQue;
 
     // Источник для чтения/отправки сообщений всех рабочих станций
-    Map<Long, IJdxMailer> mailerList;
+    Map<Long, IMailer> mailerList;
 
     //
     Db db;
@@ -83,7 +87,7 @@ public class JdxReplSrv {
             cfgWs.put("url", url);
 
             // Мейлер
-            IJdxMailer mailer = new UtMailerHttp();
+            IMailer mailer = new MailerHttp();
             mailer.init(cfgWs);
 
             //
@@ -147,7 +151,7 @@ public class JdxReplSrv {
 
     public void srvHandleCommonQueFrom(String cfgFileName, String mailDir) throws Exception {
         // Готовим локальных курьеров (через папку)
-        Map<Long, IJdxMailer> mailerListLocal = new HashMap<>();
+        Map<Long, IMailer> mailerListLocal = new HashMap<>();
         fillMailerListLocal(mailerListLocal, cfgFileName, mailDir, 0);
 
         // Физически забираем данные
@@ -156,7 +160,7 @@ public class JdxReplSrv {
 
     public void srvDispatchReplicasToDir(String cfgFileName, String mailDir, long age_from, long age_to, long destinationWsId, boolean doMarkDone) throws Exception {
         // Готовим локальных курьеров (через папку)
-        Map<Long, IJdxMailer> mailerListLocal = new HashMap<>();
+        Map<Long, IMailer> mailerListLocal = new HashMap<>();
         fillMailerListLocal(mailerListLocal, cfgFileName, mailDir, destinationWsId);
 
         // Физически отправляем данные
@@ -197,11 +201,11 @@ public class JdxReplSrv {
      * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
      * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
      */
-    private void srvHandleCommonQue(Map<Long, IJdxMailer> mailerList, IJdxQueCommon commonQue) throws Exception {
+    private void srvHandleCommonQue(Map<Long, IMailer> mailerList, IJdxQueCommon commonQue) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
         for (Map.Entry en : mailerList.entrySet()) {
             long wsId = (long) en.getKey();
-            IJdxMailer mailer = (IJdxMailer) en.getValue();
+            IMailer mailer = (IMailer) en.getValue();
 
             // Обрабатываем каждую станцию
             try {
@@ -261,7 +265,7 @@ public class JdxReplSrv {
     /**
      * Сервер: распределение общей очереди по рабочим станциям
      */
-    private void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IJdxMailer> mailerList, long age_from, long age_to, boolean doMarkDone) throws Exception {
+    private void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IMailer> mailerList, long age_from, long age_to, boolean doMarkDone) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
 
         // До скольки раздавать
@@ -274,7 +278,7 @@ public class JdxReplSrv {
         //
         for (Map.Entry en : mailerList.entrySet()) {
             long wsId = (long) en.getKey();
-            IJdxMailer mailer = (IJdxMailer) en.getValue();
+            IMailer mailer = (IMailer) en.getValue();
 
             // Обрабатываем каждую станцию
             try {
@@ -330,7 +334,7 @@ public class JdxReplSrv {
     /**
      * Готовим спосок локальных (через папку) мейлеров, отдельные для каждой станции
      */
-    private void fillMailerListLocal(Map<Long, IJdxMailer> mailerListLocal, String cfgFileName, String mailDir, long destinationWsId) throws Exception {
+    private void fillMailerListLocal(Map<Long, IMailer> mailerListLocal, String cfgFileName, String mailDir, long destinationWsId) throws Exception {
         // Список активных рабочих станций
         String sql;
         if (destinationWsId != 0) {
@@ -360,7 +364,7 @@ public class JdxReplSrv {
             cfgWs.put("mailRemoteDir", mailDir + guidPath);
 
             // Мейлер
-            IJdxMailer mailerLocal = new UtMailerLocalFiles();
+            IMailer mailerLocal = new MailerLocalFiles();
             mailerLocal.init(cfgWs);
 
             //

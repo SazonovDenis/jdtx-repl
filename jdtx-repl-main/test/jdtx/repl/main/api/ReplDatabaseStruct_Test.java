@@ -1,18 +1,15 @@
 package jdtx.repl.main.api;
 
 import jdtx.repl.main.api.struct.*;
-import org.junit.*;
-
-import java.io.*;
 
 /**
  */
 public class ReplDatabaseStruct_Test extends ReplDatabase_Test {
 
     // Структуры
-    IJdxDbStruct struct;
-    IJdxDbStruct struct2;
-    IJdxDbStruct struct3;
+    public IJdxDbStruct struct;
+    public IJdxDbStruct struct2;
+    public IJdxDbStruct struct3;
 
     public void setUp() throws Exception {
         //

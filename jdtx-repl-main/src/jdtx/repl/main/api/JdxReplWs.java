@@ -5,7 +5,12 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
+import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.jdx_db_object.*;
+import jdtx.repl.main.api.mailer.*;
+import jdtx.repl.main.api.publication.*;
+import jdtx.repl.main.api.que.*;
+import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
@@ -34,7 +39,7 @@ public class JdxReplWs {
     private IJdxDbStruct struct;
 
     //
-    IJdxMailer mailer;
+    IMailer mailer;
 
     //
     protected static Log log = LogFactory.getLog("jdtx");
@@ -132,7 +137,7 @@ public class JdxReplWs {
         cfgWs.put("url", url);
 
         // Мейлер
-        mailer = new UtMailerHttp();
+        mailer = new MailerHttp();
         mailer.init(cfgWs);
 
         // Стратегии перекодировки каждой таблицы
@@ -209,8 +214,8 @@ public class JdxReplWs {
 
         // Проверяем совпадает ли реальная структура БД с утвержденной структурой
         IJdxDbStruct structStored = utRepl.dbStructLoad();
-        if (structStored != null && !DbComparer.dbStructIsEqual(struct, structStored)) {
-            log.info("handleSelfAudit, db struct is not match");
+        if (structStored != null && !UtDbComparer.dbStructIsEqual(struct, structStored)) {
+            log.info("handleSelfAudit, dbstruct is not match");
             return;
         }
 
@@ -404,7 +409,7 @@ public class JdxReplWs {
     public void receiveFromDir(String cfgFileName, String mailDir) throws Exception {
         // Готовим локальный мейлер
         mailDir = UtFile.unnormPath(mailDir) + "/";
-        String guid = ((UtMailerHttp) mailer).guid;
+        String guid = ((MailerHttp) mailer).guid;
         String guidPath = guid.replace("-", "/");
 
         //
@@ -415,7 +420,7 @@ public class JdxReplWs {
         cfgWs.put("mailRemoteDir", mailDir + guidPath);
 
         // Мейлер
-        IJdxMailer mailerLocal = new UtMailerLocalFiles();
+        IMailer mailerLocal = new MailerLocalFiles();
         mailerLocal.init(cfgWs);
 
 
@@ -430,7 +435,7 @@ public class JdxReplWs {
     }
 
 
-    void receiveInternal(IJdxMailer mailer) throws Exception {
+    void receiveInternal(IMailer mailer) throws Exception {
         // Узнаем сколько получено у нас
         long selfReceivedNo = queIn.getMaxNo();
 
@@ -443,7 +448,7 @@ public class JdxReplWs {
             log.info("UtMailer, wsId: " + wsId + ", receiving.no: " + no);
 
             // Информацмия о реплике с почтового сервера
-            JdxReplInfo info = mailer.getInfo(no, "to");
+            ReplicaInfo info = mailer.getInfo(no, "to");
 
             // Нужно ли скачивать эту реплику с сервера?
             IReplica replica;
@@ -494,7 +499,7 @@ public class JdxReplWs {
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
         //
         mailDir = UtFile.unnormPath(mailDir) + "/";
-        String guid = ((UtMailerHttp) mailer).guid;
+        String guid = ((MailerHttp) mailer).guid;
         String guidPath = guid.replace("-", "/");
 
         // Конфиг для мейлера
@@ -502,7 +507,7 @@ public class JdxReplWs {
         cfgData.put("mailRemoteDir", mailDir + guidPath);
 
         // Мейлер
-        IJdxMailer mailerLocal = new UtMailerLocalFiles();
+        IMailer mailerLocal = new MailerLocalFiles();
         mailerLocal.init(cfgData);
 
 
@@ -540,7 +545,7 @@ public class JdxReplWs {
         sendInternal(mailer, srvSendAge + 1, selfQueOutAge, true);
     }
 
-    void sendInternal(IJdxMailer mailer, long age_from, long age_to, boolean doMarkDone) throws Exception {
+    void sendInternal(IMailer mailer, long age_from, long age_to, boolean doMarkDone) throws Exception {
         JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
 
         //
