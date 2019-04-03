@@ -18,16 +18,6 @@ public class UtTest extends UtilsTestCase {
         this.db = db;
     }
 
-    public void compareStruct(IJdxDbStruct struct_1, IJdxDbStruct struct_2) {
-        assertEquals("Количество таблиц", struct_1.getTables().size(), struct_2.getTables().size());
-        for (int t = 0; t < struct_1.getTables().size(); t++) {
-            assertEquals("Количество полей в таблице " + struct_1.getTables().get(t).getName(), struct_1.getTables().get(t).getFields().size(), struct_2.getTables().get(t).getFields().size());
-            for (int f = 0; f < struct_1.getTables().get(t).getFields().size(); f++) {
-                assertEquals("Поля в таблице " + struct_1.getTables().get(t).getName(), struct_1.getTables().get(t).getFields().get(f).getName(), struct_2.getTables().get(t).getFields().get(f).getName());
-            }
-        }
-    }
-
     public void dumpTable(String tableName, String outFileName, String sortBy) throws Exception {
         UtFile.mkdirs(outFileName.substring(0, outFileName.length() - UtFile.filename(outFileName).length()));
         //

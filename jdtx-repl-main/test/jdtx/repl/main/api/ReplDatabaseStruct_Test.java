@@ -29,7 +29,7 @@ public class ReplDatabaseStruct_Test extends ReplDatabase_Test {
     }
 
     @Test
-    public void test_1() throws Exception {
+    public void test_XmlRW() throws Exception {
         // структура подключенной БД - в файл
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         struct_rw.write(struct, "../_test-data/dbStruct.xml");
@@ -44,67 +44,58 @@ public class ReplDatabaseStruct_Test extends ReplDatabase_Test {
 
         // проверим совпадение
         UtTest utTest = new UtTest(db);
-        utTest.compareStruct(struct, structXml);
+        assertEquals(true, DbComparer.dbStructIsEqual(struct, structXml));
     }
 
     @Test
-    public void test_2() throws Exception {
-/*
-        // структура подключенной БД - в файл
-        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        struct_rw.write(struct, "../_test-data/dbStruct.xml");
-
-        // прочитаем из файла
-        IJdxDbStruct structXml = struct_rw.read("../_test-data/dbStruct.xml");
-
-*/
-        // проверим совпадение
-        IJdxDbStruct structDiff0 = new JdxDbStruct();
+    // проверим совпадение struct, struct2
+    public void test_diff() throws Exception {
+        IJdxDbStruct structNoDiff = new JdxDbStruct();
         IJdxDbStruct structDiff1 = new JdxDbStruct();
         IJdxDbStruct structDiff2 = new JdxDbStruct();
-        DbComparer.dbStructIsEqual(struct, struct2, structDiff0, structDiff1, structDiff2);
+        DbComparer.dbStructIsEqual(struct, struct2, structNoDiff, structDiff1, structDiff2);
         //
-        System.out.println(structDiff0.getTables().size());
+        System.out.println(structNoDiff.getTables().size());
         System.out.println(structDiff1.getTables().size());
         System.out.println(structDiff2.getTables().size());
         //
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        //struct_rw.write(structDiff0, "../_test-data/structDiff0.xml");
+        struct_rw.write(structNoDiff, "../_test-data/structNoDiff.xml");
         struct_rw.write(structDiff1, "../_test-data/structDiff1.xml");
         struct_rw.write(structDiff2, "../_test-data/structDiff2.xml");
     }
 
     @Test
-    public void test_dbStructSave() throws Exception {
-        IJdxDbStruct structDiff0 = new JdxDbStruct();
+    public void test_dbStruct_SaveLoad() throws Exception {
+        IJdxDbStruct structNoDiff = new JdxDbStruct();
         IJdxDbStruct structDiff1 = new JdxDbStruct();
         IJdxDbStruct structDiff2 = new JdxDbStruct();
 
         //
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        UtRepl ut = new UtRepl(db, struct);
+        UtRepl utRepl = new UtRepl(db, struct);
 
 
         // Сохраняем структуру в БД
-        ut.dbStructSave(struct);
+        utRepl.dbStructSave(struct);
 
         // Читаем структуру из БД
-        IJdxDbStruct structLoad = ut.dbStructLoad();
+        IJdxDbStruct structLoad = utRepl.dbStructLoad();
 
         // Сравниваем
-        assertEquals(true, DbComparer.dbStructIsEqual(struct, structLoad, structDiff0, structDiff1, structDiff2));
+        assertEquals(true, DbComparer.dbStructIsEqual(struct, structLoad, structNoDiff, structDiff1, structDiff2));
 
 
         // Сохраняем структуру (через файл) в БД
         File file = new File("../_test-data/dbStruct.xml");
         struct_rw.write(struct, file.getPath());
-        ut.dbStructSave(file);
+        utRepl.dbStructSave(file);
 
         // Читаем структуру из БД
-        IJdxDbStruct structLoad1 = ut.dbStructLoad();
+        IJdxDbStruct structLoad1 = utRepl.dbStructLoad();
 
         // Сравниваем
-        assertEquals(true, DbComparer.dbStructIsEqual(struct, structLoad1, structDiff0, structDiff1, structDiff2));
+        assertEquals(true, DbComparer.dbStructIsEqual(struct, structLoad1, structNoDiff, structDiff1, structDiff2));
     }
 
 

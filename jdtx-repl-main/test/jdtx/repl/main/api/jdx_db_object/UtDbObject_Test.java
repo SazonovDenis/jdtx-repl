@@ -37,8 +37,7 @@ public class UtDbObject_Test extends ReplDatabase_Test {
         struct_rw.write(struct_2, "../_test-data/dbStruct_2.xml");
 
         // Проверим совпадение
-        UtTest utTest = new UtTest(db);
-        utTest.compareStruct(struct_1, struct_2);
+        assertEquals(true, DbComparer.dbStructIsEqual(struct_1, struct_2));
     }
 
 
