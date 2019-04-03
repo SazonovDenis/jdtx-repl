@@ -66,7 +66,8 @@ public class JdxReplSrv {
         String url = (String) cfgData.get("url");
 
         // Список активных рабочих станций
-        DataStore st = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list where enabled = 1");
+        String sql = "select Z_Z_workstation_list.* from Z_Z_workstation_list join Z_Z_state_ws on (Z_Z_workstation_list.id = Z_Z_state_ws.ws_id) where Z_Z_state_ws.enabled = 1";
+        DataStore st = db.loadSql(sql);
 
         // Почтовые курьеры, отдельные для каждой станции
         for (DataRecord rec : st) {
@@ -108,20 +109,20 @@ public class JdxReplSrv {
                 "name", wsName,
                 "guid", wsGuid
         );
-        String sql = "insert into " + JdxUtils.sys_table_prefix + "workstation_list (id, name, guid, enabled) values (:id, :name, :guid, 0)";
+        String sql = "insert into " + JdxUtils.sys_table_prefix + "workstation_list (id, name, guid) values (:id, :name, :guid)";
         db.execSql(sql, params);
 
         // state_ws
         DbUtils dbu = new DbUtils(db, null);
         long id = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "state_ws");
-        sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws (id, ws_id, que_common_dispatch_done, que_in_age_done) values (" + id + ", " + wsId + ", 0, 0)";
+        sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws (id, ws_id, que_common_dispatch_done, que_in_age_done, enabled, mute_age) values (" + id + ", " + wsId + ", 0, 0, 0, 0)";
         db.execSql(sql);
     }
 
     public void enableWorkstation(long wsId) throws Exception {
         log.info("enable workstation, wsId: " + wsId);
         //
-        String sql = "update " + JdxUtils.sys_table_prefix + "workstation_list set enabled = 1 where id = " + wsId;
+        String sql = "update " + JdxUtils.sys_table_prefix + "state_ws set enabled = 1 where id = " + wsId;
         db.execSql(sql);
         sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 1 where id = 1";
         db.execSql(sql);
@@ -130,7 +131,7 @@ public class JdxReplSrv {
     public void disableWorkstation(long wsId) throws Exception {
         log.info("disable workstation, wsId: " + wsId);
         //
-        String sql = "update " + JdxUtils.sys_table_prefix + "workstation_list set enabled = 0 where id = " + wsId;
+        String sql = "update " + JdxUtils.sys_table_prefix + "state_ws set enabled = 0 where id = " + wsId;
         db.execSql(sql);
         sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 0 where id = 1";
         db.execSql(sql);
@@ -309,7 +310,7 @@ public class JdxReplSrv {
             sql = "select * from " + JdxUtils.sys_table_prefix + "workstation_list where id = " + destinationWsId;
         } else {
             // Берем только активные
-            sql = "select * from " + JdxUtils.sys_table_prefix + "workstation_list where enabled = 1";
+            sql = "select Z_Z_workstation_list.* from Z_Z_workstation_list join Z_Z_state_ws on (Z_Z_workstation_list.id = Z_Z_state_ws.ws_id) where Z_Z_state_ws.enabled = 1";
         }
         DataStore st = db.loadSql(sql);
 

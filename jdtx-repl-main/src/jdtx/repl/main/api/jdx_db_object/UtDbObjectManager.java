@@ -14,7 +14,7 @@ import java.util.*;
 
 public class UtDbObjectManager {
 
-    int CURRENT_VER_DB = 2;
+    int CURRENT_VER_DB = 4;
 
     IJdxDbStruct struct;
     Db db;

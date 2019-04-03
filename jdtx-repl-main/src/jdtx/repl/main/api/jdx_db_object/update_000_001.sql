@@ -1,5 +1,5 @@
 alter table Z_Z_state
-  add enabled INTEGER NOT NULL
+  add enabled INT NOT NULL
 ;
 
 

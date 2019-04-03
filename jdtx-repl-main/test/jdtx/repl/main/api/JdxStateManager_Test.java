@@ -125,36 +125,4 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
     }
 
 
-    @Test
-    public void test_StateManagerMailSrv() throws Exception {
-/*
-        JdxStateManagerMail stateMailManager = new JdxStateManagerMail(db);
-
-        //
-        System.out.println("wsId: " + wsId_1 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_1));
-        System.out.println("wsId: " + wsId_2 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_2));
-        System.out.println("wsId: " + wsId_3 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_3));
-
-        // ---
-        stateMailManager.setMailSendDoneForWs(wsId_1, 20);
-        stateMailManager.setMailSendDoneForWs(wsId_2, 30);
-        stateMailManager.setMailSendDoneForWs(wsId_3, 40);
-
-        //
-        System.out.println("wsId: " + wsId_1 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_1));
-        System.out.println("wsId: " + wsId_2 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_2));
-        System.out.println("wsId: " + wsId_3 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_3));
-
-        // ---
-        stateMailManager.setMailSendDoneForWs(wsId_1, 201);
-        stateMailManager.setMailSendDoneForWs(wsId_2, 301);
-
-        //
-        System.out.println("wsId: " + wsId_1 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_1));
-        System.out.println("wsId: " + wsId_2 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_2));
-        System.out.println("wsId: " + wsId_3 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_3));
-*/
-    }
-
-
 }

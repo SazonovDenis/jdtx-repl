@@ -197,19 +197,25 @@ public class JdxReplWs {
         log.info("handleSelfAudit, wsId: " + wsId);
 
         //
+        UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
+        UtRepl utRepl = new UtRepl(db);
+
+        // Если в стостоянии "я замолчал", то молчим
         JdxMuteManagerWs utmm = new JdxMuteManagerWs(db);
         if (utmm.isMute()) {
             log.info("handleSelfAudit, workstation is mute");
             return;
         }
 
-
-        //
-        UtAuditAgeManager ut = new UtAuditAgeManager(db, struct);
-        UtRepl utr = new UtRepl(db);
+        // Проверяем совпадает ли реальная структура БД с утвержденной структурой
+        IJdxDbStruct structStored = utRepl.dbStructLoad();
+        if (structStored != null && !DbComparer.dbStructIsEqual(struct, structStored)) {
+            log.info("handleSelfAudit, db struct is not match");
+            return;
+        }
 
         // Узнаем (и заодно фиксируем) возраст своего аудита
-        long auditAgeActual = ut.markAuditAge();
+        long auditAgeActual = auditAgeManager.markAuditAge();
 
         // До какого возраста сформировали реплики для своего аудита
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
@@ -219,7 +225,7 @@ public class JdxReplWs {
         long count = 0;
         for (long age = auditAgeDone + 1; age <= auditAgeActual; age++) {
             for (IPublication publication : publicationsOut) {
-                IReplica replica = utr.createReplicaFromAudit(wsId, publication, age);
+                IReplica replica = utRepl.createReplicaFromAudit(wsId, publication, age);
 
                 //
                 db.startTran();
@@ -278,19 +284,27 @@ public class JdxReplWs {
             switch (replica.getReplicaType()) {
                 case JdxReplicaType.MUTE: {
                     // Реакция на команду - перевод в режим "MUTE"
-                    muteManager.muteWorkstation();
 
                     // Обработка собственного аудита
                     handleSelfAudit();
 
+                    // Переход в состояние "Я замолчал"
+                    muteManager.muteWorkstation();
+
                     // Выкладывание реплики "Я замолчал"
-                    srvMuteDone();
+                    reportMuteDone();
 
                     //
                     break;
                 }
                 case JdxReplicaType.UNMUTE: {
                     // Реакция на команду - отключение режима "MUTE"
+
+                    // В этой реплике - новая утвержденная структура
+                    UtRepl utRepl = new UtRepl(db);
+                    utRepl.dbStructSave(replica.getFile());
+
+                    // Выход из состояния "Я замолчал"
                     muteManager.unmuteWorkstation();
 
                     //
@@ -388,7 +402,10 @@ public class JdxReplWs {
 
     }
 
-    public void srvMuteDone() throws Exception {
+    /**
+     * Рабочая станция: отправка ответа "я замолчал" в исходящую очередь
+     */
+    public void reportMuteDone() throws Exception {
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         UtRepl utr = new UtRepl(db);
 
@@ -399,7 +416,7 @@ public class JdxReplWs {
 
         // Искусственно увеличиваем возраст (системная реплика сдвигает возраст БД на 1)
         long age = utr.incAuditAge();
-        log.info("srvMuteDone, new age: " + age);
+        log.info("reportMuteDone, new age: " + age);
 
         //
         IReplica replica = new ReplicaFile();

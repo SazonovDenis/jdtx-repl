@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
@@ -262,6 +263,33 @@ public class UtRepl {
         }
 
         return inputStream;
+    }
+
+    public IJdxDbStruct dbStructLoad() throws Exception {
+        String sql = "select db_struct from Z_Z_state where id = 1";
+        DataStore st = db.loadSql(sql);
+        byte[] db_struct = (byte[]) st.getCurRec().getValue("db_struct");
+        //
+        if (db_struct.length == 0) {
+            return null;
+        }
+        //
+        UtDbStruct_RW struct_rw = new UtDbStruct_RW();
+        return struct_rw.read(db_struct);
+    }
+
+    public void dbStructSave(File file) throws Exception {
+        UtDbStruct_RW struct_rw = new UtDbStruct_RW();
+        IJdxDbStruct struct = struct_rw.read(file.getPath());
+        //
+        byte[] db_struct = struct_rw.write(struct);
+        db.execSql("update Z_Z_state set db_struct = :db_struct where id = 1", UtCnv.toMap("db_struct", db_struct));
+    }
+
+    public void dbStructSave(IJdxDbStruct struct) throws Exception {
+        UtDbStruct_RW struct_rw = new UtDbStruct_RW();
+        byte[] db_struct = struct_rw.write(struct);
+        db.execSql("update Z_Z_state set db_struct = :db_struct where id = 1", UtCnv.toMap("db_struct", db_struct));
     }
 
 

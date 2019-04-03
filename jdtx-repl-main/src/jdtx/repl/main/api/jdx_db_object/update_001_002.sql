@@ -1,5 +1,5 @@
 alter table Z_Z_state
-  add mute INTEGER NOT NULL
+  add mute INT NOT NULL
 ;
 
 

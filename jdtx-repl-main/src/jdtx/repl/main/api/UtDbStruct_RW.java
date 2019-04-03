@@ -17,6 +17,18 @@ public class UtDbStruct_RW {
         xml.save().toFile(fileName);
     }
 
+    public byte[] write(IJdxDbStruct struct) throws Exception {
+        EasyXml xml = new EasyXml();
+
+        //
+        for (IJdxTableStruct t : struct.getTables()) {
+            writeTableStruct(t, xml);
+        }
+
+        //
+        return xml.save().toBytes();
+    }
+
     private void writeTableStruct(IJdxTableStruct table, EasyXml xml) {
         EasyXml item_table = new EasyXml();
         xml.addChild(item_table);
@@ -60,8 +72,16 @@ public class UtDbStruct_RW {
     public IJdxDbStruct read(String fileName) throws Exception {
         EasyXml xml = new EasyXml();
         xml.load().fromFile(fileName);
+        return read(xml);
+    }
 
-        //
+    public IJdxDbStruct read(byte[] bytes) throws Exception {
+        EasyXml xml = new EasyXml();
+        xml.load().fromBytes(bytes);
+        return read(xml);
+    }
+
+    public IJdxDbStruct read(EasyXml xml) throws Exception {
         IJdxDbStruct struct = new JdxDbStruct();
 
         // Таблицы
@@ -80,7 +100,6 @@ public class UtDbStruct_RW {
             //
             readTableFkStruct(item_table, table, struct);
         }
-
 
         //
         return struct;
