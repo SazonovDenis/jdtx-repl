@@ -67,7 +67,6 @@ public class UtRepl {
         // удаляем необходимые для перекодировки таблицы
         UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);
         decodeManager.dropRefDecodeObject();
-
     }
 
     /**

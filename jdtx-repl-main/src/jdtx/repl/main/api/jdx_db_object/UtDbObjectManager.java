@@ -14,7 +14,7 @@ import java.util.*;
 
 public class UtDbObjectManager {
 
-    int CURRENT_VER_DB = 4;
+    int CURRENT_VER_DB = 5;
 
     IJdxDbStruct struct;
     Db db;
@@ -147,7 +147,7 @@ public class UtDbObjectManager {
 
         // Удаляем системные таблицы и генераторы
         String[] jdx_sys_tables = new String[]{
-                "age", "flag_tab", "state", "state_ws", "workstation_list", "table_list", "db_info",
+                "age", "flag_tab", "state", "state_ws", "workstation_list", "db_info",
                 "que_in", "que_out", "que_common", "verdb"
         };
         dropAll(jdx_sys_tables, db);
