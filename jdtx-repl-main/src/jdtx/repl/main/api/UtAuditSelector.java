@@ -1,15 +1,11 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.db.Db;
-import jandcode.dbm.db.DbQuery;
-import jandcode.utils.UtCnv;
+import jandcode.dbm.db.*;
+import jandcode.utils.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.replica.*;
-import jdtx.repl.main.api.struct.IJdxDbStruct;
-import jdtx.repl.main.api.struct.IJdxFieldStruct;
-import jdtx.repl.main.api.struct.IJdxTableStruct;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import jdtx.repl.main.api.struct.*;
+import org.apache.commons.logging.*;
 
 public class UtAuditSelector {
 
@@ -153,11 +149,32 @@ public class UtAuditSelector {
         return db.loadSql(query).getCurRec().getValueLong("id");
     }
 
-    protected String getSql(IJdxTableStruct tableFrom, String tableFields, long fromId, long toId) {
+    protected String getSql_Z(IJdxTableStruct tableFrom, String tableFields, long fromId, long toId) {
         return "select " +
                 JdxUtils.prefix + "opr_type, " + tableFields +
                 " from " + JdxUtils.audit_table_prefix + tableFrom.getName() +
                 " where " + JdxUtils.prefix + "id >= " + fromId + " and " + JdxUtils.prefix + "id <= " + toId +
+                " order by " + JdxUtils.prefix + "id";
+    }
+
+    protected String getSql(IJdxTableStruct tableFrom, String tableFields, long fromId, long toId) {
+        String[] tableFromFields = tableFields.split(",");
+        StringBuilder sb = new StringBuilder();
+        for (String fieldName : tableFromFields) {
+            if (sb.length() != 0) {
+                sb.append(", ");
+            }
+            sb.append(tableFrom.getName()).append(".").append(fieldName);
+        }
+        String tableFieldsAlias = sb.toString();
+
+        //
+        String idFieldName = tableFrom.getPrimaryKey().get(0).getName();
+        return "select " +
+                JdxUtils.prefix + "opr_type, " + tableFieldsAlias +
+                " from " + JdxUtils.audit_table_prefix + tableFrom.getName() + ", " + tableFrom.getName() +
+                " where " + JdxUtils.audit_table_prefix + tableFrom.getName() + "." + idFieldName + " = " + tableFrom.getName() + "." + idFieldName +
+                "   and " + JdxUtils.prefix + "id >= " + fromId + " and " + JdxUtils.prefix + "id <= " + toId +
                 " order by " + JdxUtils.prefix + "id";
     }
 

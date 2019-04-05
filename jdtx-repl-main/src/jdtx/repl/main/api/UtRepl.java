@@ -288,19 +288,19 @@ public class UtRepl {
         return createInputStream(replica, ".xml");
     }
 
-    public static InputStream createInputStream(IReplica replica, String mask) throws IOException {
+    public static InputStream createInputStream(IReplica replica, String dataFileMask) throws IOException {
         InputStream inputStream = null;
         ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(replica.getFile()));
         ZipEntry entry;
         while ((entry = zipInputStream.getNextEntry()) != null) {
             String name = entry.getName();
-            if (name.endsWith(mask)) {
+            if (name.endsWith(dataFileMask)) {
                 inputStream = zipInputStream;
                 break;
             }
         }
         if (inputStream == null) {
-            throw new XError("Not found [" + mask + "] in replica: " + replica.getFile());
+            throw new XError("Not found [" + dataFileMask + "] in replica: " + replica.getFile());
         }
 
         return inputStream;
@@ -319,18 +319,24 @@ public class UtRepl {
         return struct_rw.read(db_struct);
     }
 
+    public void dbStructSave(InputStream stream) throws Exception {
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        IJdxDbStruct struct = struct_rw.read(stream);
+        //
+        dbStructSave(struct);
+    }
+
     public void dbStructSave(File file) throws Exception {
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         IJdxDbStruct struct = struct_rw.read(file.getPath());
         //
-        byte[] db_struct = struct_rw.write(struct);
-        db.execSql("update Z_Z_state set db_struct = :db_struct where id = 1", UtCnv.toMap("db_struct", db_struct));
+        dbStructSave(struct);
     }
 
     public void dbStructSave(IJdxDbStruct struct) throws Exception {
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        byte[] db_struct = struct_rw.write(struct);
-        db.execSql("update Z_Z_state set db_struct = :db_struct where id = 1", UtCnv.toMap("db_struct", db_struct));
+        byte[] bytes = struct_rw.write(struct);
+        db.execSql("update Z_Z_state set db_struct = :db_struct where id = 1", UtCnv.toMap("db_struct", bytes));
     }
 
 

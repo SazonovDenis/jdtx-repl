@@ -62,26 +62,16 @@ public class MailerLocalFiles implements IMailer {
         return idx;
     }
 
-    public void send(IReplica repl, long no, String box) throws Exception {
-        log.info("mailer.send, repl.wsId: " + repl.getWsId() + ", repl.age: " + repl.getAge() + ", no: " + no + ", remoteDir: " + remoteDir + "/" + box);
+    public void send(IReplica replica, long no, String box) throws Exception {
+        log.info("mailer.send, replica.wsId: " + replica.getWsId() + ", replica.age: " + replica.getAge() + ", no: " + no + ", remoteDir: " + remoteDir + "/" + box);
 
-        // Проверки: правильность типа реплики
-        if (repl.getReplicaType() <= 0) {
-            throw new XError("invalid replica.replicaType");
-        }
-        // Проверки: правильность возраста реплики
-        if (repl.getAge() == -1) {
-            throw new XError("invalid replica.age");
-        }
-        // Проверки: правильность кода рабочей станции
-        if (repl.getWsId() <= 0) {
-            throw new XError("invalid replica.wsId");
-        }
+        // Проверки: правильность полей реплики
+        JdxUtils.validateReplica(replica);
 
         //
         UtFile.mkdirs(remoteDir + box);
         //
-        File localFile = repl.getFile();
+        File localFile = replica.getFile();
         //
         String remoteFileName = getFileName(no);
         File remoteFile = new File(remoteDir + box + "/" + remoteFileName);

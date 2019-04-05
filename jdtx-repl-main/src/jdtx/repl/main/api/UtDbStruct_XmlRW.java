@@ -3,6 +3,8 @@ package jdtx.repl.main.api;
 import jandcode.utils.easyxml.*;
 import jdtx.repl.main.api.struct.*;
 
+import java.io.*;
+
 public class UtDbStruct_XmlRW {
 
     public void write(IJdxDbStruct struct, String fileName) throws Exception {
@@ -72,6 +74,12 @@ public class UtDbStruct_XmlRW {
     public IJdxDbStruct read(String fileName) throws Exception {
         EasyXml xml = new EasyXml();
         xml.load().fromFile(fileName);
+        return read(xml);
+    }
+
+    public IJdxDbStruct read(InputStream stream) throws Exception {
+        EasyXml xml = new EasyXml();
+        xml.load().fromStream(stream);
         return read(xml);
     }
 

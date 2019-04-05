@@ -50,31 +50,14 @@ public class JdxQueCommonFile implements IJdxQueCommon {
     }
 
     public long put(IReplica replica) throws Exception {
-        // Проверки: правильность типа реплики
-        if (replica.getReplicaType() <= 0) {
-            throw new XError("invalid replica.replicaType");
-        } else if (replica.getReplicaType() == JdxReplicaType.MUTE || replica.getReplicaType() == JdxReplicaType.UNMUTE) {
-            // Реплика - системная команда
+        // Проверки: правильность полей реплики
+        JdxUtils.validateReplica(replica);
 
-        } else {
-            // Проверки: правильность возраста реплики
-            if (replica.getAge() <= -1) {
-                throw new XError("invalid replica.age");
-            }
-            // Проверки: правильность кода рабочей станции
-            if (replica.getWsId() <= 0) {
-                throw new XError("invalid replica.wsId");
-            }
-            // Проверки: правильность очередности реплик
+        // Проверки: правильность очередности реплик по возрасту age для рабочей станции wsId
+        if (replica.getReplicaType() == JdxReplicaType.IDE || replica.getReplicaType() == JdxReplicaType.SNAPSHOT) {
             long queMaxAge = getMaxAge(replica.getWsId());
             if (replica.getAge() != queMaxAge + 1) {
                 throw new XError("invalid replica.age: " + replica.getAge() + ", que.age: " + queMaxAge);
-            }
-            // Проверки: обязательность файла
-            File replicaFile = replica.getFile();
-            if (replicaFile == null && replica.getReplicaType() != JdxReplicaType.SNAPSHOT) {
-            //if (replicaFile == null) {
-                throw new XError("invalid replica.file is null");
             }
         }
 

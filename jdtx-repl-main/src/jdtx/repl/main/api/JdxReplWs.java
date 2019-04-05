@@ -306,8 +306,13 @@ public class JdxReplWs {
                     // Реакция на команду - отключение режима "MUTE"
 
                     // В этой реплике - новая утвержденная структура
-                    UtRepl utRepl = new UtRepl(db, struct);
-                    utRepl.dbStructSave(replica.getFile());
+                    InputStream stream = UtRepl.getReplicaInputStream(replica);
+                    try {
+                        UtRepl utRepl = new UtRepl(db, struct);
+                        utRepl.dbStructSave(stream);
+                    } finally {
+                        stream.close();
+                    }
 
                     // Выход из состояния "Я замолчал"
                     muteManager.unmuteWorkstation();

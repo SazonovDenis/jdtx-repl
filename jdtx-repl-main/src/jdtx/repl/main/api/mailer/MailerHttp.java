@@ -81,22 +81,12 @@ public class MailerHttp implements IMailer {
     }
 
     @Override
-    public void send(IReplica repl, long no, String box) throws Exception {
-        log.info("mailer.send, repl.wsId: " + repl.getWsId() + ", repl.age: " + repl.getAge() + ", no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
+    public void send(IReplica replica, long no, String box) throws Exception {
+        log.info("mailer.send, replica.wsId: " + replica.getWsId() + ", replica.age: " + replica.getAge() + ", no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 
 
         // Проверки: правильность типа реплики
-        if (repl.getReplicaType() <= 0) {
-            throw new XError("invalid replica.replicaType");
-        }
-        // Проверки: правильность возраста реплики
-        if (repl.getAge() == -1) {
-            throw new XError("invalid replica.age");
-        }
-        // Проверки: правильность кода рабочей станции
-        if (repl.getWsId() <= 0) {
-            throw new XError("invalid replica.wsId");
-        }
+        JdxUtils.validateReplica(replica);
 
 
         // Закачиваем
@@ -105,7 +95,7 @@ public class MailerHttp implements IMailer {
         // Закачиваем по частям
         int part = 0;
         long sentBytes = 0;
-        long totalBytes = repl.getFile().length();
+        long totalBytes = replica.getFile().length();
 
         //
         while (sentBytes < totalBytes) {
@@ -117,7 +107,7 @@ public class MailerHttp implements IMailer {
             StringBody stringBody_box = new StringBody(box, ContentType.MULTIPART_FORM_DATA);
             StringBody stringBody_no = new StringBody(String.valueOf(no), ContentType.MULTIPART_FORM_DATA);
             StringBody stringBody_part = new StringBody(String.valueOf(part), ContentType.MULTIPART_FORM_DATA);
-            byte[] buff = readFilePart(repl.getFile(), sentBytes, HTTP_FILE_MAX_SIZE);
+            byte[] buff = readFilePart(replica.getFile(), sentBytes, HTTP_FILE_MAX_SIZE);
             ByteArrayBody byteBody = new ByteArrayBody(buff, "file");
 
             //
@@ -151,10 +141,10 @@ public class MailerHttp implements IMailer {
 
         // Завершение закачки
         ReplicaInfo info = new ReplicaInfo();
-        info.wsId = repl.getWsId();
-        info.age = repl.getAge();
-        info.replicaType = repl.getReplicaType();
-        info.crc = JdxUtils.getMd5File(repl.getFile());
+        info.wsId = replica.getWsId();
+        info.age = replica.getAge();
+        info.replicaType = replica.getReplicaType();
+        info.crc = JdxUtils.getMd5File(replica.getFile());
 
         //
         sendCommit_internal(no, box, info, part);
