@@ -82,5 +82,20 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         struct_rw.write(struct, "../_test-data/dbStruct_1.xml");
     }
 
+    @Test
+    /**
+     * Проверяет корректность формирования аудита при цикле:
+     * Вставка A1
+     * Отсечка возраста
+     * Вставка B1 со ссылкаой на тольтко что вставленную А1
+     * Отсечка возраста
+     * Обновление B1 - замена ссылки на А1 с только что вставленнуй на уже существующую А0
+     * Отсечка возраста
+     * Удаление только что вставленной A1
+     */
+    public void test_auditAfterInsDel() throws Exception {
+        // todo
+    }
+
 
 }
