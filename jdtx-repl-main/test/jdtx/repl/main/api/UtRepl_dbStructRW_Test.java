@@ -7,7 +7,7 @@ import java.io.*;
 
 /**
  */
-public class UtRepl_dbStruct_Test extends ReplDatabaseStruct_Test {
+public class UtRepl_dbStructRW_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
