@@ -202,7 +202,6 @@ public class JdxReplWs {
         log.info("handleSelfAudit, wsId: " + wsId);
 
         //
-        UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
         UtRepl utRepl = new UtRepl(db, struct);
 
         // Если в стостоянии "я замолчал", то молчим
@@ -220,7 +219,7 @@ public class JdxReplWs {
         }
 
         // Узнаем (и заодно фиксируем) возраст своего аудита
-        long auditAgeActual = auditAgeManager.markAuditAge();
+        long auditAgeActual = utRepl.markAuditAge();
 
         // До какого возраста сформировали реплики для своего аудита
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
