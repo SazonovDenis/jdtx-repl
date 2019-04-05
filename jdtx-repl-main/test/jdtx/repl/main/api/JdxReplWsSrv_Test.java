@@ -2,11 +2,13 @@ package jdtx.repl.main.api;
 
 import jandcode.bgtasks.*;
 import jandcode.dbm.data.*;
+import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
 import java.io.*;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
@@ -132,9 +134,11 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_all_http() throws Exception {
         //test_ws1_makeChange();
-        test_ws2_makeChange();
-        test_ws3_makeChange();
+        //test_ws2_makeChange();
+        //test_ws3_makeChange();
+        make_InsDel(db2, struct2);
 
+        //
         sync_http();
 
         //
@@ -147,21 +151,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws2_makeChange();
         test_ws3_makeChange();
 
-        test_ws1_handleSelfAudit();
-        test_ws2_handleSelfAudit();
-        test_ws3_handleSelfAudit();
-
-        test_ws_sendLocal();
-        test_ws_receiveLocal();
-
-        test_sync_srv_Local();
-
-        test_ws_sendLocal();
-        test_ws_receiveLocal();
-
-        test_ws1_handleQueIn();
-        test_ws2_handleQueIn();
-        test_ws3_handleQueIn();
+        //
+        syncLocal();
 
         //
         test_dumpTables();
@@ -169,7 +160,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void test_all_syncLocal() throws Exception {
+    public void syncLocal() throws Exception {
         test_ws1_handleSelfAudit();
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
@@ -256,6 +247,76 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         //
         struct = reader.readDbStruct();
         struct_rw.write(struct, "../_test-data/dbStruct_1.xml");
+    }
+
+    /**
+     * Цикл вставки и удаления влияющей записи:
+     * Вставка A1
+     * Фиксация возраста
+     * Вставка B1 со ссылкой на тольтко что вставленную А1
+     * Фиксация возраста
+     * Обновление B1 - замена ссылки на А1 с только что вставленнуй на уже существующую А0
+     * Фиксация возраста
+     * Удаление только что вставленной A1
+     */
+    void make_InsDel(Db db, IJdxDbStruct struct) throws Exception {
+        DbUtils dbu = new DbUtils(db, struct);
+        UtRepl utRepl = new UtRepl(db, struct);
+        Random rnd = new Random();
+
+        // Постоянная id для regionTip
+        long id1_regionTip = this.db.loadSql("select min(id) id from regionTip where id > 0").getCurRec().getValueLong("id");
+        long age;
+
+
+        // Фиксация возраста
+        age = utRepl.markAuditAge();
+        System.out.println("age: " + age);
+
+        // Вставка A1
+        long id0_regionTip = dbu.getNextGenerator("g_regionTip");
+        dbu.insertRec("regionTip", UtCnv.toMap(
+                "id", id0_regionTip,
+                "deleted", 0,
+                "name", "name-" + rnd.nextInt(),
+                "shortName", "sn-" + rnd.nextInt()
+        ));
+
+        // Фиксация возраста
+        age = utRepl.markAuditAge();
+        System.out.println("age: " + age);
+
+        // Вставка B1 со ссылкаой на тольтко что вставленную А1
+        long id1_region = dbu.getNextGenerator("g_region");
+        dbu.insertRec("region", UtCnv.toMap(
+                "id", id1_region,
+                "regionTip", id0_regionTip,
+                "parent", 0,
+                "name", "name-" + rnd.nextInt()
+        ));
+
+        // Фиксация возраста
+        age = utRepl.markAuditAge();
+        System.out.println("age: " + age);
+
+        // Обновление B1 - замена ссылки на А1 с только что вставленнуй на уже существующую А0
+        dbu.updateRec("region", UtCnv.toMap(
+                "id", id1_region,
+                "regionTip", id1_regionTip,
+                "parent", 0,
+                "name", "name-" + rnd.nextInt()
+        ));
+
+        // Фиксация возраста
+        age = utRepl.markAuditAge();
+        System.out.println("age: " + age);
+
+        // Удаление только что вставленной A1
+        dbu.deleteRec("regionTip", id0_regionTip);
+
+        // Фиксация возраста
+        age = utRepl.markAuditAge();
+        System.out.println("age: " + age);
     }
 
     @Test
