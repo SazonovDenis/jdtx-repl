@@ -221,7 +221,7 @@ public class JdxReplSrv {
                     log.info("receive, wsId: " + wsId + ", receiving.age: " + age);
 
                     // Информацмия о реплике с почтового сервера
-                    ReplicaInfo info = mailer.getInfo(age, "to");
+                    ReplicaInfo info = mailer.getInfo(age, "from");
 
                     // Физически забираем данные с почтового сервера
                     IReplica replica = mailer.receive(age, "from");
