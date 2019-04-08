@@ -4,6 +4,7 @@ import jandcode.bgtasks.*;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
@@ -35,15 +36,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         new File("d:/temp/dbm.log").delete();
         new File("d:/temp/jdtx.log").delete();
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/17845f2f56f4d401/from");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/17845f2f56f4d401/to");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/21ba238dfc945002/from");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/21ba238dfc945002/to");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/34f3cc20bea64503/from");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/34f3cc20bea64503/to");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/444fed23da93ab04/from");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/444fed23da93ab04/to");
-
 
         // db
         UtRepl utRepl = new UtRepl(db, struct);
@@ -59,8 +51,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         utr3.createReplication(3, "b5781df573ca6ee6-34f3cc20bea64503");
 
 
-        // Добавляем рабочие станции для режима сервера
+        // Режим сервера
         JdxReplSrv srv = new JdxReplSrv(db);
+        // Добавляем рабочие станции для режима сервера
         srv.addWorkstation(1, "Сервер", "b5781df573ca6ee6-17845f2f56f4d401");
         srv.addWorkstation(2, "ws 2", "b5781df573ca6ee6-21ba238dfc945002");
         srv.addWorkstation(3, "ws 3", "b5781df573ca6ee6-34f3cc20bea64503");
@@ -69,8 +62,37 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         srv.enableWorkstation(1);
         srv.enableWorkstation(2);
         srv.enableWorkstation(3);
+        // Создаем ящики рабочих станций
+        createBoxes_Http();
+        //createBoxes_Local();
+
         //
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
+    }
+
+    @Test
+    public void createBoxes_Http() throws Exception {
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init("test/etalon/mail_http_srv.json");
+        for (Map.Entry en : srv.mailerList.entrySet()) {
+            long wsId = (long) en.getKey();
+            MailerHttp mailer = (MailerHttp) en.getValue();
+            mailer.createMailBox("from");
+            mailer.createMailBox("to");
+            System.out.println("wsId: " + wsId + ", boxes - ok");
+        }
+    }
+
+    @Test
+    public void createBoxes_Local() throws Exception {
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/17845f2f56f4d401/from");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/17845f2f56f4d401/to");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/21ba238dfc945002/from");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/21ba238dfc945002/to");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/34f3cc20bea64503/from");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/34f3cc20bea64503/to");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/444fed23da93ab04/from");
+        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/444fed23da93ab04/to");
     }
 
     @Test
@@ -134,9 +156,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_all_http() throws Exception {
         //test_ws1_makeChange();
-        //test_ws2_makeChange();
-        //test_ws3_makeChange();
-        make_InsDel(db2, struct2);
+        test_ws2_makeChange();
+        test_ws3_makeChange();
+        //make_InsDel(db2, struct2);
 
         //
         sync_http();
