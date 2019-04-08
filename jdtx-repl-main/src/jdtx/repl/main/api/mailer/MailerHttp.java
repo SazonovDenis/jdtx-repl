@@ -33,6 +33,7 @@ public class MailerHttp implements IMailer {
 
     // 32 Mb
     int HTTP_FILE_MAX_SIZE = 1024 * 1024 * 32;
+    //int HTTP_FILE_MAX_SIZE = 512;
 
 
     @Override
@@ -93,20 +94,35 @@ public class MailerHttp implements IMailer {
         DefaultHttpClient client = new DefaultHttpClient();
 
         // Закачиваем по частям
-        int part = 0;
+        long filePart = 0;
         long sentBytes = 0;
         long totalBytes = replica.getFile().length();
 
-        //
+
+        // Большие письма отправляем с докачкой, для чего сначала выясняем, что уже успели закачать
+        if (totalBytes > HTTP_FILE_MAX_SIZE) {
+            JSONObject res = getPartState_internal(no, box);
+            sentBytes = (long) res.get("total_bytes");
+            filePart = (long) res.get("part_max_no");
+            //
+            if (sentBytes > 0) {
+                log.info("mailer.send, already sent part: " + filePart + ", sent bytes: " + sentBytes + "/" + totalBytes);
+            }
+            //
+            filePart = filePart + 1;
+        }
+
+
+        // Часть за частью
         while (sentBytes < totalBytes) {
             //
-            HttpPost post = new HttpPost(remoteUrl + "repl_part_send.php");
+            HttpPost post = new HttpPost(remoteUrl + "repl_send_part.php");
 
             //
             StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
             StringBody stringBody_box = new StringBody(box, ContentType.MULTIPART_FORM_DATA);
             StringBody stringBody_no = new StringBody(String.valueOf(no), ContentType.MULTIPART_FORM_DATA);
-            StringBody stringBody_part = new StringBody(String.valueOf(part), ContentType.MULTIPART_FORM_DATA);
+            StringBody stringBody_part = new StringBody(String.valueOf(filePart), ContentType.MULTIPART_FORM_DATA);
             byte[] buff = readFilePart(replica.getFile(), sentBytes, HTTP_FILE_MAX_SIZE);
             ByteArrayBody byteBody = new ByteArrayBody(buff, "file");
 
@@ -131,11 +147,11 @@ public class MailerHttp implements IMailer {
             parseResult(response);
 
             //
-            part = part + 1;
+            filePart = filePart + 1;
             sentBytes = sentBytes + buff.length;
 
             //
-            log.info("mailer.send, part: " + part + ", sentBytes: " + sentBytes + "/" + totalBytes);
+            log.info("mailer.send, part: " + filePart + ", sentBytes: " + sentBytes + "/" + totalBytes);
         }
 
 
@@ -147,7 +163,7 @@ public class MailerHttp implements IMailer {
         info.crc = JdxUtils.getMd5File(replica.getFile());
 
         //
-        sendCommit_internal(no, box, info, part);
+        sendCommit_internal(no, box, info, filePart, totalBytes);
     }
 
 
@@ -155,29 +171,41 @@ public class MailerHttp implements IMailer {
     public IReplica receive(long no, String box) throws Exception {
         log.info("mailer.receive, no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 
-        //
+        // replicaFile может уже существует - от предыдущих попыток скачать
         String localFileName = "~" + getFileName(no);
         File replicaFile = new File(localDirTmp + localFileName);
-        replicaFile.delete();
 
         //
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //
         JSONObject fileInfo = getInfo_internal(no, box);
-        int filePartsCount = Integer.valueOf(String.valueOf(fileInfo.get("partsCount")));  // так сложно - потому что в res.get("partsCount") оказывается Long
+        long filePartsCount = (long) fileInfo.get("partsCount");
+        long totalBytes = (long) fileInfo.get("totalBytes");
         if (filePartsCount > 1) {
             log.info("mailer.receive, filePartsCount: " + filePartsCount);
         }
 
         // Закачиваем по частям
-        int filePart = 0;
-        int receivedBytes = 0;
+        long filePart = 0;
+        long receivedBytes = 0;
+
+
+        // Большие письма получаем с докачкой, для чего сначала выясняем, что уже успели скачать
+        if (filePartsCount > 1) {
+            receivedBytes = replicaFile.length();
+            filePart = (receivedBytes + HTTP_FILE_MAX_SIZE - 1) / HTTP_FILE_MAX_SIZE;
+            //
+            if (receivedBytes > 0) {
+                log.info("mailer.receive, already received part: " + filePart + ", receive bytes: " + receivedBytes + "/" + totalBytes);
+            }
+        }
+
 
         //
-        while (filePart < filePartsCount) {
+        while (receivedBytes < totalBytes) {
             //
-            HttpGet httpGet = new HttpGet(getUrl("repl_part_receive") + "&guid=" + guid + "&box=" + box + "&no=" + no + "&file_part=" + filePart);
+            HttpGet httpGet = new HttpGet(getUrl("repl_receive_part") + "&guid=" + guid + "&box=" + box + "&no=" + no + "&file_part=" + filePart);
 
             //
             HttpResponse response = httpclient.execute(httpGet);
@@ -307,14 +335,34 @@ public class MailerHttp implements IMailer {
         return res;
     }
 
-    void sendCommit_internal(long no, String box, ReplicaInfo info, int partsCount) throws Exception {
+    JSONObject getPartState_internal(long no, String box) throws Exception {
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+
+        //
+        HttpGet httpGet = new HttpGet(getUrl("repl_part_state") + "&guid=" + guid + "&box=" + box + "&no=" + no);
+
+        //
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        handleErrors(response);
+        //
+        JSONObject res = parseResult(response);
+        JSONObject result = (JSONObject) res.get("result");
+
+        //
+        return result;
+    }
+
+    void sendCommit_internal(long no, String box, ReplicaInfo info, long partsCount, long totalBytes) throws Exception {
         DefaultHttpClient client = new DefaultHttpClient();
 
-        HttpPost post = new HttpPost(remoteUrl + "repl_part_commit.php");
+        HttpPost post = new HttpPost(remoteUrl + "repl_send_commit.php");
 
         //
         JSONObject infoJson = info.toJSONObject();
         infoJson.put("partsCount", partsCount);
+        infoJson.put("totalBytes", totalBytes);
 
         //
         StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
@@ -355,13 +403,19 @@ public class MailerHttp implements IMailer {
     void handleErrors(HttpResponse response) throws Exception {
         if (response.getStatusLine().getStatusCode() != 200) {
             String resStr = EntityUtils.toString(response.getEntity());
-            JSONObject res = parseJson(resStr);
+            JSONObject res = null;
+            try {
+                res = parseJson(resStr);
+            } catch (Exception e) {
+                throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
+            }
             if (res.get("error") != null) {
                 throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode() + ", error: " + String.valueOf(res.get("error")));
             } else {
                 throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode() + ", " + resStr);
             }
         }
+
     }
 
     JSONObject parseResult(HttpResponse response) throws Exception {
@@ -394,7 +448,7 @@ public class MailerHttp implements IMailer {
     }
 
     String seed() {
-        return String.valueOf(rnd.nextLong());
+        return String.valueOf(Math.abs(rnd.nextLong()));
     }
 
     String getUrl(String url) {
@@ -405,7 +459,7 @@ public class MailerHttp implements IMailer {
         return UtString.padLeft(String.valueOf(no), 9, '0') + ".zip";
     }
 
-    void createMailBox(String box) throws Exception {
+    public void createMailBox(String box) throws Exception {
         log.info("createMailBox, url: " + remoteUrl);
         log.info("createMailBox, guid: " + guid + ", box: " + box);
 
@@ -419,20 +473,13 @@ public class MailerHttp implements IMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        if (response.getStatusLine().getStatusCode() != 200) {
-            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
-        }
-
+        handleErrors(response);
         //
-        String resStr = EntityUtils.toString(response.getEntity());
-        JSONObject res = parseJson(resStr);
-        if (res.get("error") != null) {
-            throw new XError(String.valueOf(res.get("error")));
-        }
+        parseResult(response);
     }
 
 
-    void checkMailBox(String box) throws Exception {
+    public void checkMailBox(String box) throws Exception {
         log.info("checkMailBox, url: " + remoteUrl);
         log.info("checkMailBox, guid: " + guid + ", box: " + box);
 
@@ -446,16 +493,9 @@ public class MailerHttp implements IMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        if (response.getStatusLine().getStatusCode() != 200) {
-            throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode());
-        }
-
+        handleErrors(response);
         //
-        String resStr = EntityUtils.toString(response.getEntity());
-        JSONObject res = parseJson(resStr);
-        if (res.get("error") != null) {
-            throw new XError(String.valueOf(res.get("error")));
-        }
+        parseResult(response);
     }
 
 }

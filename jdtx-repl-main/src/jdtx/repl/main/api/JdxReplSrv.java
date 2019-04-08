@@ -218,8 +218,24 @@ public class JdxReplSrv {
                 //
                 long count = 0;
                 for (long age = queDoneAge + 1; age <= queMaxAge; age++) {
+                    log.info("receive, wsId: " + wsId + ", receiving.age: " + age);
+
+                    // Информацмия о реплике с почтового сервера
+                    ReplicaInfo info = mailer.getInfo(age, "to");
+
                     // Физически забираем данные с почтового сервера
                     IReplica replica = mailer.receive(age, "from");
+                    // Проверяем целостность скачанного
+                    String md5file = JdxUtils.getMd5File(replica.getFile());
+                    if (!md5file.equals(info.crc)) {
+                        log.error("receive.replica: " + replica.getFile());
+                        log.error("receive.replica.md5: " + md5file);
+                        log.error("mailer.info.crc: " + info.crc);
+                        // Неправильно скачанный файл - удаляем, чтобы потом начать снова
+                        replica.getFile().delete();
+                        // Ошибка
+                        throw new XError("receive.replica.md5 <> mailer.info.crc");
+                    }
                     //
                     JdxReplicaReaderXml.readReplicaInfo(replica);
 
@@ -229,9 +245,10 @@ public class JdxReplSrv {
                     // Помещаем полученные данные в общую очередь
                     db.startTran();
                     try {
+                        // Помещаем в очередь
                         commonQue.put(replica);
 
-                        //
+                        // Отмечаем факт скачивания
                         stateManager.setWsQueInAgeDone(wsId, age);
 
                         //

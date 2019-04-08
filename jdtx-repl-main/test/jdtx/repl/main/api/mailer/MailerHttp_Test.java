@@ -94,6 +94,45 @@ public class MailerHttp_Test extends ReplDatabase_Test {
 
 
     @Test
+    public void test_part_state() throws Exception {
+        String box = "from";
+
+        // =====================
+        long no = 1;
+
+        //
+        JSONObject res = ((MailerHttp) mailer).getPartState_internal(no, box);
+
+        //
+        System.out.println("res: " + res);
+
+        //
+        long total_bytes = (Long) res.get("total_bytes");
+        long part_max_no = (Long) res.get("part_max_no");
+
+        //
+        System.out.println("total_bytes: " + total_bytes + ", part_max_no: " + part_max_no);
+
+
+        // =====================
+        no = 9991;
+
+        //
+        res = ((MailerHttp) mailer).getPartState_internal(no, box);
+
+        //
+        System.out.println("res: " + res);
+
+        //
+        total_bytes = (Long) res.get("total_bytes");
+        part_max_no = (Long) res.get("part_max_no");
+
+        //
+        System.out.println("total_bytes: " + total_bytes + ", part_max_no: " + part_max_no);
+    }
+
+
+    @Test
     public void test_http() throws Exception {
         StopWatch sw = new StopWatch();
         sw.start();
