@@ -159,6 +159,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws2_makeChange();
         test_ws3_makeChange();
         //make_InsDel(db2, struct2);
+        make_InsDel(db3, struct3);
 
         //
         sync_http();
