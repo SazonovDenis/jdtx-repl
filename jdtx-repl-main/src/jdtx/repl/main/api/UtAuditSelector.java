@@ -99,9 +99,9 @@ public class UtAuditSelector {
 
                 //
                 if (toId >= fromId) {
-                    log.info("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], recs: " + (toId - fromId + 1));
+                    log.info("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], audit recs: " + (toId - fromId + 1));
                 } else {
-                    log.info("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], z_id: empty");
+                    log.debug("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], audit empty");
                 }
 
                 // изменения с указанным возрастом
@@ -125,9 +125,9 @@ public class UtAuditSelector {
 
         //
         if (toId >= fromId) {
-            log.info("selectAudit: " + tableName + ", age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], recs: " + (toId - fromId + 1));
+            log.info("selectAudit: " + tableName + ", age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], audit recs: " + (toId - fromId + 1));
         } else {
-            log.info("selectAudit: " + tableName + ", age: [" + ageFrom + ".." + ageTo + "], z_id: empty");
+            //log.debug("selectAudit: " + tableName + ", age: [" + ageFrom + ".." + ageTo + "], audit empty");
         }
 
         // Аудит в указанном диапазоне возрастов: id >= fromId и id <= toId
@@ -149,7 +149,7 @@ public class UtAuditSelector {
         return db.loadSql(query).getCurRec().getValueLong("id");
     }
 
-    protected String getSql_Z(IJdxTableStruct tableFrom, String tableFields, long fromId, long toId) {
+    protected String getSql_z(IJdxTableStruct tableFrom, String tableFields, long fromId, long toId) {
         return "select " +
                 JdxUtils.prefix + "opr_type, " + tableFields +
                 " from " + JdxUtils.audit_table_prefix + tableFrom.getName() +
