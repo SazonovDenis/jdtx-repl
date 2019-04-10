@@ -152,7 +152,7 @@ public class UtRepl {
      * от для возраста age.
      */
     public IReplica createReplicaFromAudit(long wsId, IPublication publication, long age) throws Exception {
-        log.info("createReplicaFromAudit");
+        log.info("createReplicaFromAudit, wsId: " + wsId + ", age: " + age);
 
         //
         IReplica replica = new ReplicaFile();

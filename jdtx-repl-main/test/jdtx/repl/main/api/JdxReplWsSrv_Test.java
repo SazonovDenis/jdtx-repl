@@ -296,7 +296,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         age = utRepl.markAuditAge();
         System.out.println("age: " + age);
 
-        // Вставка A1
+        // Вставка A1 (regionTip)
         long id0_regionTip = dbu.getNextGenerator("g_regionTip");
         dbu.insertRec("regionTip", UtCnv.toMap(
                 "id", id0_regionTip,
@@ -309,7 +309,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         age = utRepl.markAuditAge();
         System.out.println("age: " + age);
 
-        // Вставка B1 со ссылкаой на тольтко что вставленную А1
+        // Вставка B1 (region) со ссылкой на тольтко что вставленную А1 (regionTip)
         long id1_region = dbu.getNextGenerator("g_region");
         dbu.insertRec("region", UtCnv.toMap(
                 "id", id1_region,
@@ -322,7 +322,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         age = utRepl.markAuditAge();
         System.out.println("age: " + age);
 
-        // Обновление B1 - замена ссылки на А1 с только что вставленнуй на уже существующую А0
+        // Обновление B1 (region) - замена ссылки на А1 (regionTip) с только что вставленнуй на уже существующую А0 (regionTip)
         dbu.updateRec("region", UtCnv.toMap(
                 "id", id1_region,
                 "regionTip", id1_regionTip,
@@ -334,7 +334,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         age = utRepl.markAuditAge();
         System.out.println("age: " + age);
 
-        // Удаление только что вставленной A1
+        // Удаление только что вставленной A1 (regionTip)
         dbu.deleteRec("regionTip", id0_regionTip);
 
         // Фиксация возраста
