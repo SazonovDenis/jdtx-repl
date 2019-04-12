@@ -8,6 +8,7 @@ import jandcode.web.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
 
+import java.io.*;
 import java.util.*;
 
 
@@ -174,6 +175,7 @@ public class JdxReplSrv {
             } catch (Exception e) {
                 // Ошибка для станции - пропускаем, идем дальше
                 log.error("Error in srvHandleCommonQue, from.wsId: " + wsId + ", error: " + e.getMessage());
+                log.error(getStackTrace(e));
             }
         }
     }
@@ -241,9 +243,17 @@ public class JdxReplSrv {
             } catch (Exception e) {
                 // Ошибка для станции - пропускаем, идем дальше
                 log.error("Error in srvDispatchReplicas, to.wsId: " + wsId + ", error: " + e.getMessage());
+                log.error(getStackTrace(e));
             }
 
         }
+    }
+
+    private String getStackTrace(Exception e) {
+        StringWriter swr = new StringWriter();
+        PrintWriter wr = new PrintWriter(swr);
+        e.printStackTrace(wr);
+        return swr.getBuffer().toString();
     }
 
 
