@@ -12,6 +12,7 @@ import jandcode.utils.UtLog
 import jandcode.utils.error.XError
 import jandcode.utils.variant.IVariantMap
 import jdtx.repl.main.api.*
+import jdtx.repl.main.api.mailer.MailerHttp
 import jdtx.repl.main.api.struct.IJdxDbStruct
 import jdtx.repl.main.api.struct.IJdxDbStructReader
 import jdtx.repl.main.api.struct.JdxDbStructReader
@@ -93,7 +94,7 @@ class Jdx_Ext extends ProjectExt {
                 System.out.println("commonQue.baseDir: " + srv.commonQue.baseDir)
                 for (Object obj : srv.mailerList.entrySet()) {
                     Map.Entry entry = (Map.Entry) obj
-                    UtMailerHttp mailer = (UtMailerHttp) entry.value
+                    MailerHttp mailer = (MailerHttp) entry.value
                     System.out.println("mailer.wsId: " + entry.key)
                     System.out.println("  remoteUrl: " + mailer.remoteUrl)
                     System.out.println("  guid: " + mailer.guid)
@@ -148,10 +149,15 @@ from
 
         //
         try {
+            //
+            IJdxDbStructReader dbStructReader = new JdxDbStructReader();
+            dbStructReader.setDb(db);
+            IJdxDbStruct struct = dbStructReader.readDbStruct();
+            UtRepl utRepl = new UtRepl(db, struct)
+
             // Создаем объекты
-            UtRepl utr = new UtRepl(db)
-            utr.dropReplication()
-            utr.createReplication(wsId, guid)
+            utRepl.dropReplication()
+            utRepl.createReplication(wsId, guid)
 
         } finally {
             db.disconnect()
@@ -181,12 +187,8 @@ from
 
         //
         try {
-            IJdxDbStructReader reader = new JdxDbStructReader()
-            reader.setDb(db)
-            IJdxDbStruct struct = reader.readDbStruct()
-            //
-            UtDbObjectManager ut = new UtDbObjectManager(db, struct)
-            ut.addWorkstation(wsId, name, guid)
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.addWorkstation(wsId, name, guid)
             //
 
             //
@@ -212,12 +214,8 @@ from
 
         //
         try {
-            IJdxDbStructReader reader = new JdxDbStructReader()
-            reader.setDb(db)
-            IJdxDbStruct struct = reader.readDbStruct()
-            //
-            UtDbObjectManager om = new UtDbObjectManager(db, struct);
-            om.enableWorkstation(wsId);
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.enableWorkstation(wsId);
         } finally {
             db.disconnect()
         }
@@ -238,12 +236,8 @@ from
 
         //
         try {
-            IJdxDbStructReader reader = new JdxDbStructReader()
-            reader.setDb(db)
-            IJdxDbStruct struct = reader.readDbStruct()
-            //
-            UtDbObjectManager om = new UtDbObjectManager(db, struct);
-            om.disableWorkstation(wsId);
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.disableWorkstation(wsId);
         } finally {
             db.disconnect()
         }
@@ -397,7 +391,7 @@ from
                     //System.out.println("wsId: " + wsId + ", box: " + box);
 
                     //
-                    UtMailerHttp mailer = (UtMailerHttp) en.getValue();
+                    MailerHttp mailer = (MailerHttp) en.getValue();
                     try {
                         if (doCreate) {
                             mailer.createMailBox(box);

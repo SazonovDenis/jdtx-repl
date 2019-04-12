@@ -1,8 +1,12 @@
 package jdtx.repl.main.api;
 
+import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.jdx_db_object.*;
+import jdtx.repl.main.api.publication.*;
+import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
@@ -21,12 +25,15 @@ public class UtRepl {
 
     protected static Log log = LogFactory.getLog("jdtx");
 
-    public UtRepl(Db db) throws Exception {
+    //
+    private OutputStream outputStream = null;
+    private ZipOutputStream zipOutputStream = null;
+    private JdxReplicaWriterXml writerXml = null;
+
+
+    public UtRepl(Db db, IJdxDbStruct struct) throws Exception {
         this.db = db;
-        // чтение структуры
-        IJdxDbStructReader reader = new JdxDbStructReader();
-        reader.setDb(db);
-        struct = reader.readDbStruct();
+        this.struct = struct;
     }
 
 
@@ -62,7 +69,6 @@ public class UtRepl {
         // удаляем необходимые для перекодировки таблицы
         UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);
         decodeManager.dropRefDecodeObject();
-
     }
 
     /**
@@ -75,11 +81,21 @@ public class UtRepl {
 
 
     /**
-     * Зафиксировать возраст рабочей станции
+     * Искусственно увеличить возраст рабочей станции
      */
     public long incAuditAge() throws Exception {
-        UtAuditAgeManager ut = new UtAuditAgeManager(db, struct);
-        return ut.incAuditAge();
+        UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
+
+        // Проверяем, что весь свой аудит мы уже выложили в очередь
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+        long auditAgeDone = stateManager.getAuditAgeDone();
+        long auditAgeActual = auditAgeManager.getAuditAge();
+        if (auditAgeActual != auditAgeDone) {
+            throw new XError("invalid auditAgeActual != auditAgeDone, auditAgeDone: " + auditAgeDone + ", auditAgeActual: " + auditAgeActual);
+        }
+
+        //
+        return auditAgeManager.incAuditAge();
     }
 
 
@@ -91,26 +107,19 @@ public class UtRepl {
         return ut.getAuditAge();
     }
 
-
-    /**
-     * Собрать аудит и подготовить реплику по правилам публикации publication
-     * от для возраста age.
-     */
-    IReplica createReplicaFromAudit(long wsId, IPublication publication, long age) throws Exception {
-        log.info("createReplicaFromAudit");
-
+    void createOutput(IReplica replica) throws Exception {
         // Файл
-        String fileName = UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0');
-        File file = File.createTempFile("~jdx-" + fileName + "-", ".zip");
-        OutputStream outputStream = new FileOutputStream(file);
+        String fileNameTemplate = UtString.padLeft(String.valueOf(replica.getWsId()), 3, '0') + "-" + UtString.padLeft(String.valueOf(replica.getAge()), 9, '0');
+        File outFile = File.createTempFile("~jdx-" + fileNameTemplate + "-", ".zip");
+        outputStream = new FileOutputStream(outFile);
 
         // Zip-файл
-        ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
+        zipOutputStream = new ZipOutputStream(outputStream);
 
         // Zip-файл (заголовок)
         ZipEntry zipEntryHead = new ZipEntry("dat.info");
         zipOutputStream.putNextEntry(zipEntryHead);
-        String json = "{\"wsId\": " + wsId + ", \"age\": " + age + ", \"replicaType\": " + JdxReplicaType.IDE + "}";
+        String json = "{\"wsId\": " + replica.getWsId() + ", \"age\": " + replica.getAge() + ", \"replicaType\": " + replica.getReplicaType() + "}";
         zipOutputStream.write(json.getBytes("utf-8"));
         zipOutputStream.closeEntry();
 
@@ -119,9 +128,44 @@ public class UtRepl {
         zipOutputStream.putNextEntry(zipEntry);
 
         // XML-файл
-        JdxReplicaWriterXml writerXml = new JdxReplicaWriterXml(zipOutputStream);
+        writerXml = new JdxReplicaWriterXml(zipOutputStream);
 
         //
+        replica.setFile(outFile);
+    }
+
+    void closeOutput() throws Exception {
+        // Заканчиваем запись в XML-файл
+        writerXml.close();
+
+        // Заканчиваем запись в в zip-файл
+        zipOutputStream.closeEntry();
+        zipOutputStream.finish();
+        zipOutputStream.close();
+
+        // Закрываем файл
+        outputStream.close();
+    }
+
+    /**
+     * Собрать аудит и подготовить реплику по правилам публикации publication
+     * от для возраста age.
+     */
+    public IReplica createReplicaFromAudit(long wsId, IPublication publication, long age) throws Exception {
+        log.info("createReplicaFromAudit, wsId: " + wsId + ", age: " + age);
+
+        //
+        IReplica replica = new ReplicaFile();
+        replica.setWsId(wsId);
+        replica.setAge(age);
+        replica.setReplicaType(JdxReplicaType.IDE);
+
+        // Открываем запись
+        createOutput(replica);
+
+
+        // Пишем
+        writerXml.startDocument();
         writerXml.writeReplicaInfo(wsId, age, JdxReplicaType.IDE);
 
         //
@@ -141,28 +185,13 @@ public class UtRepl {
             }
         }
 
-
-        // Заканчиваем запись в XML-файл
-        writerXml.close();
-
-        // Заканчиваем запись в в zip-файл
-        zipOutputStream.closeEntry();
-        zipOutputStream.finish();
-        zipOutputStream.close();
-
-        // Закрываем файл
-        outputStream.close();
+        //
+        writerXml.closeDocument();
+        closeOutput();
 
 
         //
-        IReplica res = new ReplicaFile();
-        res.setWsId(wsId);
-        res.setAge(age);
-        res.setReplicaType(JdxReplicaType.IDE);
-        res.setFile(file);
-
-        //
-        return res;
+        return replica;
     }
 
 
@@ -172,33 +201,22 @@ public class UtRepl {
      * Используется при включении новой БД в систему:
      * самая первая (установочная) реплика для сервера.
      */
-    IReplica createReplicaSnapshot(long wsId, IPublication publication, long age) throws Exception {
+    public IReplica createReplicaSnapshot(long wsId, IPublication publication, long age) throws Exception {
         log.info("createReplicaSnapshot");
 
-        // Файл
-        String fileName = UtString.padLeft(String.valueOf(wsId), 3, '0') + "-" + UtString.padLeft(String.valueOf(age), 9, '0') + "-full";
-        File file = File.createTempFile("~jdx-" + fileName + "-", ".zip");
-        OutputStream outputStream = new FileOutputStream(file);
-
-        // Zip-файл
-        ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
-
-        // Zip-файл (заголовок)
-        ZipEntry zipEntryHead = new ZipEntry("dat.info");
-        zipOutputStream.putNextEntry(zipEntryHead);
-        String info = "{\"wsId\": " + wsId + ", \"age\": " + age + ", \"replicaType\": " + JdxReplicaType.EXPORT + "}";
-        zipOutputStream.write(info.getBytes("utf-8"));
-        zipOutputStream.closeEntry();
-
-        // Zip-файл (данные)
-        ZipEntry zipEntry = new ZipEntry("dat.xml");
-        zipOutputStream.putNextEntry(zipEntry);
-
-        // XML-файл
-        JdxReplicaWriterXml writerXml = new JdxReplicaWriterXml(zipOutputStream);
-
         //
-        writerXml.writeReplicaInfo(wsId, age, JdxReplicaType.EXPORT);
+        IReplica replica = new ReplicaFile();
+        replica.setWsId(wsId);
+        replica.setAge(age);
+        replica.setReplicaType(JdxReplicaType.SNAPSHOT);
+
+        // Открываем запись
+        createOutput(replica);
+
+
+        // Пишем
+        writerXml.startDocument();
+        writerXml.writeReplicaInfo(wsId, age, JdxReplicaType.SNAPSHOT);
 
         //
         UtDataSelector utrr = new UtDataSelector(db, struct);
@@ -218,48 +236,107 @@ public class UtRepl {
             }
         }
 
-        // Заканчиваем запись в XML-файл
-        writerXml.close();
 
-        // Заканчиваем запись в в zip-файл (данные)
-        zipOutputStream.closeEntry();
-        zipOutputStream.finish();
-        zipOutputStream.close();
+        // Заканчиваем запись
+        writerXml.closeDocument();
+        closeOutput();
 
-        // Закрываем файл
-        outputStream.close();
-
-        //
-        IReplica replica = new ReplicaFile();
-        replica.setWsId(wsId);
-        replica.setAge(age);
-        replica.setReplicaType(JdxReplicaType.EXPORT);
-        replica.setFile(file);
 
         //
         return replica;
     }
 
-    public static InputStream createReplicaInputStream(IReplica replica) throws IOException {
+    public IReplica createReplicaUnmute() throws Exception {
+        IReplica replica = new ReplicaFile();
+        replica.setReplicaType(JdxReplicaType.UNMUTE);
+        //replica.setWsId(wsId);
+        //replica.setAge(age);
+
+        // Открываем запись
+        createOutput(replica);
+
+        // Файл с описанием текущей структуры БД
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        zipOutputStream.write(struct_rw.write(struct));
+
+        // Заканчиваем запись
+        closeOutput();
+
+        //
+        return replica;
+    }
+
+    public IReplica createReplicaMute() throws Exception {
+        IReplica replica = new ReplicaFile();
+        replica.setReplicaType(JdxReplicaType.MUTE);
+        //replica.setWsId(wsId);
+        //replica.setAge(age);
+
+        // Открываем запись
+        createOutput(replica);
+
+        // Писать нечего
+
+        // Заканчиваем запись
+        closeOutput();
+
+        //
+        return replica;
+    }
+
+    public static InputStream getReplicaInputStream(IReplica replica) throws IOException {
         return createInputStream(replica, ".xml");
     }
 
-    public static InputStream createInputStream(IReplica replica, String mask) throws IOException {
+    public static InputStream createInputStream(IReplica replica, String dataFileMask) throws IOException {
         InputStream inputStream = null;
         ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(replica.getFile()));
         ZipEntry entry;
         while ((entry = zipInputStream.getNextEntry()) != null) {
             String name = entry.getName();
-            if (name.endsWith(mask)) {
+            if (name.endsWith(dataFileMask)) {
                 inputStream = zipInputStream;
                 break;
             }
         }
         if (inputStream == null) {
-            throw new XError("Not found [" + mask + "] in replica: " + replica.getFile());
+            throw new XError("Not found [" + dataFileMask + "] in replica: " + replica.getFile());
         }
 
         return inputStream;
+    }
+
+    public IJdxDbStruct dbStructLoad() throws Exception {
+        String sql = "select db_struct from Z_Z_state where id = 1";
+        DataStore st = db.loadSql(sql);
+        byte[] db_struct = (byte[]) st.getCurRec().getValue("db_struct");
+        //
+        if (db_struct.length == 0) {
+            return null;
+        }
+        //
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        return struct_rw.read(db_struct);
+    }
+
+    public void dbStructSave(InputStream stream) throws Exception {
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        IJdxDbStruct struct = struct_rw.read(stream);
+        //
+        dbStructSave(struct);
+    }
+
+    public void dbStructSave(File file) throws Exception {
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        IJdxDbStruct struct = struct_rw.read(file.getPath());
+        //
+        dbStructSave(struct);
+    }
+
+    public void dbStructSave(IJdxDbStruct struct) throws Exception {
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        byte[] bytes = struct_rw.write(struct);
+        db.execSql("update Z_Z_state set db_struct = :db_struct where id = 1", UtCnv.toMap("db_struct", bytes));
     }
 
 

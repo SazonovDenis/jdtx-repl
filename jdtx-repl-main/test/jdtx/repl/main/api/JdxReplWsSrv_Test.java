@@ -2,10 +2,14 @@ package jdtx.repl.main.api;
 
 import jandcode.bgtasks.*;
 import jandcode.dbm.data.*;
+import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jdtx.repl.main.api.mailer.*;
+import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
 import java.io.*;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
@@ -32,6 +36,55 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         new File("d:/temp/dbm.log").delete();
         new File("d:/temp/jdtx.log").delete();
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6");
+
+        // db
+        UtRepl utRepl = new UtRepl(db, struct);
+        utRepl.dropReplication();
+        utRepl.createReplication(1, "b5781df573ca6ee6-17845f2f56f4d401");
+        // db2
+        UtRepl utr2 = new UtRepl(db2, struct2);
+        utr2.dropReplication();
+        utr2.createReplication(2, "b5781df573ca6ee6-21ba238dfc945002");
+        // db3
+        UtRepl utr3 = new UtRepl(db3, struct3);
+        utr3.dropReplication();
+        utr3.createReplication(3, "b5781df573ca6ee6-34f3cc20bea64503");
+
+
+        // Режим сервера
+        JdxReplSrv srv = new JdxReplSrv(db);
+        // Добавляем рабочие станции для режима сервера
+        srv.addWorkstation(1, "Сервер", "b5781df573ca6ee6-17845f2f56f4d401");
+        srv.addWorkstation(2, "ws 2", "b5781df573ca6ee6-21ba238dfc945002");
+        srv.addWorkstation(3, "ws 3", "b5781df573ca6ee6-34f3cc20bea64503");
+        srv.addWorkstation(4, "ws 4", "b5781df573ca6ee6-444fed23da93ab04");
+        // Активируем рабочие станции
+        srv.enableWorkstation(1);
+        srv.enableWorkstation(2);
+        srv.enableWorkstation(3);
+        // Создаем ящики рабочих станций
+        createBoxes_Http();
+        //createBoxes_Local();
+
+        //
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
+    }
+
+    @Test
+    public void createBoxes_Http() throws Exception {
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init("test/etalon/mail_http_srv.json");
+        for (Map.Entry en : srv.mailerList.entrySet()) {
+            long wsId = (long) en.getKey();
+            MailerHttp mailer = (MailerHttp) en.getValue();
+            mailer.createMailBox("from");
+            mailer.createMailBox("to");
+            System.out.println("wsId: " + wsId + ", boxes - ok");
+        }
+    }
+
+    @Test
+    public void createBoxes_Local() throws Exception {
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/17845f2f56f4d401/from");
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/17845f2f56f4d401/to");
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/21ba238dfc945002/from");
@@ -40,62 +93,34 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/34f3cc20bea64503/to");
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/444fed23da93ab04/from");
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6/444fed23da93ab04/to");
-
-
-        // db
-        UtRepl utr = new UtRepl(db);
-        utr.dropReplication();
-        utr.createReplication(1, "b5781df573ca6ee6-17845f2f56f4d401");
-        // db2
-        UtRepl utr2 = new UtRepl(db2);
-        utr2.dropReplication();
-        utr2.createReplication(2, "b5781df573ca6ee6-21ba238dfc945002");
-        // db3
-        UtRepl utr3 = new UtRepl(db3);
-        utr3.dropReplication();
-        utr3.createReplication(3, "b5781df573ca6ee6-34f3cc20bea64503");
-
-
-        // Добавляем рабочие станции для режима сервера
-        UtDbObjectManager om = new UtDbObjectManager(db, struct);
-        om.addWorkstation(1, "Сервер", "b5781df573ca6ee6-17845f2f56f4d401");
-        om.addWorkstation(2, "ws 2", "b5781df573ca6ee6-21ba238dfc945002");
-        om.addWorkstation(3, "ws 3", "b5781df573ca6ee6-34f3cc20bea64503");
-        om.addWorkstation(4, "ws 4", "b5781df573ca6ee6-444fed23da93ab04");
-        // Активируем рабочие станции
-        om.enableWorkstation(1);
-        om.enableWorkstation(2);
-        om.enableWorkstation(3);
-        //
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
     }
 
     @Test
     public void test_enable() throws Exception {
-        UtDbObjectManager om = new UtDbObjectManager(db, struct);
+        JdxReplSrv srv = new JdxReplSrv(db);
 
-        om.disableWorkstation(1);
-        om.enableWorkstation(2);
-        om.disableWorkstation(3);
-        om.enableWorkstation(4);
+        srv.disableWorkstation(1);
+        srv.enableWorkstation(2);
+        srv.disableWorkstation(3);
+        srv.enableWorkstation(4);
         //
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info"));
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "state"));
 
         // Активируем рабочие станции
-        om.enableWorkstation(1);
-        om.enableWorkstation(2);
-        om.enableWorkstation(3);
-        om.enableWorkstation(4);
+        srv.enableWorkstation(1);
+        srv.enableWorkstation(2);
+        srv.enableWorkstation(3);
+        srv.enableWorkstation(4);
         //
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info"));
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "state"));
 
         //
-        om.disableWorkstation(4);
+        srv.disableWorkstation(4);
         //
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info"));
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "state"));
     }
 
     @Test
@@ -108,12 +133,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_dumpTables();
     }
 
-    @Test
-    public void test_all_http() throws Exception {
-        //test_ws1_makeChange();
-        test_ws2_makeChange();
-        test_ws3_makeChange();
-
+    void sync_http() throws Exception {
         test_ws1_handleSelfAudit();
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
@@ -131,6 +151,17 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws1_handleQueIn();
         test_ws2_handleQueIn();
         test_ws3_handleQueIn();
+    }
+
+    @Test
+    public void test_all_http() throws Exception {
+        //test_ws1_makeChange();
+        test_ws2_makeChange();
+        test_ws3_makeChange();
+        //make_InsDel(db2, struct2);
+
+        //
+        sync_http();
 
         //
         test_dumpTables();
@@ -142,21 +173,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws2_makeChange();
         test_ws3_makeChange();
 
-        test_ws1_handleSelfAudit();
-        test_ws2_handleSelfAudit();
-        test_ws3_handleSelfAudit();
-
-        test_ws_sendLocal();
-        test_ws_receiveLocal();
-
-        test_sync_srv_Local();
-
-        test_ws_sendLocal();
-        test_ws_receiveLocal();
-
-        test_ws1_handleQueIn();
-        test_ws2_handleQueIn();
-        test_ws3_handleQueIn();
+        //
+        syncLocal();
 
         //
         test_dumpTables();
@@ -164,7 +182,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void test_all_syncLocal() throws Exception {
+    public void syncLocal() throws Exception {
         test_ws1_handleSelfAudit();
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
@@ -232,6 +250,96 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         svr3.save().toFile("../_test-data/csv/ws3-all.csv");
     }
 
+
+    @Test
+    public void test_ws1_changeDbStruct() throws Exception {
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(db);
+        IJdxDbStruct struct;
+
+        //
+        struct = reader.readDbStruct();
+        struct_rw.write(struct, "../_test-data/dbStruct_0.xml");
+
+        //
+        UtTest utTest = new UtTest(db);
+        utTest.changeDbStruct("region");
+
+        //
+        struct = reader.readDbStruct();
+        struct_rw.write(struct, "../_test-data/dbStruct_1.xml");
+    }
+
+    /**
+     * Цикл вставки и удаления влияющей записи:
+     * Вставка A1
+     * Фиксация возраста
+     * Вставка B1 со ссылкой на тольтко что вставленную А1
+     * Фиксация возраста
+     * Обновление B1 - замена ссылки на А1 с только что вставленнуй на уже существующую А0
+     * Фиксация возраста
+     * Удаление только что вставленной A1
+     */
+    void make_InsDel(Db db, IJdxDbStruct struct) throws Exception {
+        DbUtils dbu = new DbUtils(db, struct);
+        UtRepl utRepl = new UtRepl(db, struct);
+        Random rnd = new Random();
+
+        // Постоянная id для regionTip
+        long id1_regionTip = this.db.loadSql("select min(id) id from regionTip where id > 0").getCurRec().getValueLong("id");
+        long age;
+
+
+        // Фиксация возраста
+        age = utRepl.markAuditAge();
+        System.out.println("age: " + age);
+
+        // Вставка A1 (regionTip)
+        long id0_regionTip = dbu.getNextGenerator("g_regionTip");
+        dbu.insertRec("regionTip", UtCnv.toMap(
+                "id", id0_regionTip,
+                "deleted", 0,
+                "name", "name-" + rnd.nextInt(),
+                "shortName", "sn-" + rnd.nextInt()
+        ));
+
+        // Фиксация возраста
+        age = utRepl.markAuditAge();
+        System.out.println("age: " + age);
+
+        // Вставка B1 (region) со ссылкой на тольтко что вставленную А1 (regionTip)
+        long id1_region = dbu.getNextGenerator("g_region");
+        dbu.insertRec("region", UtCnv.toMap(
+                "id", id1_region,
+                "regionTip", id0_regionTip,
+                "parent", 0,
+                "name", "name-" + rnd.nextInt()
+        ));
+
+        // Фиксация возраста
+        age = utRepl.markAuditAge();
+        System.out.println("age: " + age);
+
+        // Обновление B1 (region) - замена ссылки на А1 (regionTip) с только что вставленнуй на уже существующую А0 (regionTip)
+        dbu.updateRec("region", UtCnv.toMap(
+                "id", id1_region,
+                "regionTip", id1_regionTip,
+                "parent", 0,
+                "name", "name-" + rnd.nextInt()
+        ));
+
+        // Фиксация возраста
+        age = utRepl.markAuditAge();
+        System.out.println("age: " + age);
+
+        // Удаление только что вставленной A1 (regionTip)
+        dbu.deleteRec("regionTip", id0_regionTip);
+
+        // Фиксация возраста
+        age = utRepl.markAuditAge();
+        System.out.println("age: " + age);
+    }
 
     @Test
     public void test_ws1_makeChange() throws Exception {
@@ -408,10 +516,29 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
+    public void test_srvMuteAll() throws Exception {
+        // Сервер, настройка
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init("test/etalon/mail_http_srv.json");
+
+        // Команда "MUTE" в общую очередь
+        srv.srvMuteAll();
+    }
+
+    @Test
+    public void test_srvUnmuteAll() throws Exception {
+        // Сервер, настройка
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init("test/etalon/mail_http_srv.json");
+
+        // Команда "UNMUTE" в общую очередь
+        srv.srvUnmuteAll();
+    }
+
+    @Test
     public void test_sync_srv() throws Exception {
         // Сервер, настройка
         JdxReplSrv srv = new JdxReplSrv(db);
-        //srv.init("test/etalon/srv.json");
         srv.init("test/etalon/mail_http_srv.json");
 
         // Формирование общей очереди

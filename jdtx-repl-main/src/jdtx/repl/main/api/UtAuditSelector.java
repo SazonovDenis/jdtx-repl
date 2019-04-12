@@ -1,13 +1,11 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.db.Db;
-import jandcode.dbm.db.DbQuery;
-import jandcode.utils.UtCnv;
-import jdtx.repl.main.api.struct.IJdxDbStruct;
-import jdtx.repl.main.api.struct.IJdxFieldStruct;
-import jdtx.repl.main.api.struct.IJdxTableStruct;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import jandcode.dbm.db.*;
+import jandcode.utils.*;
+import jdtx.repl.main.api.decoder.*;
+import jdtx.repl.main.api.replica.*;
+import jdtx.repl.main.api.struct.*;
+import org.apache.commons.logging.*;
 
 public class UtAuditSelector {
 
@@ -42,7 +40,7 @@ public class UtAuditSelector {
                 // Измененные данные помещаем в dataWriter
                 long n = 0;
                 while (!rsTableLog.eof()) {
-                    dataWriter.append();
+                    dataWriter.appendRec();
                     // Тип операции
                     dataWriter.setOprType(rsTableLog.getValueInt(JdxUtils.prefix + "opr_type"));
                     // Тело записи
@@ -101,9 +99,9 @@ public class UtAuditSelector {
 
                 //
                 if (toId >= fromId) {
-                    log.info("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], recs: " + (toId - fromId + 1));
+                    log.info("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], audit recs: " + (toId - fromId + 1));
                 } else {
-                    log.info("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], z_id: empty");
+                    log.debug("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], audit empty");
                 }
 
                 // изменения с указанным возрастом
@@ -127,9 +125,9 @@ public class UtAuditSelector {
 
         //
         if (toId >= fromId) {
-            log.info("selectAudit: " + tableName + ", age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], recs: " + (toId - fromId + 1));
+            log.info("selectAudit: " + tableName + ", age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], audit recs: " + (toId - fromId + 1));
         } else {
-            log.info("selectAudit: " + tableName + ", age: [" + ageFrom + ".." + ageTo + "], z_id: empty");
+            //log.debug("selectAudit: " + tableName + ", age: [" + ageFrom + ".." + ageTo + "], audit empty");
         }
 
         // Аудит в указанном диапазоне возрастов: id >= fromId и id <= toId
@@ -151,11 +149,32 @@ public class UtAuditSelector {
         return db.loadSql(query).getCurRec().getValueLong("id");
     }
 
-    protected String getSql(IJdxTableStruct tableFrom, String tableFields, long fromId, long toId) {
+    protected String getSql_z(IJdxTableStruct tableFrom, String tableFields, long fromId, long toId) {
         return "select " +
                 JdxUtils.prefix + "opr_type, " + tableFields +
                 " from " + JdxUtils.audit_table_prefix + tableFrom.getName() +
                 " where " + JdxUtils.prefix + "id >= " + fromId + " and " + JdxUtils.prefix + "id <= " + toId +
+                " order by " + JdxUtils.prefix + "id";
+    }
+
+    protected String getSql(IJdxTableStruct tableFrom, String tableFields, long fromId, long toId) {
+        String[] tableFromFields = tableFields.split(",");
+        StringBuilder sb = new StringBuilder();
+        for (String fieldName : tableFromFields) {
+            if (sb.length() != 0) {
+                sb.append(", ");
+            }
+            sb.append(tableFrom.getName()).append(".").append(fieldName);
+        }
+        String tableFieldsAlias = sb.toString();
+
+        //
+        String idFieldName = tableFrom.getPrimaryKey().get(0).getName();
+        return "select " +
+                JdxUtils.prefix + "opr_type, " + tableFieldsAlias +
+                " from " + JdxUtils.audit_table_prefix + tableFrom.getName() + ", " + tableFrom.getName() +
+                " where " + JdxUtils.audit_table_prefix + tableFrom.getName() + "." + idFieldName + " = " + tableFrom.getName() + "." + idFieldName +
+                "   and " + JdxUtils.prefix + "id >= " + fromId + " and " + JdxUtils.prefix + "id <= " + toId +
                 " order by " + JdxUtils.prefix + "id";
     }
 

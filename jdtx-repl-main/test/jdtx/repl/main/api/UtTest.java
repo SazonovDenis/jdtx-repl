@@ -18,16 +18,6 @@ public class UtTest extends UtilsTestCase {
         this.db = db;
     }
 
-    public void compareStruct(IJdxDbStruct struct_1, IJdxDbStruct struct_2) {
-        assertEquals("Количество таблиц", struct_1.getTables().size(), struct_2.getTables().size());
-        for (int t = 0; t < struct_1.getTables().size(); t++) {
-            assertEquals("Количество полей в таблице " + struct_1.getTables().get(t).getName(), struct_1.getTables().get(t).getFields().size(), struct_2.getTables().get(t).getFields().size());
-            for (int f = 0; f < struct_1.getTables().get(t).getFields().size(); f++) {
-                assertEquals("Поля в таблице " + struct_1.getTables().get(t).getName(), struct_1.getTables().get(t).getFields().get(f).getName(), struct_2.getTables().get(t).getFields().get(f).getName());
-            }
-        }
-    }
-
     public void dumpTable(String tableName, String outFileName, String sortBy) throws Exception {
         UtFile.mkdirs(outFileName.substring(0, outFileName.length() - UtFile.filename(outFileName).length()));
         //
@@ -39,6 +29,14 @@ public class UtTest extends UtilsTestCase {
         //
         OutTableSaver svr = new OutTableSaver(st);
         svr.save().toFile(outFileName);
+    }
+
+    public void changeDbStruct(String tableName) throws Exception {
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(db);
+        IJdxDbStruct struct = reader.readDbStruct();
+        String fieldName = "test_field_" + (struct.getTable(tableName).getFields().size() + 1);
+        db.execSql("alter table " + tableName + " add " + fieldName + " varchar(20)");
     }
 
     public void makeChange(IJdxDbStruct struct, long ws_id) throws Exception {
@@ -75,13 +73,13 @@ public class UtTest extends UtilsTestCase {
 
         //
         if (rnd.nextInt(5) == 0) {
-            long id_del = db.loadSql("select min(id) id from lic where id > 1360").getCurRec().getValueLong("id");
+            long id_del = db.loadSql("select min(Lic.id) id from Lic left join pawnchit on (Lic.id = PawnChit.Lic) where Lic.id <> 0 and PawnChit.id is null").getCurRec().getValueLong("id");
             if (id_del > 0) {
                 dbu.deleteRec("lic", id_del);
             }
         }
         if (rnd.nextInt(5) == 0) {
-            long id_del = db.loadSql("select min(id) id from lic where id > 101001360").getCurRec().getValueLong("id");
+            long id_del = db.loadSql("select max(Lic.id) id from Lic left join pawnchit on (Lic.id = PawnChit.Lic) where Lic.id <> 0 and PawnChit.id is null").getCurRec().getValueLong("id");
             if (id_del > 0) {
                 dbu.deleteRec("lic", id_del);
             }

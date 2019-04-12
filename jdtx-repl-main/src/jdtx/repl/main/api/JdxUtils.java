@@ -1,6 +1,8 @@
 package jdtx.repl.main.api;
 
 import jandcode.utils.*;
+import jandcode.utils.error.*;
+import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 
 import java.io.*;
@@ -113,5 +115,36 @@ public class JdxUtils {
             return UtString.toHexString(a);
         }
     }
+
+    public static void validateReplica(IReplica replica) {
+        // Проверки: правильность типа реплики
+        if (replica.getReplicaType() <= 0) {
+            throw new XError("invalid replica.replicaType");
+        }
+
+        // Реплика - системная команда?
+        if (replica.getReplicaType() == JdxReplicaType.MUTE || replica.getReplicaType() == JdxReplicaType.UNMUTE) {
+            return;
+        }
+
+        // Проверки: правильность возраста реплики
+        if (replica.getAge() <= -1) {
+            throw new XError("invalid replica.age");
+        }
+
+        // Проверки: правильность кода рабочей станции
+        if (replica.getWsId() <= 0) {
+            throw new XError("invalid replica.wsId");
+        }
+
+        // Проверки: обязательность файла
+        File replicaFile = replica.getFile();
+        if (replicaFile == null && replica.getReplicaType() != JdxReplicaType.SNAPSHOT) {
+            //if (replicaFile == null) { todo: почему?
+            throw new XError("invalid replica.file is null");
+        }
+
+    }
+
 
 }

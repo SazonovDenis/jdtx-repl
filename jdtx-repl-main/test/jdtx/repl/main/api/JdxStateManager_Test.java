@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import jdtx.repl.main.api.jdx_db_object.*;
 import org.junit.*;
 
 /**
@@ -18,9 +19,10 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
         ut.createRepl(wsId_1, "");
 
         //
-        ut.addWorkstation(wsId_1, "srv", "");
-        ut.addWorkstation(wsId_2, "ws 2", "");
-        ut.addWorkstation(wsId_3, "ws 3", "");
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.addWorkstation(wsId_1, "srv", "");
+        srv.addWorkstation(wsId_2, "ws 2", "");
+        srv.addWorkstation(wsId_3, "ws 3", "");
 
         //
         System.out.println("wsId_2: " + wsId_2);
@@ -120,38 +122,6 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
         System.out.println("mailSendDone: " + stateMailManager.getMailSendDone());
         System.out.println("mailSendDone: " + stateMailManager.getMailSendDone());
         System.out.println("mailSendDone: " + stateMailManager.getMailSendDone());
-    }
-
-
-    @Test
-    public void test_StateManagerMailSrv() throws Exception {
-/*
-        JdxStateManagerMail stateMailManager = new JdxStateManagerMail(db);
-
-        //
-        System.out.println("wsId: " + wsId_1 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_1));
-        System.out.println("wsId: " + wsId_2 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_2));
-        System.out.println("wsId: " + wsId_3 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_3));
-
-        // ---
-        stateMailManager.setMailSendDoneForWs(wsId_1, 20);
-        stateMailManager.setMailSendDoneForWs(wsId_2, 30);
-        stateMailManager.setMailSendDoneForWs(wsId_3, 40);
-
-        //
-        System.out.println("wsId: " + wsId_1 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_1));
-        System.out.println("wsId: " + wsId_2 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_2));
-        System.out.println("wsId: " + wsId_3 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_3));
-
-        // ---
-        stateMailManager.setMailSendDoneForWs(wsId_1, 201);
-        stateMailManager.setMailSendDoneForWs(wsId_2, 301);
-
-        //
-        System.out.println("wsId: " + wsId_1 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_1));
-        System.out.println("wsId: " + wsId_2 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_2));
-        System.out.println("wsId: " + wsId_3 + ", mailSendDone: " + stateMailManager.getMailSendDoneForWs(wsId_3));
-*/
     }
 
 

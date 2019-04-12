@@ -1,6 +1,7 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.db.*;
+import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 
@@ -30,7 +31,7 @@ public class UtDataSelector {
             // измененные данные помещаем в dataContainer
             long count = 0;
             while (!rsTableLog.eof()) {
-                dataContainer.append();
+                dataContainer.appendRec();
                 // Тип операции
                 dataContainer.setOprType(JdxOprType.OPR_INS);
                 // Тело записи

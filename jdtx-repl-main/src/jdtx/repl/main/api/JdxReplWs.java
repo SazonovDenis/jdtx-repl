@@ -5,6 +5,12 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
+import jdtx.repl.main.api.decoder.*;
+import jdtx.repl.main.api.jdx_db_object.*;
+import jdtx.repl.main.api.mailer.*;
+import jdtx.repl.main.api.publication.*;
+import jdtx.repl.main.api.que.*;
+import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
@@ -33,7 +39,7 @@ public class JdxReplWs {
     private IJdxDbStruct struct;
 
     //
-    IJdxMailer mailer;
+    IMailer mailer;
 
     //
     protected static Log log = LogFactory.getLog("jdtx");
@@ -42,10 +48,12 @@ public class JdxReplWs {
     //
     public JdxReplWs(Db db) throws Exception {
         this.db = db;
+
         // чтение структуры
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         struct = reader.readDbStruct();
+
         // Строго обязательно REPEATABLE_READ, иначе сохранение в age возраста аудита
         // будет не синхронно с изменениями в таблицах аудита.
         this.db.getConnection().setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
@@ -61,6 +69,10 @@ public class JdxReplWs {
      * @param cfgFileName json-файл с конфигурацией
      */
     public void init(String cfgFileName) throws Exception {
+        // Проверка структур аудита
+        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
+        ut.checkReplVerDb();
+
         // Код нашей станции
         DataRecord rec = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info").getCurRec();
         if (rec.getValueLong("ws_id") == 0) {
@@ -125,7 +137,7 @@ public class JdxReplWs {
         cfgWs.put("url", url);
 
         // Мейлер
-        mailer = new UtMailerHttp();
+        mailer = new MailerHttp();
         mailer.init(cfgWs);
 
         // Стратегии перекодировки каждой таблицы
@@ -144,27 +156,25 @@ public class JdxReplWs {
         log.info("createReplicaSnapshot, wsId: " + wsId);
 
         //
-        UtRepl utr = new UtRepl(db);
+        UtRepl utRepl = new UtRepl(db, struct);
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
-        // Проверяем, что весь свой аудит мы уже выложили в очередь
-        long auditAgeDone = stateManager.getAuditAgeDone();
-        long auditAgeActual = utr.getAuditAge();
-        if (auditAgeActual != auditAgeDone) {
-            throw new XError("invalid auditAgeActual != auditAgeDone, auditAgeDone: " + auditAgeDone + ", auditAgeActual: " + auditAgeActual);
-        }
+        // Весь свой аудит выкладываем в очередь.
+        // Это делается потому, что queOut.put() следит за монотонным увеличением возраста,
+        // а ним надо сделать искусственное увеличение возраста.
+        handleSelfAudit();
 
         //
         db.startTran();
         try {
-            // Увеличиваем возраст (установочная реплика просто сдвигает возраст БД)
-            long age = utr.incAuditAge();
+            // Искусственно увеличиваем возраст (установочная реплика сдвигает возраст БД на 1)
+            long age = utRepl.incAuditAge();
             log.info("createReplicaSnapshot, new age: " + age);
 
             //
             for (IPublication publication : publicationsOut) {
                 // Забираем установочную реплику
-                IReplica replicaSnapshot = utr.createReplicaSnapshot(wsId, publication, age);
+                IReplica replicaSnapshot = utRepl.createReplicaSnapshot(wsId, publication, age);
 
                 // Помещаем реплику в очередь
                 queOut.put(replicaSnapshot);
@@ -192,11 +202,24 @@ public class JdxReplWs {
         log.info("handleSelfAudit, wsId: " + wsId);
 
         //
-        UtAuditAgeManager ut = new UtAuditAgeManager(db, struct);
-        UtRepl utr = new UtRepl(db);
+        UtRepl utRepl = new UtRepl(db, struct);
+
+        // Если в стостоянии "я замолчал", то молчим
+        JdxMuteManagerWs utmm = new JdxMuteManagerWs(db);
+        if (utmm.isMute()) {
+            log.info("handleSelfAudit, workstation is mute");
+            return;
+        }
+
+        // Проверяем совпадает ли реальная структура БД с утвержденной структурой
+        IJdxDbStruct structStored = utRepl.dbStructLoad();
+        if (structStored != null && !UtDbComparer.dbStructIsEqual(struct, structStored)) {
+            log.info("handleSelfAudit, dbstruct is not match");
+            return;
+        }
 
         // Узнаем (и заодно фиксируем) возраст своего аудита
-        long auditAgeActual = ut.markAuditAge();
+        long auditAgeActual = utRepl.markAuditAge();
 
         // До какого возраста сформировали реплики для своего аудита
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
@@ -206,7 +229,7 @@ public class JdxReplWs {
         long count = 0;
         for (long age = auditAgeDone + 1; age <= auditAgeActual; age++) {
             for (IPublication publication : publicationsOut) {
-                IReplica replica = utr.createReplicaFromAudit(wsId, publication, age);
+                IReplica replica = utRepl.createReplicaFromAudit(wsId, publication, age);
 
                 //
                 db.startTran();
@@ -223,7 +246,6 @@ public class JdxReplWs {
                     db.rollback(e);
                     throw e;
                 }
-
             }
 
             //
@@ -249,6 +271,7 @@ public class JdxReplWs {
 
         //
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+        JdxMuteManagerWs muteManager = new JdxMuteManagerWs(db);
 
         //
         long queInNoDone = stateManager.getQueInNoDone();
@@ -262,25 +285,69 @@ public class JdxReplWs {
             //
             IReplica replica = queIn.getByNo(no);
 
-            // Свои собственные установочные реплики можно не применять
-            if (replica.getWsId() != wsId || replica.getReplicaType() != JdxReplicaType.EXPORT) {
-                for (IPublication publication : publicationsIn) {
-                    InputStream inputStream = null;
+            switch (replica.getReplicaType()) {
+                case JdxReplicaType.MUTE: {
+                    // Реакция на команду - перевод в режим "MUTE"
+
+                    // Обработка собственного аудита
+                    handleSelfAudit();
+
+                    // Переход в состояние "Я замолчал"
+                    muteManager.muteWorkstation();
+
+                    // Выкладывание реплики "Я замолчал"
+                    reportMuteDone();
+
+                    //
+                    break;
+                }
+                case JdxReplicaType.UNMUTE: {
+                    // Реакция на команду - отключение режима "MUTE"
+
+                    // В этой реплике - новая утвержденная структура
+                    InputStream stream = UtRepl.getReplicaInputStream(replica);
                     try {
-                        // Откроем Zip-файл
-                        inputStream = UtRepl.createReplicaInputStream(replica);
-
-                        //
-                        JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
-
-                        //
-                        applyer.applyReplica(replicaReader, publication, wsId);
+                        UtRepl utRepl = new UtRepl(db, struct);
+                        utRepl.dbStructSave(stream);
                     } finally {
-                        // Закроем читателя Zip-файла
-                        if (inputStream != null) {
-                            inputStream.close();
+                        stream.close();
+                    }
+
+                    // Выход из состояния "Я замолчал"
+                    muteManager.unmuteWorkstation();
+
+                    //
+                    break;
+                }
+                case JdxReplicaType.IDE:
+                case JdxReplicaType.SNAPSHOT: {
+                    // Свои собственные установочные реплики можно не применять
+                    if (replica.getWsId() == wsId && replica.getReplicaType() == JdxReplicaType.SNAPSHOT) {
+                        break;
+                    }
+
+                    // Применение реплик
+                    for (IPublication publication : publicationsIn) {
+                        InputStream inputStream = null;
+                        try {
+                            // Откроем Zip-файл
+                            inputStream = UtRepl.getReplicaInputStream(replica);
+
+                            //
+                            JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
+
+                            //
+                            applyer.applyReplica(replicaReader, publication, wsId);
+                        } finally {
+                            // Закроем читателя Zip-файла
+                            if (inputStream != null) {
+                                inputStream.close();
+                            }
                         }
                     }
+
+                    //
+                    break;
                 }
             }
 
@@ -300,10 +367,53 @@ public class JdxReplWs {
     }
 
 
+    /**
+     * Рабочая станция: отправка ответа "я замолчал" в исходящую очередь
+     */
+    public void reportMuteDone() throws Exception {
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+        UtRepl utRepl = new UtRepl(db, struct);
+
+        // Весь свой аудит предварительно выкладываем в очередь.
+        // Это делается потому, что queOut.put() следит за монотонным увеличением возраста,
+        // а ним надо сделать искусственное увеличение возраста.
+        handleSelfAudit();
+
+        // Искусственно увеличиваем возраст (системная реплика сдвигает возраст БД на 1)
+        long age = utRepl.incAuditAge();
+        log.info("reportMuteDone, new age: " + age);
+
+        //
+        IReplica replica = new ReplicaFile();
+        replica.setReplicaType(JdxReplicaType.MUTE_DONE);
+        replica.setWsId(wsId);
+        replica.setAge(age);
+
+        //
+        utRepl.createOutput(replica);
+        utRepl.closeOutput();
+
+        //
+        db.startTran();
+        try {
+            // Системная реплика - в исходящую очередь реплик
+            queOut.put(replica);
+
+            // Системная реплика - отметка об отправке
+            stateManager.setAuditAgeDone(age);
+
+            //
+            db.commit();
+        } catch (Exception e) {
+            db.rollback(e);
+            throw e;
+        }
+    }
+
     public void receiveFromDir(String cfgFileName, String mailDir) throws Exception {
         // Готовим локальный мейлер
         mailDir = UtFile.unnormPath(mailDir) + "/";
-        String guid = ((UtMailerHttp) mailer).guid;
+        String guid = ((MailerHttp) mailer).guid;
         String guidPath = guid.replace("-", "/");
 
         //
@@ -314,7 +424,7 @@ public class JdxReplWs {
         cfgWs.put("mailRemoteDir", mailDir + guidPath);
 
         // Мейлер
-        IJdxMailer mailerLocal = new UtMailerLocalFiles();
+        IMailer mailerLocal = new MailerLocalFiles();
         mailerLocal.init(cfgWs);
 
 
@@ -329,7 +439,7 @@ public class JdxReplWs {
     }
 
 
-    void receiveInternal(IJdxMailer mailer) throws Exception {
+    void receiveInternal(IMailer mailer) throws Exception {
         // Узнаем сколько получено у нас
         long selfReceivedNo = queIn.getMaxNo();
 
@@ -339,14 +449,14 @@ public class JdxReplWs {
         //
         long count = 0;
         for (long no = selfReceivedNo + 1; no <= srvAvailableNo; no++) {
-            log.info("UtMailer, wsId: " + wsId + ", receiving.no: " + no);
+            log.info("receive, wsId: " + wsId + ", receiving.no: " + no);
 
             // Информацмия о реплике с почтового сервера
-            JdxReplInfo info = mailer.getInfo(no, "to");
+            ReplicaInfo info = mailer.getInfo(no, "to");
 
             // Нужно ли скачивать эту реплику с сервера?
             IReplica replica;
-            if (info.wsId == wsId && info.replicaType == JdxReplicaType.EXPORT) {
+            if (info.wsId == wsId && info.replicaType == JdxReplicaType.SNAPSHOT) {
                 // Свои собственные установочные реплики можно не скачивать (и не применять)
                 log.info("Found self snapshot replica, age: " + info.age);
                 //
@@ -357,17 +467,23 @@ public class JdxReplWs {
             } else {
                 // Физически забираем данные реплики с сервера
                 replica = mailer.receive(no, "to");
-                //
+                // Проверяем целостность скачанного
                 String md5file = JdxUtils.getMd5File(replica.getFile());
                 if (!md5file.equals(info.crc)) {
                     log.error("receive.replica: " + replica.getFile());
                     log.error("receive.replica.md5: " + md5file);
                     log.error("mailer.info.crc: " + info.crc);
+                    // Неправильно скачанный файл - удаляем, чтобы потом начать снова
+                    replica.getFile().delete();
+                    // Ошибка
                     throw new XError("receive.replica.md5 <> mailer.info.crc");
                 }
                 //
                 JdxReplicaReaderXml.readReplicaInfo(replica);
             }
+
+            //
+            log.debug("replica.age: " + replica.getAge() + ", replica.wsId: " + replica.getWsId());
 
             // Помещаем реплику в свою входящую очередь
             queIn.put(replica);
@@ -393,7 +509,7 @@ public class JdxReplWs {
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
         //
         mailDir = UtFile.unnormPath(mailDir) + "/";
-        String guid = ((UtMailerHttp) mailer).guid;
+        String guid = ((MailerHttp) mailer).guid;
         String guidPath = guid.replace("-", "/");
 
         // Конфиг для мейлера
@@ -401,7 +517,7 @@ public class JdxReplWs {
         cfgData.put("mailRemoteDir", mailDir + guidPath);
 
         // Мейлер
-        IJdxMailer mailerLocal = new UtMailerLocalFiles();
+        IMailer mailerLocal = new MailerLocalFiles();
         mailerLocal.init(cfgData);
 
 
@@ -439,7 +555,7 @@ public class JdxReplWs {
         sendInternal(mailer, srvSendAge + 1, selfQueOutAge, true);
     }
 
-    void sendInternal(IJdxMailer mailer, long age_from, long age_to, boolean doMarkDone) throws Exception {
+    void sendInternal(IMailer mailer, long age_from, long age_to, boolean doMarkDone) throws Exception {
         JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
 
         //

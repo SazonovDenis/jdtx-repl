@@ -5,6 +5,12 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
+import jdtx.repl.main.api.decoder.*;
+import jdtx.repl.main.api.jdx_db_object.*;
+import jdtx.repl.main.api.mailer.*;
+import jdtx.repl.main.api.que.*;
+import jdtx.repl.main.api.replica.*;
+import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
 
@@ -21,10 +27,11 @@ public class JdxReplSrv {
     IJdxQueCommon commonQue;
 
     // Источник для чтения/отправки сообщений всех рабочих станций
-    Map<Long, IJdxMailer> mailerList;
+    Map<Long, IMailer> mailerList;
 
     //
     Db db;
+    private IJdxDbStruct struct;
 
 
     //
@@ -40,6 +47,11 @@ public class JdxReplSrv {
 
         // Почтовые курьеры для чтения/отправки сообщений, для каждой рабочей станции
         mailerList = new HashMap<>();
+
+        // чтение структуры
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(db);
+        struct = reader.readDbStruct();
     }
 
     /**
@@ -48,12 +60,19 @@ public class JdxReplSrv {
      * @param cfgFileName json-файл с конфигурацией
      */
     public void init(String cfgFileName) throws Exception {
+        // Проверка структур аудита
+        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
+        ut.checkReplVerDb();
+
+        //
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
+
         //
         String url = (String) cfgData.get("url");
 
         // Список активных рабочих станций
-        DataStore st = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list where enabled = 1");
+        String sql = "select Z_Z_workstation_list.* from Z_Z_workstation_list join Z_Z_state_ws on (Z_Z_workstation_list.id = Z_Z_state_ws.ws_id) where Z_Z_state_ws.enabled = 1";
+        DataStore st = db.loadSql(sql);
 
         // Почтовые курьеры, отдельные для каждой станции
         for (DataRecord rec : st) {
@@ -69,7 +88,7 @@ public class JdxReplSrv {
             cfgWs.put("url", url);
 
             // Мейлер
-            IJdxMailer mailer = new UtMailerHttp();
+            IMailer mailer = new MailerHttp();
             mailer.init(cfgWs);
 
             //
@@ -86,6 +105,43 @@ public class JdxReplSrv {
         RefDecodeStrategy.instance.init(strategyCfgName);
     }
 
+    public void addWorkstation(long wsId, String wsName, String wsGuid) throws Exception {
+        log.info("add workstation, wsId: " + wsId + ", name: " + wsName);
+
+        // workstation_list
+        Map params = UtCnv.toMap(
+                "id", wsId,
+                "name", wsName,
+                "guid", wsGuid
+        );
+        String sql = "insert into " + JdxUtils.sys_table_prefix + "workstation_list (id, name, guid) values (:id, :name, :guid)";
+        db.execSql(sql, params);
+
+        // state_ws
+        DbUtils dbu = new DbUtils(db, null);
+        long id = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "state_ws");
+        sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws (id, ws_id, que_common_dispatch_done, que_in_age_done, enabled, mute_age) values (" + id + ", " + wsId + ", 0, 0, 0, 0)";
+        db.execSql(sql);
+    }
+
+    public void enableWorkstation(long wsId) throws Exception {
+        log.info("enable workstation, wsId: " + wsId);
+        //
+        String sql = "update " + JdxUtils.sys_table_prefix + "state_ws set enabled = 1 where id = " + wsId;
+        db.execSql(sql);
+        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 1 where id = 1";
+        db.execSql(sql);
+    }
+
+    public void disableWorkstation(long wsId) throws Exception {
+        log.info("disable workstation, wsId: " + wsId);
+        //
+        String sql = "update " + JdxUtils.sys_table_prefix + "state_ws set enabled = 0 where id = " + wsId;
+        db.execSql(sql);
+        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 0 where id = 1";
+        db.execSql(sql);
+    }
+
     public void srvHandleCommonQue() throws Exception {
         srvHandleCommonQue(mailerList, commonQue);
     }
@@ -96,7 +152,7 @@ public class JdxReplSrv {
 
     public void srvHandleCommonQueFrom(String cfgFileName, String mailDir) throws Exception {
         // Готовим локальных курьеров (через папку)
-        Map<Long, IJdxMailer> mailerListLocal = new HashMap<>();
+        Map<Long, IMailer> mailerListLocal = new HashMap<>();
         fillMailerListLocal(mailerListLocal, cfgFileName, mailDir, 0);
 
         // Физически забираем данные
@@ -105,11 +161,39 @@ public class JdxReplSrv {
 
     public void srvDispatchReplicasToDir(String cfgFileName, String mailDir, long age_from, long age_to, long destinationWsId, boolean doMarkDone) throws Exception {
         // Готовим локальных курьеров (через папку)
-        Map<Long, IJdxMailer> mailerListLocal = new HashMap<>();
+        Map<Long, IMailer> mailerListLocal = new HashMap<>();
         fillMailerListLocal(mailerListLocal, cfgFileName, mailDir, destinationWsId);
 
         // Физически отправляем данные
         srvDispatchReplicas(commonQue, mailerListLocal, age_from, age_to, doMarkDone);
+    }
+
+    /**
+     * Сервер: отправка команды "всем молчать" в общую очередь
+     */
+    public void srvMuteAll() throws Exception {
+        log.info("srvMuteAll");
+
+        //
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.createReplicaMute();
+
+        // Системная команда - в исходящую очередь реплик
+        commonQue.put(replica);
+    }
+
+    /**
+     * Сервер: отправка команды "всем говорить" в общую очередь
+     */
+    public void srvUnmuteAll() throws Exception {
+        log.info("srvUnmuteAll");
+
+        //
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.createReplicaUnmute();
+
+        // Системная команда - в исходящую очередь реплик
+        commonQue.put(replica);
     }
 
     /**
@@ -118,11 +202,11 @@ public class JdxReplSrv {
      * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
      * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
      */
-    private void srvHandleCommonQue(Map<Long, IJdxMailer> mailerList, IJdxQueCommon commonQue) throws Exception {
+    private void srvHandleCommonQue(Map<Long, IMailer> mailerList, IJdxQueCommon commonQue) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
         for (Map.Entry en : mailerList.entrySet()) {
             long wsId = (long) en.getKey();
-            IJdxMailer mailer = (IJdxMailer) en.getValue();
+            IMailer mailer = (IMailer) en.getValue();
 
             // Обрабатываем каждую станцию
             try {
@@ -135,8 +219,24 @@ public class JdxReplSrv {
                 //
                 long count = 0;
                 for (long age = queDoneAge + 1; age <= queMaxAge; age++) {
+                    log.info("receive, wsId: " + wsId + ", receiving.age: " + age);
+
+                    // Информацмия о реплике с почтового сервера
+                    ReplicaInfo info = mailer.getInfo(age, "from");
+
                     // Физически забираем данные с почтового сервера
                     IReplica replica = mailer.receive(age, "from");
+                    // Проверяем целостность скачанного
+                    String md5file = JdxUtils.getMd5File(replica.getFile());
+                    if (!md5file.equals(info.crc)) {
+                        log.error("receive.replica: " + replica.getFile());
+                        log.error("receive.replica.md5: " + md5file);
+                        log.error("mailer.info.crc: " + info.crc);
+                        // Неправильно скачанный файл - удаляем, чтобы потом начать снова
+                        replica.getFile().delete();
+                        // Ошибка
+                        throw new XError("receive.replica.md5 <> mailer.info.crc");
+                    }
                     //
                     JdxReplicaReaderXml.readReplicaInfo(replica);
 
@@ -146,9 +246,10 @@ public class JdxReplSrv {
                     // Помещаем полученные данные в общую очередь
                     db.startTran();
                     try {
+                        // Помещаем в очередь
                         commonQue.put(replica);
 
-                        //
+                        // Отмечаем факт скачивания
                         stateManager.setWsQueInAgeDone(wsId, age);
 
                         //
@@ -183,7 +284,7 @@ public class JdxReplSrv {
     /**
      * Сервер: распределение общей очереди по рабочим станциям
      */
-    private void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IJdxMailer> mailerList, long age_from, long age_to, boolean doMarkDone) throws Exception {
+    private void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IMailer> mailerList, long age_from, long age_to, boolean doMarkDone) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
 
         // До скольки раздавать
@@ -196,7 +297,7 @@ public class JdxReplSrv {
         //
         for (Map.Entry en : mailerList.entrySet()) {
             long wsId = (long) en.getKey();
-            IJdxMailer mailer = (IJdxMailer) en.getValue();
+            IMailer mailer = (IMailer) en.getValue();
 
             // Обрабатываем каждую станцию
             try {
@@ -260,7 +361,7 @@ public class JdxReplSrv {
     /**
      * Готовим спосок локальных (через папку) мейлеров, отдельные для каждой станции
      */
-    private void fillMailerListLocal(Map<Long, IJdxMailer> mailerListLocal, String cfgFileName, String mailDir, long destinationWsId) throws Exception {
+    private void fillMailerListLocal(Map<Long, IMailer> mailerListLocal, String cfgFileName, String mailDir, long destinationWsId) throws Exception {
         // Список активных рабочих станций
         String sql;
         if (destinationWsId != 0) {
@@ -268,7 +369,7 @@ public class JdxReplSrv {
             sql = "select * from " + JdxUtils.sys_table_prefix + "workstation_list where id = " + destinationWsId;
         } else {
             // Берем только активные
-            sql = "select * from " + JdxUtils.sys_table_prefix + "workstation_list where enabled = 1";
+            sql = "select Z_Z_workstation_list.* from Z_Z_workstation_list join Z_Z_state_ws on (Z_Z_workstation_list.id = Z_Z_state_ws.ws_id) where Z_Z_state_ws.enabled = 1";
         }
         DataStore st = db.loadSql(sql);
 
@@ -290,7 +391,7 @@ public class JdxReplSrv {
             cfgWs.put("mailRemoteDir", mailDir + guidPath);
 
             // Мейлер
-            IJdxMailer mailerLocal = new UtMailerLocalFiles();
+            IMailer mailerLocal = new MailerLocalFiles();
             mailerLocal.init(cfgWs);
 
             //
