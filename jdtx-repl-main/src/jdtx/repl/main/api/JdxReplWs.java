@@ -264,7 +264,7 @@ public class JdxReplWs {
      * Применяем входящие реплики
      */
     public void handleQueIn() throws Exception {
-        log.info("handleQueIn, wsId: " + wsId);
+        log.info("handleQueIn, self.wsId: " + wsId);
 
         //
         UtAuditApplyer applyer = new UtAuditApplyer(db, struct);
@@ -280,7 +280,7 @@ public class JdxReplWs {
         //
         long count = 0;
         for (long no = queInNoDone + 1; no <= queInNoAvailable; no++) {
-            log.info("handleQueIn, wsId: " + wsId + ", no: " + no + " (" + count + "/" + (queInNoAvailable - queInNoDone) + ")");
+            log.info("handleQueIn, self.wsId: " + wsId + ", no: " + no + " (" + count + "/" + (queInNoAvailable - queInNoDone) + ")");
 
             //
             IReplica replica = queIn.getByNo(no);
@@ -360,9 +360,9 @@ public class JdxReplWs {
 
         //
         if (count == 0) {
-            log.info("handleQueIn, wsId: " + wsId + ", queIn: " + queInNoDone + ", nothing to do");
+            log.info("handleQueIn, self.wsId: " + wsId + ", queIn: " + queInNoDone + ", nothing to do");
         } else {
-            log.info("handleQueIn, wsId: " + wsId + ", queIn: " + queInNoDone + " -> " + queInNoAvailable + ", done count: " + count);
+            log.info("handleQueIn, self.wsId: " + wsId + ", queIn: " + queInNoDone + " -> " + queInNoAvailable + ", done count: " + count);
         }
     }
 
