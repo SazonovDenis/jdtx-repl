@@ -35,8 +35,7 @@ public class UtAuditApplyer {
      * Применить данные из dataReader на рабочей станции selfWsId
      */
     public void applyReplica(JdxReplicaReaderXml dataReader, IPublication publication, long selfWsId) throws Exception {
-        log.info("applyReplica, self.WsId: " + selfWsId);
-        log.info("  replica.WsId: " + dataReader.getWsId() + ", replica.age: " + dataReader.getAge());
+        log.info("applyReplica, self.WsId: " + selfWsId + ", replica.WsId: " + dataReader.getWsId() + ", replica.age: " + dataReader.getAge());
 
         //
         List<IJdxTableStruct> tables = struct.getTables();

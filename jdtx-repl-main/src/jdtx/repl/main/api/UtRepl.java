@@ -71,13 +71,6 @@ public class UtRepl {
         decodeManager.dropRefDecodeObject();
     }
 
-    /**
-     * Зафиксировать возраст рабочей станции
-     */
-    public long markAuditAge() throws Exception {
-        UtAuditAgeManager ut = new UtAuditAgeManager(db, struct);
-        return ut.markAuditAge();
-    }
 
 
     /**
@@ -339,5 +332,9 @@ public class UtRepl {
         db.execSql("update Z_Z_state set db_struct = :db_struct where id = 1", UtCnv.toMap("db_struct", bytes));
     }
 
+
+    public static boolean tableSkipRepl(IJdxTableStruct table) {
+        return table.getPrimaryKey().size() == 0;
+    }
 
 }

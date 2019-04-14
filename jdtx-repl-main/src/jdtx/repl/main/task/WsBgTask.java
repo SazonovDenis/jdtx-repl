@@ -4,6 +4,7 @@ import jandcode.bgtasks.*;
 import jandcode.dbm.*;
 import jandcode.dbm.db.*;
 import jdtx.repl.main.api.*;
+import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
 
 /**
@@ -36,8 +37,7 @@ public class WsBgTask extends BgTask {
         try {
             step_ws();
         } catch (Exception e) {
-            logError("Рабочая станция: " + extractMsg(e));
-            e.printStackTrace();
+            logError(e, "Рабочая станция: ");
         }
     }
 
@@ -62,7 +62,7 @@ public class WsBgTask extends BgTask {
             try {
                 ws.handleSelfAudit();
             } catch (Exception e) {
-                logError(extractMsg(e));
+                logError(e);
             }
 
             //
@@ -70,7 +70,7 @@ public class WsBgTask extends BgTask {
             try {
                 ws.send();
             } catch (Exception e) {
-                logError(extractMsg(e));
+                logError(e);
             }
 
             //
@@ -78,7 +78,7 @@ public class WsBgTask extends BgTask {
             try {
                 ws.receive();
             } catch (Exception e) {
-                logError(extractMsg(e));
+                logError(e);
             }
 
             //
@@ -86,7 +86,7 @@ public class WsBgTask extends BgTask {
             try {
                 ws.handleQueIn();
             } catch (Exception e) {
-                logError(extractMsg(e));
+                logError(e);
             }
 
             //
@@ -96,24 +96,20 @@ public class WsBgTask extends BgTask {
         }
     }
 
-    String extractMsg(Exception e) {
-        String msg;
-        if (e.getCause() != null) {
-            msg = e.getCause().getMessage();
-        } else {
-            msg = e.getMessage();
-        }
-        return msg;
+
+    void logInfo(String info) {
+        log.info(info);
+        getLogger().put("state", info);
     }
 
-    void logInfo(String s) {
-        log.info(s);
-        getLogger().put("state", s);
+    void logError(Exception e, String info) {
+        getLogger().put("state", info + Ut.getExceptionMessage(e));
+        log.error(info + Ut.getExceptionMessage(e));
+        log.error(Ut.getStackTrace(e));
     }
 
-    void logError(String s) {
-        log.error(s);
-        getLogger().put("state", s);
+    void logError(Exception e) {
+        logError(e, "");
     }
 
 }

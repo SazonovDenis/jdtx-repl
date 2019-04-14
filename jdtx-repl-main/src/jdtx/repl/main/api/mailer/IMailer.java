@@ -17,13 +17,13 @@ public interface IMailer {
      */
     long getSrvSate(String box) throws Exception;
 
-    void send(IReplica repl, long n, String box) throws Exception;
+    void send(IReplica repl, long no, String box) throws Exception;
 
-    IReplica receive(long n, String box) throws Exception;
+    IReplica receive(long no, String box) throws Exception;
 
-    ReplicaInfo getInfo(long n, String box) throws Exception;
+    ReplicaInfo getInfo(long no, String box) throws Exception;
 
-    void delete(long n, String box) throws Exception;
+    void delete(long no, String box) throws Exception;
 
     void ping(String box) throws Exception;
 

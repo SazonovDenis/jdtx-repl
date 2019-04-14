@@ -34,4 +34,23 @@ public class Ut {
         }
     }
 
+    public static String getStackTrace(Exception e) {
+        StringWriter swr = new StringWriter();
+        PrintWriter wr = new PrintWriter(swr);
+        e.printStackTrace(wr);
+        return swr.getBuffer().toString();
+    }
+
+    public static String getExceptionMessage(Exception e) {
+        String msg;
+        if (e.getCause() != null) {
+            msg = e.getCause().getMessage();
+        } else {
+            msg = e.getMessage();
+        }
+        return msg;
+    }
+
+
+
 }

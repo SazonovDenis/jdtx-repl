@@ -1,286 +1,282 @@
 [
   {
-    "table": "appupdate",
+    "table": "BILLINGVARHIST",
     "fields": "*"
   },
   {
-    "table": "billingvarhist",
+    "table": "BILLINGVARVALUES",
     "fields": "*"
   },
   {
-    "table": "billingvarvalues",
+    "table": "BONDTIP",
     "fields": "*"
   },
   {
-    "table": "bondtip",
+    "table": "CASHENCASH",
     "fields": "*"
   },
   {
-    "table": "cashencash",
+    "table": "CASHENCASHREASON",
     "fields": "*"
   },
   {
-    "table": "cashencashreason",
+    "table": "CASHLOG",
     "fields": "*"
   },
   {
-    "table": "cashlog",
+    "table": "CASHORDERGEN",
     "fields": "*"
   },
   {
-    "table": "cashordergen",
+    "table": "CASHSUMM",
     "fields": "*"
   },
   {
-    "table": "cashsumm",
+    "table": "COMMENTTEXT",
     "fields": "*"
   },
   {
-    "table": "commenttext",
+    "table": "COMMENTTIP",
     "fields": "*"
   },
   {
-    "table": "commenttip",
+    "table": "DATATIP",
     "fields": "*"
   },
   {
-    "table": "datatip",
+    "table": "DAYOFF",
     "fields": "*"
   },
   {
-    "table": "dayoff",
+    "table": "DBINFO",
     "fields": "*"
   },
   {
-    "table": "dbinfo",
+    "table": "DICTLIST",
     "fields": "*"
   },
   {
-    "table": "dictlist",
+    "table": "DICTLISTVAL",
     "fields": "*"
   },
   {
-    "table": "dictlistval",
+    "table": "INVENTORY",
     "fields": "*"
   },
   {
-    "table": "inventory",
+    "table": "INVENTORYBOND",
     "fields": "*"
   },
   {
-    "table": "inventorybond",
+    "table": "INVENTORYCASH",
     "fields": "*"
   },
   {
-    "table": "inventorycash",
+    "table": "INVENTORYCHECKSUBJECT",
     "fields": "*"
   },
   {
-    "table": "inventorychecksubject",
+    "table": "INVENTORYEXTRASUBJECT",
     "fields": "*"
   },
   {
-    "table": "inventoryextrasubject",
+    "table": "INVENTORYMISSINGSUBJECT",
     "fields": "*"
   },
   {
-    "table": "inventorymissingsubject",
+    "table": "INVENTORYUSR",
     "fields": "*"
   },
   {
-    "table": "inventoryusr",
+    "table": "LIC",
     "fields": "*"
   },
   {
-    "table": "lic",
+    "table": "LICDAT",
     "fields": "*"
   },
   {
-    "table": "licdat",
+    "table": "LICDOCTIP",
     "fields": "*"
   },
   {
-    "table": "licdoctip",
+    "table": "LICDOCVID",
     "fields": "*"
   },
   {
-    "table": "licdocvid",
+    "table": "MEASURE",
     "fields": "*"
   },
   {
-    "table": "measure",
+    "table": "NCH",
     "fields": "*"
   },
   {
-    "table": "nch",
+    "table": "NCHOPL",
     "fields": "*"
   },
   {
-    "table": "nchopl",
+    "table": "NCHTIP",
     "fields": "*"
   },
   {
-    "table": "nchtip",
+    "table": "OPERDAY",
     "fields": "*"
   },
   {
-    "table": "operday",
+    "table": "OPERDAYUSR",
     "fields": "*"
   },
   {
-    "table": "operdayusr",
+    "table": "OPR",
     "fields": "*"
   },
   {
-    "table": "opr",
+    "table": "OPRTIP",
     "fields": "*"
   },
   {
-    "table": "oprtip",
+    "table": "PAWNCHIT",
     "fields": "*"
   },
   {
-    "table": "pawnchit",
+    "table": "PAWNCHITDAT",
     "fields": "*"
   },
   {
-    "table": "pawnchitdat",
+    "table": "PAWNCHITDATSTRUCT",
     "fields": "*"
   },
   {
-    "table": "pawnchitdatstruct",
+    "table": "PAWNCHITDATSTRUCTVALUES",
     "fields": "*"
   },
   {
-    "table": "pawnchitdatstructvalues",
+    "table": "PAWNCHITOPR",
     "fields": "*"
   },
   {
-    "table": "pawnchitopr",
+    "table": "PAWNCHITSTATUSTIP",
     "fields": "*"
   },
   {
-    "table": "pawnchitstatustip",
+    "table": "PAWNCHITSUBJECT",
     "fields": "*"
   },
   {
-    "table": "pawnchitsubject",
+    "table": "PAWNCHITSUBJECTEXHIBIT",
     "fields": "*"
   },
   {
-    "table": "pawnchitsubjectexhibit",
+    "table": "PAWNCHITSUBJECTSELL",
     "fields": "*"
   },
   {
-    "table": "pawnchitsubjectsell",
+    "table": "PAWNCHITSUBJECTSTATUSTIP",
     "fields": "*"
   },
   {
-    "table": "pawnchitsubjectstatustip",
+    "table": "PAWNCHITSUBJECTTOSALE",
     "fields": "*"
   },
   {
-    "table": "pawnchitsubjecttosale",
+    "table": "PAWNRECEIPT",
     "fields": "*"
   },
   {
-    "table": "pawnreceipt",
+    "table": "REGION",
     "fields": "*"
   },
   {
-    "table": "region",
+    "table": "REGIONTIP",
     "fields": "*"
   },
   {
-    "table": "regiontip",
+    "table": "STORNOPR",
     "fields": "*"
   },
   {
-    "table": "stornopr",
+    "table": "SUBJECTENCASH",
     "fields": "*"
   },
   {
-    "table": "subjectencash",
+    "table": "SUBJECTENCASHREASON",
     "fields": "*"
   },
   {
-    "table": "subjectencashreason",
+    "table": "SUBJECTTIP",
     "fields": "*"
   },
   {
-    "table": "subjecttip",
+    "table": "SUBJECTTIPPROPERT",
     "fields": "*"
   },
   {
-    "table": "subjecttippropert",
+    "table": "TARIFFPLAN",
     "fields": "*"
   },
   {
-    "table": "tariffplan",
+    "table": "TARIFFPLANBILLINGVAR",
     "fields": "*"
   },
   {
-    "table": "tariffplanbillingvar",
+    "table": "TARIFFPLANPERCSTAVKA",
     "fields": "*"
   },
   {
-    "table": "tariffplanpercstavka",
+    "table": "TARIFFPLANREFLIC",
     "fields": "*"
   },
   {
-    "table": "tariffplanreflic",
+    "table": "TARIFFPLANREFSUBJECTTIP",
     "fields": "*"
   },
   {
-    "table": "tariffplanrefsubjecttip",
+    "table": "TARIFFPLANVER",
     "fields": "*"
   },
   {
-    "table": "tariffplanver",
+    "table": "ULZ",
     "fields": "*"
   },
   {
-    "table": "ulz",
+    "table": "ULZTIP",
     "fields": "*"
   },
   {
-    "table": "ulztip",
+    "table": "USR",
     "fields": "*"
   },
   {
-    "table": "usr",
+    "table": "USRGRP",
     "fields": "*"
   },
   {
-    "table": "usrgrp",
+    "table": "USRLOG",
     "fields": "*"
   },
   {
-    "table": "usrlog",
+    "table": "USROPRTIP",
     "fields": "*"
   },
   {
-    "table": "usroprtip",
+    "table": "USROTDEL",
     "fields": "*"
   },
   {
-    "table": "usrotdel",
+    "table": "VALPAWNCHITSUBJECT",
     "fields": "*"
   },
   {
-    "table": "valpawnchitsubject",
+    "table": "VALSUBJECTTIP",
     "fields": "*"
   },
   {
-    "table": "valsubjecttip",
+    "table": "VARTIP",
     "fields": "*"
   },
   {
-    "table": "vartip",
-    "fields": "*"
-  },
-  {
-    "table": "ws_list",
+    "table": "WS_LIST",
     "fields": "*"
   }
 ]
