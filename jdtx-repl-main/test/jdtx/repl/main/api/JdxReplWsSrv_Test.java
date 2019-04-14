@@ -133,32 +133,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_dumpTables();
     }
 
-    void sync_http() throws Exception {
-        test_ws1_handleSelfAudit();
-        test_ws2_handleSelfAudit();
-        test_ws3_handleSelfAudit();
-
-        test_ws1_send_receive();
-        test_ws2_send_receive();
-        test_ws3_send_receive();
-
-        test_sync_srv();
-
-        test_ws1_send_receive();
-        test_ws2_send_receive();
-        test_ws3_send_receive();
-
-        test_ws1_handleQueIn();
-        test_ws2_handleQueIn();
-        test_ws3_handleQueIn();
-    }
 
     @Test
     public void test_all_http() throws Exception {
         //test_ws1_makeChange();
-        //test_ws2_makeChange();
-        //test_ws3_makeChange();
-        make_InsDel_1(db2, struct2);
+        test_ws2_makeChange();
+        test_ws3_makeChange();
+        //make_InsDel(db2, struct2);
+        //make_InsDel_1(db2, struct2);
 
         //
         sync_http();
@@ -180,6 +162,27 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_dumpTables();
     }
 
+
+    @Test
+    public void sync_http() throws Exception {
+        test_ws1_handleSelfAudit();
+        test_ws2_handleSelfAudit();
+        test_ws3_handleSelfAudit();
+
+        test_ws1_send_receive();
+        test_ws2_send_receive();
+        test_ws3_send_receive();
+
+        test_sync_srv();
+
+        test_ws1_send_receive();
+        test_ws2_send_receive();
+        test_ws3_send_receive();
+
+        test_ws1_handleQueIn();
+        test_ws2_handleQueIn();
+        test_ws3_handleQueIn();
+    }
 
     @Test
     public void syncLocal() throws Exception {
