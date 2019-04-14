@@ -288,12 +288,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         // Постоянная id для regionTip
         long id1_regionTip = this.db.loadSql("select min(id) id from regionTip where id > 0").getCurRec().getValueLong("id");
-        long age;
+        //long age;
 
 
         // Фиксация возраста
-        age = utRepl.markAuditAge();
-        System.out.println("age: " + age);
+        //age = utRepl.getAuditAge();
+        //System.out.println("age: " + age);
 
         // Вставка A1 (regionTip)
         long id0_regionTip = dbu.getNextGenerator("g_regionTip");
@@ -305,8 +305,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ));
 
         // Фиксация возраста
-        age = utRepl.markAuditAge();
-        System.out.println("age: " + age);
+        //age = utRepl.getAuditAge();
+        //System.out.println("age: " + age);
 
         // Вставка B1 (region) со ссылкой на тольтко что вставленную А1 (regionTip)
         long id1_region = dbu.getNextGenerator("g_region");
@@ -318,8 +318,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ));
 
         // Фиксация возраста
-        age = utRepl.markAuditAge();
-        System.out.println("age: " + age);
+        //age = utRepl.getAuditAge();
+        //System.out.println("age: " + age);
 
         // Обновление B1 (region) - замена ссылки на А1 (regionTip) с только что вставленнуй на уже существующую А0 (regionTip)
         dbu.updateRec("region", UtCnv.toMap(
@@ -330,15 +330,15 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ));
 
         // Фиксация возраста
-        age = utRepl.markAuditAge();
-        System.out.println("age: " + age);
+        //age = utRepl.getAuditAge();
+        //System.out.println("age: " + age);
 
         // Удаление только что вставленной A1 (regionTip)
         dbu.deleteRec("regionTip", id0_regionTip);
 
         // Фиксация возраста
-        age = utRepl.markAuditAge();
-        System.out.println("age: " + age);
+        //age = utRepl.getAuditAge();
+        //System.out.println("age: " + age);
     }
 
     /**
@@ -357,9 +357,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         Random rnd = new Random();
 
         // Фиксация возраста
-        long age;
-        age = utRepl.markAuditAge();
-        System.out.println("age: " + age);
+        //long age;
+        //age = utRepl.markAuditAge();
+        //System.out.println("age: " + age);
 
         // Постоянная A0 (id для regionTip)
         long id0_regionTip = this.db.loadSql("select min(id) id from regionTip where id > 0").getCurRec().getValueLong("id");
@@ -375,8 +375,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ));
 
         // Фиксация возраста
-        age = utRepl.markAuditAge();
-        System.out.println("age: " + age);
+        //age = utRepl.markAuditAge();
+        //System.out.println("age: " + age);
 
 
         // Вставка A1 (regionTip)
@@ -389,8 +389,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ));
 
         // Фиксация возраста
-        age = utRepl.markAuditAge();
-        System.out.println("age: " + age);
+        //age = utRepl.markAuditAge();
+        //System.out.println("age: " + age);
 
 
         // Обновление B1 (region) - замена ссылки с существующей А0 (regionTip) на только что вставленную А1
@@ -402,8 +402,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ));
 
         // Фиксация возраста
-        age = utRepl.markAuditAge();
-        System.out.println("age: " + age);
+        //age = utRepl.markAuditAge();
+        //System.out.println("age: " + age);
     }
 
     @Test

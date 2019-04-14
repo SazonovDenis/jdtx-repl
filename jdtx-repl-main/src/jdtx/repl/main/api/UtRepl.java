@@ -71,13 +71,6 @@ public class UtRepl {
         decodeManager.dropRefDecodeObject();
     }
 
-    /**
-     * Зафиксировать возраст рабочей станции
-     */
-    public long markAuditAge() throws Exception {
-        UtAuditAgeManager ut = new UtAuditAgeManager(db, struct);
-        return ut.markAuditAge();
-    }
 
 
     /**

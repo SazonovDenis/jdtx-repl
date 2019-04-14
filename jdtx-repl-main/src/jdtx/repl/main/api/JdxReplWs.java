@@ -218,22 +218,25 @@ public class JdxReplWs {
             return;
         }
 
-        // Узнаем (и заодно фиксируем) возраст своего аудита
-        long auditAgeActual = utRepl.markAuditAge();
-
-        // До какого возраста сформировали реплики для своего аудита
-        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-        long auditAgeDone = stateManager.getAuditAgeDone();
 
         // Формируем реплики (по собственным изменениям)
-        long count = 0;
-        for (long age = auditAgeDone + 1; age <= auditAgeActual; age++) {
-            for (IPublication publication : publicationsOut) {
-                IReplica replica = utRepl.createReplicaFromAudit(wsId, publication, age);
+        db.startTran();
+        try {
+            long count = 0;
 
-                //
-                db.startTran();
-                try {
+            // Узнаем (и заодно фиксируем) возраст своего аудита
+            UtAuditAgeManager uta = new UtAuditAgeManager(db, struct);
+            long auditAgeTo = uta.markAuditAge();
+
+            // До какого возраста сформировали реплики для своего аудита
+            JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+            long auditAgeFrom = stateManager.getAuditAgeDone();
+
+            //
+            for (IPublication publication : publicationsOut) {
+                for (long age = auditAgeFrom + 1; age <= auditAgeTo; age++) {
+                    IReplica replica = utRepl.createReplicaFromAudit(wsId, publication, age);
+
                     // Пополнение исходящей очереди реплик
                     queOut.put(replica);
 
@@ -242,22 +245,23 @@ public class JdxReplWs {
 
                     //
                     db.commit();
-                } catch (Exception e) {
-                    db.rollback(e);
-                    throw e;
                 }
+
+                //
+                count++;
             }
 
             //
-            count++;
+            if (count == 0) {
+                log.info("handleSelfAudit, wsId: " + wsId + ", audit.age: " + auditAgeFrom + ", nothing to do");
+            } else {
+                log.info("handleSelfAudit, wsId: " + wsId + ", audit.age: " + auditAgeFrom + " -> " + auditAgeTo + ", done count: " + count);
+            }
+        } catch (Exception e) {
+            db.rollback(e);
+            throw e;
         }
 
-        //
-        if (count == 0) {
-            log.info("handleSelfAudit, wsId: " + wsId + ", audit.age: " + auditAgeDone + ", nothing to do");
-        } else {
-            log.info("handleSelfAudit, wsId: " + wsId + ", audit.age: " + auditAgeDone + " -> " + auditAgeActual + ", done count: " + count);
-        }
     }
 
     /**

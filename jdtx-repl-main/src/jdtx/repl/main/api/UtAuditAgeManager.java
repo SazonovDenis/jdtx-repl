@@ -23,6 +23,13 @@ public class UtAuditAgeManager {
 
 
     /**
+     * Узнать возраст рабочей станции
+     */
+    public long getAuditAge() throws Exception {
+        return db.loadSql("select max(age) as age from " + JdxUtils.sys_table_prefix + "age").getCurRec().getValueLong("age");
+    }
+
+    /**
      * Увеличить общий возраст рабочей станции,
      * не затрагивая и не учитывая возраста аудита таблиц.
      * Полезно, если хочется в исходящую очередь положить реплику, не являющуюся аудитом
@@ -149,12 +156,5 @@ public class UtAuditAgeManager {
         }
     }
 
-
-    /**
-     * Узнать возраст рабочей станции
-     */
-    public long getAuditAge() throws Exception {
-        return db.loadSql("select max(age) as age from " + JdxUtils.sys_table_prefix + "age").getCurRec().getValueLong("age");
-    }
 
 }

@@ -36,6 +36,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
      * Проверим оптимизацию лишних фиксаций:
      * если не было реальных изменений - возраст не меняется
      */
+/*
     @Test
     public void test_markAuditAge() throws Exception {
         UtRepl utRepl = new UtRepl(db, struct);
@@ -88,8 +89,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         assertEquals("Возраст аудита", auditAge_B_0, auditAge_B_3);
         assertEquals("Возраст аудита", auditAge_B_0, auditAge_B_4);
     }
-
-
+*/
     @Test
     public void test_readAuditData() throws Exception {
         UtRepl utRepl = new UtRepl(db2, struct2);
@@ -100,7 +100,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         utTest.makeChange(struct, wsId);
 
         // Фиксируем возраст
-        long selfAuditAge = utRepl.markAuditAge();
+        long selfAuditAge = utRepl.getAuditAge();
         System.out.println("selfAuditAge = " + selfAuditAge);
 
         // Готовим writer
@@ -181,8 +181,9 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         utTest.makeChange(struct, 1);
 
         // Фиксируем возраст
-        long selfAuditAge = utRepl.markAuditAge();
-        System.out.println("new AuditAge = " + selfAuditAge);
+        long selfAuditAge;
+        selfAuditAge = utRepl.getAuditAge();
+        System.out.println("curr audit age: " + selfAuditAge);
 
         // Загружаем правила публикации
         IPublication publication = new Publication();
@@ -198,6 +199,10 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
         //
         System.out.println(replica.getFile().getAbsolutePath());
+
+        // Фиксируем возраст
+        selfAuditAge = utRepl.getAuditAge();
+        System.out.println("new audit age: " + selfAuditAge);
     }
 
     @Test
