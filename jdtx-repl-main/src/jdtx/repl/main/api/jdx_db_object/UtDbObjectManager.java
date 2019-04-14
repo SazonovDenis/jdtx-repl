@@ -117,8 +117,15 @@ public class UtDbObjectManager {
             n++;
             log.debug("createRepl, createAudit " + n + "/" + tables.size() + " " + table.getName());
 
-            //
-            createAuditTable(table.getName());
+            if (!UtRepl.tableSkipRepl(table)) {
+                // создание таблицы журнала аудита
+                createAuditTable_full(table);
+
+                // создание тригеров на изменение
+                createAuditTriggers(table);
+            } else {
+                log.debug("createRepl, skip createAudit, table: " + table.getName());
+            }
         }
 
 
@@ -131,7 +138,7 @@ public class UtDbObjectManager {
     }
 
     public void dropAudit() throws Exception {
-        log.info("dropAudit - объекты журналов данных");
+        log.info("dropAudit - журналы");
 
         // Удаляем связанную с каждой таблицей таблицу журнала изменений
         ArrayList<IJdxTableStruct> tables = struct.getTables();
@@ -153,11 +160,53 @@ public class UtDbObjectManager {
         dropAll(jdx_sys_tables, db);
     }
 
-    private void createAuditTable(String tableName) throws Exception {
-        IJdxTableStruct table = struct.getTable(tableName);
+    private void createAuditTriggers(IJdxTableStruct table) throws Exception {
+        String sql;
+
+        // тригер на вставку записи в аудит
+        sql = createTrigger_full(table, updMods.INSERT);
+        db.execSqlNative(sql);
+
+        // тригер на обновление записи
+        sql = createTrigger_full(table, updMods.UPDATE);
+        db.execSqlNative(sql);
+
+        // тригер на удаление записи
+        sql = createTrigger_full(table, updMods.DELETE);
+        db.execSqlNative(sql);
+    }
+
+    private void createAuditTable(IJdxTableStruct table) throws Exception {
+        String tableName = table.getName();
+        String pkFieldName = table.getPrimaryKey().get(0).getName();
+        //
+        String pkFieldDataType = table.getPrimaryKey().get(0).getDbDatatype();
+        if (table.getPrimaryKey().get(0).getJdxDatatype() == JdxDataType.STRING) {
+            pkFieldDataType = pkFieldDataType + "(" + table.getPrimaryKey().get(0).getSize() + ")";
+        }
+        //
+        String sql = "create table \n" +
+                JdxUtils.audit_table_prefix + tableName + "(\n" +
+                JdxUtils.audit_table_prefix + "id integer not null,\n" +
+                JdxUtils.audit_table_prefix + "opr_type integer not null,\n" +
+                JdxUtils.audit_table_prefix + "opr_dttm timestamp not null,\n" +
+                pkFieldName + " " + pkFieldDataType + " not null\n" +
+                ")";
+        db.execSql(sql);
+
+        // генератор Id для новой таблицы
+        sql = "create generator " + JdxUtils.audit_gen_prefix + tableName;
+        db.execSql(sql);
+        sql = "set generator " + JdxUtils.audit_gen_prefix + tableName + " to 0";
+        db.execSql(sql);
+    }
+
+    private void createAuditTable_full(IJdxTableStruct table) throws Exception {
+        String tableName = table.getName();
         ArrayList<IJdxFieldStruct> fields = table.getFields();
-        int fieldCount = fields.size();
+
         // формируем запрос на создание таблицы журнала изменений
+        int fieldCount = fields.size();
         String fieldsStr = "";
         for (int i = 0; i < fieldCount; i++) {
             if (fieldsStr.length() != 0) {
@@ -170,36 +219,53 @@ public class UtDbObjectManager {
             }
         }
 
-        String query = "create table " + JdxUtils.audit_table_prefix + tableName + "(" +
+        String sql = "create table " + JdxUtils.audit_table_prefix + tableName + "(" +
                 JdxUtils.audit_table_prefix + "id integer not null, " +
                 JdxUtils.audit_table_prefix + "opr_type integer not null, " +
-                JdxUtils.audit_table_prefix + "trigger_flag integer not null, " +
                 fieldsStr +
                 ")";
 
-        db.execSql(query);
+        db.execSql(sql);
 
         // генератор Id для новой таблицы
-        query = "create generator " + JdxUtils.audit_gen_prefix + tableName;
-        db.execSql(query);
-        query = "set generator " + JdxUtils.audit_gen_prefix + tableName + " to 0";
-        db.execSql(query);
-
-        // тригер на вставку записи
-        query = createTrigger(tableName, fields, updMods.INSERT);
-        //System.out.println(query);
-        db.execSqlNative(query);
-        // тригер на обновление записи
-        query = createTrigger(tableName, fields, updMods.UPDATE);
-        db.execSqlNative(query);
-        // тригер на удаление записи
-        query = createTrigger(tableName, fields, updMods.DELETE);
-        db.execSqlNative(query);
+        sql = "create generator " + JdxUtils.audit_gen_prefix + tableName;
+        db.execSql(sql);
+        sql = "set generator " + JdxUtils.audit_gen_prefix + tableName + " to 0";
+        db.execSql(sql);
     }
 
-    private String createTrigger(String tableName, ArrayList<IJdxFieldStruct> fields, updMods upd_mode) {
+    private String createTrigger(IJdxTableStruct table, updMods upd_mode) {
         String sql;
-        int fieldCount = fields.size();
+        String tableName = table.getName();
+        String pkFieldName = table.getPrimaryKey().get(0).getName();
+        sql = "create trigger " + JdxUtils.trig_pref + tableName + "_" + upd_mode.toString().substring(0, 1) + " for " + tableName + " after " + upd_mode.toString() + " \n" +
+                "as\n" +
+                "declare variable trigger_flag_ integer;\n" +
+                "declare variable opr_dttm_ timestamp;\n" +
+                "begin\n" +
+                "  select trigger_flag from " + JdxUtils.sys_table_prefix + "flag_tab where id=1 into :trigger_flag_;\n" +
+                "  select current_timestamp from rdb$database into :opr_dttm_;\n" +
+                "  if (trigger_flag_<>0) then\n" +
+                "  begin\n" +
+                "    insert into " + JdxUtils.audit_table_prefix + tableName + " (" + JdxUtils.audit_table_prefix + "id, " + JdxUtils.audit_table_prefix + "opr_type, " + JdxUtils.audit_table_prefix + "opr_dttm, " + pkFieldName + ") ";
+        // значения
+        sql = sql + "values (GEN_ID(" + JdxUtils.audit_gen_prefix + tableName + ", 1), " + (upd_mode.ordinal() + 1) + ", :opr_dttm_, ";
+        //
+        String contVar = "NEW.";
+        if (upd_mode.toString().equals("DELETE")) {
+            contVar = "OLD.";
+        }
+        sql = sql + contVar + pkFieldName;
+        sql = sql + ");\n";
+        //
+        sql = sql + "  end\nend";
+        return sql;
+    }
+
+    private String createTrigger_full(IJdxTableStruct table, updMods upd_mode) {
+        String tableName=table.getName();
+        String sql;
+        int fieldCount = table.getFields().size();
         sql = "create trigger " + JdxUtils.trig_pref + tableName + "_" + upd_mode.toString().substring(0, 1) + " for " + tableName + " after " + upd_mode.toString() + " \n" +
                 "as\n" +
                 "declare variable trigger_flag_ integer;\n" +
@@ -207,22 +273,22 @@ public class UtDbObjectManager {
                 "  select trigger_flag from " + JdxUtils.sys_table_prefix + "flag_tab where id=1 into :trigger_flag_;\n" +
                 "  if (trigger_flag_<>0) then\n" +
                 "  begin\n" +
-                "    insert into " + JdxUtils.audit_table_prefix + tableName + " (" + JdxUtils.audit_table_prefix + "id, " + JdxUtils.audit_table_prefix + "opr_type, " + JdxUtils.audit_table_prefix + "trigger_flag, ";
+                "    insert into " + JdxUtils.audit_table_prefix + tableName + " (" + JdxUtils.audit_table_prefix + "id, " + JdxUtils.audit_table_prefix + "opr_type, ";
         // перечисление полей для вставки в них значений
         for (int i = 0; i < fieldCount - 1; i++) {
-            sql = sql + fields.get(i).getName() + ", ";
+            sql = sql + table.getFields().get(i).getName() + ", ";
         }
-        sql = sql + fields.get(fieldCount - 1).getName() + ") ";
+        sql = sql + table.getFields().get(fieldCount - 1).getName() + ") ";
         // сами значения
-        sql = sql + "values (GEN_ID(" + JdxUtils.audit_gen_prefix + tableName + ", 1), " + (upd_mode.ordinal() + 1) + ", :trigger_flag_, ";
+        sql = sql + "values (GEN_ID(" + JdxUtils.audit_gen_prefix + tableName + ", 1), " + (upd_mode.ordinal() + 1) + ", ";
         String contVar = "NEW.";
         if (upd_mode.toString().equals("DELETE")) {
             contVar = "OLD.";
         }
         for (int i = 0; i < fieldCount - 1; i++) {
-            sql = sql + contVar + fields.get(i).getName() + ", ";
+            sql = sql + contVar + table.getFields().get(i).getName() + ", ";
         }
-        sql = sql + contVar + fields.get(fieldCount - 1).getName() + "); \n";
+        sql = sql + contVar + table.getFields().get(fieldCount - 1).getName() + "); \n";
         sql = sql + "  end\nend";
         return sql;
     }

@@ -333,4 +333,8 @@ public class UtRepl {
     }
 
 
+    public static boolean tableSkipRepl(IJdxTableStruct table) {
+        return table.getPrimaryKey().size() == 0;
+    }
+
 }

@@ -130,7 +130,7 @@ public class UtAuditSelector {
             //log.debug("selectAudit: " + tableName + ", age: [" + ageFrom + ".." + ageTo + "], audit empty");
         }
 
-        // Аудит в указанном диапазоне возрастов: id >= fromId и id <= toId
+        // Аудит в указанном диапазоне: id >= fromId и id <= toId
         String sql = getSql(tableFrom, tableFields, fromId, toId);
 
         //
@@ -149,7 +149,7 @@ public class UtAuditSelector {
         return db.loadSql(query).getCurRec().getValueLong("id");
     }
 
-    protected String getSql_z(IJdxTableStruct tableFrom, String tableFields, long fromId, long toId) {
+    protected String getSql_full(IJdxTableStruct tableFrom, String tableFields, long fromId, long toId) {
         return "select " +
                 JdxUtils.prefix + "opr_type, " + tableFields +
                 " from " + JdxUtils.audit_table_prefix + tableFrom.getName() +

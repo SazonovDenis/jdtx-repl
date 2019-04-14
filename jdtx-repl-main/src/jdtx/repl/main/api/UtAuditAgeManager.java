@@ -126,9 +126,11 @@ public class UtAuditAgeManager {
 
     private void fillMaxIdsCurr(Map maxIdsCurr) throws Exception {
         for (IJdxTableStruct table : struct.getTables()) {
-            String tableName = table.getName();
-            long maxId = db.loadSql("select max(" + JdxUtils.prefix + "id) as maxId from " + JdxUtils.audit_table_prefix + tableName).getCurRec().getValueLong("maxId");
-            maxIdsCurr.put(tableName, maxId);
+            if (!UtRepl.tableSkipRepl(table)) {
+                String tableName = table.getName();
+                long maxId = db.loadSql("select max(" + JdxUtils.prefix + "id) as maxId from " + JdxUtils.audit_table_prefix + tableName).getCurRec().getValueLong("maxId");
+                maxIdsCurr.put(tableName, maxId);
+            }
         }
     }
 
