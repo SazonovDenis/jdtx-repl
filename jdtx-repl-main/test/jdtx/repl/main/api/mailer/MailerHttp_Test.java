@@ -8,6 +8,7 @@ import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.http.*;
+import org.apache.http.client.*;
 import org.apache.http.client.methods.*;
 import org.apache.http.impl.client.*;
 import org.apache.http.util.*;
@@ -141,8 +142,8 @@ public class MailerHttp_Test extends ReplDatabase_Test {
         HttpGet httpGet = new HttpGet("http://lombard.systems/repl/repl_part_receive.php?seed=4751547061763885136&guid=98178b66d083dd79.jovid-0324d9edabc5b860&box=from&no=1&file_part=0");
 
         //
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-        HttpResponse response = httpclient.execute(httpGet);
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpResponse response = client.execute(httpGet);
 
         //
         byte[] res = EntityUtils.toByteArray(response.getEntity());

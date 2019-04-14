@@ -6,6 +6,7 @@ import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.replica.*;
 import org.apache.commons.logging.*;
 import org.apache.http.*;
+import org.apache.http.client.*;
 import org.apache.http.client.methods.*;
 import org.apache.http.entity.*;
 import org.apache.http.entity.mime.*;
@@ -63,7 +64,7 @@ public class MailerHttp implements IMailer {
 
     @Override
     public long getSrvSate(String box) throws Exception {
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+        HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
         HttpGet httpGet = new HttpGet(getUrl("repl_get_state") + "&guid=" + guid + "&box=" + box);
@@ -91,7 +92,7 @@ public class MailerHttp implements IMailer {
 
 
         // Закачиваем
-        DefaultHttpClient client = new DefaultHttpClient();
+        HttpClient client = HttpClientBuilder.create().build();
 
         // Закачиваем по частям
         long filePart = 0;
@@ -176,7 +177,7 @@ public class MailerHttp implements IMailer {
         File replicaFile = new File(localDirTmp + localFileName);
 
         //
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+        HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
         JSONObject fileInfo = getInfo_internal(no, box);
@@ -241,7 +242,7 @@ public class MailerHttp implements IMailer {
         log.info("mailer.delete, no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 
         //
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+        HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
         HttpGet httpGet = new HttpGet(getUrl("repl_delete") + "&guid=" + guid + "&box=" + box + "&no=" + no);
@@ -259,7 +260,7 @@ public class MailerHttp implements IMailer {
 
     @Override
     public void ping(String box) throws Exception {
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+        HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
         HttpGet httpGet = new HttpGet(getUrl("repl_ping") + "&guid=" + guid + "&box=" + box);
@@ -277,7 +278,7 @@ public class MailerHttp implements IMailer {
 
     @Override
     public DateTime getPingDt(String box) throws Exception {
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+        HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
         HttpGet httpGet = new HttpGet(getUrl("repl_get_ping_dt") + "&guid=" + guid + "&box=" + box);
@@ -318,7 +319,7 @@ public class MailerHttp implements IMailer {
      */
 
     JSONObject getInfo_internal(long no, String box) throws Exception {
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+        HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
         HttpGet httpGet = new HttpGet(getUrl("repl_get_info") + "&guid=" + guid + "&box=" + box + "&no=" + no);
@@ -336,7 +337,7 @@ public class MailerHttp implements IMailer {
     }
 
     JSONObject getPartState_internal(long no, String box) throws Exception {
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+        HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
         HttpGet httpGet = new HttpGet(getUrl("repl_part_state") + "&guid=" + guid + "&box=" + box + "&no=" + no);
@@ -355,7 +356,7 @@ public class MailerHttp implements IMailer {
     }
 
     void sendCommit_internal(long no, String box, ReplicaInfo info, long partsCount, long totalBytes) throws Exception {
-        DefaultHttpClient client = new DefaultHttpClient();
+        HttpClient client = HttpClientBuilder.create().build();
 
         HttpPost post = new HttpPost(remoteUrl + "repl_send_commit.php");
 
@@ -464,7 +465,7 @@ public class MailerHttp implements IMailer {
         log.info("createMailBox, guid: " + guid + ", box: " + box);
 
         //
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+        HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
         HttpGet httpGet = new HttpGet(getUrl("repl_create_box") + "&guid=" + guid + "&box=" + box);
@@ -484,7 +485,7 @@ public class MailerHttp implements IMailer {
         log.info("checkMailBox, guid: " + guid + ", box: " + box);
 
         //
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+        HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
         HttpGet httpGet = new HttpGet(getUrl("repl_get_state") + "&guid=" + guid + "&box=" + box);

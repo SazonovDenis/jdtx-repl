@@ -3,13 +3,14 @@ package jdtx.repl.main.api.mailer;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.*;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.*;
 import org.apache.http.util.EntityUtils;
 
 import java.io.File;
@@ -18,7 +19,7 @@ public class HttpUploadFile_Test {
 
     public static void main(final String[] args) throws Exception {
         String url = "http://localhost/lombard.systems/repl/repl_part_send.php";
-        DefaultHttpClient client = new DefaultHttpClient();
+        HttpClient client = HttpClientBuilder.create().build();
 
         File file = new File("D:/Install/apache-tomcat-6.0.44.zip");
         //File file = new File("D:/Install/tortoisehg-4.1.0-x64.msi");
