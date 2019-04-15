@@ -89,20 +89,24 @@ public class UtTest extends UtilsTestCase {
         long id01 = db.loadSql("select min(id) id from lic where id > 0").getCurRec().getValueLong("id");
         long id02 = db.loadSql("select max(id) id from lic where id > " + (id01 + 100)).getCurRec().getValueLong("id");
 
-        dbu.updateRec("lic", UtCnv.toMap(
-                "id", id01,
-                "NameF", "Name-F-upd-ws:" + ws_id + "-" + rnd.nextInt(),
-                "NameI", "Name-I-upd-ws:" + ws_id + "-" + rnd.nextInt(),
-                "NameO", "Name-O-upd-ws:" + ws_id + "-" + rnd.nextInt()
-        ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,ulz,dom,kv,tel,info");
+        if (id01 > 0) {
+            dbu.updateRec("lic", UtCnv.toMap(
+                    "id", id01,
+                    "NameF", "Name-F-upd-ws:" + ws_id + "-" + rnd.nextInt(),
+                    "NameI", "Name-I-upd-ws:" + ws_id + "-" + rnd.nextInt(),
+                    "NameO", "Name-O-upd-ws:" + ws_id + "-" + rnd.nextInt()
+            ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,ulz,dom,kv,tel,info");
+        }
 
-        dbu.updateRec("lic", UtCnv.toMap(
-                "id", id02,
-                "NameF", "NameF-upd-ws:" + ws_id + "-" + rnd.nextInt(),
-                "NameI", "NameI-upd-ws:" + ws_id + "-" + rnd.nextInt(),
-                "NameO", "NameO-upd-ws:" + ws_id + "-" + rnd.nextInt(),
-                "Ulz", id1
-        ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,dom,kv,tel,info");
+        if (id02 > 0) {
+            dbu.updateRec("lic", UtCnv.toMap(
+                    "id", id02,
+                    "NameF", "NameF-upd-ws:" + ws_id + "-" + rnd.nextInt(),
+                    "NameI", "NameI-upd-ws:" + ws_id + "-" + rnd.nextInt(),
+                    "NameO", "NameO-upd-ws:" + ws_id + "-" + rnd.nextInt(),
+                    "Ulz", id1
+            ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,dom,kv,tel,info");
+        }
 
         // Апдейт общей записи
         dbu.db.execSql("update Lic set NameI = :NameI where Dom = :Dom", UtCnv.toMap(
