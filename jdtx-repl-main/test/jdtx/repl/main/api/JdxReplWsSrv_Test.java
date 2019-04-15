@@ -2,7 +2,6 @@ package jdtx.repl.main.api;
 
 import jandcode.bgtasks.*;
 import jandcode.dbm.data.*;
-import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.struct.*;
@@ -131,7 +130,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws3_CreateSnapshotReplica();
         //
         test_dumpTables();
-        test_dumpTables_Region();
     }
 
 
@@ -139,15 +137,16 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_region_http() throws Exception {
         //test_ws1_makeChange();
         //
-        UtTest utTest = new UtTest(db2);
-        utTest.make_InsDel(struct2, 2);
-        utTest.make_InsDel_1(struct3, 3);
+        UtTest utTest2 = new UtTest(db2);
+        utTest2.make_InsDel(struct2, 2);
+        UtTest utTest3 = new UtTest(db3);
+        utTest3.make_InsDel_1(struct3, 3);
 
         //
         sync_http();
 
         //
-        test_dumpTables_Region();
+        test_dumpTables();
     }
 
     @Test
@@ -156,9 +155,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws2_makeChange();
         test_ws3_makeChange();
         //
-        UtTest utTest = new UtTest(db2);
-        utTest.make_InsDel(struct2, 2);
-        utTest.make_InsDel_1(struct2, 2);
+        UtTest utTest2 = new UtTest(db2);
+        utTest2.make_InsDel(struct2, 2);
+        utTest2.make_InsDel_1(struct2, 2);
 
         //
         sync_http();
@@ -264,18 +263,16 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         String sql = "select Lic.nameF, Lic.nameI, Lic.nameO, Region.name as RegionName, RegionTip.name as RegionTip, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) left join RegionTip on (Region.RegionTip = RegionTip.id) order by Lic.NameF";
         DataStore st1 = db.loadSql(sql);
         OutTableSaver svr1 = new OutTableSaver(st1);
-        svr1.save().toFile("../_test-data/csv/ws1-all.csv");
+        //svr1.save().toFile("../_test-data/csv/ws1-all.csv");
         DataStore st2 = db2.loadSql(sql);
         OutTableSaver svr2 = new OutTableSaver(st2);
-        svr2.save().toFile("../_test-data/csv/ws2-all.csv");
+        //svr2.save().toFile("../_test-data/csv/ws2-all.csv");
         DataStore st3 = db3.loadSql(sql);
         OutTableSaver svr3 = new OutTableSaver(st3);
-        svr3.save().toFile("../_test-data/csv/ws3-all.csv");
-    }
+        //svr3.save().toFile("../_test-data/csv/ws3-all.csv");
 
-    @Test
-    public void test_dumpTables_Region() throws Exception {
-        String sql = "select Region.Name as RegionName, RegionTip.Name as RegionTipName, RegionTip.ShortName as RegionTipShortName, regionTip.deleted\n" +
+        // dumpTables Region
+        String sql_r = "select Region.Name as RegionName, RegionTip.Name as RegionTipName, RegionTip.ShortName as RegionTipShortName, regionTip.deleted\n" +
                 "from Region, RegionTip\n" +
                 "where Region.id <> 0 and Region.regionTip = RegionTip.id\n" +
                 "order by Region.Name, RegionTip.Name\n";
@@ -284,15 +281,20 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 "where Region.id <> 0 and Region.regionTip = RegionTip.id\n" +
                 "  and Region.id > 100000\n" + // доп условие - чтобы собственные данные ws1 не мозолили глаза
                 "order by Region.Name, RegionTip.Name\n";
-        DataStore st1 = db.loadSql(sql_ws1);
-        OutTableSaver svr1 = new OutTableSaver(st1);
-        svr1.save().toFile("../_test-data/csv/ws1-region.csv");
-        DataStore st2 = db2.loadSql(sql);
-        OutTableSaver svr2 = new OutTableSaver(st2);
-        svr2.save().toFile("../_test-data/csv/ws2-region.csv");
-        DataStore st3 = db3.loadSql(sql);
-        OutTableSaver svr3 = new OutTableSaver(st3);
-        svr3.save().toFile("../_test-data/csv/ws3-region.csv");
+        DataStore st1_r = db.loadSql(sql_ws1);
+        OutTableSaver svr1_r = new OutTableSaver(st1_r);
+        //svr1_r.save().toFile("../_test-data/csv/ws1-region.csv");
+        DataStore st2_r = db2.loadSql(sql_r);
+        OutTableSaver svr2_r = new OutTableSaver(st2_r);
+        //svr2_r.save().toFile("../_test-data/csv/ws2-region.csv");
+        DataStore st3_r = db3.loadSql(sql_r);
+        OutTableSaver svr3_r = new OutTableSaver(st3_r);
+        //svr3_r.save().toFile("../_test-data/csv/ws3-region.csv");
+
+        //
+        UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_r.save().toString(), new File("../_test-data/csv/ws1-all.csv"));
+        UtFile.saveString(svr2.save().toString() + "\n\n" + svr2_r.save().toString(), new File("../_test-data/csv/ws2-all.csv"));
+        UtFile.saveString(svr3.save().toString() + "\n\n" + svr3_r.save().toString(), new File("../_test-data/csv/ws3-all.csv"));
     }
 
 
