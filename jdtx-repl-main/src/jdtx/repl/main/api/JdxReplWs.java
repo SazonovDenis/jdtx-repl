@@ -242,9 +242,6 @@ public class JdxReplWs {
 
                     //
                     stateManager.setAuditAgeDone(age);
-
-                    //
-                    db.commit();
                 }
 
                 //
@@ -257,6 +254,10 @@ public class JdxReplWs {
             } else {
                 log.info("handleSelfAudit, wsId: " + wsId + ", audit.age: " + auditAgeFrom + " -> " + auditAgeTo + ", done count: " + count);
             }
+
+
+            //
+            db.commit();
         } catch (Exception e) {
             db.rollback(e);
             throw e;
