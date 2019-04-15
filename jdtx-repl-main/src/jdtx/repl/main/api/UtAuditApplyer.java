@@ -56,8 +56,6 @@ public class UtAuditApplyer {
 
         //
         db.startTran();
-
-        //
         try {
             triggersManager.setTriggersOff();
 
@@ -182,6 +180,7 @@ public class UtAuditApplyer {
 
             //
             triggersManager.setTriggersOn();
+
 
             //
             db.commit();

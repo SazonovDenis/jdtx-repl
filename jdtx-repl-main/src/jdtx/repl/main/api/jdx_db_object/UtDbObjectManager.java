@@ -119,7 +119,7 @@ public class UtDbObjectManager {
 
             if (!UtRepl.tableSkipRepl(table)) {
                 // создание таблицы журнала аудита
-                createAuditTable_full(table);
+                createAuditTable(table);
 
                 // создание тригеров на изменение
                 createAuditTriggers(table);
@@ -161,6 +161,22 @@ public class UtDbObjectManager {
     }
 
     private void createAuditTriggers(IJdxTableStruct table) throws Exception {
+        String sql;
+
+        // тригер на вставку записи в аудит
+        sql = createTrigger(table, updMods.INSERT);
+        db.execSqlNative(sql);
+
+        // тригер на обновление записи
+        sql = createTrigger(table, updMods.UPDATE);
+        db.execSqlNative(sql);
+
+        // тригер на удаление записи
+        sql = createTrigger(table, updMods.DELETE);
+        db.execSqlNative(sql);
+    }
+
+    private void createAuditTriggers_full(IJdxTableStruct table) throws Exception {
         String sql;
 
         // тригер на вставку записи в аудит
