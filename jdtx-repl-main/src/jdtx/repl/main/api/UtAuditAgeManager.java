@@ -42,8 +42,6 @@ public class UtAuditAgeManager {
 
         //
         db.startTran();
-
-        //
         try {
             // Скопируем предыдущий записанный возраст аудита для каждой таблицы (максимальный z_id из аудита)
             Map maxIdsFixed = new HashMap<>();
@@ -77,8 +75,6 @@ public class UtAuditAgeManager {
 
         //
         db.startTran();
-
-        //
         try {
             // Предыдущий записанный возраст аудита для каждой таблицы (максимальный z_id из аудита)
             Map maxIdsFixed = new HashMap<>();

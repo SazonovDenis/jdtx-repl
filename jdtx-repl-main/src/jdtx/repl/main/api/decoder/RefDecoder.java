@@ -105,7 +105,7 @@ public class RefDecoder implements IRefDecoder {
         // Ищем наш слот
         RefDecoderSlot sl = slotToWs.get(own_slot_no);
         if (sl == null) {
-            throw new XError("Trying to decode key, than was not inserted, id: " + own_id + " , table: " + tableName + ", ws_id: " + this.self_ws_id);
+            throw new XError("Trying to decode key, than was not inserted, id: " + own_id + ", table: " + tableName + ", ws_id: " + this.self_ws_id);
         }
 
         // По нашему номеру слота определяем ws_id и ws_slot_no
