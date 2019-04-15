@@ -56,7 +56,7 @@ public class JdxReplWs {
 
         // Строго обязательно REPEATABLE_READ, иначе сохранение в age возраста аудита
         // будет не синхронно с изменениями в таблицах аудита.
-        this.db.getConnection().setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+        db.getConnection().setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
     }
 
     public long getWsId() {
