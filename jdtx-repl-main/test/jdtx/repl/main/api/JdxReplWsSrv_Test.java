@@ -270,12 +270,18 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         OutTableSaver svr3 = new OutTableSaver(st3);
         //svr3.save().toFile("../_test-data/csv/ws3-all.csv");
 
-        // dumpTables Region
-        String sql_r = "select Region.Name as RegionName, RegionTip.Name as RegionTipName, RegionTip.ShortName as RegionTipShortName, regionTip.deleted\n" +
+        // dumpTables Region*
+        String regionTestFields = "";
+        for (IJdxFieldStruct f : struct.getTable("region").getFields()) {
+            if (f.getName().startsWith("TEST_")) {
+                regionTestFields = regionTestFields + "Region." + f.getName() + ",";
+            }
+        }
+        String sql_ws0 = "select Region.Name as RegionName, " + regionTestFields + " RegionTip.Name as RegionTipName, RegionTip.ShortName as RegionTipShortName, regionTip.deleted as regionTipDeleted\n" +
                 "from Region, RegionTip\n" +
                 "where Region.id <> 0 and Region.regionTip = RegionTip.id\n" +
                 "order by Region.Name, RegionTip.Name\n";
-        String sql_ws1 = "select Region.Name as RegionName, RegionTip.Name as RegionTipName, RegionTip.ShortName as RegionTipShortName, regionTip.deleted\n" +
+        String sql_ws1 = "select Region.Name as RegionName, " + regionTestFields + "  RegionTip.Name as RegionTipName, RegionTip.ShortName as RegionTipShortName, regionTip.deleted as regionTipDeleted\n" +
                 "from Region, RegionTip\n" +
                 "where Region.id <> 0 and Region.regionTip = RegionTip.id\n" +
                 "  and Region.id > 100000\n" + // доп условие - чтобы собственные данные ws1 не мозолили глаза
@@ -283,10 +289,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         DataStore st1_r = db.loadSql(sql_ws1);
         OutTableSaver svr1_r = new OutTableSaver(st1_r);
         //svr1_r.save().toFile("../_test-data/csv/ws1-region.csv");
-        DataStore st2_r = db2.loadSql(sql_r);
+        DataStore st2_r = db2.loadSql(sql_ws0);
         OutTableSaver svr2_r = new OutTableSaver(st2_r);
         //svr2_r.save().toFile("../_test-data/csv/ws2-region.csv");
-        DataStore st3_r = db3.loadSql(sql_r);
+        DataStore st3_r = db3.loadSql(sql_ws0);
         OutTableSaver svr3_r = new OutTableSaver(st3_r);
         //svr3_r.save().toFile("../_test-data/csv/ws3-region.csv");
 
@@ -294,27 +300,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_r.save().toString(), new File("../_test-data/csv/ws1-all.csv"));
         UtFile.saveString(svr2.save().toString() + "\n\n" + svr2_r.save().toString(), new File("../_test-data/csv/ws2-all.csv"));
         UtFile.saveString(svr3.save().toString() + "\n\n" + svr3_r.save().toString(), new File("../_test-data/csv/ws3-all.csv"));
-    }
-
-
-    @Test
-    public void test_ws1_changeDbStruct() throws Exception {
-        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        IJdxDbStructReader reader = new JdxDbStructReader();
-        reader.setDb(db);
-        IJdxDbStruct struct;
-
-        //
-        struct = reader.readDbStruct();
-        struct_rw.write(struct, "../_test-data/dbStruct_0.xml");
-
-        //
-        UtTest utTest = new UtTest(db);
-        utTest.changeDbStruct("region");
-
-        //
-        struct = reader.readDbStruct();
-        struct_rw.write(struct, "../_test-data/dbStruct_1.xml");
     }
 
 

@@ -11,6 +11,10 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
     @Test
     public void test_changeDbStruct() throws Exception {
+        // Меняем данные на рабочих станциях
+        test_ws2_makeChange();
+        test_ws3_makeChange();
+
         // Формируем сигнал "всем молчать"
         test_srvMuteAll();
 

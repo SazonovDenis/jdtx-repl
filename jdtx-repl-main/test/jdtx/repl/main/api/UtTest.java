@@ -35,8 +35,8 @@ public class UtTest extends UtilsTestCase {
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         IJdxDbStruct struct = reader.readDbStruct();
-        String fieldName = "test_field_" + (struct.getTable(tableName).getFields().size() + 1);
-        db.execSql("alter table " + tableName + " add " + fieldName + " varchar(20)");
+        String fieldName = "test_" + (struct.getTable(tableName).getFields().size() + 1);
+        db.execSql("alter table " + tableName + " add " + fieldName + " varchar(200)");
     }
 
     public void makeChange(IJdxDbStruct struct, long ws_id) throws Exception {
@@ -46,13 +46,25 @@ public class UtTest extends UtilsTestCase {
 
         //
         long id0 = dbu.getNextGenerator("g_region");
-        dbu.insertRec("region", UtCnv.toMap(
+        Map params = UtCnv.toMap(
                 "id", id0,
                 "regionTip", 1,
                 "parent", 0,
                 "name", "Name-ins-ws:" + ws_id + "-" + rnd.nextInt()
-        ));
+        );
+        //
+        String regionTestFields = "";
+        for (IJdxFieldStruct f : struct.getTable("region").getFields()) {
+            if (f.getName().startsWith("TEST_")) {
+                regionTestFields = regionTestFields + "Region." + f.getName() + ",";
+                params.put(f.getName(), f.getName() + "-ins-ws:" + ws_id + "-" + rnd.nextInt());
+            }
+        }
+        //
+        dbu.insertRec("region", params);
 
+
+        //
         long id1 = dbu.getNextGenerator("g_ulz");
         dbu.insertRec("ulz", UtCnv.toMap(
                 "id", id1,
@@ -61,6 +73,8 @@ public class UtTest extends UtilsTestCase {
                 "name", "Name-ins-ws:" + ws_id + "-" + rnd.nextInt()
         ));
 
+
+        //
         long id2 = dbu.getNextGenerator("g_lic");
         dbu.insertRec("lic", UtCnv.toMap(
                 "lic", id2,
