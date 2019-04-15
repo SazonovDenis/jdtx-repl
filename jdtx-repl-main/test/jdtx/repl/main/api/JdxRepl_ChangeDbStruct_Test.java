@@ -87,7 +87,8 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      * Проверяет корректность формирования аудита при цикле вставки и удаления влияющей записи:
      */
     public void test_auditAfterInsDel() throws Exception {
-        make_InsDel(db2, struct2);
+        UtTest utTest = new UtTest(db2);
+        utTest.make_InsDel(struct2, 2);
 
         // Формирование аудита
         test_ws2_handleSelfAudit();

@@ -131,16 +131,34 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws3_CreateSnapshotReplica();
         //
         test_dumpTables();
+        test_dumpTables_Region();
     }
 
+
+    @Test
+    public void test_region_http() throws Exception {
+        //test_ws1_makeChange();
+        //
+        UtTest utTest = new UtTest(db2);
+        utTest.make_InsDel(struct2, 2);
+        utTest.make_InsDel_1(struct3, 3);
+
+        //
+        sync_http();
+
+        //
+        test_dumpTables_Region();
+    }
 
     @Test
     public void test_all_http() throws Exception {
         //test_ws1_makeChange();
         test_ws2_makeChange();
         test_ws3_makeChange();
-        //make_InsDel(db2, struct2);
-        //make_InsDel_1(db2, struct2);
+        //
+        UtTest utTest = new UtTest(db2);
+        utTest.make_InsDel(struct2, 2);
+        utTest.make_InsDel_1(struct2, 2);
 
         //
         sync_http();
@@ -242,15 +260,39 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         utt3.dumpTable("lic", "../_test-data/csv/ws3-lic.csv", "nameF");
         utt3.dumpTable("ulz", "../_test-data/csv/ws3-ulz.csv", "name");
 
-        DataStore st1 = db.loadSql("select Lic.nameF, Lic.nameI, Lic.nameO, Region.name as RegionName, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) order by Lic.NameF");
+        //
+        String sql = "select Lic.nameF, Lic.nameI, Lic.nameO, Region.name as RegionName, RegionTip.name as RegionTip, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) left join RegionTip on (Region.RegionTip = RegionTip.id) order by Lic.NameF";
+        DataStore st1 = db.loadSql(sql);
         OutTableSaver svr1 = new OutTableSaver(st1);
         svr1.save().toFile("../_test-data/csv/ws1-all.csv");
-        DataStore st2 = db2.loadSql("select Lic.nameF, Lic.nameI, Lic.nameO, Region.name as RegionName, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) order by Lic.NameF");
+        DataStore st2 = db2.loadSql(sql);
         OutTableSaver svr2 = new OutTableSaver(st2);
         svr2.save().toFile("../_test-data/csv/ws2-all.csv");
-        DataStore st3 = db3.loadSql("select Lic.nameF, Lic.nameI, Lic.nameO, Region.name as RegionName, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) order by Lic.NameF");
+        DataStore st3 = db3.loadSql(sql);
         OutTableSaver svr3 = new OutTableSaver(st3);
         svr3.save().toFile("../_test-data/csv/ws3-all.csv");
+    }
+
+    @Test
+    public void test_dumpTables_Region() throws Exception {
+        String sql = "select Region.Name as RegionName, RegionTip.Name as RegionTipName, RegionTip.ShortName as RegionTipShortName, regionTip.deleted\n" +
+                "from Region, RegionTip\n" +
+                "where Region.id <> 0 and Region.regionTip = RegionTip.id\n" +
+                "order by Region.Name, RegionTip.Name\n";
+        String sql_ws1 = "select Region.Name as RegionName, RegionTip.Name as RegionTipName, RegionTip.ShortName as RegionTipShortName, regionTip.deleted\n" +
+                "from Region, RegionTip\n" +
+                "where Region.id <> 0 and Region.regionTip = RegionTip.id\n" +
+                "  and Region.id > 100000\n" + // доп условие - чтобы собственные данные ws1 не мозолили глаза
+                "order by Region.Name, RegionTip.Name\n";
+        DataStore st1 = db.loadSql(sql_ws1);
+        OutTableSaver svr1 = new OutTableSaver(st1);
+        svr1.save().toFile("../_test-data/csv/ws1-region.csv");
+        DataStore st2 = db2.loadSql(sql);
+        OutTableSaver svr2 = new OutTableSaver(st2);
+        svr2.save().toFile("../_test-data/csv/ws2-region.csv");
+        DataStore st3 = db3.loadSql(sql);
+        OutTableSaver svr3 = new OutTableSaver(st3);
+        svr3.save().toFile("../_test-data/csv/ws3-region.csv");
     }
 
 
@@ -274,140 +316,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         struct_rw.write(struct, "../_test-data/dbStruct_1.xml");
     }
 
-    /**
-     * Цикл вставки и удаления влияющей записи:
-     * Вставка A1
-     * Фиксация возраста
-     * Вставка B1 со ссылкой на тольтко что вставленную А1
-     * Фиксация возраста
-     * Обновление B1 - замена ссылки с только что вставленной на уже существующую А0
-     * Фиксация возраста
-     * Удаление только что вставленной A1
-     */
-    void make_InsDel(Db db, IJdxDbStruct struct) throws Exception {
-        DbUtils dbu = new DbUtils(db, struct);
-        UtRepl utRepl = new UtRepl(db, struct);
-        Random rnd = new Random();
-
-        // Постоянная id для regionTip
-        long id1_regionTip = this.db.loadSql("select min(id) id from regionTip where id > 0").getCurRec().getValueLong("id");
-        //long age;
-
-
-        // Фиксация возраста
-        //age = utRepl.getAuditAge();
-        //System.out.println("age: " + age);
-
-        // Вставка A1 (regionTip)
-        long id0_regionTip = dbu.getNextGenerator("g_regionTip");
-        dbu.insertRec("regionTip", UtCnv.toMap(
-                "id", id0_regionTip,
-                "deleted", 0,
-                "name", "name-" + rnd.nextInt(),
-                "shortName", "sn-" + rnd.nextInt()
-        ));
-
-        // Фиксация возраста
-        //age = utRepl.getAuditAge();
-        //System.out.println("age: " + age);
-
-        // Вставка B1 (region) со ссылкой на тольтко что вставленную А1 (regionTip)
-        long id1_region = dbu.getNextGenerator("g_region");
-        dbu.insertRec("region", UtCnv.toMap(
-                "id", id1_region,
-                "regionTip", id0_regionTip,
-                "parent", 0,
-                "name", "name-" + rnd.nextInt()
-        ));
-
-        // Фиксация возраста
-        //age = utRepl.getAuditAge();
-        //System.out.println("age: " + age);
-
-        // Обновление B1 (region) - замена ссылки на А1 (regionTip) с только что вставленнуй на уже существующую А0 (regionTip)
-        dbu.updateRec("region", UtCnv.toMap(
-                "id", id1_region,
-                "regionTip", id1_regionTip,
-                "parent", 0,
-                "name", "name-" + rnd.nextInt()
-        ));
-
-        // Фиксация возраста
-        //age = utRepl.getAuditAge();
-        //System.out.println("age: " + age);
-
-        // Удаление только что вставленной A1 (regionTip)
-        dbu.deleteRec("regionTip", id0_regionTip);
-
-        // Фиксация возраста
-        //age = utRepl.getAuditAge();
-        //System.out.println("age: " + age);
-    }
-
-    /**
-     * Цикл вставки и удаления влияющей записи:
-     * <p>
-     * Вставка B1 со ссылкой на существующую А0
-     * Фиксация возраста
-     * Вставка A1
-     * Фиксация возраста
-     * Обновление B1 - замена ссылки с A0 на только что вставленную А1
-     * Фиксация возраста
-     */
-    void make_InsDel_1(Db db, IJdxDbStruct struct) throws Exception {
-        DbUtils dbu = new DbUtils(db, struct);
-        UtRepl utRepl = new UtRepl(db, struct);
-        Random rnd = new Random();
-
-        // Фиксация возраста
-        //long age;
-        //age = utRepl.markAuditAge();
-        //System.out.println("age: " + age);
-
-        // Постоянная A0 (id для regionTip)
-        long id0_regionTip = this.db.loadSql("select min(id) id from regionTip where id > 0").getCurRec().getValueLong("id");
-
-
-        // Вставка B1 (region) со ссылкой на существующую вставленную А0 (regionTip)
-        long id1_region = dbu.getNextGenerator("g_region");
-        dbu.insertRec("region", UtCnv.toMap(
-                "id", id1_region,
-                "regionTip", id0_regionTip,
-                "parent", 0,
-                "name", "name-" + rnd.nextInt()
-        ));
-
-        // Фиксация возраста
-        //age = utRepl.markAuditAge();
-        //System.out.println("age: " + age);
-
-
-        // Вставка A1 (regionTip)
-        long id1_regionTip = dbu.getNextGenerator("g_regionTip");
-        dbu.insertRec("regionTip", UtCnv.toMap(
-                "id", id1_regionTip,
-                "deleted", 0,
-                "name", "name-" + rnd.nextInt(),
-                "shortName", "sn-" + rnd.nextInt()
-        ));
-
-        // Фиксация возраста
-        //age = utRepl.markAuditAge();
-        //System.out.println("age: " + age);
-
-
-        // Обновление B1 (region) - замена ссылки с существующей А0 (regionTip) на только что вставленную А1
-        dbu.updateRec("region", UtCnv.toMap(
-                "id", id1_region,
-                "regionTip", id1_regionTip,
-                "parent", 0,
-                "name", "name-" + rnd.nextInt()
-        ));
-
-        // Фиксация возраста
-        //age = utRepl.markAuditAge();
-        //System.out.println("age: " + age);
-    }
 
     @Test
     public void test_ws1_makeChange() throws Exception {
