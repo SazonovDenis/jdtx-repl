@@ -213,8 +213,8 @@ public class JdxReplWs {
 
         // Проверяем совпадает ли реальная структура БД с утвержденной структурой
         IJdxDbStruct structStored = utRepl.dbStructLoad();
-        if (structStored != null && !UtDbComparer.dbStructIsEqual(struct, structStored)) {
-            log.info("handleSelfAudit, dbstruct is not match");
+        if (!UtDbComparer.dbStructIsEqual(struct, structStored)) {
+            log.info("handleSelfAudit, database struct is not match");
             return;
         }
 
@@ -272,11 +272,21 @@ public class JdxReplWs {
         log.info("handleQueIn, self.wsId: " + wsId);
 
         //
+        UtRepl utRepl = new UtRepl(db, struct);
+
+        //
         UtAuditApplyer applyer = new UtAuditApplyer(db, struct);
 
         //
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         JdxMuteManagerWs muteManager = new JdxMuteManagerWs(db);
+
+        // Проверяем совпадает ли реальная структура БД с утвержденной структурой
+        boolean dbStructIsEqual = true;
+        IJdxDbStruct structStored = utRepl.dbStructLoad();
+        if (!UtDbComparer.dbStructIsEqual(struct, structStored)) {
+            dbStructIsEqual = false;
+        }
 
         //
         long queInNoDone = stateManager.getQueInNoDone();
@@ -312,7 +322,6 @@ public class JdxReplWs {
                     // В этой реплике - новая утвержденная структура
                     InputStream stream = UtRepl.getReplicaInputStream(replica);
                     try {
-                        UtRepl utRepl = new UtRepl(db, struct);
                         utRepl.dbStructSave(stream);
                     } finally {
                         stream.close();
@@ -326,6 +335,12 @@ public class JdxReplWs {
                 }
                 case JdxReplicaType.IDE:
                 case JdxReplicaType.SNAPSHOT: {
+                    // Реальная структура БД НЕ совпадает с утвержденной структурой
+                    if (!dbStructIsEqual) {
+                        log.info("handleQueIn, database struct is not match");
+                        break;
+                    }
+
                     // Свои собственные установочные реплики можно не применять
                     if (replica.getWsId() == wsId && replica.getReplicaType() == JdxReplicaType.SNAPSHOT) {
                         break;

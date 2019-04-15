@@ -36,6 +36,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         new File("d:/temp/jdtx.log").delete();
         UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6");
 
+        // Режим рабочей станции
         // db
         UtRepl utRepl = new UtRepl(db, struct);
         utRepl.dropReplication();
@@ -135,8 +136,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_region_http() throws Exception {
-        //test_ws1_makeChange();
-        //
         UtTest utTest2 = new UtTest(db2);
         utTest2.make_InsDel(struct2, 2);
         UtTest utTest3 = new UtTest(db3);

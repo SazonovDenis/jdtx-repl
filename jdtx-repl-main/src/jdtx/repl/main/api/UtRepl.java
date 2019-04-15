@@ -55,6 +55,9 @@ public class UtRepl {
         // создаем необходимые для перекодировки таблицы
         UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);
         decodeManager.createRefDecodeObject();
+
+        // Сохраняем структуру в БД
+        dbStructSave(struct);
     }
 
 

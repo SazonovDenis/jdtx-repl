@@ -63,7 +63,17 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         test_ws_changeDbStruct(db);
     }
 
-    public void test_ws_changeDbStruct(Db db) throws Exception {
+    @Test
+    public void test_ws1_changeDb2Struct() throws Exception {
+        test_ws_changeDbStruct(db2);
+    }
+
+    @Test
+    public void test_ws1_changeDb3Struct() throws Exception {
+        test_ws_changeDbStruct(db3);
+    }
+
+    void test_ws_changeDbStruct(Db db) throws Exception {
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
