@@ -16,6 +16,11 @@ public class ReplDatabaseStruct_Test extends ReplDatabase_Test {
         super.setUp();
 
         // Структуры db и db1
+        readStructs();
+    }
+
+    // Структуры db и db1
+    public void readStructs() throws Exception {
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         struct = reader.readDbStruct();

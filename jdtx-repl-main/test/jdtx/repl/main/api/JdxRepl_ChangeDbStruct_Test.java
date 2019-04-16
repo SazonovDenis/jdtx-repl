@@ -10,6 +10,13 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
     @Test
+    public void test_sync_changeDbStruct() throws Exception {
+        sync_http();
+        test_dumpTables();
+        test_changeDbStruct();
+    }
+
+    @Test
     public void test_changeDbStruct() throws Exception {
         // Меняем данные на рабочих станциях
         test_ws2_makeChange();
@@ -32,8 +39,16 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
 
+        // Меняем данные на рабочих станциях
+        test_ws2_makeChange();
+        test_ws3_makeChange();
+
         // Меняем свою структуру
         test_ws_changeDbStruct(db);
+
+        // Меняем данные на рабочих станциях
+        test_ws2_makeChange();
+        test_ws3_makeChange();
 
         // Рассылаем сигнал "всем говорить"
         test_srvUnmuteAll();
@@ -45,6 +60,10 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Убеждаемся что рабочие станции молчат (из-за несовпадения струтуры)
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
+
+        // Меняем данные на рабочих станциях
+        test_ws2_makeChange();
+        test_ws3_makeChange();
 
         // Меняем структуру на рабочих станциях
         test_ws_changeDbStruct(db2);
@@ -59,6 +78,7 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         sync_http();
 
         //
+        readStructs();
         test_dumpTables();
     }
 

@@ -41,6 +41,7 @@ public class UtTest extends UtilsTestCase {
 
     public void makeChange(IJdxDbStruct struct, long ws_id) throws Exception {
         Random rnd = new Random();
+        rnd.setSeed(getDbSeed());
         DbUtils dbu = new DbUtils(db, struct);
 
 
@@ -129,6 +130,17 @@ public class UtTest extends UtilsTestCase {
         ));
     }
 
+    private long getDbSeed() throws Exception {
+        String sql = "  select\n" +
+                "  sum(region.id)+sum(regionTip.id)+sum(Ulz.id)+sum(UlzTip.id)+\n" +
+                "  count(region.id)+count(regionTip.id)+count(Ulz.id)+count(UlzTip.id) as n\n" +
+                "  from region\n" +
+                "  join regionTip on (regionTip.id = region.regionTip)\n" +
+                "  join Ulz on (Ulz.region = region.id)\n" +
+                "  join UlzTip on (UlzTip.id = Ulz.UlzTip)";
+        return db.loadSql(sql).getCurRec().getValueLong("n");
+    }
+
 
     /**
      * Цикл вставки и удаления влияющей записи:
@@ -144,6 +156,7 @@ public class UtTest extends UtilsTestCase {
         DbUtils dbu = new DbUtils(db, struct);
         //UtRepl utRepl = new UtRepl(db, struct);
         Random rnd = new Random();
+        rnd.setSeed(getDbSeed());
 
         // Постоянная id для regionTip
         long id1_regionTip = db.loadSql("select min(id) id from regionTip where id > 0").getCurRec().getValueLong("id");
@@ -214,6 +227,7 @@ public class UtTest extends UtilsTestCase {
         DbUtils dbu = new DbUtils(db, struct);
         //UtRepl utRepl = new UtRepl(db, struct);
         Random rnd = new Random();
+        rnd.setSeed(getDbSeed());
 
         // Фиксация возраста
         //long age;
