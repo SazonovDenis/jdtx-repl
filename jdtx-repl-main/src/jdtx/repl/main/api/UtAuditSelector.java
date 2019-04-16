@@ -158,9 +158,16 @@ public class UtAuditSelector {
     }
 
     protected String getSql(IJdxTableStruct tableFrom, String tableFields, long fromId, long toId) {
+        String idFieldName = tableFrom.getPrimaryKey().get(0).getName();
+        //
         String[] tableFromFields = tableFields.split(",");
         StringBuilder sb = new StringBuilder();
         for (String fieldName : tableFromFields) {
+            if (fieldName.compareToIgnoreCase(idFieldName) == 0) {
+                // без id из основной таблицы, id берем из таблицы аудита
+                continue;
+            }
+            //
             if (sb.length() != 0) {
                 sb.append(", ");
             }
@@ -169,12 +176,13 @@ public class UtAuditSelector {
         String tableFieldsAlias = sb.toString();
 
         //
-        String idFieldName = tableFrom.getPrimaryKey().get(0).getName();
         return "select " +
-                JdxUtils.prefix + "opr_type, " + tableFieldsAlias +
-                " from " + JdxUtils.audit_table_prefix + tableFrom.getName() + ", " + tableFrom.getName() +
-                " where " + JdxUtils.audit_table_prefix + tableFrom.getName() + "." + idFieldName + " = " + tableFrom.getName() + "." + idFieldName +
-                "   and " + JdxUtils.prefix + "id >= " + fromId + " and " + JdxUtils.prefix + "id <= " + toId +
+                JdxUtils.prefix + "opr_type, " +
+                JdxUtils.audit_table_prefix + tableFrom.getName() + "." + idFieldName + ", " +
+                tableFieldsAlias +
+                " from " + JdxUtils.audit_table_prefix + tableFrom.getName() +
+                " left join " + tableFrom.getName() + " on (" + JdxUtils.audit_table_prefix + tableFrom.getName() + "." + idFieldName + " = " + tableFrom.getName() + "." + idFieldName + ")" +
+                " where " + JdxUtils.prefix + "id >= " + fromId + " and " + JdxUtils.prefix + "id <= " + toId +
                 " order by " + JdxUtils.prefix + "id";
     }
 

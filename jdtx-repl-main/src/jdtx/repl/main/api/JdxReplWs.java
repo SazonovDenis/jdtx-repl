@@ -300,6 +300,9 @@ public class JdxReplWs {
             //
             IReplica replica = queIn.getByNo(no);
 
+            // Пробуем применить реплику
+            boolean replicaUsed = true;
+            //
             switch (replica.getReplicaType()) {
                 case JdxReplicaType.MUTE: {
                     // Реакция на команду - перевод в режим "MUTE"
@@ -338,6 +341,7 @@ public class JdxReplWs {
                     // Реальная структура БД НЕ совпадает с утвержденной структурой
                     if (!dbStructIsEqual) {
                         log.info("handleQueIn, database struct is not match");
+                        replicaUsed = false;
                         break;
                     }
 
@@ -371,8 +375,15 @@ public class JdxReplWs {
                 }
             }
 
-            //
+            // Не использованная реплика - повод для остановки
+            if (!replicaUsed) {
+                log.info("handleQueIn, break using replica");
+                break;
+            }
+
+            // Отметим применение реплики
             stateManager.setQueInNoDone(no);
+
 
             //
             count++;
