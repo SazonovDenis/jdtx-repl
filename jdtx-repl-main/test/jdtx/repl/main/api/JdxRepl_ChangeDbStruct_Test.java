@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jdtx.repl.main.api.struct.*;
 import org.junit.*;
@@ -25,11 +26,15 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Формируем сигнал "всем молчать"
         test_srvMuteAll();
 
+        //
+        UtData.outTable(db.loadSql("select * from z_z_state_ws"));
+
         // Цикл синхронизации
         sync_http();
         sync_http();
 
-        // Ждем ответа на сигнал
+        // Ждем ответа на сигнал - проверяем состояние MUTE
+        UtData.outTable(db.loadSql("select * from z_z_state_ws"));
 
         // Меняем данные на рабочих станциях
         test_ws2_makeChange();
@@ -52,6 +57,9 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // Рассылаем сигнал "всем говорить"
         test_srvUnmuteAll();
+
+        // Ждем ответа на сигнал - проверяем состояние MUTE
+        UtData.outTable(db.loadSql("select * from z_z_state_ws"));
 
         // Меняем данные на рабочих станциях
         test_ws2_makeChange();
@@ -76,6 +84,9 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Цикл синхронизации
         sync_http();
         sync_http();
+
+        // Ждем ответа на сигнал - проверяем состояние MUTE
+        UtData.outTable(db.loadSql("select * from z_z_state_ws"));
 
         //
         readStructs();

@@ -314,7 +314,7 @@ public class JdxReplWs {
                     muteManager.muteWorkstation();
 
                     // Выкладывание реплики "Я замолчал"
-                    reportMuteDone();
+                    reportMuteDone(JdxReplicaType.MUTE_DONE);
 
                     //
                     break;
@@ -329,6 +329,9 @@ public class JdxReplWs {
                     } finally {
                         stream.close();
                     }
+
+                    // Выкладывание реплики "Я уже не молчу"
+                    reportMuteDone(JdxReplicaType.UNMUTE_DONE);
 
                     // Выход из состояния "Я замолчал"
                     muteManager.unmuteWorkstation();
@@ -399,9 +402,11 @@ public class JdxReplWs {
 
 
     /**
-     * Рабочая станция: отправка ответа "я замолчал" в исходящую очередь
+     * Рабочая станция: отправка системной реплики
+     * (например, ответа "я замолчал" или "Я уже не молчу")
+     * в исходящую очередь
      */
-    public void reportMuteDone() throws Exception {
+    public void reportMuteDone(int replicaType) throws Exception {
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         UtRepl utRepl = new UtRepl(db, struct);
 
@@ -416,7 +421,7 @@ public class JdxReplWs {
 
         //
         IReplica replica = new ReplicaFile();
-        replica.setReplicaType(JdxReplicaType.MUTE_DONE);
+        replica.setReplicaType(replicaType);
         replica.setWsId(wsId);
         replica.setAge(age);
 

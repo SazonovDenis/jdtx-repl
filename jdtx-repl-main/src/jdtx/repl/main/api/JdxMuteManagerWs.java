@@ -5,7 +5,7 @@ import jandcode.dbm.db.*;
 import org.apache.commons.logging.*;
 
 /**
- * Состояние рабочей станции: MUTE и UMNMUTE.
+ * Рабочая станция: отметка собственного состояния: MUTE и UMNMUTE.
  */
 public class JdxMuteManagerWs {
 

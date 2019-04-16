@@ -10,5 +10,6 @@ public class JdxReplicaType {
     public static final int MUTE = 20;
     public static final int UNMUTE = 21;
     public static final int MUTE_DONE = 22;
+    public static final int UNMUTE_DONE = 23;
 
 }

@@ -252,6 +252,17 @@ public class JdxReplSrv {
                         // Отмечаем факт скачивания
                         stateManager.setWsQueInAgeDone(wsId, age);
 
+                        // Реагируем на системные реплики
+                        if (replica.getReplicaType() == JdxReplicaType.MUTE_DONE) {
+                            JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
+                            utmm.setMuteDone(wsId, age);
+                        }
+                        //
+                        if (replica.getReplicaType() == JdxReplicaType.UNMUTE_DONE) {
+                            JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
+                            utmm.setUnmuteDone(wsId);
+                        }
+
                         //
                         db.commit();
                     } catch (Exception e) {
