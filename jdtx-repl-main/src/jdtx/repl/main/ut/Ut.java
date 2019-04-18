@@ -48,6 +48,9 @@ public class Ut {
         } else {
             msg = e.getMessage();
         }
+        if (msg == null) {
+            msg = e.toString();
+        }
         return msg;
     }
 

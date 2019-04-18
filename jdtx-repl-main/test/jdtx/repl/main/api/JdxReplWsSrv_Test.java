@@ -5,6 +5,7 @@ import jandcode.dbm.data.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.ut.*;
 import org.junit.*;
 
 import java.io.*;
@@ -605,13 +606,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void loop_2_change() throws Exception {
         while (true) {
             try {
+                reloadStruct_forTest();
                 test_ws2_makeChange();
                 TimeUnit.SECONDS.sleep(5);
             } catch (Exception e) {
-                String msg = e.getCause().getMessage();
-                if (msg.contains("deadlock") || msg.contains("violation of FOREIGN KEY constraint")) {
+                String msg = Ut.getExceptionMessage(e);
+                if (canSkipException(msg)|| msg.contains("violation of FOREIGN KEY constraint")) {
                     System.out.println(msg);
-                    System.out.println(e.getMessage());
                 } else {
                     throw e;
                 }
@@ -623,13 +624,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void loop_3_change() throws Exception {
         while (true) {
             try {
+                reloadStruct_forTest();
                 test_ws3_makeChange();
                 TimeUnit.SECONDS.sleep(5);
             } catch (Exception e) {
-                String msg = e.getCause().getMessage();
-                if (msg.contains("deadlock") || msg.contains("violation of FOREIGN KEY constraint")) {
+                String msg = Ut.getExceptionMessage(e);
+                if (canSkipException(msg)|| msg.contains("violation of FOREIGN KEY constraint")) {
                     System.out.println(msg);
-                    System.out.println(e.getMessage());
                 } else {
                     throw e;
                 }
@@ -646,21 +647,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 test_ws1_send_receive();
                 test_ws1_handleQueIn();
             } catch (Exception e) {
-                String msg;
-                if (e.getCause() != null) {
-                    msg = e.getCause().getMessage();
-                } else {
-                    msg = e.getMessage();
-                }
-                if (msg.contains("deadlock") ||
-                        msg.contains("Connection reset") ||
-                        msg.contains("Connection refused: connect") ||
-                        msg.contains("Connection timed out: connect") ||
-                        msg.contains("Connection refused: connect") ||
-                        (msg.contains("Item info") && msg.contains("not found"))
-                        ) {
+                String msg = Ut.getExceptionMessage(e);
+                if (canSkipException(msg)) {
                     System.out.println(msg);
-                    System.out.println(e.getMessage());
                     e.printStackTrace();
                 } else {
                     throw e;
@@ -678,24 +667,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 test_ws2_send_receive();
                 test_ws2_handleQueIn();
             } catch (Exception e) {
-                String msg;
-                if (e.getCause() != null) {
-                    msg = e.getCause().getMessage();
-                } else {
-                    msg = e.getMessage();
-                }
-                if (msg == null) {
-                    msg = e.toString();
-                }
-                if (msg.contains("deadlock") ||
-                        msg.contains("Connection reset") ||
-                        msg.contains("Connection refused: connect") ||
-                        msg.contains("Connection timed out: connect") ||
-                        msg.contains("Connection refused: connect") ||
-                        (msg.contains("Item info") && msg.contains("not found"))
-                        ) {
+                String msg = Ut.getExceptionMessage(e);
+                if (canSkipException(msg)) {
                     System.out.println(msg);
-                    System.out.println(e.getMessage());
                     e.printStackTrace();
                 } else {
                     throw e;
@@ -713,24 +687,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 test_ws3_send_receive();
                 test_ws3_handleQueIn();
             } catch (Exception e) {
-                String msg;
-                if (e.getCause() != null) {
-                    msg = e.getCause().getMessage();
-                } else {
-                    msg = e.getMessage();
-                }
-                if (msg == null) {
-                    msg = e.toString();
-                }
-                if (msg.contains("deadlock") ||
-                        msg.contains("Connection reset") ||
-                        msg.contains("Connection refused: connect") ||
-                        msg.contains("Connection timed out: connect") ||
-                        msg.contains("Connection refused: connect") ||
-                        (msg.contains("Item info") && msg.contains("not found"))
-                        ) {
+                String msg = Ut.getExceptionMessage(e);
+                if (canSkipException(msg)) {
                     System.out.println(msg);
-                    System.out.println(e.getMessage());
                     e.printStackTrace();
                 } else {
                     throw e;
@@ -747,22 +706,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 test_sync_srv();
                 TimeUnit.SECONDS.sleep(5);
             } catch (Exception e) {
-                String msg;
-                if (e.getCause() != null) {
-                    msg = e.getCause().getMessage();
-                } else {
-                    msg = e.getMessage();
-                }
-                if (msg == null) {
-                    msg = e.toString();
-                }
-                if (msg.contains("deadlock") ||
-                        msg.contains("Connection refused: connect") ||
-                        msg.contains("Connection timed out: connect") ||
-                        msg.contains("Connection refused: connect")
-                        ) {
+                String msg = Ut.getExceptionMessage(e);
+                if (canSkipException(msg)) {
                     System.out.println(msg);
-                    System.out.println(e.getMessage());
+                    e.printStackTrace();
                 } else {
                     throw e;
                 }
@@ -778,15 +725,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 test_sync_srv_Local();
                 TimeUnit.SECONDS.sleep(10);
             } catch (Exception e) {
-                String msg;
-                if (e.getCause() != null) {
-                    msg = e.getCause().getMessage();
-                } else {
-                    msg = e.getMessage();
-                }
-                if (msg.contains("deadlock")) {
+                String msg = Ut.getExceptionMessage(e);
+                if (canSkipException(msg)) {
                     System.out.println(msg);
-                    System.out.println(e.getMessage());
+                    e.printStackTrace();
                 } else {
                     throw e;
                 }
@@ -803,24 +745,25 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 test_ws_receiveLocal();
                 TimeUnit.SECONDS.sleep(20);
             } catch (Exception e) {
-                String msg;
-                if (e.getCause() != null) {
-                    msg = e.getCause().getMessage();
-                } else {
-                    msg = e.getMessage();
-                }
-                if (msg.contains("deadlock") ||
-                        (msg.contains("Item info") && msg.contains("not found")) ||
-                        (msg.contains("Source") && msg.contains("does not exist"))
-                        ) {
+                String msg = Ut.getExceptionMessage(e);
+                if (canSkipException(msg)) {
                     System.out.println(msg);
-                    System.out.println(e.getMessage());
                     e.printStackTrace();
                 } else {
                     throw e;
                 }
             }
         }
+    }
+
+    //
+    boolean canSkipException(String msg) {
+        return msg.contains("deadlock") ||
+                msg.contains("Connection reset") ||
+                msg.contains("Connection refused: connect") ||
+                msg.contains("Connection timed out: connect") ||
+                msg.contains("Connection refused: connect") ||
+                (msg.contains("Item info") && msg.contains("not found"));
     }
 
 

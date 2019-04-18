@@ -4,6 +4,7 @@ import jandcode.bgtasks.BgTask;
 import jandcode.dbm.ModelService;
 import jandcode.dbm.db.Db;
 import jdtx.repl.main.api.JdxReplSrv;
+import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -33,12 +34,7 @@ public class SrvBgTask extends BgTask {
         try {
             step_server();
         } catch (Exception e) {
-            String msg;
-            if (e.getCause() != null) {
-                msg = e.getCause().getMessage();
-            } else {
-                msg = e.getMessage();
-            }
+            String msg = Ut.getExceptionMessage(e);
             log.error("Сервер: " + msg);
             e.printStackTrace();
         }

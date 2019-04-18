@@ -2,8 +2,12 @@ package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
+import jandcode.utils.error.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.ut.*;
 import org.junit.*;
+
+import java.util.concurrent.*;
 
 /**
  */
@@ -19,49 +23,55 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
     @Test
     public void test_changeDbStruct() throws Exception {
-        // Меняем данные на рабочих станциях
+        //
         test_ws2_makeChange();
         test_ws3_makeChange();
 
+        // ===
         // Формируем сигнал "всем молчать"
         test_srvMuteAll();
 
         //
-        UtData.outTable(db.loadSql("select * from z_z_state_ws"));
+        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
 
         // Цикл синхронизации
         sync_http();
         sync_http();
 
-        // Ждем ответа на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from z_z_state_ws"));
+        // Проверяем ответ на сигнал - проверяем состояние MUTE
+        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
 
-        // Меняем данные на рабочих станциях
+
+        // ===
+        // Убеждаемся что рабочие станции молчат (из-из запрета)
         test_ws2_makeChange();
         test_ws3_makeChange();
 
-        // Убеждаемся что рабочие станции молчат (из-из запрета)
+        //
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
 
-        // Меняем данные на рабочих станциях
-        test_ws2_makeChange();
-        test_ws3_makeChange();
 
+        // ===
         // Меняем свою структуру
         test_ws_changeDbStruct(db);
 
-        // Меняем данные на рабочих станциях
+        //
         test_ws2_makeChange();
         test_ws3_makeChange();
 
-        // Рассылаем сигнал "всем говорить"
-        test_srvUnmuteAll();
+        // Цикл синхронизации
+        sync_http();
+        sync_http();
 
-        // Ждем ответа на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from z_z_state_ws"));
 
-        // Меняем данные на рабочих станциях
+        // ===
+        // Меняем структуру на рабочих станциях
+        test_ws_changeDbStruct(db2);
+        test_ws_changeDbStruct(db3);
+        reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
+
+        //
         test_ws2_makeChange();
         test_ws3_makeChange();
 
@@ -69,15 +79,29 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
 
-        // Меняем данные на рабочих станциях
+
+        // ===
+        // Рассылаем сигнал "всем говорить"
+        test_srvUnmuteAll();
+
+        //
         test_ws2_makeChange();
         test_ws3_makeChange();
 
-        // Меняем структуру на рабочих станциях
-        test_ws_changeDbStruct(db2);
-        test_ws_changeDbStruct(db3);
+        // Цикл синхронизации
+        sync_http();
+        sync_http();
 
+        // Проверяем ответа на сигнал - проверяем состояние MUTE
+        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
+
+
+        // ===
         // Убеждаемся что рабочие станции говорят
+        test_ws2_makeChange();
+        test_ws3_makeChange();
+
+        //
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
 
@@ -85,14 +109,13 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         sync_http();
         sync_http();
 
-        // Ждем ответа на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from z_z_state_ws"));
 
-        //
-        readStructs();
+        // ===
+        reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
         test_dumpTables();
     }
 
+/*
     @Test
     public void test_ws1_changeDbStruct() throws Exception {
         test_ws_changeDbStruct(db);
@@ -107,6 +130,7 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     public void test_ws1_changeDb3Struct() throws Exception {
         test_ws_changeDbStruct(db3);
     }
+*/
 
     void test_ws_changeDbStruct(Db db) throws Exception {
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
@@ -137,6 +161,141 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // Формирование аудита
         test_ws2_handleSelfAudit();
+    }
+
+
+    //
+    long waitInterval_SECONDS = 60;
+
+    @Test
+    public void loop_3_repl() throws Exception {
+        while (true) {
+            TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
+
+            try {
+                // =======================================
+                // Проверяем, что никто не молчит
+                DataStore st = db.loadSql("select * from z_z_state_ws where enabled = 1");
+                int muteCount = 0;
+                int noMuteCount = 0;
+                for (DataRecord rec : st) {
+                    if (rec.getValueInt("mute_age") != 0) {
+                        muteCount = muteCount + 1;
+                    } else {
+                        noMuteCount = noMuteCount + 1;
+                    }
+                }
+
+                // Ждем пока "заговорят"
+                if (muteCount != 0) {
+                    UtData.outTable(st);
+                    throw new XError("Кто-то молчит, muteCount = " + muteCount);
+                }
+
+
+                // =======================================
+                System.out.println("Формируем сигнал 'всем молчать'");
+                //
+                test_srvMuteAll();
+
+                //
+                UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
+
+
+                // =======================================
+                System.out.println("Ждем ответа на сигнал - проверяем состояние MUTE");
+                //
+                while (true) {
+                    TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
+
+                    // Проверяем
+                    st = db.loadSql("select * from z_z_state_ws where enabled = 1");
+                    muteCount = 0;
+                    noMuteCount = 0;
+                    for (DataRecord rec : st) {
+                        if (rec.getValueInt("mute_age") != 0) {
+                            muteCount = muteCount + 1;
+                        } else {
+                            noMuteCount = noMuteCount + 1;
+                        }
+                    }
+
+                    // Все получили сингал "mute"
+                    if (noMuteCount == 0) {
+                        System.out.println("Все MUTE");
+                        UtData.outTable(st);
+                        break;
+                    }
+
+                    //
+                    System.out.println("noMuteCount = " + noMuteCount);
+                }
+
+
+                // =======================================
+                System.out.println("Меняем структуру");
+                //
+                TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
+                test_ws_changeDbStruct(db);
+                TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
+                test_ws_changeDbStruct(db2);
+                TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
+                test_ws_changeDbStruct(db3);
+                TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
+                //
+                reloadStruct_forTest();
+
+
+                // =======================================
+                //
+                System.out.println("Формируем сигнал 'всем говорить'");
+                test_srvUnmuteAll();
+
+                //
+                UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
+
+
+                // =======================================
+                System.out.println("Ждем ответа на сигнал - проверяем состояние UNMUTE");
+                //
+                while (true) {
+                    TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
+
+                    // Проверяем
+                    st = db.loadSql("select * from z_z_state_ws where enabled = 1");
+                    muteCount = 0;
+                    noMuteCount = 0;
+                    for (DataRecord rec : st) {
+                        if (rec.getValueInt("mute_age") != 0) {
+                            muteCount = muteCount + 1;
+                        } else {
+                            noMuteCount = noMuteCount + 1;
+                        }
+                    }
+
+                    // Все получили сингал "unmute"
+                    if (muteCount == 0) {
+                        System.out.println("Все UNMUTE");
+                        UtData.outTable(st);
+                        break;
+                    }
+
+                    //
+                    System.out.println("muteCount = " + muteCount);
+                }
+
+                // Не злоупотребляем частой сменой структуры
+                TimeUnit.SECONDS.sleep(waitInterval_SECONDS * 30);
+            } catch (Exception e) {
+                String msg = Ut.getExceptionMessage(e);
+                if (canSkipException(msg)) {
+                    System.out.println(msg);
+                    e.printStackTrace();
+                } else {
+                    throw e;
+                }
+            }
+        }
     }
 
 
