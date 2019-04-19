@@ -166,6 +166,7 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
     //
     long waitInterval_SECONDS = 60;
+    long waitInterval_SECONDS_short = 5;
 
     @Test
     public void loop_3_repl() throws Exception {
@@ -206,7 +207,7 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
                 System.out.println("Ждем ответа на сигнал - проверяем состояние MUTE");
                 //
                 while (true) {
-                    TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
+                    TimeUnit.SECONDS.sleep(waitInterval_SECONDS_short);
 
                     // Проверяем
                     st = db.loadSql("select * from z_z_state_ws where enabled = 1");
@@ -259,7 +260,7 @@ public class JdxRepl_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
                 System.out.println("Ждем ответа на сигнал - проверяем состояние UNMUTE");
                 //
                 while (true) {
-                    TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
+                    TimeUnit.SECONDS.sleep(waitInterval_SECONDS_short);
 
                     // Проверяем
                     st = db.loadSql("select * from z_z_state_ws where enabled = 1");
