@@ -88,6 +88,7 @@ Source: web\WEB-INF\sample._db-ini.rt; DestDir: {app}\web\WEB-INF; Flags: onlyif
 Source: web\WEB-INF\sample.log.properties; DestDir: {app}\web\WEB-INF; Flags: onlyifdoesntexist; DestName: log.properties
 ;Source: web\WEB-INF\cfg\sample.srv.json; DestDir: {app}\web\WEB-INF\cfg\srv.json; Flags: onlyifdoesntexist
 Source: web\WEB-INF\cfg\sample.ws.json; DestDir: {app}\web\WEB-INF\cfg; Flags: onlyifdoesntexist; DestName: ws.json
+Source: install\cm.bat; DestDir: {app}; DestName: cm.bat; Flags: onlyifdoesntexist
 
 
 
