@@ -284,7 +284,7 @@ public class JdxReplWs {
         // Проверяем совпадает ли реальная структура БД с утвержденной структурой
         boolean dbStructIsEqual = true;
         IJdxDbStruct structStored = utRepl.dbStructLoad();
-        if (!UtDbComparer.dbStructIsEqual(struct, structStored)) {
+        if (structStored != null && !UtDbComparer.dbStructIsEqual(struct, structStored)) {
             dbStructIsEqual = false;
         }
 
