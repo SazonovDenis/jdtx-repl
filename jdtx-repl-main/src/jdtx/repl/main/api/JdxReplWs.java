@@ -213,7 +213,7 @@ public class JdxReplWs {
 
         // Проверяем совпадает ли реальная структура БД с утвержденной структурой
         IJdxDbStruct structStored = utRepl.dbStructLoad();
-        if (!UtDbComparer.dbStructIsEqual(struct, structStored)) {
+        if (structStored != null && !UtDbComparer.dbStructIsEqual(struct, structStored)) {
             log.info("handleSelfAudit, database struct is not match");
             return;
         }
