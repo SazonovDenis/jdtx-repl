@@ -34,6 +34,7 @@ public class MailerHttp implements IMailer {
 
     // 32 Mb
     int HTTP_FILE_MAX_SIZE = 1024 * 1024 * 32;
+    String REPL_PROTOCOL_VERSION = "2.0";
     //int HTTP_FILE_MAX_SIZE = 512;
 
 
@@ -172,27 +173,31 @@ public class MailerHttp implements IMailer {
     public IReplica receive(long no, String box) throws Exception {
         log.info("mailer.receive, no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 
-        // replicaFile может уже существует - от предыдущих попыток скачать
-        String localFileName = "~" + getFileName(no);
-        File replicaFile = new File(localDirTmp + localFileName);
-
-        //
-        HttpClient httpclient = HttpClientBuilder.create().build();
-
-        //
+        // Читаем данные об очередном письме
         JSONObject fileInfo = getInfo_internal(no, box);
+
+        // Проверим протокол репликатора
+        String protocolVersion = (String) fileInfo.get("protocolVersion");
+        if (protocolVersion.compareToIgnoreCase(REPL_PROTOCOL_VERSION) != 0) {
+            throw new XError("mailer.receive, protocolVersion.expected: " + REPL_PROTOCOL_VERSION + ", actual: " + protocolVersion);
+        }
+
+        // Сколько частей надо скачивать
         long filePartsCount = (long) fileInfo.get("partsCount");
         long totalBytes = (long) fileInfo.get("totalBytes");
+
+        // Если частей много - сообщим в log.info
         if (filePartsCount > 1) {
             log.info("mailer.receive, filePartsCount: " + filePartsCount);
         }
 
-        // Закачиваем по частям
+        // Замечание: файл replicaFile может уже существует - от предыдущих попыток скачать
+        String localFileName = "~" + getFileName(no);
+        File replicaFile = new File(localDirTmp + localFileName);
+
+        // Большие письма получаем с докачкой, поэтому сначала выясняем, что уже успели скачать
         long filePart = 0;
         long receivedBytes = 0;
-
-
-        // Большие письма получаем с докачкой, для чего сначала выясняем, что уже успели скачать
         if (filePartsCount > 1) {
             receivedBytes = replicaFile.length();
             filePart = (receivedBytes + HTTP_FILE_MAX_SIZE - 1) / HTTP_FILE_MAX_SIZE;
@@ -202,6 +207,8 @@ public class MailerHttp implements IMailer {
             }
         }
 
+        // Закачиваем (по частям)
+        HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
         while (receivedBytes < totalBytes) {
@@ -362,6 +369,7 @@ public class MailerHttp implements IMailer {
 
         //
         JSONObject infoJson = info.toJSONObject();
+        infoJson.put("protocolVersion", REPL_PROTOCOL_VERSION);
         infoJson.put("partsCount", partsCount);
         infoJson.put("totalBytes", totalBytes);
 

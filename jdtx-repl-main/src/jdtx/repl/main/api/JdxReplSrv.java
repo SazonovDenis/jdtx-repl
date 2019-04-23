@@ -226,6 +226,7 @@ public class JdxReplSrv {
 
                     // Физически забираем данные с почтового сервера
                     IReplica replica = mailer.receive(age, "from");
+
                     // Проверяем целостность скачанного
                     String md5file = JdxUtils.getMd5File(replica.getFile());
                     if (!md5file.equals(info.crc)) {
