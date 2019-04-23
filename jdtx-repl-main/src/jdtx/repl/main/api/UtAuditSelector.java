@@ -6,6 +6,7 @@ import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
+import org.joda.time.*;
 
 public class UtAuditSelector {
 
@@ -31,11 +32,15 @@ public class UtAuditSelector {
         //
         IRefDecoder decoder = new RefDecoder(db, wsId);
 
+
         //
         DbQuery rsTableLog = selectAuditData(tableName, tableFields, ageFrom, ageTo);
         try {
             if (!rsTableLog.eof()) {
                 dataWriter.startTable(tableName);
+
+                //
+                DateTime opr_dttm_min = rsTableLog.getValueDateTime(JdxUtils.prefix + "opr_dttm");
 
                 // Измененные данные помещаем в dataWriter
                 long n = 0;
@@ -66,6 +71,10 @@ public class UtAuditSelector {
 
 
                     }
+
+                    //
+                    DateTime opr_dttm_max = rsTableLog.getValueDateTime(JdxUtils.prefix + "opr_dttm");
+
                     //
                     rsTableLog.next();
 
@@ -178,6 +187,7 @@ public class UtAuditSelector {
         //
         return "select " +
                 JdxUtils.prefix + "opr_type, " +
+                JdxUtils.prefix + "opr_dttm, " +
                 JdxUtils.audit_table_prefix + tableFrom.getName() + "." + idFieldName + ", " +
                 tableFieldsAlias +
                 " from " + JdxUtils.audit_table_prefix + tableFrom.getName() +

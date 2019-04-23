@@ -1,26 +1,36 @@
 package jdtx.repl.main.api.replica;
 
+import org.joda.time.*;
+
 import java.io.*;
 
 /**
- * Блок данных. todo: возможно нет необходитости хранить возраст и номер ВНУТРИ реплики
+ * Блок данных. todo: возможно нет необходитости хранить возраст (номер) ВНУТРИ реплики
  */
 public interface IReplica {
 
-    void setWsId(long wsId);
-
     long getWsId();
 
-    void setAge(long age);
+    void setWsId(long wsId);
 
     long getAge();
 
-    void setReplicaType(int replicaType);
+    void setAge(long age);
+
+    DateTime getDtFrom();
+
+    void setDtFrom(DateTime dtFrom);
+
+    DateTime getDtTo();
+
+    void setDtTo(DateTime dtTo);
 
     int getReplicaType();
 
-    void setFile(File file);
+    void setReplicaType(int replicaType);
 
     File getFile();
+
+    void setFile(File file);
 
 }
