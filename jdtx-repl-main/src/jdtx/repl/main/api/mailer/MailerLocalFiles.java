@@ -63,7 +63,7 @@ public class MailerLocalFiles implements IMailer {
     }
 
     public void send(IReplica replica, long no, String box) throws Exception {
-        log.info("mailer.send, replica.wsId: " + replica.getWsId() + ", replica.age: " + replica.getAge() + ", no: " + no + ", remoteDir: " + remoteDir + "/" + box);
+        log.info("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", remoteDir: " + remoteDir + "/" + box);
 
         // Проверки: правильность полей реплики
         JdxUtils.validateReplica(replica);
@@ -134,7 +134,7 @@ public class MailerLocalFiles implements IMailer {
 
         String remoteFileName = getFileName(no);
         File remoteFile = new File(remoteDir + box + "/" + remoteFileName);
-        info.crc = JdxUtils.getMd5File(remoteFile);
+        info.setCrc(JdxUtils.getMd5File(remoteFile));;
 
         return info;
     }

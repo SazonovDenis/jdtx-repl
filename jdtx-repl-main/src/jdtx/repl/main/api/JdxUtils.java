@@ -118,28 +118,28 @@ public class JdxUtils {
 
     public static void validateReplica(IReplica replica) {
         // Проверки: правильность типа реплики
-        if (replica.getReplicaType() <= 0) {
+        if (replica.getInfo().getReplicaType() <= 0) {
             throw new XError("invalid replica.replicaType");
         }
 
         // Реплика - системная команда?
-        if (replica.getReplicaType() == JdxReplicaType.MUTE || replica.getReplicaType() == JdxReplicaType.UNMUTE) {
+        if (replica.getInfo().getReplicaType() == JdxReplicaType.MUTE || replica.getInfo().getReplicaType() == JdxReplicaType.UNMUTE) {
             return;
         }
 
         // Проверки: правильность возраста реплики
-        if (replica.getAge() <= -1) {
+        if (replica.getInfo().getAge() <= -1) {
             throw new XError("invalid replica.age");
         }
 
         // Проверки: правильность кода рабочей станции
-        if (replica.getWsId() <= 0) {
+        if (replica.getInfo().getWsId() <= 0) {
             throw new XError("invalid replica.wsId");
         }
 
         // Проверки: обязательность файла
         File replicaFile = replica.getFile();
-        if (replicaFile == null && replica.getReplicaType() != JdxReplicaType.SNAPSHOT) {
+        if (replicaFile == null && replica.getInfo().getReplicaType() != JdxReplicaType.SNAPSHOT) {
             //if (replicaFile == null) { todo: почему?
             throw new XError("invalid replica.file is null");
         }

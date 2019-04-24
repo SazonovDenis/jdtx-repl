@@ -113,9 +113,11 @@ public class JdxReplicaReaderXml {
         }
 
         //
-        replica.setWsId(info.wsId);
-        replica.setAge(info.age);
-        replica.setReplicaType(info.replicaType);
+        replica.getInfo().setWsId(info.getWsId());
+        replica.getInfo().setAge(info.getAge());
+        replica.getInfo().setDtFrom(info.getDtFrom());
+        replica.getInfo().setDtTo(info.getDtTo());
+        replica.getInfo().setReplicaType(info.getReplicaType());
     }
 
 

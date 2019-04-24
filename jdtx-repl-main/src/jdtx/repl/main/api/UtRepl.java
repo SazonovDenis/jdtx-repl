@@ -9,9 +9,11 @@ import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
+import org.joda.time.*;
 import org.json.simple.*;
 
 import java.io.*;
+import java.util.*;
 import java.util.zip.*;
 
 /**
@@ -75,7 +77,6 @@ public class UtRepl {
     }
 
 
-
     /**
      * Искусственно увеличить возраст рабочей станции
      */
@@ -105,7 +106,7 @@ public class UtRepl {
 
     void createOutput(IReplica replica) throws Exception {
         // Файл
-        String fileNameTemplate = UtString.padLeft(String.valueOf(replica.getWsId()), 3, '0') + "-" + UtString.padLeft(String.valueOf(replica.getAge()), 9, '0');
+        String fileNameTemplate = UtString.padLeft(String.valueOf(replica.getInfo().getWsId()), 3, '0') + "-" + UtString.padLeft(String.valueOf(replica.getInfo().getAge()), 9, '0');
         File outFile = File.createTempFile("~jdx-" + fileNameTemplate + "-", ".zip");
         outputStream = new FileOutputStream(outFile);
 
@@ -115,7 +116,7 @@ public class UtRepl {
         // Zip-файл (заголовок)
         ZipEntry zipEntryHead = new ZipEntry("dat.info");
         zipOutputStream.putNextEntry(zipEntryHead);
-        String json = "{\"wsId\": " + replica.getWsId() + ", \"age\": " + replica.getAge() + ", \"replicaType\": " + replica.getReplicaType() + "}";
+        String json = replica.getInfo().toString();
         zipOutputStream.write(json.getBytes("utf-8"));
         zipOutputStream.closeEntry();
 
@@ -151,34 +152,64 @@ public class UtRepl {
         log.info("createReplicaFromAudit, wsId: " + wsId + ", age: " + age);
 
         //
-        IReplica replica = new ReplicaFile();
-        replica.setWsId(wsId);
-        replica.setAge(age);
-        replica.setReplicaType(JdxReplicaType.IDE);
+        UtAuditSelector utrr = new UtAuditSelector(db, struct, wsId);
 
-        // Открываем запись
+        // Узнаем интервалы для аудита
+        Map auditInfo = utrr.loadAutitIntervals(publication, age);
+
+        //
+        IReplica replica = new ReplicaFile();
+        replica.getInfo().setWsId(wsId);
+        replica.getInfo().setAge(age);
+        replica.getInfo().setDtFrom((DateTime) auditInfo.get("z_opr_dttm_from"));
+        replica.getInfo().setDtTo((DateTime) auditInfo.get("z_opr_dttm_to"));
+        replica.getInfo().setReplicaType(JdxReplicaType.IDE);
+
+        // Стартуем запись реплики
         createOutput(replica);
 
 
-        // Пишем
+        // Пишем заголовок
         writerXml.startDocument();
-        writerXml.writeReplicaInfo(wsId, age, JdxReplicaType.IDE);
+        writerXml.writeReplicaInfo(replica);
 
-        //
-        UtAuditSelector utrr = new UtAuditSelector(db, struct, wsId);
 
         // Забираем аудит по порядку сортировки таблиц в struct
         JSONArray publicationData = publication.getData();
         for (IJdxTableStruct table : struct.getTables()) {
             String stuctTableName = table.getName();
+            JSONObject publicationTable = null;
+            boolean foundInPublication = false;
             for (int i = 0; i < publicationData.size(); i++) {
-                JSONObject publicationTable = (JSONObject) publicationData.get(i);
+                publicationTable = (JSONObject) publicationData.get(i);
                 String publicationTableName = (String) publicationTable.get("table");
                 if (stuctTableName.compareToIgnoreCase(publicationTableName) == 0) {
-                    String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
-                    utrr.readAuditData(stuctTableName, publicationFields, age - 1, age, writerXml);
+                    foundInPublication = true;
+                    break;
                 }
             }
+
+            //
+            if (foundInPublication) {
+                String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
+                //utrr.readAuditData_old(stuctTableName, publicationFields, age - 1, age, writerXml);
+
+                // Интервал id в таблице аудита, который покрывает возраст age
+                Map autitInfoTable = (Map) auditInfo.get(stuctTableName);
+                if (autitInfoTable != null) {
+                    long fromId = (long) autitInfoTable.get("z_id_from");
+                    long toId = (long) autitInfoTable.get("z_id_to");
+
+                    //
+                    if (toId >= fromId) {
+                        log.info("createReplicaFromAudit: " + stuctTableName + ", age: " + age + ", z_id: [" + fromId + ".." + toId + "], audit recs: " + (toId - fromId + 1));
+                        //
+                        utrr.readAuditData_ById(stuctTableName, publicationFields, fromId, toId, writerXml);
+                    }
+                }
+
+            }
+
         }
 
         //
@@ -202,9 +233,9 @@ public class UtRepl {
 
         //
         IReplica replica = new ReplicaFile();
-        replica.setWsId(wsId);
-        replica.setAge(age);
-        replica.setReplicaType(JdxReplicaType.SNAPSHOT);
+        replica.getInfo().setWsId(wsId);
+        replica.getInfo().setAge(age);
+        replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
 
         // Открываем запись
         createOutput(replica);
@@ -212,7 +243,7 @@ public class UtRepl {
 
         // Пишем
         writerXml.startDocument();
-        writerXml.writeReplicaInfo(wsId, age, JdxReplicaType.SNAPSHOT);
+        writerXml.writeReplicaInfo(replica);
 
         //
         UtDataSelector utrr = new UtDataSelector(db, struct);
@@ -244,7 +275,7 @@ public class UtRepl {
 
     public IReplica createReplicaUnmute() throws Exception {
         IReplica replica = new ReplicaFile();
-        replica.setReplicaType(JdxReplicaType.UNMUTE);
+        replica.getInfo().setReplicaType(JdxReplicaType.UNMUTE);
         //replica.setWsId(wsId);
         //replica.setAge(age);
 
@@ -264,7 +295,7 @@ public class UtRepl {
 
     public IReplica createReplicaMute() throws Exception {
         IReplica replica = new ReplicaFile();
-        replica.setReplicaType(JdxReplicaType.MUTE);
+        replica.getInfo().setReplicaType(JdxReplicaType.MUTE);
         //replica.setWsId(wsId);
         //replica.setAge(age);
 

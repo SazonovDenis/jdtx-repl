@@ -9,25 +9,7 @@ import java.io.*;
  */
 public interface IReplica {
 
-    long getWsId();
-
-    void setWsId(long wsId);
-
-    long getAge();
-
-    void setAge(long age);
-
-    DateTime getDtFrom();
-
-    void setDtFrom(DateTime dtFrom);
-
-    DateTime getDtTo();
-
-    void setDtTo(DateTime dtTo);
-
-    int getReplicaType();
-
-    void setReplicaType(int replicaType);
+    IReplicaInfo getInfo();
 
     File getFile();
 

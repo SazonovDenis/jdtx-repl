@@ -303,7 +303,7 @@ public class JdxReplWs {
             // Пробуем применить реплику
             boolean replicaUsed = true;
             //
-            switch (replica.getReplicaType()) {
+            switch (replica.getInfo().getReplicaType()) {
                 case JdxReplicaType.MUTE: {
                     // Реакция на команду - перевод в режим "MUTE"
 
@@ -349,7 +349,7 @@ public class JdxReplWs {
                     }
 
                     // Свои собственные установочные реплики можно не применять
-                    if (replica.getWsId() == wsId && replica.getReplicaType() == JdxReplicaType.SNAPSHOT) {
+                    if (replica.getInfo().getWsId() == wsId && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
                         break;
                     }
 
@@ -421,9 +421,9 @@ public class JdxReplWs {
 
         //
         IReplica replica = new ReplicaFile();
-        replica.setReplicaType(replicaType);
-        replica.setWsId(wsId);
-        replica.setAge(age);
+        replica.getInfo().setReplicaType(replicaType);
+        replica.getInfo().setWsId(wsId);
+        replica.getInfo().setAge(age);
 
         //
         utRepl.createOutput(replica);
@@ -492,23 +492,23 @@ public class JdxReplWs {
 
             // Нужно ли скачивать эту реплику с сервера?
             IReplica replica;
-            if (info.wsId == wsId && info.replicaType == JdxReplicaType.SNAPSHOT) {
+            if (info.getWsId() == wsId && info.getReplicaType() == JdxReplicaType.SNAPSHOT) {
                 // Свои собственные установочные реплики можно не скачивать (и не применять)
-                log.info("Found self snapshot replica, age: " + info.age);
+                log.info("Found self snapshot replica, age: " + info.getAge());
                 //
                 replica = new ReplicaFile();
-                replica.setWsId(info.wsId);
-                replica.setAge(info.age);
-                replica.setReplicaType(info.replicaType);
+                replica.getInfo().setWsId(info.getWsId());
+                replica.getInfo().setAge(info.getAge());
+                replica.getInfo().setReplicaType(info.getReplicaType());
             } else {
                 // Физически забираем данные реплики с сервера
                 replica = mailer.receive(no, "to");
                 // Проверяем целостность скачанного
                 String md5file = JdxUtils.getMd5File(replica.getFile());
-                if (!md5file.equals(info.crc)) {
+                if (!md5file.equals(info.getCrc())) {
                     log.error("receive.replica: " + replica.getFile());
                     log.error("receive.replica.md5: " + md5file);
-                    log.error("mailer.info.crc: " + info.crc);
+                    log.error("mailer.info.crc: " + info.getCrc());
                     // Неправильно скачанный файл - удаляем, чтобы потом начать снова
                     replica.getFile().delete();
                     // Ошибка
@@ -519,7 +519,7 @@ public class JdxReplWs {
             }
 
             //
-            log.debug("replica.age: " + replica.getAge() + ", replica.wsId: " + replica.getWsId());
+            log.debug("replica.age: " + replica.getInfo().getAge() + ", replica.wsId: " + replica.getInfo().getWsId());
 
             // Помещаем реплику в свою входящую очередь
             queIn.put(replica);
@@ -601,6 +601,9 @@ public class JdxReplWs {
 
             // Берем реплику
             IReplica replica = queOut.getByAge(age);
+
+            // Читаем ее getInfo
+            JdxReplicaReaderXml.readReplicaInfo(replica);
 
             // Физически отправляем реплику
             mailer.send(replica, age, "from");

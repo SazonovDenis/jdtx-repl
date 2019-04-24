@@ -229,10 +229,10 @@ public class JdxReplSrv {
 
                     // Проверяем целостность скачанного
                     String md5file = JdxUtils.getMd5File(replica.getFile());
-                    if (!md5file.equals(info.crc)) {
+                    if (!md5file.equals(info.getCrc())) {
                         log.error("receive.replica: " + replica.getFile());
                         log.error("receive.replica.md5: " + md5file);
-                        log.error("mailer.info.crc: " + info.crc);
+                        log.error("mailer.info.crc: " + info.getCrc());
                         // Неправильно скачанный файл - удаляем, чтобы потом начать снова
                         replica.getFile().delete();
                         // Ошибка
@@ -242,7 +242,7 @@ public class JdxReplSrv {
                     JdxReplicaReaderXml.readReplicaInfo(replica);
 
                     //
-                    log.debug("replica.age: " + replica.getAge() + ", replica.wsId: " + replica.getWsId());
+                    log.debug("replica.age: " + replica.getInfo().getAge() + ", replica.wsId: " + replica.getInfo().getWsId());
 
                     // Помещаем полученные данные в общую очередь
                     db.startTran();
@@ -254,12 +254,12 @@ public class JdxReplSrv {
                         stateManager.setWsQueInAgeDone(wsId, age);
 
                         // Реагируем на системные реплики
-                        if (replica.getReplicaType() == JdxReplicaType.MUTE_DONE) {
+                        if (replica.getInfo().getReplicaType() == JdxReplicaType.MUTE_DONE) {
                             JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
                             utmm.setMuteDone(wsId, age);
                         }
                         //
-                        if (replica.getReplicaType() == JdxReplicaType.UNMUTE_DONE) {
+                        if (replica.getInfo().getReplicaType() == JdxReplicaType.UNMUTE_DONE) {
                             JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
                             utmm.setUnmuteDone(wsId);
                         }
@@ -329,7 +329,7 @@ public class JdxReplSrv {
                     IReplica replica = commonQue.getByNo(no);
 
                     //
-                    log.debug("replica.age: " + replica.getAge() + ", replica.wsId: " + replica.getWsId());
+                    log.debug("replica.age: " + replica.getInfo().getAge() + ", replica.wsId: " + replica.getInfo().getWsId());
 
                     // Физически отправим реплику
                     mailer.send(replica, no, "to"); // todo это тупо - вот так копировать и перекладывать файлы из папки в папку???

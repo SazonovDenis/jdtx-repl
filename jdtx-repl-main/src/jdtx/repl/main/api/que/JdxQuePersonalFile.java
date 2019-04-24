@@ -69,14 +69,14 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
 
         // Проверки: правильность очередности реплик по возрасту age
         long queMaxAge = getMaxAge();
-        if (replica.getAge() != queMaxAge + 1) {
-            throw new XError("invalid replica.getAge: " + replica.getAge() + ", que.age: " + queMaxAge);
+        if (replica.getInfo().getAge() != queMaxAge + 1) {
+            throw new XError("invalid replica.getInfo().getAge: " + replica.getInfo().getAge() + ", que.age: " + queMaxAge);
         }
 
         // Помещаем файл на место хранения файлов очереди.
         // Если file, указанный у реплики не совпадает с постоянным местом хранения, то файл переносим на постоянное место.
         // Если какой-то файл уже находится на постоянном месте, то этого самозванца сначала удаляем.
-        String actualFileName = genFileName(replica.getAge());
+        String actualFileName = genFileName(replica.getInfo().getAge());
         File actualFile = new File(baseDir + actualFileName);
         if (replica.getFile().getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
             // Место случайно не занято?
@@ -93,9 +93,9 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
         String sql = "insert into " + JdxUtils.sys_table_prefix + "que" + queType + " (id, ws_id, age, replica_type) values (:id, :ws_id, :age, :replica_type)";
         db.execSql(sql, UtCnv.toMap(
                 "id", id,
-                "ws_id", replica.getWsId(),
-                "age", replica.getAge(),
-                "replica_type", replica.getReplicaType()
+                "ws_id", replica.getInfo().getWsId(),
+                "age", replica.getInfo().getAge(),
+                "replica_type", replica.getInfo().getReplicaType()
         ));
     }
 
@@ -118,9 +118,9 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
         if (rec.getValueLong("id") == 0) {
             throw new XError("Replica not found: " + age);
         }
-        replica.setAge(rec.getValueLong("age"));
-        replica.setWsId(rec.getValueLong("ws_id"));
-        replica.setReplicaType(rec.getValueInt("replica_type"));
+        replica.getInfo().setAge(rec.getValueLong("age"));
+        replica.getInfo().setWsId(rec.getValueLong("ws_id"));
+        replica.getInfo().setReplicaType(rec.getValueInt("replica_type"));
 
         //
         String actualFileName = genFileName(age);

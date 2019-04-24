@@ -6,26 +6,79 @@ import org.json.simple.*;
 /**
  * Информация о реплике
  */
-public class ReplicaInfo {
+public class ReplicaInfo implements IReplicaInfo {
 
-    public long wsId;
-    public long age;
-    public DateTime dtFrom;
-    public DateTime dtTo;
-    public int replicaType;
-    public String crc;
+
+    private long wsId;
+    private long age;
+    private DateTime dtFrom;
+    private DateTime dtTo;
+    private int replicaType;
+    private String crc;
+
+    public long getWsId() {
+        return wsId;
+    }
+
+    public void setWsId(long wsId) {
+        this.wsId = wsId;
+    }
+
+    public long getAge() {
+        return age;
+    }
+
+    public void setAge(long age) {
+        this.age = age;
+    }
+
+    public DateTime getDtFrom() {
+        return dtFrom;
+    }
+
+    public void setDtFrom(DateTime dtFrom) {
+        this.dtFrom = dtFrom;
+    }
+
+    public DateTime getDtTo() {
+        return dtTo;
+    }
+
+    public void setDtTo(DateTime dtTo) {
+        this.dtTo = dtTo;
+    }
+
+    public int getReplicaType() {
+        return replicaType;
+    }
+
+    public void setReplicaType(int replicaType) {
+        this.replicaType = replicaType;
+    }
+
+    public String getCrc() {
+        return crc;
+    }
+
+    public void setCrc(String crc) {
+        this.crc = crc;
+    }
 
     @Override
     public String toString() {
-        return "{\"wsId\": " + wsId + ", \"age\": " + age + ", \"replicaType\": " + replicaType + ", \"crc\": \"" + crc + "\", \"dtFrom\": \"" + dtFrom + "\", \"dtFrom\": \"" + dtTo + "\"}";
+        return "{\"wsId\": " + wsId + ", \"age\": " + age + ", \"replicaType\": " + replicaType + ", \"crc\": \"" + crc + "\", \"dtFrom\": \"" + dtFrom + "\", \"dtTo\": \"" + dtTo + "\"}";
     }
 
     public static ReplicaInfo fromJSONObject(JSONObject res) {
         ReplicaInfo info = new ReplicaInfo();
         info.wsId = (long) res.get("wsId");
         info.age = (long) res.get("age");
-        info.dtFrom = (DateTime) res.get("dtFrom");
-        info.dtTo = (DateTime) res.get("dtTo");
+        if (res.get("dtFrom") != null) {
+            info.dtFrom = new DateTime(res.get("dtFrom"));
+        }
+        if (res.get("dtTo") != null) {
+            info.dtTo = new DateTime(res.get("dtTo"));
+        }
         info.replicaType = Integer.valueOf(String.valueOf(res.get("replicaType")));  // так сложно - потому что в res.get("replicaType") оказывается Long
         info.crc = (String) res.get("crc");
         return info;
@@ -35,8 +88,8 @@ public class ReplicaInfo {
         JSONObject res = new JSONObject();
         res.put("wsId", wsId);
         res.put("age", age);
-        res.put("dtFrom", dtFrom);
-        res.put("dtTo", dtTo);
+        res.put("dtFrom", dtFrom.toString());
+        res.put("dtTo", dtTo.toString());
         res.put("replicaType", replicaType);
         res.put("crc", crc);
         return res;

@@ -6,6 +6,7 @@ import org.json.simple.*;
 import org.junit.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  */
@@ -91,32 +92,51 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
     }
 */
     @Test
+    public void test_1() throws Exception {
+        long wsId = 2;
+        UtAuditSelector utrr = new UtAuditSelector(db2, struct2, wsId);
+
+        // Загружаем правила публикации
+        IPublication publication = new Publication();
+        Reader r = new FileReader("test/etalon/publication_full.json");
+        //Reader r = new FileReader("test/etalon/pub_full.json");
+        try {
+            publication.loadRules(r);
+        } finally {
+            r.close();
+        }
+
+        //
+        Map m = utrr.loadAutitIntervals(publication, 8);
+
+        //
+        System.out.println(m);
+        System.out.println("z_opr_dttm_from: " + m.get("z_opr_dttm_from"));
+        System.out.println("z_opr_dttm_to  : " + m.get("z_opr_dttm_to"));
+    }
+
+    @Test
     public void test_readAuditData() throws Exception {
-        UtRepl utRepl = new UtRepl(db2, struct2);
         long wsId = 2;
 
         // Делаем изменения
         UtTest utTest = new UtTest(db2);
         utTest.makeChange(struct, wsId);
 
-        // Фиксируем возраст
-        long selfAuditAge = utRepl.getAuditAge();
-        System.out.println("selfAuditAge = " + selfAuditAge);
-
         // Готовим writer
         OutputStream ost = new FileOutputStream("../_test-data/~tmp_csv.xml");
         JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
-        //
-        wr.writeReplicaInfo(wsId, 1, JdxReplicaType.IDE);
+        wr.startDocument();
 
         // Забираем реплики
         UtAuditSelector utrr = new UtAuditSelector(db2, struct, wsId);
         //
-        utrr.readAuditData("lic", "id,nameF,nameI,nameO", selfAuditAge, selfAuditAge, wr);
-        utrr.readAuditData("usr", "id,name,userName", selfAuditAge, selfAuditAge, wr);
-        utrr.readAuditData("region", "id,parent,name", selfAuditAge, selfAuditAge, wr);
-        utrr.readAuditData("ulz", "id,region,name", selfAuditAge, selfAuditAge, wr);
-        //
+        utrr.readAuditData_ById("lic", "id,nameF,nameI,nameO", 0, 10000, wr);
+        utrr.readAuditData_ById("usr", "id,name,userName", 0, 10000, wr);
+        utrr.readAuditData_ById("region", "id,parent,name", 0, 10000, wr);
+        utrr.readAuditData_ById("ulz", "id,region,name", 0, 10000, wr);
+
+        // Закрываем writer
         wr.closeDocument();
     }
 
@@ -174,11 +194,12 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_createReplica() throws Exception {
-        UtRepl utRepl = new UtRepl(db, struct);
+        UtRepl utRepl = new UtRepl(db2, struct2);
 
         // Делаем изменения
-        UtTest utTest = new UtTest(db);
-        utTest.makeChange(struct, 1);
+        long wsId = 2;
+        UtTest utTest = new UtTest(db2);
+        utTest.makeChange(struct, wsId);
 
         // Фиксируем возраст
         long selfAuditAge;
@@ -195,7 +216,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         }
 
         // Формируем реплики
-        IReplica replica = utRepl.createReplicaFromAudit(1, publication, selfAuditAge);
+        IReplica replica = utRepl.createReplicaFromAudit(wsId, publication, selfAuditAge);
 
         //
         System.out.println(replica.getFile().getAbsolutePath());

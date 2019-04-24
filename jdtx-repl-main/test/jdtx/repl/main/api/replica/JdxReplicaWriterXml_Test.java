@@ -41,9 +41,9 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
         File f = new File("../_test-data/ws_002/tmp/000000001-src.zip");
         FileUtils.copyFile(replica.getFile(), f);
         System.out.println("replica: " + f);
-        System.out.println("replica.wsId = " + replica.getWsId());
-        System.out.println("replica.age = " + replica.getAge());
-        System.out.println("replica.replicaType = " + replica.getReplicaType());
+        System.out.println("replica.wsId = " + replica.getInfo().getWsId());
+        System.out.println("replica.age = " + replica.getInfo().getAge());
+        System.out.println("replica.replicaType = " + replica.getInfo().getReplicaType());
     }
 
 
@@ -61,9 +61,9 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
         //
         JdxReplicaReaderXml.readReplicaInfo(replica);
         System.out.println("replica: " + f);
-        System.out.println("replica.wsId = " + replica.getWsId());
-        System.out.println("replica.age = " + replica.getAge());
-        System.out.println("replica.replicaType = " + replica.getReplicaType());
+        System.out.println("replica.wsId = " + replica.getInfo().getWsId());
+        System.out.println("replica.age = " + replica.getInfo().getAge());
+        System.out.println("replica.replicaType = " + replica.getInfo().getReplicaType());
     }
 
     @Test
@@ -110,7 +110,7 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
         // Информацмия о реплике с почтового сервера
         ReplicaInfo info = mailer.getInfo(1, "from");
         System.out.println("receive.replica.md5: " + JdxUtils.getMd5File(replica2.getFile()));
-        System.out.println("mailer.info.crc:     " + info.crc);
+        System.out.println("mailer.info.crc:     " + info.getCrc());
     }
 
     @Test

@@ -85,7 +85,7 @@ public class MailerHttp implements IMailer {
 
     @Override
     public void send(IReplica replica, long no, String box) throws Exception {
-        log.info("mailer.send, replica.wsId: " + replica.getWsId() + ", replica.age: " + replica.getAge() + ", no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
+        log.info("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 
 
         // Проверки: правильность типа реплики
@@ -159,10 +159,12 @@ public class MailerHttp implements IMailer {
 
         // Завершение закачки
         ReplicaInfo info = new ReplicaInfo();
-        info.wsId = replica.getWsId();
-        info.age = replica.getAge();
-        info.replicaType = replica.getReplicaType();
-        info.crc = JdxUtils.getMd5File(replica.getFile());
+        info.setWsId(replica.getInfo().getWsId());
+        info.setAge(replica.getInfo().getAge());
+        info.setDtFrom(replica.getInfo().getDtFrom());
+        info.setDtTo(replica.getInfo().getDtTo());
+        info.setReplicaType(replica.getInfo().getReplicaType());
+        info.setCrc(JdxUtils.getMd5File(replica.getFile()));
 
         //
         sendCommit_internal(no, box, info, filePart, totalBytes);
