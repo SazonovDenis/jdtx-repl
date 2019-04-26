@@ -119,3 +119,14 @@ StatusRunProgram=Заключительные шаги установки...
 UninstalledAll=Программа %1 была удалена с Вашего компьютера.%nИз соображений сохранности данных файлы рабочие каталоги (web\WEB-INF\*) не были удалены. Вы можете удалить их самостоятельно.
 
 
+
+[Code]
+
+function InitializeSetup(): Boolean;
+var
+  resultCode: Integer;
+  ExecOk: boolean;
+begin
+  Result:=true;
+  Exec(ExpandConstant('SCHTASKS'), '/Delete /TN JadatexSync /f', '', SW_SHOW, ewWaitUntilTerminated, resultCode);
+end;
