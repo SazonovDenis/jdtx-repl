@@ -73,11 +73,13 @@ public class ReplicaInfo implements IReplicaInfo {
         ReplicaInfo info = new ReplicaInfo();
         info.wsId = (long) res.get("wsId");
         info.age = (long) res.get("age");
-        if (res.get("dtFrom") != null) {
-            info.dtFrom = new DateTime(res.get("dtFrom"));
+        String dtFrom = (String) res.get("dtFrom");
+        if (dtFrom != null && dtFrom.compareTo("null") != 0) {
+            info.dtFrom = new DateTime(dtFrom);
         }
-        if (res.get("dtTo") != null) {
-            info.dtTo = new DateTime(res.get("dtTo"));
+        String dtTo = (String) res.get("dtTo");
+        if (dtTo != null && dtTo.compareTo("null") != 0) {
+            info.dtTo = new DateTime(dtTo);
         }
         info.replicaType = Integer.valueOf(String.valueOf(res.get("replicaType")));  // так сложно - потому что в res.get("replicaType") оказывается Long
         info.crc = (String) res.get("crc");
@@ -88,8 +90,12 @@ public class ReplicaInfo implements IReplicaInfo {
         JSONObject res = new JSONObject();
         res.put("wsId", wsId);
         res.put("age", age);
-        res.put("dtFrom", dtFrom.toString());
-        res.put("dtTo", dtTo.toString());
+        if (dtFrom != null) {
+            res.put("dtFrom", String.valueOf(dtFrom));
+        }
+        if (dtTo != null) {
+            res.put("dtTo", dtTo.toString());
+        }
         res.put("replicaType", replicaType);
         res.put("crc", crc);
         return res;
