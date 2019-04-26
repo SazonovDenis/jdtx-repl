@@ -52,6 +52,33 @@ public class ReplDatabase_Test extends AppTestCase {
         UtFile.mkdirs("temp");
     }
 
+    /**
+     * Нужен Firebird 2.0 и выше
+     * @throws Exception
+     */
+    @Test
+    public void test_db_user_context() throws Exception {
+        DataStore st2 ;
+
+        //
+        st2 = db2.loadSql("select rdb$get_context('USER_SESSION', 'MY') as MY from rdb$database");
+        UtData.outTable(st2);
+
+        // db
+        db2.execSql("select rdb$set_context('USER_SESSION', 'MY', 'это моя крутая переменая') from rdb$database");
+
+        //
+        st2 = db2.loadSql("select rdb$get_context('USER_SESSION', 'MY') as MY from rdb$database");
+        UtData.outTable(st2);
+
+        // db
+        db2.execSql("select rdb$set_context('USER_SESSION', 'MY', NULL) from rdb$database");
+
+        //
+        st2 = db2.loadSql("select rdb$get_context('USER_SESSION', 'MY') as MY from rdb$database");
+        UtData.outTable(st2);
+    }
+
     @Test
     public void test_db_select() throws Exception {
         // db
