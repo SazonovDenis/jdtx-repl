@@ -76,7 +76,7 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
 
 
         // Готовим mailer
-        String guid = "b5781df573ca6ee6-21ba238dfc945002";
+        String guid = "b5781df573ca6ee6.x-21ba238dfc945002";
 
         //
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/mail_http_ws.json"));

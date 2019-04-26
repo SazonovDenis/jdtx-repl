@@ -27,7 +27,7 @@ public class HttpUploadFile_Test {
 
         FileBody fileBody = new FileBody(file, ContentType.DEFAULT_BINARY);
         StringBody stringBody_box = new StringBody("from", ContentType.MULTIPART_FORM_DATA);
-        StringBody stringBody_guid = new StringBody("b5781df573ca6ee6-17845f2f56f4d401", ContentType.MULTIPART_FORM_DATA);
+        StringBody stringBody_guid = new StringBody("b5781df573ca6ee6.x-17845f2f56f4d401", ContentType.MULTIPART_FORM_DATA);
         StringBody stringBody_no = new StringBody("1234", ContentType.MULTIPART_FORM_DATA);
         //
         MultipartEntityBuilder builder = MultipartEntityBuilder.create();
