@@ -102,3 +102,10 @@ repl_sevice_stop = cm("Остановка службы") {
     ext.repl_sevice_stop(args)
 }
 
+//
+repl_ver = cm("Версия ПО") {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_version(args)
+}
+
+

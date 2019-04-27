@@ -9,6 +9,7 @@ import jandcode.jc.AppProjectExt
 import jandcode.jc.ProjectExt
 import jandcode.utils.UtFile
 import jandcode.utils.UtLog
+import jandcode.utils.VersionInfo
 import jandcode.utils.error.XError
 import jandcode.utils.variant.IVariantMap
 import jdtx.repl.main.api.*
@@ -362,6 +363,10 @@ from
         }
     }
 
+
+    void repl_version(IVariantMap args) {
+        System.out.println(UtRepl.getVersion());
+    }
 
     void repl_mail_check(IVariantMap args) {
         boolean doCreate = args.getValueBoolean("create")
