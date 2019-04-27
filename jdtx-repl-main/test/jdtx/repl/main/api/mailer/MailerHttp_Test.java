@@ -94,14 +94,15 @@ public class MailerHttp_Test extends ReplDatabase_Test {
         long no = 1;
 
         //
-        JSONObject res = ((MailerHttp) mailer).getInfo_internal(box, no);
+        JSONObject resInfo = ((MailerHttp) mailer).getInfo_internal(box, no);
+        JSONObject part_info = (JSONObject) resInfo.get("part_info");
 
         //
-        System.out.println("res: " + res);
+        System.out.println("resInfo: " + resInfo);
 
         //
-        long total_bytes = (Long) res.get("total_bytes");
-        long part_max_no = (Long) res.get("part_max_no");
+        long total_bytes = (long) part_info.get("total_bytes");
+        long part_max_no = (long) part_info.get("part_max_no");
 
         //
         System.out.println("total_bytes: " + total_bytes + ", part_max_no: " + part_max_no);
@@ -111,14 +112,15 @@ public class MailerHttp_Test extends ReplDatabase_Test {
         no = 9991;
 
         //
-        res = ((MailerHttp) mailer).getInfo_internal(box, no);
+        resInfo = ((MailerHttp) mailer).getInfo_internal(box, no);
+        part_info = (JSONObject) resInfo.get("part_info");
 
         //
-        System.out.println("res: " + res);
+        System.out.println("resInfo: " + resInfo);
 
         //
-        total_bytes = (Long) res.get("total_bytes");
-        part_max_no = (Long) res.get("part_max_no");
+        total_bytes = (long) part_info.get("total_bytes");
+        part_max_no = (long) part_info.get("part_max_no");
 
         //
         System.out.println("total_bytes: " + total_bytes + ", part_max_no: " + part_max_no);

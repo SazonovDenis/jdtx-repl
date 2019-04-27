@@ -67,8 +67,8 @@ public class MailerHttp implements IMailer {
     @Override
     public long getSrvState(String box) throws Exception {
         JSONObject res = getState_internal(box);
-        JSONObject state = (JSONObject) res.get("state");
-        return Long.valueOf(String.valueOf(state.get("max")));
+        JSONObject files = (JSONObject) res.get("files");
+        return Long.valueOf(String.valueOf(files.get("max")));
     }
 
     @Override
@@ -81,9 +81,11 @@ public class MailerHttp implements IMailer {
 
         // Проверки: не отправляли ли ранее такую реплику?
         // Защита от ситуации "восстановление на клиенте БД из бэкапа"
-        long srv_no = getSrvState(box);
-        if (no <= srv_no) {
-            throw new XError("invalid replica.no, send.no: " + no + ", srv.no: " + srv_no);
+        JSONObject resState = getState_internal(box);
+        JSONObject last_info = (JSONObject) resState.get("last_info");
+        long srv_age = Long.valueOf(String.valueOf(last_info.get("age")));
+        if (no <= srv_age) {
+            throw new XError("invalid replica.no, send.no: " + no + ", srv.no: " + srv_age);
         }
 
 
@@ -98,9 +100,10 @@ public class MailerHttp implements IMailer {
 
         // Большие письма отправляем с докачкой, для чего сначала выясняем, что уже успели закачать
         if (totalBytes > HTTP_FILE_MAX_SIZE) {
-            JSONObject res = getInfo_internal(box, no);
-            sentBytes = (long) res.get("total_bytes");
-            filePart = (long) res.get("part_max_no");
+            JSONObject resInfo = getInfo_internal(box, no);
+            JSONObject part_info = (JSONObject) resInfo.get("part_info");
+            sentBytes = (long) part_info.get("total_bytes");
+            filePart = (long) part_info.get("part_max_no");
             //
             if (sentBytes > 0) {
                 log.info("mailer.send, already sent part: " + filePart + ", sent bytes: " + sentBytes + "/" + totalBytes);
@@ -171,19 +174,18 @@ public class MailerHttp implements IMailer {
         log.info("mailer.receive, no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 
         // Читаем данные об очередном письме
-        JSONObject res = getInfo_internal(box, no);
-        JSONObject info = (JSONObject) res.get("info");
-        //JSONObject state = (JSONObject) res.get("state");
+        JSONObject resInfo = getInfo_internal(box, no);
+        JSONObject file_info = (JSONObject) resInfo.get("file_info");
 
         // Проверим протокол репликатора, с помощью которого было отправлено письмо
-        String protocolVersion = (String) info.get("protocolVersion");
+        String protocolVersion = (String) file_info.get("protocolVersion");
         if (protocolVersion.compareToIgnoreCase(REPL_PROTOCOL_VERSION) != 0) {
             throw new XError("mailer.receive, protocolVersion.expected: " + REPL_PROTOCOL_VERSION + ", actual: " + protocolVersion);
         }
 
         // Сколько частей надо скачивать
-        long filePartsCount = (long) info.get("partsCount");
-        long totalBytes = (long) info.get("totalBytes");
+        long filePartsCount = (long) file_info.get("partsCount");
+        long totalBytes = (long) file_info.get("totalBytes");
 
         // Если частей много - сообщим в log.info
         if (filePartsCount > 1) {
@@ -303,13 +305,13 @@ public class MailerHttp implements IMailer {
 
     @Override
     public ReplicaInfo getReplicaInfo(String box, long no) throws Exception {
-        JSONObject res = getInfo_internal(box, no);
+        JSONObject resInfo = getInfo_internal(box, no);
 
         //
-        JSONObject info = (JSONObject) res.get("info");
+        JSONObject file_info = (JSONObject) resInfo.get("file_info");
 
         //
-        return ReplicaInfo.fromJSONObject(info);
+        return ReplicaInfo.fromJSONObject(file_info);
     }
 
 
