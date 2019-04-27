@@ -214,7 +214,7 @@ public class JdxReplSrv {
 
                 //
                 long queDoneAge = stateManager.getWsQueInAgeDone(wsId);
-                long queMaxAge = mailer.getSrvSate("from");
+                long queMaxAge = mailer.getSrvState("from");
 
                 //
                 long count = 0;
@@ -222,10 +222,10 @@ public class JdxReplSrv {
                     log.info("receive, wsId: " + wsId + ", receiving.age: " + age);
 
                     // Информацмия о реплике с почтового сервера
-                    ReplicaInfo info = mailer.getInfo(age, "from");
+                    ReplicaInfo info = mailer.getReplicaInfo("from", age);
 
                     // Физически забираем данные с почтового сервера
-                    IReplica replica = mailer.receive(age, "from");
+                    IReplica replica = mailer.receive("from", age);
 
                     // Проверяем целостность скачанного
                     String md5file = JdxUtils.getMd5File(replica.getFile());
@@ -272,11 +272,16 @@ public class JdxReplSrv {
                     }
 
                     // Удаляем с почтового сервера
-                    mailer.delete(age, "from");
+                    mailer.delete("from", age);
 
                     //
                     count++;
                 }
+
+
+                //
+                mailer.pingRead("from");
+
 
                 //
                 if (count == 0) {
@@ -332,7 +337,7 @@ public class JdxReplSrv {
                     log.debug("replica.age: " + replica.getInfo().getAge() + ", replica.wsId: " + replica.getInfo().getWsId());
 
                     // Физически отправим реплику
-                    mailer.send(replica, no, "to"); // todo это тупо - вот так копировать и перекладывать файлы из папки в папку???
+                    mailer.send(replica, "to", no); // todo это тупо - вот так копировать и перекладывать файлы из папки в папку???
 
                     // Отметим отправку
                     if (doMarkDone) {
@@ -344,7 +349,7 @@ public class JdxReplSrv {
                 }
 
                 //
-                mailer.ping("to");
+                mailer.pingWrite("to");
 
                 //
                 if (count == 0) {

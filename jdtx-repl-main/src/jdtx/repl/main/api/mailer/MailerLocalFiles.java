@@ -44,7 +44,7 @@ public class MailerLocalFiles implements IMailer {
         UtFile.mkdirs(localDirTmp);
     }
 
-    public long getSrvSate(String box) {
+    public long getSrvState(String box) {
         UtFile.mkdirs(remoteDir + box);
         //
         File dir = new File(remoteDir + box);
@@ -62,7 +62,7 @@ public class MailerLocalFiles implements IMailer {
         return idx;
     }
 
-    public void send(IReplica replica, long no, String box) throws Exception {
+    public void send(IReplica replica, String box, long no) throws Exception {
         log.info("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", remoteDir: " + remoteDir + "/" + box);
 
         // Проверки: правильность полей реплики
@@ -80,7 +80,7 @@ public class MailerLocalFiles implements IMailer {
         FileUtils.copyFile(localFile, remoteFile);
     }
 
-    public IReplica receive(long no, String box) throws Exception {
+    public IReplica receive(String box, long no) throws Exception {
         log.info("mailer.receive, no: " + no + ", remoteDir: " + remoteDir + "/" + box);
 
         //
@@ -107,7 +107,7 @@ public class MailerLocalFiles implements IMailer {
     }
 
     @Override
-    public void delete(long no, String box) throws Exception {
+    public void delete(String box, long no) throws Exception {
         log.info("mailer.delete, no: " + no + ", remoteDir: " + remoteDir + "/" + box);
 
         //
@@ -119,17 +119,17 @@ public class MailerLocalFiles implements IMailer {
     }
 
     @Override
-    public void ping(String box) throws Exception {
+    public void pingRead(String box) throws Exception {
         //throw new XError("Not implemented");
     }
 
     @Override
-    public DateTime getPingDt(String box) throws Exception {
-        throw new XError("Not implemented");
+    public void pingWrite(String box) throws Exception {
+        //throw new XError("Not implemented");
     }
 
     @Override
-    public ReplicaInfo getInfo(long no, String box) throws Exception {
+    public ReplicaInfo getReplicaInfo(String box, long no) throws Exception {
         ReplicaInfo info = new ReplicaInfo();
 
         String remoteFileName = getFileName(no);

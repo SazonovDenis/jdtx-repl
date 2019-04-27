@@ -95,20 +95,20 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
         IReplica replica = new ReplicaFile();
         replica.setFile(f);
         JdxReplicaReaderXml.readReplicaInfo(replica);
-        mailer.send(replica, 1, "from");
+        mailer.send(replica, "from", 1);
 
 
         // Проверяем mailer.receive
 
         // Скачиваем реплику
-        IReplica replica2 = mailer.receive(1, "from");
+        IReplica replica2 = mailer.receive("from", 1);
         // Копируем ее для анализа
         File f2 = new File("../_test-data/ws_002/tmp/000000001-receive.zip");
         FileUtils.copyFile(replica2.getFile(), f2);
         System.out.println("mailer.receive: " + f2);
 
         // Информацмия о реплике с почтового сервера
-        ReplicaInfo info = mailer.getInfo(1, "from");
+        ReplicaInfo info = mailer.getReplicaInfo("from", 1);
         System.out.println("receive.replica.md5: " + JdxUtils.getMd5File(replica2.getFile()));
         System.out.println("mailer.info.crc:     " + info.getCrc());
     }

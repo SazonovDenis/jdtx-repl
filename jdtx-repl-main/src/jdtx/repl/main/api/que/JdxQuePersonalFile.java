@@ -70,7 +70,7 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
         // Проверки: правильность очередности реплик по возрасту age
         long queMaxAge = getMaxAge();
         if (replica.getInfo().getAge() != queMaxAge + 1) {
-            throw new XError("invalid replica.getInfo().getAge: " + replica.getInfo().getAge() + ", que.age: " + queMaxAge);
+            throw new XError("invalid replica.getReplicaInfo().getAge: " + replica.getInfo().getAge() + ", que.age: " + queMaxAge);
         }
 
         // Помещаем файл на место хранения файлов очереди.

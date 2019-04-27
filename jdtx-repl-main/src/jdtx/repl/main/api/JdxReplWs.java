@@ -480,7 +480,7 @@ public class JdxReplWs {
         long selfReceivedNo = queIn.getMaxNo();
 
         // Узнаем сколько есть на сервере
-        long srvAvailableNo = mailer.getSrvSate("to");
+        long srvAvailableNo = mailer.getSrvState("to");
 
         //
         long count = 0;
@@ -488,7 +488,7 @@ public class JdxReplWs {
             log.info("receive, wsId: " + wsId + ", receiving.no: " + no);
 
             // Информацмия о реплике с почтового сервера
-            ReplicaInfo info = mailer.getInfo(no, "to");
+            ReplicaInfo info = mailer.getReplicaInfo("to", no);
 
             // Нужно ли скачивать эту реплику с сервера?
             IReplica replica;
@@ -502,7 +502,7 @@ public class JdxReplWs {
                 replica.getInfo().setReplicaType(info.getReplicaType());
             } else {
                 // Физически забираем данные реплики с сервера
-                replica = mailer.receive(no, "to");
+                replica = mailer.receive("to", no);
                 // Проверяем целостность скачанного
                 String md5file = JdxUtils.getMd5File(replica.getFile());
                 if (!md5file.equals(info.getCrc())) {
@@ -525,11 +525,16 @@ public class JdxReplWs {
             queIn.put(replica);
 
             // Удаляем с почтового сервера
-            mailer.delete(no, "to");
+            mailer.delete("to", no);
 
             //
             count++;
         }
+
+
+        //
+        mailer.pingRead("to");
+
 
         //
         if (count == 0) {
@@ -602,11 +607,11 @@ public class JdxReplWs {
             // Берем реплику
             IReplica replica = queOut.getByAge(age);
 
-            // Читаем ее getInfo
+            // Читаем ее getReplicaInfo
             JdxReplicaReaderXml.readReplicaInfo(replica);
 
             // Физически отправляем реплику
-            mailer.send(replica, age, "from");
+            mailer.send(replica, "from", age);
 
             // Отмечаем факт отправки
             if (doMarkDone) {
@@ -618,7 +623,7 @@ public class JdxReplWs {
         }
 
         //
-        mailer.ping("from");
+        mailer.pingWrite("from");
 
         //
         if (count == 0) {

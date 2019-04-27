@@ -34,6 +34,7 @@ public class MailerHttp implements IMailer {
 
     // 32 Mb
     int HTTP_FILE_MAX_SIZE = 1024 * 1024 * 32;
+
     String REPL_PROTOCOL_VERSION = "2.0";
     //int HTTP_FILE_MAX_SIZE = 512;
 
@@ -64,32 +65,26 @@ public class MailerHttp implements IMailer {
 
 
     @Override
-    public long getSrvSate(String box) throws Exception {
-        HttpClient httpclient = HttpClientBuilder.create().build();
-
-        //
-        HttpGet httpGet = new HttpGet(getUrl("repl_get_state") + "&guid=" + guid + "&box=" + box);
-
-        //
-        HttpResponse response = httpclient.execute(httpGet);
-
-        //
-        handleErrors(response);
-        //
-        JSONObject res = parseResult(response);
-
-        //
-        JSONObject result = (JSONObject) res.get("result");
-        return Long.valueOf(String.valueOf(result.get("max")));
+    public long getSrvState(String box) throws Exception {
+        JSONObject res = getState_internal(box);
+        JSONObject state = (JSONObject) res.get("state");
+        return Long.valueOf(String.valueOf(state.get("max")));
     }
 
     @Override
-    public void send(IReplica replica, long no, String box) throws Exception {
+    public void send(IReplica replica, String box, long no) throws Exception {
         log.info("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 
 
         // Проверки: правильность типа реплики
         JdxUtils.validateReplica(replica);
+
+        // Проверки: не отправляли ли ранее такую реплику?
+        // Защита от ситуации "восстановление на клиенте БД из бэкапа"
+        long srv_no = getSrvState(box);
+        if (no <= srv_no) {
+            throw new XError("invalid replica.no, send.no: " + no + ", srv.no: " + srv_no);
+        }
 
 
         // Закачиваем
@@ -103,7 +98,7 @@ public class MailerHttp implements IMailer {
 
         // Большие письма отправляем с докачкой, для чего сначала выясняем, что уже успели закачать
         if (totalBytes > HTTP_FILE_MAX_SIZE) {
-            JSONObject res = getPartState_internal(no, box);
+            JSONObject res = getInfo_internal(box, no);
             sentBytes = (long) res.get("total_bytes");
             filePart = (long) res.get("part_max_no");
             //
@@ -167,26 +162,28 @@ public class MailerHttp implements IMailer {
         info.setCrc(JdxUtils.getMd5File(replica.getFile()));
 
         //
-        sendCommit_internal(no, box, info, filePart, totalBytes);
+        sendCommit_internal(box, no, info, filePart, totalBytes);
     }
 
 
     @Override
-    public IReplica receive(long no, String box) throws Exception {
+    public IReplica receive(String box, long no) throws Exception {
         log.info("mailer.receive, no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 
         // Читаем данные об очередном письме
-        JSONObject fileInfo = getInfo_internal(no, box);
+        JSONObject res = getInfo_internal(box, no);
+        JSONObject info = (JSONObject) res.get("info");
+        //JSONObject state = (JSONObject) res.get("state");
 
-        // Проверим протокол репликатора
-        String protocolVersion = (String) fileInfo.get("protocolVersion");
+        // Проверим протокол репликатора, с помощью которого было отправлено письмо
+        String protocolVersion = (String) info.get("protocolVersion");
         if (protocolVersion.compareToIgnoreCase(REPL_PROTOCOL_VERSION) != 0) {
             throw new XError("mailer.receive, protocolVersion.expected: " + REPL_PROTOCOL_VERSION + ", actual: " + protocolVersion);
         }
 
         // Сколько частей надо скачивать
-        long filePartsCount = (long) fileInfo.get("partsCount");
-        long totalBytes = (long) fileInfo.get("totalBytes");
+        long filePartsCount = (long) info.get("partsCount");
+        long totalBytes = (long) info.get("totalBytes");
 
         // Если частей много - сообщим в log.info
         if (filePartsCount > 1) {
@@ -222,7 +219,8 @@ public class MailerHttp implements IMailer {
             //
             handleErrors(response);
 
-            //
+            // Физическая скачка происходит в методе response.getEntity.
+            // Поэтому buff получается сразу готовым, его можно безопасно дописывать в конец частично скачанному.
             HttpEntity entity = response.getEntity();
             byte[] buff = EntityUtils.toByteArray(entity);
             //
@@ -247,7 +245,7 @@ public class MailerHttp implements IMailer {
     }
 
     @Override
-    public void delete(long no, String box) throws Exception {
+    public void delete(String box, long no) throws Exception {
         log.info("mailer.delete, no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 
         //
@@ -263,16 +261,16 @@ public class MailerHttp implements IMailer {
         handleErrors(response);
 
         //
-        JSONObject res = parseResult(response);
+        parseResult(response);
     }
 
 
     @Override
-    public void ping(String box) throws Exception {
+    public void pingRead(String box) throws Exception {
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
-        HttpGet httpGet = new HttpGet(getUrl("repl_ping") + "&guid=" + guid + "&box=" + box);
+        HttpGet httpGet = new HttpGet(getUrl("repl_ping_read") + "&guid=" + guid + "&box=" + box);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -281,16 +279,16 @@ public class MailerHttp implements IMailer {
         handleErrors(response);
 
         //
-        JSONObject res = parseResult(response);
+        parseResult(response);
     }
 
 
     @Override
-    public DateTime getPingDt(String box) throws Exception {
+    public void pingWrite(String box) throws Exception {
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
-        HttpGet httpGet = new HttpGet(getUrl("repl_get_ping_dt") + "&guid=" + guid + "&box=" + box);
+        HttpGet httpGet = new HttpGet(getUrl("repl_ping_write") + "&guid=" + guid + "&box=" + box);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -299,27 +297,19 @@ public class MailerHttp implements IMailer {
         handleErrors(response);
 
         //
-        JSONObject res = parseResult(response);
-
-        //
-        String state_dt = (String) res.get("state_dt");
-        if (state_dt == null || state_dt.length() == 0) {
-            return null;
-        }
-        //
-        return new DateTime(state_dt);
+        parseResult(response);
     }
 
 
     @Override
-    public ReplicaInfo getInfo(long no, String box) throws Exception {
-        JSONObject res = getInfo_internal(no, box);
+    public ReplicaInfo getReplicaInfo(String box, long no) throws Exception {
+        JSONObject res = getInfo_internal(box, no);
 
         //
-        ReplicaInfo info = ReplicaInfo.fromJSONObject(res);
+        JSONObject info = (JSONObject) res.get("info");
 
         //
-        return info;
+        return ReplicaInfo.fromJSONObject(info);
     }
 
 
@@ -327,7 +317,27 @@ public class MailerHttp implements IMailer {
      * Утилиты
      */
 
-    JSONObject getInfo_internal(long no, String box) throws Exception {
+    JSONObject getState_internal(String box) throws Exception {
+        HttpClient httpclient = HttpClientBuilder.create().build();
+
+        //
+        HttpGet httpGet = new HttpGet(getUrl("repl_get_state") + "&guid=" + guid + "&box=" + box);
+
+        //
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        handleErrors(response);
+
+        //
+        JSONObject res = parseResult(response);
+
+        //
+        return res;
+    }
+
+
+    JSONObject getInfo_internal(String box, long no) throws Exception {
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
@@ -338,6 +348,7 @@ public class MailerHttp implements IMailer {
 
         //
         handleErrors(response);
+
         //
         JSONObject res = parseResult(response);
 
@@ -345,26 +356,8 @@ public class MailerHttp implements IMailer {
         return res;
     }
 
-    JSONObject getPartState_internal(long no, String box) throws Exception {
-        HttpClient httpclient = HttpClientBuilder.create().build();
 
-        //
-        HttpGet httpGet = new HttpGet(getUrl("repl_part_state") + "&guid=" + guid + "&box=" + box + "&no=" + no);
-
-        //
-        HttpResponse response = httpclient.execute(httpGet);
-
-        //
-        handleErrors(response);
-        //
-        JSONObject res = parseResult(response);
-        JSONObject result = (JSONObject) res.get("result");
-
-        //
-        return result;
-    }
-
-    void sendCommit_internal(long no, String box, ReplicaInfo info, long partsCount, long totalBytes) throws Exception {
+    void sendCommit_internal(String box, long no, ReplicaInfo info, long partsCount, long totalBytes) throws Exception {
         HttpClient client = HttpClientBuilder.create().build();
 
         HttpPost post = new HttpPost(remoteUrl + "repl_send_commit.php");
@@ -397,6 +390,7 @@ public class MailerHttp implements IMailer {
 
         //
         handleErrors(response);
+
         //
         parseResult(response);
     }
@@ -463,7 +457,7 @@ public class MailerHttp implements IMailer {
     }
 
     String getUrl(String url) {
-        return remoteUrl + url + ".php?seed=" + seed();
+        return remoteUrl + url + ".php?seed=" + seed() + "&protocolVersion=" + REPL_PROTOCOL_VERSION + "&appVersion=" + UtRepl.getVersion();
     }
 
     String getFileName(long no) {
@@ -494,19 +488,8 @@ public class MailerHttp implements IMailer {
         log.info("checkMailBox, url: " + remoteUrl);
         log.info("checkMailBox, guid: " + guid + ", box: " + box);
 
-        //
-        HttpClient httpclient = HttpClientBuilder.create().build();
-
-        //
-        HttpGet httpGet = new HttpGet(getUrl("repl_get_state") + "&guid=" + guid + "&box=" + box);
-
-        //
-        HttpResponse response = httpclient.execute(httpGet);
-
-        //
-        handleErrors(response);
-        //
-        parseResult(response);
+        // Обращение getState_internal ящика доказывает его нормальную работу
+        getState_internal(box);
     }
 
 }

@@ -1,8 +1,7 @@
 package jdtx.repl.main.api.mailer;
 
 import jdtx.repl.main.api.replica.*;
-import org.joda.time.DateTime;
-import org.json.simple.JSONObject;
+import org.json.simple.*;
 
 /**
  * Отправляет реплики из исходящей очереди на сервер.
@@ -13,20 +12,38 @@ public interface IMailer {
     void init(JSONObject cfg);
 
     /**
-     * @return Сколько есть на сервере (age или no) в папке box
+     * Сколько есть на сервере (age или no) в папке box
      */
-    long getSrvSate(String box) throws Exception;
+    long getSrvState(String box) throws Exception;
 
-    void send(IReplica repl, long no, String box) throws Exception;
+    /**
+     * Отправка реплики
+     */
+    void send(IReplica repl, String box, long no) throws Exception;
 
-    IReplica receive(long no, String box) throws Exception;
+    /**
+     * Получение реплики
+     */
+    IReplica receive(String box, long no) throws Exception;
 
-    ReplicaInfo getInfo(long no, String box) throws Exception;
+    /**
+     * Информация о письме (заголовок с возрастом реплики, её типом и т.п.)
+     */
+    ReplicaInfo getReplicaInfo(String box, long no) throws Exception;
 
-    void delete(long no, String box) throws Exception;
+    /**
+     * Удалить письмо из ящика
+     */
+    void delete(String box, long no) throws Exception;
 
-    void ping(String box) throws Exception;
+    /**
+     * Отметить попытку чтения
+     */
+    void pingRead(String box) throws Exception;
 
-    DateTime getPingDt(String box) throws Exception;
+    /**
+     * Отметить попытку записи
+     */
+    void pingWrite(String box) throws Exception;
 
 }

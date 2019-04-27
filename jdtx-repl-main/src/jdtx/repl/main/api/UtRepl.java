@@ -18,7 +18,7 @@ import java.util.zip.*;
 
 /**
  * Главное API репликатора
- * todo: НЕ главное API - просто утилитный класс. Зачем он вообще нужен в таком виде - неясно
+ * todo: это НЕ главное API - просто утилитный класс. Зачем он вообще нужен в таком виде - неясно
  */
 public class UtRepl {
 
@@ -366,9 +366,14 @@ public class UtRepl {
         db.execSql("update Z_Z_state set db_struct = :db_struct where id = 1", UtCnv.toMap("db_struct", bytes));
     }
 
+    public static String getVersion() {
+        VersionInfo vi = new VersionInfo("jdtx.repl.main");
+        return vi.getVersion();
+    }
 
     public static boolean tableSkipRepl(IJdxTableStruct table) {
         return table.getPrimaryKey().size() == 0;
     }
+
 
 }

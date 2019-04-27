@@ -12,7 +12,6 @@ import org.apache.http.client.*;
 import org.apache.http.client.methods.*;
 import org.apache.http.impl.client.*;
 import org.apache.http.util.*;
-import org.joda.time.*;
 import org.json.simple.*;
 import org.junit.*;
 
@@ -47,16 +46,9 @@ public class MailerHttp_Test extends ReplDatabase_Test {
 
 
     @Test
-    public void test_getSrv() throws Exception {
-        System.out.println("getSrvState.from: " + mailer.getSrvSate("from"));
-        System.out.println("getSrvSate.to: " + mailer.getSrvSate("to"));
-    }
-
-
-    @Test
     public void test_send() throws Exception {
         // ---
-        System.out.println("getSrvSate.from: " + mailer.getSrvSate("from"));
+        System.out.println("getSrvState.from: " + mailer.getSrvState("from"));
 
 
         // ---
@@ -79,17 +71,17 @@ public class MailerHttp_Test extends ReplDatabase_Test {
 
 
         // ---
-        mailer.send(replica, 999, "from");
+        mailer.send(replica, "from", 999);
 
 
         // ---
-        System.out.println("new getSrvSate.from: " + mailer.getSrvSate("from"));
+        System.out.println("new getSrvState.from: " + mailer.getSrvState("from"));
     }
 
 
     @Test
     public void test_receive() throws Exception {
-        IReplica replica_1 = mailer.receive(999, "from");
+        IReplica replica_1 = mailer.receive("from", 999);
         System.out.println("receive: " + replica_1.getFile());
     }
 
@@ -102,7 +94,7 @@ public class MailerHttp_Test extends ReplDatabase_Test {
         long no = 1;
 
         //
-        JSONObject res = ((MailerHttp) mailer).getPartState_internal(no, box);
+        JSONObject res = ((MailerHttp) mailer).getInfo_internal(box, no);
 
         //
         System.out.println("res: " + res);
@@ -119,7 +111,7 @@ public class MailerHttp_Test extends ReplDatabase_Test {
         no = 9991;
 
         //
-        res = ((MailerHttp) mailer).getPartState_internal(no, box);
+        res = ((MailerHttp) mailer).getInfo_internal(box, no);
 
         //
         System.out.println("res: " + res);
@@ -160,16 +152,16 @@ public class MailerHttp_Test extends ReplDatabase_Test {
     @Test
     public void test_delete() throws Exception {
         // ---
-        long no = mailer.getSrvSate("from");
+        long no = mailer.getSrvState("from");
         System.out.println("getSrvSend: " + no);
 
 
         // ---
-        mailer.delete(no, "from");
+        mailer.delete("from", no);
 
 
         // ---
-        System.out.println("new getSrvSend.from: " + mailer.getSrvSate("from"));
+        System.out.println("new getSrvSend.from: " + mailer.getSrvState("from"));
     }
 
 
@@ -179,33 +171,36 @@ public class MailerHttp_Test extends ReplDatabase_Test {
         System.out.println("getSrvSend: " + no);
 
         //
-        mailer.delete(no, "from");
+        mailer.delete("from", no);
     }
 
 
     @Test
-    public void test_ping() throws Exception {
-        DateTime state_dt_0 = mailer.getPingDt("to");
-        System.out.println("state_dt: " + state_dt_0);
+    public void test_getState() throws Exception {
+        JSONObject res0 = ((MailerHttp) mailer).getState_internal("to");
+        System.out.println("ping_read: " + res0.get("ping_read"));
+        System.out.println("ping_write: " + res0.get("ping_write"));
 
         //
-        mailer.ping("to");
+        mailer.pingWrite("to");
+        mailer.pingRead("to");
 
         //
-        DateTime state_dt_1 = mailer.getPingDt("to");
-        System.out.println("state_dt: " + state_dt_1);
+        JSONObject res1 = ((MailerHttp) mailer).getState_internal("to");
+        System.out.println("ping_read: " + res1.get("ping_read"));
+        System.out.println("ping_write: " + res1.get("ping_write"));
     }
 
 
     @Test
     public void test_info() throws Exception {
         // ---
-        long no = mailer.getSrvSate("from");
+        long no = mailer.getSrvState("from");
         System.out.println("getSrvSend: " + no);
 
 
         // ---
-        ReplicaInfo info = mailer.getInfo(no, "from");
+        ReplicaInfo info = mailer.getReplicaInfo("from", no);
 
 
         // ---
@@ -214,9 +209,9 @@ public class MailerHttp_Test extends ReplDatabase_Test {
 
 
     @Test
-    public void test_state() throws Exception {
-        long no_from = mailer.getSrvSate("from");
-        long no_to = mailer.getSrvSate("to");
+    public void test_getSrvState() throws Exception {
+        long no_from = mailer.getSrvState("from");
+        long no_to = mailer.getSrvState("to");
 
         System.out.println("sate.from: " + no_from);
         System.out.println("sate.to: " + no_to);
