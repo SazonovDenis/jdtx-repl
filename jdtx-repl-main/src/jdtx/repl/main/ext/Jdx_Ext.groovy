@@ -9,10 +9,11 @@ import jandcode.jc.AppProjectExt
 import jandcode.jc.ProjectExt
 import jandcode.utils.UtFile
 import jandcode.utils.UtLog
-import jandcode.utils.VersionInfo
 import jandcode.utils.error.XError
 import jandcode.utils.variant.IVariantMap
-import jdtx.repl.main.api.*
+import jdtx.repl.main.api.JdxReplSrv
+import jdtx.repl.main.api.JdxReplWs
+import jdtx.repl.main.api.UtRepl
 import jdtx.repl.main.api.mailer.MailerHttp
 import jdtx.repl.main.api.struct.IJdxDbStruct
 import jdtx.repl.main.api.struct.IJdxDbStructReader
@@ -364,10 +365,6 @@ from
     }
 
 
-    void repl_version(IVariantMap args) {
-        System.out.println(UtRepl.getVersion());
-    }
-
     void repl_mail_check(IVariantMap args) {
         boolean doCreate = args.getValueBoolean("create")
 
@@ -417,6 +414,22 @@ from
         } finally {
             db.disconnect()
         }
+    }
+
+    void repl_version(IVariantMap args) {
+        System.out.println("UtRepl.getVersion: " + UtRepl.getVersion());
+    }
+
+    void repl_service_start(IVariantMap args) {
+        ProcessList.start();
+    }
+
+    void repl_service_state(IVariantMap args) {
+        ProcessList.list();
+    }
+
+    void repl_service_stop(IVariantMap args) {
+        ProcessList.stop();
     }
 
 
