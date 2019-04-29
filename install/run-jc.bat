@@ -8,5 +8,5 @@ cd /d %CURR_DIR%
 
 rem jc run > output.msg 2> output.err
 
-jc run 
+jc run label:jdtx.repl.main.task
 

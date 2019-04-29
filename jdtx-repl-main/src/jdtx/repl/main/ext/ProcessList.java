@@ -61,14 +61,14 @@ public class ProcessList {
 
             //
             if (processLine.length() > 0 && processLine.contains("java.exe")) {
-                if (processLine.contains("Jadatex.Sync")) {
+                if (processLine.contains("label:jdtx.repl.main.task")) {
                     String[] processLineEls = processLine.split(",");
                     for (int i = 0; i < processLineEls.length; i++) {
                         //System.out.println(processHeaders[i] + ": " + processLineEls[i]);
                         processInfo.put(processHeaders[i], processLineEls[i]);
                     }
                     processId = Long.valueOf(processInfo.get("ProcessId"));
-                    System.out.println("ProcessId: " + processInfo.get("ProcessId") + ", CommandLine: " + processInfo.get("CommandLine"));
+                    System.out.println("ProcessId: " + processInfo.get("ProcessId") + ", ExecutablePath: " + processInfo.get("ExecutablePath"));
                 }
             }
         }

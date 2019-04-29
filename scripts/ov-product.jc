@@ -110,6 +110,7 @@ repl_service_stop = cm("Остановка службы") {
 
 //
 repl_ver = cm("Версия ПО") {
+    System.out.println("UtFile.getWorkdir: " + UtFile.getWorkdir());
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_version(args)
 }
