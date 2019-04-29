@@ -116,7 +116,7 @@ public class MailerHttp implements IMailer {
         // Часть за частью
         while (sentBytes < totalBytes) {
             //
-            HttpPost post = new HttpPost(remoteUrl + "repl_send_part.php");
+            HttpPost post = new HttpPost(getUrlPost("repl_send_part"));
 
             //
             StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
@@ -132,7 +132,7 @@ public class MailerHttp implements IMailer {
             builder.addPart("guid", stringBody_guid);
             builder.addPart("box", stringBody_box);
             builder.addPart("no", stringBody_no);
-            builder.addPart("file_part", stringBody_part);
+            builder.addPart("filePart", stringBody_part);
             builder.addPart("file", byteBody);
             HttpEntity entity = builder.build();
             //
@@ -214,7 +214,7 @@ public class MailerHttp implements IMailer {
         //
         while (receivedBytes < totalBytes) {
             //
-            HttpGet httpGet = new HttpGet(getUrl("repl_receive_part") + "&guid=" + guid + "&box=" + box + "&no=" + no + "&file_part=" + filePart);
+            HttpGet httpGet = new HttpGet(getUrl("repl_receive_part") + "&guid=" + guid + "&box=" + box + "&no=" + no + "&filePart=" + filePart);
 
             //
             HttpResponse response = httpclient.execute(httpGet);
@@ -362,7 +362,7 @@ public class MailerHttp implements IMailer {
     void sendCommit_internal(String box, long no, ReplicaInfo info, long partsCount, long totalBytes) throws Exception {
         HttpClient client = HttpClientBuilder.create().build();
 
-        HttpPost post = new HttpPost(remoteUrl + "repl_send_commit.php");
+        HttpPost post = new HttpPost(getUrlPost("repl_send_commit"));
 
         //
         JSONObject infoJson = info.toJSONObject();
@@ -460,6 +460,10 @@ public class MailerHttp implements IMailer {
 
     String getUrl(String url) {
         return remoteUrl + url + ".php?seed=" + seed() + "&protocolVersion=" + REPL_PROTOCOL_VERSION + "&appVersion=" + UtRepl.getVersion();
+    }
+
+    String getUrlPost(String url) {
+        return remoteUrl + url + ".php?" + "protocolVersion=" + REPL_PROTOCOL_VERSION + "&appVersion=" + UtRepl.getVersion();
     }
 
     String getFileName(long no) {

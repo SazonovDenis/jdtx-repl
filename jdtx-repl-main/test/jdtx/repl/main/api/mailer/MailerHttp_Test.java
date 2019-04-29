@@ -133,7 +133,7 @@ public class MailerHttp_Test extends ReplDatabase_Test {
         sw.start();
 
         //
-        HttpGet httpGet = new HttpGet("http://lombard.systems/repl/repl_part_receive.php?seed=4751547061763885136&guid=98178b66d083dd79.jovid-0324d9edabc5b860&box=from&no=1&file_part=0");
+        HttpGet httpGet = new HttpGet("http://lombard.systems/repl/repl_part_receive.php?seed=4751547061763885136&guid=98178b66d083dd79.jovid-0324d9edabc5b860&box=from&no=1&filePart=0");
 
         //
         HttpClient client = HttpClientBuilder.create().build();
