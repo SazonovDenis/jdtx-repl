@@ -94,8 +94,8 @@ Source: install\cm.bat; DestDir: {app}; DestName: cm.bat; Flags: onlyifdoesntexi
 
 [Run]
 Filename: SCHTASKS; Parameters: /Delete /TN JadatexSync /f; WorkingDir: {app}
-Filename: SCHTASKS; Parameters: "/Create /TN JadatexSync /TR ""{app}\run.bat"" /SC MINUTE /MO 5"; WorkingDir: {app}
-
+Filename: SCHTASKS; Parameters: "/Create /TN JadatexSync /TR "\"{app}\start.vbs"" /SC MINUTE /MO 5"; WorkingDir: {app}
+установка рабочего каталога через xml
 
 
 [UninstallRun]

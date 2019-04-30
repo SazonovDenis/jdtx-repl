@@ -432,5 +432,13 @@ from
         ProcessList.stop();
     }
 
+    void repl_service_install(IVariantMap args) {
+
+    }
+
+    void repl_service_remove(IVariantMap args) {
+
+    }
+
 
 }
