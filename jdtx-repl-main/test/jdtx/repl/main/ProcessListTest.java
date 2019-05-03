@@ -22,4 +22,9 @@ public class ProcessListTest extends AppTestCase {
         ProcessList.stop();
     }
 
+    @Test
+    public void test_install() throws Exception {
+        ProcessList.install();
+    }
+
 }

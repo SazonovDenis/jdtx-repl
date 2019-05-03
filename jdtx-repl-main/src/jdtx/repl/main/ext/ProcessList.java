@@ -14,7 +14,7 @@ public class ProcessList {
 
         //
         ProcessBuilder pb = new ProcessBuilder();
-        String processPath = "C:/Users/Public/Documents/Jadatex.Sync/";
+        String processPath = getAppDir();
         pb.command("cscript.exe", "start.vbs");
         pb.directory(new File(processPath));
         pb.redirectErrorStream(true);
@@ -42,6 +42,10 @@ public class ProcessList {
 
         //
         list();
+    }
+
+    private static String getAppDir() {
+        return "C:/Users/Public/Documents/Jadatex.Sync/";
     }
 
     public static long list() throws IOException {
@@ -98,6 +102,58 @@ public class ProcessList {
                     System.out.println(outLine);
                 }
             }
+        }
+        input.close();
+    }
+
+
+    public static void install() throws Exception {
+        //System.out.println("UtFile.getWorkdir: " + UtFile.getWorkdir());
+
+        String sql = UtFile.loadString("res:jdtx/repl/main/ext/JadatexSync.xml", "utf-16LE");
+        sql = sql.replace("${WorkingDirectory}", getAppDir());
+        File xmlFileTmp = new File(getAppDir() + "JadatexSync.xml");
+        UtFile.saveString(sql, xmlFileTmp, "utf-16LE");
+
+
+        //
+        ProcessBuilder pb = new ProcessBuilder();
+        String processPath = getAppDir();
+        pb.command("schtasks", "/Create", "/TN", "JadatexSync", "/XML", "JadatexSync.xml");
+        pb.directory(new File(processPath));
+        pb.redirectErrorStream(true);
+
+        //
+        Process process = pb.start();
+
+        //
+        List<String> res = new ArrayList<>();
+        String charset = UtConsole.getConsoleCharset();
+        charset = "cp866";
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), charset));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            res.add(line);
+        }
+
+        //
+        int exitVal = process.waitFor();
+        System.out.println("exitVal: " + exitVal);
+        for (String s : res) {
+            System.out.println(s);
+        }
+
+
+        //
+        xmlFileTmp.delete();
+    }
+
+    public static void remove() throws IOException {
+        Process p = Runtime.getRuntime().exec("schtasks /Delete /TN JadatexSync /f");
+        BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream(), "cp866"));
+        String outLine;
+        while ((outLine = input.readLine()) != null) {
+            System.out.println(outLine);
         }
         input.close();
     }

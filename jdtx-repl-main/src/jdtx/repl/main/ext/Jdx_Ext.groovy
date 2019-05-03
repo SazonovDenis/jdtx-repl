@@ -433,11 +433,11 @@ from
     }
 
     void repl_service_install(IVariantMap args) {
-
+        ProcessList.install();
     }
 
     void repl_service_remove(IVariantMap args) {
-
+        ProcessList.remove();
     }
 
 
