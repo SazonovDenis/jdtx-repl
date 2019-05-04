@@ -83,6 +83,7 @@ Source: temp\distr\*.*; DestDir: {app}; Flags: ignoreversion recursesubdirs crea
 Source: {#SourceDirJre}\*.*; DestDir: {app}\jre; Flags: ignoreversion recursesubdirs createallsubdirs
 #endif
 
+Source: install\cm.bat;        DestDir: {app};                 Flags: ignoreversion;     DestName: jc-run.bat
 Source: install\jc-run.bat;    DestDir: {app}\web\WEB-INF;     Flags: ignoreversion;     DestName: jc-run.bat
 Source: install\jc-run.vbs;    DestDir: {app}\web\WEB-INF;     Flags: ignoreversion;     DestName: jc-run.vbs
 Source: install\sample.log.properties; DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
