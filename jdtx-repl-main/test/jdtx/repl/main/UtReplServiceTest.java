@@ -4,27 +4,32 @@ import jandcode.app.test.*;
 import jdtx.repl.main.ext.*;
 import org.junit.*;
 
-public class ProcessListTest extends AppTestCase {
+public class UtReplServiceTest extends AppTestCase {
 
 
     @Test
     public void test_start() throws Exception {
-        ProcessList.start();
+        UtReplService.start();
     }
 
     @Test
     public void test_list() throws Exception {
-        ProcessList.list();
+        UtReplService.list();
     }
 
     @Test
     public void test_stop() throws Exception {
-        ProcessList.stop();
+        UtReplService.stop();
     }
 
     @Test
     public void test_install() throws Exception {
-        ProcessList.install();
+        UtReplService.install();
+    }
+
+    @Test
+    public void test_remove() throws Exception {
+        UtReplService.remove();
     }
 
 }

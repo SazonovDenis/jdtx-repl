@@ -421,24 +421,24 @@ from
     }
 
     void repl_service_start(IVariantMap args) {
-        ProcessList.start();
+        UtReplService.start();
     }
 
     void repl_service_state(IVariantMap args) {
-        ProcessList.list();
+        UtReplService.list();
     }
 
     void repl_service_stop(IVariantMap args) {
-        ProcessList.stop();
+        UtReplService.stop();
     }
 
     void repl_service_install(IVariantMap args) {
-        ProcessList.install();
+        UtReplService.install();
     }
 
     void repl_service_remove(IVariantMap args) {
-        ProcessList.stop();
-        ProcessList.remove();
+        UtReplService.stop();
+        UtReplService.remove();
     }
 
 

@@ -83,20 +83,21 @@ Source: temp\distr\*.*; DestDir: {app}; Flags: ignoreversion recursesubdirs crea
 Source: {#SourceDirJre}\*.*; DestDir: {app}\jre; Flags: ignoreversion recursesubdirs createallsubdirs
 #endif
 
-Source: install\jc-run.bat;                DestDir: {app};                 Flags: ignoreversion;     DestName: jc-run.bat
-Source: install\jc-run.vbs;                DestDir: {app};                 Flags: ignoreversion;     DestName: jc-run.vbs
-Source: web\WEB-INF\sample.log.properties; DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
-Source: web\WEB-INF\cfg\sample.srv.json;   DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
-Source: web\WEB-INF\cfg\sample.ws.json;    DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
+Source: install\jc-run.bat;    DestDir: {app}\web\WEB-INF;     Flags: ignoreversion;     DestName: jc-run.bat
+Source: install\jc-run.vbs;    DestDir: {app}\web\WEB-INF;     Flags: ignoreversion;     DestName: jc-run.vbs
+Source: install\sample.log.properties; DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
+Source: install\cfg\sample.srv.json;   DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
+Source: install\cfg\sample.ws.json;    DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 
-Source: web\WEB-INF\sample._app.rt;        DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _app.rt; 
-Source: web\WEB-INF\sample._db-ini.rt;     DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _db-ini.rt
-Source: web\WEB-INF\sample.log.properties; DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: log.properties
-Source: web\WEB-INF\cfg\sample.ws.json;    DestDir: {app}\web\WEB-INF\cfg; Flags: onlyifdoesntexist; DestName: ws.json
+Source: install\sample._app.rt;        DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _app.rt; 
+Source: install\sample._db-ini.rt;     DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _db-ini.rt
+Source: install\sample.log.properties; DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: log.properties
+Source: install\cfg\sample.ws.json;    DestDir: {app}\web\WEB-INF\cfg; Flags: onlyifdoesntexist; DestName: ws.json
 
 
 
 [Run]
+Filename: jc.bat; Parameters: repl-service-remove; WorkingDir: {app}
 Filename: jc.bat; Parameters: repl-service-install; WorkingDir: {app}
 
 
