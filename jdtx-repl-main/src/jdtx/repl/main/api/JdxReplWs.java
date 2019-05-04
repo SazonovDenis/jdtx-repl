@@ -353,6 +353,13 @@ public class JdxReplWs {
                         break;
                     }
 
+                    // todo: Проверим протокол репликатора, с помощью которого была подготовлена репоика
+                    // String protocolVersion = (String) replica.getInfo().getProtocolVersion();
+                    // if (protocolVersion.compareToIgnoreCase(REPL_PROTOCOL_VERSION) != 0) {
+                    //      throw new XError("mailer.receive, protocolVersion.expected: " + REPL_PROTOCOL_VERSION + ", actual: " + protocolVersion);
+                    //}
+
+
                     // Применение реплик
                     for (IPublication publication : publicationsIn) {
                         InputStream inputStream = null;
