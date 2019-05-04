@@ -83,12 +83,16 @@ Source: temp\distr\*.*; DestDir: {app}; Flags: ignoreversion recursesubdirs crea
 Source: {#SourceDirJre}\*.*; DestDir: {app}\jre; Flags: ignoreversion recursesubdirs createallsubdirs
 #endif
 
-Source: web\WEB-INF\sample._app.rt; DestDir: {app}\web\WEB-INF; DestName: _app.rt; Flags: onlyifdoesntexist
-Source: web\WEB-INF\sample._db-ini.rt; DestDir: {app}\web\WEB-INF; Flags: onlyifdoesntexist; DestName: _db-ini.rt
-Source: web\WEB-INF\sample.log.properties; DestDir: {app}\web\WEB-INF; Flags: onlyifdoesntexist; DestName: log.properties
-;Source: web\WEB-INF\cfg\sample.srv.json; DestDir: {app}\web\WEB-INF\cfg\srv.json; Flags: onlyifdoesntexist
-Source: web\WEB-INF\cfg\sample.ws.json; DestDir: {app}\web\WEB-INF\cfg; Flags: onlyifdoesntexist; DestName: ws.json
-Source: install\cm.bat; DestDir: {app}; DestName: cm.bat; Flags: onlyifdoesntexist
+Source: install\jc-run.bat;                DestDir: {app};                 Flags: ignoreversion;     DestName: jc-run.bat
+Source: install\jc-run.vbs;                DestDir: {app};                 Flags: ignoreversion;     DestName: jc-run.vbs
+Source: web\WEB-INF\sample.log.properties; DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
+Source: web\WEB-INF\cfg\sample.srv.json;   DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
+Source: web\WEB-INF\cfg\sample.ws.json;    DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
+
+Source: web\WEB-INF\sample._app.rt;        DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _app.rt; 
+Source: web\WEB-INF\sample._db-ini.rt;     DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _db-ini.rt
+Source: web\WEB-INF\sample.log.properties; DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: log.properties
+Source: web\WEB-INF\cfg\sample.ws.json;    DestDir: {app}\web\WEB-INF\cfg; Flags: onlyifdoesntexist; DestName: ws.json
 
 
 

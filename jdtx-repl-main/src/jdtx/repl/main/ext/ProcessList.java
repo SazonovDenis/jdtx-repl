@@ -15,7 +15,7 @@ public class ProcessList {
         //
         ProcessBuilder pb = new ProcessBuilder();
         String processPath = getAppDir();
-        pb.command("cscript.exe", "start.vbs");
+        pb.command("cscript.exe", getVbsScript());
         pb.directory(new File(processPath));
         pb.redirectErrorStream(true);
 
@@ -42,10 +42,6 @@ public class ProcessList {
 
         //
         list();
-    }
-
-    private static String getAppDir() {
-        return "C:/Users/Public/Documents/Jadatex.Sync/";
     }
 
     public static long list() throws IOException {
@@ -112,6 +108,7 @@ public class ProcessList {
 
         String sql = UtFile.loadString("res:jdtx/repl/main/ext/JadatexSync.xml", "utf-16LE");
         sql = sql.replace("${WorkingDirectory}", getAppDir());
+        sql = sql.replace("${VbsScript}", getVbsScript());
         File xmlFileTmp = new File(getAppDir() + "JadatexSync.xml");
         UtFile.saveString(sql, xmlFileTmp, "utf-16LE");
 
@@ -156,6 +153,14 @@ public class ProcessList {
             System.out.println(outLine);
         }
         input.close();
+    }
+
+    private static String getAppDir() {
+        return "C:/Users/Public/Documents/Jadatex.Sync/";
+    }
+
+    private static String getVbsScript() {
+        return "jc-run.vbs";
     }
 
 

@@ -26,15 +26,15 @@ project.event("waxBeforeProduct") {
 
 
 project.event("waxAfterProduct") { m->
-    // Лишний (иначе затирает наши настройки при обновлении)
+    // В дистрибутиве лишний (иначе затирает наши настройки при обновлении)
     ant.delete(file: m.distr_dir + "/web/WEB-INF/_db-ini.rt")
 
     // Наш вариант jc.bat (с настройками памяти)
     ant.delete(file: m.distr_dir + "/web/WEB-INF/jc.bat")
     ant.copy(file: wd("install/jc.bat"), tofile: m.distr_dir + "/web/WEB-INF/jc.bat")
     //
-    ant.copy(file: wd("install/run.bat"), tofile: m.distr_dir + "/run.bat_")
-    ant.copy(file: wd("install/run-jc.bat"), tofile: m.distr_dir + "/run-jc.bat")
+    //ant.copy(file: wd("install/run.bat"), tofile: m.distr_dir + "/run.bat_")
+    //ant.copy(file: wd("install/run-jc.bat"), tofile: m.distr_dir + "/run-jc.bat")
 
     // Глюк - project.jc не попадает в нужное место на момент запуска inno
     ant.copy(file: wd("install/project.jc"), tofile: m.distr_dir + "/web/WEB-INF/project.jc")
@@ -60,7 +60,7 @@ inno = cm("inno",
     ut.runexe(showout: true, cmd: "tfu replstrf -i install\\temp2.iss -o install\\temp1.iss -s0 _CFG_APP_VERSION  -r install\\rev.txt -u")
 
     //
-    boolean installJre = false
+    boolean installJre = true
     if (installJre) {
         // с дистрибутивом Java
         ut.runexe(showout: true, cmd: "tfu replstr  -i install\\temp1.iss -o install\\temp0.iss -s0 _CFG_INSTALL_JRE -r0 installJre -u")
