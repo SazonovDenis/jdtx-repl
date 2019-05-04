@@ -437,6 +437,7 @@ from
     }
 
     void repl_service_remove(IVariantMap args) {
+        ProcessList.stop();
         ProcessList.remove();
     }
 

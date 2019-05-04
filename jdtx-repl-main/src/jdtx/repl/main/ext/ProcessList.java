@@ -86,7 +86,7 @@ public class ProcessList {
         long processId = list();
 
         if (processId == -1) {
-            System.out.println("No process found");
+            System.out.println("No running process found");
             return;
         }
 

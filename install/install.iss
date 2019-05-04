@@ -93,13 +93,11 @@ Source: install\cm.bat; DestDir: {app}; DestName: cm.bat; Flags: onlyifdoesntexi
 
 
 [Run]
-Filename: SCHTASKS; Parameters: /Delete /TN JadatexSync /f; WorkingDir: {app}
-Filename: SCHTASKS; Parameters: "/Create /TN JadatexSync /TR "\"{app}\start.vbs"" /SC MINUTE /MO 5"; WorkingDir: {app}
-установка рабочего каталога через xml
+Filename: jc.bat; Parameters: repl-service-install; WorkingDir: {app}
 
 
 [UninstallRun]
-Filename: SCHTASKS; Parameters: /Delete /TN JadatexSync /f; WorkingDir: {app}
+Filename: jc.bat; Parameters: repl-service-remove; WorkingDir: {app}
 
 
 
@@ -122,11 +120,12 @@ UninstalledAll=Программа %1 была удалена с Вашего компьютера.%nИз соображений со
 
 [Code]
 
-function InitializeSetup(): Boolean;
+procedure CurStepChanged(CurStep: TSetupStep); 
 var
   resultCode: Integer;
-  ExecOk: boolean;
 begin
-  Result:=true;
-  Exec(ExpandConstant('SCHTASKS'), '/Delete /TN JadatexSync /f', '', SW_SHOW, ewWaitUntilTerminated, resultCode);
+  if (CurStep=ssInstall) then
+  begin
+    Exec(ExpandConstant('jc.bat'), 'repl-service-stop', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+  end;
 end;
