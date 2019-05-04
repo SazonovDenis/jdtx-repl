@@ -35,7 +35,7 @@ public class MailerHttp implements IMailer {
     // 32 Mb
     int HTTP_FILE_MAX_SIZE = 1024 * 1024 * 32;
 
-    String REPL_PROTOCOL_VERSION = "2.0";
+    String REPL_PROTOCOL_VERSION = "v02";
     //int HTTP_FILE_MAX_SIZE = 512;
 
 
@@ -54,6 +54,8 @@ public class MailerHttp implements IMailer {
         if (localDirTmp == null || localDirTmp.length() == 0) {
             throw new XError("Invalid localDirTmp");
         }
+        //
+        remoteUrl = remoteUrl + REPL_PROTOCOL_VERSION + "/";
         //
         localDirTmp = UtFile.unnormPath(localDirTmp) + "/";
         //
