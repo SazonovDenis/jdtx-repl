@@ -2,8 +2,5 @@
 <root>
 
     <x-include path="*.rt" recursive="true"/>
-<!--
-    <x-dbdata path="../dbdata"/>
--->
 
 </root>
