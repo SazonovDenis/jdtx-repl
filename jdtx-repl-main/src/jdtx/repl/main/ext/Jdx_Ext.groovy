@@ -441,5 +441,24 @@ from
         UtReplService.remove();
     }
 
+    void gen_setup(IVariantMap args) {
+        String inFileName = args.getValueString("in")
+        String outDirName = args.getValueString("out")
+        //
+        if (inFileName == null || inFileName.length() == 0) {
+            throw new XError("Не указан [in] - файл со списком станций")
+        }
+        inFileName = new File(new File(inFileName).getAbsolutePath());
+        //
+        if (outDirName == null || outDirName.length() == 0) {
+            outDirName = new File(inFileName).getParent();
+        }
+        outDirName = UtFile.unnormPath(outDirName) + "/"
+
+        //
+        UtSetup utSetup = new UtSetup()
+        utSetup.app = app;
+        utSetup.gen(inFileName, outDirName);
+    }
 
 }

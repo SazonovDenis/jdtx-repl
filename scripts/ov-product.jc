@@ -128,4 +128,9 @@ repl_service_remove = cm("Деинсталляция службы") {
 }
 
 
+//
+gen_setup = cm("gen_setup") {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.gen_setup(args)
+}
 
