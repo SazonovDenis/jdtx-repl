@@ -16,9 +16,7 @@ public class JdxReplicaReaderXml {
 
     InputStream inputStream = null;
     XMLStreamReader reader = null;
-    private long wsId;
-    private long age;
-    private int replicaType;
+    IReplicaInfo replicaHeaderInfo = null;
 
     public JdxReplicaReaderXml(InputStream inputStream) throws Exception {
         this.inputStream = inputStream;
@@ -28,29 +26,19 @@ public class JdxReplicaReaderXml {
         reader = xmlInputFactory.createXMLStreamReader(inputStream, "utf-8");
 
         // Чтение заголовка - WS_ID, AGE и REPLICA_TYPE
-        while (reader.hasNext()) {
-            int event = reader.next();
-            if (event == XMLStreamConstants.START_ELEMENT) {
-                if (reader.getLocalName().compareToIgnoreCase("replica") == 0) {
-                    wsId = Long.valueOf(reader.getAttributeValue(null, "WS_ID"));
-                    age = Long.valueOf(reader.getAttributeValue(null, "AGE"));
-                    replicaType = Integer.valueOf(reader.getAttributeValue(null, "REPLICA_TYPE"));
-                    break;
-                }
-            }
-        }
+        replicaHeaderInfo = readReplicaHeader();
     }
 
     public long getWsId() {
-        return wsId;
+        return replicaHeaderInfo.getWsId();
     }
 
     public long getAge() {
-        return age;
+        return replicaHeaderInfo.getAge();
     }
 
     public int getReplicaType() {
-        return replicaType;
+        return replicaHeaderInfo.getReplicaType();
     }
 
     public String nextTable() throws XMLStreamException {
@@ -113,11 +101,32 @@ public class JdxReplicaReaderXml {
         }
 
         //
+        replica.getInfo().setDbStructCrc(info.getDbStructCrc());
         replica.getInfo().setWsId(info.getWsId());
         replica.getInfo().setAge(info.getAge());
         replica.getInfo().setDtFrom(info.getDtFrom());
         replica.getInfo().setDtTo(info.getDtTo());
         replica.getInfo().setReplicaType(info.getReplicaType());
+    }
+
+    private IReplicaInfo readReplicaHeader() throws XMLStreamException {
+        IReplicaInfo replicaInfo = new ReplicaInfo();
+
+        // Чтение заголовка - WS_ID, AGE и REPLICA_TYPE
+        while (reader.hasNext()) {
+            int event = reader.next();
+            if (event == XMLStreamConstants.START_ELEMENT) {
+                if (reader.getLocalName().compareToIgnoreCase("replica") == 0) {
+                    replicaInfo.setWsId(Long.valueOf(reader.getAttributeValue(null, "WS_ID")));
+                    replicaInfo.setAge(Long.valueOf(reader.getAttributeValue(null, "AGE")));
+                    replicaInfo.setReplicaType(Integer.valueOf(reader.getAttributeValue(null, "REPLICA_TYPE")));
+                    break;
+                }
+            }
+        }
+
+        //
+        return replicaInfo;
     }
 
 

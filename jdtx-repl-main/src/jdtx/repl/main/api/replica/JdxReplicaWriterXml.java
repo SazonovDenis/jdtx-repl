@@ -121,7 +121,7 @@ public class JdxReplicaWriterXml {
         }
     }
 
-    public void writeReplicaInfo(IReplica replica) throws XMLStreamException {
+    public void writeReplicaHeader(IReplica replica) throws XMLStreamException {
         // <table>
         if (currentElement_table) {
             throw new XMLStreamException("Already started currentElement_table");

@@ -172,7 +172,7 @@ public class UtRepl {
 
         // Пишем заголовок
         writerXml.startDocument();
-        writerXml.writeReplicaInfo(replica);
+        writerXml.writeReplicaHeader(replica);
 
 
         // Забираем аудит по порядку сортировки таблиц в struct
@@ -245,7 +245,7 @@ public class UtRepl {
 
         // Пишем
         writerXml.startDocument();
-        writerXml.writeReplicaInfo(replica);
+        writerXml.writeReplicaHeader(replica);
 
         //
         UtDataSelector utrr = new UtDataSelector(db, struct);
