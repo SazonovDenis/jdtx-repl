@@ -3,6 +3,7 @@
 <% } %>
 
 @echo off
+call jc repl-service-remove
 
 
 
@@ -30,11 +31,11 @@ call jc repl-mail-check -create:true
 
 
 
-rem
+rem служба
+call jc repl-service-install
+
+
+
+rem для сведения
 call jc repl-info
-
-
-
-
-
 
