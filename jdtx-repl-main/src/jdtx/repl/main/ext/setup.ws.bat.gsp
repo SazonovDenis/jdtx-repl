@@ -2,7 +2,7 @@
 
 call jc repl-service-remove
 
-call jc repl-create -ws:${args.no} -guid:${args.guid_repl}-${args.guid}
+call jc repl-create -ws:${args.ws_no} -guid:${args.repl_guid}-${args.ws_guid}
 
 call jc repl-snapshot
 

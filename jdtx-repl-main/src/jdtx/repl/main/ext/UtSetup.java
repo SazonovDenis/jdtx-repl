@@ -26,25 +26,28 @@ public class UtSetup extends ProjectExt {
 
         // Главный guid
         String name_main = lines[0].trim();
-        args_srv.put("guid_repl", rnd.nextHexStr(16) + "." + name_main);
+        args_srv.put("repl_guid", rnd.nextHexStr(16) + "." + name_main);
 
 
         // ---
-        // Формируем список параметров...
+        // Формируем список рабочих станций...
         List ws_list = new ArrayList<>();
 
-        // ... сервер,
+        // ... сервер (ws_no = 1),
         Map ws = new HashMap<>();
-        ws.put("guid", "01" + rnd.nextHexStr(14));
-        ws.put("name", "Server");
+        ws.put("ws_guid", "01" + rnd.nextHexStr(14));
+        ws.put("ws_name", "Server");
+        ws.put("ws_no", 1);
         ws_list.add(ws);
 
-        // ... станции
-        for (int no = 1; no < lines.length; no++) {
-            String line = lines[no].trim();
+        // ... станции (ws_no = 2, 3, ...)
+        for (int i = 1; i < lines.length; i++) {
+            int ws_no = i + 1;
+            String line = lines[i].trim();
             ws = new HashMap<>();
-            ws.put("guid", UtString.padLeft(String.valueOf(no + 1), 2, "0") + rnd.nextHexStr(14));
-            ws.put("name", line);
+            ws.put("ws_guid", UtString.padLeft(String.valueOf(ws_no), 2, "0") + rnd.nextHexStr(14));
+            ws.put("ws_name", line);
+            ws.put("ws_no", ws_no);
             ws_list.add(ws);
         }
 
@@ -61,16 +64,16 @@ public class UtSetup extends ProjectExt {
 
         // Настройка рабочих станций
         // setup.ws.bat
-        for (int no = 1; no < lines.length; no++) {
+        for (int i = 1; i < lines.length; i++) {
+            ws = (Map) ws_list.get(i);
             Map args_ws = new HashMap();
-            ws = (Map) ws_list.get(no);
-            args_ws.put("guid_repl", args_srv.get("guid_repl"));
-            args_ws.put("guid", ws.get("guid"));
-            args_ws.put("no", no);
+            args_ws.put("repl_guid", args_srv.get("repl_guid"));
+            args_ws.put("ws_guid", ws.get("ws_guid"));
+            args_ws.put("ws_no", ws.get("ws_no"));
             // Файл
             b = new OutBuilder(app);
             b.outTml("res:jdtx/repl/main/ext/setup.ws.bat.gsp", args_ws, null);
-            UtFile.saveString(b.toString(), new File(outDirName + "setup." + name_main + ".ws" + no + ".bat"), "cp866");
+            UtFile.saveString(b.toString(), new File(outDirName + "setup." + name_main + ".ws" + ws.get("ws_no") + ".bat"), "cp866");
         }
     }
 }
