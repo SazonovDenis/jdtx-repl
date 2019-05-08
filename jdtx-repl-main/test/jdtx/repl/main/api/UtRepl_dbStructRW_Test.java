@@ -33,7 +33,7 @@ public class UtRepl_dbStructRW_Test extends ReplDatabaseStruct_Test {
 
         // Сохраняем структуру (через файл) в БД
         File file = new File("../_test-data/dbStruct.xml");
-        struct_rw.write(struct, file.getPath());
+        struct_rw.saveToFile(struct, file.getPath());
         utRepl.dbStructSave(file);
 
         // Читаем структуру из БД

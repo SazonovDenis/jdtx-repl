@@ -35,7 +35,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         new File("../_test-data/ws_004").delete();
         new File("d:/temp/dbm.log").delete();
         new File("d:/temp/jdtx.log").delete();
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6.x");
+        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x");
 
         // Режим рабочей станции
         // db
@@ -86,14 +86,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void createBoxes_Local() throws Exception {
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6.x/17845f2f56f4d401/from");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6.x/17845f2f56f4d401/to");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6.x/21ba238dfc945002/from");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6.x/21ba238dfc945002/to");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6.x/34f3cc20bea64503/from");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6.x/34f3cc20bea64503/to");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6.x/444fed23da93ab04/from");
-        UtFile.cleanDir("../../lombard.systems/repl/b5781df573ca6ee6.x/444fed23da93ab04/to");
+        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/17845f2f56f4d401/from");
+        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/17845f2f56f4d401/to");
+        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/21ba238dfc945002/from");
+        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/21ba238dfc945002/to");
+        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/34f3cc20bea64503/from");
+        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/34f3cc20bea64503/to");
+        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/444fed23da93ab04/from");
+        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/444fed23da93ab04/to");
     }
 
     @Test
@@ -263,13 +263,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         String sql = "select Lic.nameF, Lic.nameI, Lic.nameO, Region.name as RegionName, RegionTip.name as RegionTip, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) left join RegionTip on (Region.RegionTip = RegionTip.id) order by Lic.NameF";
         DataStore st1 = db.loadSql(sql);
         OutTableSaver svr1 = new OutTableSaver(st1);
-        //svr1.save().toFile("../_test-data/csv/ws1-all.csv");
+        //svr1.save().saveToFile("../_test-data/csv/ws1-all.csv");
         DataStore st2 = db2.loadSql(sql);
         OutTableSaver svr2 = new OutTableSaver(st2);
-        //svr2.save().toFile("../_test-data/csv/ws2-all.csv");
+        //svr2.save().saveToFile("../_test-data/csv/ws2-all.csv");
         DataStore st3 = db3.loadSql(sql);
         OutTableSaver svr3 = new OutTableSaver(st3);
-        //svr3.save().toFile("../_test-data/csv/ws3-all.csv");
+        //svr3.save().saveToFile("../_test-data/csv/ws3-all.csv");
 
         // dumpTables Region*
         String regionTestFields = "";
@@ -289,13 +289,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 "order by Region.Name, RegionTip.Name\n";
         DataStore st1_r = db.loadSql(sql_ws1);
         OutTableSaver svr1_r = new OutTableSaver(st1_r);
-        //svr1_r.save().toFile("../_test-data/csv/ws1-region.csv");
+        //svr1_r.save().saveToFile("../_test-data/csv/ws1-region.csv");
         DataStore st2_r = db2.loadSql(sql_ws0);
         OutTableSaver svr2_r = new OutTableSaver(st2_r);
-        //svr2_r.save().toFile("../_test-data/csv/ws2-region.csv");
+        //svr2_r.save().saveToFile("../_test-data/csv/ws2-region.csv");
         DataStore st3_r = db3.loadSql(sql_ws0);
         OutTableSaver svr3_r = new OutTableSaver(st3_r);
-        //svr3_r.save().toFile("../_test-data/csv/ws3-region.csv");
+        //svr3_r.save().saveToFile("../_test-data/csv/ws3-region.csv");
 
         //
         UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_r.save().toString(), new File("../_test-data/csv/ws1-all.csv"));

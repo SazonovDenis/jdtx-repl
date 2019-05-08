@@ -7,7 +7,19 @@ import java.io.*;
 
 public class UtDbStruct_XmlRW {
 
-    public void write(IJdxDbStruct struct, String fileName) throws Exception {
+    public String toString(IJdxDbStruct struct) throws Exception {
+        EasyXml xml = new EasyXml();
+
+        //
+        for (IJdxTableStruct t : struct.getTables()) {
+            writeTableStruct(t, xml);
+        }
+
+        //
+        return xml.save().toString();
+    }
+
+    public void saveToFile(IJdxDbStruct struct, String fileName) throws Exception {
         EasyXml xml = new EasyXml();
 
         //
@@ -19,7 +31,7 @@ public class UtDbStruct_XmlRW {
         xml.save().toFile(fileName);
     }
 
-    public byte[] write(IJdxDbStruct struct) throws Exception {
+    public byte[] getBytes(IJdxDbStruct struct) throws Exception {
         EasyXml xml = new EasyXml();
 
         //

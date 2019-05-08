@@ -159,6 +159,7 @@ public class UtRepl {
 
         //
         IReplica replica = new ReplicaFile();
+        replica.getInfo().setDbStructCrc(UtDbComparer.calcDbStructCrc(struct));
         replica.getInfo().setWsId(wsId);
         replica.getInfo().setAge(age);
         replica.getInfo().setDtFrom((DateTime) auditInfo.get("z_opr_dttm_from"));
@@ -233,6 +234,7 @@ public class UtRepl {
 
         //
         IReplica replica = new ReplicaFile();
+        replica.getInfo().setDbStructCrc(UtDbComparer.calcDbStructCrc(struct));
         replica.getInfo().setWsId(wsId);
         replica.getInfo().setAge(age);
         replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
@@ -284,7 +286,7 @@ public class UtRepl {
 
         // Файл с описанием текущей структуры БД
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        zipOutputStream.write(struct_rw.write(struct));
+        zipOutputStream.write(struct_rw.getBytes(struct));
 
         // Заканчиваем запись
         closeOutput();
@@ -362,7 +364,7 @@ public class UtRepl {
 
     public void dbStructSave(IJdxDbStruct struct) throws Exception {
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        byte[] bytes = struct_rw.write(struct);
+        byte[] bytes = struct_rw.getBytes(struct);
         db.execSql("update Z_Z_state set db_struct = :db_struct where id = 1", UtCnv.toMap("db_struct", bytes));
     }
 

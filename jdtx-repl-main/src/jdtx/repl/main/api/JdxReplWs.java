@@ -283,8 +283,9 @@ public class JdxReplWs {
 
         // Проверяем совпадает ли реальная структура БД с утвержденной структурой
         boolean dbStructIsEqual = true;
-        IJdxDbStruct structStored = utRepl.dbStructLoad();
-        if (structStored != null && !UtDbComparer.dbStructIsEqual(struct, structStored)) {
+        IJdxDbStruct dbStructStored = utRepl.dbStructLoad();
+        String dbStructStoredCrc = UtDbComparer.calcDbStructCrc(struct);
+        if (!UtDbComparer.dbStructIsEqual(struct, dbStructStored)) {
             dbStructIsEqual = false;
         }
 
@@ -351,6 +352,14 @@ public class JdxReplWs {
                     // Свои собственные установочные реплики можно не применять
                     if (replica.getInfo().getWsId() == wsId && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
                         break;
+                    }
+
+                    // Проверим структуру БД, с которой была подготовлена реплика
+                    JdxReplicaReaderXml.readReplicaInfo(replica);
+                    //
+                    String dbStructCrc = replica.getInfo().getDbStructCrc();
+                    if (dbStructCrc.compareToIgnoreCase(dbStructStoredCrc) != 0) {
+                        throw new XError("mailer.receive, structCrc.expected: " + dbStructStoredCrc + ", actual: " + dbStructCrc);
                     }
 
                     // todo: Проверим протокол репликатора, с помощью которого была подготовлена репоика
@@ -614,7 +623,7 @@ public class JdxReplWs {
             // Берем реплику
             IReplica replica = queOut.getByAge(age);
 
-            // Читаем ее getReplicaInfo
+            // Читаем ее getReplicaInfo (нужна для проверки возраста при отправке)
             JdxReplicaReaderXml.readReplicaInfo(replica);
 
             // Физически отправляем реплику

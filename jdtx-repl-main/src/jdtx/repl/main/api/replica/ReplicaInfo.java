@@ -15,6 +15,7 @@ public class ReplicaInfo implements IReplicaInfo {
     private DateTime dtTo;
     private int replicaType;
     private String crc;
+    private String dbStructCrc;
 
     public long getWsId() {
         return wsId;
@@ -64,9 +65,17 @@ public class ReplicaInfo implements IReplicaInfo {
         this.crc = crc;
     }
 
+    public String getDbStructCrc() {
+        return dbStructCrc;
+    }
+
+    public void setDbStructCrc(String crc) {
+        this.dbStructCrc = crc;
+    }
+
     @Override
     public String toString() {
-        return "{\"wsId\": " + wsId + ", \"age\": " + age + ", \"replicaType\": " + replicaType + ", \"crc\": \"" + crc + "\", \"dtFrom\": \"" + dtFrom + "\", \"dtTo\": \"" + dtTo + "\"}";
+        return "{\"wsId\": " + wsId + ", \"age\": " + age + ", \"replicaType\": " + replicaType + ", \"crc\": \"" + crc + "\", \"dbStructCrc\": \"" + dbStructCrc + "\", \"dtFrom\": \"" + dtFrom + "\", \"dtTo\": \"" + dtTo + "\"}";
     }
 
     public static ReplicaInfo fromJSONObject(JSONObject res) {
@@ -83,6 +92,7 @@ public class ReplicaInfo implements IReplicaInfo {
         }
         info.replicaType = Integer.valueOf(String.valueOf(res.get("replicaType")));  // так сложно - потому что в res.get("replicaType") оказывается Long
         info.crc = (String) res.get("crc");
+        info.dbStructCrc = (String) res.get("dbStructCrc");
         return info;
     }
 

@@ -30,4 +30,8 @@ public interface IReplicaInfo {
 
     void setCrc(String crc);
 
+    String getDbStructCrc();
+
+    void setDbStructCrc(String crc);
+
 }

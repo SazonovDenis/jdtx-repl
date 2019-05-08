@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import jandcode.utils.*;
 import jdtx.repl.main.api.struct.*;
 
 
@@ -138,5 +139,10 @@ public class UtDbComparer {
         return true;
     }
 
+
+    public static String calcDbStructCrc(IJdxDbStruct struct) throws Exception {
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        return UtString.md5Str(struct_rw.toString(struct));
+    }
 
 }

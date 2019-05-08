@@ -12,7 +12,7 @@ public class UtDbStruct_XmlRW_Test extends ReplDatabaseStruct_Test {
     public void test_XmlRW() throws Exception {
         // структура подключенной БД - в файл
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        struct_rw.write(struct, "../_test-data/dbStruct.xml");
+        struct_rw.saveToFile(struct, "../_test-data/dbStruct.xml");
 
         // проверим, что структура подключенной БД нетривиальна
         assertEquals(true, struct.getTables().size() > 5);
@@ -40,9 +40,9 @@ public class UtDbStruct_XmlRW_Test extends ReplDatabaseStruct_Test {
         System.out.println(structDiff2.getTables().size());
         //
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        struct_rw.write(structNoDiff, "../_test-data/structNoDiff.xml");
-        struct_rw.write(structDiff1, "../_test-data/structDiff1.xml");
-        struct_rw.write(structDiff2, "../_test-data/structDiff2.xml");
+        struct_rw.saveToFile(structNoDiff, "../_test-data/structNoDiff.xml");
+        struct_rw.saveToFile(structDiff1, "../_test-data/structDiff1.xml");
+        struct_rw.saveToFile(structDiff2, "../_test-data/structDiff2.xml");
     }
 
 

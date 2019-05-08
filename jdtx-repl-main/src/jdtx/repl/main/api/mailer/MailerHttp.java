@@ -85,7 +85,7 @@ public class MailerHttp implements IMailer {
         // Защита от ситуации "восстановление на клиенте БД из бэкапа"
         JSONObject resState = getState_internal(box);
         JSONObject last_info = (JSONObject) resState.get("last_info");
-        long srv_age = Long.valueOf(String.valueOf(last_info.get("age")));
+        long srv_age = Long.valueOf(String.valueOf(last_info.getOrDefault("age", "0")));
         if (no <= srv_age) {
             throw new XError("invalid replica.no, send.no: " + no + ", srv.no: " + srv_age);
         }
@@ -159,6 +159,7 @@ public class MailerHttp implements IMailer {
 
         // Завершение закачки
         ReplicaInfo info = new ReplicaInfo();
+        info.setDbStructCrc(replica.getInfo().getDbStructCrc());
         info.setWsId(replica.getInfo().getWsId());
         info.setAge(replica.getInfo().getAge());
         info.setDtFrom(replica.getInfo().getDtFrom());
