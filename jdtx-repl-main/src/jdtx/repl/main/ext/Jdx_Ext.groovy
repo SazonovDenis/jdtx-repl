@@ -409,6 +409,57 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
+    void repl_dbstruct_start(IVariantMap args) {
+        BgTasksService bgTasksService = app.service(BgTasksService.class)
+        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+        //
+
+        //
+        try {
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init(cfgFileName_srv)
+            //
+            System.out.println("Сервер, cfgFileName: " + cfgFileName_srv)
+
+            // Команда "MUTE" в общую очередь
+            srv.srvMuteAll();
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
+    void repl_dbstruct_finish(IVariantMap args) {
+        BgTasksService bgTasksService = app.service(BgTasksService.class)
+        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+        //
+
+        //
+        try {
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init(cfgFileName_srv)
+            //
+            System.out.println("Сервер, cfgFileName: " + cfgFileName_srv)
+
+            // Команда "SET_DB_STRUCT" в общую очередь
+            srv.srvSetDbStructAll();
+
+            // Команда "UNMUTE" в общую очередь
+            srv.srvUnmuteAll();
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
     void repl_version(IVariantMap args) {
         System.out.println("UtRepl.getVersion: " + UtRepl.getVersion())
     }

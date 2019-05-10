@@ -214,7 +214,7 @@ public class JdxReplWs {
         // Проверяем совпадает ли реальная структура БД с утвержденной структурой
         IJdxDbStruct structStored = utRepl.dbStructLoad();
         if (structStored != null && !UtDbComparer.dbStructIsEqual(struct, structStored)) {
-            log.info("handleSelfAudit, database struct is not match");
+            log.error("handleSelfAudit, database struct is not match");
             return;
         }
 
@@ -351,9 +351,9 @@ public class JdxReplWs {
                 }
                 case JdxReplicaType.IDE:
                 case JdxReplicaType.SNAPSHOT: {
-                    // Реальная структура БД НЕ совпадает с утвержденной структурой
+                    // Реальная структура базы НЕ совпадает с утвержденной структурой
                     if (!dbStructIsEqual) {
-                        log.info("handleQueIn, database struct is not match");
+                        log.error("handleQueIn, database struct is not match");
                         replicaUsed = false;
                         break;
                     }
@@ -363,12 +363,12 @@ public class JdxReplWs {
                         break;
                     }
 
-                    // Проверим структуру БД, с которой была подготовлена реплика
+                    // Реальная структура базы НЕ совпадает со структурой, с которой была подготовлена реплика
                     JdxReplicaReaderXml.readReplicaInfo(replica);
-                    //
                     String dbStructCrc = replica.getInfo().getDbStructCrc();
                     if (dbStructCrc.compareToIgnoreCase(dbStructStoredCrc) != 0) {
-                        throw new XError("mailer.receive, structCrc.expected: " + dbStructStoredCrc + ", actual: " + dbStructCrc);
+                        log.error("handleQueIn, database structCrc is not match, expected: " + dbStructStoredCrc + ", actual: " + dbStructCrc);
+                        return;
                     }
 
                     // todo: Проверим протокол репликатора, с помощью которого была подготовлена репоика
@@ -673,7 +673,7 @@ public class JdxReplWs {
         //
         long out_auditAgeActual = auditAgeManager.getAuditAge(); // Возраст аудита БД
         long out_queAvailable = stateManager.getAuditAgeDone();  // Возраст аудита, до которого сформирована исходящая очередь
-        long out_sendDone = stateMailManager .getMailSendDone(); // Возраст, до которого исходящая очередь отправлена на сервер
+        long out_sendDone = stateMailManager.getMailSendDone(); // Возраст, до которого исходящая очередь отправлена на сервер
         long in_mailAvailable = mailer.getSrvState("to");        // Сколько есть на сервере в ящике для станции
         long in_queInNoAvailable = queIn.getMaxNo();             // До какого номера есть реплики во входящей очереди
         long in_queInNoDone = stateManager.getQueInNoDone();     // Номер реплики, до которого обработана (применена) входящая очередь

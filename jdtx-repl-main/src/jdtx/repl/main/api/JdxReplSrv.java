@@ -200,7 +200,7 @@ public class JdxReplSrv {
      * Сервер: отправка команды "запомнить структуру БД" в общую очередь
      */
     public void srvSetDbStructAll() throws Exception {
-        log.info("srvUnmuteAll");
+        log.info("srvSetDbStructAll");
 
         //
         UtRepl utRepl = new UtRepl(db, struct);
