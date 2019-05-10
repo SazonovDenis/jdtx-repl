@@ -58,15 +58,15 @@ class Jdx_Ext extends ProjectExt {
 
 
     void repl_info(IVariantMap args) {
-        BgTasksService bgTasksService = app.service(BgTasksService.class);
-        String cfgFileName_ws = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName");
-        String cfgFileName_server = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName");
+        BgTasksService bgTasksService = app.service(BgTasksService.class)
+        String cfgFileName_ws = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName")
+        String cfgFileName_server = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase());
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {
@@ -74,19 +74,30 @@ class Jdx_Ext extends ProjectExt {
             JdxReplWs ws = new JdxReplWs(db)
             ws.init(cfgFileName_ws)
             //
-            System.out.println("Рабочая станция, cfgFileName: " + cfgFileName_ws + ", wsId: " + ws.getWsId());
+            System.out.println("Рабочая станция, cfgFileName: " + cfgFileName_ws + ", wsId: " + ws.getWsId())
 
             //
             System.out.println("ws.wsId: " + ws.getWsId())
             System.out.println("  queIn.baseDir: " + ws.queIn.baseDir)
             System.out.println("  queOut.baseDir: " + ws.queOut.baseDir)
-            System.out.println("  mailer.remoteUrl: " + ws.mailer.remoteUrl);
-            System.out.println("  mailer.guid: " + ws.mailer.guid);
+            System.out.println("  mailer.remoteUrl: " + ws.mailer.remoteUrl)
+            System.out.println("  mailer.guid: " + ws.mailer.guid)
+
+            //
+            Map info = ws.getInfoWs()
+            System.out.println("ws out:")
+            System.out.println("  auditAgeActual: " + info.get("out_auditAgeActual"))
+            System.out.println("  queAvailable: " + info.get("out_queAvailable"))
+            System.out.println("  sendDone: " + info.get("out_sendDone"))
+            System.out.println("ws in:")
+            System.out.println("  mailAvailable: " + info.get("in_mailAvailable"))
+            System.out.println("  queInNoAvailable: " + info.get("in_queInNoAvailable"))
+            System.out.println("  queInNoDone: " + info.get("in_queInNoDone"))
 
             // Сервер
             try {
-                System.out.println("");
-                System.out.println("Сервер, cfgFileName: " + cfgFileName_server);
+                System.out.println("")
+                System.out.println("Сервер, cfgFileName: " + cfgFileName_server)
 
                 //
                 JdxReplSrv srv = new JdxReplSrv(db)
@@ -106,27 +117,9 @@ class Jdx_Ext extends ProjectExt {
             }
 
             //
-            String sql_ws = """
-select
-  z_z_db_info.ws_id as self_ws_id,
-  z_z_state.que_in_no_done,    -- получено
-  z_z_state.que_out_age_done,  -- сформировано
-  z_z_state.mail_send_done     -- отправлено
-from
-  z_z_db_info
-  join z_z_state on (1=1)
-"""
-            String sql_srv = """
-select
-  z_z_workstation_list.*,
-  z_z_state_ws.que_in_age_done as que_in_done,             -- получено
-  z_z_state_ws.que_common_dispatch_done as dispatch_done   -- отправлено
-from
-  z_z_workstation_list
-  join z_z_state_ws on (z_z_workstation_list.id = z_z_state_ws.ws_id)
-"""
-            UtData.outTable(db.loadSql(sql_srv));
-            UtData.outTable(db.loadSql(sql_ws));
+            UtRepl urRepl = new UtRepl(db, null)
+            System.out.println("srv:")
+            UtData.outTable(urRepl.getInfoSrv());
 
         } finally {
             db.disconnect()
@@ -147,14 +140,14 @@ from
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase());
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {
             //
-            IJdxDbStructReader dbStructReader = new JdxDbStructReader();
-            dbStructReader.setDb(db);
-            IJdxDbStruct struct = dbStructReader.readDbStruct();
+            IJdxDbStructReader dbStructReader = new JdxDbStructReader()
+            dbStructReader.setDb(db)
+            IJdxDbStruct struct = dbStructReader.readDbStruct()
             UtRepl utRepl = new UtRepl(db, struct)
 
             // Создаем объекты
@@ -185,7 +178,7 @@ from
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase());
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {
@@ -212,12 +205,12 @@ from
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase());
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
-            srv.enableWorkstation(wsId);
+            srv.enableWorkstation(wsId)
         } finally {
             db.disconnect()
         }
@@ -234,12 +227,12 @@ from
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase());
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
-            srv.disableWorkstation(wsId);
+            srv.disableWorkstation(wsId)
         } finally {
             db.disconnect()
         }
@@ -247,14 +240,14 @@ from
 
 
     void repl_snapshot(IVariantMap args) {
-        BgTasksService bgTasksService = app.service(BgTasksService.class);
-        String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName");
+        BgTasksService bgTasksService = app.service(BgTasksService.class)
+        String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName")
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase());
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {
@@ -262,7 +255,7 @@ from
             JdxReplWs ws = new JdxReplWs(db)
             ws.init(cfgFileName)
             //
-            System.out.println("Рабочая станция, cfgFileName: " + cfgFileName + ", wsId: " + ws.getWsId());
+            System.out.println("Рабочая станция, cfgFileName: " + cfgFileName + ", wsId: " + ws.getWsId())
 
             // Формируем установочную реплику
             ws.createSnapshotReplica()
@@ -284,37 +277,37 @@ from
         }
 
         //
-        BgTasksService bgTasksService = app.service(BgTasksService.class);
-        String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName");
+        BgTasksService bgTasksService = app.service(BgTasksService.class)
+        String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName")
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase());
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {
             // Рабочая станция
             JdxReplWs ws = new JdxReplWs(db)
             ws.init(cfgFileName)
-            System.out.println("Рабочая станция, cfgFileName: " + cfgFileName + ", wsId: " + ws.getWsId());
+            System.out.println("Рабочая станция, cfgFileName: " + cfgFileName + ", wsId: " + ws.getWsId())
 
             //
-            System.out.println("Отслеживаем и обрабатываем свои изменения");
-            ws.handleSelfAudit();
+            System.out.println("Отслеживаем и обрабатываем свои изменения")
+            ws.handleSelfAudit()
 
             //
-            System.out.println("Отправляем свои изменения");
+            System.out.println("Отправляем свои изменения")
             ws.sendToDir(cfgFileName, mailDir, age_from, age_to, doMarkDone)
 
             //
-            System.out.println("Забираем входящие реплики");
+            System.out.println("Забираем входящие реплики")
             ws.receiveFromDir(cfgFileName, mailDir)
 
             //
-            System.out.println("Применяем входящие реплики");
-            ws.handleQueIn();
+            System.out.println("Применяем входящие реплики")
+            ws.handleQueIn()
         } finally {
             db.disconnect()
         }
@@ -336,29 +329,29 @@ from
         }
 
         //
-        BgTasksService bgTasksService = app.service(BgTasksService.class);
-        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName");
+        BgTasksService bgTasksService = app.service(BgTasksService.class)
+        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase());
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {
             // ---
             // Сервер
-            JdxReplSrv srv = new JdxReplSrv(db);
-            srv.init(cfgFileName_srv);
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init(cfgFileName_srv)
             //
-            System.out.println("Сервер, cfgFileName: " + cfgFileName_srv);
+            System.out.println("Сервер, cfgFileName: " + cfgFileName_srv)
 
             // Формирование общей очереди
-            srv.srvHandleCommonQueFrom(cfgFileName_srv, mailDir);
+            srv.srvHandleCommonQueFrom(cfgFileName_srv, mailDir)
 
             // Тиражирование реплик
-            srv.srvDispatchReplicasToDir(cfgFileName_srv, mailDir, age_from, age_to, destinationWsId, doMarkDone);
+            srv.srvDispatchReplicasToDir(cfgFileName_srv, mailDir, age_from, age_to, destinationWsId, doMarkDone)
         } finally {
             db.disconnect()
         }
@@ -369,8 +362,8 @@ from
         boolean doCreate = args.getValueBoolean("create")
 
         //
-        BgTasksService bgTasksService = app.service(BgTasksService.class);
-        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName");
+        BgTasksService bgTasksService = app.service(BgTasksService.class)
+        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -379,26 +372,26 @@ from
 
         //
         try {
-            JdxReplSrv srv = new JdxReplSrv(db);
-            srv.init(cfgFileName_srv);
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init(cfgFileName_srv)
             //
-            System.out.println("Сервер, cfgFileName: " + cfgFileName_srv);
+            System.out.println("Сервер, cfgFileName: " + cfgFileName_srv)
 
             //
             String[] boxes = ["from", "to"]
             for (Map.Entry en : srv.mailerList.entrySet()) {
-                long wsId = (long) en.getKey();
+                long wsId = (long) en.getKey()
 
                 for (String box : boxes) {
-                    //System.out.println("wsId: " + wsId + ", box: " + box);
+                    //System.out.println("wsId: " + wsId + ", box: " + box)
 
                     //
-                    MailerHttp mailer = (MailerHttp) en.getValue();
+                    MailerHttp mailer = (MailerHttp) en.getValue()
                     try {
                         if (doCreate) {
-                            mailer.createMailBox(box);
+                            mailer.createMailBox(box)
                         } else {
-                            mailer.checkMailBox(box);
+                            mailer.checkMailBox(box)
                         }
                         System.out.println("wsId: " + wsId + ", box: " + box + " - ok")
                     } catch (Exception e) {
@@ -417,28 +410,28 @@ from
     }
 
     void repl_version(IVariantMap args) {
-        System.out.println("UtRepl.getVersion: " + UtRepl.getVersion());
+        System.out.println("UtRepl.getVersion: " + UtRepl.getVersion())
     }
 
     void repl_service_start(IVariantMap args) {
-        UtReplService.start();
+        UtReplService.start()
     }
 
     void repl_service_state(IVariantMap args) {
-        UtReplService.list();
+        UtReplService.list()
     }
 
     void repl_service_stop(IVariantMap args) {
-        UtReplService.stop();
+        UtReplService.stop()
     }
 
     void repl_service_install(IVariantMap args) {
-        UtReplService.install();
+        UtReplService.install()
     }
 
     void repl_service_remove(IVariantMap args) {
-        UtReplService.stop();
-        UtReplService.remove();
+        UtReplService.stop()
+        UtReplService.remove()
     }
 
     void gen_setup(IVariantMap args) {
@@ -448,17 +441,17 @@ from
         if (inFileName == null || inFileName.length() == 0) {
             throw new XError("Не указан [in] - файл со списком станций")
         }
-        inFileName = new File(new File(inFileName).getAbsolutePath());
+        inFileName = new File(new File(inFileName).getAbsolutePath())
         //
         if (outDirName == null || outDirName.length() == 0) {
-            outDirName = new File(inFileName).getParent();
+            outDirName = new File(inFileName).getParent()
         }
         outDirName = UtFile.unnormPath(outDirName) + "/"
 
         //
         UtSetup utSetup = new UtSetup()
-        utSetup.app = app;
-        utSetup.gen(inFileName, outDirName);
+        utSetup.app = app
+        utSetup.gen(inFileName, outDirName)
     }
 
 }

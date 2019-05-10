@@ -15,5 +15,8 @@ public class JdxReplicaType {
     //
     public static final int UPDATE_APP = 40;
     public static final int UPDATE_APP_DONE = 41;
+    //
+    public static final int SET_DB_STRUCT = 50;
+    public static final int SET_DB_STRUCT_DONE = 51;
 
 }

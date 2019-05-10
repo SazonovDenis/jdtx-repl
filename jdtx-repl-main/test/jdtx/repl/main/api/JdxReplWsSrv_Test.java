@@ -324,6 +324,23 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
+    public void test_ws1_getInfoWs() throws Exception {
+        // Рабочая станция, настройка
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.init("test/etalon/mail_http_ws.json");
+
+        //
+        Map info = ws.getInfoWs();
+        System.out.println(info);
+    }
+
+    @Test
+    public void test_getInfoSrv() throws Exception {
+        UtRepl urRepl = new UtRepl(db, null);
+        UtData.outTable(urRepl.getInfoSrv());
+    }
+
+    @Test
     public void test_ws1_handleSelfAudit() throws Exception {
         // Рабочая станция, настройка
         JdxReplWs ws = new JdxReplWs(db);
@@ -479,8 +496,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_srvMuteAll() throws Exception {
-        // Сервер, настройка
+    public void test_srvStart_DbStruct() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init("test/etalon/mail_http_srv.json");
 
@@ -489,10 +505,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_srvUnmuteAll() throws Exception {
-        // Сервер, настройка
+    public void test_srv_Finish_DbStruct() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init("test/etalon/mail_http_srv.json");
+
+        // Команда "SET_DB_STRUCT" в общую очередь
+        srv.srvSetDbStructAll();
 
         // Команда "UNMUTE" в общую очередь
         srv.srvUnmuteAll();

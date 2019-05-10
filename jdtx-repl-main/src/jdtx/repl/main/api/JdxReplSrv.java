@@ -197,6 +197,20 @@ public class JdxReplSrv {
     }
 
     /**
+     * Сервер: отправка команды "запомнить структуру БД" в общую очередь
+     */
+    public void srvSetDbStructAll() throws Exception {
+        log.info("srvUnmuteAll");
+
+        //
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.createReplicaSetDbStruct();
+
+        // Системная команда - в исходящую очередь реплик
+        commonQue.put(replica);
+    }
+
+    /**
      * Сервер: считывание очередей рабочих станций и формирование общей очереди
      * <p>
      * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
@@ -281,6 +295,9 @@ public class JdxReplSrv {
 
                 //
                 mailer.pingRead("from");
+                //
+                Map info = getInfoSrv();
+                mailer.setSrvInfo(info);
 
 
                 //
@@ -301,14 +318,14 @@ public class JdxReplSrv {
     /**
      * Сервер: распределение общей очереди по рабочим станциям
      */
-    private void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IMailer> mailerList, long age_from, long age_to, boolean doMarkDone) throws Exception {
+    private void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IMailer> mailerList, long no_from, long no_to, boolean doMarkDone) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
 
         // До скольки раздавать
-        long age_to_ws = age_to;
-        if (age_to_ws == 0L) {
+        long no_to_ws = no_to;
+        if (no_to_ws == 0L) {
             // Не указано - зададим сами - все что у нас есть на раздачу
-            age_to_ws = commonQue.getMaxNo();
+            no_to_ws = commonQue.getMaxNo();
         }
 
         //
@@ -321,15 +338,15 @@ public class JdxReplSrv {
                 log.info("srvDispatchReplicas, to.wsId: " + wsId);
 
                 // От какого возраста нужно отправлять для этой рабочей станции
-                long age_from_ws = age_from;
-                if (age_from_ws == 0L) {
+                long no_from_ws = no_from;
+                if (no_from_ws == 0L) {
                     // Не указано - зададим сами (от последней отправленной)
-                    age_from_ws = stateManager.getCommonQueDispatchDone(wsId) + 1;
+                    no_from_ws = stateManager.getCommonQueDispatchDone(wsId) + 1;
                 }
 
                 //
                 long count = 0;
-                for (long no = age_from_ws; no <= age_to_ws; no++) {
+                for (long no = no_from_ws; no <= no_to_ws; no++) {
                     // Берем реплику
                     IReplica replica = commonQue.getByNo(no);
 
@@ -350,12 +367,15 @@ public class JdxReplSrv {
 
                 //
                 mailer.pingWrite("to");
+                //
+                Map info = getInfoSrv();
+                mailer.setSrvInfo(info);
 
                 //
                 if (count == 0) {
-                    log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + age_from_ws + ", nothing done");
+                    log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + no_from_ws + ", nothing done");
                 } else {
-                    log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + age_from_ws + " -> " + age_to_ws + ", done count: " + count);
+                    log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + no_from_ws + " -> " + no_to_ws + ", done count: " + count);
                 }
 
             } catch (Exception e) {
@@ -365,6 +385,10 @@ public class JdxReplSrv {
             }
 
         }
+    }
+
+    private Map getInfoSrv() {
+        return new HashMap<>();
     }
 
 

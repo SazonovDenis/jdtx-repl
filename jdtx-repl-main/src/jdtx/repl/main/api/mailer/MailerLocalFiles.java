@@ -7,10 +7,10 @@ import jdtx.repl.main.api.replica.*;
 import org.apache.commons.io.*;
 import org.apache.commons.io.filefilter.*;
 import org.apache.commons.logging.*;
-import org.joda.time.*;
 import org.json.simple.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  * Отправляет и забирает реплики через локальные каталоги.
@@ -80,6 +80,17 @@ public class MailerLocalFiles implements IMailer {
         FileUtils.copyFile(localFile, remoteFile);
     }
 
+    @Override
+    public ReplicaInfo getReplicaInfo(String box, long no) throws Exception {
+        ReplicaInfo info = new ReplicaInfo();
+
+        String remoteFileName = getFileName(no);
+        File remoteFile = new File(remoteDir + box + "/" + remoteFileName);
+        info.setCrc(JdxUtils.getMd5File(remoteFile));
+
+        return info;
+    }
+
     public IReplica receive(String box, long no) throws Exception {
         log.info("mailer.receive, no: " + no + ", remoteDir: " + remoteDir + "/" + box);
 
@@ -129,14 +140,13 @@ public class MailerLocalFiles implements IMailer {
     }
 
     @Override
-    public ReplicaInfo getReplicaInfo(String box, long no) throws Exception {
-        ReplicaInfo info = new ReplicaInfo();
+    public void setSrvInfo(Map info) throws Exception {
+        //throw new XError("Not implemented");
+    }
 
-        String remoteFileName = getFileName(no);
-        File remoteFile = new File(remoteDir + box + "/" + remoteFileName);
-        info.setCrc(JdxUtils.getMd5File(remoteFile));;
-
-        return info;
+    @Override
+    public void setWsInfo(Map info) throws Exception {
+        //throw new XError("Not implemented");
     }
 
     String getFileName(long no) {

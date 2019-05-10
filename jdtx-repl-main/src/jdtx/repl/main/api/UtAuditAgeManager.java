@@ -26,7 +26,7 @@ public class UtAuditAgeManager {
      * Узнать возраст рабочей станции
      */
     public long getAuditAge() throws Exception {
-        return db.loadSql("select max(age) as age from " + JdxUtils.sys_table_prefix + "age").getCurRec().getValueLong("age");
+        return db.loadSql("select max(age) as maxAge from " + JdxUtils.sys_table_prefix + "age").getCurRec().getValueLong("maxAge");
     }
 
     /**

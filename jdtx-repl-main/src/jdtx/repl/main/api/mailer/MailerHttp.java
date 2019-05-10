@@ -2,6 +2,7 @@ package jdtx.repl.main.api.mailer;
 
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jandcode.web.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.replica.*;
 import org.apache.commons.logging.*;
@@ -25,8 +26,8 @@ import java.util.*;
 public class MailerHttp implements IMailer {
 
 
-    String remoteUrl;
     public String guid;
+    String remoteUrl;
     String localDirTmp;
     Random rnd;
 
@@ -173,6 +174,18 @@ public class MailerHttp implements IMailer {
 
 
     @Override
+    public ReplicaInfo getReplicaInfo(String box, long no) throws Exception {
+        JSONObject resInfo = getInfo_internal(box, no);
+
+        //
+        JSONObject file_info = (JSONObject) resInfo.get("file_info");
+
+        //
+        return ReplicaInfo.fromJSONObject(file_info);
+    }
+
+
+    @Override
     public IReplica receive(String box, long no) throws Exception {
         log.info("mailer.receive, no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 
@@ -217,7 +230,11 @@ public class MailerHttp implements IMailer {
         //
         while (receivedBytes < totalBytes) {
             //
-            HttpGet httpGet = new HttpGet(getUrl("repl_receive_part") + "&guid=" + guid + "&box=" + box + "&no=" + no + "&filePart=" + filePart);
+            Map info = new HashMap<>();
+            info.put("box", box);
+            info.put("no", no);
+            info.put("filePart", filePart);
+            HttpGet httpGet = new HttpGet(getUrl("repl_receive_part", info));
 
             //
             HttpResponse response = httpclient.execute(httpGet);
@@ -257,7 +274,10 @@ public class MailerHttp implements IMailer {
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
-        HttpGet httpGet = new HttpGet(getUrl("repl_delete") + "&guid=" + guid + "&box=" + box + "&no=" + no);
+        Map info = new HashMap<>();
+        info.put("box", box);
+        info.put("no", no);
+        HttpGet httpGet = new HttpGet(getUrl("repl_delete", info));
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -275,7 +295,9 @@ public class MailerHttp implements IMailer {
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
-        HttpGet httpGet = new HttpGet(getUrl("repl_ping_read") + "&guid=" + guid + "&box=" + box);
+        Map info = new HashMap<>();
+        info.put("box", box);
+        HttpGet httpGet = new HttpGet(getUrl("repl_ping_read", info));
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -293,7 +315,9 @@ public class MailerHttp implements IMailer {
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
-        HttpGet httpGet = new HttpGet(getUrl("repl_ping_write") + "&guid=" + guid + "&box=" + box);
+        Map info = new HashMap<>();
+        info.put("box", box);
+        HttpGet httpGet = new HttpGet(getUrl("repl_ping_write", info));
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -307,14 +331,26 @@ public class MailerHttp implements IMailer {
 
 
     @Override
-    public ReplicaInfo getReplicaInfo(String box, long no) throws Exception {
-        JSONObject resInfo = getInfo_internal(box, no);
+    public void setSrvInfo(Map info) throws Exception {
+
+    }
+
+
+    @Override
+    public void setWsInfo(Map info) throws Exception {
+        HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
-        JSONObject file_info = (JSONObject) resInfo.get("file_info");
+        HttpGet httpGet = new HttpGet(getUrl("repl_set_ws_info", info));
 
         //
-        return ReplicaInfo.fromJSONObject(file_info);
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        handleErrors(response);
+
+        //
+        parseResult(response);
     }
 
 
@@ -326,7 +362,9 @@ public class MailerHttp implements IMailer {
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
-        HttpGet httpGet = new HttpGet(getUrl("repl_get_state") + "&guid=" + guid + "&box=" + box);
+        Map info = new HashMap<>();
+        info.put("box", box);
+        HttpGet httpGet = new HttpGet(getUrl("repl_get_state", info));
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -346,7 +384,10 @@ public class MailerHttp implements IMailer {
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
-        HttpGet httpGet = new HttpGet(getUrl("repl_get_info") + "&guid=" + guid + "&box=" + box + "&no=" + no);
+        Map info = new HashMap<>();
+        info.put("box", box);
+        info.put("no", no);
+        HttpGet httpGet = new HttpGet(getUrl("repl_get_info", info));
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -372,6 +413,7 @@ public class MailerHttp implements IMailer {
         infoJson.put("protocolVersion", REPL_PROTOCOL_VERSION);
         infoJson.put("partsCount", partsCount);
         infoJson.put("totalBytes", totalBytes);
+        infoJson.put("no", no);
 
         //
         StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
@@ -461,8 +503,16 @@ public class MailerHttp implements IMailer {
         return String.valueOf(Math.abs(rnd.nextLong()));
     }
 
-    String getUrl(String url) {
-        return remoteUrl + url + ".php?seed=" + seed() + "&protocolVersion=" + REPL_PROTOCOL_VERSION + "&appVersion=" + UtRepl.getVersion();
+    String getUrl(String url, Map info) {
+        UrlBuilder b = new UrlBuilder();
+        b.append("seed", seed());
+        b.append("protocolVersion", REPL_PROTOCOL_VERSION);
+        b.append("appVersion", UtRepl.getVersion());
+        b.append("guid", guid);
+        if (info != null) {
+            b.append(info);
+        }
+        return remoteUrl + url + ".php" + b.toString();
     }
 
     String getUrlPost(String url) {
@@ -481,7 +531,9 @@ public class MailerHttp implements IMailer {
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
-        HttpGet httpGet = new HttpGet(getUrl("repl_create_box") + "&guid=" + guid + "&box=" + box);
+        Map info = new HashMap<>();
+        info.put("box", box);
+        HttpGet httpGet = new HttpGet(getUrl("repl_create_box", info));
 
         //
         HttpResponse response = httpclient.execute(httpGet);

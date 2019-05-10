@@ -24,6 +24,9 @@ public class JdxStateManagerWs {
         return rec.getValueLong("que_out_age_done");
     }
 
+    /**
+     * Задает возраст аудита, до которого сформирована исходящая очередь
+     */
     public void setAuditAgeDone(long queOutAgeDone) throws Exception {
         String sql = "update " + JdxUtils.sys_table_prefix + "state set que_out_age_done = " + queOutAgeDone+" where id = 1";
         db.execSql(sql);
@@ -31,7 +34,7 @@ public class JdxStateManagerWs {
 
 
     /**
-     * @return Номер реплики, до которого обработана (и применена) входящая очередь
+     * @return Номер реплики, до которого обработана (применена) входящая очередь
      */
     public long getQueInNoDone() throws Exception {
         String sql = "select * from " + JdxUtils.sys_table_prefix + "state where id = 1";

@@ -308,7 +308,7 @@ public class JdxReplWs {
                 case JdxReplicaType.MUTE: {
                     // Реакция на команду - перевод в режим "MUTE"
 
-                    // Обработка собственного аудита
+                    // Последняя обработка собственного аудита
                     handleSelfAudit();
 
                     // Переход в состояние "Я замолчал"
@@ -323,19 +323,28 @@ public class JdxReplWs {
                 case JdxReplicaType.UNMUTE: {
                     // Реакция на команду - отключение режима "MUTE"
 
-                    // В этой реплике - новая утвержденная структура
-                    InputStream stream = UtRepl.getReplicaInputStream(replica);
-                    try {
-                        utRepl.dbStructSave(stream);
-                    } finally {
-                        stream.close();
-                    }
+                    // Выход из состояния "Я замолчал"
+                    muteManager.unmuteWorkstation();
 
                     // Выкладывание реплики "Я уже не молчу"
                     reportMuteDone(JdxReplicaType.UNMUTE_DONE);
 
-                    // Выход из состояния "Я замолчал"
-                    muteManager.unmuteWorkstation();
+                    //
+                    break;
+                }
+                case JdxReplicaType.SET_DB_STRUCT: {
+                    // Реакция на команду - задать разрешенную структуру БД
+
+                    // В этой реплике - новая утвержденная структура
+                    InputStream stream = UtRepl.getReplicaInputStream(replica);
+                    try {
+                        utRepl.dbStructSaveFrom(stream);
+                    } finally {
+                        stream.close();
+                    }
+
+                    // Выкладывание реплики "структура принята"
+                    reportMuteDone(JdxReplicaType.SET_DB_STRUCT_DONE);
 
                     //
                     break;
@@ -503,7 +512,7 @@ public class JdxReplWs {
         for (long no = selfReceivedNo + 1; no <= srvAvailableNo; no++) {
             log.info("receive, wsId: " + wsId + ", receiving.no: " + no);
 
-            // Информацмия о реплике с почтового сервера
+            // Информация о реплике с почтового сервера
             ReplicaInfo info = mailer.getReplicaInfo("to", no);
 
             // Нужно ли скачивать эту реплику с сервера?
@@ -550,6 +559,9 @@ public class JdxReplWs {
 
         //
         mailer.pingRead("to");
+        //
+        Map info = getInfoWs();
+        mailer.setWsInfo(info);
 
 
         //
@@ -640,6 +652,9 @@ public class JdxReplWs {
 
         //
         mailer.pingWrite("from");
+        //
+        Map info = getInfoWs();
+        mailer.setWsInfo(info);
 
         //
         if (count == 0) {
@@ -647,6 +662,33 @@ public class JdxReplWs {
         } else {
             log.info("UtMailer, wsId: " + wsId + ", send.age: " + age_from + " -> " + age_to + ", done count: " + count);
         }
+    }
+
+
+    public Map getInfoWs() throws Exception {
+        UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+        JdxStateManagerMail stateMailManager = new JdxStateManagerMail(db);
+
+        //
+        long out_auditAgeActual = auditAgeManager.getAuditAge(); // Возраст аудита БД
+        long out_queAvailable = stateManager.getAuditAgeDone();  // Возраст аудита, до которого сформирована исходящая очередь
+        long out_sendDone = stateMailManager .getMailSendDone(); // Возраст, до которого исходящая очередь отправлена на сервер
+        long in_mailAvailable = mailer.getSrvState("to");        // Сколько есть на сервере в ящике для станции
+        long in_queInNoAvailable = queIn.getMaxNo();             // До какого номера есть реплики во входящей очереди
+        long in_queInNoDone = stateManager.getQueInNoDone();     // Номер реплики, до которого обработана (применена) входящая очередь
+
+        //
+        Map info = new HashMap<>();
+        info.put("out_auditAgeActual", out_auditAgeActual);
+        info.put("out_queAvailable", out_queAvailable);
+        info.put("out_sendDone", out_sendDone);
+        info.put("in_mailAvailable", in_mailAvailable);
+        info.put("in_queInNoAvailable", in_queInNoAvailable);
+        info.put("in_queInNoDone", in_queInNoDone);
+
+        //
+        return info;
     }
 
 

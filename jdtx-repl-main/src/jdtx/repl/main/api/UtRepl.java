@@ -58,7 +58,7 @@ public class UtRepl {
         UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);
         decodeManager.createRefDecodeObject();
 
-        // Сохраняем структуру в БД
+        // Сохраняем структуру БД
         dbStructSave(struct);
     }
 
@@ -76,15 +76,19 @@ public class UtRepl {
         decodeManager.dropRefDecodeObject();
     }
 
+    public DataStore getInfoSrv() throws Exception {
+        DataStore st = db.loadSql(UtReplSql.sql_srv);
+        return st;
+    }
 
     /**
      * Искусственно увеличить возраст рабочей станции
      */
     public long incAuditAge() throws Exception {
         UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
         // Проверяем, что весь свой аудит мы уже выложили в очередь
-        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         long auditAgeDone = stateManager.getAuditAgeDone();
         long auditAgeActual = auditAgeManager.getAuditAge();
         if (auditAgeActual != auditAgeDone) {
@@ -275,9 +279,9 @@ public class UtRepl {
         return replica;
     }
 
-    public IReplica createReplicaUnmute() throws Exception {
+    public IReplica createReplicaSetDbStruct() throws Exception {
         IReplica replica = new ReplicaFile();
-        replica.getInfo().setReplicaType(JdxReplicaType.UNMUTE);
+        replica.getInfo().setReplicaType(JdxReplicaType.SET_DB_STRUCT);
         //replica.setWsId(wsId);
         //replica.setAge(age);
 
@@ -295,6 +299,25 @@ public class UtRepl {
         return replica;
     }
 
+    public IReplica createReplicaUnmute() throws Exception {
+        IReplica replica = new ReplicaFile();
+        replica.getInfo().setReplicaType(JdxReplicaType.UNMUTE);
+        //replica.setWsId(wsId);
+        //replica.setAge(age);
+
+        // Открываем запись
+        createOutput(replica);
+
+        // Писать в файл нечего
+        // ...
+
+        // Заканчиваем запись
+        closeOutput();
+
+        //
+        return replica;
+    }
+
     public IReplica createReplicaMute() throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.MUTE);
@@ -304,7 +327,8 @@ public class UtRepl {
         // Открываем запись
         createOutput(replica);
 
-        // Писать нечего
+        // Писать в файл нечего
+        // ...
 
         // Заканчиваем запись
         closeOutput();
@@ -348,14 +372,14 @@ public class UtRepl {
         return struct_rw.read(db_struct);
     }
 
-    public void dbStructSave(InputStream stream) throws Exception {
+    public void dbStructSaveFrom(InputStream stream) throws Exception {
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         IJdxDbStruct struct = struct_rw.read(stream);
         //
         dbStructSave(struct);
     }
 
-    public void dbStructSave(File file) throws Exception {
+    public void dbStructSaveFrom(File file) throws Exception {
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         IJdxDbStruct struct = struct_rw.read(file.getPath());
         //

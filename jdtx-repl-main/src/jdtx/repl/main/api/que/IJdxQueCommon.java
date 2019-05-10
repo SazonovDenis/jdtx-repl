@@ -13,7 +13,7 @@ public interface IJdxQueCommon {
     long put(IReplica replica) throws Exception;
 
     /**
-     * @return Сколько записей есть в очереди
+     * @return До какого номера есть реплики в очереди
      */
     long getMaxNo() throws Exception;
 
