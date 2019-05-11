@@ -114,7 +114,7 @@ Filename: jc.bat; Parameters: repl-service-remove; WorkingDir: {app}
 [UninstallDelete]
 Name: {app}\output.err; Type: files
 Name: {app}\output.msg; Type: files
-
+Name: {app}\web\WEB-INF\cfg\srv.json; Type: files
 
 
 [Messages]
