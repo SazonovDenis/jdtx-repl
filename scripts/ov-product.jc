@@ -98,6 +98,18 @@ repl_ver = cm("Версия ПО") {
 }
 
 //
+repl_dbstruct_start = cm("Начать смену структуры") {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_dbstruct_start(args)
+}
+
+//
+repl_dbstruct_finish = cm("Завершить смену структуры") {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_dbstruct_finish(args)
+}
+
+//
 repl_service_start = cm("Запуск службы") {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_service_start(args)

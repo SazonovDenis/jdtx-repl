@@ -168,13 +168,11 @@ public class JdxReplSrv {
         srvDispatchReplicas(commonQue, mailerListLocal, age_from, age_to, doMarkDone);
     }
 
-    /**
-     * Сервер: отправка команды "всем молчать" в общую очередь
-     */
-    public void srvMuteAll() throws Exception {
-        log.info("srvMuteAll");
 
-        //
+    public void srvDbStructStart() throws Exception {
+        log.info("srvDbStructStart");
+
+        // Системная команда "MUTE" в общую очередь
         UtRepl utRepl = new UtRepl(db, struct);
         IReplica replica = utRepl.createReplicaMute();
 
@@ -182,33 +180,25 @@ public class JdxReplSrv {
         commonQue.put(replica);
     }
 
-    /**
-     * Сервер: отправка команды "всем говорить" в общую очередь
-     */
-    public void srvUnmuteAll() throws Exception {
-        log.info("srvUnmuteAll");
 
-        //
-        UtRepl utRepl = new UtRepl(db, struct);
-        IReplica replica = utRepl.createReplicaUnmute();
+    public void srvDbStructFinish() throws Exception {
+        log.info("srvDbStructFinish");
 
-        // Системная команда - в исходящую очередь реплик
-        commonQue.put(replica);
-    }
-
-    /**
-     * Сервер: отправка команды "запомнить структуру БД" в общую очередь
-     */
-    public void srvSetDbStructAll() throws Exception {
-        log.info("srvSetDbStructAll");
-
-        //
+        // Системная команда "SET_DB_STRUCT" в общую очередь
         UtRepl utRepl = new UtRepl(db, struct);
         IReplica replica = utRepl.createReplicaSetDbStruct();
 
         // Системная команда - в исходящую очередь реплик
         commonQue.put(replica);
+
+
+        // Системная команда "UNMUTE" в общую очередь
+        replica = utRepl.createReplicaUnmute();
+
+        // Системная команда - в исходящую очередь реплик
+        commonQue.put(replica);
     }
+
 
     /**
      * Сервер: считывание очередей рабочих станций и формирование общей очереди

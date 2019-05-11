@@ -416,17 +416,14 @@ class Jdx_Ext extends ProjectExt {
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
-        //
 
         //
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init(cfgFileName_srv)
-            //
-            System.out.println("Сервер, cfgFileName: " + cfgFileName_srv)
 
-            // Команда "MUTE" в общую очередь
-            srv.srvMuteAll();
+            //
+            srv.srvDbStructStart();
 
         } finally {
             db.disconnect()
@@ -446,14 +443,9 @@ class Jdx_Ext extends ProjectExt {
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init(cfgFileName_srv)
+
             //
-            System.out.println("Сервер, cfgFileName: " + cfgFileName_srv)
-
-            // Команда "SET_DB_STRUCT" в общую очередь
-            srv.srvSetDbStructAll();
-
-            // Команда "UNMUTE" в общую очередь
-            srv.srvUnmuteAll();
+            srv.srvDbStructFinish();
 
         } finally {
             db.disconnect()

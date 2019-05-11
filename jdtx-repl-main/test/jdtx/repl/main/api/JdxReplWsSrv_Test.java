@@ -496,24 +496,21 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_srvStart_DbStruct() throws Exception {
+    public void test_srvDbStructStart() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init("test/etalon/mail_http_srv.json");
 
-        // Команда "MUTE" в общую очередь
-        srv.srvMuteAll();
+        //
+        srv.srvDbStructStart();
     }
 
     @Test
-    public void test_srv_Finish_DbStruct() throws Exception {
+    public void test_srvDbStructFinish() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init("test/etalon/mail_http_srv.json");
 
-        // Команда "SET_DB_STRUCT" в общую очередь
-        srv.srvSetDbStructAll();
-
-        // Команда "UNMUTE" в общую очередь
-        srv.srvUnmuteAll();
+        //
+        srv.srvDbStructFinish();
     }
 
     @Test

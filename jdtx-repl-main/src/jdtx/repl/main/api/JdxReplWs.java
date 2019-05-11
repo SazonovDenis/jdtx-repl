@@ -666,6 +666,9 @@ public class JdxReplWs {
 
 
     public Map getInfoWs() throws Exception {
+        Map info = new HashMap<>();
+
+        //
         UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         JdxStateManagerMail stateMailManager = new JdxStateManagerMail(db);
@@ -673,19 +676,24 @@ public class JdxReplWs {
         //
         long out_auditAgeActual = auditAgeManager.getAuditAge(); // Возраст аудита БД
         long out_queAvailable = stateManager.getAuditAgeDone();  // Возраст аудита, до которого сформирована исходящая очередь
-        long out_sendDone = stateMailManager.getMailSendDone(); // Возраст, до которого исходящая очередь отправлена на сервер
-        long in_mailAvailable = mailer.getSrvState("to");        // Сколько есть на сервере в ящике для станции
+        long out_sendDone = stateMailManager.getMailSendDone();  // Возраст, до которого исходящая очередь отправлена на сервер
         long in_queInNoAvailable = queIn.getMaxNo();             // До какого номера есть реплики во входящей очереди
         long in_queInNoDone = stateManager.getQueInNoDone();     // Номер реплики, до которого обработана (применена) входящая очередь
 
         //
-        Map info = new HashMap<>();
         info.put("out_auditAgeActual", out_auditAgeActual);
         info.put("out_queAvailable", out_queAvailable);
         info.put("out_sendDone", out_sendDone);
-        info.put("in_mailAvailable", in_mailAvailable);
         info.put("in_queInNoAvailable", in_queInNoAvailable);
         info.put("in_queInNoDone", in_queInNoDone);
+
+        //
+        try {
+            long in_mailAvailable = mailer.getSrvState("to");    // Сколько есть на сервере в ящике для станции
+            info.put("in_mailAvailable", in_mailAvailable);
+        } catch (Exception e) {
+            info.put("in_mailAvailable", e.getMessage());
+        }
 
         //
         return info;

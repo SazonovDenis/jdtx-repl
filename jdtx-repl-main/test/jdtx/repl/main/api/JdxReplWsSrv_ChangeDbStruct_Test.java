@@ -28,8 +28,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         test_ws3_makeChange();
 
         // ===
-        // Формируем сигнал "всем молчать"
-        test_srvStart_DbStruct();
+        // Начинаем смену версии БД - формируем сигнал "всем молчать"
+        test_srvDbStructStart();
 
         //
         UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
@@ -81,8 +81,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ===
-        // Рассылаем сигнал "всем говорить"
-        test_srv_Finish_DbStruct();
+        // Завершаем смену версии БД - рассылаем сигнал "всем говорить"
+        test_srvDbStructFinish();
 
         //
         test_ws2_makeChange();
@@ -196,8 +196,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
                 // =======================================
                 System.out.println("Формируем сигнал 'всем молчать'");
-                //
-                test_srvStart_DbStruct();
+                test_srvDbStructStart();
 
                 //
                 UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
@@ -250,7 +249,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
                 // =======================================
                 //
                 System.out.println("Формируем сигнал 'всем говорить'");
-                test_srv_Finish_DbStruct();
+                test_srvDbStructFinish();
 
                 //
                 UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
