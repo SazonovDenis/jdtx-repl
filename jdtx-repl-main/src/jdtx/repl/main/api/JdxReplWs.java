@@ -233,16 +233,17 @@ public class JdxReplWs {
             long auditAgeFrom = stateManager.getAuditAgeDone();
 
             //
-            for (IPublication publication : publicationsOut) {
-                for (long age = auditAgeFrom + 1; age <= auditAgeTo; age++) {
+            // если нет публикаций, то аудит копится, а потом не получается ничего сказать
+            for (long age = auditAgeFrom + 1; age <= auditAgeTo; age++) {
+                for (IPublication publication : publicationsOut) {
                     IReplica replica = utRepl.createReplicaFromAudit(wsId, publication, age);
 
                     // Пополнение исходящей очереди реплик
                     queOut.put(replica);
-
-                    //
-                    stateManager.setAuditAgeDone(age);
                 }
+
+                //
+                stateManager.setAuditAgeDone(age);
 
                 //
                 count++;
