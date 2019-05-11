@@ -34,10 +34,10 @@ public class MailerHttp implements IMailer {
     protected static Log log = LogFactory.getLog("jdtx");
 
     // 32 Mb
-    int HTTP_FILE_MAX_SIZE = 1024 * 1024 * 32;
-
-    String REPL_PROTOCOL_VERSION = "v02";
+    public static final int HTTP_FILE_MAX_SIZE = 1024 * 1024 * 32;
     //int HTTP_FILE_MAX_SIZE = 512;
+
+    public static final String REPL_PROTOCOL_VERSION = "02";
 
 
     @Override
@@ -56,7 +56,7 @@ public class MailerHttp implements IMailer {
             throw new XError("Invalid localDirTmp");
         }
         //
-        remoteUrl = remoteUrl + REPL_PROTOCOL_VERSION + "/";
+        remoteUrl = remoteUrl + "api." + REPL_PROTOCOL_VERSION + "/";
         //
         localDirTmp = UtFile.unnormPath(localDirTmp) + "/";
         //

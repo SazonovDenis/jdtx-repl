@@ -35,7 +35,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         new File("../_test-data/ws_004").delete();
         new File("d:/temp/dbm.log").delete();
         new File("d:/temp/jdtx.log").delete();
-        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x");
+        UtFile.cleanDir("../../lombard.systems/repl/" + MailerHttp.REPL_PROTOCOL_VERSION + "/b5781df573ca6ee6.x");
 
         // Режим рабочей станции
         // db
@@ -626,7 +626,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 TimeUnit.SECONDS.sleep(5);
             } catch (Exception e) {
                 String msg = Ut.getExceptionMessage(e);
-                if (canSkipException(msg)|| msg.contains("violation of FOREIGN KEY constraint")) {
+                if (canSkipException(msg) || msg.contains("violation of FOREIGN KEY constraint")) {
                     System.out.println(msg);
                 } else {
                     throw e;
@@ -644,7 +644,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 TimeUnit.SECONDS.sleep(5);
             } catch (Exception e) {
                 String msg = Ut.getExceptionMessage(e);
-                if (canSkipException(msg)|| msg.contains("violation of FOREIGN KEY constraint")) {
+                if (canSkipException(msg) || msg.contains("violation of FOREIGN KEY constraint")) {
                     System.out.println(msg);
                 } else {
                     throw e;
