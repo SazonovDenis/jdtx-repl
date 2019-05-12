@@ -19,6 +19,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         sync_http();
         test_dumpTables();
         test_changeDbStruct();
+        reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
     }
 
     @Test
@@ -58,6 +59,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // ===
         // Меняем свою структуру
         test_ws_changeDbStruct(db);
+        reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
 
         //
         test_ws1_makeChange_Unimportant();
@@ -153,6 +155,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         //
         UtTest utTest = new UtTest(db);
+        utTest.changeDbStructDropTable("appupdate");
+        utTest.changeDbStructAddRandomTable();
         utTest.changeDbStruct("region");
 
         //
@@ -252,7 +256,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
                 test_ws_changeDbStruct(db3);
                 TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
                 //
-                reloadStruct_forTest();
+                reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
 
 
                 // =======================================

@@ -15,17 +15,20 @@ public class ReplDatabaseStruct_Test extends ReplDatabase_Test {
         //
         super.setUp();
 
-        // Структуры db и db1
+        // Структуры db, db2 и db3
         reloadStruct_forTest();
     }
 
     // Структуры db и db1
     public void reloadStruct_forTest() throws Exception {
         IJdxDbStructReader reader = new JdxDbStructReader();
+        //
         reader.setDb(db);
         struct = reader.readDbStruct();
+        //
         reader.setDb(db2);
         struct2 = reader.readDbStruct();
+        //
         reader.setDb(db3);
         struct3 = reader.readDbStruct();
     }

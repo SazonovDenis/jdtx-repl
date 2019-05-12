@@ -39,6 +39,36 @@ public class UtTest extends UtilsTestCase {
         db.execSql("alter table " + tableName + " add " + fieldName + " varchar(200)");
     }
 
+    public void changeDbStructAddTable(String tableName) throws Exception {
+        String sql = "create table " + tableName + " (id integer not null, name varchar(200))";
+        db.execSql(sql);
+    }
+
+    public void changeDbStructDropTable(String tableName) throws Exception {
+        String sql = "drop table " + tableName;
+        try {
+            db.execSql(sql);
+        } catch (Exception e) {
+            if (!e.getCause().getMessage().contains("does not exist")) {
+                throw e;
+            }
+        }
+    }
+
+    public void changeDbStructAddRandomTable() throws Exception {
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(db);
+        IJdxDbStruct struct = reader.readDbStruct();
+        //
+        int tablesCount = struct.getTables().size();
+        String tableName = "test_" + (tablesCount + 1);
+        //
+        String sql = "create table " + tableName + " (id integer not null, name varchar(200))";
+        db.execSql(sql);
+        sql = "alter table " + tableName + " add constraint pk_" + tableName + "_id primary key (id)";
+        db.execSql(sql);
+    }
+
     public void makeChangeUnimportant(IJdxDbStruct struct, long ws_id) throws Exception {
         DbUtils dbu = new DbUtils(db, struct);
         long id01 = db.loadSql("select min(id) id from lic where id > 0").getCurRec().getValueLong("id");
