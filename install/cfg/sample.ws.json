@@ -9,7 +9,7 @@
     "queOut_DirLocal": "data/ws_001/queOut",
 
     "publicationsIn": ["publication_full_152"],
-    "publicationsOut": []
+    "publicationsOut": ["publication_null"]
   },
 
   "2": {
