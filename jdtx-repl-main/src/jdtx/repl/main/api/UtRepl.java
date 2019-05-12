@@ -58,7 +58,7 @@ public class UtRepl {
         UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);
         decodeManager.createRefDecodeObject();
 
-        // Сохраняем структуру БД
+        // Запоминаем разрешенную структуру БД
         dbStructSave(struct);
     }
 

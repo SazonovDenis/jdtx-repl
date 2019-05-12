@@ -16,7 +16,9 @@ public class JdxMuteManagerSrv {
         this.db = db;
     }
 
-
+    /**
+     * Отметка состояния станции: MUTE.
+     */
     public void setMuteDone(long wsId, long muteAge) throws Exception {
         log.info("workstation mute done, wsId: " + wsId);
         //
@@ -24,6 +26,9 @@ public class JdxMuteManagerSrv {
         db.execSql(sql);
     }
 
+    /**
+     * Отметка состояния станции: UMNMUTE.
+     */
     public void setUnmuteDone(long wsId) throws Exception {
         log.info("workstation unmute, wsId: " + wsId);
         //

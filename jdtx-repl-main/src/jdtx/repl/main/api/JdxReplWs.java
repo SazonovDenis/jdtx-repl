@@ -339,6 +339,7 @@ public class JdxReplWs {
                     // В этой реплике - новая утвержденная структура
                     InputStream stream = UtRepl.getReplicaInputStream(replica);
                     try {
+                        // Запоминаем разрешенную структуру БД
                         utRepl.dbStructSaveFrom(stream);
                     } finally {
                         stream.close();
