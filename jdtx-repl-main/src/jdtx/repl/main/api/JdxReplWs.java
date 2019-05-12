@@ -345,6 +345,8 @@ public class JdxReplWs {
                         stream.close();
                     }
 
+                    // todo: Пересоздаем аудит????
+
                     // Выкладывание реплики "структура принята"
                     reportMuteDone(JdxReplicaType.SET_DB_STRUCT_DONE);
 
