@@ -39,6 +39,17 @@ public class UtTest extends UtilsTestCase {
         db.execSql("alter table " + tableName + " add " + fieldName + " varchar(200)");
     }
 
+    public void makeChangeUnimportant(IJdxDbStruct struct, long ws_id) throws Exception {
+        DbUtils dbu = new DbUtils(db, struct);
+        long id01 = db.loadSql("select min(id) id from lic where id > 0").getCurRec().getValueLong("id");
+        DataRecord rec = db.loadSql("select * from lic where id = " + id01).getCurRec();
+        dbu.updateRec("lic",
+                UtCnv.toMap("id", id01, "NameF", rec.getValue("NameF")),
+                "NameF",
+                "NameI,NameO,bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,ulz,dom,kv,tel,info"
+        );
+    }
+
     public void makeChange(IJdxDbStruct struct, long ws_id) throws Exception {
         Random rnd = new Random();
         rnd.setSeed(getDbSeed());

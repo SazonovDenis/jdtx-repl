@@ -24,6 +24,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     @Test
     public void test_changeDbStruct() throws Exception {
         //
+        test_ws1_makeChange_Unimportant();
         test_ws2_makeChange();
         test_ws3_makeChange();
 
@@ -44,10 +45,12 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Убеждаемся что рабочие станции молчат (из-из запрета)
+        test_ws1_makeChange_Unimportant();
         test_ws2_makeChange();
         test_ws3_makeChange();
 
         //
+        test_ws1_handleSelfAudit();
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
 
@@ -57,6 +60,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         test_ws_changeDbStruct(db);
 
         //
+        test_ws1_makeChange_Unimportant();
         test_ws2_makeChange();
         test_ws3_makeChange();
 
@@ -72,10 +76,12 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
 
         //
+        test_ws1_makeChange_Unimportant();
         test_ws2_makeChange();
         test_ws3_makeChange();
 
         // Убеждаемся что рабочие станции молчат (из-за несовпадения струтуры)
+        test_ws1_handleSelfAudit();
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
 
@@ -85,6 +91,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         test_srvDbStructFinish();
 
         //
+        test_ws1_makeChange_Unimportant();
         test_ws2_makeChange();
         test_ws3_makeChange();
 
@@ -98,10 +105,12 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Убеждаемся что рабочие станции говорят
+        test_ws1_makeChange_Unimportant();
         test_ws2_makeChange();
         test_ws3_makeChange();
 
         //
+        test_ws1_handleSelfAudit();
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
 
