@@ -67,6 +67,21 @@ public class UtTest extends UtilsTestCase {
         db.execSql(sql);
         sql = "alter table " + tableName + " add constraint pk_" + tableName + "_id primary key (id)";
         db.execSql(sql);
+        sql = "CREATE generator g_" + tableName;
+        db.execSql(sql);
+
+        // Немного повставляем записей
+        Random rnd = new Random();
+        rnd.setSeed(getDbSeed());
+        DbUtils dbu = new DbUtils(db, struct);
+        //
+        long id = dbu.getNextGenerator("g_" + tableName);
+        sql = "insert into " + tableName + " (id, name) values (" + id + ", '" + "ins~" + rnd.nextInt() + "')";
+        db.execSql(sql);
+        //
+        id = dbu.getNextGenerator("g_" + tableName);
+        sql = "insert into " + tableName + " (id, name) values (" + id + ", '" + "ins~" + rnd.nextInt() + "')";
+        db.execSql(sql);
     }
 
     public void makeChangeUnimportant(IJdxDbStruct struct, long ws_id) throws Exception {

@@ -2,6 +2,7 @@ package jdtx.repl.main.api;
 
 import jandcode.bgtasks.*;
 import jandcode.dbm.data.*;
+import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.struct.*;
@@ -280,31 +281,70 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 regionTestFields = regionTestFields + "Region." + f.getName() + ",";
             }
         }
-        String sql_ws0 = "select Region.Name as RegionName, " + regionTestFields + " RegionTip.Name as RegionTipName, RegionTip.ShortName as RegionTipShortName, regionTip.deleted as regionTipDeleted\n" +
+        String regionTestFields2 = "";
+        for (IJdxFieldStruct f : struct2.getTable("region").getFields()) {
+            if (f.getName().startsWith("TEST_")) {
+                regionTestFields2 = regionTestFields2 + "Region." + f.getName() + ",";
+            }
+        }
+        String regionTestFields3 = "";
+        for (IJdxFieldStruct f : struct3.getTable("region").getFields()) {
+            if (f.getName().startsWith("TEST_")) {
+                regionTestFields3 = regionTestFields3 + "Region." + f.getName() + ",";
+            }
+        }
+        String sql_ws1 = "select Region.Name as RegionName, " + regionTestFields + " RegionTip.Name as RegionTipName, RegionTip.ShortName as RegionTipShortName, regionTip.deleted as regionTipDeleted\n" +
                 "from Region, RegionTip\n" +
                 "where Region.id <> 0 and Region.regionTip = RegionTip.id\n" +
                 "order by Region.Name, RegionTip.Name\n";
-        String sql_ws1 = "select Region.Name as RegionName, " + regionTestFields + "  RegionTip.Name as RegionTipName, RegionTip.ShortName as RegionTipShortName, regionTip.deleted as regionTipDeleted\n" +
+        String sql_ws2 = "select Region.Name as RegionName, " + regionTestFields2 + "  RegionTip.Name as RegionTipName, RegionTip.ShortName as RegionTipShortName, regionTip.deleted as regionTipDeleted\n" +
+                "from Region, RegionTip\n" +
+                "where Region.id <> 0 and Region.regionTip = RegionTip.id\n" +
+                "  and Region.id > 100000\n" + // доп условие - чтобы собственные данные ws1 не мозолили глаза
+                "order by Region.Name, RegionTip.Name\n";
+        String sql_ws3 = "select Region.Name as RegionName, " + regionTestFields3 + "  RegionTip.Name as RegionTipName, RegionTip.ShortName as RegionTipShortName, regionTip.deleted as regionTipDeleted\n" +
                 "from Region, RegionTip\n" +
                 "where Region.id <> 0 and Region.regionTip = RegionTip.id\n" +
                 "  and Region.id > 100000\n" + // доп условие - чтобы собственные данные ws1 не мозолили глаза
                 "order by Region.Name, RegionTip.Name\n";
         DataStore st1_r = db.loadSql(sql_ws1);
         OutTableSaver svr1_r = new OutTableSaver(st1_r);
-        //svr1_r.save().saveToFile("../_test-data/csv/ws1-region.csv");
-        DataStore st2_r = db2.loadSql(sql_ws0);
+        DataStore st2_r = db2.loadSql(sql_ws2);
         OutTableSaver svr2_r = new OutTableSaver(st2_r);
-        //svr2_r.save().saveToFile("../_test-data/csv/ws2-region.csv");
-        DataStore st3_r = db3.loadSql(sql_ws0);
+        DataStore st3_r = db3.loadSql(sql_ws3);
         OutTableSaver svr3_r = new OutTableSaver(st3_r);
-        //svr3_r.save().saveToFile("../_test-data/csv/ws3-region.csv");
 
         //
-        UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_r.save().toString(), new File("../_test-data/csv/ws1-all.csv"));
-        UtFile.saveString(svr2.save().toString() + "\n\n" + svr2_r.save().toString(), new File("../_test-data/csv/ws2-all.csv"));
-        UtFile.saveString(svr3.save().toString() + "\n\n" + svr3_r.save().toString(), new File("../_test-data/csv/ws3-all.csv"));
+        String struct_t_XXX1 = dump_table_testXXX(db, struct);
+        String struct_t_XXX2 = dump_table_testXXX(db2, struct2);
+        String struct_t_XXX3 = dump_table_testXXX(db3, struct3);
+
+        //
+        UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_r.save().toString() + "\n\n" + struct_t_XXX1, new File("../_test-data/csv/ws1-all.csv"));
+        UtFile.saveString(svr2.save().toString() + "\n\n" + svr2_r.save().toString() + "\n\n" + struct_t_XXX2, new File("../_test-data/csv/ws2-all.csv"));
+        UtFile.saveString(svr3.save().toString() + "\n\n" + svr3_r.save().toString() + "\n\n" + struct_t_XXX3, new File("../_test-data/csv/ws3-all.csv"));
     }
 
+    private String dump_table_testXXX(Db db, IJdxDbStruct struct) throws Exception {
+        String content = "";
+        for (IJdxTableStruct tab : struct.getTables()) {
+            if (tab.getName().startsWith("TEST_")) {
+                String sql = "select * from " + tab.getName() + " order by id";
+                DataStore st = db.loadSql(sql);
+                OutTableSaver svr = new OutTableSaver(st);
+                content = content + tab.getName() + "\n";
+                content = content + svr.save().toString() + "\n\n";
+            }
+        }
+
+        return content;
+    }
+
+    @Test
+    public void test_dump_table_testXXX() throws Exception {
+        String struct_t_XXX = dump_table_testXXX(db, struct);
+        UtFile.saveString(struct_t_XXX, new File("../_test-data/csv/ws1-xxx.csv"));
+    }
 
     @Test
     public void test_ws1_makeChange_Unimportant() throws Exception {

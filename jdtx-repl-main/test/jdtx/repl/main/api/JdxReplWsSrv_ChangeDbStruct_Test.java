@@ -126,7 +126,6 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         test_dumpTables();
     }
 
-/*
     @Test
     public void test_ws1_changeDbStruct() throws Exception {
         test_ws_changeDbStruct(db);
@@ -141,7 +140,6 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     public void test_ws1_changeDb3Struct() throws Exception {
         test_ws_changeDbStruct(db3);
     }
-*/
 
     void test_ws_changeDbStruct(Db db) throws Exception {
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
