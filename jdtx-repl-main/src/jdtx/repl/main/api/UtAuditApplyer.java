@@ -9,7 +9,6 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.joda.time.*;
-import org.json.simple.*;
 
 import java.util.*;
 
@@ -45,7 +44,7 @@ public class UtAuditApplyer {
         DbUtils dbu = new DbUtils(db, struct);
 
         //
-        JSONArray publicationData = publication.getData();
+        IJdxDbStruct publicationData = publication.getData();
 
         //
         DbAuditTriggersManager triggersManager = new DbAuditTriggersManager(db);
@@ -81,6 +80,8 @@ public class UtAuditApplyer {
                 String idFieldName = table.getPrimaryKey().get(0).getName();
 
                 // Поиск полей таблицы в публикации (поля берем именно из правил публикаций)
+                IJdxTableStruct publicationTable = publicationData.getTable(tableName);
+/*
                 String publicationFields = null;
                 for (int i = 0; i < publicationData.size(); i++) {
                     JSONObject publicationTable = (JSONObject) publicationData.get(i);
@@ -90,6 +91,7 @@ public class UtAuditApplyer {
                         break;
                     }
                 }
+*/
 
                 // Перебираем записи
                 Map recValues = dataReader.nextRec();
@@ -98,23 +100,23 @@ public class UtAuditApplyer {
                     //log.debug("  " + recValues);
 
                     // Подготовка полей записи в recValues
-                    String[] tableFromFields = publicationFields.split(",");
-                    for (String fieldName : tableFromFields) {
-                        IJdxFieldStruct field = table.getField(fieldName);
+                    //String[] tableFromFields = publicationTable.getFields();
+                    for (IJdxFieldStruct publicationField : publicationTable.getFields()) {
+                        IJdxFieldStruct field = table.getField(publicationField.getName());
 
                         // Поле - BLOB?
                         if (getDataType(field.getDbDatatype()) == DataType.BLOB) {
-                            String blobBase64 = (String) recValues.get(fieldName);
+                            String blobBase64 = (String) recValues.get(publicationField);
                             byte[] blob = UtString.decodeBase64(blobBase64);
-                            recValues.put(fieldName, blob);
+                            recValues.put(publicationField, blob);
                             continue;
                         }
 
                         // Поле - дата/время?
                         if (getDataType(field.getDbDatatype()) == DataType.DATETIME) {
-                            String valueStr = (String) recValues.get(fieldName);
+                            String valueStr = (String) recValues.get(publicationField);
                             DateTime value = new DateTime(valueStr);
-                            recValues.put(fieldName, value);
+                            recValues.put(publicationField, value);
                             continue;
                         }
 
@@ -128,21 +130,22 @@ public class UtAuditApplyer {
                             } else {
                                 refTableName = refTable.getName();
                             }
-                            JdxRef ref = JdxRef.parse((String) recValues.get(fieldName));
+                            JdxRef ref = JdxRef.parse((String) recValues.get(publicationField));
                             if (ref.ws_id == -1) {
                                 ref.ws_id = dataReader.getWsId();
                             }
                             // Перекодировка ссылки
                             long ref_own = decoder.get_id_own(refTableName, ref.ws_id, ref.id);
-                            recValues.put(fieldName, ref_own);
+                            recValues.put(publicationField, ref_own);
                             continue;
                         }
 
                         //
-                        recValues.put(fieldName, recValues.get(fieldName));
+                        recValues.put(publicationField, recValues.get(publicationField));
                     }
 
                     // INS/UPD/DEL
+                    String publicationFields = Publication.filedsToString(publicationTable.getFields());
                     int oprType = Integer.valueOf((String) recValues.get("Z_OPR"));
                     if (oprType == JdxOprType.OPR_INS) {
                         try {

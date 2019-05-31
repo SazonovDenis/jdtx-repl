@@ -24,7 +24,7 @@ public class JdxUtils {
     public static final String trig_pref = prefix + "T_";
 
     /**
-     * Сортирует lst с учетом foreign key.
+     * Сортирует список таблиц с учетом foreign key.
      * Результат можно применять для определения порядка таблиц при ins.
      *
      * @param lst исходный список

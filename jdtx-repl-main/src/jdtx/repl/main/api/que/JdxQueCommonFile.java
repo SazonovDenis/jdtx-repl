@@ -115,6 +115,9 @@ public class JdxQueCommonFile implements IJdxQueCommon {
         return replica;
     }
 
+    /**
+     * @deprecated
+     */
     public long getMaxAge(long wsId) throws Exception {
         String sql = "select max(age) as maxAge, count(*) as cnt from " + JdxUtils.sys_table_prefix + "que" + queType + " where ws_id = " + wsId;
         DataRecord rec = db.loadSql(sql).getCurRec();

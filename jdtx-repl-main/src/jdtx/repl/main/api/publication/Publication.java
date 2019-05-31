@@ -6,46 +6,96 @@ import org.json.simple.*;
 import org.json.simple.parser.*;
 
 import java.io.*;
+import java.util.*;
 
-/**
- * Реализация IPublication
- */
 public class Publication implements IPublication {
 
 
-    JSONArray data;
+    IJdxDbStruct publicationStruct = new JdxDbStruct();
 
-    public void loadRules(Reader r) throws Exception {
+    public void loadRules(Reader r, IJdxDbStruct baseStruct) throws Exception {
         JSONParser p = new JSONParser();
-        data = (JSONArray) p.parse(r);
-    }
+        JSONArray publicationData = (JSONArray) p.parse(r);
 
-    public JSONArray getData() {
-        return data;
-    }
+        //
+        publicationStruct.getTables().clear();
 
-    public void setData(JSONArray data) {
-        this.data = data;
-    }
+        // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
+        for (IJdxTableStruct baseStructTable : baseStruct.getTables()) {
+            String baseStructTableName = baseStructTable.getName();
 
-    public static String prepareFiledsString(IJdxTableStruct table, String fields) {
-        if (fields.compareToIgnoreCase("*") == 0) {
-            StringBuilder sb = new StringBuilder();
-            // DbUtils.ID_FIELD пусть будет всегда спереди (необязательно, но во-первых это красиво)
-            sb.append(DbUtils.ID_FIELD);
-            for (IJdxFieldStruct f : table.getFields()) {
-                if (f.getName().equalsIgnoreCase(DbUtils.ID_FIELD)) {
-                    continue;
+            // Ищем таблицу в правилах публикации
+            List<String> publicationFields = null;
+            for (int i = 0; i < publicationData.size(); i++) {
+                JSONObject publicationTable = (JSONObject) publicationData.get(i);
+                String publicationTableName = (String) publicationTable.get("table");
+                if (baseStructTableName.compareToIgnoreCase(publicationTableName) == 0) {
+                    publicationFields = expandPublicationFields(baseStructTable, (String) publicationTable.get("fields"));
                 }
-                sb.append(",");
-                sb.append(f.getName());
             }
-            fields = sb.toString();
-        } else {
-            fields = DbUtils.ID_FIELD + "," + fields;
+
+            // Нашли таблицу?
+            if (publicationFields != null) {
+                // Добавляем в структуру публикации
+                JdxTableStruct publicationTable = new JdxTableStruct();
+                publicationStruct.getTables().add(publicationTable);
+                //
+                for (String publicationFieldName : publicationFields) {
+                    IJdxFieldStruct publicationField = baseStructTable.getField(publicationFieldName).cloneField();
+                    publicationTable.getFields().add(publicationField);
+                }
+            }
         }
 
-        return fields.toUpperCase();
+    }
+
+
+    public IJdxDbStruct getData() {
+        return publicationStruct;
+    }
+
+
+    List<String> expandPublicationFields(IJdxTableStruct table, String publicationFields) {
+        List<String> res = new ArrayList<>();
+
+        //
+        // DbUtils.ID_FIELD пусть будет всегда спереди (необязательно, но... во-первых это красиво!)
+        res.add(DbUtils.ID_FIELD);
+        if (publicationFields.compareToIgnoreCase("*") == 0) {
+            for (IJdxFieldStruct fieldStruct : table.getFields()) {
+                if (fieldStruct.getName().equalsIgnoreCase(DbUtils.ID_FIELD)) {
+                    continue;
+                }
+                res.add(fieldStruct.getName());
+            }
+        } else {
+            String[] publicationFieldsArr = publicationFields.split(",");
+            for (String publicationField : publicationFieldsArr) {
+                if (publicationField.equalsIgnoreCase(DbUtils.ID_FIELD)) {
+                    continue;
+                }
+                res.add(publicationField);
+            }
+        }
+
+        //
+        return res;
+    }
+
+    // todo: переместить отсюда куда-нибудь в утилиты
+    public static String filedsToString(List<IJdxFieldStruct> fields) {
+        StringBuilder sb = new StringBuilder();
+
+        //
+        for (IJdxFieldStruct f : fields) {
+            if (sb.length() != 0) {
+                sb.append(",");
+            }
+            sb.append(f.getName());
+        }
+
+        //
+        return sb.toString();
     }
 
 

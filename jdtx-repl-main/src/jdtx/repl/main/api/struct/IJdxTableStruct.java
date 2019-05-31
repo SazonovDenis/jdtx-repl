@@ -6,11 +6,11 @@ public interface IJdxTableStruct {
 
     String getName();
 
-    ArrayList<IJdxFieldStruct> getFields();
+    List<IJdxFieldStruct> getFields();
 
-    ArrayList<IJdxFieldStruct> getPrimaryKey();
+    List<IJdxFieldStruct> getPrimaryKey();
 
-    ArrayList<IJdxForeignKey> getForeignKeys();
+    List<IJdxForeignKey> getForeignKeys();
 
     //IJdxTableStruct cloneTable();
 

@@ -110,7 +110,7 @@ public class JdxReplWs {
             publicationCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + publicationCfgName + ".json";
             Reader reader = new FileReader(publicationCfgName);
             try {
-                publication.loadRules(reader);
+                publication.loadRules(reader, struct);
             } finally {
                 reader.close();
             }
@@ -124,7 +124,7 @@ public class JdxReplWs {
             publicationCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + publicationCfgName + ".json";
             Reader reader = new FileReader(publicationCfgName);
             try {
-                publication.loadRules(reader);
+                publication.loadRules(reader, struct);
             } finally {
                 reader.close();
             }
@@ -203,6 +203,7 @@ public class JdxReplWs {
 
         //
         UtRepl utRepl = new UtRepl(db, struct);
+        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
 
         // Если в стостоянии "я замолчал", то молчим
         JdxMuteManagerWs utmm = new JdxMuteManagerWs(db);
@@ -212,7 +213,7 @@ public class JdxReplWs {
         }
 
         // Проверяем совпадает ли реальная структура БД с утвержденной структурой
-        IJdxDbStruct structStored = utRepl.dbStructLoad();
+        IJdxDbStruct structStored = dbStructRW.getDbStructAllowed();
         if (structStored != null && !UtDbComparer.dbStructIsEqual(struct, structStored)) {
             log.error("handleSelfAudit, database struct is not match");
             return;
@@ -274,8 +275,7 @@ public class JdxReplWs {
 
         //
         UtRepl utRepl = new UtRepl(db, struct);
-
-        //
+        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
         UtAuditApplyer applyer = new UtAuditApplyer(db, struct);
 
         //
@@ -284,7 +284,7 @@ public class JdxReplWs {
 
         // Проверяем совпадает ли реальная структура БД с утвержденной структурой
         boolean dbStructIsEqual = true;
-        IJdxDbStruct dbStructStored = utRepl.dbStructLoad();
+        IJdxDbStruct dbStructStored = dbStructRW.getDbStructAllowed();
         String dbStructStoredCrc = UtDbComparer.calcDbStructCrc(struct);
         if (!UtDbComparer.dbStructIsEqual(struct, dbStructStored)) {
             dbStructIsEqual = false;
@@ -340,7 +340,7 @@ public class JdxReplWs {
                     InputStream stream = UtRepl.getReplicaInputStream(replica);
                     try {
                         // Запоминаем разрешенную структуру БД
-                        utRepl.dbStructSaveFrom(stream);
+                        dbStructRW.dbStructSaveFrom(stream);
                     } finally {
                         stream.close();
                     }

@@ -10,7 +10,6 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.joda.time.*;
-import org.json.simple.*;
 
 import java.io.*;
 import java.util.*;
@@ -59,7 +58,8 @@ public class UtRepl {
         decodeManager.createRefDecodeObject();
 
         // Запоминаем разрешенную структуру БД
-        dbStructSave(struct);
+        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
+        dbStructRW.dbStructSave(struct);
     }
 
 
@@ -180,8 +180,9 @@ public class UtRepl {
 
 
         // Забираем аудит по порядку сортировки таблиц в struct
-        JSONArray publicationData = publication.getData();
-        for (IJdxTableStruct table : struct.getTables()) {
+        //JSONArray publicationData = publication.getData().getTables();
+        for (IJdxTableStruct publicationTable : publication.getData().getTables()) {
+/*
             String stuctTableName = table.getName();
             JSONObject publicationTable = null;
             boolean foundInPublication = false;
@@ -193,27 +194,28 @@ public class UtRepl {
                     break;
                 }
             }
+*/
 
             //
-            if (foundInPublication) {
-                String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
-                //utrr.readAuditData_old(stuctTableName, publicationFields, age - 1, age, writerXml);
+            //if (foundInPublication) {
+            //utrr.readAuditData_old(stuctTableName, publicationFields, age - 1, age, writerXml);
 
-                // Интервал id в таблице аудита, который покрывает возраст age
-                Map autitInfoTable = (Map) auditInfo.get(stuctTableName);
-                if (autitInfoTable != null) {
-                    long fromId = (long) autitInfoTable.get("z_id_from");
-                    long toId = (long) autitInfoTable.get("z_id_to");
+            // Интервал id в таблице аудита, который покрывает возраст age
+            Map autitInfoTable = (Map) auditInfo.get(publicationTable.getName());
+            if (autitInfoTable != null) {
+                long fromId = (long) autitInfoTable.get("z_id_from");
+                long toId = (long) autitInfoTable.get("z_id_to");
 
+                //
+                if (toId >= fromId) {
+                    log.info("createReplicaFromAudit: " + publicationTable.getName() + ", age: " + age + ", z_id: [" + fromId + ".." + toId + "], audit recs: " + (toId - fromId + 1));
                     //
-                    if (toId >= fromId) {
-                        log.info("createReplicaFromAudit: " + stuctTableName + ", age: " + age + ", z_id: [" + fromId + ".." + toId + "], audit recs: " + (toId - fromId + 1));
-                        //
-                        utrr.readAuditData_ById(stuctTableName, publicationFields, fromId, toId, writerXml);
-                    }
+                    String publicationFields = Publication.filedsToString(publicationTable.getFields());
+                    utrr.readAuditData_ById(publicationTable.getName(), publicationFields, fromId, toId, writerXml);
                 }
-
             }
+
+            //}
 
         }
 
@@ -251,22 +253,12 @@ public class UtRepl {
         writerXml.startDocument();
         writerXml.writeReplicaHeader(replica);
 
-        //
+        // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
         UtDataSelector utrr = new UtDataSelector(db, struct);
-
-        // Забираем все данные из таблиц по порядку сортировки таблиц в struct
-        JSONArray publicationData = publication.getData();
-        for (IJdxTableStruct table : struct.getTables()) {
-            String stuctTableName = table.getName();
-
-            for (int i = 0; i < publicationData.size(); i++) {
-                JSONObject publicationTable = (JSONObject) publicationData.get(i);
-                String publicationTableName = (String) publicationTable.get("table");
-                if (stuctTableName.compareToIgnoreCase(publicationTableName) == 0) {
-                    String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
-                    utrr.readAllRecords(stuctTableName, publicationFields, writerXml);
-                }
-            }
+        List<IJdxTableStruct> publicationTables = publication.getData().getTables();
+        for (IJdxTableStruct publicationTable : publicationTables) {
+            String publicationFields = Publication.filedsToString(publicationTable.getFields());
+            utrr.readAllRecords(publicationTable.getName(), publicationFields, writerXml);
         }
 
 
@@ -357,39 +349,6 @@ public class UtRepl {
         }
 
         return inputStream;
-    }
-
-    public IJdxDbStruct dbStructLoad() throws Exception {
-        String sql = "select db_struct from Z_Z_state where id = 1";
-        DataStore st = db.loadSql(sql);
-        byte[] db_struct = (byte[]) st.getCurRec().getValue("db_struct");
-        //
-        if (db_struct.length == 0) {
-            return null;
-        }
-        //
-        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        return struct_rw.read(db_struct);
-    }
-
-    public void dbStructSaveFrom(InputStream stream) throws Exception {
-        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        IJdxDbStruct struct = struct_rw.read(stream);
-        //
-        dbStructSave(struct);
-    }
-
-    public void dbStructSaveFrom(File file) throws Exception {
-        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        IJdxDbStruct struct = struct_rw.read(file.getPath());
-        //
-        dbStructSave(struct);
-    }
-
-    public void dbStructSave(IJdxDbStruct struct) throws Exception {
-        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        byte[] bytes = struct_rw.getBytes(struct);
-        db.execSql("update Z_Z_state set db_struct = :db_struct where id = 1", UtCnv.toMap("db_struct", bytes));
     }
 
     public static String getVersion() {

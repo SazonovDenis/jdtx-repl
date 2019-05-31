@@ -452,6 +452,30 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
+    /**
+     * Команда рабочей станции. Проверить необходимость обновить структуру аудита.
+     */
+    void repl_dbstruct_update(IVariantMap args) {
+        BgTasksService bgTasksService = app.service(BgTasksService.class)
+        String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName")
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        try {
+            JdxReplWs ws = new JdxReplWs(db)
+            ws.init(cfgFileName)
+
+            //
+            ws.dbStructUpdate();
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
     void repl_version(IVariantMap args) {
         System.out.println("UtRepl.getVersion: " + UtRepl.getVersion())
     }

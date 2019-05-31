@@ -1,8 +1,10 @@
 package jdtx.repl.main.api.publication;
 
+import jdtx.repl.main.api.struct.*;
 import org.json.simple.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  * Публикация - набор правил подготовки реплик.
@@ -12,10 +14,8 @@ import java.io.*;
  */
 public interface IPublication {
 
-    void loadRules(Reader r) throws Exception;
+    void loadRules(Reader r, IJdxDbStruct baseStruct) throws Exception;
 
-    JSONArray getData();
-
-    void setData(JSONArray data);
+    IJdxDbStruct getData();
 
 }

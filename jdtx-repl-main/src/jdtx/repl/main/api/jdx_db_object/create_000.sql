@@ -1,16 +1,3 @@
-/* таблица table_list со списком названий таблиц, за изменениями в которых надо следить */
-CREATE TABLE Z_Z_table_list (
-  id   INT                     NOT NULL,
-  name VARCHAR(150) DEFAULT '' NOT NULL
-);
-
-ALTER TABLE Z_Z_table_list ADD CONSTRAINT pk_Z_Z_table_list PRIMARY KEY (id);
-
-CREATE generator Z_Z_G_table_list;
-
-SET generator Z_Z_G_table_list TO 0;
-
-
 /* таблица с флагом работы триггеров */
 CREATE TABLE Z_Z_flag_tab (
   id           INTEGER NOT NULL,
@@ -22,24 +9,27 @@ INSERT INTO Z_Z_flag_tab (id, trigger_flag) VALUES (1, 1);
 
 /* таблица собственного состояния (для рабочей станции) - для хранения возраста созданных реплик, примененных реплик и т.п. */
 CREATE TABLE Z_Z_state (
-  id               INTEGER NOT NULL,
-  que_out_age_done INT     NOT NULL,
-  que_in_no_done   INT     NOT NULL,
-  mail_send_done   INT     NOT NULL,
-  enabled          INT     NOT NULL,
-  mute             INT     NOT NULL
+  id                     INTEGER NOT NULL,
+  que_out_age_done       INT     NOT NULL,
+  que_in_no_done         INT     NOT NULL,
+  mail_send_done         INT     NOT NULL,
+  enabled                INT     NOT NULL,
+  mute                   INT     NOT NULL,
+  db_struct_fixed        BLOB,
+  db_struct_allowed      BLOB
 );
 
 INSERT INTO Z_Z_state (id, que_out_age_done, que_in_no_done, mail_send_done, enabled, mute) VALUES (1, 0, 0, 0, 0, 0);
 
 
-/* таблица состояния рабочих станций (для сервера) - для хранения возраста созданных реплик, примененных реплик и т.п. */
+/* таблица состояния рабочих станций (для сервера) - хранение возраста созданных реплик, примененных реплик и т.п. */
 CREATE TABLE Z_Z_state_ws (
   id                       INTEGER NOT NULL,
   ws_id                    INT     NOT NULL,
   que_common_dispatch_done INT     NOT NULL,
   que_in_age_done          INT     NOT NULL,
-  enabled                  INT     NOT NULL
+  enabled                  INT     NOT NULL,
+  mute_age                 INT     NOT NULL
 );
 
 ALTER TABLE Z_Z_state_ws ADD CONSTRAINT pk_Z_Z_state_ws PRIMARY KEY (id);
@@ -47,7 +37,7 @@ ALTER TABLE Z_Z_state_ws ADD CONSTRAINT pk_Z_Z_state_ws PRIMARY KEY (id);
 CREATE generator Z_Z_G_state_ws;
 
 
-/* список рабочих станций */
+/* список рабочих станций (для сервера) */
 CREATE TABLE Z_Z_workstation_list (
   id      INTEGER      NOT NULL,
   name    VARCHAR(50)  NOT NULL,

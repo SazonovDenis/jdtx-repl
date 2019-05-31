@@ -23,7 +23,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
             r.close();
         }
 
-        JSONArray t = publication.getData();
+        JSONArray t = publication.getTables();
 
         for (int i = 0; i < t.size(); i++) {
             JSONObject o = (JSONObject) t.get(i);

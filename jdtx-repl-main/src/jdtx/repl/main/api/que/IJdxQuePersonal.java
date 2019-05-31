@@ -3,7 +3,7 @@ package jdtx.repl.main.api.que;
 import jdtx.repl.main.api.replica.*;
 
 /**
- * Формирователь очереди собственных реплик - хранение и упорядочивание.
+ * Очередь собственных реплик - хранение и упорядочивание.
  */
 public interface IJdxQuePersonal {
 

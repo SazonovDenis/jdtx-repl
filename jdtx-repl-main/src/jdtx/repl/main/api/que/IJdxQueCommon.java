@@ -3,7 +3,7 @@ package jdtx.repl.main.api.que;
 import jdtx.repl.main.api.replica.*;
 
 /**
- * Формирователь общей очереди реплик - хранение и упорядочивание.
+ * Общая очередь реплик - хранение и упорядочивание.
  */
 public interface IJdxQueCommon {
 
@@ -19,6 +19,7 @@ public interface IJdxQueCommon {
 
     /**
      * @return Последний возраст реплики в очереди для рабочей станции wsId
+     * @deprecated
      */
     long getMaxAge(long wsId) throws Exception;
 

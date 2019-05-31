@@ -4,7 +4,10 @@ import java.util.*;
 
 public interface IJdxDbStruct {
 
-    public ArrayList<IJdxTableStruct> getTables();
+    /**
+     * @return Список таблиц
+     */
+    ArrayList<IJdxTableStruct> getTables();
 
     /**
      * Возвращает таблицу по имени
@@ -12,6 +15,6 @@ public interface IJdxDbStruct {
      * @param tableName имя таблицы
      * @return таблица или null, если такой таблицы нет
      */
-    public IJdxTableStruct getTable(String tableName);
+    IJdxTableStruct getTable(String tableName);
 
 }

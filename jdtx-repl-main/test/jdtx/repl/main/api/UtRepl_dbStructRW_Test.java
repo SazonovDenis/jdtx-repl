@@ -18,14 +18,14 @@ public class UtRepl_dbStructRW_Test extends ReplDatabaseStruct_Test {
 
         //
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        UtRepl utRepl = new UtRepl(db, struct);
+        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
 
 
         // Сохраняем структуру в БД
-        utRepl.dbStructSave(struct);
+        dbStructRW.dbStructSave(struct);
 
         // Читаем структуру из БД
-        IJdxDbStruct structLoad = utRepl.dbStructLoad();
+        IJdxDbStruct structLoad = dbStructRW.getDbStructAllowed();
 
         // Сравниваем
         assertEquals(true, UtDbComparer.dbStructIsEqual(struct, structLoad, structNoDiff, structDiff1, structDiff2));
@@ -34,10 +34,10 @@ public class UtRepl_dbStructRW_Test extends ReplDatabaseStruct_Test {
         // Сохраняем структуру (через файл) в БД
         File file = new File("../_test-data/dbStruct.xml");
         struct_rw.saveToFile(struct, file.getPath());
-        utRepl.dbStructSaveFrom(file);
+        dbStructRW.dbStructSaveFrom(file);
 
         // Читаем структуру из БД
-        IJdxDbStruct structLoad1 = utRepl.dbStructLoad();
+        IJdxDbStruct structLoad1 = dbStructRW.getDbStructAllowed();
 
         // Сравниваем
         assertEquals(true, UtDbComparer.dbStructIsEqual(struct, structLoad1, structNoDiff, structDiff1, structDiff2));

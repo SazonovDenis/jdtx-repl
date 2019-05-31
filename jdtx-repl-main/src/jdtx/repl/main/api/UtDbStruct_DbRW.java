@@ -1,0 +1,59 @@
+package jdtx.repl.main.api;
+
+import jandcode.dbm.data.*;
+import jandcode.dbm.db.*;
+import jandcode.utils.*;
+import jdtx.repl.main.api.struct.*;
+
+import java.io.*;
+
+public class UtDbStruct_DbRW {
+
+    private Db db;
+
+    public UtDbStruct_DbRW(Db db) {
+        this.db = db;
+    }
+
+    public IJdxDbStruct getDbStructAllowed() throws Exception {
+        return getDbStructInternal("db_struct_allowed");
+    }
+
+
+    public IJdxDbStruct getDbStructFixed() throws Exception {
+        return getDbStructInternal("db_struct_fixed");
+    }
+
+    IJdxDbStruct getDbStructInternal(String name) throws Exception {
+        DataStore st = db.loadSql("select db_struct from Z_Z_state where id = 1");
+        byte[] db_struct = (byte[]) st.getCurRec().getValue(name);
+        //
+        if (db_struct.length == 0) {
+            return null;
+        }
+        //
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        return struct_rw.read(db_struct);
+    }
+
+    public void dbStructSaveFrom(InputStream stream) throws Exception {
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        IJdxDbStruct struct = struct_rw.read(stream);
+        //
+        dbStructSave(struct);
+    }
+
+    public void dbStructSaveFrom(File file) throws Exception {
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        IJdxDbStruct struct = struct_rw.read(file.getPath());
+        //
+        dbStructSave(struct);
+    }
+
+    public void dbStructSave(IJdxDbStruct struct) throws Exception {
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        byte[] bytes = struct_rw.getBytes(struct);
+        db.execSql("update Z_Z_state set db_struct = :db_struct where id = 1", UtCnv.toMap("db_struct", bytes));
+    }
+
+}

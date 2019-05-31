@@ -9,7 +9,6 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.joda.time.*;
-import org.json.simple.*;
 
 import java.util.*;
 
@@ -31,6 +30,7 @@ public class UtAuditSelector {
     }
 
 
+/*
     public void readAuditData_old(String tableName, String tableFields, long ageFrom, long ageTo, JdxReplicaWriterXml dataWriter) throws Exception {
         IJdxTableStruct table = struct.getTable(tableName);
 
@@ -97,6 +97,7 @@ public class UtAuditSelector {
             rsTableLog.close();
         }
     }
+*/
 
     protected void readAuditData_ById(String tableName, String tableFields, long fromId, long toId, JdxReplicaWriterXml dataWriter) throws Exception {
         IJdxTableStruct table = struct.getTable(tableName);
@@ -197,6 +198,7 @@ public class UtAuditSelector {
         }
     }
 
+/*
     protected DbQuery selectAuditData_old(String tableName, String tableFields, long ageFrom, long ageTo) throws Exception {
         //
         IJdxTableStruct tableFrom = struct.getTable(tableName);
@@ -218,6 +220,7 @@ public class UtAuditSelector {
         //
         return db.openSql(sql);
     }
+*/
 
     /**
      * Возвращает, на каком ID таблицы аудита закончилась реплика с возрастом age
@@ -272,7 +275,7 @@ public class UtAuditSelector {
 
     /**
      * Извлекает мин и макс z_id аудита для каждой таблицы,
-     * а также общий временной интервал изменений в аужите
+     * а также общий временной интервал изменений в аудите
      */
     public Map loadAutitIntervals(IPublication publication, long age) throws Exception {
         Map auditInfo = new HashMap<>();
@@ -280,8 +283,9 @@ public class UtAuditSelector {
         DateTime dtFrom = null;
         DateTime dtTo = null;
 
-        JSONArray publicationData = publication.getData();
-        for (IJdxTableStruct table : struct.getTables()) {
+        //JSONArray publicationData = publication.getData().getTables();
+        for (IJdxTableStruct table : publication.getData().getTables()) {
+/*
             String stuctTableName = table.getName();
             boolean foundInPublication = false;
             for (int i = 0; i < publicationData.size(); i++) {
@@ -295,56 +299,57 @@ public class UtAuditSelector {
 
             //
             if (foundInPublication) {
-                //String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
-                //utrr.readAuditData(stuctTableName, publicationFields, age - 1, age, writerXml);
-                //
-                String sql = "select\n" +
-                        "  z_z_age_last.table_name,\n" +
-                        "  z_z_age_prior.age age_prior,\n" +
-                        "  z_z_age_last.age,\n" +
-                        "  z_region_prior.z_id z_id_from,\n" +
-                        "  z_region_last.z_id z_id_to,\n" +
-                        "  z_region_prior.z_opr_dttm opr_dttm_from,\n" +
-                        "  z_region_last.z_opr_dttm opr_dttm_to,\n" +
-                        "  --z_z_age_last.dt,\n" +
-                        "  --z_z_age_prior.dt dt_prior,\n" +
-                        "  1 as x\n" +
-                        "from\n" +
-                        "  z_z_age z_z_age_prior, z_z_age z_z_age_last, z_" + stuctTableName + " z_region_prior, z_" + stuctTableName + " z_region_last\n" +
-                        "where\n" +
-                        "  z_z_age_last.table_name = z_z_age_prior.table_name and\n" +
-                        "  z_z_age_last.age = z_z_age_prior.age + 1 and\n" +
-                        "  --\n" +
-                        "  z_z_age_prior.z_id + 1 = z_region_prior.z_id and\n" +
-                        "  z_z_age_last.z_id = z_region_last.z_id and\n" +
-                        "  --\n" +
-                        "  z_z_age_last.age = " + age + " and\n" +
-                        "  z_z_age_last.table_name = '" + stuctTableName + "' and\n" +
-                        "  1=1\n" +
-                        "order by\n" +
-                        "  z_z_age_last.table_name, z_z_age_last.age";
+*/
+            //String publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
+            //utrr.readAuditData(stuctTableName, publicationFields, age - 1, age, writerXml);
+            //
+            String sql = "select\n" +
+                    "  z_z_age_last.table_name,\n" +
+                    "  z_z_age_prior.age age_prior,\n" +
+                    "  z_z_age_last.age,\n" +
+                    "  z_region_prior.z_id z_id_from,\n" +
+                    "  z_region_last.z_id z_id_to,\n" +
+                    "  z_region_prior.z_opr_dttm opr_dttm_from,\n" +
+                    "  z_region_last.z_opr_dttm opr_dttm_to,\n" +
+                    "  --z_z_age_last.dt,\n" +
+                    "  --z_z_age_prior.dt dt_prior,\n" +
+                    "  1 as x\n" +
+                    "from\n" +
+                    "  z_z_age z_z_age_prior, z_z_age z_z_age_last, z_" + table.getName() + " z_region_prior, z_" + table.getName() + " z_region_last\n" +
+                    "where\n" +
+                    "  z_z_age_last.table_name = z_z_age_prior.table_name and\n" +
+                    "  z_z_age_last.age = z_z_age_prior.age + 1 and\n" +
+                    "  --\n" +
+                    "  z_z_age_prior.z_id + 1 = z_region_prior.z_id and\n" +
+                    "  z_z_age_last.z_id = z_region_last.z_id and\n" +
+                    "  --\n" +
+                    "  z_z_age_last.age = " + age + " and\n" +
+                    "  z_z_age_last.table_name = '" + table.getName() + "' and\n" +
+                    "  1=1\n" +
+                    "order by\n" +
+                    "  z_z_age_last.table_name, z_z_age_last.age";
 
-                //
-                DataStore st = db.loadSql(sql);
-                if (st.size() == 0) {
-                    continue;
-                }
-
-                DataRecord rec = st.get(0);
-
-                if (dtFrom == null || dtFrom.compareTo(rec.getValueDateTime("opr_dttm_from")) > 0) {
-                    dtFrom = rec.getValueDateTime("opr_dttm_from");
-                }
-                if (dtTo == null || dtTo.compareTo(rec.getValueDateTime("opr_dttm_to")) < 0) {
-                    dtTo = rec.getValueDateTime("opr_dttm_to");
-                }
-
-                //
-                Map auditInfoTable = new HashMap<>();
-                auditInfoTable.put("z_id_from", rec.getValueLong("z_id_from"));
-                auditInfoTable.put("z_id_to", rec.getValueLong("z_id_to"));
-                auditInfo.put(stuctTableName, auditInfoTable);
+            //
+            DataStore st = db.loadSql(sql);
+            if (st.size() == 0) {
+                continue;
             }
+
+            DataRecord rec = st.get(0);
+
+            if (dtFrom == null || dtFrom.compareTo(rec.getValueDateTime("opr_dttm_from")) > 0) {
+                dtFrom = rec.getValueDateTime("opr_dttm_from");
+            }
+            if (dtTo == null || dtTo.compareTo(rec.getValueDateTime("opr_dttm_to")) < 0) {
+                dtTo = rec.getValueDateTime("opr_dttm_to");
+            }
+
+            //
+            Map auditInfoTable = new HashMap<>();
+            auditInfoTable.put("z_id_from", rec.getValueLong("z_id_from"));
+            auditInfoTable.put("z_id_to", rec.getValueLong("z_id_to"));
+            auditInfo.put(table.getName(), auditInfoTable);
+            //}
 
         }
 
