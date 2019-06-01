@@ -110,19 +110,7 @@ public class UtDbObjectManager {
     }
 
 
-    public void dropAudit() throws Exception {
-        log.info("dropAudit - журналы");
-
-        // Удаляем связанную с каждой таблицей таблицу журнала изменений
-        ArrayList<IJdxTableStruct> tables = struct.getTables();
-        long n = 0;
-        for (IJdxTableStruct table : tables) {
-            n++;
-            log.debug("dropAudit " + n + "/" + tables.size() + " " + table.getName());
-            //
-            dropAuditTable(table.getName());
-        }
-
+    public void dropAuditBase() throws Exception {
         log.info("dropAudit - системные объекты");
 
         // Удаляем системные таблицы и генераторы
@@ -165,7 +153,13 @@ public class UtDbObjectManager {
         db.execSqlNative(sql);
     }
 
+    /**
+     * Создаем аудит - для таблицы в БД создаем собственную таблицу журнала изменений
+     *
+     * @param table Имя таблицы
+     */
     public void createAuditTable(IJdxTableStruct table) throws Exception {
+        // создание таблицы журнала
         String tableName = table.getName();
         String pkFieldName = table.getPrimaryKey().get(0).getName();
         //
@@ -173,7 +167,6 @@ public class UtDbObjectManager {
         if (table.getPrimaryKey().get(0).getJdxDatatype() == JdxDataType.STRING) {
             pkFieldDataType = pkFieldDataType + "(" + table.getPrimaryKey().get(0).getSize() + ")";
         }
-        //
         String sql = "create table \n" +
                 JdxUtils.audit_table_prefix + tableName + "(\n" +
                 JdxUtils.audit_table_prefix + "id integer not null,\n" +
@@ -282,8 +275,12 @@ public class UtDbObjectManager {
         return sql;
     }
 
+    /**
+     * Удаляем аудит (связанную с таблицей таблицу журнала изменений)
+     *
+     * @param tableName Таблица
+     */
     public void dropAuditTable(String tableName) throws SQLException {
-        //Statement st = conn.createStatement();
         String sql;
         try {
             // удаляем триггеры

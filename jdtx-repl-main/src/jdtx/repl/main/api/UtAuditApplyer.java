@@ -97,26 +97,24 @@ public class UtAuditApplyer {
                 Map recValues = dataReader.nextRec();
                 long count = 0;
                 while (recValues != null) {
-                    //log.debug("  " + recValues);
-
                     // Подготовка полей записи в recValues
-                    //String[] tableFromFields = publicationTable.getFields();
                     for (IJdxFieldStruct publicationField : publicationTable.getFields()) {
-                        IJdxFieldStruct field = table.getField(publicationField.getName());
+                        String publicationFieldName = publicationField.getName();
+                        IJdxFieldStruct field = table.getField(publicationFieldName);
 
                         // Поле - BLOB?
                         if (getDataType(field.getDbDatatype()) == DataType.BLOB) {
-                            String blobBase64 = (String) recValues.get(publicationField);
+                            String blobBase64 = (String) recValues.get(publicationFieldName);
                             byte[] blob = UtString.decodeBase64(blobBase64);
-                            recValues.put(publicationField, blob);
+                            recValues.put(publicationFieldName, blob);
                             continue;
                         }
 
                         // Поле - дата/время?
                         if (getDataType(field.getDbDatatype()) == DataType.DATETIME) {
-                            String valueStr = (String) recValues.get(publicationField);
+                            String valueStr = (String) recValues.get(publicationFieldName);
                             DateTime value = new DateTime(valueStr);
-                            recValues.put(publicationField, value);
+                            recValues.put(publicationFieldName, value);
                             continue;
                         }
 
@@ -130,18 +128,18 @@ public class UtAuditApplyer {
                             } else {
                                 refTableName = refTable.getName();
                             }
-                            JdxRef ref = JdxRef.parse((String) recValues.get(publicationField));
+                            JdxRef ref = JdxRef.parse((String) recValues.get(publicationFieldName));
                             if (ref.ws_id == -1) {
                                 ref.ws_id = dataReader.getWsId();
                             }
                             // Перекодировка ссылки
                             long ref_own = decoder.get_id_own(refTableName, ref.ws_id, ref.id);
-                            recValues.put(publicationField, ref_own);
+                            recValues.put(publicationFieldName, ref_own);
                             continue;
                         }
 
                         //
-                        recValues.put(publicationField, recValues.get(publicationField));
+                        recValues.put(publicationFieldName, recValues.get(publicationFieldName));
                     }
 
                     // INS/UPD/DEL

@@ -7,8 +7,8 @@
     "queIn_DirLocal": "../_test-data/ws_srv/queIn",
     "queOut_DirLocal": "../_test-data/ws_srv/queOut",
 
-    "publicationsIn": ["publication_full"],
-    "publicationsOut": ["publication_full"]
+    "publicationIn": "publication_full",
+    "publicationOut": "publication_full"
   },
 
   "2": {
@@ -18,8 +18,8 @@
     "queIn_DirLocal": "../_test-data/ws2/queIn",
     "queOut_DirLocal": "../_test-data/ws2/queOut",
 
-    "publicationsIn": ["publication_full"],
-    "publicationsOut": ["publication_full"]
+    "publicationIn": "publication_full",
+    "publicationOut": "publication_full"
   },
 
   "3":{
@@ -29,8 +29,8 @@
     "queIn_DirLocal": "../_test-data/ws3/queIn",
     "queOut_DirLocal": "../_test-data/ws3/queOut",
 
-    "publicationsIn": ["publication_full"],
-    "publicationsOut": ["publication_full"]
+    "publicationIn": "publication_full",
+    "publicationOut": "publication_full"
   }
 
 }

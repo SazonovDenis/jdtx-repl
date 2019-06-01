@@ -56,10 +56,6 @@ public class UtRepl {
         // Создаем необходимые для перекодировки таблицы
         UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);
         decodeManager.createRefDecodeObject();
-
-        // Запоминаем текущую структуру БД как "разрешенную" структуру
-        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
-        dbStructRW.dbStructSaveAllowed(struct);
     }
 
 
@@ -67,11 +63,18 @@ public class UtRepl {
      * Удалить репликационные структуры
      */
     public void dropReplication() throws Exception {
-        // удаление всего аудита
         UtDbObjectManager ut = new UtDbObjectManager(db, struct);
-        ut.dropAudit();
 
-        // удаляем необходимые для перекодировки таблицы
+        // Удаляем связанную с каждой таблицей таблицу журнала изменений
+        log.info("dropAudit - журналы");
+        for (IJdxTableStruct table : struct.getTables()) {
+            ut.dropAuditTable(table.getName());
+        }
+
+        // Удаляем системные таблицы и генераторы
+        ut.dropAuditBase();
+
+        // Удаляем необходимые для перекодировки таблицы
         UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);
         decodeManager.dropRefDecodeObject();
     }
@@ -236,9 +239,6 @@ public class UtRepl {
      * самая первая (установочная) реплика для сервера.
      */
     public IReplica createReplicaTableSnapshot(long wsId, IJdxTableStruct publicationTable, long age) throws Exception {
-        log.info("createReplicaTableSnapshot");
-
-        //
         IReplica replica = new ReplicaFile();
         replica.getInfo().setDbStructCrc(UtDbComparer.calcDbStructCrc(struct));
         replica.getInfo().setWsId(wsId);

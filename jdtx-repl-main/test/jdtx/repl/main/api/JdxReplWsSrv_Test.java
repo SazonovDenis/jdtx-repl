@@ -56,6 +56,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         utr3.dropReplication();
         utr3.createReplicationBase(3, "b5781df573ca6ee6.x-34f3cc20bea64503");
 
+        // Сразу инициируем "смену структуры"
+        wsDbStructUpdate();
 
         // Режим сервера
         JdxReplSrv srv = new JdxReplSrv(db);
@@ -74,6 +76,22 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         //
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
+    }
+
+    @Test
+    public void wsDbStructUpdate() throws Exception {
+        // Рабочая станция, настройка
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.init(json_ws);
+        JdxReplWs ws2 = new JdxReplWs(db2);
+        ws2.init(json_ws);
+        JdxReplWs ws3 = new JdxReplWs(db3);
+        ws3.init(json_ws);
+
+        //
+        ws.dbStructUpdate();
+        ws2.dbStructUpdate();
+        ws3.dbStructUpdate();
     }
 
     @Test
@@ -128,19 +146,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "state"));
     }
-
-/*
-    @Test
-    public void test_all_start() throws Exception {
-        test_all_setUp();
-        //
-        test_ws2_CreateSnapshotReplica();
-        test_ws3_CreateSnapshotReplica();
-        //
-        test_dumpTables();
-    }
-*/
-
 
     @Test
     public void test_region_http() throws Exception {

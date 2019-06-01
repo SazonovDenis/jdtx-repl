@@ -40,6 +40,8 @@ public class Publication implements IPublication {
                 JdxTableStruct publicationTable = new JdxTableStruct();
                 publicationStruct.getTables().add(publicationTable);
                 //
+                publicationTable.setName(baseStructTable.getName());
+                //
                 for (String publicationFieldName : publicationFields) {
                     IJdxFieldStruct publicationField = baseStructTable.getField(publicationFieldName).cloneField();
                     publicationTable.getFields().add(publicationField);

@@ -26,33 +26,29 @@ public class JdxReplWs {
 
 
     // Правила публикации
-    IPublication publicationIn;
-    IPublication publicationOut;
+    private IPublication publicationIn;
+    private IPublication publicationOut;
 
     //
-    JdxQueCommonFile queIn;
-    JdxQuePersonalFile queOut;
+    private JdxQueCommonFile queIn;
+    private JdxQuePersonalFile queOut;
 
     //
     private Db db;
     private long wsId;
     private IJdxDbStruct struct;
+    private IJdxDbStruct structFull;
 
     //
-    IMailer mailer;
+    private IMailer mailer;
 
     //
-    protected static Log log = LogFactory.getLog("jdtx");
+    private static Log log = LogFactory.getLog("jdtx");
 
 
     //
     public JdxReplWs(Db db) throws Exception {
         this.db = db;
-
-        // чтение структуры
-        IJdxDbStructReader reader = new JdxDbStructReader();
-        reader.setDb(db);
-        struct = reader.readDbStruct();
 
         // Строго обязательно REPEATABLE_READ, иначе сохранение в age возраста аудита
         // будет не синхронно с изменениями в таблицах аудита.
@@ -69,9 +65,10 @@ public class JdxReplWs {
      * @param cfgFileName json-файл с конфигурацией
      */
     public void init(String cfgFileName) throws Exception {
-        // Проверка структур аудита
-        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
-        ut.checkReplVerDb();
+        // Чтение структуры БД
+        IJdxDbStructReader structReader = new JdxDbStructReader();
+        structReader.setDb(db);
+        IJdxDbStruct structActual = structReader.readDbStruct();
 
         // Код нашей станции
         DataRecord rec = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info").getCurRec();
@@ -80,11 +77,8 @@ public class JdxReplWs {
         }
         this.wsId = rec.getValueLong("ws_id");
 
-        //
+        // Конфигурация
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
-        String url = (String) cfgData.get("url");
-
-        //
         JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
         if (cfgWs == null) {
             throw new XError("JdxReplWs.init: cfgWs == null, wsId: " + wsId + ", cfgFileName: " + cfgFileName);
@@ -98,33 +92,8 @@ public class JdxReplWs {
         queOut = new JdxQuePersonalFile(db, JdxQueType.OUT);
         queOut.setBaseDir((String) cfgWs.get("queOut_DirLocal"));
 
-        // Загружаем правила публикаций
-
-        // publicationOut
-        IPublication publication = new Publication();
-        String publicationCfgName = (String) cfgWs.get("publicationIn");
-        publicationCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + publicationCfgName + ".json";
-        Reader reader = new FileReader(publicationCfgName);
-        try {
-            publication.loadRules(reader, struct);
-            this.publicationIn = publication;
-        } finally {
-            reader.close();
-        }
-
-        // publicationOut
-        IPublication publicationOut = new Publication();
-        String publicationOutCfgName = (String) cfgWs.get("publicationOut");
-        publicationOutCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + publicationOutCfgName + ".json";
-        Reader readerOut = new FileReader(publicationOutCfgName);
-        try {
-            publicationOut.loadRules(readerOut, struct);
-            this.publicationOut = publicationOut;
-        } finally {
-            readerOut.close();
-        }
-
         // Конфиг для мейлера
+        String url = (String) cfgData.get("url");
         cfgWs.put("guid", rec.getValueString("guid"));
         cfgWs.put("url", url);
 
@@ -139,22 +108,67 @@ public class JdxReplWs {
             RefDecodeStrategy.instance = new RefDecodeStrategy();
             RefDecodeStrategy.instance.init(strategyCfgName);
         }
+
+        // Правила публикаций: publicationIn
+        IPublication publication = new Publication();
+        String publicationCfgName = (String) cfgWs.get("publicationIn");
+        publicationCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + publicationCfgName + ".json";
+        Reader reader = new FileReader(publicationCfgName);
+        try {
+            publication.loadRules(reader, structActual);
+            this.publicationIn = publication;
+        } finally {
+            reader.close();
+        }
+
+        // Правила публикаций: publicationOut
+        IPublication publicationOut = new Publication();
+        String publicationOutCfgName = (String) cfgWs.get("publicationOut");
+        publicationOutCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + publicationOutCfgName + ".json";
+        Reader readerOut = new FileReader(publicationOutCfgName);
+        try {
+            publicationOut.loadRules(readerOut, structActual);
+            this.publicationOut = publicationOut;
+        } finally {
+            readerOut.close();
+        }
+
+        // Фильтрация структуры: убирание того, чего нет в публикации publicationOut
+        IJdxDbStruct structDiffCommon = new JdxDbStruct();
+        IJdxDbStruct structDiffNew = new JdxDbStruct();
+        IJdxDbStruct structDiffRemoved = new JdxDbStruct();
+        UtDbComparer.dbStructIsEqual(structActual, publicationOut.getData(), structDiffCommon, structDiffNew, structDiffRemoved);
+        struct = structDiffCommon;
+        structFull = structActual;
+
+        // Проверка структур аудита в БД
+        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
+        ut.checkReplVerDb();
     }
 
     /**
      * Формируем установочную реплику
      */
     public void createTableSnapshotReplica(String tableName) throws Exception {
-        log.info("createReplicaTableSnapshot, wsId: " + wsId);
+        log.info("createReplicaTableSnapshot, wsId: " + wsId + ", table: " + tableName);
+
+        //
+        IJdxTableStruct publicationTable = publicationOut.getData().getTable(tableName);
+        if (publicationTable == null) {
+            log.info("createReplicaTableSnapshot, skip createSnapshot, not found in publicationOut, table: " + tableName);
+            return;
+        }
 
         //
         UtRepl utRepl = new UtRepl(db, struct);
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
+/*
         // Весь свой аудит выкладываем в очередь.
         // Это делается потому, что queOut.put() следит за монотонным увеличением возраста,
         // а ним надо сделать искусственное увеличение возраста.
         handleSelfAudit();
+*/
 
         //
         db.startTran();
@@ -162,9 +176,6 @@ public class JdxReplWs {
             // Искусственно увеличиваем возраст (установочная реплика сдвигает возраст БД на 1)
             long age = utRepl.incAuditAge();
             log.info("createReplicaTableSnapshot, tableName: " + tableName + ", new age: " + age);
-
-            //
-            IJdxTableStruct publicationTable = publicationOut.getData().getTable(tableName);
 
             // Забираем установочную реплику
             IReplica replicaSnapshot = utRepl.createReplicaTableSnapshot(wsId, publicationTable, age);
@@ -187,13 +198,21 @@ public class JdxReplWs {
     }
 
     public void dbStructUpdate() throws Exception {
-        log.info("dbStructUpdate");
+        log.info("dbStructUpdate, checking");
 
         //
+        IJdxDbStruct structActual = struct;
         UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
         IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
         IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
-        IJdxDbStruct structActual = struct;
+        if (structFixed == null) {
+            structFixed = new JdxDbStruct();
+        }
+        if (structAllowed == null) {
+            // Если не задана "разрешенная" (это бывает при первичной инициализации),
+            // то текущую структуру БД считаем как "разрешенную" структуру
+            structAllowed = struct;
+        }
         //
         IJdxDbStruct structDiffCommon = new JdxDbStruct();
         IJdxDbStruct structDiffNew = new JdxDbStruct();
@@ -201,8 +220,12 @@ public class JdxReplWs {
 
         // Реальная отличается от зафиксированной?
         if (!UtDbComparer.dbStructIsEqual(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved)) {
+            log.info("dbStructUpdate, structActual <> structFixed");
+
             // Реальная совпадет с утвержденной?
             if (UtDbComparer.dbStructIsEqual(structActual, structAllowed)) {
+                log.info("dbStructUpdate, structActual == structAllowed");
+
                 // Подгоняем структуру аудита под реальную структуру
                 db.startTran();
                 try {
@@ -212,33 +235,36 @@ public class JdxReplWs {
                     //
                     long n;
 
-                    // Удаляем аудит (связанную с каждой таблицей таблицу журнала изменений)
+                    // Удаляем аудит
                     ArrayList<IJdxTableStruct> tablesRemoved = structDiffRemoved.getTables();
                     n = 0;
                     for (IJdxTableStruct table : tablesRemoved) {
                         n++;
-                        log.debug("dropAudit " + n + "/" + tablesRemoved.size() + " " + table.getName());
+                        log.debug("  dropAudit " + n + "/" + tablesRemoved.size() + " " + table.getName());
                         //
                         objectManager.dropAuditTable(table.getName());
                     }
 
-
-                    // Создаем аудит (для каждой таблицы в БД собственную таблицу журнала изменений (обеспечиваем порядок сортировки таблиц с учетом foreign key))
+                    // Обеспечиваем порядок сортировки таблиц с учетом foreign key (при выгрузке snapsot это важно)
                     List<IJdxTableStruct> tablesNew = JdxUtils.sortTables(structDiffNew.getTables());
+
+                    // Создаем аудит
                     n = 0;
                     for (IJdxTableStruct table : tablesNew) {
                         n++;
-                        log.debug("createRepl, createAudit " + n + "/" + tablesNew.size() + " " + table.getName());
+                        log.debug("  createAudit " + n + "/" + tablesNew.size() + " " + table.getName());
 
-                        if (!UtRepl.tableSkipRepl(table)) {
-                            // создание таблицы журнала аудита
-                            objectManager.createAuditTable(table);
-
-                            // создание тригеров на изменение
-                            objectManager.createAuditTriggers(table);
-                        } else {
-                            log.debug("createRepl, skip createAudit, table: " + table.getName());
+                        //
+                        if (UtRepl.tableSkipRepl(table)) {
+                            log.debug("  createAudit, skip not found in tableSkipRepl, table: " + table.getName());
+                            continue;
                         }
+
+                        // Создание аудита
+                        objectManager.createAuditTable(table);
+
+                        // создание тригеров на изменение
+                        objectManager.createAuditTriggers(table);
                     }
 
 
@@ -246,29 +272,39 @@ public class JdxReplWs {
                     n = 0;
                     for (IJdxTableStruct table : tablesNew) {
                         n++;
-                        if (!UtRepl.tableSkipRepl(table)) {
-                            // создание реплики - snapshot
-                            createTableSnapshotReplica(table.getName());
+                        log.debug("  createSnapshot " + n + "/" + tablesNew.size() + " " + table.getName());
 
-
-                        } else {
-                            log.debug("createRepl, skip createAudit, table: " + table.getName());
+                        //
+                        if (UtRepl.tableSkipRepl(table)) {
+                            log.debug("  createSnapshot, skip not found in tableSkipRepl, table: " + table.getName());
+                            continue;
                         }
+
+                        // Создание snapshot-реплики
+                        createTableSnapshotReplica(table.getName());
                     }
 
 
                     // Запоминаем текущую структуру БД как "фиксированную" структуру
                     dbStructRW.dbStructSaveFixed(structActual);
+                    dbStructRW.dbStructSaveAllowed(structAllowed);
+
 
                     //
                     db.commit();
 
+                    //
+                    log.info("dbStructUpdate, complete");
                 } catch (Exception e) {
                     db.rollback(e);
                     throw e;
                 }
 
+            } else {
+                log.info("dbStructUpdate, structActual <> structAllowed");
             }
+        } else {
+            log.info("dbStructUpdate, no diff found");
         }
     }
 
