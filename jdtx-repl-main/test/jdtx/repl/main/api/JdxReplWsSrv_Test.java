@@ -309,12 +309,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         String sql_ws2 = "select Region.Name as RegionName, " + regionTestFields2 + "  RegionTip.Name as RegionTipName, RegionTip.ShortName as RegionTipShortName, regionTip.deleted as regionTipDeleted\n" +
                 "from Region, RegionTip\n" +
                 "where Region.id <> 0 and Region.regionTip = RegionTip.id\n" +
-                "  and Region.id > 100000\n" + // доп условие - чтобы собственные данные ws1 не мозолили глаза
+                //"  and Region.id > 100000\n" + // доп условие - чтобы собственные данные ws1 не мозолили глаза
                 "order by Region.Name, RegionTip.Name\n";
         String sql_ws3 = "select Region.Name as RegionName, " + regionTestFields3 + "  RegionTip.Name as RegionTipName, RegionTip.ShortName as RegionTipShortName, regionTip.deleted as regionTipDeleted\n" +
                 "from Region, RegionTip\n" +
                 "where Region.id <> 0 and Region.regionTip = RegionTip.id\n" +
-                "  and Region.id > 100000\n" + // доп условие - чтобы собственные данные ws1 не мозолили глаза
+                //"  and Region.id > 100000\n" + // доп условие - чтобы собственные данные ws1 не мозолили глаза
                 "order by Region.Name, RegionTip.Name\n";
         DataStore st1_r = db.loadSql(sql_ws1);
         OutTableSaver svr1_r = new OutTableSaver(st1_r);

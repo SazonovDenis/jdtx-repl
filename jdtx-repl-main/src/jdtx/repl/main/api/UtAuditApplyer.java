@@ -81,6 +81,16 @@ public class UtAuditApplyer {
 
                 // Поиск полей таблицы в публикации (поля берем именно из правил публикаций)
                 IJdxTableStruct publicationTable = publicationData.getTable(tableName);
+                //
+                if (publicationTable == null) {
+                    log.info("  skip table: " + tableName);
+
+                    //
+                    tableName = dataReader.nextTable();
+
+                    //
+                    continue;
+                }
 /*
                 String publicationFields = null;
                 for (int i = 0; i < publicationData.size(); i++) {

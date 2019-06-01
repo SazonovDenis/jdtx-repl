@@ -154,7 +154,11 @@ public class MailerHttp implements IMailer {
             sentBytes = sentBytes + buff.length;
 
             //
-            log.info("mailer.send, part: " + filePart + ", sentBytes: " + sentBytes + "/" + totalBytes);
+            if (sentBytes != totalBytes) {
+                log.info("mailer.send, part: " + filePart + ", sentBytes: " + sentBytes + "/" + totalBytes);
+            } else {
+                log.info("mailer.send, part: " + filePart + ", sentBytes: " + sentBytes);
+            }
         }
 
 
@@ -255,7 +259,11 @@ public class MailerHttp implements IMailer {
             receivedBytes = receivedBytes + buff.length;
 
             //
-            log.info("mailer.receive, part: " + filePart + "/" + filePartsCount + ", receivedBytes: " + receivedBytes);
+            if (receivedBytes != totalBytes) {
+                log.info("mailer.receive, part: " + filePart + "/" + filePartsCount + ", receivedBytes: " + receivedBytes + "/" + totalBytes);
+            } else {
+                log.info("mailer.receive, part: " + filePart + "/" + filePartsCount + ", receivedBytes: " + receivedBytes);
+            }
         }
 
         //

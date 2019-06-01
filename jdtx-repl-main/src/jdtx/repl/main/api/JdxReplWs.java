@@ -387,7 +387,6 @@ public class JdxReplWs {
         log.info("handleQueIn, self.wsId: " + wsId);
 
         //
-        UtRepl utRepl = new UtRepl(db, struct);
         UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
         UtAuditApplyer applyer = new UtAuditApplyer(db, struct);
 
