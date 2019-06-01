@@ -22,7 +22,7 @@ public class UtRepl_dbStructRW_Test extends ReplDatabaseStruct_Test {
 
 
         // Сохраняем структуру в БД
-        dbStructRW.dbStructSave(struct);
+        dbStructRW.dbStructSaveAllowed(struct);
 
         // Читаем структуру из БД
         IJdxDbStruct structLoad = dbStructRW.getDbStructAllowed();
@@ -34,7 +34,7 @@ public class UtRepl_dbStructRW_Test extends ReplDatabaseStruct_Test {
         // Сохраняем структуру (через файл) в БД
         File file = new File("../_test-data/dbStruct.xml");
         struct_rw.saveToFile(struct, file.getPath());
-        dbStructRW.dbStructSaveFrom(file);
+        dbStructRW.dbStructSaveAllowedFrom(file);
 
         // Читаем структуру из БД
         IJdxDbStruct structLoad1 = dbStructRW.getDbStructAllowed();

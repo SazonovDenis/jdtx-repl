@@ -28,7 +28,7 @@ public class UtDbObject_Test extends ReplDatabase_Test {
         struct_rw.saveToFile(struct_1, "../_test-data/dbStruct_1.xml");
 
         //
-        utRepl.createReplication(1, "");
+        utRepl.createReplicationBase(1, "");
         //
         utRepl.dropReplication();
 

@@ -46,15 +46,15 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         // db
         UtRepl utRepl = new UtRepl(db, struct);
         utRepl.dropReplication();
-        utRepl.createReplication(1, "b5781df573ca6ee6.x-17845f2f56f4d401");
+        utRepl.createReplicationBase(1, "b5781df573ca6ee6.x-17845f2f56f4d401");
         // db2
         UtRepl utr2 = new UtRepl(db2, struct2);
         utr2.dropReplication();
-        utr2.createReplication(2, "b5781df573ca6ee6.x-21ba238dfc945002");
+        utr2.createReplicationBase(2, "b5781df573ca6ee6.x-21ba238dfc945002");
         // db3
         UtRepl utr3 = new UtRepl(db3, struct3);
         utr3.dropReplication();
-        utr3.createReplication(3, "b5781df573ca6ee6.x-34f3cc20bea64503");
+        utr3.createReplicationBase(3, "b5781df573ca6ee6.x-34f3cc20bea64503");
 
 
         // Режим сервера
@@ -129,6 +129,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "state"));
     }
 
+/*
     @Test
     public void test_all_start() throws Exception {
         test_all_setUp();
@@ -138,6 +139,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         //
         test_dumpTables();
     }
+*/
 
 
     @Test
@@ -229,6 +231,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
 
+/*
     @Test
     public void test_ws2_CreateSnapshotReplica() throws Exception {
         // Рабочая станция, настройка
@@ -236,7 +239,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ws2.init(json_ws);
 
         // Создаем установочную реплику
-        ws2.createSnapshotReplica();
+        ws2.createTableSnapshotReplica();
     }
 
     @Test
@@ -246,9 +249,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ws3.init(json_ws);
 
         // Создаем установочную реплику
-        ws3.createSnapshotReplica();
+        ws3.createTableSnapshotReplica();
     }
 
+*/
 
     @Test
     public void test_dumpTables() throws Exception {

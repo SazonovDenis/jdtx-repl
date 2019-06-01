@@ -26,8 +26,8 @@ public class JdxReplWs {
 
 
     // Правила публикации
-    List<IPublication> publicationsIn;
-    List<IPublication> publicationsOut;
+    IPublication publicationIn;
+    IPublication publicationOut;
 
     //
     JdxQueCommonFile queIn;
@@ -98,38 +98,30 @@ public class JdxReplWs {
         queOut = new JdxQuePersonalFile(db, JdxQueType.OUT);
         queOut.setBaseDir((String) cfgWs.get("queOut_DirLocal"));
 
-        // Правила публикации
-        publicationsIn = new ArrayList<>();
-        publicationsOut = new ArrayList<>();
+        // Загружаем правила публикаций
 
-        // Загружаем правила публикации
-        JSONArray publicationsIn = (JSONArray) cfgWs.get("publicationsIn");
-        for (int i = 0; i < publicationsIn.size(); i++) {
-            IPublication publication = new Publication();
-            String publicationCfgName = (String) publicationsIn.get(i);
-            publicationCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + publicationCfgName + ".json";
-            Reader reader = new FileReader(publicationCfgName);
-            try {
-                publication.loadRules(reader, struct);
-            } finally {
-                reader.close();
-            }
-            this.publicationsIn.add(publication);
+        // publicationOut
+        IPublication publication = new Publication();
+        String publicationCfgName = (String) cfgWs.get("publicationIn");
+        publicationCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + publicationCfgName + ".json";
+        Reader reader = new FileReader(publicationCfgName);
+        try {
+            publication.loadRules(reader, struct);
+            this.publicationIn = publication;
+        } finally {
+            reader.close();
         }
 
-        JSONArray publicationsOut = (JSONArray) cfgWs.get("publicationsOut");
-        for (int i = 0; i < publicationsOut.size(); i++) {
-            IPublication publication = new Publication();
-            String publicationCfgName = (String) publicationsOut.get(i);
-            publicationCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + publicationCfgName + ".json";
-            Reader reader = new FileReader(publicationCfgName);
-            try {
-                publication.loadRules(reader, struct);
-            } finally {
-                reader.close();
-            }
-
-            this.publicationsOut.add(publication);
+        // publicationOut
+        IPublication publicationOut = new Publication();
+        String publicationOutCfgName = (String) cfgWs.get("publicationOut");
+        publicationOutCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + publicationOutCfgName + ".json";
+        Reader readerOut = new FileReader(publicationOutCfgName);
+        try {
+            publicationOut.loadRules(readerOut, struct);
+            this.publicationOut = publicationOut;
+        } finally {
+            readerOut.close();
         }
 
         // Конфиг для мейлера
@@ -152,8 +144,8 @@ public class JdxReplWs {
     /**
      * Формируем установочную реплику
      */
-    public void createSnapshotReplica() throws Exception {
-        log.info("createReplicaSnapshot, wsId: " + wsId);
+    public void createTableSnapshotReplica(String tableName) throws Exception {
+        log.info("createReplicaTableSnapshot, wsId: " + wsId);
 
         //
         UtRepl utRepl = new UtRepl(db, struct);
@@ -169,19 +161,19 @@ public class JdxReplWs {
         try {
             // Искусственно увеличиваем возраст (установочная реплика сдвигает возраст БД на 1)
             long age = utRepl.incAuditAge();
-            log.info("createReplicaSnapshot, new age: " + age);
+            log.info("createReplicaTableSnapshot, tableName: " + tableName + ", new age: " + age);
 
             //
-            for (IPublication publication : publicationsOut) {
-                // Забираем установочную реплику
-                IReplica replicaSnapshot = utRepl.createReplicaSnapshot(wsId, publication, age);
+            IJdxTableStruct publicationTable = publicationOut.getData().getTable(tableName);
 
-                // Помещаем реплику в очередь
-                queOut.put(replicaSnapshot);
+            // Забираем установочную реплику
+            IReplica replicaSnapshot = utRepl.createReplicaTableSnapshot(wsId, publicationTable, age);
 
-                //
-                stateManager.setAuditAgeDone(age);
-            }
+            // Помещаем реплику в очередь
+            queOut.put(replicaSnapshot);
+
+            //
+            stateManager.setAuditAgeDone(age);
 
             //
             db.commit();
@@ -191,8 +183,95 @@ public class JdxReplWs {
         }
 
         //
-        log.info("createReplicaSnapshot, wsId: " + wsId + ", done");
+        log.info("createReplicaTableSnapshot, wsId: " + wsId + ", done");
     }
+
+    public void dbStructUpdate() throws Exception {
+        log.info("dbStructUpdate");
+
+        //
+        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
+        IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
+        IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
+        IJdxDbStruct structActual = struct;
+        //
+        IJdxDbStruct structDiffCommon = new JdxDbStruct();
+        IJdxDbStruct structDiffNew = new JdxDbStruct();
+        IJdxDbStruct structDiffRemoved = new JdxDbStruct();
+
+        // Реальная отличается от зафиксированной?
+        if (!UtDbComparer.dbStructIsEqual(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved)) {
+            // Реальная совпадет с утвержденной?
+            if (UtDbComparer.dbStructIsEqual(structActual, structAllowed)) {
+                // Подгоняем структуру аудита под реальную структуру
+                db.startTran();
+                try {
+                    //
+                    UtDbObjectManager objectManager = new UtDbObjectManager(db, structActual);
+
+                    //
+                    long n;
+
+                    // Удаляем аудит (связанную с каждой таблицей таблицу журнала изменений)
+                    ArrayList<IJdxTableStruct> tablesRemoved = structDiffRemoved.getTables();
+                    n = 0;
+                    for (IJdxTableStruct table : tablesRemoved) {
+                        n++;
+                        log.debug("dropAudit " + n + "/" + tablesRemoved.size() + " " + table.getName());
+                        //
+                        objectManager.dropAuditTable(table.getName());
+                    }
+
+
+                    // Создаем аудит (для каждой таблицы в БД собственную таблицу журнала изменений (обеспечиваем порядок сортировки таблиц с учетом foreign key))
+                    List<IJdxTableStruct> tablesNew = JdxUtils.sortTables(structDiffNew.getTables());
+                    n = 0;
+                    for (IJdxTableStruct table : tablesNew) {
+                        n++;
+                        log.debug("createRepl, createAudit " + n + "/" + tablesNew.size() + " " + table.getName());
+
+                        if (!UtRepl.tableSkipRepl(table)) {
+                            // создание таблицы журнала аудита
+                            objectManager.createAuditTable(table);
+
+                            // создание тригеров на изменение
+                            objectManager.createAuditTriggers(table);
+                        } else {
+                            log.debug("createRepl, skip createAudit, table: " + table.getName());
+                        }
+                    }
+
+
+                    // Выгрузка snapshot
+                    n = 0;
+                    for (IJdxTableStruct table : tablesNew) {
+                        n++;
+                        if (!UtRepl.tableSkipRepl(table)) {
+                            // создание реплики - snapshot
+                            createTableSnapshotReplica(table.getName());
+
+
+                        } else {
+                            log.debug("createRepl, skip createAudit, table: " + table.getName());
+                        }
+                    }
+
+
+                    // Запоминаем текущую структуру БД как "фиксированную" структуру
+                    dbStructRW.dbStructSaveFixed(structActual);
+
+                    //
+                    db.commit();
+
+                } catch (Exception e) {
+                    db.rollback(e);
+                    throw e;
+                }
+
+            }
+        }
+    }
+
 
     /**
      * Отслеживаем и обрабатываем свои изменения,
@@ -236,12 +315,10 @@ public class JdxReplWs {
             //
             // если нет публикаций, то аудит копится, а потом не получается ничего сказать
             for (long age = auditAgeFrom + 1; age <= auditAgeTo; age++) {
-                for (IPublication publication : publicationsOut) {
-                    IReplica replica = utRepl.createReplicaFromAudit(wsId, publication, age);
+                IReplica replica = utRepl.createReplicaFromAudit(wsId, publicationOut, age);
 
-                    // Пополнение исходящей очереди реплик
-                    queOut.put(replica);
-                }
+                // Пополнение исходящей очереди реплик
+                queOut.put(replica);
 
                 //
                 stateManager.setAuditAgeDone(age);
@@ -340,7 +417,7 @@ public class JdxReplWs {
                     InputStream stream = UtRepl.getReplicaInputStream(replica);
                     try {
                         // Запоминаем разрешенную структуру БД
-                        dbStructRW.dbStructSaveFrom(stream);
+                        dbStructRW.dbStructSaveAllowedFrom(stream);
                     } finally {
                         stream.close();
                     }
@@ -383,22 +460,20 @@ public class JdxReplWs {
 
 
                     // Применение реплик
-                    for (IPublication publication : publicationsIn) {
-                        InputStream inputStream = null;
-                        try {
-                            // Откроем Zip-файл
-                            inputStream = UtRepl.getReplicaInputStream(replica);
+                    InputStream inputStream = null;
+                    try {
+                        // Откроем Zip-файл
+                        inputStream = UtRepl.getReplicaInputStream(replica);
 
-                            //
-                            JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
+                        //
+                        JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
 
-                            //
-                            applyer.applyReplica(replicaReader, publication, wsId);
-                        } finally {
-                            // Закроем читателя Zip-файла
-                            if (inputStream != null) {
-                                inputStream.close();
-                            }
+                        //
+                        applyer.applyReplica(replicaReader, publicationIn, wsId);
+                    } finally {
+                        // Закроем читателя Zip-файла
+                        if (inputStream != null) {
+                            inputStream.close();
                         }
                     }
 

@@ -47,13 +47,6 @@ repl_disable = cm("Отключает рабочую станцию",
 }
 
 //
-repl_snapshot = cm("Создает реплику с полным снимком данных рабочей станции",
-) {
-    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    ext.repl_snapshot(args)
-}
-
-//
 repl_sync_ws = cm("Сеанс синхронизации рабочей станции (прием и отправка) через каталог",
    "dir": [value: null, help: "Каталог для обмена"],
    "from": [value: 0, help: "Начальный возраст отправляемых реплик"],

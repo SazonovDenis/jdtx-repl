@@ -61,13 +61,13 @@ public class MailerHttp_Test extends ReplDatabase_Test {
         IPublication publication = new Publication();
         Reader r = new FileReader("test/etalon/pub_full.json");
         try {
-            publication.loadRules(r);
+            publication.loadRules(r, struct);
         } finally {
             r.close();
         }
 
         // Забираем установочную реплику
-        IReplica replica = utRepl.createReplicaSnapshot(1, publication, 999);
+        IReplica replica = utRepl.createReplicaTableSnapshot(1, publication.getData().getTable("ulz"), 999);
 
 
         // ---

@@ -16,7 +16,7 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
     public void test_StateManager_setUp() throws Exception {
         UtDbObjectManager ut = new UtDbObjectManager(db, struct);
         ut.dropAudit();
-        ut.createRepl(wsId_1, "");
+        ut.createReplBase(wsId_1, "");
 
         //
         JdxReplSrv srv = new JdxReplSrv(db);

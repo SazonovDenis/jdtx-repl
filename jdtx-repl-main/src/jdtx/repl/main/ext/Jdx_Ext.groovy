@@ -136,6 +136,10 @@ class Jdx_Ext extends ProjectExt {
             throw new XError("Не указан [guid] - guid рабочей станции")
         }
 
+        BgTasksService bgTasksService = app.service(BgTasksService.class)
+        String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName")
+
+
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -150,9 +154,14 @@ class Jdx_Ext extends ProjectExt {
             IJdxDbStruct struct = dbStructReader.readDbStruct()
             UtRepl utRepl = new UtRepl(db, struct)
 
-            // Создаем объекты
+            // Создаем базовые объекты
             utRepl.dropReplication()
-            utRepl.createReplication(wsId, guid)
+            utRepl.createReplicationBase(wsId, guid)
+
+            // Сразу инициируем "смену структуры"
+            JdxReplWs ws = new JdxReplWs(db);
+            ws.init(cfgFileName);
+            ws.dbStructUpdate();
 
         } finally {
             db.disconnect()
@@ -239,6 +248,7 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
+/*
     void repl_snapshot(IVariantMap args) {
         BgTasksService bgTasksService = app.service(BgTasksService.class)
         String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName")
@@ -258,12 +268,13 @@ class Jdx_Ext extends ProjectExt {
             System.out.println("Рабочая станция, cfgFileName: " + cfgFileName + ", wsId: " + ws.getWsId())
 
             // Формируем установочную реплику
-            ws.createSnapshotReplica()
+            ws.createTableSnapshotReplica()
 
         } finally {
             db.disconnect()
         }
     }
+*/
 
 
     void repl_sync_ws(IVariantMap args) {

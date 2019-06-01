@@ -14,7 +14,7 @@ import java.util.*;
 
 public class UtDbObjectManager {
 
-    int CURRENT_VER_DB = 5;
+    int CURRENT_VER_DB = 0;
 
     IJdxDbStruct struct;
     Db db;
@@ -93,113 +93,20 @@ public class UtDbObjectManager {
         }
     }
 
-    public void createRepl(long wsId, String guid) throws Exception {
-        String sql;
-
+    public void createReplBase(long wsId, String guid) throws Exception {
         //
-        log.info("createRepl - системные таблицы");
+        log.info("createReplBase, ws_id: " + wsId + ", guid: " + guid);
 
-        // Начальная структура
-        sql = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/UtDbObjectManager.sql");
+        // Базовая структура (системные структуры)
+        String sql = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/UtDbObjectManager.sql");
         execScript(sql, db);
 
-        // Обновления структуры
+        // Обновления базовых структур
         checkReplVerDb();
 
-
-        // Создаем для каждой таблицы в БД собственную таблицу журнала изменений
-        log.info("createRepl - таблицы аудита данных");
-
-        //
-        dbStructUpdate();
-
-        // метка с номером БД
+        // Метка с guid БД и номером wsId
         sql = "update " + JdxUtils.sys_table_prefix + "db_info set ws_id = " + wsId + ", guid = '" + guid + "'";
         db.execSql(sql);
-
-        //
-        log.info("db_info, ws_id: " + wsId);
-    }
-
-    public void dbStructUpdate() throws Exception {
-        log.info("dbStructUpdate");
-
-        //
-        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
-        IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
-        IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
-        IJdxDbStruct structActual = struct;
-        //
-        IJdxDbStruct structDiffCommon = new JdxDbStruct();
-        IJdxDbStruct structDiffNew = new JdxDbStruct();
-        IJdxDbStruct structDiffRemoved = new JdxDbStruct();
-
-        // Реальная отличается от зафиксированной?
-        if (!UtDbComparer.dbStructIsEqual(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved)) {
-            // Реальная совпадет с утвержденной?
-            if (UtDbComparer.dbStructIsEqual(structActual, structAllowed)) {
-                // Подгоняем структуру аудита под реальную структуру
-                db.startTran();
-                try {
-                    long n;
-
-                    // Удаляем аудит (связанную с каждой таблицей таблицу журнала изменений)
-                    ArrayList<IJdxTableStruct> tablesRemoved = structDiffRemoved.getTables();
-                    n = 0;
-                    for (IJdxTableStruct table : tablesRemoved) {
-                        n++;
-                        log.debug("dropAudit " + n + "/" + tablesRemoved.size() + " " + table.getName());
-                        //
-                        dropAuditTable(table.getName());
-                    }
-
-
-                    // Создаем аудит (для каждой таблицы в БД собственную таблицу журнала изменений (обеспечиваем порядок сортировки таблиц с учетом foreign key))
-                    List<IJdxTableStruct> tablesNew = JdxUtils.sortTables(structDiffNew.getTables());
-                    n = 0;
-                    for (IJdxTableStruct table : tablesNew) {
-                        n++;
-                        log.debug("createRepl, createAudit " + n + "/" + tablesNew.size() + " " + table.getName());
-
-                        if (!UtRepl.tableSkipRepl(table)) {
-                            // создание таблицы журнала аудита
-                            createAuditTable(table);
-
-                            // создание тригеров на изменение
-                            createAuditTriggers(table);
-                        } else {
-                            log.debug("createRepl, skip createAudit, table: " + table.getName());
-                        }
-                    }
-
-
-                    // Выгрузка snapshot
-                    n = 0;
-                    for (IJdxTableStruct table : tablesNew) {
-                        n++;
-                        if (!UtRepl.tableSkipRepl(table)) {
-                            createTableSnapshot(table);
-                        } else {
-                            log.debug("createRepl, skip createAudit, table: " + table.getName());
-                        }
-                    }
-
-
-                    // Запоминаем текущую структуру как фиксированную
-                    //
-                    //
-                    //
-
-                    //
-                    db.commit();
-
-                } catch (Exception e) {
-                    db.rollback(e);
-                    throw e;
-                }
-
-            }
-        }
     }
 
 
@@ -226,7 +133,7 @@ public class UtDbObjectManager {
         dropAll(jdx_sys_tables, db);
     }
 
-    private void createAuditTriggers(IJdxTableStruct table) throws Exception {
+    public void createAuditTriggers(IJdxTableStruct table) throws Exception {
         String sql;
 
         // тригер на вставку записи в аудит
@@ -258,7 +165,7 @@ public class UtDbObjectManager {
         db.execSqlNative(sql);
     }
 
-    private void createAuditTable(IJdxTableStruct table) throws Exception {
+    public void createAuditTable(IJdxTableStruct table) throws Exception {
         String tableName = table.getName();
         String pkFieldName = table.getPrimaryKey().get(0).getName();
         //
@@ -375,7 +282,7 @@ public class UtDbObjectManager {
         return sql;
     }
 
-    private void dropAuditTable(String tableName) throws SQLException {
+    public void dropAuditTable(String tableName) throws SQLException {
         //Statement st = conn.createStatement();
         String sql;
         try {

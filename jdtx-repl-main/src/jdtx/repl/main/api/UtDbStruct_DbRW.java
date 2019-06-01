@@ -25,7 +25,7 @@ public class UtDbStruct_DbRW {
     }
 
     IJdxDbStruct getDbStructInternal(String name) throws Exception {
-        DataStore st = db.loadSql("select db_struct from Z_Z_state where id = 1");
+        DataStore st = db.loadSql("select " + name + " from Z_Z_state where id = 1");
         byte[] db_struct = (byte[]) st.getCurRec().getValue(name);
         //
         if (db_struct.length == 0) {
@@ -36,24 +36,32 @@ public class UtDbStruct_DbRW {
         return struct_rw.read(db_struct);
     }
 
-    public void dbStructSaveFrom(InputStream stream) throws Exception {
+    public void dbStructSaveAllowedFrom(InputStream stream) throws Exception {
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         IJdxDbStruct struct = struct_rw.read(stream);
         //
-        dbStructSave(struct);
+        dbStructSaveAllowed(struct);
     }
 
-    public void dbStructSaveFrom(File file) throws Exception {
+    public void dbStructSaveAllowedFrom(File file) throws Exception {
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         IJdxDbStruct struct = struct_rw.read(file.getPath());
         //
-        dbStructSave(struct);
+        dbStructSaveAllowed(struct);
     }
 
-    public void dbStructSave(IJdxDbStruct struct) throws Exception {
+    public void dbStructSaveAllowed(IJdxDbStruct struct) throws Exception {
+        dbStructSaveInternal(struct, "db_struct_allowed");
+    }
+
+    public void dbStructSaveFixed(IJdxDbStruct struct) throws Exception {
+        dbStructSaveInternal(struct, "db_struct_fixed");
+    }
+
+    void dbStructSaveInternal(IJdxDbStruct struct, String name) throws Exception {
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         byte[] bytes = struct_rw.getBytes(struct);
-        db.execSql("update Z_Z_state set db_struct = :db_struct where id = 1", UtCnv.toMap("db_struct", bytes));
+        db.execSql("update Z_Z_state set " + name + " = :struct where id = 1", UtCnv.toMap("struct", bytes));
     }
 
 }

@@ -48,18 +48,18 @@ public class UtRepl {
      * <p>
      * Поставить метку wsId
      */
-    public void createReplication(long wsId, String guid) throws Exception {
-        // создание всего аудита
-        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
-        ut.createRepl(wsId, guid);
+    public void createReplicationBase(long wsId, String guid) throws Exception {
+        // Создание базовых структур
+        UtDbObjectManager objectManager = new UtDbObjectManager(db, struct);
+        objectManager.createReplBase(wsId, guid);
 
-        // создаем необходимые для перекодировки таблицы
+        // Создаем необходимые для перекодировки таблицы
         UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);
         decodeManager.createRefDecodeObject();
 
-        // Запоминаем разрешенную структуру БД
+        // Запоминаем текущую структуру БД как "разрешенную" структуру
         UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
-        dbStructRW.dbStructSave(struct);
+        dbStructRW.dbStructSaveAllowed(struct);
     }
 
 
@@ -235,8 +235,8 @@ public class UtRepl {
      * Используется при включении новой БД в систему:
      * самая первая (установочная) реплика для сервера.
      */
-    public IReplica createReplicaSnapshot(long wsId, IPublication publication, long age) throws Exception {
-        log.info("createReplicaSnapshot");
+    public IReplica createReplicaTableSnapshot(long wsId, IJdxTableStruct publicationTable, long age) throws Exception {
+        log.info("createReplicaTableSnapshot");
 
         //
         IReplica replica = new ReplicaFile();
@@ -255,11 +255,8 @@ public class UtRepl {
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
         UtDataSelector utrr = new UtDataSelector(db, struct);
-        List<IJdxTableStruct> publicationTables = publication.getData().getTables();
-        for (IJdxTableStruct publicationTable : publicationTables) {
-            String publicationFields = Publication.filedsToString(publicationTable.getFields());
-            utrr.readAllRecords(publicationTable.getName(), publicationFields, writerXml);
-        }
+        String publicationFields = Publication.filedsToString(publicationTable.getFields());
+        utrr.readAllRecords(publicationTable.getName(), publicationFields, writerXml);
 
 
         // Заканчиваем запись
