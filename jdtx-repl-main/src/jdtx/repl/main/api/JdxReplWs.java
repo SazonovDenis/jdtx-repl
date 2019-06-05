@@ -333,13 +333,13 @@ public class JdxReplWs {
         // Проверяем совпадает ли реальная структура БД с утвержденной структурой
         IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
         if (!UtDbComparer.dbStructIsEqual(struct, structAllowed)) {
-            log.warn("handleSelfAudit, database structActual != structAllowed");
+            log.warn("handleSelfAudit, database structActual <> structAllowed");
             return;
         }
         // Проверяем совпадает ли реальная структура БД с фиксированной структурой
         IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
         if (!UtDbComparer.dbStructIsEqual(struct, structFixed)) {
-            log.warn("handleSelfAudit, database structActual != structFixed");
+            log.warn("handleSelfAudit, database structActual <> structFixed");
             return;
         }
 

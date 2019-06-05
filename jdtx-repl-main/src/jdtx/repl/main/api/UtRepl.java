@@ -95,7 +95,7 @@ public class UtRepl {
         long auditAgeDone = stateManager.getAuditAgeDone();
         long auditAgeActual = auditAgeManager.getAuditAge();
         if (auditAgeActual != auditAgeDone) {
-            throw new XError("invalid auditAgeActual != auditAgeDone, auditAgeDone: " + auditAgeDone + ", auditAgeActual: " + auditAgeActual);
+            throw new XError("invalid auditAgeActual <> auditAgeDone, auditAgeDone: " + auditAgeDone + ", auditAgeActual: " + auditAgeActual);
         }
 
         //

@@ -168,6 +168,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     @Test
     public void test_No_HandleSelfAudit() throws Exception {
         test_all_setUp();
+        sync_http();
 
         //
         JdxReplWs ws;
