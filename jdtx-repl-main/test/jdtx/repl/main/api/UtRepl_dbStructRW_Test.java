@@ -30,11 +30,13 @@ public class UtRepl_dbStructRW_Test extends ReplDatabaseStruct_Test {
         // Сравниваем
         assertEquals(true, UtDbComparer.dbStructIsEqual(struct, structLoad, structNoDiff, structDiff1, structDiff2));
 
-
         // Сохраняем структуру (через файл) в БД
         File file = new File("../_test-data/dbStruct.xml");
         struct_rw.saveToFile(struct, file.getPath());
-        dbStructRW.dbStructSaveAllowedFrom(file);
+        //
+        IJdxDbStruct struct = struct_rw.read(file.getPath());
+        //
+        dbStructRW.dbStructSaveAllowed(struct);
 
         // Читаем структуру из БД
         IJdxDbStruct structLoad1 = dbStructRW.getDbStructAllowed();

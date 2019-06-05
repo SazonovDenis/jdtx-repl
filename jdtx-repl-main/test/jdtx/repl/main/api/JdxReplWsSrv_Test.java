@@ -17,7 +17,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
     String json_srv = "test/etalon/mail_http_srv.json";
-    //String json_ws = "test/etalon/mail_http_ws_1.json";
     String json_ws = "test/etalon/mail_http_ws.json";
 
     @Test

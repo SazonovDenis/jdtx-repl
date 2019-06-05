@@ -36,20 +36,6 @@ public class UtDbStruct_DbRW {
         return struct_rw.read(db_struct);
     }
 
-    public void dbStructSaveAllowedFrom(InputStream stream) throws Exception {
-        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        IJdxDbStruct struct = struct_rw.read(stream);
-        //
-        dbStructSaveAllowed(struct);
-    }
-
-    public void dbStructSaveAllowedFrom(File file) throws Exception {
-        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        IJdxDbStruct struct = struct_rw.read(file.getPath());
-        //
-        dbStructSaveAllowed(struct);
-    }
-
     public void dbStructSaveAllowed(IJdxDbStruct struct) throws Exception {
         dbStructSaveInternal(struct, "db_struct_allowed");
     }

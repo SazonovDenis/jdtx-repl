@@ -14,6 +14,184 @@ import java.util.concurrent.*;
 public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        json_ws = "test/etalon/mail_http_ws_1.json";
+    }
+
+    /**
+     * Проверка пограничных состояний:
+     * Станция не применяет реплики другой структуры.
+     */
+    @Test
+    public void test_No_ApplyReplicas() throws Exception {
+        // Проверяем, что утвержденная, фиксированная и реальная структуры совпадают на ws1 и ws2
+
+        // Изменения структуре БД ws1
+
+        // Формируем изменения данных на ws1, отправка в сеть
+
+        // Попытка принять и использовать реплики
+
+        // Применение реплик приостановлено
+
+        // Изменения структуре БД ws2
+
+        // Попытка принять и использовать реплики
+
+        // Применение реплик проходит нормально
+    }
+
+    /**
+     * Проверка пограничных состояний:
+     * Станция не формирует реплики при несовпадении структур:
+     * - если "реальная" структура не совпадет с "зафиксированной".
+     * - если "реальная" структура не совпадет с "утвержденной".
+     */
+    @Test
+    public void test_No_HandleSelfAudit() throws Exception {
+        test_all_setUp();
+
+        //
+        UtAuditAgeManager uta = new UtAuditAgeManager(db, struct);
+
+        // ===
+        // Проверяем, что утвержденная, фиксированная и реальная структуры совпадают на ws1
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.init(json_ws);
+        //
+        IJdxDbStruct structActual = ws.struct;
+        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
+        IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
+        IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
+        //
+        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structAllowed));
+        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structFixed));
+
+
+        // ===
+        // Проверяем, что можно формировать реплики
+        ws = new JdxReplWs(db);
+        ws.init(json_ws);
+        //
+        long auditAge0 = uta.getAuditAge();
+        //
+        test_ws1_makeChange();
+        //
+        long auditAge1 = uta.getAuditAge();
+        //
+        ws.handleSelfAudit();
+        //
+        long auditAge2 = uta.getAuditAge();
+        //
+        assertEquals(auditAge0, auditAge1);
+        assertNotSame(auditAge1, auditAge2);
+
+
+        // ===
+        // Изменения структуре БД ws1
+        test_ws1_changeDbStruct();
+
+
+        // ===
+        // Проверяем, что реплики формировать не удается
+        ws = new JdxReplWs(db);
+        ws.init(json_ws);
+        //
+        auditAge0 = uta.getAuditAge();
+        //
+        test_ws1_makeChange();
+        //
+        auditAge1 = uta.getAuditAge();
+        //
+        ws.handleSelfAudit();
+        //
+        auditAge2 = uta.getAuditAge();
+        //
+        assertEquals(auditAge0, auditAge1);
+        assertEquals(auditAge1, auditAge2);
+
+
+        // ===
+        // Пытаемся сделать фиксацию структуры после изменения структуры
+        ws = new JdxReplWs(db);
+        ws.init(json_ws);
+        //
+        ws.dbStructUpdate();
+
+        // Проверяем, что фиксация не удается
+        ws = new JdxReplWs(db);
+        ws.init(json_ws);
+        //
+        structActual = ws.struct;
+        structFixed = dbStructRW.getDbStructFixed();
+        structAllowed = dbStructRW.getDbStructAllowed();
+        //
+        assertEquals(false, UtDbComparer.dbStructIsEqual(structActual, structAllowed));
+        assertEquals(false, UtDbComparer.dbStructIsEqual(structActual, structFixed));
+        assertEquals(true, UtDbComparer.dbStructIsEqual(structAllowed, structFixed));
+
+
+        // ===
+        // Устанавливаем "разрешенную" структуру
+        dbStructRW.dbStructSaveAllowed(structActual);
+
+
+        // ===
+        // Проверяем, что реплики формировать не удается
+        ws = new JdxReplWs(db);
+        ws.init(json_ws);
+        //
+        auditAge0 = uta.getAuditAge();
+        //
+        test_ws1_makeChange();
+        //
+        auditAge1 = uta.getAuditAge();
+        //
+        ws.handleSelfAudit();
+        //
+        auditAge2 = uta.getAuditAge();
+        //
+        assertEquals(auditAge0, auditAge1);
+        assertEquals(auditAge1, auditAge2);
+
+
+        // ===
+        // Пытаемся сделать фиксацию структуры
+        ws.dbStructUpdate();
+
+        // Проверяем, что фиксация прошла нормально
+        ws = new JdxReplWs(db);
+        ws.init(json_ws);
+        //
+        structActual = ws.struct;
+        structFixed = dbStructRW.getDbStructFixed();
+        structAllowed = dbStructRW.getDbStructAllowed();
+        //
+        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structAllowed));
+        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structFixed));
+
+
+        // ===
+        // Проверяем, что можно формировать реплики
+        ws = new JdxReplWs(db);
+        ws.init(json_ws);
+        //
+        auditAge0 = uta.getAuditAge();
+        //
+        test_ws1_makeChange();
+        //
+        auditAge1 = uta.getAuditAge();
+        //
+        ws.handleSelfAudit();
+        //
+        auditAge2 = uta.getAuditAge();
+        //
+        assertEquals(auditAge0, auditAge1);
+        assertNotSame(auditAge1, auditAge2);
+    }
+
     @Test
     public void test_sync_changeDbStruct() throws Exception {
         sync_http();
@@ -58,7 +236,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Меняем свою структуру
-        test_ws_changeDbStruct(db);
+        changeDbStruct(db);
         reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
 
         //
@@ -73,8 +251,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Меняем структуру на рабочих станциях
-        test_ws_changeDbStruct(db2);
-        test_ws_changeDbStruct(db3);
+        changeDbStruct(db2);
+        changeDbStruct(db3);
         reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
 
         //
@@ -128,20 +306,26 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
     @Test
     public void test_ws1_changeDbStruct() throws Exception {
-        test_ws_changeDbStruct(db);
+        changeDbStruct(db);
     }
 
     @Test
     public void test_ws1_changeDb2Struct() throws Exception {
-        test_ws_changeDbStruct(db2);
+        changeDbStruct(db2);
     }
 
     @Test
     public void test_ws1_changeDb3Struct() throws Exception {
-        test_ws_changeDbStruct(db3);
+        changeDbStruct(db3);
     }
 
-    void test_ws_changeDbStruct(Db db) throws Exception {
+    /**
+     * Меняет структуру БД:
+     * Удаляет таблицу AppUpdate,
+     * добавляет одну таблицу,
+     * в таблицу Region добавляет поле
+     */
+    void changeDbStruct(Db db) throws Exception {
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
@@ -247,11 +431,11 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
                 System.out.println("Меняем структуру");
                 //
                 TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
-                test_ws_changeDbStruct(db);
+                changeDbStruct(db);
                 TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
-                test_ws_changeDbStruct(db2);
+                changeDbStruct(db2);
                 TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
-                test_ws_changeDbStruct(db3);
+                changeDbStruct(db3);
                 TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
                 //
                 reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой

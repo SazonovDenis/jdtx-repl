@@ -35,9 +35,9 @@ public class JdxReplWs {
 
     //
     private Db db;
-    private long wsId;
-    private IJdxDbStruct struct;
-    private IJdxDbStruct structFull;
+    protected long wsId;
+    protected IJdxDbStruct struct;
+    protected IJdxDbStruct structFull;
 
     //
     private IMailer mailer;
@@ -134,12 +134,15 @@ public class JdxReplWs {
         }
 
         // Фильтрация структуры: убирание того, чего нет в публикации publicationOut
+/*
         IJdxDbStruct structDiffCommon = new JdxDbStruct();
         IJdxDbStruct structDiffNew = new JdxDbStruct();
         IJdxDbStruct structDiffRemoved = new JdxDbStruct();
         UtDbComparer.dbStructIsEqual(structActual, publicationOut.getData(), structDiffCommon, structDiffNew, structDiffRemoved);
         struct = structDiffCommon;
         structFull = structActual;
+*/
+        struct = structActual;
 
         // Проверка структур аудита в БД
         UtDbObjectManager ut = new UtDbObjectManager(db, struct);
@@ -200,7 +203,7 @@ public class JdxReplWs {
     public void dbStructUpdate() throws Exception {
         log.info("dbStructUpdate, checking");
 
-        //
+        // Читаем структуры
         IJdxDbStruct structActual = struct;
         UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
         IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
@@ -323,14 +326,20 @@ public class JdxReplWs {
         // Если в стостоянии "я замолчал", то молчим
         JdxMuteManagerWs utmm = new JdxMuteManagerWs(db);
         if (utmm.isMute()) {
-            log.info("handleSelfAudit, workstation is mute");
+            log.warn("handleSelfAudit, workstation is mute");
             return;
         }
 
         // Проверяем совпадает ли реальная структура БД с утвержденной структурой
-        IJdxDbStruct structStored = dbStructRW.getDbStructAllowed();
-        if (structStored != null && !UtDbComparer.dbStructIsEqual(struct, structStored)) {
-            log.error("handleSelfAudit, database struct is not match");
+        IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
+        if (!UtDbComparer.dbStructIsEqual(struct, structAllowed)) {
+            log.warn("handleSelfAudit, database structActual != structAllowed");
+            return;
+        }
+        // Проверяем совпадает ли реальная структура БД с фиксированной структурой
+        IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
+        if (!UtDbComparer.dbStructIsEqual(struct, structFixed)) {
+            log.warn("handleSelfAudit, database structActual != structFixed");
             return;
         }
 
@@ -451,8 +460,10 @@ public class JdxReplWs {
                     // В этой реплике - новая утвержденная структура
                     InputStream stream = UtRepl.getReplicaInputStream(replica);
                     try {
+                        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+                        IJdxDbStruct struct = struct_rw.read(stream);
                         // Запоминаем разрешенную структуру БД
-                        dbStructRW.dbStructSaveAllowedFrom(stream);
+                        dbStructRW.dbStructSaveAllowed(struct);
                     } finally {
                         stream.close();
                     }
