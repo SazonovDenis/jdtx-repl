@@ -480,7 +480,7 @@ public class JdxReplWs {
                 case JdxReplicaType.SNAPSHOT: {
                     // Реальная структура базы НЕ совпадает с утвержденной структурой
                     if (!dbStructIsEqual) {
-                        log.error("handleQueIn, database struct is not match");
+                        log.warn("handleQueIn, structActual <> structAllowed");
                         replicaUsed = false;
                         break;
                     }
@@ -494,7 +494,7 @@ public class JdxReplWs {
                     JdxReplicaReaderXml.readReplicaInfo(replica);
                     String replicaStructCrc = replica.getInfo().getDbStructCrc();
                     if (replicaStructCrc.compareToIgnoreCase(dbStructAllowedCrc) != 0) {
-                        log.error("handleQueIn, database.structCrc is not match replica.structCrc, expected: " + dbStructAllowedCrc + ", actual: " + replicaStructCrc);
+                        log.error("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructAllowedCrc + ", actual: " + replicaStructCrc);
                         return;
                     }
 
