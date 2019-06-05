@@ -17,7 +17,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        json_ws = "test/etalon/mail_http_ws_1.json";
+        json_ws = "test/etalon/mail_http_ws_unidirectional.json";
     }
 
     /**
@@ -26,21 +26,137 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      */
     @Test
     public void test_No_ApplyReplicas() throws Exception {
+        test_all_setUp();
+        sync_http();
+
+        //
+        JdxReplWs ws;
+        JdxReplWs ws2;
+        IJdxDbStruct structActual_ws1;
+        IJdxDbStruct structFixed_ws1;
+        IJdxDbStruct structAllowed_ws1;
+        //
+        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
+        UtDbStruct_DbRW dbStructRW_ws2 = new UtDbStruct_DbRW(db2);
+        //
+        long queInNoDone1;
+        long queInNoDone2;
+        JdxStateManagerWs stateManager_ws2 = new JdxStateManagerWs(db2);
+
+
+        // ===
         // Проверяем, что утвержденная, фиксированная и реальная структуры совпадают на ws1 и ws2
+        assertEqualsStruct_Actual_Allowed_Fixed_ws(db);
+        assertEqualsStruct_Actual_Allowed_Fixed_ws(db2);
+        //
+        ws = new JdxReplWs(db);
+        ws.init(json_ws);
+        ws2 = new JdxReplWs(db2);
+        ws2.init(json_ws);
+        //
+        System.out.println("ws1 struct size: " + ws.struct.getTables().size());
+        System.out.println("ws2 struct size: " + ws2.struct.getTables().size());
+        //
+        assertEquals("Перед тестом структура ws и ws2 должны совпадать", true, UtDbComparer.dbStructIsEqual(ws.struct, ws2.struct));
 
-        // Изменения структуре БД ws1
 
+        // ===
+        // Начинаем и завершаем изменения структуре БД ws1
+
+        // Делаем изменения структуре БД
+        test_ws1_changeDbStruct();
+
+        // Устанавливаем "разрешенную" структуру
+        ws = new JdxReplWs(db);
+        ws.init(json_ws);
+        structActual_ws1 = ws.struct;
+        dbStructRW.dbStructSaveAllowed(structActual_ws1);
+
+        // Делаем фиксацию структуры
+        ws.dbStructUpdate();
+
+        // Проверяем, что фиксация прошла нормально
+        ws = new JdxReplWs(db);
+        ws.init(json_ws);
+        //
+        structActual_ws1 = ws.struct;
+        structFixed_ws1 = dbStructRW.getDbStructFixed();
+        structAllowed_ws1 = dbStructRW.getDbStructAllowed();
+        //
+        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual_ws1, structAllowed_ws1));
+        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual_ws1, structFixed_ws1));
+
+
+        // ===
         // Формируем изменения данных на ws1, отправка в сеть
+        test_ws1_makeChange();
+        //
+        test_ws1_handleSelfAudit();
+        //
+        test_ws1_send_receive();
+        //
+        test_sync_srv();
 
-        // Попытка принять и использовать реплики
+
+        // ===
+        // Попытка принять и использовать реплики на ws2
+        queInNoDone1 = stateManager_ws2.getQueInNoDone();
+        //
+        ws2 = new JdxReplWs(db2);
+        ws2.init(json_ws);
+
+        // Получаем входящие реплики
+        ws2.receive();
+        // Применяем входящие реплики
+        ws2.handleQueIn();
+        //
+        queInNoDone2 = stateManager_ws2.getQueInNoDone();
 
         // Применение реплик приостановлено
+        assertEquals(queInNoDone1, queInNoDone2);
 
+
+        // ===
         // Изменения структуре БД ws2
+        // Делаем изменения структуре БД
+        test_ws2_changeDbStruct();
+
+        // Устанавливаем "разрешенную" структуру
+        ws2 = new JdxReplWs(db2);
+        ws2.init(json_ws);
+        structActual_ws1 = ws2.struct;
+        dbStructRW_ws2.dbStructSaveAllowed(structActual_ws1);
+
+        // Делаем фиксацию структуры
+        ws2.dbStructUpdate();
+
+        // Проверяем, что фиксация прошла нормально
+        ws2 = new JdxReplWs(db2);
+        ws2.init(json_ws);
+        //
+        structActual_ws1 = ws2.struct;
+        structFixed_ws1 = dbStructRW_ws2.getDbStructFixed();
+        structAllowed_ws1 = dbStructRW_ws2.getDbStructAllowed();
+        //
+        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual_ws1, structAllowed_ws1));
+        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual_ws1, structFixed_ws1));
+
 
         // Попытка принять и использовать реплики
+        queInNoDone1 = stateManager_ws2.getQueInNoDone();
+        //
+        ws2 = new JdxReplWs(db2);
+        ws2.init(json_ws);
+
+        // Получаем входящие реплики
+        ws2.receive();
+        // Применяем входящие реплики
+        ws2.handleQueIn();
+        //
+        queInNoDone2 = stateManager_ws2.getQueInNoDone();
 
         // Применение реплик проходит нормально
+        assertNotSame(queInNoDone1, queInNoDone2);
     }
 
     /**
@@ -54,20 +170,18 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         test_all_setUp();
 
         //
+        JdxReplWs ws;
+        IJdxDbStruct structActual;
+        IJdxDbStruct structFixed;
+        IJdxDbStruct structAllowed;
+        //
+        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
         UtAuditAgeManager uta = new UtAuditAgeManager(db, struct);
+
 
         // ===
         // Проверяем, что утвержденная, фиксированная и реальная структуры совпадают на ws1
-        JdxReplWs ws = new JdxReplWs(db);
-        ws.init(json_ws);
-        //
-        IJdxDbStruct structActual = ws.struct;
-        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
-        IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
-        IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
-        //
-        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structAllowed));
-        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structFixed));
+        assertEqualsStruct_Actual_Allowed_Fixed_ws(db);
 
 
         // ===
@@ -192,6 +306,19 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         assertNotSame(auditAge1, auditAge2);
     }
 
+    private void assertEqualsStruct_Actual_Allowed_Fixed_ws(Db db) throws Exception {
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.init(json_ws);
+        //
+        IJdxDbStruct structActual = ws.struct;
+        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
+        IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
+        IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
+        //
+        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structAllowed));
+        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structFixed));
+    }
+
     @Test
     public void test_sync_changeDbStruct() throws Exception {
         sync_http();
@@ -310,12 +437,12 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     }
 
     @Test
-    public void test_ws1_changeDb2Struct() throws Exception {
+    public void test_ws2_changeDbStruct() throws Exception {
         changeDbStruct(db2);
     }
 
     @Test
-    public void test_ws1_changeDb3Struct() throws Exception {
+    public void test_ws3_changeDbStruct() throws Exception {
         changeDbStruct(db3);
     }
 

@@ -234,30 +234,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_dumpTables();
     }
 
-
-/*
-    @Test
-    public void test_ws2_CreateSnapshotReplica() throws Exception {
-        // Рабочая станция, настройка
-        JdxReplWs ws2 = new JdxReplWs(db2);
-        ws2.init(json_ws);
-
-        // Создаем установочную реплику
-        ws2.createTableSnapshotReplica();
-    }
-
-    @Test
-    public void test_ws3_CreateSnapshotReplica() throws Exception {
-        // Рабочая станция, настройка
-        JdxReplWs ws3 = new JdxReplWs(db3);
-        ws3.init(json_ws);
-
-        // Создаем установочную реплику
-        ws3.createTableSnapshotReplica();
-    }
-
-*/
-
     @Test
     public void test_dumpTables() throws Exception {
         UtTest utt1 = new UtTest(db);
@@ -381,7 +357,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_ws1_getInfoWs() throws Exception {
-        // Рабочая станция, настройка
         JdxReplWs ws = new JdxReplWs(db);
         ws.init(json_ws);
 
@@ -398,7 +373,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_ws1_handleSelfAudit() throws Exception {
-        // Рабочая станция, настройка
         JdxReplWs ws = new JdxReplWs(db);
         ws.init(json_ws);
 
@@ -408,7 +382,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_ws2_handleSelfAudit() throws Exception {
-        // Рабочая станция, настройка
         JdxReplWs ws = new JdxReplWs(db2);
         ws.init(json_ws);
 
@@ -418,7 +391,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_ws3_handleSelfAudit() throws Exception {
-        // Рабочая станция, настройка
         JdxReplWs ws = new JdxReplWs(db3);
         ws.init(json_ws);
 
@@ -429,7 +401,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_ws1_send_receive() throws Exception {
-        // Рабочая станция, настройка
         JdxReplWs ws = new JdxReplWs(db);
         ws.init(json_ws);
 
@@ -440,7 +411,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_ws2_send_receive() throws Exception {
-        // Рабочая станция, настройка
         JdxReplWs ws = new JdxReplWs(db2);
         ws.init(json_ws);
 
@@ -451,7 +421,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_ws3_send_receive() throws Exception {
-        // Рабочая станция, настройка
         JdxReplWs ws = new JdxReplWs(db3);
         ws.init(json_ws);
 
@@ -463,7 +432,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_ws1_handleQueIn() throws Exception {
-        // Сервер, настройка
         JdxReplWs ws = new JdxReplWs(db);
         ws.init(json_ws);
 
@@ -473,7 +441,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_ws2_handleQueIn() throws Exception {
-        // Сервер, настройка
         JdxReplWs ws = new JdxReplWs(db2);
         ws.init(json_ws);
 
@@ -483,7 +450,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_ws3_handleQueIn() throws Exception {
-        // Сервер, настройка
         JdxReplWs ws = new JdxReplWs(db3);
         ws.init(json_ws);
 
@@ -494,7 +460,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_ws_sendLocal() throws Exception {
-        // Рабочая станция, настройка
+        // Рабочие станции
         JdxReplWs ws1 = new JdxReplWs(db);
         ws1.init(json_ws);
         //

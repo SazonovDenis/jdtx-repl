@@ -37,7 +37,7 @@ public class JdxReplWs {
     private Db db;
     protected long wsId;
     protected IJdxDbStruct struct;
-    protected IJdxDbStruct structFull;
+    //protected IJdxDbStruct structFull;
 
     //
     private IMailer mailer;
@@ -405,9 +405,9 @@ public class JdxReplWs {
 
         // Проверяем совпадает ли реальная структура БД с утвержденной структурой
         boolean dbStructIsEqual = true;
-        IJdxDbStruct dbStructStored = dbStructRW.getDbStructAllowed();
-        String dbStructStoredCrc = UtDbComparer.calcDbStructCrc(struct);
-        if (!UtDbComparer.dbStructIsEqual(struct, dbStructStored)) {
+        IJdxDbStruct dbStructAllowed = dbStructRW.getDbStructAllowed();
+        String dbStructAllowedCrc = UtDbComparer.calcDbStructCrc(struct);
+        if (!UtDbComparer.dbStructIsEqual(struct, dbStructAllowed)) {
             dbStructIsEqual = false;
         }
 
@@ -492,9 +492,9 @@ public class JdxReplWs {
 
                     // Реальная структура базы НЕ совпадает со структурой, с которой была подготовлена реплика
                     JdxReplicaReaderXml.readReplicaInfo(replica);
-                    String dbStructCrc = replica.getInfo().getDbStructCrc();
-                    if (dbStructCrc.compareToIgnoreCase(dbStructStoredCrc) != 0) {
-                        log.error("handleQueIn, database structCrc is not match, expected: " + dbStructStoredCrc + ", actual: " + dbStructCrc);
+                    String replicaStructCrc = replica.getInfo().getDbStructCrc();
+                    if (replicaStructCrc.compareToIgnoreCase(dbStructAllowedCrc) != 0) {
+                        log.error("handleQueIn, database.structCrc is not match replica.structCrc, expected: " + dbStructAllowedCrc + ", actual: " + replicaStructCrc);
                         return;
                     }
 
