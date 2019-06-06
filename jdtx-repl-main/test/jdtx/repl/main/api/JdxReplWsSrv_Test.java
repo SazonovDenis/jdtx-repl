@@ -509,24 +509,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_srvDbStructStart() throws Exception {
-        JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init(json_srv);
-
-        //
-        srv.srvDbStructStart();
-    }
-
-    @Test
-    public void test_srvDbStructFinish() throws Exception {
-        JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init(json_srv);
-
-        //
-        srv.srvDbStructFinish();
-    }
-
-    @Test
     public void test_sync_srv() throws Exception {
         // Сервер, настройка
         JdxReplSrv srv = new JdxReplSrv(db);
