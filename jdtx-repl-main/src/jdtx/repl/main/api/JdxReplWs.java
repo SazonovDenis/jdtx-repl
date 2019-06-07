@@ -166,13 +166,6 @@ public class JdxReplWs {
         UtRepl utRepl = new UtRepl(db, struct);
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
-/*
-        // Весь свой аудит выкладываем в очередь.
-        // Это делается потому, что queOut.put() следит за монотонным увеличением возраста,
-        // а ним надо сделать искусственное увеличение возраста.
-        handleSelfAudit();
-*/
-
         //
         db.startTran();
         try {

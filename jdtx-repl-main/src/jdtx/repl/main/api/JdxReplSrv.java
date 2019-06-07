@@ -184,18 +184,26 @@ public class JdxReplSrv {
     public void srvDbStructFinish() throws Exception {
         log.info("srvDbStructFinish");
 
-        // Системная команда "SET_DB_STRUCT" в общую очередь
-        UtRepl utRepl = new UtRepl(db, struct);
-        IReplica replica = utRepl.createReplicaSetDbStruct();
 
-        // Системная команда - в исходящую очередь реплик
+        // Системные команды в общую очередь
+        UtRepl utRepl = new UtRepl(db, struct);
+
+
+        // Системная команда "SET_PUBLICATION"...
+        IReplica replica = utRepl.createReplicaPublication();
+        // ... в исходящую очередь реплик
         commonQue.put(replica);
 
 
-        // Системная команда "UNMUTE" в общую очередь
-        replica = utRepl.createReplicaUnmute();
+        // Системная команда "SET_DB_STRUCT"...
+        replica = utRepl.createReplicaSetDbStruct();
+        // ... в исходящую очередь реплик
+        commonQue.put(replica);
 
-        // Системная команда - в исходящую очередь реплик
+
+        // Системная команда "UNMUTE" ...
+        replica = utRepl.createReplicaUnmute();
+        // ...в исходящую очередь реплик
         commonQue.put(replica);
     }
 

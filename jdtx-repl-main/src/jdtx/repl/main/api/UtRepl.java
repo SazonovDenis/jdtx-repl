@@ -268,6 +268,28 @@ public class UtRepl {
         return replica;
     }
 
+    public IReplica createReplicaPublication() throws Exception {
+        IReplica replica = new ReplicaFile();
+        replica.getInfo().setReplicaType(JdxReplicaType.SET_PUBLICATION);
+        //replica.setWsId(wsId);
+        //replica.setAge(age);
+
+        // Открываем запись
+        createOutput(replica);
+
+        IPublication publication;
+        publication.  ....
+        // Файл с описанием текущей структуры БД
+        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        zipOutputStream.write(struct_rw.getBytes(pup));
+
+        // Заканчиваем запись
+        closeOutput();
+
+        //
+        return replica;
+    }
+
     public IReplica createReplicaSetDbStruct() throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SET_DB_STRUCT);

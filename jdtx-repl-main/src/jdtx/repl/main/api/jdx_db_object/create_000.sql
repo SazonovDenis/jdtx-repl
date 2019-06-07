@@ -11,7 +11,19 @@ CREATE TABLE Z_Z_flag_tab (
 INSERT INTO Z_Z_flag_tab (id, trigger_flag) VALUES (1, 1);
 
 
-/* таблица собственного состояния (для рабочей станции) - для хранения возраста созданных реплик, примененных реплик и т.п. */
+/* метка с номером БД (для рабочей станции) */
+CREATE TABLE Z_Z_db_info (
+  ws_id   INTEGER      NOT NULL,
+  guid    VARCHAR(150) NOT NULL
+);
+
+INSERT INTO Z_Z_db_info (ws_id, guid) VALUES (0, '');
+
+
+/*
+Собственное состояния (для рабочей станции) -
+для хранения возраста созданных реплик, примененных реплик и т.п.
+*/
 CREATE TABLE Z_Z_state (
   id                     INTEGER NOT NULL,
   que_out_age_done       INT     NOT NULL,
@@ -20,13 +32,18 @@ CREATE TABLE Z_Z_state (
   enabled                INT     NOT NULL,
   mute                   INT     NOT NULL,
   db_struct_fixed        BLOB,
-  db_struct_allowed      BLOB
+  db_struct_allowed      BLOB,
+  publication_in         BLOB,
+  publication_out        BLOB
 );
 
 INSERT INTO Z_Z_state (id, que_out_age_done, que_in_no_done, mail_send_done, enabled, mute) VALUES (1, 0, 0, 0, 0, 0);
 
 
-/* таблица состояния рабочих станций (для сервера) - хранение возраста созданных реплик, примененных реплик и т.п. */
+/*
+Состояния рабочих станций (для сервера) -
+хранение возраста созданных реплик, примененных реплик и т.п.
+*/
 CREATE TABLE Z_Z_state_ws (
   id                       INTEGER NOT NULL,
   ws_id                    INT     NOT NULL,
@@ -107,15 +124,6 @@ CREATE TABLE Z_Z_age (
   Z_id       INT         NOT NULL,
   dt         TIMESTAMP   NOT NULL
 );
-
-
-/* метка с номером БД */
-CREATE TABLE Z_Z_db_info (
-  ws_id   INTEGER      NOT NULL,
-  guid    VARCHAR(150) NOT NULL
-);
-
-INSERT INTO Z_Z_db_info (ws_id, guid) VALUES (0, '');
 
 
 
