@@ -258,7 +258,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     public void test_changeDbStruct_init() throws Exception {
         test_all_setUp();
         sync_http();
-        test_changeDbStruct();
+        test_modifyDbStruct();
     }
 
 
@@ -266,7 +266,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      * Прогон полного цикла смены структуры БД
      */
     @Test
-    public void test_changeDbStruct() throws Exception {
+    public void test_modifyDbStruct() throws Exception {
         JdxReplWs ws;
         JdxReplWs ws2;
         JdxReplWs ws3;
@@ -330,7 +330,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Физически меняем свою структуру на сервере
-        test_changeDbStruct(db);
+        test_modifyDbStruct(db);
 
         //
         test_ws1_makeChange_Unimportant();
@@ -364,6 +364,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
         UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
+        // Только сервер изменил структуру и перестал молчать
         assertEquals(1, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
 
 
@@ -376,8 +377,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Физически меняем структуру на рабочих станциях ws2 и ws3
-        test_changeDbStruct(db2);
-        test_changeDbStruct(db3);
+        test_modifyDbStruct(db2);
+        test_modifyDbStruct(db3);
         //reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
 
 
@@ -434,7 +435,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     public void test_sync_changeDbStruct() throws Exception {
         sync_http();
         test_dumpTables();
-        test_changeDbStruct();
+        test_modifyDbStruct();
         reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
     }
 */
@@ -442,17 +443,17 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
     @Test
     public void test_ws1_changeDbStruct() throws Exception {
-        test_changeDbStruct(db);
+        test_modifyDbStruct(db);
     }
 
     @Test
     public void test_ws2_changeDbStruct() throws Exception {
-        test_changeDbStruct(db2);
+        test_modifyDbStruct(db2);
     }
 
     @Test
     public void test_ws3_changeDbStruct() throws Exception {
-        test_changeDbStruct(db3);
+        test_modifyDbStruct(db3);
     }
 
     /**
@@ -564,7 +565,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      * добавляет одну таблицу,
      * в таблицу Region добавляет поле
      */
-    void test_changeDbStruct(Db db) throws Exception {
+    void test_modifyDbStruct(Db db) throws Exception {
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);

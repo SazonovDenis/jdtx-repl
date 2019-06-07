@@ -1,9 +1,7 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
-import jandcode.dbm.db.*;
 import jandcode.utils.error.*;
-import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ut.*;
 import org.junit.*;
 
@@ -83,11 +81,11 @@ public class JdxReplWsSrv_ChangeDbStruct_Loop_Test extends JdxReplWsSrv_ChangeDb
                 System.out.println("Меняем структуру");
                 //
                 TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
-                test_changeDbStruct(db);
+                test_modifyDbStruct(db);
                 TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
-                test_changeDbStruct(db2);
+                test_modifyDbStruct(db2);
                 TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
-                test_changeDbStruct(db3);
+                test_modifyDbStruct(db3);
                 TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
                 //
                 reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
