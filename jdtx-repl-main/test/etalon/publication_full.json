@@ -1,4 +1,29 @@
 [
+
+  {
+    "table": "TEST_TABLE_80",
+    "fields": "*"
+  },
+  {
+    "table": "TEST_TABLE_81",
+    "fields": "*"
+  },
+  {
+    "table": "TEST_TABLE_82",
+    "fields": "*"
+  },
+  {
+    "table": "TEST_TABLE_83",
+    "fields": "*"
+  },
+  {
+    "table": "TEST_TABLE_84",
+    "fields": "*"
+  },
+  {
+    "table": "TEST_TABLE_85",
+    "fields": "*"
+  },
   {
     "table": "appupdate",
     "fields": "*"

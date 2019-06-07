@@ -35,7 +35,7 @@ public class UtTest extends UtilsTestCase {
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         IJdxDbStruct struct = reader.readDbStruct();
-        String fieldName = "test_" + (struct.getTable(tableName).getFields().size() + 1);
+        String fieldName = "TEST_FIELD_" + (struct.getTable(tableName).getFields().size() + 1);
         db.execSql("alter table " + tableName + " add " + fieldName + " varchar(200)");
     }
 
@@ -61,7 +61,7 @@ public class UtTest extends UtilsTestCase {
         IJdxDbStruct struct = reader.readDbStruct();
         //
         int tablesCount = struct.getTables().size();
-        String tableName = "test_" + (tablesCount + 1);
+        String tableName = "TEST_TABLE_" + (tablesCount + 1);
         //
         String sql = "create table " + tableName + " (id integer not null, name varchar(200))";
         db.execSql(sql);
@@ -76,11 +76,11 @@ public class UtTest extends UtilsTestCase {
         DbUtils dbu = new DbUtils(db, struct);
         //
         long id = dbu.getNextGenerator("g_" + tableName);
-        sql = "insert into " + tableName + " (id, name) values (" + id + ", '" + "ins~" + rnd.nextInt() + "')";
+        sql = "insert into " + tableName + " (id, name) values (" + id + ", '" + "new~" + rnd.nextInt() + "')";
         db.execSql(sql);
         //
         id = dbu.getNextGenerator("g_" + tableName);
-        sql = "insert into " + tableName + " (id, name) values (" + id + ", '" + "ins~" + rnd.nextInt() + "')";
+        sql = "insert into " + tableName + " (id, name) values (" + id + ", '" + "new~" + rnd.nextInt() + "')";
         db.execSql(sql);
     }
 
@@ -112,7 +112,7 @@ public class UtTest extends UtilsTestCase {
         //
         String regionTestFields = "";
         for (IJdxFieldStruct f : struct.getTable("region").getFields()) {
-            if (f.getName().startsWith("TEST_")) {
+            if (f.getName().startsWith("TEST_FIELD_")) {
                 regionTestFields = regionTestFields + "Region." + f.getName() + ",";
                 params.put(f.getName(), f.getName() + "-ins-ws:" + ws_id + "-" + rnd.nextInt());
             }
@@ -184,6 +184,26 @@ public class UtTest extends UtilsTestCase {
                 "Dom", "12",
                 "NameI", "NameI-upd-com-ws:" + ws_id + "-" + rnd.nextInt()
         ));
+
+
+        // Апдейт таблиц TEST_TABLE_**
+        for (IJdxTableStruct t : struct.getTables()) {
+            if (t.getName().startsWith("TEST_TABLE_")) {
+                int cnt = db.loadSql("select count(*) cnt from " + t.getName() + " where id > 0").getCurRec().getValueInt("cnt");
+                long id = db.loadSql("select min(id) id from " + t.getName() + " where id > 0").getCurRec().getValueLong("id");
+                cnt = rnd.nextInt(cnt * 2);
+                for (int x = 0; x < cnt; x++) {
+                    id = db.loadSql("select min(id) id from " + t.getName() + " where id > " + id).getCurRec().getValueLong("id");
+                }
+                if (id > 0) {
+                    dbu.db.execSql("update " + t.getName() + " set name = :name where id = :id", UtCnv.toMap(
+                            "id", id,
+                            "name", "upd-ws:" + ws_id + "-" + rnd.nextInt()
+                    ));
+                }
+            }
+        }
+
     }
 
     private long getDbSeed() throws Exception {

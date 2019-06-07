@@ -200,7 +200,7 @@ public class JdxReplWs {
         log.info("createReplicaTableSnapshot, wsId: " + wsId + ", done");
     }
 
-    public void dbStructUpdate() throws Exception {
+    public boolean dbStructUpdate() throws Exception {
         log.info("dbStructUpdate, checking");
 
         // Читаем структуры
@@ -298,6 +298,9 @@ public class JdxReplWs {
 
                     //
                     log.info("dbStructUpdate, complete");
+
+                    //
+                    return true;
                 } catch (Exception e) {
                     db.rollback(e);
                     throw e;
@@ -305,9 +308,15 @@ public class JdxReplWs {
 
             } else {
                 log.info("dbStructUpdate, structActual <> structAllowed");
+
+                //
+                return false;
             }
         } else {
             log.info("dbStructUpdate, no diff found");
+
+            //
+            return false;
         }
     }
 
@@ -468,8 +477,12 @@ public class JdxReplWs {
                         stream.close();
                     }
 
-                    // Пересоздаем аудит
-                    dbStructUpdate();
+                    // Проверяем структуры и пересоздаем аудит
+                    if (!dbStructUpdate()) {
+                        log.warn("handleQueIn, dbStructUpdate <> true");
+                        replicaUsed = false;
+                        break;
+                    }
 
                     // Выкладывание реплики "структура принята"
                     reportMuteDone(JdxReplicaType.SET_DB_STRUCT_DONE);

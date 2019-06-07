@@ -2,12 +2,8 @@ package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
-import jandcode.utils.error.*;
 import jdtx.repl.main.api.struct.*;
-import jdtx.repl.main.ut.*;
 import org.junit.*;
-
-import java.util.concurrent.*;
 
 /**
  */
@@ -17,7 +13,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        json_ws = "test/etalon/mail_http_ws_unidirectional.json";
+        //json_ws = "test/etalon/mail_http_ws_unidirectional.json";
     }
 
 
@@ -28,10 +24,6 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      */
     @Test
     public void test_No_ApplyReplicas() throws Exception {
-        test_all_setUp();
-        sync_http();
-
-        //
         JdxReplWs ws;
         JdxReplWs ws2;
         IJdxDbStruct structActual_ws1;
@@ -262,15 +254,19 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     }
 
 
+    @Test
+    public void test_changeDbStruct_init() throws Exception {
+        test_all_setUp();
+        sync_http();
+        test_changeDbStruct();
+    }
+
+
     /**
      * Прогон полного цикла смены структуры БД
      */
     @Test
     public void test_changeDbStruct() throws Exception {
-        //test_all_setUp();
-        //sync_http();
-
-        //
         JdxReplWs ws;
         JdxReplWs ws2;
         JdxReplWs ws3;
@@ -311,7 +307,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ===
-        // Начинаем смену версии БД - формируем сигнал "всем молчать"
+        // Начинаем (на сервере) смену версии БД - формируем сигнал "всем молчать"
         test_srvDbStructStart();
 
         // Цикл синхронизации
@@ -320,7 +316,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ===
-        // Проверяем ответ на сигнал - проверяем состояние MUTE
+        // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
         UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
         assertEquals(0, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
 
@@ -333,9 +329,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ===
-        // Меняем свою структуру
+        // Физически меняем свою структуру на сервере
         test_changeDbStruct(db);
-        //reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
 
         //
         test_ws1_makeChange_Unimportant();
@@ -348,19 +343,14 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ===
-        // Меняем структуру на рабочих станциях ws2 и ws3
-        test_changeDbStruct(db2);
-        test_changeDbStruct(db3);
-        //reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
-
-        // Убеждаемся что рабочие станции молчат (из-за несовпадения струтуры)
+        // Убеждаемся что рабочие станции молчат (из-из запрета)
         assert_handleSelfAudit_false(db);
         assert_handleSelfAudit_false(db2);
         assert_handleSelfAudit_false(db3);
 
 
         // ===
-        // Завершаем смену версии БД - рассылаем сигнал "всем говорить"
+        // Завершаем (на сервере) смену версии БД - рассылаем сигнал "всем говорить"
         test_srvDbStructFinish();
 
         //
@@ -372,13 +362,40 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         sync_http();
         sync_http();
 
-        // Проверяем ответ на сигнал - проверяем состояние MUTE
+        // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
         UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(3, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        assertEquals(1, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
-        // Убеждаемся что рабочие станции говорят
+        // Убеждаемся что рабочие станции молчат (из-из запрета), а сервер нет
+        assert_handleSelfAudit_true(db);
+        assert_handleSelfAudit_false(db2);
+        assert_handleSelfAudit_false(db3);
+
+
+        // ===
+        // Физически меняем структуру на рабочих станциях ws2 и ws3
+        test_changeDbStruct(db2);
+        test_changeDbStruct(db3);
+        //reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
+
+
+        // ===
+        // Убеждаемся что рабочие станции молчат (из-за незафиксированности структуры), а сервер нет
+        assert_handleSelfAudit_true(db);
+        assert_handleSelfAudit_false(db2);
+        assert_handleSelfAudit_false(db3);
+
+
+        // ===
+        // Заставляем станции зафиксировать структуру
+        test_ws2_handleQueIn();
+        test_ws3_handleQueIn();
+
+
+        // ===
+        // Убеждаемся что все рабочие станции говорят
         assert_handleSelfAudit_true(db);
         assert_handleSelfAudit_true(db2);
         assert_handleSelfAudit_true(db3);
@@ -386,6 +403,12 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Цикл синхронизации
         sync_http();
         sync_http();
+
+
+        // ===
+        // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
+        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
+        assertEquals(3, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
@@ -532,6 +555,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
         super.test_dumpTables();
     }
+
+    //^c проверить, что лишний аудит не создается
 
     /**
      * Меняет структуру БД:

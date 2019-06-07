@@ -261,19 +261,19 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         // dumpTables Region*
         String regionTestFields = "";
         for (IJdxFieldStruct f : struct.getTable("region").getFields()) {
-            if (f.getName().startsWith("TEST_")) {
+            if (f.getName().startsWith("TEST_FIELD_")) {
                 regionTestFields = regionTestFields + "Region." + f.getName() + ",";
             }
         }
         String regionTestFields2 = "";
         for (IJdxFieldStruct f : struct2.getTable("region").getFields()) {
-            if (f.getName().startsWith("TEST_")) {
+            if (f.getName().startsWith("TEST_FIELD_")) {
                 regionTestFields2 = regionTestFields2 + "Region." + f.getName() + ",";
             }
         }
         String regionTestFields3 = "";
         for (IJdxFieldStruct f : struct3.getTable("region").getFields()) {
-            if (f.getName().startsWith("TEST_")) {
+            if (f.getName().startsWith("TEST_FIELD_")) {
                 regionTestFields3 = regionTestFields3 + "Region." + f.getName() + ",";
             }
         }
@@ -312,8 +312,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     private String dump_table_testXXX(Db db, IJdxDbStruct struct) throws Exception {
         String content = "";
         for (IJdxTableStruct tab : struct.getTables()) {
-            if (tab.getName().startsWith("TEST_")) {
-                String sql = "select * from " + tab.getName() + " order by id";
+            if (tab.getName().startsWith("TEST_TABLE_")) {
+                String sql = "select name from " + tab.getName() + " order by name";
                 DataStore st = db.loadSql(sql);
                 OutTableSaver svr = new OutTableSaver(st);
                 content = content + tab.getName() + "\n";
