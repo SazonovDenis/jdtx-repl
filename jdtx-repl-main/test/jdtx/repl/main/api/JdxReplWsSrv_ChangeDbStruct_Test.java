@@ -254,8 +254,11 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     }
 
 
+    /**
+     * Прогон полного цикла смены структуры БД
+     */
     @Test
-    public void test_changeDbStruct_init() throws Exception {
+    public void test_modifyDbStruct_init() throws Exception {
         test_all_setUp();
         sync_http();
         test_modifyDbStruct();

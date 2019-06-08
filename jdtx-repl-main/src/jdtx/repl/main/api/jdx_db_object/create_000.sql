@@ -32,9 +32,7 @@ CREATE TABLE Z_Z_state (
   enabled                INT     NOT NULL,
   mute                   INT     NOT NULL,
   db_struct_fixed        BLOB,
-  db_struct_allowed      BLOB,
-  publication_in         BLOB,
-  publication_out        BLOB
+  db_struct_allowed      BLOB
 );
 
 INSERT INTO Z_Z_state (id, que_out_age_done, que_in_no_done, mail_send_done, enabled, mute) VALUES (1, 0, 0, 0, 0, 0);

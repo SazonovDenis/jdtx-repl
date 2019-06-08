@@ -186,13 +186,8 @@ public class JdxReplSrv {
 
 
         // Системные команды в общую очередь
+        IReplica replica;
         UtRepl utRepl = new UtRepl(db, struct);
-
-
-        // Системная команда "SET_PUBLICATION"...
-        IReplica replica = utRepl.createReplicaPublication();
-        // ... в исходящую очередь реплик
-        commonQue.put(replica);
 
 
         // Системная команда "SET_DB_STRUCT"...
