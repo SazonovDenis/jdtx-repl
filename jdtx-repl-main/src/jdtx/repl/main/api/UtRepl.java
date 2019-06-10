@@ -56,6 +56,14 @@ public class UtRepl {
         // Создаем необходимые для перекодировки таблицы
         UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);
         decodeManager.createRefDecodeObject();
+
+        // Запоминаем текущую структуру БД как "разрешенную" структуру
+        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
+        dbStructRW.dbStructSaveAllowed(struct);
+
+        // Для начала "фиксированная" структура будет пустая
+        IJdxDbStruct structFixed = new JdxDbStruct();
+        dbStructRW.dbStructSaveFixed(structFixed);
     }
 
 

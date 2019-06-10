@@ -158,7 +158,7 @@ class Jdx_Ext extends ProjectExt {
             utRepl.dropReplication()
             utRepl.createReplicationBase(wsId, guid)
 
-            // Сразу инициируем "смену структуры"
+            // Сразу инициируем создание аудита
             JdxReplWs ws = new JdxReplWs(db);
             ws.init(cfgFileName);
             ws.dbStructUpdate();
@@ -463,10 +463,38 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
-    /**
+    void repl_dbstruct_state(IVariantMap args) {
+        boolean doWaitMute = args.getValueBoolean("wait")
+
+        //
+        BgTasksService bgTasksService = app.service(BgTasksService.class)
+        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+        //
+
+        //
+        try {
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init(cfgFileName_srv)
+            ^c команда
+            //
+            srv.srvDbStructFinish();
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
+/*
+    */
+/**
      * Команда рабочей станции. Проверить необходимость обновить структуру аудита.
-     */
-    void repl_dbstruct_update(IVariantMap args) {
+     *//*
+
+    void repl_dbstruct_apply(IVariantMap args) {
         BgTasksService bgTasksService = app.service(BgTasksService.class)
         String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName")
 
@@ -486,6 +514,7 @@ class Jdx_Ext extends ProjectExt {
             db.disconnect()
         }
     }
+*/
 
     void repl_version(IVariantMap args) {
         System.out.println("UtRepl.getVersion: " + UtRepl.getVersion())

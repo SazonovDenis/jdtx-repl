@@ -201,14 +201,7 @@ public class JdxReplWs {
         UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
         IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
         IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
-        if (structFixed == null) {
-            structFixed = new JdxDbStruct();
-        }
-        if (structAllowed == null) {
-            // Если не задана "разрешенная" (это бывает при первичной инициализации),
-            // то текущую структуру БД считаем как "разрешенную" структуру
-            structAllowed = struct;
-        }
+
         //
         IJdxDbStruct structDiffCommon = new JdxDbStruct();
         IJdxDbStruct structDiffNew = new JdxDbStruct();
