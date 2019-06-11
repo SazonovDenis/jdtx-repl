@@ -208,7 +208,7 @@ public class JdxReplWs {
         IJdxDbStruct structDiffRemoved = new JdxDbStruct();
 
         // Реальная отличается от зафиксированной?
-        if (!UtDbComparer.dbStructIsEqual(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved)) {
+        if (!UtDbComparer.dbStructIsEqualTables(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved)) {
             log.info("dbStructUpdate, structActual <> structFixed");
 
             // Реальная совпадет с утвержденной?
