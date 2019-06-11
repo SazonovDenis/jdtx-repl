@@ -301,7 +301,7 @@ public class JdxReplWs {
             log.info("dbStructUpdate, no diff found");
 
             //
-            return false;
+            return true;
         }
     }
 
