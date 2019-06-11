@@ -2,9 +2,11 @@ package jdtx.repl.main.api;
 
 import jandcode.utils.*;
 import jandcode.utils.test.*;
+import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  */
@@ -47,5 +49,38 @@ public class JdxUtils_Test {
         System.out.println("md5, UtFile.loadString:   " + UtString.md5Str(UtFile.loadString(f)));
         System.out.println("md5, JdxUtils.getMd5File: " + JdxUtils.getMd5File(f));
     }
+
+    @Test
+    public void test_sort_infinite() throws Exception {
+        //
+        IJdxDbStruct structDiffCommon = new JdxDbStruct();
+        IJdxDbStruct structDiffNew = new JdxDbStruct();
+        IJdxDbStruct structDiffRemoved = new JdxDbStruct();
+        //
+        UtDbStruct_XmlRW dbStruct_XmlRW = new UtDbStruct_XmlRW();
+        IJdxDbStruct structActual = dbStruct_XmlRW.read("test/jdtx/repl/main/api/JdxUtils_Test.structActual.xml");
+        IJdxDbStruct structFixed = dbStruct_XmlRW.read("test/jdtx/repl/main/api/JdxUtils_Test.structFixed.xml");
+
+        //
+        JdxUtils.sortTables(structActual.getTables());
+        JdxUtils.sortTables(structFixed.getTables());
+
+        //
+        UtDbComparer.dbStructIsEqual(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
+
+        //
+        System.out.println("=== structDiffNew");
+        for (IJdxTableStruct table : structDiffNew.getTables()) {
+            System.out.println(table.getName());
+        }
+
+        //
+        List<IJdxTableStruct> structDiffNewSorted = JdxUtils.sortTables(structDiffNew.getTables());
+        System.out.println("=== structDiffNewSorted");
+        for (IJdxTableStruct table : structDiffNewSorted) {
+            System.out.println(table.getName());
+        }
+    }
+
 
 }

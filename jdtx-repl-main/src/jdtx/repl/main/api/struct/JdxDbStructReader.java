@@ -22,7 +22,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
 
 
     public IJdxDbStruct readDbStruct(boolean skipReplObj) throws Exception {
-        ArrayList<IJdxTableStruct> structTables = new ArrayList<>();
+        List<IJdxTableStruct> structTables = new ArrayList<>();
 
         //
         DatabaseMetaData metaData = db.getConnection().getMetaData();
@@ -109,7 +109,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
         }
 
         // Сортируем
-        ArrayList<IJdxTableStruct> structTablesSorted = JdxUtils.sortTables(structTables);
+        List<IJdxTableStruct> structTablesSorted = JdxUtils.sortTables(structTables);
 
 
         // Создаем и возвращаем экземпляр класса JdxDbStruct
@@ -120,7 +120,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
         return struct;
     }
 
-    private IJdxTableStruct findTable(ArrayList<IJdxTableStruct> tables, String tableName) {
+    private IJdxTableStruct findTable(List<IJdxTableStruct> tables, String tableName) {
         for (IJdxTableStruct t : tables) {
             if (t.getName().compareToIgnoreCase(tableName) == 0) {
                 return t;
