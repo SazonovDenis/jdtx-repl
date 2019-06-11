@@ -453,10 +453,15 @@ class Jdx_Ext extends ProjectExt {
             srv.init(cfgFileName_srv)
 
             //
-            while (doWaitMute) {
-                DataStore st = db.loadSql("select * from z_z_state_ws where enabled = 1 and mute_age = 0")
-                UtData.outTable(st)
-                if (st.size() == 0) {
+            while (true) {
+                DataStore stDisplay = db.loadSql("select * from z_z_state_ws where enabled = 1")
+                UtData.outTable(stDisplay)
+                //
+                DataStore stCheck = db.loadSql("select * from z_z_state_ws where enabled = 1 and mute_age = 0")
+                if (!doWaitMute || stCheck.size() == 0) {
+                    if (stCheck.size() == 0) {
+                        System.out.println("All workstations is MUTE");
+                    }
                     break;
                 }
                 //

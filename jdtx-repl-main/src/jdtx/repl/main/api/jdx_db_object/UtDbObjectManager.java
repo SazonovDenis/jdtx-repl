@@ -305,6 +305,10 @@ public class UtDbObjectManager {
             // удаляем саму таблицу журнала изменений
             sql = "drop table " + JdxUtils.audit_table_prefix + tableName;
             db.execSql(sql);
+        } catch (Exception ex) {
+            // если удаляемая таблица не будет найдена, программа продолжит работу
+        }
+        try {
             // удаляем генератор для таблицы журнала изменений
             sql = "drop generator " + JdxUtils.audit_gen_prefix + tableName;
             db.execSql(sql);

@@ -1,15 +1,11 @@
-<% for (sss in args.p2) { %>
-p2: ${sss}
-<% } %>
-
 @echo off
-call jc repl-service-remove
 
+rem служба
+call jc repl-service-remove
 
 
 rem рабочая станция
 call jc repl-create -ws:${args.ws_list[0].ws_no} -guid:${args.repl_guid}-${args.ws_list[0].ws_guid}
-
 
 
 rem сервер
@@ -24,20 +20,16 @@ call jc repl-enable -ws:${args.ws_list[i].ws_no}
 <% } %>
 
 
-
-rem структура БД
+rem инициализация структуры БД
 call jc repl-dbstruct-finish
-
 
 
 rem почта
 call jc repl-mail-check -create:true
 
 
-
 rem служба
 call jc repl-service-install
-
 
 
 rem для сведения

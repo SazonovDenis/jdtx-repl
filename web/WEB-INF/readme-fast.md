@@ -1,29 +1,57 @@
+## Подготовка конфигурационных файлов для новой инсталляции 
+
+В рабочем каталоге проекта запустить команду:  
+>ov gen-setup -in:<список рабочих станций>  -out:<выходной каталог>
+
+В параметре `in` указать файл - список рабочих станций, в котором в первой строке - имя сервера, 
+в следующих строках - имена рабочих станций, например:
+
+    dvsa
+    Дочка 1
+    Дочка 2
+
+В параметре `out` нужно указать каталог, в котором появятся `настроечные bat-файлы` для сервера и рабочих станций.
+
+##### Пример команды:
+
+>ov gen-setup -in:C:\Users\Public\Documents\Jadatex.Sync\1.txt  -out:Z:\jdtx-repl\temp
+
+
+В результате выполнения команды в выходном каталоге появятся файлы:
+
+>setup.dvsa.srv.bat \
+setup.dvsa.ws2.bat \
+setup.dvsa.ws3.bat
+
+
 ## Настройка сервера 
 
+Создать на ftp корневую папку для сервера, имя для  guid взять из файла `setup.***.srv.bat`.
 
-В файле _app.rt включить сервер (bgtask name="server" enabled="true") 
+Установить JadatexSync
 
-В каталоге web\WEB-INF\cfg\ переименовать sample.srv.json в srv.json
+В файле `web\WEB-INF\_app.rt` включить сервер (bgtask name="server" enabled="true")
 
-В файле web\WEB-INF\cfg\ws.json выбрать: publication_full_152 или publication_full
+    <bgtask name="server"
+            period="5000"
+            enabled="true"
+            />
 
-Запустить:
+В каталоге `web\WEB-INF\cfg\` переименовать `sample.srv.json` в `srv.json`
 
->setup.***.srv.bat
+В файле `web\WEB-INF\cfg\ws.json` выбрать: publication_full_152 или publication_full
 
-Переименовать run.bat_ в run.bat и запустить его
+В каталоге установки Jadatex.Sync запустить `настроечный bat-файл` для сервера, например:
 
+>setup.dvsa.srv.bat 
 
 
 ## Настройка рабочей станции
 
+Установить JadatexSync
 
 В файле web\WEB-INF\cfg\ws.json выбрать: publication_full_152 или publication_full
 
-В файле setup.***.ws.bat раскоментить нужную станцию
+В каталоге установки Jadatex.Sync запустить `настроечный bat-файл` для рабочей станции, например:
 
-Запустить:
-
->setup.***.ws.bat
-
-Переименовать run.bat_ в run.bat и запустить его
+>setup.dvsa.ws2.bat 

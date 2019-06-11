@@ -13,9 +13,111 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        json_ws = "test/etalon/mail_http_ws_unidirectional.json";
+        //json_ws = "test/etalon/mail_http_ws_unidirectional.json";
     }
 
+
+    /**
+     * Проверка холостого цикла MUTE-UNMUTE.
+     */
+    @Test
+    public void test_Mute_Unmute() throws Exception {
+        all_setUp();
+        sync_http();
+        sync_http();
+
+        //
+        JdxReplWs ws;
+        JdxReplWs ws2;
+        JdxReplWs ws3;
+
+
+        // ===
+        // Проверяем, что утвержденная, фиксированная и реальная структуры совпадают на ws1, ws2 и ws3
+        assertEqualsStruct_Actual_Allowed_Fixed_ws(db);
+        assertEqualsStruct_Actual_Allowed_Fixed_ws(db2);
+        assertEqualsStruct_Actual_Allowed_Fixed_ws(db3);
+        //
+        ws = new JdxReplWs(db);
+        ws.init(json_ws);
+        ws2 = new JdxReplWs(db2);
+        ws2.init(json_ws);
+        ws3 = new JdxReplWs(db2);
+        ws3.init(json_ws);
+        //
+        System.out.println("ws1 struct size: " + ws.struct.getTables().size());
+        System.out.println("ws2 struct size: " + ws2.struct.getTables().size());
+        System.out.println("ws3 struct size: " + ws3.struct.getTables().size());
+        //
+        assertEquals("Перед тестом структура ws и ws2 должны совпадать", true, UtDbComparer.dbStructIsEqual(ws.struct, ws2.struct));
+        assertEquals("Перед тестом структура ws и ws3 должны совпадать", true, UtDbComparer.dbStructIsEqual(ws.struct, ws3.struct));
+
+
+        // ===
+        // Проверяем, что все станции пока работают
+        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
+        assertEquals(3, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+
+
+        // ===
+        // Вносим изменения в данные на станциях
+        test_ws1_makeChange_Unimportant();
+        test_ws2_makeChange();
+        test_ws3_makeChange();
+
+
+        // ===
+        // Начинаем (на сервере) смену версии БД - формируем сигнал "всем молчать"
+        test_srvDbStructStart();
+
+        // Цикл синхронизации
+        sync_http();
+        sync_http();
+
+
+        // ===
+        // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
+        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
+        assertEquals(0, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+
+
+        // ===
+        // Убеждаемся что рабочие станции молчат (из-из запрета)
+        assert_handleSelfAudit_false(db);
+        assert_handleSelfAudit_false(db2);
+        assert_handleSelfAudit_false(db3);
+
+
+        // ===
+        // Завершаем (на сервере) смену версии БД - рассылаем сигнал "всем говорить"
+        test_srvDbStructFinish();
+
+        //
+        test_ws1_makeChange_Unimportant();
+        test_ws2_makeChange();
+        test_ws3_makeChange();
+
+        // Цикл синхронизации
+        sync_http();
+        sync_http();
+
+
+        // ===
+        // Убеждаемся что все рабочие станции говорят
+        assert_handleSelfAudit_true(db);
+        assert_handleSelfAudit_true(db2);
+        assert_handleSelfAudit_true(db3);
+
+
+        // ===
+        // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
+        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
+        assertEquals(3, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+
+
+        // ===
+        test_dumpTables();
+    }
 
     /**
      * Проверка пограничных состояний:
