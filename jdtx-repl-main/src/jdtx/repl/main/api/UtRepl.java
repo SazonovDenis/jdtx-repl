@@ -57,9 +57,12 @@ public class UtRepl {
         UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);
         decodeManager.createRefDecodeObject();
 
-        // Запоминаем текущую структуру БД как "разрешенную" структуру
+        //
         UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
-        dbStructRW.dbStructSaveAllowed(struct);
+
+        // Для начала "разрешенная" структура будет пустая
+        IJdxDbStruct structAllowed= new JdxDbStruct();
+        dbStructRW.dbStructSaveAllowed(structAllowed);
 
         // Для начала "фиксированная" структура будет пустая
         IJdxDbStruct structFixed = new JdxDbStruct();

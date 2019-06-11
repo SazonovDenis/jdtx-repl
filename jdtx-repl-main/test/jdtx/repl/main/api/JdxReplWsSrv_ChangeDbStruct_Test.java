@@ -13,7 +13,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        //json_ws = "test/etalon/mail_http_ws_unidirectional.json";
+        json_ws = "test/etalon/mail_http_ws_unidirectional.json";
     }
 
 
@@ -166,7 +166,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      */
     @Test
     public void test_No_HandleSelfAudit() throws Exception {
-        test_all_setUp();
+        all_setUp();
+        sync_http();
         sync_http();
 
         //
@@ -259,7 +260,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      */
     @Test
     public void test_modifyDbStruct_init() throws Exception {
-        test_all_setUp();
+        all_setUp();
+        sync_http();
         sync_http();
         test_modifyDbStruct();
     }

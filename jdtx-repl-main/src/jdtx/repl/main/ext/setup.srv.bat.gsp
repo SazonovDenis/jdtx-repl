@@ -25,6 +25,11 @@ call jc repl-enable -ws:${args.ws_list[i].ws_no}
 
 
 
+rem структура БД
+call jc repl-dbstruct-finish
+
+
+
 rem почта
 call jc repl-mail-check -create:true
 

@@ -104,21 +104,25 @@ public class UtDbStruct_XmlRW {
     public IJdxDbStruct read(EasyXml xml) throws Exception {
         IJdxDbStruct struct = new JdxDbStruct();
 
-        // Таблицы
-        for (EasyXml item_table : xml.getChilds()) {
-            JdxTableStruct table = new JdxTableStruct();
-            struct.getTables().add(table);
-            //
-            table.setName(item_table.getValueString("@name"));
-            //
-            readTableStruct(item_table, table);
-        }
+        //
+        Iterable<EasyXml> childs = xml.getChilds();
+        if (childs != null) {
+            // Таблицы
+            for (EasyXml item_table : childs) {
+                JdxTableStruct table = new JdxTableStruct();
+                struct.getTables().add(table);
+                //
+                table.setName(item_table.getValueString("@name"));
+                //
+                readTableStruct(item_table, table);
+            }
 
-        // FK таблиц
-        for (EasyXml item_table : xml.getChilds()) {
-            IJdxTableStruct table = struct.getTable(item_table.getValueString("@name"));
-            //
-            readTableFkStruct(item_table, table, struct);
+            // FK таблиц
+            for (EasyXml item_table : childs) {
+                IJdxTableStruct table = struct.getTable(item_table.getValueString("@name"));
+                //
+                readTableFkStruct(item_table, table, struct);
+            }
         }
 
         //

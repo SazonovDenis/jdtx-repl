@@ -20,7 +20,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     String json_ws = "test/etalon/mail_http_ws.json";
 
     @Test
-    public void test_all_setUp() throws Exception {
+    public void all_setUp() throws Exception {
         UtFile.cleanDir("../_test-data/csv");
         UtFile.cleanDir("../_test-data/mail");
         UtFile.cleanDir("../_test-data/mail_local");
@@ -56,10 +56,11 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         utr3.createReplicationBase(3, "b5781df573ca6ee6.x-34f3cc20bea64503");
 
         // Сразу инициируем "смену структуры"
-        wsDbStructUpdate();
+        //wsDbStructUpdate();
 
         // Режим сервера
         JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init(json_srv);
         // Добавляем рабочие станции для режима сервера
         srv.addWorkstation(1, "Сервер", "b5781df573ca6ee6.x-17845f2f56f4d401");
         srv.addWorkstation(2, "ws 2", "b5781df573ca6ee6.x-21ba238dfc945002");
@@ -72,6 +73,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         // Создаем ящики рабочих станций
         createBoxes_Http();
         //createBoxes_Local();
+
+        // Для сервера - сразу инициализируем фиксацию структуры БД
+        srv.srvDbStructFinish();
+
 
         //
         UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));

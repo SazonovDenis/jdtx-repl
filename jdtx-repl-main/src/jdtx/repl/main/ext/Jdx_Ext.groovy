@@ -3,6 +3,7 @@ package jdtx.repl.main.ext
 import jandcode.app.App
 import jandcode.bgtasks.BgTasksService
 import jandcode.dbm.ModelService
+import jandcode.dbm.data.DataStore
 import jandcode.dbm.data.UtData
 import jandcode.dbm.db.Db
 import jandcode.jc.AppProjectExt
@@ -139,7 +140,6 @@ class Jdx_Ext extends ProjectExt {
         BgTasksService bgTasksService = app.service(BgTasksService.class)
         String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName")
 
-
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -152,16 +152,11 @@ class Jdx_Ext extends ProjectExt {
             IJdxDbStructReader dbStructReader = new JdxDbStructReader()
             dbStructReader.setDb(db)
             IJdxDbStruct struct = dbStructReader.readDbStruct()
-            UtRepl utRepl = new UtRepl(db, struct)
 
             // Создаем базовые объекты
+            UtRepl utRepl = new UtRepl(db, struct)
             utRepl.dropReplication()
             utRepl.createReplicationBase(wsId, guid)
-
-            // Сразу инициируем создание аудита
-            JdxReplWs ws = new JdxReplWs(db);
-            ws.init(cfgFileName);
-            ws.dbStructUpdate();
 
         } finally {
             db.disconnect()
@@ -246,7 +241,6 @@ class Jdx_Ext extends ProjectExt {
             db.disconnect()
         }
     }
-
 
 /*
     void repl_snapshot(IVariantMap args) {
@@ -441,6 +435,39 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
+    void repl_dbstruct_state(IVariantMap args) {
+        boolean doWaitMute = args.getValueBoolean("wait")
+
+        //
+        BgTasksService bgTasksService = app.service(BgTasksService.class)
+        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+        //
+
+        //
+        try {
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init(cfgFileName_srv)
+
+            //
+            while (doWaitMute) {
+                DataStore st = db.loadSql("select * from z_z_state_ws where enabled = 1 and mute_age = 0")
+                UtData.outTable(st)
+                if (st.size() == 0) {
+                    break;
+                }
+                //
+                Timer.sleep(5000L)
+            }
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
     void repl_dbstruct_finish(IVariantMap args) {
         BgTasksService bgTasksService = app.service(BgTasksService.class)
         String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
@@ -463,58 +490,6 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
-    void repl_dbstruct_state(IVariantMap args) {
-        boolean doWaitMute = args.getValueBoolean("wait")
-
-        //
-        BgTasksService bgTasksService = app.service(BgTasksService.class)
-        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
-
-        // БД
-        Db db = app.service(ModelService.class).model.getDb()
-        db.connect()
-        //
-
-        //
-        try {
-            JdxReplSrv srv = new JdxReplSrv(db)
-            srv.init(cfgFileName_srv)
-            ^c команда
-            //
-            srv.srvDbStructFinish();
-
-        } finally {
-            db.disconnect()
-        }
-    }
-
-/*
-    */
-/**
-     * Команда рабочей станции. Проверить необходимость обновить структуру аудита.
-     *//*
-
-    void repl_dbstruct_apply(IVariantMap args) {
-        BgTasksService bgTasksService = app.service(BgTasksService.class)
-        String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName")
-
-        // БД
-        Db db = app.service(ModelService.class).model.getDb()
-        db.connect()
-
-        //
-        try {
-            JdxReplWs ws = new JdxReplWs(db)
-            ws.init(cfgFileName)
-
-            //
-            ws.dbStructUpdate();
-
-        } finally {
-            db.disconnect()
-        }
-    }
-*/
 
     void repl_version(IVariantMap args) {
         System.out.println("UtRepl.getVersion: " + UtRepl.getVersion())

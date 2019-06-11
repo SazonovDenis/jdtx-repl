@@ -97,6 +97,12 @@ repl_dbstruct_start = cm("Начать смену структуры") {
 }
 
 //
+repl_dbstruct_wait = cm("Ожидать состояния у всех станций mute = true") {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_dbstruct_wait(args)
+}
+
+//
 repl_dbstruct_finish = cm("Завершить смену структуры") {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_dbstruct_finish(args)

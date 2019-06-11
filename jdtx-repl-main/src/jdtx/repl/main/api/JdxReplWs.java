@@ -133,8 +133,8 @@ public class JdxReplWs {
             readerOut.close();
         }
 
-        // Фильтрация структуры: убирание того, чего нет в публикации publicationOut
 /*
+        // Фильтрация структуры: убирание того, чего нет в публикации publicationOut
         IJdxDbStruct structDiffCommon = new JdxDbStruct();
         IJdxDbStruct structDiffNew = new JdxDbStruct();
         IJdxDbStruct structDiffRemoved = new JdxDbStruct();
@@ -276,7 +276,6 @@ public class JdxReplWs {
 
                     // Запоминаем текущую структуру БД как "фиксированную" структуру
                     dbStructRW.dbStructSaveFixed(structActual);
-                    dbStructRW.dbStructSaveAllowed(structAllowed);
 
 
                     //
@@ -450,14 +449,14 @@ public class JdxReplWs {
                     break;
                 }
                 case JdxReplicaType.SET_DB_STRUCT: {
-                    // Реакция на команду - задать разрешенную структуру БД
+                    // Реакция на команду - задать "разрешенную" структуру БД 
 
-                    // В этой реплике - новая утвержденная структура
+                    // В этой реплике - новая "разрешенная" структура
                     InputStream stream = UtRepl.getReplicaInputStream(replica);
                     try {
                         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
                         IJdxDbStruct struct = struct_rw.read(stream);
-                        // Запоминаем разрешенную структуру БД
+                        // Запоминаем "разрешенную" структуру БД
                         dbStructRW.dbStructSaveAllowed(struct);
                     } finally {
                         stream.close();
@@ -465,6 +464,7 @@ public class JdxReplWs {
 
                     // Проверяем структуры и пересоздаем аудит
                     if (!dbStructUpdate()) {
+                        // Если пересоздать аудит не удалось (структуры не готови или по иным причинам) - не метим реплтику как использованную
                         log.warn("handleQueIn, dbStructUpdate <> true");
                         replicaUsed = false;
                         break;
