@@ -376,7 +376,7 @@ public class JdxReplWs {
             }
 
             //
-            if (count == 0) {
+            if (auditAgeFrom == auditAgeTo) {
                 log.info("handleSelfAudit, wsId: " + wsId + ", audit.age: " + auditAgeFrom + ", nothing to do");
             } else {
                 log.info("handleSelfAudit, wsId: " + wsId + ", audit.age: " + auditAgeFrom + " -> " + auditAgeTo + ", done count: " + count);
@@ -553,7 +553,7 @@ public class JdxReplWs {
         }
 
         //
-        if (count == 0) {
+        if (queInNoDone == queInNoAvailable) {
             log.info("handleQueIn, self.wsId: " + wsId + ", queIn: " + queInNoDone + ", nothing to do");
         } else {
             log.info("handleQueIn, self.wsId: " + wsId + ", queIn: " + queInNoDone + " -> " + queInNoAvailable + ", done count: " + count);
@@ -700,7 +700,7 @@ public class JdxReplWs {
 
 
         //
-        if (count == 0) {
+        if (selfReceivedNo == srvAvailableNo) {
             log.info("UtMailer, wsId: " + wsId + ", receive.no: " + selfReceivedNo + ", nothing to receive");
         } else {
             log.info("UtMailer, wsId: " + wsId + ", receive.no: " + selfReceivedNo + " -> " + srvAvailableNo + ", done count: " + count);
@@ -792,7 +792,7 @@ public class JdxReplWs {
         mailer.setWsInfo(info);
 
         //
-        if (count == 0) {
+        if (age_from == age_to) {
             log.info("UtMailer, wsId: " + wsId + ", send.age: " + age_from + ", nothing to send");
         } else {
             log.info("UtMailer, wsId: " + wsId + ", send.age: " + age_from + " -> " + age_to + ", done count: " + count);

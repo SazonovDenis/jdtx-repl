@@ -294,7 +294,7 @@ public class JdxReplSrv {
 
 
                 //
-                if (count == 0) {
+                if (queDoneAge == queMaxAge) {
                     log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.age: " + queDoneAge + ", nothing done");
                 } else {
                     log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.age: " + queDoneAge + " -> " + queMaxAge + ", done count: " + count);
@@ -365,7 +365,7 @@ public class JdxReplSrv {
                 mailer.setSrvInfo(info);
 
                 //
-                if (count == 0) {
+                if (no_from_ws == no_to_ws) {
                     log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + no_from_ws + ", nothing done");
                 } else {
                     log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + no_from_ws + " -> " + no_to_ws + ", done count: " + count);
