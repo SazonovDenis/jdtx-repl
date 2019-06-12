@@ -684,9 +684,20 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         //
         UtTest utTest = new UtTest(db);
-        utTest.changeDbStructDropTable("appupdate");
-        utTest.changeDbStructAddRandomTable();
-        utTest.changeDbStruct("region");
+        //
+        utTest.changeDbStruct_DropTable("appupdate");
+        //
+        String randomTableName = utTest.getFirstRandomTable();
+        if (randomTableName != null) {
+            utTest.changeDbStruct_DropRandomField(randomTableName);
+        }
+        //
+        utTest.changeDbStruct_AddRandomTable();
+        //
+        utTest.changeDbStruct_DropLastField("categoryHist");
+        utTest.changeDbStruct_AddRandomField("categoryHist");
+        //
+        utTest.changeDbStruct_AddRandomField("region");
 
         //
         struct = reader.readDbStruct();
