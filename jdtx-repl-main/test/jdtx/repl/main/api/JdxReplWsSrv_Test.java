@@ -316,12 +316,18 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     private String dump_table_testXXX(Db db, IJdxDbStruct struct) throws Exception {
         String content = "";
-        for (IJdxTableStruct tab : struct.getTables()) {
-            if (tab.getName().startsWith("TEST_TABLE_")) {
-                String sql = "select name from " + tab.getName() + " order by name";
+        for (IJdxTableStruct table : struct.getTables()) {
+            if (table.getName().startsWith("TEST_TABLE_")) {
+                String selectFields = "name";
+                for (IJdxFieldStruct field : table.getFields()) {
+                    if (field.getName().startsWith("TEST_FIELD_")) {
+                        selectFields = selectFields + "," + field.getName();
+                    }
+                }
+                String sql = "select " + selectFields + " from " + table.getName() + " order by name";
                 DataStore st = db.loadSql(sql);
                 OutTableSaver svr = new OutTableSaver(st);
-                content = content + tab.getName() + "\n";
+                content = content + table.getName() + "\n";
                 content = content + svr.save().toString() + "\n\n";
             }
         }

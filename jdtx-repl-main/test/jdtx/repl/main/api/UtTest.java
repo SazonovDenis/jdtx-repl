@@ -35,11 +35,13 @@ public class UtTest extends UtilsTestCase {
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         IJdxDbStruct struct = reader.readDbStruct();
-        String fieldName = "TEST_FIELD_" + (struct.getTable(tableName).getFields().size() + 1);
+        IJdxTableStruct table = struct.getTable(tableName);
+        int lastFieldNo = getLastRandomFieldNo(table);
+        String fieldName = "TEST_FIELD_" + (lastFieldNo + 1);
         db.execSql("alter table " + tableName + " add " + fieldName + " varchar(200)");
     }
 
-    public void changeDbStruct_DropRandomField(String tableName) throws Exception {
+    public void changeDbStruct_DropFirstRandomField(String tableName) throws Exception {
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         IJdxDbStruct struct = reader.readDbStruct();
@@ -47,7 +49,7 @@ public class UtTest extends UtilsTestCase {
         for (IJdxFieldStruct field : table.getFields()) {
             if (field.getName().startsWith("TEST_FIELD_")) {
                 String fieldName = field.getName();
-                db.execSql("alter table " + tableName + " drop column " + fieldName);
+                db.execSql("alter table " + tableName + " drop " + fieldName);
                 break;
             }
         }
@@ -206,19 +208,31 @@ public class UtTest extends UtilsTestCase {
 
 
         // Апдейт таблиц TEST_TABLE_**
-        for (IJdxTableStruct t : struct.getTables()) {
-            if (t.getName().startsWith("TEST_TABLE_")) {
-                int cnt = db.loadSql("select count(*) cnt from " + t.getName() + " where id > 0").getCurRec().getValueInt("cnt");
-                long id = db.loadSql("select min(id) id from " + t.getName() + " where id > 0").getCurRec().getValueLong("id");
+        for (IJdxTableStruct table : struct.getTables()) {
+            if (table.getName().startsWith("TEST_TABLE_")) {
+                int cnt = db.loadSql("select count(*) cnt from " + table.getName() + " where id > 0").getCurRec().getValueInt("cnt");
+                long id = db.loadSql("select min(id) id from " + table.getName() + " where id > 0").getCurRec().getValueLong("id");
                 cnt = rnd.nextInt(cnt * 2);
                 for (int x = 0; x < cnt; x++) {
-                    id = db.loadSql("select min(id) id from " + t.getName() + " where id > " + id).getCurRec().getValueLong("id");
+                    id = db.loadSql("select min(id) id from " + table.getName() + " where id > " + id).getCurRec().getValueLong("id");
                 }
                 if (id > 0) {
-                    dbu.db.execSql("update " + t.getName() + " set name = :name where id = :id", UtCnv.toMap(
+                    // Поле name
+                    dbu.db.execSql("update " + table.getName() + " set name = :name where id = :id", UtCnv.toMap(
                             "id", id,
                             "name", "upd-ws:" + ws_id + "-" + rnd.nextInt()
                     ));
+                    // Поля TEST_FIELD_***
+                    for (IJdxFieldStruct field : table.getFields()) {
+                        String fieldName = field.getName();
+                        if (fieldName.startsWith("TEST_FIELD_")) {
+                            dbu.db.execSql("update " + table.getName() + " set " + fieldName + " = :" + fieldName + " where id = :id", UtCnv.toMap(
+                                    "id", id,
+                                    fieldName, "upd-ws:" + ws_id + "-" + rnd.nextInt()
+                            ));
+                        }
+                    }
+
                 }
             }
         }
@@ -237,6 +251,22 @@ public class UtTest extends UtilsTestCase {
         }
         //
         return null;
+    }
+
+    int getLastRandomFieldNo(IJdxTableStruct table) {
+        String lastFieldName = null;
+        //
+        for (IJdxFieldStruct field : table.getFields()) {
+            if (field.getName().startsWith("TEST_FIELD_")) {
+                lastFieldName = field.getName();
+            }
+        }
+        //
+        if (lastFieldName == null) {
+            return 0;
+        } else {
+            return Integer.valueOf(lastFieldName.split("_")[2]);
+        }
     }
 
     private long getDbSeed() throws Exception {

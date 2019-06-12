@@ -213,9 +213,9 @@ public class JdxReplWs {
         IJdxDbStruct structDiffCommon = new JdxDbStruct();
         IJdxDbStruct structDiffNew = new JdxDbStruct();
         IJdxDbStruct structDiffRemoved = new JdxDbStruct();
-        // todo UtDbComparer.dbStructIsEqualTables !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        boolean equal_Actual_Allowed = UtDbComparer.dbStructIsEqual(structActual, structAllowed);
-        boolean equal_Actual_Fixed = UtDbComparer.dbStructDiff(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
+        //
+        boolean equal_Actual_Allowed = UtDbComparer.dbStructIsEqualTables(structActual, structAllowed);
+        boolean equal_Actual_Fixed = UtDbComparer.dbStructDiffTables(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
 
         // Нет необходимости в фиксации структуры -
         // все структуры совпадают

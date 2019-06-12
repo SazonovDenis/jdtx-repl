@@ -358,16 +358,28 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
     /**
-     * Прогон полного цикла смены структуры БД
+     * Инициализация и прогон полного цикла смены структуры БД
      */
     @Test
-    public void test_modifyDbStruct_init() throws Exception {
+    public void test_init_modifyDbStruct() throws Exception {
         all_setUp();
         sync_http();
         sync_http();
         doModifyDbStruct();
     }
 
+    /**
+     * Инициализация и прогон полного цикла смены структуры БД, ТРИ РАЗА
+     */
+    @Test
+    public void test_init_modifyDbStruct_3() throws Exception {
+        all_setUp();
+        sync_http();
+        sync_http();
+        doModifyDbStruct();
+        doModifyDbStruct();
+        doModifyDbStruct();
+    }
 
     /**
      * Прогон полного цикла смены структуры БД
@@ -689,7 +701,9 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         //
         String randomTableName = utTest.getFirstRandomTable();
         if (randomTableName != null) {
-            utTest.changeDbStruct_DropRandomField(randomTableName);
+            utTest.changeDbStruct_DropFirstRandomField(randomTableName);
+            utTest.changeDbStruct_AddRandomField(randomTableName);
+            utTest.changeDbStruct_AddRandomField(randomTableName);
         }
         //
         utTest.changeDbStruct_AddRandomTable();
