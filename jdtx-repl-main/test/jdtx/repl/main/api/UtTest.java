@@ -31,7 +31,7 @@ public class UtTest extends UtilsTestCase {
         svr.save().toFile(outFileName);
     }
 
-    public void changeDbStruct(String tableName) throws Exception {
+    public void changeDbStruct_AddRandomField(String tableName) throws Exception {
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         IJdxDbStruct struct = reader.readDbStruct();
@@ -39,12 +39,31 @@ public class UtTest extends UtilsTestCase {
         db.execSql("alter table " + tableName + " add " + fieldName + " varchar(200)");
     }
 
-    public void changeDbStructAddTable(String tableName) throws Exception {
-        String sql = "create table " + tableName + " (id integer not null, name varchar(200))";
-        db.execSql(sql);
+    public void changeDbStruct_DropRandomField(String tableName) throws Exception {
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(db);
+        IJdxDbStruct struct = reader.readDbStruct();
+        IJdxTableStruct table = struct.getTable(tableName);
+        for (IJdxFieldStruct field : table.getFields()) {
+            if (field.getName().startsWith("TEST_FIELD_")) {
+                String fieldName = field.getName();
+                db.execSql("alter table " + tableName + " drop column " + fieldName);
+                break;
+            }
+        }
     }
 
-    public void changeDbStructDropTable(String tableName) throws Exception {
+    public void changeDbStruct_DropLastField(String tableName) throws Exception {
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(db);
+        IJdxDbStruct struct = reader.readDbStruct();
+        IJdxTableStruct table = struct.getTable(tableName);
+        IJdxFieldStruct field = table.getFields().get(table.getFields().size() - 1);
+        String fieldName = field.getName();
+        db.execSql("alter table " + tableName + " drop " + fieldName);
+    }
+
+    public void changeDbStruct_DropTable(String tableName) throws Exception {
         String sql = "drop table " + tableName;
         try {
             db.execSql(sql);
@@ -55,7 +74,7 @@ public class UtTest extends UtilsTestCase {
         }
     }
 
-    public void changeDbStructAddRandomTable() throws Exception {
+    public void changeDbStruct_AddRandomTable() throws Exception {
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         IJdxDbStruct struct = reader.readDbStruct();
@@ -204,6 +223,20 @@ public class UtTest extends UtilsTestCase {
             }
         }
 
+    }
+
+    String getFirstRandomTable() throws Exception {
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(db);
+        IJdxDbStruct struct = reader.readDbStruct();
+        //
+        for (IJdxTableStruct t : struct.getTables()) {
+            if (t.getName().startsWith("TEST_TABLE_")) {
+                return t.getName();
+            }
+        }
+        //
+        return null;
     }
 
     private long getDbSeed() throws Exception {
