@@ -19,7 +19,7 @@ public class UtDbComparer_Test {
         IJdxDbStruct structFixed = dbStruct_XmlRW.read("test/jdtx/repl/main/api/JdxUtils_Test.structFixed.xml");
 
         //
-        UtDbComparer.dbStructIsEqual(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
+        UtDbComparer.dbStructDiff(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
 
         //
         System.out.println("=== structDiffNew");
@@ -34,9 +34,9 @@ public class UtDbComparer_Test {
 
 
         //
-        ^c сравнение dbStructIsEqual дает ложную разницу в составе таблиц
+        //^c сравнение dbStructIsEqual дает ложную разницу в составе таблиц
         System.out.println();
-        UtDbComparer.dbStructIsEqualTables(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
+        //UtDbComparer.dbStructIsEqualTables(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
 
         //
         System.out.println("=== structDiffNew");

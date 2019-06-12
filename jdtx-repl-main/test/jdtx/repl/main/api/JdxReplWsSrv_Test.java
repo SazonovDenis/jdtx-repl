@@ -93,9 +93,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ws3.init(json_ws);
 
         //
-        ws.dbStructUpdate();
-        ws2.dbStructUpdate();
-        ws3.dbStructUpdate();
+        ws.dbStructApplyFixed();
+        ws2.dbStructApplyFixed();
+        ws3.dbStructApplyFixed();
     }
 
     @Test

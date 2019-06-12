@@ -138,7 +138,7 @@ public class JdxReplWs {
         IJdxDbStruct structDiffCommon = new JdxDbStruct();
         IJdxDbStruct structDiffNew = new JdxDbStruct();
         IJdxDbStruct structDiffRemoved = new JdxDbStruct();
-        UtDbComparer.dbStructIsEqual(structActual, publicationOut.getData(), structDiffCommon, structDiffNew, structDiffRemoved);
+        UtDbComparer.dbStructDiff(structActual, publicationOut.getData(), structDiffCommon, structDiffNew, structDiffRemoved);
         struct = structDiffCommon;
         structFull = structActual;
 */
@@ -193,8 +193,15 @@ public class JdxReplWs {
         log.info("createReplicaTableSnapshot, wsId: " + wsId + ", done");
     }
 
-    public boolean dbStructUpdate() throws Exception {
-        log.info("dbStructUpdate, checking");
+    /**
+     * Выполнение фиксации структуры:
+     * - дополнение аудита
+     * - "реальная" структура запоминается как "зафиксированная"
+     *
+     * @return true, если структуры были обновлены или не требуют обновления.
+     */
+    public boolean dbStructApplyFixed() throws Exception {
+        log.info("dbStructApplyFixed, checking");
 
         // Читаем структуры
         IJdxDbStruct structActual = struct;
@@ -202,106 +209,108 @@ public class JdxReplWs {
         IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
         IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
 
-        //
+        // Сравниваем
         IJdxDbStruct structDiffCommon = new JdxDbStruct();
         IJdxDbStruct structDiffNew = new JdxDbStruct();
         IJdxDbStruct structDiffRemoved = new JdxDbStruct();
+        // todo UtDbComparer.dbStructIsEqualTables !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        boolean equal_Actual_Allowed = UtDbComparer.dbStructIsEqual(structActual, structAllowed);
+        boolean equal_Actual_Fixed = UtDbComparer.dbStructDiff(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
 
-        // Реальная отличается от зафиксированной?
-        if (!UtDbComparer.dbStructIsEqualTables(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved)) {
-            log.info("dbStructUpdate, structActual <> structFixed");
+        // Нет необходимости в фиксации структуры -
+        // все структуры совпадают
+        if (equal_Actual_Allowed && equal_Actual_Fixed) {
+            log.info("dbStructApplyFixed, no diff found, Actual == Allowed == Fixed");
+            //
+            return true;
+        }
 
-            // Реальная совпадет с утвержденной?
-            if (UtDbComparer.dbStructIsEqual(structActual, structAllowed)) {
-                log.info("dbStructUpdate, structActual == structAllowed");
+        // Нет возможности фиксации структуры -
+        // реальная не совпадает с разрешенной
+        if (!equal_Actual_Allowed) {
+            log.warn("dbStructApplyFixed, Actual <> Allowed");
+            //
+            return false;
+        }
 
-                // Подгоняем структуру аудита под реальную структуру
-                db.startTran();
-                try {
-                    //
-                    UtDbObjectManager objectManager = new UtDbObjectManager(db, structActual);
+        // Начинаем фиксацию структуры -
+        // реальная совпадает с разрешенной, но отличается от зафиксированной
+        log.info("dbStructApplyFixed, start");
 
-                    //
-                    long n;
+        // Подгоняем структуру аудита под реальную структуру
+        db.startTran();
+        try {
+            //
+            UtDbObjectManager objectManager = new UtDbObjectManager(db, structActual);
 
-                    // Удаляем аудит
-                    ArrayList<IJdxTableStruct> tablesRemoved = structDiffRemoved.getTables();
-                    n = 0;
-                    for (IJdxTableStruct table : tablesRemoved) {
-                        n++;
-                        log.debug("  dropAudit " + n + "/" + tablesRemoved.size() + " " + table.getName());
-                        //
-                        objectManager.dropAuditTable(table.getName());
-                    }
+            //
+            long n;
 
-                    // Обеспечиваем порядок сортировки таблиц с учетом foreign key (при выгрузке snapsot это важно)
-                    List<IJdxTableStruct> tablesNew = JdxUtils.sortTables(structDiffNew.getTables());
+            // Удаляем аудит
+            ArrayList<IJdxTableStruct> tablesRemoved = structDiffRemoved.getTables();
+            n = 0;
+            for (IJdxTableStruct table : tablesRemoved) {
+                n++;
+                log.debug("  dropAudit " + n + "/" + tablesRemoved.size() + " " + table.getName());
+                //
+                objectManager.dropAuditTable(table.getName());
+            }
 
-                    // Создаем аудит
-                    n = 0;
-                    for (IJdxTableStruct table : tablesNew) {
-                        n++;
-                        log.debug("  createAudit " + n + "/" + tablesNew.size() + " " + table.getName());
+            // Обеспечиваем порядок сортировки таблиц с учетом foreign key (при выгрузке snapsot это важно)
+            List<IJdxTableStruct> tablesNew = JdxUtils.sortTables(structDiffNew.getTables());
 
-                        //
-                        if (UtRepl.tableSkipRepl(table)) {
-                            log.debug("  createAudit, skip not found in tableSkipRepl, table: " + table.getName());
-                            continue;
-                        }
-
-                        // Создание аудита
-                        objectManager.createAuditTable(table);
-
-                        // создание тригеров на изменение
-                        objectManager.createAuditTriggers(table);
-                    }
-
-
-                    // Выгрузка snapshot
-                    n = 0;
-                    for (IJdxTableStruct table : tablesNew) {
-                        n++;
-                        log.debug("  createSnapshot " + n + "/" + tablesNew.size() + " " + table.getName());
-
-                        //
-                        if (UtRepl.tableSkipRepl(table)) {
-                            log.debug("  createSnapshot, skip not found in tableSkipRepl, table: " + table.getName());
-                            continue;
-                        }
-
-                        // Создание snapshot-реплики
-                        createTableSnapshotReplica(table.getName());
-                    }
-
-
-                    // Запоминаем текущую структуру БД как "фиксированную" структуру
-                    dbStructRW.dbStructSaveFixed(structActual);
-
-
-                    //
-                    db.commit();
-
-                    //
-                    log.info("dbStructUpdate, complete");
-
-                    //
-                    return true;
-                } catch (Exception e) {
-                    db.rollback(e);
-                    throw e;
-                }
-
-            } else {
-                log.info("dbStructUpdate, structActual <> structAllowed");
+            // Создаем аудит
+            n = 0;
+            for (IJdxTableStruct table : tablesNew) {
+                n++;
+                log.debug("  createAudit " + n + "/" + tablesNew.size() + " " + table.getName());
 
                 //
-                return false;
+                if (UtRepl.tableSkipRepl(table)) {
+                    log.debug("  createAudit, skip not found in tableSkipRepl, table: " + table.getName());
+                    continue;
+                }
+
+                // Создание аудита
+                objectManager.createAuditTable(table);
+
+                // создание тригеров на изменение
+                objectManager.createAuditTriggers(table);
             }
-        } else {
-            log.info("dbStructUpdate, no diff found");
+
+
+            // Выгрузка snapshot
+            n = 0;
+            for (IJdxTableStruct table : tablesNew) {
+                n++;
+                log.debug("  createSnapshot " + n + "/" + tablesNew.size() + " " + table.getName());
+
+                //
+                if (UtRepl.tableSkipRepl(table)) {
+                    log.debug("  createSnapshot, skip not found in tableSkipRepl, table: " + table.getName());
+                    continue;
+                }
+
+                // Создание snapshot-реплики
+                createTableSnapshotReplica(table.getName());
+            }
+
+
+            // Запоминаем текущую структуру БД как "фиксированную" структуру
+            dbStructRW.dbStructSaveFixed(structActual);
+
+
+            //
+            db.commit();
+
+            //
+            log.info("dbStructApplyFixed, complete");
 
             //
             return true;
+        } catch (Exception e) {
+            db.rollback(e);
+            throw e;
         }
     }
 
@@ -324,7 +333,7 @@ public class JdxReplWs {
             return;
         }
 
-        // Проверяем совпадает ли реальная структура БД с утвержденной структурой
+        // Проверяем совпадает ли реальная структура БД с разрешенной структурой
         IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
         if (!UtDbComparer.dbStructIsEqual(struct, structAllowed)) {
             log.warn("handleSelfAudit, database structActual <> structAllowed");
@@ -397,10 +406,9 @@ public class JdxReplWs {
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         JdxMuteManagerWs muteManager = new JdxMuteManagerWs(db);
 
-        // Проверяем совпадает ли реальная структура БД с утвержденной структурой
+        // Проверяем совпадает ли реальная структура БД с разрешенной структурой
         boolean dbStructIsEqual = true;
         IJdxDbStruct dbStructAllowed = dbStructRW.getDbStructAllowed();
-        String dbStructAllowedCrc = UtDbComparer.calcDbStructCrc(struct);
         if (!UtDbComparer.dbStructIsEqual(struct, dbStructAllowed)) {
             dbStructIsEqual = false;
         }
@@ -463,9 +471,10 @@ public class JdxReplWs {
                     }
 
                     // Проверяем структуры и пересоздаем аудит
-                    if (!dbStructUpdate()) {
-                        // Если пересоздать аудит не удалось (структуры не готови или по иным причинам) - не метим реплтику как использованную
-                        log.warn("handleQueIn, dbStructUpdate <> true");
+                    if (!dbStructApplyFixed()) {
+                        // Если пересоздать аудит не удалось (структуры не обновлены или по иным причинам),
+                        // то не метим реплтику как использованную
+                        log.warn("handleQueIn, dbStructApplyFixed <> true");
                         replicaUsed = false;
                         break;
                     }
@@ -478,7 +487,7 @@ public class JdxReplWs {
                 }
                 case JdxReplicaType.IDE:
                 case JdxReplicaType.SNAPSHOT: {
-                    // Реальная структура базы НЕ совпадает с утвержденной структурой
+                    // Реальная структура базы НЕ совпадает с разрешенной структурой
                     if (!dbStructIsEqual) {
                         log.warn("handleQueIn, structActual <> structAllowed");
                         replicaUsed = false;
@@ -493,8 +502,9 @@ public class JdxReplWs {
                     // Реальная структура базы НЕ совпадает со структурой, с которой была подготовлена реплика
                     JdxReplicaReaderXml.readReplicaInfo(replica);
                     String replicaStructCrc = replica.getInfo().getDbStructCrc();
-                    if (replicaStructCrc.compareToIgnoreCase(dbStructAllowedCrc) != 0) {
-                        log.error("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructAllowedCrc + ", actual: " + replicaStructCrc);
+                    String dbStructActualCrc = UtDbComparer.calcDbStructCrc(struct);
+                    if (replicaStructCrc.compareToIgnoreCase(dbStructActualCrc) != 0) {
+                        log.error("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
                         return;
                     }
 

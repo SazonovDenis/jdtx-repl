@@ -33,7 +33,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ===
-        // Проверяем, что утвержденная, фиксированная и реальная структуры совпадают на ws1, ws2 и ws3
+        // Проверяем, что разрешенная, фиксированная и реальная структуры совпадают на ws1, ws2 и ws3
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db);
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db2);
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db3);
@@ -141,7 +141,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ===
-        // Проверяем, что утвержденная, фиксированная и реальная структуры совпадают на ws1 и ws2
+        // Проверяем, что разрешенная, фиксированная и реальная структуры совпадают на ws1 и ws2
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db);
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db2);
         //
@@ -169,7 +169,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         dbStructRW.dbStructSaveAllowed(structActual_ws1);
 
         // Делаем фиксацию структуры
-        ws.dbStructUpdate();
+        ws.dbStructApplyFixed();
 
         // Проверяем, что фиксация прошла нормально
         ws = new JdxReplWs(db);
@@ -224,7 +224,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         dbStructRW_ws2.dbStructSaveAllowed(structActual_ws1);
 
         // Делаем фиксацию структуры
-        ws2.dbStructUpdate();
+        ws2.dbStructApplyFixed();
 
         // Проверяем, что фиксация прошла нормально
         ws2 = new JdxReplWs(db2);
@@ -264,7 +264,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      * Проверка пограничных состояний:
      * Станция не формирует реплики при несовпадении структур:
      * - если "реальная" структура не совпадет с "зафиксированной";
-     * - если "реальная" структура не совпадет с "утвержденной".
+     * - если "реальная" структура не совпадет с "разрешенной".
      */
     @Test
     public void test_No_HandleSelfAudit() throws Exception {
@@ -282,7 +282,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ===
-        // Проверяем, что утвержденная, фиксированная и реальная структуры совпадают на ws1
+        // Проверяем, что разрешенная, фиксированная и реальная структуры совпадают на ws1
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db);
 
 
@@ -306,7 +306,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws = new JdxReplWs(db);
         ws.init(json_ws);
         //
-        ws.dbStructUpdate();
+        ws.dbStructApplyFixed();
 
         // Проверяем, что фиксация не удается
         ws = new JdxReplWs(db);
@@ -333,7 +333,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Пытаемся сделать фиксацию структуры
-        ws.dbStructUpdate();
+        ws.dbStructApplyFixed();
 
         // Проверяем, что фиксация прошла нормально
         ws = new JdxReplWs(db);
@@ -380,7 +380,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ===
-        // Проверяем, что утвержденная, фиксированная и реальная структуры совпадают на ws1, ws2 и ws3
+        // Проверяем, что разрешенная, фиксированная и реальная структуры совпадают на ws1, ws2 и ws3
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db);
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db2);
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db3);
@@ -471,7 +471,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
         UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        // Только сервер изменил структуру и перестал молчать
+        // Только сервер изменил структуру и перестал молчать, а станции еще не смогли сделать SET_DB_STRUCT
         assertEquals(1, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
 
 

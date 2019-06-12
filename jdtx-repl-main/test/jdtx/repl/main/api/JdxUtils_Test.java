@@ -50,6 +50,9 @@ public class JdxUtils_Test {
         System.out.println("md5, JdxUtils.getMd5File: " + JdxUtils.getMd5File(f));
     }
 
+    /**
+     * Проверяет проблему, ныне устраненную - некорректная сортировка при разрыве в разреженном списке таблиц
+     */
     @Test
     public void test_sort_infinite() throws Exception {
         //
@@ -66,7 +69,7 @@ public class JdxUtils_Test {
         JdxUtils.sortTables(structFixed.getTables());
 
         //
-        UtDbComparer.dbStructIsEqual(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
+        UtDbComparer.dbStructDiff(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
 
         //
         System.out.println("=== structDiffNew");

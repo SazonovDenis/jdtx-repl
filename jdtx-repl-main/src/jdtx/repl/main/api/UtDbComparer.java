@@ -3,8 +3,6 @@ package jdtx.repl.main.api;
 import jandcode.utils.*;
 import jdtx.repl.main.api.struct.*;
 
-import java.util.*;
-
 
 // todo: сделать и  проверить сравнение BLOB
 public class UtDbComparer {
@@ -12,9 +10,9 @@ public class UtDbComparer {
 
     public static boolean dbStructIsEqual(IJdxDbStruct struct1, IJdxDbStruct struct2) throws Exception {
         IJdxDbStruct structDiff0 = new JdxDbStruct();
-        IJdxDbStruct structDiff1 = new JdxDbStruct();
-        IJdxDbStruct structDiff2 = new JdxDbStruct();
-        return UtDbComparer.dbStructIsEqual(struct1, struct2, structDiff0, structDiff1, structDiff2);
+        IJdxDbStruct structDiffNewIn1 = new JdxDbStruct();
+        IJdxDbStruct structDiffNewIn2 = new JdxDbStruct();
+        return UtDbComparer.dbStructDiff(struct1, struct2, structDiff0, structDiffNewIn1, structDiffNewIn2);
     }
 
     /**
@@ -27,7 +25,7 @@ public class UtDbComparer {
      * @param structCommon     возвращает общие объекты в обеих БД
      * @return =true, если структуры БД одинаковые, иначе в structDiff*** возвращается разница
      */
-    public static boolean dbStructIsEqual(IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct structCommon, IJdxDbStruct structDiffNewIn1, IJdxDbStruct structDiffNewIn2) throws Exception {
+    public static boolean dbStructDiff(IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct structCommon, IJdxDbStruct structDiffNewIn1, IJdxDbStruct structDiffNewIn2) throws Exception {
         // сравниваем таблицы из первой базы с таблицами со второй базы
         // таблицы первой базы
         for (IJdxTableStruct t1 : struct1.getTables()) {
@@ -113,7 +111,6 @@ public class UtDbComparer {
         } else {
             return false;
         }
-
     }
 
     private static boolean compareField(IJdxFieldStruct f1, IJdxFieldStruct f2) {
