@@ -237,6 +237,10 @@ public class JdxReplWs {
         // реальная совпадает с разрешенной, но отличается от зафиксированной
         log.info("dbStructApplyFixed, start");
 
+        // Обеспечиваем порядок сортировки таблиц с учетом foreign key (при выгрузке snapsot это важно)
+        List<IJdxTableStruct> tablesNew = JdxUtils.sortTables(structDiffNew.getTables());
+
+
         // Подгоняем структуру аудита под реальную структуру
         db.startTran();
         try {
@@ -246,7 +250,7 @@ public class JdxReplWs {
             //
             long n;
 
-            // Удаляем аудит
+            // Удаляем аудит для удаленных таблиц
             ArrayList<IJdxTableStruct> tablesRemoved = structDiffRemoved.getTables();
             n = 0;
             for (IJdxTableStruct table : tablesRemoved) {
@@ -256,10 +260,7 @@ public class JdxReplWs {
                 objectManager.dropAuditTable(table.getName());
             }
 
-            // Обеспечиваем порядок сортировки таблиц с учетом foreign key (при выгрузке snapsot это важно)
-            List<IJdxTableStruct> tablesNew = JdxUtils.sortTables(structDiffNew.getTables());
-
-            // Создаем аудит
+            // Создаем аудит для новых таблиц
             n = 0;
             for (IJdxTableStruct table : tablesNew) {
                 n++;
@@ -278,9 +279,22 @@ public class JdxReplWs {
                 objectManager.createAuditTriggers(table);
             }
 
+            //
+            db.commit();
+        } catch (Exception e) {
+            db.rollback(e);
+            throw e;
+        }
 
-            // Выгрузка snapshot
-            n = 0;
+
+        // Делаем выгрузку snapshot, обязательно в ОТДЕЛЬНОЙ транзакции.
+        // В некоторых СУБД (напр. Firebird) изменение структуры происходит ВНУТРИ транзакций,
+        // тогда получится, что пока делается snapshot, аудит - не работает.
+        // Таким образом данные вводимые в момент подготовки аудита и snapshot не попадут ни в аудит, ни в snapshot.
+        db.startTran();
+        try {
+            //
+            long n = 0;
             for (IJdxTableStruct table : tablesNew) {
                 n++;
                 log.debug("  createSnapshot " + n + "/" + tablesNew.size() + " " + table.getName());
@@ -299,19 +313,20 @@ public class JdxReplWs {
             // Запоминаем текущую структуру БД как "фиксированную" структуру
             dbStructRW.dbStructSaveFixed(structActual);
 
-
             //
             db.commit();
 
-            //
-            log.info("dbStructApplyFixed, complete");
-
-            //
-            return true;
         } catch (Exception e) {
             db.rollback(e);
             throw e;
         }
+
+
+        //
+        log.info("dbStructApplyFixed, complete");
+
+        //
+        return true;
     }
 
 
