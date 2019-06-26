@@ -1,7 +1,7 @@
 @echo off
 
 rem служба
-call jc repl-service-remove
+call jc repl-service-remove -csc
 
 
 rem рабочая станция
