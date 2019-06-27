@@ -15,9 +15,6 @@ public class UtSetup extends ProjectExt {
     App app;
 
     public void gen(String inFileName, String outDirName) throws Exception {
-        //System.out.println(inFileName + " -> " + outDirName);
-
-        //
         RandomString rnd = new RandomString();
         Map args_srv = new HashMap();
 

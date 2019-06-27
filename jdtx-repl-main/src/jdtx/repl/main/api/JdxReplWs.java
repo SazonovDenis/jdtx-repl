@@ -391,10 +391,10 @@ public class JdxReplWs {
             }
 
             //
-            if (auditAgeFrom == auditAgeTo) {
-                log.info("handleSelfAudit, wsId: " + wsId + ", audit.age: " + auditAgeFrom + ", nothing to do");
+            if (auditAgeFrom <= auditAgeTo) {
+                log.info("handleSelfAudit, wsId: " + wsId + ", audit.age: " + auditAgeFrom + " .. " + auditAgeTo + ", done count: " + count);
             } else {
-                log.info("handleSelfAudit, wsId: " + wsId + ", audit.age: " + auditAgeFrom + " -> " + auditAgeTo + ", done count: " + count);
+                log.info("handleSelfAudit, wsId: " + wsId + ", audit.age: " + auditAgeFrom + ", nothing to do");
             }
 
 
@@ -568,10 +568,10 @@ public class JdxReplWs {
         }
 
         //
-        if (queInNoDone == queInNoAvailable) {
-            log.info("handleQueIn, self.wsId: " + wsId + ", queIn: " + queInNoDone + ", nothing to do");
+        if (queInNoDone <= queInNoAvailable) {
+            log.info("handleQueIn, self.wsId: " + wsId + ", queIn: " + queInNoDone + " .. " + queInNoAvailable + ", done count: " + count);
         } else {
-            log.info("handleQueIn, self.wsId: " + wsId + ", queIn: " + queInNoDone + " -> " + queInNoAvailable + ", done count: " + count);
+            log.info("handleQueIn, self.wsId: " + wsId + ", queIn: " + queInNoDone + ", nothing to do");
         }
     }
 
@@ -715,10 +715,10 @@ public class JdxReplWs {
 
 
         //
-        if (selfReceivedNo == srvAvailableNo) {
-            log.info("UtMailer, wsId: " + wsId + ", receive.no: " + selfReceivedNo + ", nothing to receive");
+        if (selfReceivedNo <= srvAvailableNo) {
+            log.info("UtMailer, wsId: " + wsId + ", receive.no: " + selfReceivedNo + " .. " + srvAvailableNo + ", done count: " + count);
         } else {
-            log.info("UtMailer, wsId: " + wsId + ", receive.no: " + selfReceivedNo + " -> " + srvAvailableNo + ", done count: " + count);
+            log.info("UtMailer, wsId: " + wsId + ", receive.no: " + selfReceivedNo + ", nothing to receive");
         }
     }
 
@@ -807,10 +807,10 @@ public class JdxReplWs {
         mailer.setWsInfo(info);
 
         //
-        if (age_from == age_to) {
-            log.info("UtMailer, wsId: " + wsId + ", send.age: " + age_from + ", nothing to send");
+        if (age_from <= age_to) {
+            log.info("UtMailer, wsId: " + wsId + ", send.age: " + age_from + " .. " + age_to + ", done count: " + count);
         } else {
-            log.info("UtMailer, wsId: " + wsId + ", send.age: " + age_from + " -> " + age_to + ", done count: " + count);
+            log.info("UtMailer, wsId: " + wsId + ", send.age: " + age_from + ", nothing to send");
         }
     }
 

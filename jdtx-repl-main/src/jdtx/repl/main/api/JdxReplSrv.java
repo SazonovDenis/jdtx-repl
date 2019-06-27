@@ -294,10 +294,10 @@ public class JdxReplSrv {
 
 
                 //
-                if (queDoneAge == queMaxAge) {
-                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.age: " + queDoneAge + ", nothing done");
+                if (queDoneAge <= queMaxAge) {
+                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.age: " + queDoneAge + " .. " + queMaxAge + ", done count: " + count);
                 } else {
-                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.age: " + queDoneAge + " -> " + queMaxAge + ", done count: " + count);
+                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.age: " + queDoneAge + ", nothing done");
                 }
 
             } catch (Exception e) {
@@ -365,10 +365,10 @@ public class JdxReplSrv {
                 mailer.setSrvInfo(info);
 
                 //
-                if (no_from_ws == no_to_ws) {
-                    log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + no_from_ws + ", nothing done");
+                if (no_from_ws <= no_to_ws) {
+                    log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + no_from_ws + " .. " + no_to_ws + ", done count: " + count);
                 } else {
-                    log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + no_from_ws + " -> " + no_to_ws + ", done count: " + count);
+                    log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + no_from_ws + ", nothing done");
                 }
 
             } catch (Exception e) {
