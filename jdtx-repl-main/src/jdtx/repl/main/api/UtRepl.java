@@ -61,7 +61,7 @@ public class UtRepl {
         UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
 
         // Для начала "разрешенная" структура будет пустая
-        IJdxDbStruct structAllowed= new JdxDbStruct();
+        IJdxDbStruct structAllowed = new JdxDbStruct();
         dbStructRW.dbStructSaveAllowed(structAllowed);
 
         // Для начала "фиксированная" структура будет пустая
@@ -221,16 +221,12 @@ public class UtRepl {
                 long toId = (long) autitInfoTable.get("z_id_to");
 
                 //
-                if (toId >= fromId) {
-                    log.info("createReplicaFromAudit: " + publicationTable.getName() + ", age: " + age + ", z_id: [" + fromId + ".." + toId + "], audit recs: " + (toId - fromId + 1));
-                    //
-                    String publicationFields = Publication.filedsToString(publicationTable.getFields());
-                    utrr.readAuditData_ById(publicationTable.getName(), publicationFields, fromId, toId, writerXml);
-                }
+                log.info("createReplicaFromAudit: " + publicationTable.getName() + ", age: " + age + ", z_id: [" + fromId + ".." + toId + "]");
+
+                //
+                String publicationFields = Publication.filedsToString(publicationTable.getFields());
+                utrr.readAuditData_ById(publicationTable.getName(), publicationFields, fromId, toId, writerXml);
             }
-
-            //}
-
         }
 
         //

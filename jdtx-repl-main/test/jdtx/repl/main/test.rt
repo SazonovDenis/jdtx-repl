@@ -4,4 +4,8 @@
     <x-include module="jdtx.repl.main"/>
     <x-include path="#{pathprop:wax.approot}/test.rt"/>
 
+    <dbm>
+        <registermodel name="db_test" model="jdtx.repl.main"/>
+    </dbm>
+
 </root>

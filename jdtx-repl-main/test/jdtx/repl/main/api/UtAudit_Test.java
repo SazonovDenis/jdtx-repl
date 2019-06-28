@@ -32,15 +32,18 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
     }
 
+
     @Test
-    public void test_1() throws Exception {
+    public void test_loadAutitIntervals_0() throws Exception {
+        logOn();
+
+        //
         long wsId = 2;
         UtAuditSelector utrr = new UtAuditSelector(db2, struct2, wsId);
 
         // Загружаем правила публикации
         IPublication publication = new Publication();
         Reader r = new FileReader("test/etalon/publication_full.json");
-        //Reader r = new FileReader("test/etalon/pub_full.json");
         try {
             publication.loadRules(r, struct);
         } finally {
@@ -48,12 +51,34 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         }
 
         //
-        Map m = utrr.loadAutitIntervals(publication, 8);
+        long age;
+        Map m;
+
+        // ---
+        age = 1;
 
         //
+        m = utrr.loadAutitIntervals(publication, age);
+
+        //
+        System.out.println("age: " + age);
         System.out.println(m);
         System.out.println("z_opr_dttm_from: " + m.get("z_opr_dttm_from"));
         System.out.println("z_opr_dttm_to  : " + m.get("z_opr_dttm_to"));
+        System.out.println("");
+
+        // ---
+        age = 8;
+
+        //
+        m = utrr.loadAutitIntervals(publication, age);
+
+        //
+        System.out.println("age: " + age);
+        System.out.println(m);
+        System.out.println("z_opr_dttm_from: " + m.get("z_opr_dttm_from"));
+        System.out.println("z_opr_dttm_to  : " + m.get("z_opr_dttm_to"));
+        System.out.println("");
     }
 
     @Test

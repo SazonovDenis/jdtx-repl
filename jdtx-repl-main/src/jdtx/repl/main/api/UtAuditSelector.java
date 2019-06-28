@@ -275,7 +275,7 @@ public class UtAuditSelector {
 
     /**
      * Извлекает мин и макс z_id аудита для каждой таблицы,
-     * а также общий временной интервал изменений в аудите
+     * а также общий период возникновения изменений в таблице.
      */
     public Map loadAutitIntervals(IPublication publication, long age) throws Exception {
         Map auditInfo = new HashMap<>();
@@ -283,7 +283,6 @@ public class UtAuditSelector {
         DateTime dtFrom = null;
         DateTime dtTo = null;
 
-        //JSONArray publicationData = publication.getData().getTables();
         for (IJdxTableStruct table : publication.getData().getTables()) {
 /*
             String stuctTableName = table.getName();
@@ -304,24 +303,47 @@ public class UtAuditSelector {
             //utrr.readAuditData(stuctTableName, publicationFields, age - 1, age, writerXml);
             //
             String sql = "select\n" +
-                    "  z_z_age_last.table_name,\n" +
+                    "  --z_z_age_last.table_name,\n" +
                     "  z_z_age_prior.age age_prior,\n" +
-                    "  z_z_age_last.age,\n" +
-                    "  z_region_prior.z_id z_id_from,\n" +
-                    "  z_region_last.z_id z_id_to,\n" +
-                    "  z_region_prior.z_opr_dttm opr_dttm_from,\n" +
-                    "  z_region_last.z_opr_dttm opr_dttm_to,\n" +
+                    "  z_z_age_last.age age_last,\n" +
+                    "  max(z_prior.z_id) z_id_from,\n" +
+                    "  z_last.z_id z_id_to,\n" +
+                    "  max(z_prior.z_opr_dttm) opr_dttm_from,\n" +
+                    "  z_last.z_opr_dttm opr_dttm_to,\n" +
                     "  --z_z_age_last.dt,\n" +
                     "  --z_z_age_prior.dt dt_prior,\n" +
                     "  1 as x\n" +
                     "from\n" +
-                    "  z_z_age z_z_age_prior, z_z_age z_z_age_last, z_" + table.getName() + " z_region_prior, z_" + table.getName() + " z_region_last\n" +
+                    "  z_z_age z_z_age_last\n" +
+                    "  join z_z_age z_z_age_prior on (z_z_age_prior.table_name = '" + table.getName() + "' and z_z_age_prior.age = " + (age - 1) + ")\n" +
+                    "  left join z_" + table.getName() + " z_prior on (z_z_age_prior.z_id >= z_prior.z_id)\n" +
+                    "  left join z_" + table.getName() + " z_last on (z_z_age_last.z_id = z_last.z_id)\n" +
+                    "where\n" +
+                    "  z_z_age_last.age = " + age + " and\n" +
+                    "  z_z_age_last.table_name = '" + table.getName() + "' and\n" +
+                    "  1=1\n" +
+                    "group by\n" +
+                    "  1,2,4,6";
+
+            String sql_old = "select\n" +
+                    "  z_z_age_last.table_name,\n" +
+                    "  z_z_age_prior.age age_prior,\n" +
+                    "  z_z_age_last.age,\n" +
+                    "  z_data_prior.z_id z_id_from,\n" +
+                    "  z_data_last.z_id z_id_to,\n" +
+                    "  z_data_prior.z_opr_dttm opr_dttm_from,\n" +
+                    "  z_data_last.z_opr_dttm opr_dttm_to,\n" +
+                    "  --z_z_age_last.dt,\n" +
+                    "  --z_z_age_prior.dt dt_prior,\n" +
+                    "  1 as x\n" +
+                    "from\n" +
+                    "  z_z_age z_z_age_prior, z_z_age z_z_age_last, z_" + table.getName() + " z_data_prior, z_" + table.getName() + " z_data_last\n" +
                     "where\n" +
                     "  z_z_age_last.table_name = z_z_age_prior.table_name and\n" +
                     "  z_z_age_last.age = z_z_age_prior.age + 1 and\n" +
                     "  --\n" +
-                    "  z_z_age_prior.z_id + 1 = z_region_prior.z_id and\n" +
-                    "  z_z_age_last.z_id = z_region_last.z_id and\n" +
+                    "  z_z_age_prior.z_id + 1 = z_data_prior.z_id and\n" +
+                    "  z_z_age_last.z_id = z_data_last.z_id and\n" +
                     "  --\n" +
                     "  z_z_age_last.age = " + age + " and\n" +
                     "  z_z_age_last.table_name = '" + table.getName() + "' and\n" +
@@ -331,12 +353,23 @@ public class UtAuditSelector {
 
             //
             DataStore st = db.loadSql(sql);
+
+            // Аудит для для таблицы существует?
             if (st.size() == 0) {
                 continue;
             }
 
+            //
             DataRecord rec = st.get(0);
 
+            // Аудит для этого возраста пуст?
+            long z_id_from = rec.getValueLong("z_id_from") + 1;
+            long z_id_to = rec.getValueLong("z_id_to");
+            if (z_id_from > z_id_to) {
+                continue;
+            }
+
+            // Собираем мин и макс даты возникновения аудита
             if (dtFrom == null || dtFrom.compareTo(rec.getValueDateTime("opr_dttm_from")) > 0) {
                 dtFrom = rec.getValueDateTime("opr_dttm_from");
             }
@@ -344,13 +377,11 @@ public class UtAuditSelector {
                 dtTo = rec.getValueDateTime("opr_dttm_to");
             }
 
-            //
+            // Набираем выходные данные об аудите
             Map auditInfoTable = new HashMap<>();
-            auditInfoTable.put("z_id_from", rec.getValueLong("z_id_from"));
-            auditInfoTable.put("z_id_to", rec.getValueLong("z_id_to"));
+            auditInfoTable.put("z_id_from", z_id_from);
+            auditInfoTable.put("z_id_to", z_id_to);
             auditInfo.put(table.getName(), auditInfoTable);
-            //}
-
         }
 
         //
