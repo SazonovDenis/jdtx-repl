@@ -194,26 +194,7 @@ public class UtRepl {
 
 
         // Забираем аудит по порядку сортировки таблиц в struct
-        //JSONArray publicationData = publication.getData().getTables();
         for (IJdxTableStruct publicationTable : publication.getData().getTables()) {
-/*
-            String stuctTableName = table.getName();
-            JSONObject publicationTable = null;
-            boolean foundInPublication = false;
-            for (int i = 0; i < publicationData.size(); i++) {
-                publicationTable = (JSONObject) publicationData.get(i);
-                String publicationTableName = (String) publicationTable.get("table");
-                if (stuctTableName.compareToIgnoreCase(publicationTableName) == 0) {
-                    foundInPublication = true;
-                    break;
-                }
-            }
-*/
-
-            //
-            //if (foundInPublication) {
-            //utrr.readAuditData_old(stuctTableName, publicationFields, age - 1, age, writerXml);
-
             // Интервал id в таблице аудита, который покрывает возраст age
             Map autitInfoTable = (Map) auditInfo.get(publicationTable.getName());
             if (autitInfoTable != null) {
@@ -278,8 +259,6 @@ public class UtRepl {
     public IReplica createReplicaSetDbStruct() throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SET_DB_STRUCT);
-        //replica.setWsId(wsId);
-        //replica.setAge(age);
 
         // Открываем запись
         createOutput(replica);
@@ -298,8 +277,6 @@ public class UtRepl {
     public IReplica createReplicaUnmute() throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.UNMUTE);
-        //replica.setWsId(wsId);
-        //replica.setAge(age);
 
         // Открываем запись
         createOutput(replica);
@@ -317,8 +294,6 @@ public class UtRepl {
     public IReplica createReplicaMute() throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.MUTE);
-        //replica.setWsId(wsId);
-        //replica.setAge(age);
 
         // Открываем запись
         createOutput(replica);
