@@ -54,6 +54,7 @@ InternalCompressLevel=ultra
 
 DirExistsWarning=no
 
+PrivilegesRequired=lowest
 
 [Languages]
 Name: ru; MessagesFile: compiler:Languages\Russian.isl

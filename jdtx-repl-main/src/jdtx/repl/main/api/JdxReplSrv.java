@@ -203,6 +203,18 @@ public class JdxReplSrv {
     }
 
 
+    public void srvAppUpdate(String exeFileName) throws Exception {
+        log.info("srvAppUpdate");
+
+        //
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.createReplicaAppUpdate(exeFileName);
+
+        // Системная команда - в исходящую очередь реплик
+        commonQue.put(replica);
+    }
+
+
     /**
      * Сервер: считывание очередей рабочих станций и формирование общей очереди
      * <p>

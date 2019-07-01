@@ -140,7 +140,9 @@ public class JdxUtils {
                 replica.getInfo().getReplicaType() == JdxReplicaType.UNMUTE ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.UNMUTE_DONE ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SET_DB_STRUCT ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.SET_DB_STRUCT_DONE
+                replica.getInfo().getReplicaType() == JdxReplicaType.SET_DB_STRUCT_DONE ||
+                replica.getInfo().getReplicaType() == JdxReplicaType.UPDATE_APP ||
+                replica.getInfo().getReplicaType() == JdxReplicaType.UPDATE_APP_DONE
         ) {
             // Для системных команд мы не делаем других проверок
             return;

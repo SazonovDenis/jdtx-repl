@@ -14,7 +14,7 @@ import java.util.*;
 
 public class UtDbObjectManager {
 
-    int CURRENT_VER_DB = 0;
+    int CURRENT_VER_DB = 1;
 
     IJdxDbStruct struct;
     Db db;
@@ -62,7 +62,7 @@ public class UtDbObjectManager {
 
         // Обновляем версию
         int ver_i = ver;
-        long ver_to = CURRENT_VER_DB;
+        int ver_to = CURRENT_VER_DB;
         int ver_step_i = ver_step;
         while (ver_i < ver_to) {
             log.info("Смена версии: " + ver_i + "." + ver_step_i + " -> " + (ver_i + 1) + ".0");
@@ -75,6 +75,9 @@ public class UtDbObjectManager {
             String[] sqlArr = sqls.split(";");
             for (ver_step_i = ver_step; ver_step_i < sqlArr.length; ver_step_i = ver_step_i + 1) {
                 sqls = sqlArr[ver_step_i];
+                if (sqls.trim().length() == 0) {
+                    continue;
+                }
                 //
                 log.info("Смена версии, шаг: " + ver_i + "." + (ver_step_i + 1));
                 //

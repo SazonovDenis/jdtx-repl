@@ -12,6 +12,7 @@ import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.ext.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
 
@@ -37,7 +38,6 @@ public class JdxReplWs {
     private Db db;
     protected long wsId;
     protected IJdxDbStruct struct;
-    //protected IJdxDbStruct structFull;
 
     //
     private IMailer mailer;
@@ -65,6 +65,10 @@ public class JdxReplWs {
      * @param cfgFileName json-файл с конфигурацией
      */
     public void init(String cfgFileName) throws Exception {
+        // Проверка наличия структур аудита в БД и версии системных таблиц БД
+        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
+        ut.checkReplVerDb();
+
         // Чтение структуры БД
         IJdxDbStructReader structReader = new JdxDbStructReader();
         structReader.setDb(db);
@@ -144,9 +148,36 @@ public class JdxReplWs {
 */
         struct = structActual;
 
-        // Проверка структур аудита в БД
-        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
-        ut.checkReplVerDb();
+
+        // Проверка версии приложения
+        UtAppVersion_DbRW appVersionRW = new UtAppVersion_DbRW(db);
+        String versionAllowed = appVersionRW.getAppVersionAllowed();
+        String versionActial = UtRepl.getVersion();
+        if (versionAllowed.length() == 0) {
+            log.warn("versionAllowed.length == 0, versionAllowed: " + versionAllowed + ", versionActial: " + versionActial);
+        } else if (versionActial.compareToIgnoreCase("SNAPSHOT") == 0) {
+            log.warn("versionActial == SNAPSHOT, versionAllowed: " + versionAllowed + ", versionActial: " + versionActial);
+        } else if (versionAllowed.compareToIgnoreCase(versionActial) != 0) {
+            log.info("versionAllowed != versionActial, versionAllowed: " + versionAllowed + ", versionActial: " + versionActial);
+
+            //
+            File exeFile = new File("install/JadatexSync-update-" + versionAllowed + ".exe");
+
+            // Запуск обновления
+            List<String> res = new ArrayList<>();
+            int exitCode = UtReplService.run(res, exeFile.getAbsolutePath(), "/SILENT");
+
+            //
+            if (exitCode != 0) {
+                System.out.println("exitCode: " + exitCode);
+                for (String outLine : res) {
+                    System.out.println(outLine);
+                }
+
+                //
+                throw new XError("Failed to update application " + versionActial + " -> " + versionAllowed);
+            }
+        }
     }
 
     /**
@@ -415,6 +446,7 @@ public class JdxReplWs {
 
         //
         UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
+        UtAppVersion_DbRW appVersionRW = new UtAppVersion_DbRW(db);
         UtAuditApplyer applyer = new UtAuditApplyer(db, struct);
 
         //
@@ -442,8 +474,53 @@ public class JdxReplWs {
 
             // Пробуем применить реплику
             boolean replicaUsed = true;
+
             //
             switch (replica.getInfo().getReplicaType()) {
+                case JdxReplicaType.UPDATE_APP: {
+                    // Реакция на команду - запуск обновления
+
+                    // ===
+                    // В этой реплике - версия приложения и бинарник для обновления (для запуска)
+
+                    // Версия
+                    String version = null;
+                    InputStream stream = UtRepl.createInputStream(replica, "version");
+                    try {
+                        File versionFile = File.createTempFile("~JadatexSync", ".version");
+                        UtFile.copyStream(stream, versionFile);
+                        version = UtFile.loadString(versionFile);
+                        versionFile.delete();
+                    } finally {
+                        stream.close();
+                    }
+
+                    // Распаковываем бинарник
+                    InputStream replicaStream = UtRepl.createInputStream(replica, ".exe");
+                    try {
+                        UtFile.mkdirs("install");
+                        File exeFile = new File("install/JadatexSync-update-" + version + ".exe");
+                        OutputStream exeFileStream = new FileOutputStream(exeFile);
+                        UtFile.copyStream(replicaStream, exeFileStream);
+                        exeFileStream.close();
+                    } finally {
+                        replicaStream.close();
+                    }
+
+
+                    // ===
+                    // Отмечаем разрешенную версию
+                    appVersionRW.setAppVersionAllowed(version);
+
+
+                    // ===
+                    // Выкладывание реплики "Я принял обновление"
+                    reportMuteDone(JdxReplicaType.UPDATE_APP_DONE);
+
+
+                    //
+                    break;
+                }
                 case JdxReplicaType.MUTE: {
                     // Реакция на команду - перевод в режим "MUTE"
 
@@ -533,7 +610,7 @@ public class JdxReplWs {
                     // Применение реплик
                     InputStream inputStream = null;
                     try {
-                        // Откроем Zip-файл
+                        // Распакуем XML-файл из Zip-архива
                         inputStream = UtRepl.getReplicaInputStream(replica);
 
                         //
@@ -601,7 +678,7 @@ public class JdxReplWs {
         replica.getInfo().setAge(age);
 
         //
-        utRepl.createOutput(replica);
+        utRepl.createOutputXML(replica);
         utRepl.closeOutput();
 
         //

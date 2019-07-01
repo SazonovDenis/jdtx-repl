@@ -148,7 +148,7 @@ public class UtReplService {
     }
 
 
-    static int run(List<String> res, String... args) throws Exception {
+    public static int run(List<String> res, String... args) throws Exception {
         printArgs(args);
 
         //

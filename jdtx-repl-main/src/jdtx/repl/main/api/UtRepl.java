@@ -9,6 +9,7 @@ import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
+import org.apache.tools.ant.filters.*;
 import org.joda.time.*;
 
 import java.io.*;
@@ -122,38 +123,48 @@ public class UtRepl {
         return ut.getAuditAge();
     }
 
+    // Добавляет файл внутри формируемого Zip-архива
+    void addOutputFile(String fileName) throws Exception {
+        ZipEntry zipEntry = new ZipEntry(fileName);
+        zipOutputStream.putNextEntry(zipEntry);
+    }
+
     void createOutput(IReplica replica) throws Exception {
         // Файл
         String fileNameTemplate = UtString.padLeft(String.valueOf(replica.getInfo().getWsId()), 3, '0') + "-" + UtString.padLeft(String.valueOf(replica.getInfo().getAge()), 9, '0');
         File outFile = File.createTempFile("~jdx-" + fileNameTemplate + "-", ".zip");
         outputStream = new FileOutputStream(outFile);
+        //
+        replica.setFile(outFile);
 
-        // Zip-файл
+        // Формируем Zip-архив
         zipOutputStream = new ZipOutputStream(outputStream);
 
-        // Zip-файл (заголовок)
+        // Файл "dat.info" (заголовок) внутри Zip-архива
         ZipEntry zipEntryHead = new ZipEntry("dat.info");
         zipOutputStream.putNextEntry(zipEntryHead);
         String json = replica.getInfo().toString();
         zipOutputStream.write(json.getBytes("utf-8"));
         zipOutputStream.closeEntry();
+    }
 
-        // Zip-файл (данные)
-        ZipEntry zipEntry = new ZipEntry("dat.xml");
-        zipOutputStream.putNextEntry(zipEntry);
+    void createOutputXML(IReplica replica) throws Exception {
+        createOutput(replica);
 
-        // XML-файл
+        // Файл "dat.xml" (данные) внутри Zip-архива
+        addOutputFile("dat.xml");
+
+        // Писатель для XML-файла
         writerXml = new JdxReplicaWriterXml(zipOutputStream);
-
-        //
-        replica.setFile(outFile);
     }
 
     void closeOutput() throws Exception {
         // Заканчиваем запись в XML-файл
-        writerXml.close();
+        if (writerXml != null) {
+            writerXml.close();
+        }
 
-        // Заканчиваем запись в в zip-файл
+        // Заканчиваем запись в в zip-архив
         zipOutputStream.closeEntry();
         zipOutputStream.finish();
         zipOutputStream.close();
@@ -185,7 +196,7 @@ public class UtRepl {
         replica.getInfo().setReplicaType(JdxReplicaType.IDE);
 
         // Стартуем запись реплики
-        createOutput(replica);
+        createOutputXML(replica);
 
 
         // Пишем заголовок
@@ -234,7 +245,7 @@ public class UtRepl {
         replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
 
         // Открываем запись
-        createOutput(replica);
+        createOutputXML(replica);
 
 
         // Пишем
@@ -261,7 +272,7 @@ public class UtRepl {
         replica.getInfo().setReplicaType(JdxReplicaType.SET_DB_STRUCT);
 
         // Открываем запись
-        createOutput(replica);
+        createOutputXML(replica);
 
         // Файл с описанием текущей структуры БД
         UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
@@ -279,7 +290,7 @@ public class UtRepl {
         replica.getInfo().setReplicaType(JdxReplicaType.UNMUTE);
 
         // Открываем запись
-        createOutput(replica);
+        createOutputXML(replica);
 
         // Писать в файл нечего
         // ...
@@ -296,7 +307,7 @@ public class UtRepl {
         replica.getInfo().setReplicaType(JdxReplicaType.MUTE);
 
         // Открываем запись
-        createOutput(replica);
+        createOutputXML(replica);
 
         // Писать в файл нечего
         // ...
@@ -306,6 +317,46 @@ public class UtRepl {
 
         //
         return replica;
+    }
+
+    public IReplica createReplicaAppUpdate(String exeFileName) throws Exception {
+        IReplica replica = new ReplicaFile();
+        replica.getInfo().setReplicaType(JdxReplicaType.UPDATE_APP);
+
+        //
+        File exeFile = new File(exeFileName);
+
+
+        // В этой реплике - версия приложения и бинарник для обновления (для запуска)
+        createOutput(replica);
+
+
+        // Открываем запись файлла с версией
+        addOutputFile("version");
+        String version = parseExeVersion(exeFile.getName());
+        StringInputStream st = new StringInputStream(version);
+        UtFile.copyStream(st, zipOutputStream);
+
+
+        // Открываем запись файла - бинарника для обновления
+        addOutputFile(exeFile.getName());
+
+        // Пишем содержимое exe
+        InputStream exeFileStream = new FileInputStream(exeFile);
+        UtFile.copyStream(exeFileStream, zipOutputStream);
+
+
+        // Заканчиваем запись
+        closeOutput();
+
+        //
+        return replica;
+    }
+
+    // Из имени файла извлекает номер версии
+    private String parseExeVersion(String exeFileName) {
+        // Из "JadatexSync-301.exe" извлекает "301"
+        return exeFileName.split("-|\\.")[1];
     }
 
     public static InputStream getReplicaInputStream(IReplica replica) throws IOException {
