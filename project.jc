@@ -54,16 +54,19 @@ do_inno = {boolean installJre ->
     ut.runexe(showout: true, cmd: "cmd /C copy install\\install.iss install\\temp2.iss")
 
     // номер версии
-    ut.runexe(showout: true, cmd: "cmd /C hg log -l 1 --template {rev} > install\\rev.txt")
-    ut.runexe(showout: true, cmd: "tfu replstrf -i install\\temp2.iss -o install\\temp1.iss -s0 _CFG_APP_VERSION  -r install\\rev.txt -u")
+    //ut.runexe(showout: true, cmd: "cmd /C hg log -l 1 --template {rev} > install\\rev.txt")
+    //ut.runexe(showout: true, cmd: "tfu replstrf -i install\\temp2.iss -o install\\temp1.iss -s0 _CFG_APP_VERSION  -r install\\rev.txt -u")
+    def version = project.version
+    version = version.replace("SNAPSHOT-", "")
+    ut.runexe(showout: true, cmd: "tfu replstr -i install\\temp2.iss -o install\\temp1.iss -s0 _CFG_APP_VERSION -r0 " + version + " -u")
 
     //
     if (installJre) {
         // с дистрибутивом Java
-        ut.runexe(showout: true, cmd: "tfu replstr  -i install\\temp1.iss -o install\\temp0.iss -s0 _CFG_INSTALL_JRE -r0 installJre -u")
+        ut.runexe(showout: true, cmd: "tfu replstr -i install\\temp1.iss -o install\\temp0.iss -s0 _CFG_INSTALL_JRE -r0 installJre -u")
     } else {
         // без дистрибутива Java
-        ut.runexe(showout: true, cmd: "tfu replstr  -i install\\temp1.iss -o install\\temp0.iss -s0 _CFG_INSTALL_JRE -r0 noInstallJre -u")
+        ut.runexe(showout: true, cmd: "tfu replstr -i install\\temp1.iss -o install\\temp0.iss -s0 _CFG_INSTALL_JRE -r0 noInstallJre -u")
     }
 
     // соберем дистрибутив
@@ -73,7 +76,7 @@ do_inno = {boolean installJre ->
     ut.runexe(showout: true, cmd: "cmd /C del install\\temp0.iss")
     ut.runexe(showout: true, cmd: "cmd /C del install\\temp1.iss")
     ut.runexe(showout: true, cmd: "cmd /C del install\\temp2.iss")
-    ut.runexe(showout: true, cmd: "cmd /C del install\\rev.txt")
+    //ut.runexe(showout: true, cmd: "cmd /C del install\\rev.txt")
 }
 
 //
@@ -86,4 +89,9 @@ inno = cm("inno без jre",
 inno_jre = cm("inno + jre",
 ) {
   do_inno(true)
+}
+
+xxx = cm("inno + jre",
+) {
+    log project.version
 }

@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.zip.*;
 
 /**
- * Главное API репликатора
+ * Главное API репликатора.
  * todo: это НЕ главное API - просто утилитный класс. Зачем он вообще нужен в таком виде - неясно
  */
 public class UtRepl {
