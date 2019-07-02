@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <service name="jandcode.bgtasks.BgTasksService">
+
+        <!-- Сервер -->
+        <bgtask name="server"
+                period="5000"
+                enabled="true"
+                />
+
+        <!-- Рабочая станция -->
+        <bgtask name="ws"
+                period="10000"
+                enabled="true"
+                />
+
+    </service>
+
+</root>
+    
