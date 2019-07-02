@@ -496,8 +496,8 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
-    void repl_version(IVariantMap args) {
-        System.out.println("UtRepl.getVersion: " + UtRepl.getVersion())
+    void repl_app_version(IVariantMap args) {
+        System.out.println("app_version: " + UtRepl.getVersion())
     }
 
     void repl_service_start(IVariantMap args) {

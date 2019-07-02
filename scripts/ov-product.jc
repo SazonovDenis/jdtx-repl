@@ -84,10 +84,9 @@ repl_mail_check = cm("Инициализация или проверка поч�
 
 
 //
-repl_ver = cm("Версия ПО") {
-    System.out.println("UtFile.getWorkdir: " + UtFile.getWorkdir());
+repl_app_version = cm("Версия ПО") {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    ext.repl_version(args)
+    ext.repl_app_version(args)
 }
 
 //

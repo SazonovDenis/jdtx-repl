@@ -383,7 +383,9 @@ public class UtRepl {
 
     public static String getVersion() {
         VersionInfo vi = new VersionInfo("jdtx.repl.main");
-        return vi.getVersion();
+        String version = vi.getVersion();
+        version = version.replace("SNAPSHOT-", "");
+        return version;
     }
 
     public static boolean tableSkipRepl(IJdxTableStruct table) {
