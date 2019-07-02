@@ -66,6 +66,7 @@ public class UtSetup extends ProjectExt {
             Map args_ws = new HashMap();
             args_ws.put("repl_guid", args_srv.get("repl_guid"));
             args_ws.put("ws_guid", ws.get("ws_guid"));
+            args_ws.put("ws_name", ws.get("ws_name"));
             args_ws.put("ws_no", ws.get("ws_no"));
             // Файл
             b = new OutBuilder(app);

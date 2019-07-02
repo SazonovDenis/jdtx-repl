@@ -36,6 +36,18 @@
     "fields": "*"
   },
   {
+    "table": "categoryhist",
+    "fields": "*"
+  },
+  {
+    "table": "categoryprice",
+    "fields": "*"
+  },
+  {
+    "table": "categorysubjectval",
+    "fields": "*"
+  },
+  {
     "table": "commenttext",
     "fields": "*"
   },
@@ -228,11 +240,7 @@
     "fields": "*"
   },
   {
-    "table": "tariffplanreflic",
-    "fields": "*"
-  },
-  {
-    "table": "tariffplanrefsubjecttip",
+    "table": "tariffplanref",
     "fields": "*"
   },
   {
@@ -283,4 +291,4 @@
     "table": "ws_list",
     "fields": "*"
   }
-] 
+]
