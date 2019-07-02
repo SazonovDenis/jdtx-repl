@@ -90,6 +90,13 @@ repl_app_version = cm("Версия ПО") {
 }
 
 //
+repl_app_update = cm("Послать сигнал на обновление ПО",
+   "-file": [help: "Файл для установки обновления"],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_app_update(args)
+}
+//
 repl_dbstruct_start = cm("Начать смену структуры") {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_dbstruct_start(args)

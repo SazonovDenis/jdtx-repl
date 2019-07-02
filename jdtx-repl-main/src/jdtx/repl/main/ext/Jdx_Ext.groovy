@@ -500,6 +500,38 @@ class Jdx_Ext extends ProjectExt {
         System.out.println("app_version: " + UtRepl.getVersion())
     }
 
+    void repl_app_update(IVariantMap args) {
+        System.out.println("app_version: " + UtRepl.getVersion())
+
+        String exeFileName = args.getValueString("file")
+        if (exeFileName == null || exeFileName.length() == 0) {
+            throw new XError("Не указан [file] - файл для установки обновления")
+        }
+
+        //
+        BgTasksService bgTasksService = app.service(BgTasksService.class)
+        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+        //
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
+
+        //
+        try {
+            //
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init(cfgFileName_srv)
+
+            //
+            srv.srvAppUpdate(exeFileName);
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
     void repl_service_start(IVariantMap args) {
         UtReplService.start()
     }
