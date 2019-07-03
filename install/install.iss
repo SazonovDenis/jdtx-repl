@@ -141,6 +141,7 @@ begin
   if (CurStep=ssInstall) then
   begin
     Exec(ExpandConstant('jc.bat'), 'repl-service-stop', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+    Exec(ExpandConstant('jc.bat'), 'repl-service-remove', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
   end;
 
   if (CurStep=ssDone) then
