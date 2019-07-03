@@ -147,7 +147,7 @@ begin
   begin
     for i:=1 to ParamCount() do
     begin
-      if Lowercase(ParamStr(i)) = '-repl-service-install' then
+      if Lowercase(ParamStr(i)) = '/repl-service-install' then
       begin
         Exec(ExpandConstant('jc.bat'), 'repl-service-install', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
         Exec(ExpandConstant('jc.bat'), 'repl-service-start', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
