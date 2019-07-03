@@ -111,7 +111,7 @@ public class UtReplService {
 
     public static void install() throws Exception {
         System.out.println("Service install");
-        log.info("Service install");
+        //log.info("Service install");
 
         //
         String sql = UtFile.loadString("res:jdtx/repl/main/ext/JadatexSync.xml", "utf-16LE");
@@ -138,7 +138,7 @@ public class UtReplService {
 
     public static void remove() throws Exception {
         System.out.println("Service remove");
-        log.info("Service remove");
+        //log.info("Service remove");
 
         //
         List<String> res = new ArrayList<>();
@@ -187,24 +187,25 @@ public class UtReplService {
 
 
     private static void printArgs(String... args) {
+        String argsStr = "";
         for (String s : args) {
-            System.out.print(s + " ");
-            log.info(s);
+            argsStr = argsStr + s + " ";
         }
-        System.out.println("");
+        log.info("run:");
+        log.info(argsStr);
     }
 
 
     static void printRes(long exitCode, List<String> res) {
-        System.out.println("exitCode: " + exitCode);
-        log.info("exitCode: " + exitCode);
+        log.info("run exit code:");
+        log.info(exitCode);
         printRes(res);
     }
 
 
     static void printRes(List<String> res) {
+        log.info("run res:");
         for (String outLine : res) {
-            System.out.println(outLine);
             log.info(outLine);
         }
     }
