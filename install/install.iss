@@ -105,7 +105,7 @@ Source: install\cfg\sample.ws.json;            DestDir: {app}\web\WEB-INF\cfg; F
 
 
 [Run]
-Filename: jc.bat; Parameters: repl-service-remove; WorkingDir: {app}
+;Filename: jc.bat; Parameters: repl-service-remove; WorkingDir: {app}
 ;Filename: jc.bat; Parameters: repl-service-install; WorkingDir: {app}
 
 
@@ -145,15 +145,18 @@ begin
 
   if (CurStep=ssDone) then
   begin
-    //
-    for i:=1 to ParamCount()-1 do
+    for i:=1 to ParamCount() do
     begin
       if Lowercase(ParamStr(i)) = '-repl-service-install' then
       begin
         Exec(ExpandConstant('jc.bat'), 'repl-service-install', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
         Exec(ExpandConstant('jc.bat'), 'repl-service-start', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+        exit;
       end;
     end;
+
+    //MsgBox('repl-service-remove', mbInformation, MB_OK);
+    Exec(ExpandConstant('jc.bat'), 'repl-service-remove', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
   end;
 end;
 
