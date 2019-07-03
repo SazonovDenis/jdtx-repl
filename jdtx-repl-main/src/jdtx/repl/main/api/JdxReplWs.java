@@ -151,21 +151,22 @@ public class JdxReplWs {
 
         // Проверка версии приложения
         UtAppVersion_DbRW appVersionRW = new UtAppVersion_DbRW(db);
-        String versionAllowed = appVersionRW.getAppVersionAllowed();
-        String versionActial = UtRepl.getVersion();
-        if (versionAllowed.length() == 0) {
-            log.warn("versionAllowed.length == 0, versionAllowed: " + versionAllowed + ", versionActial: " + versionActial);
-        } else if (versionActial.compareToIgnoreCase("SNAPSHOT") == 0) {
-            log.warn("versionActial == SNAPSHOT, versionAllowed: " + versionAllowed + ", versionActial: " + versionActial);
-        } else if (versionAllowed.compareToIgnoreCase(versionActial) != 0) {
-            log.info("versionAllowed != versionActial, versionAllowed: " + versionAllowed + ", versionActial: " + versionActial);
+        String appVersionAllowed = appVersionRW.getAppVersionAllowed();
+        String appVersionActual = UtRepl.getVersion();
+        if (appVersionAllowed.length() == 0) {
+            log.warn("appVersionAllowed.length == 0, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
+        } else if (appVersionActual.compareToIgnoreCase("SNAPSHOT") == 0) {
+            log.warn("appVersionActual == SNAPSHOT, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
+        } else if (appVersionAllowed.compareToIgnoreCase(appVersionActual) != 0) {
+            log.info("appVersionAllowed != appVersionActual, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
 
             //
-            File exeFile = new File("install/JadatexSync-update-" + versionAllowed + ".exe");
+            File exeFile = new File("install/JadatexSync-update-" + appVersionAllowed + ".exe");
+            log.info("start app update, exeFile: " + exeFile);
 
             // Запуск обновления
             List<String> res = new ArrayList<>();
-            int exitCode = UtReplService.run(res, exeFile.getAbsolutePath(), "/SILENT");
+            int exitCode = UtReplService.run(res, exeFile.getAbsolutePath(), "/SILENT", "/repl-service-install");
 
             //
             if (exitCode != 0) {
@@ -175,7 +176,7 @@ public class JdxReplWs {
                 }
 
                 //
-                throw new XError("Failed to update application " + versionActial + " -> " + versionAllowed);
+                throw new XError("Failed to update application " + appVersionActual + " -> " + appVersionAllowed);
             }
         }
     }
@@ -484,12 +485,12 @@ public class JdxReplWs {
                     // В этой реплике - версия приложения и бинарник для обновления (для запуска)
 
                     // Версия
-                    String version = null;
+                    String appVersionAllowed;
                     InputStream stream = UtRepl.createInputStream(replica, "version");
                     try {
                         File versionFile = File.createTempFile("~JadatexSync", ".version");
                         UtFile.copyStream(stream, versionFile);
-                        version = UtFile.loadString(versionFile);
+                        appVersionAllowed = UtFile.loadString(versionFile);
                         versionFile.delete();
                     } finally {
                         stream.close();
@@ -499,7 +500,7 @@ public class JdxReplWs {
                     InputStream replicaStream = UtRepl.createInputStream(replica, ".exe");
                     try {
                         UtFile.mkdirs("install");
-                        File exeFile = new File("install/JadatexSync-update-" + version + ".exe");
+                        File exeFile = new File("install/JadatexSync-update-" + appVersionAllowed + ".exe");
                         OutputStream exeFileStream = new FileOutputStream(exeFile);
                         UtFile.copyStream(replicaStream, exeFileStream);
                         exeFileStream.close();
@@ -510,7 +511,7 @@ public class JdxReplWs {
 
                     // ===
                     // Отмечаем разрешенную версию
-                    appVersionRW.setAppVersionAllowed(version);
+                    appVersionRW.setAppVersionAllowed(appVersionAllowed);
 
 
                     // ===

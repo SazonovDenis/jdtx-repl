@@ -136,9 +136,24 @@ UninstalledAll=Программа %1 была удалена с Вашего компьютера.%nИз соображений со
 procedure CurStepChanged(CurStep: TSetupStep); 
 var
   resultCode: Integer;
+  i: Integer;
 begin
   if (CurStep=ssInstall) then
   begin
     Exec(ExpandConstant('jc.bat'), 'repl-service-stop', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
   end;
+
+  if (CurStep=ssDone) then
+  begin
+    //
+    for i:=1 to ParamCount()-1 do
+    begin
+      if Lowercase(ParamStr(i)) = '-repl-service-install' then
+      begin
+        Exec(ExpandConstant('jc.bat'), 'repl-service-install', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+        Exec(ExpandConstant('jc.bat'), 'repl-service-start', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+      end;
+    end;
+  end;
 end;
+

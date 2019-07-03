@@ -204,7 +204,7 @@ public class JdxReplSrv {
 
 
     public void srvAppUpdate(String exeFileName) throws Exception {
-        log.info("srvAppUpdate");
+        log.info("srvAppUpdate, exeFileName: " + exeFileName);
 
         //
         UtRepl utRepl = new UtRepl(db, struct);
