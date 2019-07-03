@@ -108,8 +108,8 @@ public class UtReplService {
 
     public static void install() throws Exception {
         System.out.println("Service install");
-        //System.out.println("UtFile.getWorkdir: " + UtFile.getWorkdir());
 
+        //
         String sql = UtFile.loadString("res:jdtx/repl/main/ext/JadatexSync.xml", "utf-16LE");
         sql = sql.replace("${WorkingDirectory}", getAppDir());
         sql = sql.replace("${VbsScript}", getVbsScript());
