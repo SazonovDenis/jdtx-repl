@@ -1,6 +1,7 @@
 package jdtx.repl.main.ext;
 
 import jandcode.utils.*;
+import org.apache.commons.logging.*;
 
 import java.io.*;
 import java.util.*;
@@ -9,6 +10,8 @@ import java.util.*;
  */
 public class UtReplService {
 
+    //
+    private static Log log = LogFactory.getLog("jdtx.service");
 
     public static long list() throws Exception {
         long processId = -1;
@@ -108,6 +111,7 @@ public class UtReplService {
 
     public static void install() throws Exception {
         System.out.println("Service install");
+        log.info("Service install");
 
         //
         String sql = UtFile.loadString("res:jdtx/repl/main/ext/JadatexSync.xml", "utf-16LE");
@@ -134,6 +138,7 @@ public class UtReplService {
 
     public static void remove() throws Exception {
         System.out.println("Service remove");
+        log.info("Service remove");
 
         //
         List<String> res = new ArrayList<>();
@@ -184,6 +189,7 @@ public class UtReplService {
     private static void printArgs(String... args) {
         for (String s : args) {
             System.out.print(s + " ");
+            log.info(s);
         }
         System.out.println("");
     }
@@ -191,6 +197,7 @@ public class UtReplService {
 
     static void printRes(long exitCode, List<String> res) {
         System.out.println("exitCode: " + exitCode);
+        log.info("exitCode: " + exitCode);
         printRes(res);
     }
 
@@ -198,6 +205,7 @@ public class UtReplService {
     static void printRes(List<String> res) {
         for (String outLine : res) {
             System.out.println(outLine);
+            log.info(outLine);
         }
     }
 
@@ -205,8 +213,6 @@ public class UtReplService {
     private static String getAppDir() {
         String dir = UtFile.getWorkdir().getAbsolutePath();
         dir = UtFile.unnormPath(dir) + "\\";
-        //dir = "C:/Users/Public/Documents/Jadatex.Sync/";
-        //System.out.println("getAppDir: " + dir);
         return dir;
     }
 
