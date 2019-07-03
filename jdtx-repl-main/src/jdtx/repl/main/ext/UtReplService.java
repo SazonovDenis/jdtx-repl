@@ -138,7 +138,6 @@ public class UtReplService {
 
     public static void remove() throws Exception {
         System.out.println("Service remove");
-        //log.info("Service remove");
 
         //
         List<String> res = new ArrayList<>();
@@ -191,23 +190,24 @@ public class UtReplService {
         for (String s : args) {
             argsStr = argsStr + s + " ";
         }
-        log.info("run:");
+        log.info("--- run:");
         log.info(argsStr);
     }
 
 
     static void printRes(long exitCode, List<String> res) {
-        log.info("run exit code:");
+        log.info("--- run exit code:");
         log.info(exitCode);
         printRes(res);
     }
 
 
     static void printRes(List<String> res) {
-        log.info("run res:");
+        log.info("--- run res:");
         for (String outLine : res) {
             log.info(outLine);
         }
+        log.info("---");
     }
 
 
