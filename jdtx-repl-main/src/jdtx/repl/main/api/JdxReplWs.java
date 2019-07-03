@@ -154,7 +154,7 @@ public class JdxReplWs {
         String appVersionAllowed = appVersionRW.getAppVersionAllowed();
         String appVersionActual = UtRepl.getVersion();
         if (appVersionAllowed.length() == 0) {
-            log.warn("appVersionAllowed.length == 0, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
+            log.warn("appVersionAllowed.length == 0, appVersionActual: " + appVersionActual);
         } else if (appVersionActual.compareToIgnoreCase("SNAPSHOT") == 0) {
             log.warn("appVersionActual == SNAPSHOT, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
         } else if (appVersionAllowed.compareToIgnoreCase(appVersionActual) != 0) {

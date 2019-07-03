@@ -103,6 +103,19 @@ public class JdxReplSrv {
         strategyCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + strategyCfgName + ".json";
         RefDecodeStrategy.instance = new RefDecodeStrategy();
         RefDecodeStrategy.instance.init(strategyCfgName);
+
+
+        // Проверка версии приложения
+        UtAppVersion_DbRW appVersionRW = new UtAppVersion_DbRW(db);
+        String appVersionAllowed = appVersionRW.getAppVersionAllowed();
+        String appVersionActual = UtRepl.getVersion();
+        if (appVersionAllowed.length() == 0) {
+            log.warn("appVersionAllowed.length == 0, appVersionActual: " + appVersionActual);
+        } else if (appVersionActual.compareToIgnoreCase("SNAPSHOT") == 0) {
+            log.warn("appVersionActual == SNAPSHOT, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
+        } else if (appVersionAllowed.compareToIgnoreCase(appVersionActual) != 0) {
+            throw new XError("appVersionAllowed != appVersionActual, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
+        }
     }
 
     public void addWorkstation(long wsId, String wsName, String wsGuid) throws Exception {
