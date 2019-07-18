@@ -261,6 +261,13 @@ public class JdxReplWs {
         // реальная не совпадает с разрешенной
         if (!equal_Actual_Allowed) {
             log.warn("dbStructApplyFixed, Actual <> Allowed");
+
+            // Для справки/отладки - структуры в файл
+            JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+            struct_rw.saveToFile(structActual, "temp/dbStruct.actual.xml");
+            struct_rw.saveToFile(structAllowed, "temp/dbStruct.allowed.xml");
+            struct_rw.saveToFile(structFixed, "temp/dbStruct.fixed.xml");
+
             //
             return false;
         }
@@ -598,6 +605,8 @@ public class JdxReplWs {
                     String dbStructActualCrc = UtDbComparer.calcDbStructCrc(struct);
                     if (replicaStructCrc.compareToIgnoreCase(dbStructActualCrc) != 0) {
                         log.error("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
+
+                        //
                         return;
                     }
 
