@@ -1,5 +1,14 @@
 @echo off
 
+rem серверные конфиги
+
+rename %cd%\web\WEB-INF\cfg\sample.srv.json srv.json
+
+del %cd%\web\WEB-INF\_app.rt
+
+rename %cd%\web\WEB-INF\sample.srv._app.rt _app.rt
+
+
 rem служба
 call jc repl-service-remove -csc
 

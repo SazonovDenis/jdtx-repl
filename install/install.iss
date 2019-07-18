@@ -97,6 +97,7 @@ Source: install\cfg\publication_null.json;     DestDir: {app}\web\WEB-INF\cfg; F
 Source: install\cfg\sample.srv.json;           DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 Source: install\cfg\sample.ws.json;            DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 
+Source: install\sample.srv._app.rt;            DestDir: {app}\web\WEB-INF;     Flags: ignoreversion;     DestName: sample.srv._app.rt; 
 Source: install\sample._app.rt;                DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _app.rt; 
 Source: install\sample._db-ini.rt;             DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _db-ini.rt
 Source: install\sample.log.properties;         DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: log.properties

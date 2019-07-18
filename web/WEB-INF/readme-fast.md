@@ -30,16 +30,7 @@ setup.dvsa.ws3.bat
 
 Установить JadatexSync
 
-В файле `web\WEB-INF\_app.rt` включить сервер (bgtask name="server" enabled="true")
-
-    <bgtask name="server"
-            period="5000"
-            enabled="true"
-            />
-
-В каталоге `web\WEB-INF\cfg\` переименовать `sample.srv.json` в `srv.json`
-
-В файле `web\WEB-INF\cfg\ws.json` выбрать: publication_full_152 или publication_full
+В файле `web\WEB-INF\cfg\ws.json` выбрать: publication_full_152 или publication_full_163
 
 В каталоге установки Jadatex.Sync запустить `настроечный bat-файл` для сервера, например:
 
@@ -50,7 +41,7 @@ setup.dvsa.ws3.bat
 
 Установить JadatexSync
 
-В файле web\WEB-INF\cfg\ws.json выбрать: publication_full_152 или publication_full
+В файле web\WEB-INF\cfg\ws.json выбрать: publication_full_152 или publication_full_163
 
 В каталоге установки Jadatex.Sync запустить `настроечный bat-файл` для рабочей станции, например:
 
