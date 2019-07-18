@@ -59,15 +59,15 @@ public class UtRepl {
         decodeManager.createRefDecodeObject();
 
         //
-        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
+        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
 
         // Для начала "разрешенная" структура будет пустая
         IJdxDbStruct structAllowed = new JdxDbStruct();
-        dbStructRW.dbStructSaveAllowed(structAllowed);
+        dbStructRW.setDbStructAllowed(structAllowed);
 
         // Для начала "фиксированная" структура будет пустая
         IJdxDbStruct structFixed = new JdxDbStruct();
-        dbStructRW.dbStructSaveFixed(structFixed);
+        dbStructRW.setDbStructFixed(structFixed);
     }
 
 
@@ -275,7 +275,7 @@ public class UtRepl {
         createOutputXML(replica);
 
         // Файл с описанием текущей структуры БД
-        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
         zipOutputStream.write(struct_rw.getBytes(struct));
 
         // Заканчиваем запись

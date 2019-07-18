@@ -60,13 +60,13 @@ public class JdxUtils_Test {
         IJdxDbStruct structDiffNew = new JdxDbStruct();
         IJdxDbStruct structDiffRemoved = new JdxDbStruct();
         //
-        UtDbStruct_XmlRW dbStruct_XmlRW = new UtDbStruct_XmlRW();
+        JdxDbStruct_XmlRW dbStruct_XmlRW = new JdxDbStruct_XmlRW();
         IJdxDbStruct structActual = dbStruct_XmlRW.read("test/jdtx/repl/main/api/JdxUtils_Test.structActual.xml");
         IJdxDbStruct structFixed = dbStruct_XmlRW.read("test/jdtx/repl/main/api/JdxUtils_Test.structFixed.xml");
 
         //
-        JdxUtils.sortTables(structActual.getTables());
-        JdxUtils.sortTables(structFixed.getTables());
+        JdxUtils.sortTablesByReference(structActual.getTables());
+        JdxUtils.sortTablesByReference(structFixed.getTables());
 
         //
         UtDbComparer.dbStructDiff(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
@@ -78,7 +78,7 @@ public class JdxUtils_Test {
         }
 
         //
-        List<IJdxTableStruct> structDiffNewSorted = JdxUtils.sortTables(structDiffNew.getTables());
+        List<IJdxTableStruct> structDiffNewSorted = JdxUtils.sortTablesByReference(structDiffNew.getTables());
         System.out.println("=== structDiffNewSorted");
         for (IJdxTableStruct table : structDiffNewSorted) {
             System.out.println(table.getName());

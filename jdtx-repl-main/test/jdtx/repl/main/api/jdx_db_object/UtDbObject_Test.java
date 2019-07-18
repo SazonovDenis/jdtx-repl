@@ -21,7 +21,7 @@ public class UtDbObject_Test extends ReplDatabase_Test {
         IJdxDbStruct struct = dbStructReader.readDbStruct();
         UtRepl utRepl = new UtRepl(db, struct);
         //
-        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
 
         //
         IJdxDbStruct struct_1 = dbStructReader.readDbStruct(false);

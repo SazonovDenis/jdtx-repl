@@ -7,6 +7,9 @@ import jdtx.repl.main.api.*;
 import java.sql.*;
 import java.util.*;
 
+/**
+ * Читаем структуру базы в IJdxDbStruct
+ */
 public class JdxDbStructReader implements IJdxDbStructReader {
 
     Db db;
@@ -108,8 +111,8 @@ public class JdxDbStructReader implements IJdxDbStructReader {
 
         }
 
-        // Сортируем
-        List<IJdxTableStruct> structTablesSorted = JdxUtils.sortTables(structTables);
+        // Сортируем таблицы по зависимостям
+        List<IJdxTableStruct> structTablesSorted = JdxUtils.sortTablesByReference(structTables);
 
 
         // Создаем и возвращаем экземпляр класса JdxDbStruct

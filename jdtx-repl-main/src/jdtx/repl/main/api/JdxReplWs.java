@@ -237,7 +237,7 @@ public class JdxReplWs {
 
         // Читаем структуры
         IJdxDbStruct structActual = struct;
-        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
+        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
         IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
         IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
 
@@ -270,7 +270,7 @@ public class JdxReplWs {
         log.info("dbStructApplyFixed, start");
 
         // Обеспечиваем порядок сортировки таблиц с учетом foreign key (при выгрузке snapsot это важно)
-        List<IJdxTableStruct> tablesNew = JdxUtils.sortTables(structDiffNew.getTables());
+        List<IJdxTableStruct> tablesNew = JdxUtils.sortTablesByReference(structDiffNew.getTables());
 
 
         // Подгоняем структуру аудита под реальную структуру
@@ -343,7 +343,7 @@ public class JdxReplWs {
 
 
             // Запоминаем текущую структуру БД как "фиксированную" структуру
-            dbStructRW.dbStructSaveFixed(structActual);
+            dbStructRW.setDbStructFixed(structActual);
 
             //
             db.commit();
@@ -371,7 +371,7 @@ public class JdxReplWs {
 
         //
         UtRepl utRepl = new UtRepl(db, struct);
-        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
+        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
 
         // Если в стостоянии "я замолчал", то молчим
         JdxMuteManagerWs utmm = new JdxMuteManagerWs(db);
@@ -446,7 +446,7 @@ public class JdxReplWs {
         log.info("handleQueIn, self.wsId: " + wsId);
 
         //
-        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
+        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
         UtAppVersion_DbRW appVersionRW = new UtAppVersion_DbRW(db);
         UtAuditApplyer applyer = new UtAuditApplyer(db, struct);
 
@@ -555,10 +555,10 @@ public class JdxReplWs {
                     // В этой реплике - новая "разрешенная" структура
                     InputStream stream = UtRepl.getReplicaInputStream(replica);
                     try {
-                        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+                        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
                         IJdxDbStruct struct = struct_rw.read(stream);
                         // Запоминаем "разрешенную" структуру БД
-                        dbStructRW.dbStructSaveAllowed(struct);
+                        dbStructRW.setDbStructAllowed(struct);
                     } finally {
                         stream.close();
                     }

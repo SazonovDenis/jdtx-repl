@@ -132,8 +132,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         IJdxDbStruct structFixed_ws1;
         IJdxDbStruct structAllowed_ws1;
         //
-        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
-        UtDbStruct_DbRW dbStructRW_ws2 = new UtDbStruct_DbRW(db2);
+        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
+        UtDbStructApprove dbStructRW_ws2 = new UtDbStructApprove(db2);
         //
         long queInNoDone1;
         long queInNoDone2;
@@ -166,7 +166,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws = new JdxReplWs(db);
         ws.init(json_ws);
         structActual_ws1 = ws.struct;
-        dbStructRW.dbStructSaveAllowed(structActual_ws1);
+        dbStructRW.setDbStructAllowed(structActual_ws1);
 
         // Делаем фиксацию структуры
         ws.dbStructApplyFixed();
@@ -221,7 +221,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws2 = new JdxReplWs(db2);
         ws2.init(json_ws);
         structActual_ws1 = ws2.struct;
-        dbStructRW_ws2.dbStructSaveAllowed(structActual_ws1);
+        dbStructRW_ws2.setDbStructAllowed(structActual_ws1);
 
         // Делаем фиксацию структуры
         ws2.dbStructApplyFixed();
@@ -278,7 +278,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         IJdxDbStruct structFixed;
         IJdxDbStruct structAllowed;
         //
-        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
+        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
 
 
         // ===
@@ -323,7 +323,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Устанавливаем "разрешенную" структуру
-        dbStructRW.dbStructSaveAllowed(structActual);
+        dbStructRW.setDbStructAllowed(structActual);
 
 
         // ===
@@ -540,7 +540,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws.init(json_ws);
         //
         IJdxDbStruct structActual = ws.struct;
-        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
+        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
         IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
         IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
         //
@@ -685,7 +685,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      * в таблицу Region добавляет поле
      */
     void doModifyDbStruct(Db db) throws Exception {
-        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         IJdxDbStruct struct;

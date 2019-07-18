@@ -1,11 +1,13 @@
-package jdtx.repl.main.api;
+package jdtx.repl.main.api.struct;
 
 import jandcode.utils.easyxml.*;
-import jdtx.repl.main.api.struct.*;
 
 import java.io.*;
 
-public class UtDbStruct_XmlRW {
+/**
+ * Читать/писать IJdxDbStruct в XML
+ */
+public class JdxDbStruct_XmlRW {
 
     public String toString(IJdxDbStruct struct) throws Exception {
         EasyXml xml = new EasyXml();

@@ -7,17 +7,17 @@ import java.io.*;
 
 /**
  */
-public class UtRepl_dbStructRW_Test extends ReplDatabaseStruct_Test {
+public class UtDbStructApprove_XmlRW_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
     public void test_dbStruct_SaveLoad() throws Exception {
-        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
-        UtDbStruct_DbRW dbStructRW = new UtDbStruct_DbRW(db);
+        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
 
 
         // Сохраняем структуру в БД
-        dbStructRW.dbStructSaveAllowed(struct);
+        dbStructRW.setDbStructAllowed(struct);
 
         // Читаем структуру из БД
         IJdxDbStruct structLoad = dbStructRW.getDbStructAllowed();
@@ -31,7 +31,7 @@ public class UtRepl_dbStructRW_Test extends ReplDatabaseStruct_Test {
         //
         IJdxDbStruct struct = struct_rw.read(file.getPath());
         //
-        dbStructRW.dbStructSaveAllowed(struct);
+        dbStructRW.setDbStructAllowed(struct);
 
         // Читаем структуру из БД
         IJdxDbStruct structLoad1 = dbStructRW.getDbStructAllowed();

@@ -14,7 +14,7 @@ public class UtDbComparer_Test {
         IJdxDbStruct structDiffNew;
         IJdxDbStruct structDiffRemoved;
         //
-        UtDbStruct_XmlRW dbStruct_XmlRW = new UtDbStruct_XmlRW();
+        JdxDbStruct_XmlRW dbStruct_XmlRW = new JdxDbStruct_XmlRW();
         IJdxDbStruct structActual = dbStruct_XmlRW.read("test/jdtx/repl/main/api/JdxUtils_Test.structActual.xml");
         IJdxDbStruct structFixed = dbStruct_XmlRW.read("test/jdtx/repl/main/api/JdxUtils_Test.structFixed.xml");
 

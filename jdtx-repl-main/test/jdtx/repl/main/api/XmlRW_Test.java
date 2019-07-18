@@ -8,6 +8,7 @@ import javax.xml.stream.*;
 import java.io.*;
 
 /**
+ * Тестируем как писать в XML руками.
  */
 public class XmlRW_Test extends UtilsTestCase {
 

@@ -30,7 +30,7 @@ public class JdxUtils {
      * @param lst исходный список
      * @return отсортированный список
      */
-    public static List<IJdxTableStruct> sortTables(List<IJdxTableStruct> lst) throws Exception {
+    public static List<IJdxTableStruct> sortTablesByReference(List<IJdxTableStruct> lst) throws Exception {
         // отсортированный список таблиц
         List<IJdxTableStruct> sortLst = new ArrayList<IJdxTableStruct>();
 
@@ -97,7 +97,7 @@ public class JdxUtils {
 
             //
             if (curLst.size() == 0) {
-                throw new Exception("sortTables: больше невозможно добавить таблиц");
+                throw new Exception("sortTablesByReference: больше невозможно добавить таблиц");
             }
         }
 

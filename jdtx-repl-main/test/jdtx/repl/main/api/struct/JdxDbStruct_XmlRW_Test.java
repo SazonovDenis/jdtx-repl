@@ -1,17 +1,17 @@
-package jdtx.repl.main.api;
+package jdtx.repl.main.api.struct;
 
-import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.*;
 import org.junit.*;
 
 /**
  */
-public class UtDbStruct_XmlRW_Test extends ReplDatabaseStruct_Test {
+public class JdxDbStruct_XmlRW_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
     public void test_XmlRW() throws Exception {
         // структура подключенной БД - в файл
-        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
         struct_rw.saveToFile(struct, "../_test-data/dbStruct.xml");
 
         // проверим, что структура подключенной БД нетривиальна
@@ -23,7 +23,6 @@ public class UtDbStruct_XmlRW_Test extends ReplDatabaseStruct_Test {
         IJdxDbStruct structXml = struct_rw.read("../_test-data/dbStruct.xml");
 
         // проверим совпадение
-        UtTest utTest = new UtTest(db);
         assertEquals(true, UtDbComparer.dbStructIsEqual(struct, structXml));
     }
 
@@ -39,7 +38,7 @@ public class UtDbStruct_XmlRW_Test extends ReplDatabaseStruct_Test {
         System.out.println(structDiff1.getTables().size());
         System.out.println(structDiff2.getTables().size());
         //
-        UtDbStruct_XmlRW struct_rw = new UtDbStruct_XmlRW();
+        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
         struct_rw.saveToFile(structNoDiff, "../_test-data/structNoDiff.xml");
         struct_rw.saveToFile(structDiff1, "../_test-data/structDiff1.xml");
         struct_rw.saveToFile(structDiff2, "../_test-data/structDiff2.xml");
