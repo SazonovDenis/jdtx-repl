@@ -81,11 +81,11 @@ public class JdxReplWsSrv_ChangeDbStruct_Loop_Test extends JdxReplWsSrv_ChangeDb
                 System.out.println("Меняем структуру");
                 //
                 TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
-                doModifyDbStruct(db);
+                test_ModifyDbStruct(db);
                 TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
-                doModifyDbStruct(db2);
+                test_ModifyDbStruct(db2);
                 TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
-                doModifyDbStruct(db3);
+                test_ModifyDbStruct(db3);
                 TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
                 //
                 reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой

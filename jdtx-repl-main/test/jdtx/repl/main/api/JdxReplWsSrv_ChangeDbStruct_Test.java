@@ -22,7 +22,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      */
     @Test
     public void test_Mute_Unmute() throws Exception {
-        all_setUp();
+        allSetUp();
         sync_http();
         sync_http();
 
@@ -268,7 +268,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      */
     @Test
     public void test_No_HandleSelfAudit() throws Exception {
-        all_setUp();
+        allSetUp();
         sync_http();
         sync_http();
 
@@ -362,30 +362,32 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      */
     @Test
     public void test_init_modifyDbStruct() throws Exception {
-        all_setUp();
+        allSetUp();
         sync_http();
         sync_http();
-        doModifyDbStruct();
+        test_ModifyDbStruct();
     }
 
     /**
      * Инициализация и прогон полного цикла смены структуры БД, ТРИ РАЗА
      */
     @Test
-    public void test_init_modifyDbStruct_3() throws Exception {
-        all_setUp();
+    public void test_allSetUp_modifyDbStruct_triple() throws Exception {
+        allSetUp();
+        //
         sync_http();
         sync_http();
-        doModifyDbStruct();
-        doModifyDbStruct();
-        doModifyDbStruct();
+        //
+        test_ModifyDbStruct();
+        test_ModifyDbStruct();
+        test_ModifyDbStruct();
     }
 
     /**
      * Прогон полного цикла смены структуры БД
      */
     @Test
-    public void doModifyDbStruct() throws Exception {
+    public void test_ModifyDbStruct() throws Exception {
         JdxReplWs ws;
         JdxReplWs ws2;
         JdxReplWs ws3;
@@ -449,7 +451,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Физически меняем свою структуру на сервере
-        doModifyDbStruct(db);
+        test_ModifyDbStruct(db);
 
         //
         test_ws1_makeChange_Unimportant();
@@ -496,8 +498,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Физически меняем структуру на рабочих станциях ws2 и ws3
-        doModifyDbStruct(db2);
-        doModifyDbStruct(db3);
+        test_ModifyDbStruct(db2);
+        test_ModifyDbStruct(db3);
         //reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
 
 
@@ -554,7 +556,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     public void test_sync_changeDbStruct() throws Exception {
         sync_http();
         test_dumpTables();
-        doModifyDbStruct();
+        test_ModifyDbStruct();
         reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
     }
 */
@@ -562,17 +564,17 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
     @Test
     public void test_ws1_changeDbStruct() throws Exception {
-        doModifyDbStruct(db);
+        test_ModifyDbStruct(db);
     }
 
     @Test
     public void test_ws2_changeDbStruct() throws Exception {
-        doModifyDbStruct(db2);
+        test_ModifyDbStruct(db2);
     }
 
     @Test
     public void test_ws3_changeDbStruct() throws Exception {
-        doModifyDbStruct(db3);
+        test_ModifyDbStruct(db3);
     }
 
     /**
@@ -684,7 +686,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      * добавляет одну таблицу,
      * в таблицу Region добавляет поле
      */
-    void doModifyDbStruct(Db db) throws Exception {
+    void test_ModifyDbStruct(Db db) throws Exception {
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);

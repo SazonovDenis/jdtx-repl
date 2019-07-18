@@ -20,7 +20,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     String json_ws = "test/etalon/mail_http_ws.json";
 
     @Test
-    public void all_setUp() throws Exception {
+    public void allSetUp() throws Exception {
         UtFile.cleanDir("../_test-data/csv");
         UtFile.cleanDir("../_test-data/mail");
         UtFile.cleanDir("../_test-data/mail_local");
