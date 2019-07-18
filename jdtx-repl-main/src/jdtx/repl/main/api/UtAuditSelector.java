@@ -33,7 +33,7 @@ public class UtAuditSelector {
     protected void readAuditData_ById(String tableName, String tableFields, long fromId, long toId, JdxReplicaWriterXml dataWriter) throws Exception {
         IJdxTable table = struct.getTable(tableName);
 
-        // decoder
+        //
         IRefDecoder decoder = new RefDecoder(db, wsId);
 
         // DbQuery, содержащий аудит в указанном диапазоне: id >= fromId и id <= toId

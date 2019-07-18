@@ -253,7 +253,7 @@ public class UtRepl {
         writerXml.writeReplicaHeader(replica);
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
-        UtDataSelector utrr = new UtDataSelector(db, struct);
+        UtDataSelector utrr = new UtDataSelector(db, struct, wsId);
         String publicationFields = Publication.filedsToString(publicationTable.getFields());
         utrr.readAllRecords(publicationTable.getName(), publicationFields, writerXml);
 

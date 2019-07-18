@@ -80,11 +80,19 @@ public class RefDecoder implements IRefDecoder {
     // IRefDecoder
     // ------------------------------------------
 
+    public boolean is_own_id(String tableName, long own_id) {
+        if (own_id < SLOT_SIZE * SLOT_START_NUMBER) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public JdxRef get_ref(String tableName, long own_id) throws Exception {
         JdxRef ref = new JdxRef();
 
         // Это наша id?
-        if (own_id < SLOT_SIZE * SLOT_START_NUMBER) {
+        if (is_own_id(tableName, own_id)) {
             ref.ws_id = this.self_ws_id;
             ref.id = own_id;
             return ref;

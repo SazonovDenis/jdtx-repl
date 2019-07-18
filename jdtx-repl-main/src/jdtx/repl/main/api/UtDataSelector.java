@@ -1,43 +1,70 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.db.*;
+import jandcode.utils.error.*;
+import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 
 public class UtDataSelector {
 
-    Db db;
-    IJdxDbStruct struct;
+    private Db db;
+    private IJdxDbStruct struct;
+    private long wsId;
 
     //
     protected static Log log = LogFactory.getLog("jdtx");
 
 
     //
-    public UtDataSelector(Db db, IJdxDbStruct struct) {
+    public UtDataSelector(Db db, IJdxDbStruct struct, long wsId) {
         this.db = db;
         this.struct = struct;
+        this.wsId = wsId;
     }
 
     /**
      * Если в таблице есть ссылка на самого себя, обязана обеспечить правильную последовательность записей.
      */
-    public void readAllRecords(String tableName, String tableFields, JdxReplicaWriterXml dataContainer) throws Exception {
-        DbQuery rsTableLog = selectAllRecords(tableName, tableFields);
-        try {
-            dataContainer.startTable(tableName);
+    public void readAllRecords(String tableName, String tableFields, JdxReplicaWriterXml dataWriter) throws Exception {
+        IJdxTable table = struct.getTable(tableName);
 
-            // измененные данные помещаем в dataContainer
+        //
+        IRefDecoder decoder = new RefDecoder(db, wsId);
+
+        // DbQuery, содержащие все данные
+        DbQuery rsTableLog = selectAllRecords(tableName, tableFields);
+
+        //
+        try {
+            dataWriter.startTable(tableName);
+
+            // Данные помещаем в dataWriter
             long count = 0;
             while (!rsTableLog.eof()) {
-                dataContainer.appendRec();
+                dataWriter.appendRec();
+
                 // Тип операции
-                dataContainer.setOprType(JdxOprType.OPR_INS);
+                dataWriter.setOprType(JdxOprType.OPR_INS);
+
                 // Тело записи
                 String[] tableFromFields = tableFields.split(",");
-                for (String field : tableFromFields) {
-                    dataContainer.setRecValue(field, rsTableLog.getValue(field));
+                for (String fieldName : tableFromFields) {
+                    Object fieldValue = rsTableLog.getValue(fieldName);
+
+                    // Защита от дурака: в snapshot недопустимы чужие id
+                    IJdxField field = table.getField(fieldName);
+                    if (field.isPrimaryKey()) {
+                        String refTableName = table.getName();
+                        long own_id = Long.valueOf(String.valueOf(fieldValue));
+                        if (!decoder.is_own_id(refTableName, own_id)) {
+                            throw new XError("Not own id found, tableName: " + refTableName + ", id: " + own_id);
+                        }
+                    }
+
+                    //
+                    dataWriter.setRecValue(fieldName, fieldValue);
                 }
                 //
                 rsTableLog.next();
@@ -53,7 +80,7 @@ public class UtDataSelector {
             log.info("  readData: " + tableName + ", total: " + count);
 
             //
-            dataContainer.flush();
+            dataWriter.flush();
         } finally {
             rsTableLog.close();
         }
@@ -76,7 +103,7 @@ public class UtDataSelector {
                 // todo: Пока так реализуем правильную последовательность записей (если есть ссылка на самого себя)
                 return "select 0 as dummySortField, " + tableFields + " from " + tableFrom.getName() + " where " + fk.getField().getName() + " = 0\n" +
                         "union\n" +
-                        "select 1 as dummySortField, " + tableFields + " from " + tableFrom.getName() + " where " + fk.getField().getName() + " <> 0\n"+
+                        "select 1 as dummySortField, " + tableFields + " from " + tableFrom.getName() + " where " + fk.getField().getName() + " <> 0\n" +
                         "order by 1";
             }
         }

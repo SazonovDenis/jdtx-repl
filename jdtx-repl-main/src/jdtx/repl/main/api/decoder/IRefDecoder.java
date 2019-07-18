@@ -26,4 +26,9 @@ public interface IRefDecoder {
      */
     JdxRef get_ref(String tableName, long own_id) throws Exception;
 
+    /**
+     * Является ли эта id созданной на нашей рабочей станции
+     */
+    boolean is_own_id(String tableName, long own_id);
+
 }
