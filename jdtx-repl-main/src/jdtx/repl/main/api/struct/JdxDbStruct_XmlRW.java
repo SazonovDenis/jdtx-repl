@@ -3,11 +3,14 @@ package jdtx.repl.main.api.struct;
 import jandcode.utils.easyxml.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  * Читать/писать IJdxDbStruct в XML
  */
 public class JdxDbStruct_XmlRW {
+
+    boolean doSort = true;
 
     public String toString(IJdxDbStruct struct) throws Exception {
         EasyXml xml = new EasyXml();
@@ -54,12 +57,28 @@ public class JdxDbStruct_XmlRW {
         item_table.setValue("@name", table.getName());
 
         //
-        for (IJdxFieldStruct f : table.getFields()) {
+        List<IJdxFieldStruct> fields;
+        List<IJdxForeignKey> foreignKeys;
+        if (doSort) {
+            fields = new ArrayList<>();
+            fields.addAll(table.getFields());
+            Collections.sort(fields, new JdxFieldComparator());
+            //
+            foreignKeys = new ArrayList<>();
+            foreignKeys.addAll(table.getForeignKeys());
+            Collections.sort(foreignKeys, new JdxForeignKeyComparator());
+        } else {
+            fields = table.getFields();
+            foreignKeys = table.getForeignKeys();
+        }
+
+        //
+        for (IJdxFieldStruct f : fields) {
             writeFieldStruct(f, item_table);
         }
 
         //
-        for (IJdxForeignKey fk : table.getForeignKeys()) {
+        for (IJdxForeignKey fk : foreignKeys) {
             writeFkStruct(fk, item_table);
         }
     }
