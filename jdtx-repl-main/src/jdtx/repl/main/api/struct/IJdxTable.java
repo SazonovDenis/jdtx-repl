@@ -2,17 +2,15 @@ package jdtx.repl.main.api.struct;
 
 import java.util.*;
 
-public interface IJdxTableStruct {
+public interface IJdxTable {
 
     String getName();
 
-    List<IJdxFieldStruct> getFields();
+    List<IJdxField> getFields();
 
-    List<IJdxFieldStruct> getPrimaryKey();
+    List<IJdxField> getPrimaryKey();
 
     List<IJdxForeignKey> getForeignKeys();
-
-    //IJdxTableStruct cloneTable();
 
     /**
      * Возвращает поле по имени
@@ -20,6 +18,6 @@ public interface IJdxTableStruct {
      * @param tableName имя поля
      * @return поле или null, если такого поля нет
      */
-    IJdxFieldStruct getField(String tableName);
+    IJdxField getField(String tableName);
 
 }

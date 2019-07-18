@@ -1,12 +1,12 @@
 package jdtx.repl.main.api.struct;
 
-public class JdxFieldStruct implements IJdxFieldStruct {
+public class JdxField implements IJdxField {
     String name;
     String type;
     JdxDataType jdxType;
     int size;
     boolean isPrimaryKey;
-    IJdxTableStruct refTable;
+    IJdxTable refTable;
 
     public String getName() {
         return name;
@@ -28,12 +28,12 @@ public class JdxFieldStruct implements IJdxFieldStruct {
         return this.isPrimaryKey;
     }
 
-    public IJdxTableStruct getRefTable() {
+    public IJdxTable getRefTable() {
         return this.refTable;
     }
 
-    public IJdxFieldStruct cloneField() {
-        JdxFieldStruct f1 = new JdxFieldStruct();
+    public IJdxField cloneField() {
+        JdxField f1 = new JdxField();
         f1.setName(this.getName());
         f1.setDbDatatype(this.getDbDatatype());
         f1.setJdxDatatype(this.getJdxDatatype());
@@ -47,7 +47,7 @@ public class JdxFieldStruct implements IJdxFieldStruct {
         this.isPrimaryKey = isPrimaryKey;
     }
 
-    public void setRefTable(IJdxTableStruct refTable) {
+    public void setRefTable(IJdxTable refTable) {
         this.refTable = refTable;
     }
 

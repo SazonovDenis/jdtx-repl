@@ -79,7 +79,7 @@ public class UtRepl {
 
         // Удаляем связанную с каждой таблицей таблицу журнала изменений
         log.info("dropAudit - журналы");
-        for (IJdxTableStruct table : struct.getTables()) {
+        for (IJdxTable table : struct.getTables()) {
             ut.dropAuditTable(table.getName());
         }
 
@@ -205,7 +205,7 @@ public class UtRepl {
 
 
         // Забираем аудит по порядку сортировки таблиц в struct
-        for (IJdxTableStruct publicationTable : publication.getData().getTables()) {
+        for (IJdxTable publicationTable : publication.getData().getTables()) {
             // Интервал id в таблице аудита, который покрывает возраст age
             Map autitInfoTable = (Map) auditInfo.get(publicationTable.getName());
             if (autitInfoTable != null) {
@@ -237,7 +237,7 @@ public class UtRepl {
      * Используется при включении новой БД в систему:
      * самая первая (установочная) реплика для сервера.
      */
-    public IReplica createReplicaTableSnapshot(long wsId, IJdxTableStruct publicationTable, long age) throws Exception {
+    public IReplica createReplicaTableSnapshot(long wsId, IJdxTable publicationTable, long age) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setDbStructCrc(UtDbComparer.calcDbStructCrc(struct));
         replica.getInfo().setWsId(wsId);
@@ -388,7 +388,7 @@ public class UtRepl {
         return version;
     }
 
-    public static boolean tableSkipRepl(IJdxTableStruct table) {
+    public static boolean tableSkipRepl(IJdxTable table) {
         return table.getPrimaryKey().size() == 0;
     }
 

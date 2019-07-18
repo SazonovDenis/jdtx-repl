@@ -86,7 +86,7 @@ public class UtAuditAgeManager {
 
             // Увеличился ли общий возраст БД ?
             boolean wasChange = false;
-            for (IJdxTableStruct table : struct.getTables()) {
+            for (IJdxTable table : struct.getTables()) {
                 String tableName = table.getName();
                 long maxIdCurr = 0;
                 long maxIdFixed = 0;
@@ -121,7 +121,7 @@ public class UtAuditAgeManager {
     }
 
     private void fillMaxIdsCurr(Map maxIdsCurr) throws Exception {
-        for (IJdxTableStruct table : struct.getTables()) {
+        for (IJdxTable table : struct.getTables()) {
             if (!UtRepl.tableSkipRepl(table)) {
                 String tableName = table.getName();
                 long maxId = db.loadSql("select max(" + JdxUtils.prefix + "id) as maxId from " + JdxUtils.audit_table_prefix + tableName).getCurRec().getValueLong("maxId");
@@ -142,7 +142,7 @@ public class UtAuditAgeManager {
     private void fillAgeTable(long auditAgeActual, Map maxIdsActual) throws Exception {
         DateTime dt = new DateTime();
         String sqlIns = "insert into " + JdxUtils.sys_table_prefix + "age(age, table_name, " + JdxUtils.prefix + "id, dt) values (:age, :table_name, :maxId, :dt)";
-        for (IJdxTableStruct table : struct.getTables()) {
+        for (IJdxTable table : struct.getTables()) {
             String tableName = table.getName();
             Object maxIdO = maxIdsActual.get(tableName);
             long maxId = 0;

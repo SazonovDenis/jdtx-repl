@@ -37,7 +37,7 @@ public class UtAuditApplyer {
         log.info("applyReplica, self.WsId: " + selfWsId + ", replica.WsId: " + dataReader.getWsId() + ", replica.age: " + dataReader.getAge());
 
         //
-        List<IJdxTableStruct> tables = struct.getTables();
+        List<IJdxTable> tables = struct.getTables();
         int tIdx = 0;
 
         //
@@ -76,11 +76,11 @@ public class UtAuditApplyer {
                 }
                 //
                 tIdx = n;
-                IJdxTableStruct table = tables.get(n);
+                IJdxTable table = tables.get(n);
                 String idFieldName = table.getPrimaryKey().get(0).getName();
 
                 // Поиск полей таблицы в публикации (поля берем именно из правил публикаций)
-                IJdxTableStruct publicationTable = publicationData.getTable(tableName);
+                IJdxTable publicationTable = publicationData.getTable(tableName);
                 //
                 if (publicationTable == null) {
                     log.info("  skip table: " + tableName);
@@ -108,9 +108,9 @@ public class UtAuditApplyer {
                 long count = 0;
                 while (recValues != null) {
                     // Подготовка полей записи в recValues
-                    for (IJdxFieldStruct publicationField : publicationTable.getFields()) {
+                    for (IJdxField publicationField : publicationTable.getFields()) {
                         String publicationFieldName = publicationField.getName();
-                        IJdxFieldStruct field = table.getField(publicationFieldName);
+                        IJdxField field = table.getField(publicationFieldName);
 
                         // Поле - BLOB?
                         if (getDataType(field.getDbDatatype()) == DataType.BLOB) {
@@ -129,7 +129,7 @@ public class UtAuditApplyer {
                         }
 
                         // Поле - ссылка?
-                        IJdxTableStruct refTable = field.getRefTable();
+                        IJdxTable refTable = field.getRefTable();
                         if (field.isPrimaryKey() || refTable != null) {
                             // Ссылка
                             String refTableName;

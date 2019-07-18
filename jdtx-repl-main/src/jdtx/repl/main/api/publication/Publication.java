@@ -21,7 +21,7 @@ public class Publication implements IPublication {
         publicationStruct.getTables().clear();
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
-        for (IJdxTableStruct baseStructTable : baseStruct.getTables()) {
+        for (IJdxTable baseStructTable : baseStruct.getTables()) {
             String baseStructTableName = baseStructTable.getName();
 
             // Ищем таблицу в правилах публикации
@@ -37,13 +37,13 @@ public class Publication implements IPublication {
             // Нашли таблицу?
             if (publicationFields != null) {
                 // Добавляем в структуру публикации
-                JdxTableStruct publicationTable = new JdxTableStruct();
+                JdxTable publicationTable = new JdxTable();
                 publicationStruct.getTables().add(publicationTable);
                 //
                 publicationTable.setName(baseStructTable.getName());
                 //
                 for (String publicationFieldName : publicationFields) {
-                    IJdxFieldStruct publicationField = baseStructTable.getField(publicationFieldName).cloneField();
+                    IJdxField publicationField = baseStructTable.getField(publicationFieldName).cloneField();
                     publicationTable.getFields().add(publicationField);
                 }
             }
@@ -57,14 +57,14 @@ public class Publication implements IPublication {
     }
 
 
-    List<String> expandPublicationFields(IJdxTableStruct table, String publicationFields) {
+    List<String> expandPublicationFields(IJdxTable table, String publicationFields) {
         List<String> res = new ArrayList<>();
 
         //
         // DbUtils.ID_FIELD пусть будет всегда спереди (необязательно, но... во-первых это красиво!)
         res.add(DbUtils.ID_FIELD);
         if (publicationFields.compareToIgnoreCase("*") == 0) {
-            for (IJdxFieldStruct fieldStruct : table.getFields()) {
+            for (IJdxField fieldStruct : table.getFields()) {
                 if (fieldStruct.getName().equalsIgnoreCase(DbUtils.ID_FIELD)) {
                     continue;
                 }
@@ -85,11 +85,11 @@ public class Publication implements IPublication {
     }
 
     // todo: переместить отсюда куда-нибудь в утилиты
-    public static String filedsToString(List<IJdxFieldStruct> fields) {
+    public static String filedsToString(List<IJdxField> fields) {
         StringBuilder sb = new StringBuilder();
 
         //
-        for (IJdxFieldStruct f : fields) {
+        for (IJdxField f : fields) {
             if (sb.length() != 0) {
                 sb.append(",");
             }

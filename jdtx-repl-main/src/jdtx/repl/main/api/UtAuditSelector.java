@@ -31,13 +31,13 @@ public class UtAuditSelector {
 
 
     protected void readAuditData_ById(String tableName, String tableFields, long fromId, long toId, JdxReplicaWriterXml dataWriter) throws Exception {
-        IJdxTableStruct table = struct.getTable(tableName);
+        IJdxTable table = struct.getTable(tableName);
 
         // decoder
         IRefDecoder decoder = new RefDecoder(db, wsId);
 
         // DbQuery, содержащий аудит в указанном диапазоне: id >= fromId и id <= toId
-        IJdxTableStruct tableFrom = struct.getTable(tableName);
+        IJdxTable tableFrom = struct.getTable(tableName);
         String sql = getSql(tableFrom, tableFields, fromId, toId);
         DbQuery rsTableLog = db.openSql(sql);
 
@@ -60,8 +60,8 @@ public class UtAuditSelector {
                     String[] tableFromFields = tableFields.split(",");
                     for (String fieldName : tableFromFields) {
                         Object fieldValue = rsTableLog.getValue(fieldName);
-                        IJdxFieldStruct field = table.getField(fieldName);
-                        IJdxTableStruct refTable = field.getRefTable();
+                        IJdxField field = table.getField(fieldName);
+                        IJdxTable refTable = field.getRefTable();
                         if (field.isPrimaryKey() || refTable != null) {
                             // Ссылка
                             String refTableName;
@@ -106,7 +106,7 @@ public class UtAuditSelector {
         db.startTran();
         try {
             // удаляем журнал измений во всех таблицах
-            for (IJdxTableStruct t : struct.getTables()) {
+            for (IJdxTable t : struct.getTables()) {
                 // Интервал id в таблице аудита, который покрывает возраст с ageFrom по ageTo
                 long fromId = getAuditMaxIdByAge(t, ageFrom - 1) + 1;
                 long toId = getAuditMaxIdByAge(t, ageTo);
@@ -137,12 +137,12 @@ public class UtAuditSelector {
      * @param age       возраст БД
      * @return id таблицы аудита, соответствующая возрасту age
      */
-    protected long getAuditMaxIdByAge(IJdxTableStruct tableFrom, long age) throws Exception {
+    protected long getAuditMaxIdByAge(IJdxTable tableFrom, long age) throws Exception {
         String query = "select " + JdxUtils.prefix + "id as id from " + JdxUtils.sys_table_prefix + "age where age=" + age + " and table_name='" + tableFrom.getName() + "'";
         return db.loadSql(query).getCurRec().getValueLong("id");
     }
 
-    protected String getSql_full(IJdxTableStruct tableFrom, String tableFields, long fromId, long toId) {
+    protected String getSql_full(IJdxTable tableFrom, String tableFields, long fromId, long toId) {
         return "select " +
                 JdxUtils.prefix + "opr_type, " + tableFields +
                 " from " + JdxUtils.audit_table_prefix + tableFrom.getName() +
@@ -150,7 +150,7 @@ public class UtAuditSelector {
                 " order by " + JdxUtils.prefix + "id";
     }
 
-    protected String getSql(IJdxTableStruct tableFrom, String tableFields, long fromId, long toId) {
+    protected String getSql(IJdxTable tableFrom, String tableFields, long fromId, long toId) {
         String idFieldName = tableFrom.getPrimaryKey().get(0).getName();
         //
         String[] tableFromFields = tableFields.split(",");
@@ -191,7 +191,7 @@ public class UtAuditSelector {
         DateTime dtFrom = null;
         DateTime dtTo = null;
 
-        for (IJdxTableStruct table : publication.getData().getTables()) {
+        for (IJdxTable table : publication.getData().getTables()) {
             String sql = "select\n" +
                     "  --z_z_age_last.table_name,\n" +
                     "  z_z_age_prior.age age_prior,\n" +

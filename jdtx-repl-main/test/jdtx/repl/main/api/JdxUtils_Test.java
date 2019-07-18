@@ -73,14 +73,14 @@ public class JdxUtils_Test {
 
         //
         System.out.println("=== structDiffNew");
-        for (IJdxTableStruct table : structDiffNew.getTables()) {
+        for (IJdxTable table : structDiffNew.getTables()) {
             System.out.println(table.getName());
         }
 
         //
-        List<IJdxTableStruct> structDiffNewSorted = JdxUtils.sortTablesByReference(structDiffNew.getTables());
+        List<IJdxTable> structDiffNewSorted = JdxUtils.sortTablesByReference(structDiffNew.getTables());
         System.out.println("=== structDiffNewSorted");
-        for (IJdxTableStruct table : structDiffNewSorted) {
+        for (IJdxTable table : structDiffNewSorted) {
             System.out.println(table.getName());
         }
     }

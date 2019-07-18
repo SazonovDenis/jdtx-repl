@@ -25,7 +25,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
 
 
     public IJdxDbStruct readDbStruct(boolean skipReplObj) throws Exception {
-        List<IJdxTableStruct> structTables = new ArrayList<>();
+        List<IJdxTable> structTables = new ArrayList<>();
 
         //
         DatabaseMetaData metaData = db.getConnection().getMetaData();
@@ -39,7 +39,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
 
                 //для очередной таблицы
                 //создаем экземпляр класса
-                JdxTableStruct table = new JdxTableStruct();
+                JdxTable table = new JdxTable();
                 //добавляем экземпляр в список
                 structTables.add(table);
 
@@ -50,7 +50,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
                 ResultSet rsColumns = metaData.getColumns(null, null, table.getName(), null);
                 try {
                     while (rsColumns.next()) {
-                        JdxFieldStruct field = new JdxFieldStruct();
+                        JdxField field = new JdxField();
                         table.getFields().add(field);
 
                         String columnName = rsColumns.getString("COLUMN_NAME");
@@ -71,7 +71,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
                 try {
                     while (rsPK.next()) {
                         String columnName = rsPK.getString("COLUMN_NAME");
-                        JdxFieldStruct fieldPK = (JdxFieldStruct) table.getField(columnName);
+                        JdxField fieldPK = (JdxField) table.getField(columnName);
                         fieldPK.setIsPrimaryKey(true);
                         table.getPrimaryKey().add(fieldPK);
                     }
@@ -84,7 +84,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
         }
 
         // --- внешние ключи
-        for (IJdxTableStruct table : structTables) {
+        for (IJdxTable table : structTables) {
             ResultSet rsFK = metaData.getImportedKeys(db.getConnection().getCatalog(), null, table.getName());
             try {
                 while (rsFK.next()) {
@@ -92,9 +92,9 @@ public class JdxDbStructReader implements IJdxDbStructReader {
                     JdxForeignKey foreignKey = new JdxForeignKey();
                     table.getForeignKeys().add(foreignKey);
 
-                    JdxTableStruct tableFK = (JdxTableStruct) findTable(structTables, rsFK.getString("PKTABLE_NAME"));
-                    IJdxFieldStruct tableFieldFK = tableFK.getField(rsFK.getString("PKCOLUMN_NAME"));
-                    JdxFieldStruct fieldFK = (JdxFieldStruct) table.getField(rsFK.getString("FKCOLUMN_NAME"));
+                    JdxTable tableFK = (JdxTable) findTable(structTables, rsFK.getString("PKTABLE_NAME"));
+                    IJdxField tableFieldFK = tableFK.getField(rsFK.getString("PKCOLUMN_NAME"));
+                    JdxField fieldFK = (JdxField) table.getField(rsFK.getString("FKCOLUMN_NAME"));
                     String name = rsFK.getString("FK_NAME");
 
                     foreignKey.setName(name);
@@ -112,7 +112,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
         }
 
         // Сортируем таблицы по зависимостям
-        List<IJdxTableStruct> structTablesSorted = JdxUtils.sortTablesByReference(structTables);
+        List<IJdxTable> structTablesSorted = JdxUtils.sortTablesByReference(structTables);
 
 
         // Создаем и возвращаем экземпляр класса JdxDbStruct
@@ -123,8 +123,8 @@ public class JdxDbStructReader implements IJdxDbStructReader {
         return struct;
     }
 
-    private IJdxTableStruct findTable(List<IJdxTableStruct> tables, String tableName) {
-        for (IJdxTableStruct t : tables) {
+    private IJdxTable findTable(List<IJdxTable> tables, String tableName) {
+        for (IJdxTable t : tables) {
             if (t.getName().compareToIgnoreCase(tableName) == 0) {
                 return t;
             }

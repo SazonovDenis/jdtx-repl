@@ -10,25 +10,25 @@ public interface IJdxForeignKey {
     /**
      * @return Поле, которое ссылается (собственно ссылочное поле)
      */
-    IJdxFieldStruct getField();
+    IJdxField getField();
 
     /**
      * @return Таблица, на которую ссылаемся
      */
-    IJdxTableStruct getTable();
+    IJdxTable getTable();
 
     /**
      * @return Поле в таблице, на которое ссылаемся
      */
-    IJdxFieldStruct getTableField();
+    IJdxField getTableField();
 
     void setName(String name);
 
-    void setField(IJdxFieldStruct field);
+    void setField(IJdxField field);
 
-    void setTable(IJdxTableStruct table);
+    void setTable(IJdxTable table);
 
-    void setTableField(IJdxFieldStruct field);
+    void setTableField(IJdxField field);
 
     IJdxForeignKey cloneForeignKey();
 

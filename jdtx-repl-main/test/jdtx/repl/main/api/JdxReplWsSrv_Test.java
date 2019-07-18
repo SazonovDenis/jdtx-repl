@@ -177,6 +177,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         //
         sync_http();
+        sync_http();
 
         //
         test_dumpTables();
@@ -265,19 +266,19 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         // dumpTables Region*
         String regionTestFields = "";
-        for (IJdxFieldStruct f : struct.getTable("region").getFields()) {
+        for (IJdxField f : struct.getTable("region").getFields()) {
             if (f.getName().startsWith("TEST_FIELD_")) {
                 regionTestFields = regionTestFields + "Region." + f.getName() + ",";
             }
         }
         String regionTestFields2 = "";
-        for (IJdxFieldStruct f : struct2.getTable("region").getFields()) {
+        for (IJdxField f : struct2.getTable("region").getFields()) {
             if (f.getName().startsWith("TEST_FIELD_")) {
                 regionTestFields2 = regionTestFields2 + "Region." + f.getName() + ",";
             }
         }
         String regionTestFields3 = "";
-        for (IJdxFieldStruct f : struct3.getTable("region").getFields()) {
+        for (IJdxField f : struct3.getTable("region").getFields()) {
             if (f.getName().startsWith("TEST_FIELD_")) {
                 regionTestFields3 = regionTestFields3 + "Region." + f.getName() + ",";
             }
@@ -316,10 +317,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     private String dump_table_testXXX(Db db, IJdxDbStruct struct) throws Exception {
         String content = "";
-        for (IJdxTableStruct table : struct.getTables()) {
+        for (IJdxTable table : struct.getTables()) {
             if (table.getName().startsWith("TEST_TABLE_")) {
                 String selectFields = "name";
-                for (IJdxFieldStruct field : table.getFields()) {
+                for (IJdxField field : table.getFields()) {
                     if (field.getName().startsWith("TEST_FIELD_")) {
                         selectFields = selectFields + "," + field.getName();
                     }

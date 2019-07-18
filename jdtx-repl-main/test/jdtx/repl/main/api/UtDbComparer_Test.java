@@ -28,12 +28,12 @@ public class UtDbComparer_Test {
         System.out.println("=== dbStructDiff ===");
         System.out.println("structNew:");
         //
-        for (IJdxTableStruct table : structDiffNew.getTables()) {
+        for (IJdxTable table : structDiffNew.getTables()) {
             System.out.println("  " + table.getName());
         }
         //
         System.out.println("structRemoved:");
-        for (IJdxTableStruct table : structDiffRemoved.getTables()) {
+        for (IJdxTable table : structDiffRemoved.getTables()) {
             System.out.println("  " + table.getName());
         }
 
@@ -49,12 +49,12 @@ public class UtDbComparer_Test {
         System.out.println("=== dbStructDiffTables ===");
         //
         System.out.println("structNew:");
-        for (IJdxTableStruct table : structDiffNew.getTables()) {
+        for (IJdxTable table : structDiffNew.getTables()) {
             System.out.println("  " + table.getName());
         }
         //
         System.out.println("structRemoved:");
-        for (IJdxTableStruct table : structDiffRemoved.getTables()) {
+        for (IJdxTable table : structDiffRemoved.getTables()) {
             System.out.println("  " + table.getName());
         }
     }

@@ -35,7 +35,7 @@ public class UtTest extends UtilsTestCase {
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         IJdxDbStruct struct = reader.readDbStruct();
-        IJdxTableStruct table = struct.getTable(tableName);
+        IJdxTable table = struct.getTable(tableName);
         int lastFieldNo = getLastRandomFieldNo(table);
         String fieldName = "TEST_FIELD_" + (lastFieldNo + 1);
         db.execSql("alter table " + tableName + " add " + fieldName + " varchar(200)");
@@ -45,8 +45,8 @@ public class UtTest extends UtilsTestCase {
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         IJdxDbStruct struct = reader.readDbStruct();
-        IJdxTableStruct table = struct.getTable(tableName);
-        for (IJdxFieldStruct field : table.getFields()) {
+        IJdxTable table = struct.getTable(tableName);
+        for (IJdxField field : table.getFields()) {
             if (field.getName().startsWith("TEST_FIELD_")) {
                 String fieldName = field.getName();
                 db.execSql("alter table " + tableName + " drop " + fieldName);
@@ -59,8 +59,8 @@ public class UtTest extends UtilsTestCase {
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         IJdxDbStruct struct = reader.readDbStruct();
-        IJdxTableStruct table = struct.getTable(tableName);
-        IJdxFieldStruct field = table.getFields().get(table.getFields().size() - 1);
+        IJdxTable table = struct.getTable(tableName);
+        IJdxField field = table.getFields().get(table.getFields().size() - 1);
         String fieldName = field.getName();
         db.execSql("alter table " + tableName + " drop " + fieldName);
     }
@@ -132,7 +132,7 @@ public class UtTest extends UtilsTestCase {
         );
         //
         String regionTestFields = "";
-        for (IJdxFieldStruct f : struct.getTable("region").getFields()) {
+        for (IJdxField f : struct.getTable("region").getFields()) {
             if (f.getName().startsWith("TEST_FIELD_")) {
                 regionTestFields = regionTestFields + "Region." + f.getName() + ",";
                 params.put(f.getName(), f.getName() + "-ins-ws:" + ws_id + "-" + rnd.nextInt());
@@ -208,7 +208,7 @@ public class UtTest extends UtilsTestCase {
 
 
         // Апдейт таблиц TEST_TABLE_**
-        for (IJdxTableStruct table : struct.getTables()) {
+        for (IJdxTable table : struct.getTables()) {
             if (table.getName().startsWith("TEST_TABLE_")) {
                 int cnt = db.loadSql("select count(*) cnt from " + table.getName() + " where id > 0").getCurRec().getValueInt("cnt");
                 long id = db.loadSql("select min(id) id from " + table.getName() + " where id > 0").getCurRec().getValueLong("id");
@@ -223,7 +223,7 @@ public class UtTest extends UtilsTestCase {
                             "name", "upd-ws:" + ws_id + "-" + rnd.nextInt()
                     ));
                     // Поля TEST_FIELD_***
-                    for (IJdxFieldStruct field : table.getFields()) {
+                    for (IJdxField field : table.getFields()) {
                         String fieldName = field.getName();
                         if (fieldName.startsWith("TEST_FIELD_")) {
                             dbu.db.execSql("update " + table.getName() + " set " + fieldName + " = :" + fieldName + " where id = :id", UtCnv.toMap(
@@ -244,7 +244,7 @@ public class UtTest extends UtilsTestCase {
         reader.setDb(db);
         IJdxDbStruct struct = reader.readDbStruct();
         //
-        for (IJdxTableStruct t : struct.getTables()) {
+        for (IJdxTable t : struct.getTables()) {
             if (t.getName().startsWith("TEST_TABLE_")) {
                 return t.getName();
             }
@@ -253,10 +253,10 @@ public class UtTest extends UtilsTestCase {
         return null;
     }
 
-    int getLastRandomFieldNo(IJdxTableStruct table) {
+    int getLastRandomFieldNo(IJdxTable table) {
         String lastFieldName = null;
         //
-        for (IJdxFieldStruct field : table.getFields()) {
+        for (IJdxField field : table.getFields()) {
             if (field.getName().startsWith("TEST_FIELD_")) {
                 lastFieldName = field.getName();
             }

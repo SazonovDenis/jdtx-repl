@@ -7,7 +7,7 @@ public interface IJdxDbStruct {
     /**
      * @return Список таблиц
      */
-    ArrayList<IJdxTableStruct> getTables();
+    ArrayList<IJdxTable> getTables();
 
     /**
      * Возвращает таблицу по имени
@@ -15,6 +15,6 @@ public interface IJdxDbStruct {
      * @param tableName имя таблицы
      * @return таблица или null, если такой таблицы нет
      */
-    IJdxTableStruct getTable(String tableName);
+    IJdxTable getTable(String tableName);
 
 }

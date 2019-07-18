@@ -25,7 +25,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
         IJdxDbStruct t = publication.getData();
 
-        for (IJdxTableStruct o : t.getTables()) {
+        for (IJdxTable o : t.getTables()) {
             System.out.println("table = " + o.getName());
             System.out.println("fields = " + o.getFields());
         }

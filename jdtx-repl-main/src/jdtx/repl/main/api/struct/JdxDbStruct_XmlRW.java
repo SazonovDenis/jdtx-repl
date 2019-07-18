@@ -16,7 +16,7 @@ public class JdxDbStruct_XmlRW {
         EasyXml xml = new EasyXml();
 
         //
-        for (IJdxTableStruct t : struct.getTables()) {
+        for (IJdxTable t : struct.getTables()) {
             writeTableStruct(t, xml);
         }
 
@@ -28,7 +28,7 @@ public class JdxDbStruct_XmlRW {
         EasyXml xml = new EasyXml();
 
         //
-        for (IJdxTableStruct t : struct.getTables()) {
+        for (IJdxTable t : struct.getTables()) {
             writeTableStruct(t, xml);
         }
 
@@ -40,7 +40,7 @@ public class JdxDbStruct_XmlRW {
         EasyXml xml = new EasyXml();
 
         //
-        for (IJdxTableStruct t : struct.getTables()) {
+        for (IJdxTable t : struct.getTables()) {
             writeTableStruct(t, xml);
         }
 
@@ -48,7 +48,7 @@ public class JdxDbStruct_XmlRW {
         return xml.save().toBytes();
     }
 
-    private void writeTableStruct(IJdxTableStruct table, EasyXml xml) {
+    private void writeTableStruct(IJdxTable table, EasyXml xml) {
         EasyXml item_table = new EasyXml();
         xml.addChild(item_table);
 
@@ -57,7 +57,7 @@ public class JdxDbStruct_XmlRW {
         item_table.setValue("@name", table.getName());
 
         //
-        List<IJdxFieldStruct> fields;
+        List<IJdxField> fields;
         List<IJdxForeignKey> foreignKeys;
         if (doSort) {
             fields = new ArrayList<>();
@@ -73,7 +73,7 @@ public class JdxDbStruct_XmlRW {
         }
 
         //
-        for (IJdxFieldStruct f : fields) {
+        for (IJdxField f : fields) {
             writeFieldStruct(f, item_table);
         }
 
@@ -93,7 +93,7 @@ public class JdxDbStruct_XmlRW {
         item_table.addChild(item_fk);
     }
 
-    private void writeFieldStruct(IJdxFieldStruct field, EasyXml xml) {
+    private void writeFieldStruct(IJdxField field, EasyXml xml) {
         EasyXml item_field = new EasyXml();
         //
         item_field.setName("field");
@@ -130,7 +130,7 @@ public class JdxDbStruct_XmlRW {
         if (childs != null) {
             // Таблицы
             for (EasyXml item_table : childs) {
-                JdxTableStruct table = new JdxTableStruct();
+                JdxTable table = new JdxTable();
                 struct.getTables().add(table);
                 //
                 table.setName(item_table.getValueString("@name"));
@@ -140,7 +140,7 @@ public class JdxDbStruct_XmlRW {
 
             // FK таблиц
             for (EasyXml item_table : childs) {
-                IJdxTableStruct table = struct.getTable(item_table.getValueString("@name"));
+                IJdxTable table = struct.getTable(item_table.getValueString("@name"));
                 //
                 readTableFkStruct(item_table, table, struct);
             }
@@ -150,10 +150,10 @@ public class JdxDbStruct_XmlRW {
         return struct;
     }
 
-    private void readTableStruct(EasyXml xml, IJdxTableStruct table) {
+    private void readTableStruct(EasyXml xml, IJdxTable table) {
         for (EasyXml item_xml : xml.getChilds()) {
             if (item_xml.getName().compareToIgnoreCase("field") == 0) {
-                JdxFieldStruct field = new JdxFieldStruct();
+                JdxField field = new JdxField();
                 table.getFields().add(field);
                 //
                 field.setName(item_xml.getValueString("@name"));
@@ -163,14 +163,14 @@ public class JdxDbStruct_XmlRW {
         }
     }
 
-    private void readTableFkStruct(EasyXml xml, IJdxTableStruct table, IJdxDbStruct struct) {
+    private void readTableFkStruct(EasyXml xml, IJdxTable table, IJdxDbStruct struct) {
         for (EasyXml item_xml : xml.getChilds()) {
             if (item_xml.getName().compareToIgnoreCase("fk") == 0) {
                 JdxForeignKey fk = new JdxForeignKey();
                 table.getForeignKeys().add(fk);
                 //
-                IJdxTableStruct refTable = struct.getTable(item_xml.getValueString("@table"));
-                IJdxFieldStruct refTableField = refTable.getField(item_xml.getValueString("@tablefield"));
+                IJdxTable refTable = struct.getTable(item_xml.getValueString("@table"));
+                IJdxField refTableField = refTable.getField(item_xml.getValueString("@tablefield"));
                 fk.setName(item_xml.getValueString("@name"));
                 fk.setField(table.getField(item_xml.getValueString("@field")));
                 fk.setTable(refTable);

@@ -188,7 +188,7 @@ public class JdxReplWs {
         log.info("createReplicaTableSnapshot, wsId: " + wsId + ", table: " + tableName);
 
         //
-        IJdxTableStruct publicationTable = publicationOut.getData().getTable(tableName);
+        IJdxTable publicationTable = publicationOut.getData().getTable(tableName);
         if (publicationTable == null) {
             log.info("createReplicaTableSnapshot, skip createSnapshot, not found in publicationOut, table: " + tableName);
             return;
@@ -270,7 +270,7 @@ public class JdxReplWs {
         log.info("dbStructApplyFixed, start");
 
         // Обеспечиваем порядок сортировки таблиц с учетом foreign key (при выгрузке snapsot это важно)
-        List<IJdxTableStruct> tablesNew = JdxUtils.sortTablesByReference(structDiffNew.getTables());
+        List<IJdxTable> tablesNew = JdxUtils.sortTablesByReference(structDiffNew.getTables());
 
 
         // Подгоняем структуру аудита под реальную структуру
@@ -283,9 +283,9 @@ public class JdxReplWs {
             long n;
 
             // Удаляем аудит для удаленных таблиц
-            ArrayList<IJdxTableStruct> tablesRemoved = structDiffRemoved.getTables();
+            ArrayList<IJdxTable> tablesRemoved = structDiffRemoved.getTables();
             n = 0;
-            for (IJdxTableStruct table : tablesRemoved) {
+            for (IJdxTable table : tablesRemoved) {
                 n++;
                 log.debug("  dropAudit " + n + "/" + tablesRemoved.size() + " " + table.getName());
                 //
@@ -294,7 +294,7 @@ public class JdxReplWs {
 
             // Создаем аудит для новых таблиц
             n = 0;
-            for (IJdxTableStruct table : tablesNew) {
+            for (IJdxTable table : tablesNew) {
                 n++;
                 log.debug("  createAudit " + n + "/" + tablesNew.size() + " " + table.getName());
 
@@ -327,7 +327,7 @@ public class JdxReplWs {
         try {
             //
             long n = 0;
-            for (IJdxTableStruct table : tablesNew) {
+            for (IJdxTable table : tablesNew) {
                 n++;
                 log.debug("  createSnapshot " + n + "/" + tablesNew.size() + " " + table.getName());
 

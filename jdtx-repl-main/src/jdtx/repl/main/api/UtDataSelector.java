@@ -61,7 +61,7 @@ public class UtDataSelector {
 
     protected DbQuery selectAllRecords(String tableName, String tableFields) throws Exception {
         //
-        IJdxTableStruct tableFrom = struct.getTable(tableName);
+        IJdxTable tableFrom = struct.getTable(tableName);
 
         //
         String query = getSql(tableFrom, tableFields);
@@ -70,7 +70,7 @@ public class UtDataSelector {
         return db.openSql(query);
     }
 
-    protected String getSql(IJdxTableStruct tableFrom, String tableFields) {
+    protected String getSql(IJdxTable tableFrom, String tableFields) {
         for (IJdxForeignKey fk : tableFrom.getForeignKeys()) {
             if (fk.getTable().getName().equals(tableFrom.getName())) {
                 // todo: Пока так реализуем правильную последовательность записей (если есть ссылка на самого себя)

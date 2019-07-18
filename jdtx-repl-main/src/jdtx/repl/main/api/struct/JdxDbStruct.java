@@ -4,28 +4,28 @@ import java.util.*;
 
 public class JdxDbStruct implements IJdxDbStruct {
 
-    protected ArrayList<IJdxTableStruct> tables;
+    protected ArrayList<IJdxTable> tables;
 
     public JdxDbStruct() {
-        tables = new ArrayList<IJdxTableStruct>();
+        tables = new ArrayList<IJdxTable>();
     }
 
 /*
     public JdxDbStruct cloneStruct() {
         JdxDbStruct newStruct = new JdxDbStruct();
-        for (IJdxTableStruct t : this.getTables()) {
+        for (IJdxTable t : this.getTables()) {
             newStruct.getTables().add(t.cloneTable());
         }
         // ремонтируем ссылки в ForeignKey
-        for (IJdxTableStruct newTable : newStruct.getTables()) {
+        for (IJdxTable newTable : newStruct.getTables()) {
             for (IJdxForeignKey fk : newTable.getForeignKeys()) {
-                IJdxFieldStruct ownField = fk.getField();
-                IJdxTableStruct refTable = fk.getTable();
-                IJdxFieldStruct refField = fk.getTableField();
+                IJdxField ownField = fk.getField();
+                IJdxTable refTable = fk.getTable();
+                IJdxField refField = fk.getTableField();
                 //
-                IJdxFieldStruct newOwnField = newTable.getField(ownField.getName());
-                IJdxTableStruct newRefTable = newStruct.getTable(refTable.getName());
-                IJdxFieldStruct newRefTableField = newRefTable.getField(refField.getName());
+                IJdxField newOwnField = newTable.getField(ownField.getName());
+                IJdxTable newRefTable = newStruct.getTable(refTable.getName());
+                IJdxField newRefTableField = newRefTable.getField(refField.getName());
                 //
                 fk.setField(newOwnField);
                 fk.startTable(newRefTable);
@@ -37,12 +37,12 @@ public class JdxDbStruct implements IJdxDbStruct {
     }
 */
 
-    public ArrayList<IJdxTableStruct> getTables() {
+    public ArrayList<IJdxTable> getTables() {
         return tables;
     }
 
-    public IJdxTableStruct getTable(String tableName) {
-        for (IJdxTableStruct t : tables) {
+    public IJdxTable getTable(String tableName) {
+        for (IJdxTable t : tables) {
             if (t.getName().compareToIgnoreCase(tableName) == 0) {
                 return t;
             }

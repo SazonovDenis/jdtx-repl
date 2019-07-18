@@ -70,7 +70,7 @@ public class DbUtils {
             ilist = makeFieldsList(ignoreFields);
         }
         //
-        IJdxTableStruct table = struct.getTable(tableName);
+        IJdxTable table = struct.getTable(tableName);
         if (fields == null) {
             fields = table.getFields();
         }
@@ -142,7 +142,7 @@ public class DbUtils {
         if (excludeFields != null) {
             excludeList = makeFieldsList(excludeFields);
         }
-        IJdxTableStruct table = struct.getTable(tableName);
+        IJdxTable table = struct.getTable(tableName);
         if (fields == null) {
             fields = table.getFields();
         }
@@ -183,7 +183,7 @@ public class DbUtils {
      * @return текст sql
      */
     public String generateSqlDelete(String tableName) {
-        IJdxTableStruct table = struct.getTable(tableName);
+        IJdxTable table = struct.getTable(tableName);
         StringBuilder sb = new StringBuilder();
         sb.append("delete from ");
         sb.append(table.getName());
@@ -236,8 +236,8 @@ public class DbUtils {
         }
         if (value instanceof String)
             return (String) value;
-        else if (value instanceof IJdxFieldStruct)
-            return ((IJdxFieldStruct) value).getName();
+        else if (value instanceof IJdxField)
+            return ((IJdxField) value).getName();
         else
             return value.toString();
     }

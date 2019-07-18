@@ -3,23 +3,23 @@ package jdtx.repl.main.api.struct;
 public class JdxForeignKey implements IJdxForeignKey {
 
     String name;
-    IJdxFieldStruct field;
-    IJdxTableStruct table;
-    IJdxFieldStruct tableField;
+    IJdxField field;
+    IJdxTable table;
+    IJdxField tableField;
 
     public String getName() {
         return name;
     }
 
-    public IJdxFieldStruct getField() {
+    public IJdxField getField() {
         return field;
     }
 
-    public IJdxTableStruct getTable() {
+    public IJdxTable getTable() {
         return table;
     }
 
-    public IJdxFieldStruct getTableField() {
+    public IJdxField getTableField() {
         return this.tableField;
     }
 
@@ -27,24 +27,24 @@ public class JdxForeignKey implements IJdxForeignKey {
         this.name = name;
     }
 
-    public void setField(IJdxFieldStruct field) {
+    public void setField(IJdxField field) {
         this.field = field;
     }
 
-    public void setTable(IJdxTableStruct table) {
+    public void setTable(IJdxTable table) {
         this.table = table;
     }
 
-    public void setTableField(IJdxFieldStruct field) {
+    public void setTableField(IJdxField field) {
         this.tableField = field;
     }
 
     public IJdxForeignKey cloneForeignKey() {
         IJdxForeignKey fk = new JdxForeignKey();
         String name = this.getName();
-        IJdxFieldStruct ownField = this.getField();
-        IJdxTableStruct refTable = this.getTable();
-        IJdxFieldStruct refField = this.getTableField();
+        IJdxField ownField = this.getField();
+        IJdxTable refTable = this.getTable();
+        IJdxField refField = this.getTableField();
         fk.setName(name);
         fk.setField(ownField);
         fk.setTable(refTable);

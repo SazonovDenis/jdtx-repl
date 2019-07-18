@@ -30,15 +30,15 @@ public class JdxUtils {
      * @param lst исходный список
      * @return отсортированный список
      */
-    public static List<IJdxTableStruct> sortTablesByReference(List<IJdxTableStruct> lst) throws Exception {
+    public static List<IJdxTable> sortTablesByReference(List<IJdxTable> lst) throws Exception {
         // отсортированный список таблиц
-        List<IJdxTableStruct> sortLst = new ArrayList<IJdxTableStruct>();
+        List<IJdxTable> sortLst = new ArrayList<IJdxTable>();
 
         // список таблиц, которые уже вошли в sortLst
-        List<IJdxTableStruct> usedLst = new ArrayList<IJdxTableStruct>();
+        List<IJdxTable> usedLst = new ArrayList<IJdxTable>();
 
         // список таблиц, которые еще не вошли в sortLst (пока все таблицы)
-        List<IJdxTableStruct> restLst = new ArrayList<IJdxTableStruct>();
+        List<IJdxTable> restLst = new ArrayList<IJdxTable>();
         restLst.addAll(lst);
 
         int i = 0;
@@ -58,12 +58,12 @@ public class JdxUtils {
         // пока в sortLst не будут все таблицы
         while (restLst.size() != 0) {
             // список таблиц, добавленных на данной итерации
-            List<IJdxTableStruct> curLst = new ArrayList<IJdxTableStruct>();
+            List<IJdxTable> curLst = new ArrayList<IJdxTable>();
 
             // ищем таблицы, ссылающиеся на уже имеющиеся в usedtLst таблицы
             i = 0;
             while (i < restLst.size()) {
-                IJdxTableStruct table = restLst.get(i);
+                IJdxTable table = restLst.get(i);
 
                 // перебираем все внешние ключи таблицы table и пытаемся выяснить,
                 // ссылается-ли table на таблицы из уже отсортированных (usedLst)

@@ -124,7 +124,7 @@ public class UtDbObjectManager {
         dropAll(jdx_sys_tables, db);
     }
 
-    public void createAuditTriggers(IJdxTableStruct table) throws Exception {
+    public void createAuditTriggers(IJdxTable table) throws Exception {
         String sql;
 
         // тригер на вставку записи в аудит
@@ -140,7 +140,7 @@ public class UtDbObjectManager {
         db.execSqlNative(sql);
     }
 
-    private void createAuditTriggers_full(IJdxTableStruct table) throws Exception {
+    private void createAuditTriggers_full(IJdxTable table) throws Exception {
         String sql;
 
         // тригер на вставку записи в аудит
@@ -161,7 +161,7 @@ public class UtDbObjectManager {
      *
      * @param table Имя таблицы
      */
-    public void createAuditTable(IJdxTableStruct table) throws Exception {
+    public void createAuditTable(IJdxTable table) throws Exception {
         // создание таблицы журнала
         String tableName = table.getName();
         String pkFieldName = table.getPrimaryKey().get(0).getName();
@@ -186,9 +186,9 @@ public class UtDbObjectManager {
         db.execSql(sql);
     }
 
-    private void createAuditTable_full(IJdxTableStruct table) throws Exception {
+    private void createAuditTable_full(IJdxTable table) throws Exception {
         String tableName = table.getName();
-        List<IJdxFieldStruct> fields = table.getFields();
+        List<IJdxField> fields = table.getFields();
 
         // формируем запрос на создание таблицы журнала изменений
         int fieldCount = fields.size();
@@ -219,7 +219,7 @@ public class UtDbObjectManager {
         db.execSql(sql);
     }
 
-    private String createTrigger(IJdxTableStruct table, updMods upd_mode) {
+    private String createTrigger(IJdxTable table, updMods upd_mode) {
         String sql;
         String tableName = table.getName();
         String pkFieldName = table.getPrimaryKey().get(0).getName();
@@ -247,7 +247,7 @@ public class UtDbObjectManager {
         return sql;
     }
 
-    private String createTrigger_full(IJdxTableStruct table, updMods upd_mode) {
+    private String createTrigger_full(IJdxTable table, updMods upd_mode) {
         String tableName = table.getName();
         String sql;
         int fieldCount = table.getFields().size();

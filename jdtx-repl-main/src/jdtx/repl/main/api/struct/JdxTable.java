@@ -2,10 +2,10 @@ package jdtx.repl.main.api.struct;
 
 import java.util.*;
 
-public class JdxTableStruct implements IJdxTableStruct {
+public class JdxTable implements IJdxTable {
     String name;
-    ArrayList<IJdxFieldStruct> fields = new ArrayList<IJdxFieldStruct>();
-    ArrayList<IJdxFieldStruct> primaryKeys = new ArrayList<IJdxFieldStruct>();
+    ArrayList<IJdxField> fields = new ArrayList<IJdxField>();
+    ArrayList<IJdxField> primaryKeys = new ArrayList<IJdxField>();
     ArrayList<IJdxForeignKey> foreignKeys = new ArrayList<IJdxForeignKey>();
 
 
@@ -14,11 +14,11 @@ public class JdxTableStruct implements IJdxTableStruct {
     }
 
 
-    public ArrayList<IJdxFieldStruct> getFields() {
+    public ArrayList<IJdxField> getFields() {
         return fields;
     }
 
-    public ArrayList<IJdxFieldStruct> getPrimaryKey() {
+    public ArrayList<IJdxField> getPrimaryKey() {
         return primaryKeys;
     }
 
@@ -27,18 +27,18 @@ public class JdxTableStruct implements IJdxTableStruct {
     }
 
     /*
-    public IJdxTableStruct cloneTable() {
-        JdxTableStruct newTableStruct = new JdxTableStruct();
+    public IJdxTable cloneTable() {
+        JdxTable newTableStruct = new JdxTable();
         newTableStruct.setName(this.getName());
         // поля
-        for (IJdxFieldStruct f : this.getFields()) {
-            IJdxFieldStruct f1 = f.cloneField();
+        for (IJdxField f : this.getFields()) {
+            IJdxField f1 = f.cloneField();
             // добавляем поле в таблицу
             newTableStruct.getFields().add(f1);
         }
         // первичные ключи
-        for (IJdxFieldStruct pk : this.getPrimaryKey()) {
-            IJdxFieldStruct pk1 = pk.cloneField();
+        for (IJdxField pk : this.getPrimaryKey()) {
+            IJdxField pk1 = pk.cloneField();
             // добавляем ключ в таблицу
             newTableStruct.getPrimaryKey().add(pk1);
         }
@@ -56,8 +56,8 @@ public class JdxTableStruct implements IJdxTableStruct {
         this.name = name;
     }
 
-    public IJdxFieldStruct getField(String fieldName) {
-        for (IJdxFieldStruct f : fields) {
+    public IJdxField getField(String fieldName) {
+        for (IJdxField f : fields) {
             if ((f.getName()).compareToIgnoreCase(fieldName) == 0) {
                 return f;
             }
