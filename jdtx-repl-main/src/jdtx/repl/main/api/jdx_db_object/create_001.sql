@@ -2,7 +2,9 @@
 jdtx/repl/main/api/jdx_db_object/UtDbObjectManager.sql
 */
 
-/* таблица с флагом работы триггеров */
+/*
+Таблица с флагом работы триггеров
+*/
 CREATE TABLE Z_Z_flag_tab (
   id           INTEGER NOT NULL,
   trigger_flag INTEGER NOT NULL
@@ -11,7 +13,9 @@ CREATE TABLE Z_Z_flag_tab (
 INSERT INTO Z_Z_flag_tab (id, trigger_flag) VALUES (1, 1);
 
 
-/* метка с номером БД (для рабочей станции) */
+/*
+Метка с номером БД (для рабочей станции)
+*/
 CREATE TABLE Z_Z_db_info (
   ws_id   INTEGER      NOT NULL,
   guid    VARCHAR(150) NOT NULL
@@ -57,7 +61,9 @@ ALTER TABLE Z_Z_state_ws ADD CONSTRAINT pk_Z_Z_state_ws PRIMARY KEY (id);
 CREATE generator Z_Z_G_state_ws;
 
 
-/* список рабочих станций (для сервера) */
+/*
+Список рабочих станций (для сервера)
+*/
 CREATE TABLE Z_Z_workstation_list (
   id      INTEGER      NOT NULL,
   name    VARCHAR(50)  NOT NULL,
@@ -71,7 +77,9 @@ CREATE UNIQUE INDEX Z_Z_workstation_list_idx1 ON Z_Z_workstation_list (name);
 CREATE UNIQUE INDEX Z_Z_workstation_list_idx2 ON Z_Z_workstation_list (guid);
 
 
-/* очереди реплик - входящая */
+/*
+Очереди реплик - входящая
+*/
 CREATE TABLE Z_Z_que_in (
   id           INTEGER NOT NULL,
   ws_id        INT     NOT NULL,
@@ -86,7 +94,9 @@ CREATE generator Z_Z_G_que_in;
 SET generator Z_Z_G_que_in TO 0;
 
 
-/* очереди реплик - исходящая */
+/*
+Очереди реплик - исходящая
+*/
 CREATE TABLE Z_Z_que_out (
   id           INTEGER NOT NULL,
   ws_id        INT     NOT NULL,
@@ -101,7 +111,9 @@ CREATE generator Z_Z_G_que_out;
 SET generator Z_Z_G_que_out TO 0;
 
 
-/* очереди реплик - общая (для сервера) */
+/*
+Очереди реплик - общая (для сервера)
+*/
 CREATE TABLE Z_Z_que_common (
   id           INTEGER NOT NULL,
   ws_id        INT     NOT NULL,
@@ -116,7 +128,9 @@ CREATE generator Z_Z_G_que_common;
 SET generator Z_Z_G_que_common TO 0;
 
 
-/* таблица для хранения возраста таблиц */
+/*
+Таблица для хранения возраста таблиц
+*/
 CREATE TABLE Z_Z_age (
   age        INT         NOT NULL,
   table_name VARCHAR(50) NOT NULL,
