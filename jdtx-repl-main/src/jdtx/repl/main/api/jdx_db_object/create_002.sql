@@ -19,10 +19,7 @@ CREATE TABLE Z_Z_state (
   que_in_no_done         INT     NOT NULL,
   mail_send_done         INT     NOT NULL,
   enabled                INT     NOT NULL,
-  mute                   INT     NOT NULL,
-  app_version_allowed    VARCHAR(150),
-  db_struct_fixed        BLOB,
-  db_struct_allowed      BLOB
+  mute                   INT     NOT NULL
 );
 
 INSERT INTO Z_Z_state (id, que_out_age_done, que_in_no_done, mail_send_done, enabled, mute) VALUES (1, 0, 0, 0, 0, 0);
@@ -51,8 +48,10 @@ CREATE generator Z_Z_G_state_ws;
 */
 CREATE TABLE Z_Z_workstation (
   id      INTEGER      NOT NULL,
-  ws_id   INTEGER      NOT NULL,
-  guid    VARCHAR(150) NOT NULL
+  guid    VARCHAR(150) NOT NULL,
+  app_version_allowed    VARCHAR(150),
+  db_struct_fixed        BLOB,
+  db_struct_allowed      BLOB
 );
 
 INSERT INTO Z_Z_workstation (id, ws_id, guid) VALUES (1, 0, '');

@@ -14,12 +14,12 @@ public class UtAppVersion_DbRW {
 
 
     public String getAppVersionAllowed() throws Exception {
-        DataRecord rec = db.loadSql("select app_version_allowed from Z_Z_state where id = 1").getCurRec();
+        DataRecord rec = db.loadSql("select app_version_allowed from Z_Z_workstation where id = 1").getCurRec();
         return rec.getValueString("app_version_allowed");
     }
 
     public void setAppVersionAllowed(String version) throws Exception {
-        db.execSql("update Z_Z_state set app_version_allowed = :app_version_allowed where id = 1", UtCnv.toMap("app_version_allowed", version));
+        db.execSql("update Z_Z_workstation set app_version_allowed = :app_version_allowed where id = 1", UtCnv.toMap("app_version_allowed", version));
     }
 
 

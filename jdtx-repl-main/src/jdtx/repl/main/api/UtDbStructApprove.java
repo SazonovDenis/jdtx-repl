@@ -33,7 +33,7 @@ public class UtDbStructApprove {
     }
 
     private IJdxDbStruct getDbStructInternal(String structCode) throws Exception {
-        DataStore st = db.loadSql("select " + structCode + " from Z_Z_state where id = 1");
+        DataStore st = db.loadSql("select " + structCode + " from Z_Z_workstation");
         byte[] db_struct = (byte[]) st.getCurRec().getValue(structCode);
         //
         if (db_struct.length == 0) {
@@ -47,7 +47,7 @@ public class UtDbStructApprove {
     private void setDbStructInternal(IJdxDbStruct struct, String structCode) throws Exception {
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
         byte[] bytes = struct_rw.getBytes(struct);
-        db.execSql("update Z_Z_state set " + structCode + " = :struct where id = 1", UtCnv.toMap("struct", bytes));
+        db.execSql("update Z_Z_workstation set " + structCode + " = :struct", UtCnv.toMap("struct", bytes));
     }
 
 }
