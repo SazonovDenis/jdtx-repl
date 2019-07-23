@@ -353,6 +353,10 @@ public class UtRepl {
         return replica;
     }
 
+    public IReplica createReplicaSetCfg(String cfgFileName, long wsId) {
+        return null;
+    }
+
     // Из имени файла извлекает номер версии
     private String parseExeVersion(String exeFileName) {
         // Из "JadatexSync-301.exe" извлекает "301"
