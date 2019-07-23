@@ -334,8 +334,8 @@ public class UtRepl {
         // Открываем запись файлла с версией
         addOutputFile("version");
         String version = parseExeVersion(exeFile.getName());
-        StringInputStream st = new StringInputStream(version);
-        UtFile.copyStream(st, zipOutputStream);
+        StringInputStream versionStream = new StringInputStream(version);
+        UtFile.copyStream(versionStream, zipOutputStream);
 
 
         // Открываем запись файла - бинарника для обновления

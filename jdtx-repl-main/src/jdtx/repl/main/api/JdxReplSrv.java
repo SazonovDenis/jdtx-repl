@@ -231,6 +231,53 @@ public class JdxReplSrv {
     }
 
 
+    public void srvSetCfg(String cfgFileName, long wsId) throws Exception {
+        log.info("srvSetCfg, cfgFileName: " + cfgFileName);
+
+        //
+        DbUtils ut = new DbUtils(db, struct);
+
+        //
+        String appCfg = loadAndValidateCfgFile(cfgFileName);
+
+        //
+        db.startTran();
+        try {
+            // Обновляем конфиг у себя в серверной БД
+            ut.updateRec("Z_Z_workstation_list", UtCnv.toMap(
+                    "id", wsId,
+                    "app_cfg", appCfg
+            ));
+
+/*
+            ^с
+            как задавать адресатов реплики "задать конфиг"
+            место хранения настроек в БД (общих и персональных для каждой станции)
+*/
+
+            // Системная команда ...
+            UtRepl utRepl = new UtRepl(db, struct);
+            IReplica replica = utRepl.createReplicaSetCfg(cfgFileName, wsId);
+
+            // ... в исходящую очередь реплик
+            commonQue.put(replica);
+
+            //
+            db.commit();
+        } catch (Exception e) {
+            db.rollback();
+            throw e;
+        }
+    }
+
+
+    private String loadAndValidateCfgFile(String cfgFileName) throws Exception {
+        String appCfg = UtFile.loadString(cfgFileName);
+        JSONObject cfgData = (JSONObject) UtJson.toObject(appCfg);
+        return UtJson.toString(cfgData);
+    }
+
+
     /**
      * Сервер: считывание очередей рабочих станций и формирование общей очереди
      * <p>
