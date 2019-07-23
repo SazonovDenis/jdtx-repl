@@ -65,9 +65,12 @@ public class JdxReplWs {
      * @param cfgFileName json-файл с конфигурацией
      */
     public void init(String cfgFileName) throws Exception {
-        // Проверка наличия структур аудита в БД и версии системных таблиц БД
+        // Проверка наличия в БД служебных структур и их версии
         UtDbObjectManager ut = new UtDbObjectManager(db, struct);
         ut.checkReplVerDb();
+
+        // Проверка, что инициализация станции прошла
+        ut.checkReplDb();
 
         // Чтение структуры БД
         IJdxDbStructReader structReader = new JdxDbStructReader();
@@ -75,11 +78,11 @@ public class JdxReplWs {
         IJdxDbStruct structActual = structReader.readDbStruct();
 
         // Код нашей станции
-        DataRecord rec = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info").getCurRec();
-        if (rec.getValueLong("ws_id") == 0) {
-            throw new XError("Invalid rec.ws_id == 0");
+        DataRecord rec = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation").getCurRec();
+        if (rec.getValueLong("id") == 0) {
+            throw new XError("Invalid workstation id == 0");
         }
-        this.wsId = rec.getValueLong("ws_id");
+        this.wsId = rec.getValueLong("id");
 
         // Конфигурация
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));

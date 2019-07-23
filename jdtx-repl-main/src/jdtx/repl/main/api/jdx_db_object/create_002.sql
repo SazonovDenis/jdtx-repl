@@ -10,17 +10,6 @@ INSERT INTO Z_Z_flag_tab (id, trigger_flag) VALUES (1, 1);
 
 
 /*
-Метка с номером БД (для рабочей станции)
-*/
-CREATE TABLE Z_Z_db_info (
-  ws_id   INTEGER      NOT NULL,
-  guid    VARCHAR(150) NOT NULL
-);
-
-INSERT INTO Z_Z_db_info (ws_id, guid) VALUES (0, '');
-
-
-/*
 Собственное состояния (для рабочей станции) -
 для хранения возраста созданных реплик, примененных реплик и т.п.
 */
@@ -58,7 +47,19 @@ CREATE generator Z_Z_G_state_ws;
 
 
 /*
-Список рабочих станций (для сервера)
+Метка с номером БД и настройками (для рабочей станции)
+*/
+CREATE TABLE Z_Z_workstation (
+  id      INTEGER      NOT NULL,
+  ws_id   INTEGER      NOT NULL,
+  guid    VARCHAR(150) NOT NULL
+);
+
+INSERT INTO Z_Z_workstation (id, ws_id, guid) VALUES (1, 0, '');
+
+
+/*
+Список рабочих станций и их настроек (для сервера)
 */
 CREATE TABLE Z_Z_workstation_list (
   id      INTEGER      NOT NULL,

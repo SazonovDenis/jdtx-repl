@@ -14,7 +14,7 @@ import java.util.*;
 
 public class UtDbObjectManager {
 
-    int CURRENT_VER_DB = 1;
+    int CURRENT_VER_DB = 2;
 
     IJdxDbStruct struct;
     Db db;
@@ -30,17 +30,30 @@ public class UtDbObjectManager {
     }
 
 
-    public void checkReplVerDb() throws Exception {
+    /**
+     * Проверяем, что репликация инициализировалась
+     */
+    public void checkReplDb() throws Exception {
+        long ws_id = 0;
 
-        // Проверяем, что репликация инициализировалась
+        //
         try {
-            db.loadSql("select * from " + JdxUtils.sys_table_prefix + "db_info");
+            ws_id = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation").getCurRec().getValueLong("id");
         } catch (Exception e) {
             if (e.getCause().getMessage().contains("Table unknown")) {
                 throw new XError("Replication is not initialized");
+            } else {
+                throw e;
             }
         }
 
+        //
+        if (ws_id == 0) {
+            throw new XError("Replication is not initialized");
+        }
+    }
+
+    public void checkReplVerDb() throws Exception {
         // Версия в исходном состоянии
         int ver = 0;
         int ver_step = 0;
@@ -108,7 +121,7 @@ public class UtDbObjectManager {
         checkReplVerDb();
 
         // Метка с guid БД и номером wsId
-        sql = "update " + JdxUtils.sys_table_prefix + "db_info set ws_id = " + wsId + ", guid = '" + guid + "'";
+        sql = "update " + JdxUtils.sys_table_prefix + "workstation set id = " + wsId + ", guid = '" + guid + "'";
         db.execSql(sql);
     }
 
@@ -118,7 +131,7 @@ public class UtDbObjectManager {
 
         // Удаляем системные таблицы и генераторы
         String[] jdx_sys_tables = new String[]{
-                "age", "flag_tab", "state", "state_ws", "workstation_list", "db_info",
+                "age", "flag_tab", "state", "state_ws", "workstation_list", "workstation",
                 "que_in", "que_out", "que_common", "verdb"
         };
         dropAll(jdx_sys_tables, db);

@@ -60,9 +60,12 @@ public class JdxReplSrv {
      * @param cfgFileName json-файл с конфигурацией
      */
     public void init(String cfgFileName) throws Exception {
-        // Проверка структур аудита
+        // Проверка наличия в БД служебных структур и их версии
         UtDbObjectManager ut = new UtDbObjectManager(db, struct);
         ut.checkReplVerDb();
+
+        // Проверка, что инициализация станции прошла
+        ut.checkReplDb();
 
         //
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
