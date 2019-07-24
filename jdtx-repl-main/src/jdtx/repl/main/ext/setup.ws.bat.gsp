@@ -1,7 +1,10 @@
 @echo off 
 
-rem служба
+rem удаление старого - служба
 call jc repl-service-remove -csc
+
+rem удаление старого - данные
+rmdir /Q /S %cd%\web\WEB-INF\data
 
 
 rem рабочая станция "${args.ws_name}"

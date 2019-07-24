@@ -2,15 +2,18 @@
 
 rem серверные конфиги
 
-rename %cd%\web\WEB-INF\cfg\sample.srv.json srv.json
+rem rename %cd%\web\WEB-INF\cfg\sample.srv.json srv.json
 
-del %cd%\web\WEB-INF\_app.rt
+rem del %cd%\web\WEB-INF\_app.rt
 
-rename %cd%\web\WEB-INF\sample.srv._app.rt _app.rt
+rem rename %cd%\web\WEB-INF\sample.srv._app.rt _app.rt
 
 
-rem служба
+rem удаление старого - служба
 call jc repl-service-remove -csc
+
+rem удаление старого - данные
+rmdir /Q /S %cd%\web\WEB-INF\data
 
 
 rem рабочая станция
