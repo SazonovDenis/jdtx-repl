@@ -297,7 +297,7 @@ public class JdxReplWs {
             n = 0;
             for (IJdxTable table : tablesRemoved) {
                 n++;
-                log.debug("  dropAudit " + n + "/" + tablesRemoved.size() + " " + table.getName());
+                log.info("  dropAudit " + n + "/" + tablesRemoved.size() + " " + table.getName());
                 //
                 objectManager.dropAuditTable(table.getName());
             }
@@ -306,11 +306,11 @@ public class JdxReplWs {
             n = 0;
             for (IJdxTable table : tablesNew) {
                 n++;
-                log.debug("  createAudit " + n + "/" + tablesNew.size() + " " + table.getName());
+                log.info("  createAudit " + n + "/" + tablesNew.size() + " " + table.getName());
 
                 //
                 if (UtRepl.tableSkipRepl(table)) {
-                    log.debug("  createAudit, skip not found in tableSkipRepl, table: " + table.getName());
+                    log.info("  createAudit, skip not found in tableSkipRepl, table: " + table.getName());
                     continue;
                 }
 
@@ -339,11 +339,11 @@ public class JdxReplWs {
             long n = 0;
             for (IJdxTable table : tablesNew) {
                 n++;
-                log.debug("  createSnapshot " + n + "/" + tablesNew.size() + " " + table.getName());
+                log.info("  createSnapshot " + n + "/" + tablesNew.size() + " " + table.getName());
 
                 //
                 if (UtRepl.tableSkipRepl(table)) {
-                    log.debug("  createSnapshot, skip not found in tableSkipRepl, table: " + table.getName());
+                    log.info("  createSnapshot, skip not found in tableSkipRepl, table: " + table.getName());
                     continue;
                 }
 

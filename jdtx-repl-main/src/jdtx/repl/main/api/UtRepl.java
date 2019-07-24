@@ -82,7 +82,7 @@ public class UtRepl {
         long n = 0;
         for (IJdxTable table : struct.getTables()) {
             n++;
-            log.debug("  dropAudit " + n + "/" + struct.getTables().size() + " " + table.getName());
+            log.info("  dropAudit " + n + "/" + struct.getTables().size() + " " + table.getName());
             //
             ut.dropAuditTable(table.getName());
         }
