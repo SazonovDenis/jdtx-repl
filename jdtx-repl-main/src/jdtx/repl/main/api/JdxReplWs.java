@@ -391,16 +391,30 @@ public class JdxReplWs {
             return;
         }
 
-        // Проверяем совпадает ли реальная структура БД с разрешенной структурой
+        // Проверяем совпадение структур
         IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
+        IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
+
+        // Проверяем совпадает ли реальная структура БД с разрешенной структурой
         if (!UtDbComparer.dbStructIsEqual(struct, structAllowed)) {
             log.warn("handleSelfAudit, database structActual <> structAllowed");
+            // Для справки/отладки - структуры в файл
+            JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+            struct_rw.saveToFile(struct, "temp/dbStruct.actual.xml");
+            struct_rw.saveToFile(structAllowed, "temp/dbStruct.allowed.xml");
+            struct_rw.saveToFile(structFixed, "temp/dbStruct.fixed.xml");
+            //
             return;
         }
         // Проверяем совпадает ли реальная структура БД с фиксированной структурой
-        IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
         if (!UtDbComparer.dbStructIsEqual(struct, structFixed)) {
             log.warn("handleSelfAudit, database structActual <> structFixed");
+            // Для справки/отладки - структуры в файл
+            JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+            struct_rw.saveToFile(struct, "temp/dbStruct.actual.xml");
+            struct_rw.saveToFile(structAllowed, "temp/dbStruct.allowed.xml");
+            struct_rw.saveToFile(structFixed, "temp/dbStruct.fixed.xml");
+            //
             return;
         }
 
@@ -467,8 +481,8 @@ public class JdxReplWs {
 
         // Проверяем совпадает ли реальная структура БД с разрешенной структурой
         boolean dbStructIsEqual = true;
-        IJdxDbStruct dbStructAllowed = dbStructRW.getDbStructAllowed();
-        if (!UtDbComparer.dbStructIsEqual(struct, dbStructAllowed)) {
+        IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
+        if (!UtDbComparer.dbStructIsEqual(struct, structAllowed)) {
             dbStructIsEqual = false;
         }
 
@@ -595,6 +609,12 @@ public class JdxReplWs {
                     if (!dbStructIsEqual) {
                         log.warn("handleQueIn, structActual <> structAllowed");
                         replicaUsed = false;
+                        // Для справки/отладки - структуры в файл
+                        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+                        struct_rw.saveToFile(struct, "temp/dbStruct.actual.xml");
+                        struct_rw.saveToFile(structAllowed, "temp/dbStruct.allowed.xml");
+                        struct_rw.saveToFile(dbStructRW.getDbStructFixed(), "temp/dbStruct.fixed.xml");
+                        //
                         break;
                     }
 
