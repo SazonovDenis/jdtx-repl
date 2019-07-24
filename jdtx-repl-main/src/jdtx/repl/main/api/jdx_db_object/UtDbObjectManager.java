@@ -9,7 +9,6 @@ import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 
-import java.sql.*;
 import java.util.*;
 
 public class UtDbObjectManager {
@@ -40,7 +39,7 @@ public class UtDbObjectManager {
         try {
             ws_id = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation").getCurRec().getValueLong("id");
         } catch (Exception e) {
-            if (e.getCause().getMessage().contains("Table unknown")) {
+            if (JdxUtils.errorIs_TableNotExists(e)) {
                 throw new XError("Replication is not initialized");
             } else {
                 throw e;
@@ -64,12 +63,14 @@ public class UtDbObjectManager {
             ver = rec.getValueInt("ver");
             ver_step = rec.getValueInt("ver_step");
         } catch (Exception e) {
-            if (e.getCause().getMessage().contains("Table unknown")) {
+            if (JdxUtils.errorIs_TableNotExists(e)) {
                 // Создаем таблицу verdb
                 log.info("Создаем таблицу " + JdxUtils.sys_table_prefix + "verdb");
                 //
                 String sql = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/UtDbObjectManager.verdb.sql");
                 execScript(sql, db);
+            } else {
+                throw e;
             }
         }
 
@@ -296,40 +297,55 @@ public class UtDbObjectManager {
      *
      * @param tableName Таблица
      */
-    public void dropAuditTable(String tableName) throws SQLException {
+    public void dropAuditTable(String tableName) throws Exception {
         String sql;
         try {
             // удаляем триггеры
             sql = "drop trigger " + JdxUtils.trig_pref + tableName + "_I";
             db.execSql(sql);
-        } catch (Exception ex) {
-            // если удаляемый триггер не будет найден, программа продолжит работу
+        } catch (Exception e) {
+            // если удаляемый объект не будет найден, программа продолжит работу
+            if (!JdxUtils.errorIs_TriggerNotExists(e)) {
+                throw e;
+            }
         }
         try {
             sql = "drop trigger " + JdxUtils.trig_pref + tableName + "_D";
             db.execSql(sql);
-        } catch (Exception ex) {
-            // если удаляемый триггер не будет найден, программа продолжит работу
+        } catch (Exception e) {
+            // если удаляемый объект не будет найден, программа продолжит работу
+            if (!JdxUtils.errorIs_TriggerNotExists(e)) {
+                throw e;
+            }
         }
         try {
             sql = "drop trigger " + JdxUtils.trig_pref + tableName + "_U";
             db.execSql(sql);
-        } catch (Exception ex) {
-            // если удаляемый триггер не будет найден, программа продолжит работу
+        } catch (Exception e) {
+            // если удаляемый объект не будет найден, программа продолжит работу
+            if (!JdxUtils.errorIs_TriggerNotExists(e)) {
+                throw e;
+            }
         }
         try {
             // удаляем саму таблицу журнала изменений
             sql = "drop table " + JdxUtils.audit_table_prefix + tableName;
             db.execSql(sql);
-        } catch (Exception ex) {
-            // если удаляемая таблица не будет найдена, программа продолжит работу
+        } catch (Exception e) {
+            // если удаляемый объект не будет найден, программа продолжит работу
+            if (!JdxUtils.errorIs_TableNotExists(e)) {
+                throw e;
+            }
         }
         try {
             // удаляем генератор для таблицы журнала изменений
             sql = "drop generator " + JdxUtils.audit_gen_prefix + tableName;
             db.execSql(sql);
-        } catch (Exception ex) {
-            // если удаляемая таблица не будет найдена, программа продолжит работу
+        } catch (Exception e) {
+            // если удаляемый объект не будет найден, программа продолжит работу
+            if (!JdxUtils.errorIs_GeneratorNotExists(e)) {
+                throw e;
+            }
         }
     }
 
@@ -347,7 +363,7 @@ public class UtDbObjectManager {
         }
     }
 
-    static void dropAll(String[] sys_names, Db db) {
+    static void dropAll(String[] sys_names, Db db) throws Exception {
         // удаляем генераторы
         for (String jdx_sys_generator : sys_names) {
             try {
@@ -355,9 +371,8 @@ public class UtDbObjectManager {
                 db.execSql(query);
             } catch (Exception e) {
                 // если удаляемый объект не будет найден, программа продолжит работу
-                if (!e.getCause().toString().contains("Generator not found")) {
-                    System.out.println(e.getMessage());
-                    System.out.println(e.getCause().toString());
+                if (!JdxUtils.errorIs_GeneratorNotExists(e)) {
+                    throw e;
                 }
             }
         }
@@ -369,9 +384,8 @@ public class UtDbObjectManager {
                 db.execSql(query);
             } catch (Exception e) {
                 // если удаляемый объект не будет найден, программа продолжит работу
-                if (!e.getCause().toString().contains("does not exist")) {
-                    System.out.println(e.getMessage());
-                    System.out.println(e.getCause().toString());
+                if (!JdxUtils.errorIs_TableNotExists(e)) {
+                    throw e;
                 }
             }
         }

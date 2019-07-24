@@ -70,7 +70,7 @@ public class UtTest extends UtilsTestCase {
         try {
             db.execSql(sql);
         } catch (Exception e) {
-            if (!e.getCause().getMessage().contains("does not exist")) {
+            if (!JdxUtils.errorIs_TableNotExists(e)) {
                 throw e;
             }
         }
