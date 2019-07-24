@@ -84,7 +84,7 @@ public class UtRepl {
             n++;
             log.info("  dropAudit " + n + "/" + struct.getTables().size() + " " + table.getName());
             //
-            ut.dropAuditTable(table.getName());
+            ut.dropAudit(table.getName());
         }
 
         // Удаляем системные таблицы и генераторы

@@ -299,7 +299,7 @@ public class JdxReplWs {
                 n++;
                 log.info("  dropAudit " + n + "/" + tablesRemoved.size() + " " + table.getName());
                 //
-                objectManager.dropAuditTable(table.getName());
+                objectManager.dropAudit(table.getName());
             }
 
             // Создаем аудит для новых таблиц
