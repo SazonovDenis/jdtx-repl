@@ -140,17 +140,41 @@ public class UtDbObjectManager {
     public void createAuditTriggers(IJdxTable table) throws Exception {
         String sql;
 
-        // тригер на вставку записи в аудит
-        sql = createTrigger(table, updMods.INSERT);
-        db.execSqlNative(sql);
+        // тригер на вставку записи
+        try {
+            sql = getSqlCreateTrigger(table, updMods.INSERT);
+            db.execSqlNative(sql);
+        } catch (Exception e) {
+            if (JdxUtils.errorIs_TriggerAlreadyExists(e)) {
+                log.warn("createAuditTriggers, trigger " + updMods.INSERT + " already exists, table: " + table.getName());
+            } else {
+                throw e;
+            }
+        }
 
         // тригер на обновление записи
-        sql = createTrigger(table, updMods.UPDATE);
-        db.execSqlNative(sql);
+        try {
+            sql = getSqlCreateTrigger(table, updMods.UPDATE);
+            db.execSqlNative(sql);
+        } catch (Exception e) {
+            if (JdxUtils.errorIs_TriggerAlreadyExists(e)) {
+                log.warn("createAuditTriggers, trigger " + updMods.UPDATE + " already exists, table: " + table.getName());
+            } else {
+                throw e;
+            }
+        }
 
         // тригер на удаление записи
-        sql = createTrigger(table, updMods.DELETE);
-        db.execSqlNative(sql);
+        try {
+            sql = getSqlCreateTrigger(table, updMods.DELETE);
+            db.execSqlNative(sql);
+        } catch (Exception e) {
+            if (JdxUtils.errorIs_TriggerAlreadyExists(e)) {
+                log.warn("createAuditTriggers, trigger " + updMods.DELETE + " already exists, table: " + table.getName());
+            } else {
+                throw e;
+            }
+        }
     }
 
     private void createAuditTriggers_full(IJdxTable table) throws Exception {
@@ -171,6 +195,11 @@ public class UtDbObjectManager {
 
     /**
      * Создаем аудит - для таблицы в БД создаем собственную таблицу журнала изменений
+     * <p>
+     * Допускаем, что аудит уже был создан.
+     * Так бывает, если по каким-то причинам следующий блок "выгрузка snapshot" будет прерван,
+     * и в итоге реплика не будет помечена как использованная. Тогда ее применение начнется снова,
+     * но структуры аудита снова создавать не надо.
      *
      * @param table Имя таблицы
      */
@@ -190,13 +219,30 @@ public class UtDbObjectManager {
                 JdxUtils.audit_table_prefix + "opr_dttm timestamp not null,\n" +
                 pkFieldName + " " + pkFieldDataType + " not null\n" +
                 ")";
-        db.execSql(sql);
+        try {
+            db.execSql(sql);
+        } catch (Exception e) {
+            if (JdxUtils.errorIs_TableAlreadyExists(e)) {
+                log.warn("createAuditTable, audit table already exists, table: " + table.getName());
+            } else {
+                throw e;
+            }
+        }
 
         // генератор Id для новой таблицы
-        sql = "create generator " + JdxUtils.audit_gen_prefix + tableName;
-        db.execSql(sql);
-        sql = "set generator " + JdxUtils.audit_gen_prefix + tableName + " to 0";
-        db.execSql(sql);
+        try {
+            sql = "create generator " + JdxUtils.audit_gen_prefix + tableName;
+            db.execSql(sql);
+            //
+            sql = "set generator " + JdxUtils.audit_gen_prefix + tableName + " to 0";
+            db.execSql(sql);
+        } catch (Exception e) {
+            if (JdxUtils.errorIs_GeneratorAlreadyExists(e)) {
+                log.warn("createAuditTable, generator already exists, table: " + table.getName());
+            } else {
+                throw e;
+            }
+        }
     }
 
     private void createAuditTable_full(IJdxTable table) throws Exception {
@@ -232,7 +278,7 @@ public class UtDbObjectManager {
         db.execSql(sql);
     }
 
-    private String createTrigger(IJdxTable table, updMods upd_mode) {
+    private String getSqlCreateTrigger(IJdxTable table, updMods upd_mode) {
         String sql;
         String tableName = table.getName();
         String pkFieldName = table.getPrimaryKey().get(0).getName();
@@ -296,53 +342,68 @@ public class UtDbObjectManager {
      *
      * @param tableName Таблица
      */
-    public void dropAuditTable(String tableName) throws Exception {
+    public void dropAudit(String tableName) throws Exception {
         String sql;
+
         try {
             // удаляем триггеры
             sql = "drop trigger " + JdxUtils.trig_pref + tableName + "_I";
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
-            if (!JdxUtils.errorIs_TriggerNotExists(e)) {
+            if (JdxUtils.errorIs_TriggerNotExists(e)) {
+                log.debug("dropAudit, audit trigger " + updMods.INSERT + " not exists, table: " + tableName);
+            } else {
                 throw e;
             }
         }
-        try {
-            sql = "drop trigger " + JdxUtils.trig_pref + tableName + "_D";
-            db.execSql(sql);
-        } catch (Exception e) {
-            // если удаляемый объект не будет найден, программа продолжит работу
-            if (!JdxUtils.errorIs_TriggerNotExists(e)) {
-                throw e;
-            }
-        }
+
         try {
             sql = "drop trigger " + JdxUtils.trig_pref + tableName + "_U";
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
-            if (!JdxUtils.errorIs_TriggerNotExists(e)) {
+            if (JdxUtils.errorIs_TriggerNotExists(e)) {
+                log.debug("dropAudit, audit trigger " + updMods.UPDATE + " not exists, table: " + tableName);
+            } else {
                 throw e;
             }
         }
+
+        try {
+            sql = "drop trigger " + JdxUtils.trig_pref + tableName + "_D";
+            db.execSql(sql);
+        } catch (Exception e) {
+            // если удаляемый объект не будет найден, программа продолжит работу
+            if (JdxUtils.errorIs_TriggerNotExists(e)) {
+                log.debug("dropAudit, audit trigger " + updMods.DELETE + " not exists, table: " + tableName);
+            } else {
+                throw e;
+            }
+        }
+
         try {
             // удаляем саму таблицу журнала изменений
             sql = "drop table " + JdxUtils.audit_table_prefix + tableName;
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
-            if (!JdxUtils.errorIs_TableNotExists(e)) {
+            if (JdxUtils.errorIs_TableNotExists(e)) {
+                log.debug("dropAudit, audit table not exists, table: " + tableName);
+            } else {
                 throw e;
             }
         }
+
         try {
             // удаляем генератор для таблицы журнала изменений
             sql = "drop generator " + JdxUtils.audit_gen_prefix + tableName;
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
-            if (!JdxUtils.errorIs_GeneratorNotExists(e)) {
+            if (JdxUtils.errorIs_GeneratorNotExists(e)) {
+                log.debug("dropAudit, audit generator not exists, table: " + tableName);
+            } else {
                 throw e;
             }
         }
@@ -370,7 +431,9 @@ public class UtDbObjectManager {
                 db.execSql(query);
             } catch (Exception e) {
                 // если удаляемый объект не будет найден, программа продолжит работу
-                if (!JdxUtils.errorIs_GeneratorNotExists(e)) {
+                if (JdxUtils.errorIs_GeneratorNotExists(e)) {
+                    log.debug("dropSysTables, generator not exists, table: " + name);
+                } else {
                     throw e;
                 }
             }
@@ -383,7 +446,9 @@ public class UtDbObjectManager {
                 db.execSql(query);
             } catch (Exception e) {
                 // если удаляемый объект не будет найден, программа продолжит работу
-                if (!JdxUtils.errorIs_TableNotExists(e)) {
+                if (JdxUtils.errorIs_TableNotExists(e)) {
+                    log.debug("dropSysTables, table not exists, table: " + name);
+                } else {
                     throw e;
                 }
             }

@@ -167,11 +167,16 @@ public class JdxUtils {
 
     }
 
-    public static boolean errorIs_TableNotExists(Exception e) {
+    public static String collectExceptionText(Exception e) {
         String errText = e.toString();
         if (e.getCause() != null) {
             errText = errText + "\n" + e.getCause().toString();
         }
+        return errText;
+    }
+
+    public static boolean errorIs_TableNotExists(Exception e) {
+        String errText = collectExceptionText(e);
         if ((errText.contains("table/view") && errText.contains("does not exist")) ||
                 errText.contains("Table unknown")) {
             return true;
@@ -181,11 +186,7 @@ public class JdxUtils {
     }
 
     public static boolean errorIs_GeneratorNotExists(Exception e) {
-        String errText = e.toString();
-        if (e.getCause() != null) {
-            errText = errText + "\n" + e.getCause().toString();
-        }
-        if (errText.contains("Generator not found")) {
+        if (collectExceptionText(e).contains("Generator not found")) {
             return true;
         } else {
             return false;
@@ -193,16 +194,38 @@ public class JdxUtils {
     }
 
     public static boolean errorIs_TriggerNotExists(Exception e) {
-        String errText = e.toString();
-        if (e.getCause() != null) {
-            errText = errText + "\n" + e.getCause().toString();
-        }
-        if (errText.contains("Trigger not found")) {
+        if (collectExceptionText(e).contains("Trigger not found")) {
             return true;
         } else {
             return false;
         }
     }
 
+    public static boolean errorIs_TableAlreadyExists(Exception e) {
+        String errText = collectExceptionText(e);
+        if (errText.contains("Table") && errText.contains("already exists")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static boolean errorIs_GeneratorAlreadyExists(Exception e) {
+        String errText = collectExceptionText(e);
+        if (errText.contains("DEFINE GENERATOR failed") && errText.contains("attempt to store duplicate value")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static boolean errorIs_TriggerAlreadyExists(Exception e) {
+        String errText = collectExceptionText(e);
+        if (errText.contains("DEFINE TRIGGER failed") && errText.contains("attempt to store duplicate value")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
 }
