@@ -79,11 +79,16 @@ public class UtRepl {
 
         // Удаляем связанную с каждой таблицей таблицу журнала изменений
         log.info("dropAudit - журналы");
+        long n = 0;
         for (IJdxTable table : struct.getTables()) {
+            n++;
+            log.debug("  dropAudit " + n + "/" + struct.getTables().size() + " " + table.getName());
+            //
             ut.dropAuditTable(table.getName());
         }
 
         // Удаляем системные таблицы и генераторы
+        log.info("dropAudit - системные объекты");
         ut.dropAuditBase();
 
         // Удаляем необходимые для перекодировки таблицы

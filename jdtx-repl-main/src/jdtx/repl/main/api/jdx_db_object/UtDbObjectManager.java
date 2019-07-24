@@ -128,8 +128,6 @@ public class UtDbObjectManager {
 
 
     public void dropAuditBase() throws Exception {
-        log.info("dropAudit - системные объекты");
-
         // Удаляем системные таблицы и генераторы
         String[] jdx_sys_tables = new String[]{
                 "age", "flag_tab", "state", "state_ws", "workstation_list", "workstation",
