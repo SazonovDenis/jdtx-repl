@@ -134,7 +134,7 @@ public class UtDbObjectManager {
                 "age", "flag_tab", "state", "state_ws", "workstation_list", "workstation",
                 "que_in", "que_out", "que_common", "verdb"
         };
-        dropAll(jdx_sys_tables, db);
+        dropSysTables(jdx_sys_tables, db);
     }
 
     public void createAuditTriggers(IJdxTable table) throws Exception {
@@ -362,11 +362,11 @@ public class UtDbObjectManager {
         }
     }
 
-    static void dropAll(String[] sys_names, Db db) throws Exception {
+    static void dropSysTables(String[] sys_names, Db db) throws Exception {
         // удаляем генераторы
-        for (String jdx_sys_generator : sys_names) {
+        for (String name : sys_names) {
             try {
-                String query = "drop generator " + JdxUtils.sys_gen_prefix + jdx_sys_generator;
+                String query = "drop generator " + JdxUtils.sys_gen_prefix + name;
                 db.execSql(query);
             } catch (Exception e) {
                 // если удаляемый объект не будет найден, программа продолжит работу
@@ -377,9 +377,9 @@ public class UtDbObjectManager {
         }
 
         // удаляем таблицу
-        for (String jdx_sys_table : sys_names) {
+        for (String name : sys_names) {
             try {
-                String query = "drop table " + JdxUtils.sys_table_prefix + jdx_sys_table;
+                String query = "drop table " + JdxUtils.sys_table_prefix + name;
                 db.execSql(query);
             } catch (Exception e) {
                 // если удаляемый объект не будет найден, программа продолжит работу

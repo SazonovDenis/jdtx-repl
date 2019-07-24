@@ -18,7 +18,7 @@ public class UtDbObjectDecodeManager {
 
     public void dropRefDecodeObject() throws Exception {
         String[] jdx_sys_tables = new String[]{"decode"};
-        UtDbObjectManager.dropAll(jdx_sys_tables, db);
+        UtDbObjectManager.dropSysTables(jdx_sys_tables, db);
     }
 
 }
