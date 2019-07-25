@@ -47,11 +47,15 @@ CREATE generator Z_Z_G_state_ws;
 Метка с номером БД и настройками (для рабочей станции)
 */
 CREATE TABLE Z_Z_workstation (
-  id      INTEGER      NOT NULL,
-  guid    VARCHAR(150) NOT NULL,
-  app_version_allowed    VARCHAR(150),
-  db_struct_fixed        BLOB,
-  db_struct_allowed      BLOB
+  id                  INTEGER      NOT NULL,
+  guid                VARCHAR(150) NOT NULL,
+  app_version_allowed VARCHAR(150),
+  db_struct_fixed     BLOB,
+  db_struct_allowed   BLOB,
+  cfg_publications    BLOB,
+  cfg_decode          BLOB,
+  cfg_ws              BLOB
+)
 );
 
 INSERT INTO Z_Z_workstation (id, ws_id, guid) VALUES (1, 0, '');
@@ -61,9 +65,12 @@ INSERT INTO Z_Z_workstation (id, ws_id, guid) VALUES (1, 0, '');
 Список рабочих станций и их собственных настроек (для сервера)
 */
 CREATE TABLE Z_Z_workstation_list (
-  id      INTEGER      NOT NULL,
-  name    VARCHAR(50)  NOT NULL,
-  guid    VARCHAR(150) NOT NULL
+  id               INTEGER      NOT NULL,
+  name             VARCHAR(50)  NOT NULL,
+  guid             VARCHAR(150) NOT NULL,
+  cfg_publications BLOB,
+  cfg_decode       BLOB,
+  cfg_ws           BLOB
 );
 
 ALTER TABLE Z_Z_workstation_list ADD CONSTRAINT pk_Z_Z_workstation_list PRIMARY KEY (id);
