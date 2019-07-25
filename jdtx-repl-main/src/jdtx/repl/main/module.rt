@@ -31,7 +31,7 @@
         <lang name="en" title="English"/>
     </lang>
 
-    <app title="JdtxRepl"/>
+    <app title="JdtxRepl" dataRoot="#{path}/data"/>
 
     <!-- Запуск по расписанию -->
     <service name="jandcode.bgtasks.BgTasksService">
@@ -45,7 +45,7 @@
                 period="600000"
                 enabled="false"
                 cfgFileName="cfg.json"
-                />
+        />
 
         <!-- Сервер -->
         <bgtask name="server"
@@ -54,7 +54,7 @@
                 period="600000"
                 enabled="false"
                 cfgFileName="cfg.json"
-                />
+        />
 
     </service>
 

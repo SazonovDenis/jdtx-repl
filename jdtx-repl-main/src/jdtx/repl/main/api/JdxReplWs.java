@@ -43,6 +43,9 @@ public class JdxReplWs {
     private IMailer mailer;
 
     //
+    private String dataRoot;
+
+    //
     private static Log log = LogFactory.getLog("jdtx");
 
 
@@ -65,6 +68,9 @@ public class JdxReplWs {
      * @param cfgFileName json-файл с конфигурацией
      */
     public void init(String cfgFileName) throws Exception {
+        dataRoot = db.getApp().getRt().getChild("app").getValueString("dataRoot");
+        dataRoot = UtFile.unnormPath(dataRoot) + "/";
+
         // Проверка наличия в БД служебных структур и их версии
         UtDbObjectManager ut = new UtDbObjectManager(db, struct);
         ut.checkReplVerDb();

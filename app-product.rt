@@ -19,14 +19,14 @@
                 period="10000"
                 enabled="false"
                 cfgFileName="#{path}/cfg/srv.json"
-                />
+        />
 
         <!-- Рабочая станция -->
         <bgtask name="ws"
                 period="60000"
                 enabled="false"
                 cfgFileName="#{path}/cfg/ws.json"
-                />
+        />
 
     </service>
 

@@ -33,6 +33,8 @@ public class JdxReplSrv {
     Db db;
     private IJdxDbStruct struct;
 
+    //
+    private String dataRoot;
 
     //
     protected static Log log = LogFactory.getLog("jdtx");
@@ -60,6 +62,9 @@ public class JdxReplSrv {
      * @param cfgFileName json-файл с конфигурацией
      */
     public void init(String cfgFileName) throws Exception {
+        dataRoot = db.getApp().getRt().getChild("app").getValueString("dataRoot");
+        dataRoot = UtFile.unnormPath(dataRoot) + "/";
+
         // Проверка наличия в БД служебных структур и их версии
         UtDbObjectManager ut = new UtDbObjectManager(db, struct);
         ut.checkReplVerDb();
