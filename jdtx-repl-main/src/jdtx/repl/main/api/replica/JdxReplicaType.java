@@ -19,4 +19,6 @@ public class JdxReplicaType {
     public static final int SET_DB_STRUCT = 50;
     public static final int SET_DB_STRUCT_DONE = 51;
 
+    public static final int SET_CFG = 60;
+    public static final int SET_CFG_DONE = 61;
 }

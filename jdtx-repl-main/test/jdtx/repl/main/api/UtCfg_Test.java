@@ -11,7 +11,7 @@ public class UtCfg_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void test_Iterate() throws Exception {
+    public void test_IterateJsonObject() throws Exception {
         String s = UtFile.loadString("test/etalon/srv.json");
         JSONObject cfg = (JSONObject) UtJson.toObject(s);
         for (Object k : cfg.keySet()) {
@@ -25,7 +25,7 @@ public class UtCfg_Test extends ReplDatabaseStruct_Test {
         UtCfg utCfg = new UtCfg(db);
 
         //
-        String sP_1 = UtFile.loadString("test/jdtx/repl/main/api/UtCfg_Test.publication.json");
+        String sP_1 = UtFile.loadString("test/jdtx/repl/main/api/UtCfg_Test.publications.json");
         String sD_1 = UtFile.loadString("test/jdtx/repl/main/api/UtCfg_Test.decode_strategy.json");
         String sW_1 = UtFile.loadString("test/jdtx/repl/main/api/UtCfg_Test.srv.json");
 
@@ -66,6 +66,20 @@ public class UtCfg_Test extends ReplDatabaseStruct_Test {
         assertNotSame(sW_1, sD_2);
         assertNotSame(sD_1, sP_2);
         assertNotSame(sP_1, sW_2);
+    }
+
+    @Test
+    public void test_srvSetCfg() throws Exception {
+        String json_srv = "test/etalon/mail_http_srv.json";
+        long destinationWsId = 2;
+        String cfgFileName = "test/jdtx/repl/main/api/UtCfg_Test.publications.json";
+
+        //
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init(json_srv);
+
+        //
+        srv.srvSetCfg(cfgFileName, "cfg_publications", destinationWsId);
     }
 
 

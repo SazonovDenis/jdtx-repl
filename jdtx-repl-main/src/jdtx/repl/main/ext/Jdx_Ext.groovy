@@ -496,6 +496,41 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
+    void repl_set_cfg(IVariantMap args) {
+        String cfgFileName = args.getValueString("file")
+        if (cfgFileName == null || cfgFileName.length() == 0) {
+            throw new XError("Не указан [file] - cfg-файл")
+        }
+        //
+        String cfgType = args.getValueString("cfg")
+        if (cfgType == null || cfgType.length() == 0) {
+            throw new XError("Не указан [cfg] - вид конфиг-файла")
+        }
+        //
+        long destinationWsId = args.getValueLong("ws")
+
+        //
+        BgTasksService bgTasksService = app.service(BgTasksService.class)
+        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        try {
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init(cfgFileName_srv)
+
+            //
+            srv.srvSetCfg(cfgFileName, cfgType, destinationWsId);
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
+
     void repl_app_version(IVariantMap args) {
         System.out.println("app_version: " + UtRepl.getVersion())
     }

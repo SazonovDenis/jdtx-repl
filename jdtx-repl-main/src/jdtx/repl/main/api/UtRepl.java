@@ -4,6 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jandcode.web.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
@@ -11,6 +12,7 @@ import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.apache.tools.ant.filters.*;
 import org.joda.time.*;
+import org.json.simple.*;
 
 import java.io.*;
 import java.util.*;
@@ -358,8 +360,40 @@ public class UtRepl {
         return replica;
     }
 
-    public IReplica createReplicaSetCfg(String cfgFileName, long wsId) {
-        return null;
+    public IReplica createReplicaSetCfg(JSONObject cfg, String cfgType, long wsId) throws Exception {
+        IReplica replica = new ReplicaFile();
+        replica.getInfo().setReplicaType(JdxReplicaType.SET_CFG);
+
+        // В этой реплике - информация о конфиге и сам конфиг
+        createOutput(replica);
+
+
+        // Информация о конфиге
+        JSONObject cfgInfo = new JSONObject();
+        cfgInfo.put("wsId", wsId);
+        cfgInfo.put("cfgType", cfgType);
+
+        // Открываем запись файла с информацией о конфиге
+        addOutputFile("cfg.info.json");
+        String version = UtJson.toString(cfgInfo);
+        StringInputStream versionStream = new StringInputStream(version);
+        UtFile.copyStream(versionStream, zipOutputStream);
+
+
+        // Открываем запись файла - сам конфиг
+        addOutputFile("cfg.json");
+
+        // Пишем содержимое конфига
+        String cfgStr = UtJson.toString(cfg);
+        StringInputStream cfgStrStream = new StringInputStream(cfgStr);
+        UtFile.copyStream(cfgStrStream, zipOutputStream);
+
+
+        // Заканчиваем запись
+        closeOutput();
+
+        //
+        return replica;
     }
 
     // Из имени файла извлекает номер версии

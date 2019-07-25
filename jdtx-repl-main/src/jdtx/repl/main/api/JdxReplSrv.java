@@ -231,36 +231,53 @@ public class JdxReplSrv {
     }
 
 
-    public void srvSetCfg(String cfgFileName, long wsId) throws Exception {
-        log.info("srvSetCfg, cfgFileName: " + cfgFileName);
+    public void srvSetCfg(String cfgFileName, String cfgType, long destinationWsId) throws Exception {
+        log.info("srvSetCfg, cfgFileName: " + cfgFileName + ", cfgType: " + cfgType + ", destination wsId: " + destinationWsId);
 
         //
-        DbUtils ut = new DbUtils(db, struct);
-
-        //
-        String appCfg = loadAndValidateCfgFile(cfgFileName);
+        JSONObject cfg = loadAndValidateCfgFile(cfgFileName);
 
         //
         db.startTran();
         try {
-            // Обновляем конфиг у себя в серверной БД
-            ut.updateRec("Z_Z_workstation_list", UtCnv.toMap(
-                    "id", wsId,
-                    "app_cfg", appCfg
-            ));
+            // Список активных рабочих станций (или одна конкретная)
+            DataStore st = loadWsList(destinationWsId);
 
-/*
-            ^с
-            как задавать адресатов реплики "задать конфиг"
-            место хранения настроек в БД (общих и персональных для каждой станции)
-*/
+            // Обновляем конфиг в серверных таблицах и отправляем системную команду в исходящую очередь реплик
+            for (DataRecord rec : st) {
+                long recWsId = rec.getValueLong("id");
 
-            // Системная команда ...
-            UtRepl utRepl = new UtRepl(db, struct);
-            IReplica replica = utRepl.createReplicaSetCfg(cfgFileName, wsId);
+                //
+                log.info("  destination wsId: " + destinationWsId);
 
-            // ... в исходящую очередь реплик
-            commonQue.put(replica);
+                // Обновляем конфиг в серверных таблицах
+                UtCfg utCfg = new UtCfg(db);
+                switch (cfgType) {
+                    case "cfg_publications": {
+                        utCfg.setCfgPublications(cfg, recWsId);
+                        break;
+                    }
+                    case "cfg_decode": {
+                        utCfg.setCfgDecode(cfg, recWsId);
+                        break;
+                    }
+                    case "cfg_ws": {
+                        utCfg.setCfgWs(cfg, recWsId);
+                        break;
+                    }
+                    default: {
+                        throw new XError("Unknown cfg type: " + cfgType);
+                    }
+                }
+
+
+                // Системная команда ...
+                UtRepl utRepl = new UtRepl(db, struct);
+                IReplica replica = utRepl.createReplicaSetCfg(cfg, cfgType, recWsId);
+
+                // ... в исходящую очередь реплик
+                commonQue.put(replica);
+            }
 
             //
             db.commit();
@@ -271,10 +288,10 @@ public class JdxReplSrv {
     }
 
 
-    private String loadAndValidateCfgFile(String cfgFileName) throws Exception {
+    private JSONObject loadAndValidateCfgFile(String cfgFileName) throws Exception {
         String appCfg = UtFile.loadString(cfgFileName);
         JSONObject cfgData = (JSONObject) UtJson.toObject(appCfg);
-        return UtJson.toString(cfgData);
+        return cfgData;
     }
 
 
@@ -464,23 +481,14 @@ public class JdxReplSrv {
      * Готовим спосок локальных (через папку) мейлеров, отдельные для каждой станции
      */
     private void fillMailerListLocal(Map<Long, IMailer> mailerListLocal, String cfgFileName, String mailDir, long destinationWsId) throws Exception {
-        // Список активных рабочих станций
-        String sql;
-        if (destinationWsId != 0) {
-            // Указана конкретная станция-получатель - выгружаем только ее, остальные пропускаем
-            sql = "select * from " + JdxUtils.sys_table_prefix + "workstation_list where id = " + destinationWsId;
-        } else {
-            // Берем только активные
-            sql = "select Z_Z_workstation_list.* from Z_Z_workstation_list join Z_Z_state_ws on (Z_Z_workstation_list.id = Z_Z_state_ws.ws_id) where Z_Z_state_ws.enabled = 1";
-        }
-        DataStore st = db.loadSql(sql);
-
-
         // Готовим курьеров
         mailDir = UtFile.unnormPath(mailDir) + "/";
 
         //
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
+
+        // Список активных рабочих станций
+        DataStore st = loadWsList(destinationWsId);
 
         //
         for (DataRecord rec : st) {
@@ -499,6 +507,26 @@ public class JdxReplSrv {
             //
             mailerListLocal.put(wdId, mailerLocal);
         }
+    }
+
+    /**
+     * Список активных рабочих станций (или одна конкретная)
+     */
+    private DataStore loadWsList(long wsId) throws Exception {
+        String sql;
+        if (wsId != 0) {
+            // Указана конкретная станция-получатель - выгружаем только ее, остальные пропускаем
+            sql = "select * from " + JdxUtils.sys_table_prefix + "workstation_list where id = " + wsId;
+        } else {
+            // Берем только активные
+            sql = "select Z_Z_workstation_list.* from Z_Z_workstation_list join Z_Z_state_ws on (Z_Z_workstation_list.id = Z_Z_state_ws.ws_id) where Z_Z_state_ws.enabled = 1";
+        }
+
+        //
+        DataStore st = db.loadSql(sql);
+
+        //
+        return st;
     }
 
 

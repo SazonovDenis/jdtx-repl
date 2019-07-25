@@ -17,6 +17,11 @@ public class UtCfg {
         this.db = db;
     }
 
+
+    // =========================================
+    // Z_Z_workstation
+    // =========================================
+
     public JSONObject getCfgPublications() throws Exception {
         return getCfgInternal("cfg_publications");
     }
@@ -30,19 +35,41 @@ public class UtCfg {
     }
 
     public void setCfgPublications(JSONObject cfg) throws Exception {
-        setCfgInternal(cfg, "cfg_publications");
+        setCfgSelfInternal(cfg, "cfg_publications");
     }
 
     public void setCfgDecode(JSONObject cfg) throws Exception {
-        setCfgInternal(cfg, "cfg_decode");
+        setCfgSelfInternal(cfg, "cfg_decode");
     }
 
     public void setCfgWs(JSONObject cfg) throws Exception {
-        setCfgInternal(cfg, "cfg_ws");
+        setCfgSelfInternal(cfg, "cfg_ws");
     }
 
+
+    // =========================================
+    // Z_Z_workstation_ws
+    // =========================================
+
+    public void setCfgPublications(JSONObject cfg, long wsId) throws Exception {
+        setCfgWsInternal(cfg, "cfg_publications", wsId);
+    }
+
+    public void setCfgDecode(JSONObject cfg, long wsId) throws Exception {
+        setCfgWsInternal(cfg, "cfg_decode", wsId);
+    }
+
+    public void setCfgWs(JSONObject cfg, long wsId) throws Exception {
+        setCfgWsInternal(cfg, "cfg_ws", wsId);
+    }
+
+
+    // =========================================
+    // Internal
+    // =========================================
+
     JSONObject getCfgInternal(String structCode) throws Exception {
-        DataStore st = db.loadSql("select " + structCode + " from Z_Z_workstation");
+        DataStore st = db.loadSql("select " + structCode + " from " + JdxUtils.sys_table_prefix + "workstation");
 
         //
         byte[] cfgBytes = (byte[]) st.getCurRec().getValue(structCode);
@@ -56,9 +83,14 @@ public class UtCfg {
         return cfg;
     }
 
-    void setCfgInternal(JSONObject cfg, String structCode) throws Exception {
+    void setCfgSelfInternal(JSONObject cfg, String cfgCode) throws Exception {
         String cfgStr = UtJson.toString(cfg);
-        db.execSql("update Z_Z_workstation set " + structCode + " = :cfg", UtCnv.toMap("cfg", cfgStr));
+        db.execSql("update " + JdxUtils.sys_table_prefix + "workstation set " + cfgCode + " = :cfg", UtCnv.toMap("cfg", cfgStr));
+    }
+
+    private void setCfgWsInternal(JSONObject cfg, String cfgCode, long wsId) throws Exception {
+        String cfgStr = UtJson.toString(cfg);
+        db.execSql("update " + JdxUtils.sys_table_prefix + "workstation_list set " + cfgCode + " = :cfg where id = :id", UtCnv.toMap("cfg", cfgStr, "id", wsId));
     }
 
 }
