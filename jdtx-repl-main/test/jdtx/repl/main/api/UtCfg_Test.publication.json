@@ -1,0 +1,18 @@
+{
+  "RegionTip": {
+    "fields": "*"
+  },
+  "UlzTip": {
+    "fields": "*"
+  },
+  "Region": {
+    "fields": "*"
+  },
+  "LIC": {
+    "fields": "NameF,NameI,NameO,Dom,Kv,Ulz",
+    "filter": "Region.ID in (2, 3844) and LicDocTip=1002"
+  },
+  "Ulz": {
+    "fields": "*"
+  }
+}
