@@ -147,7 +147,7 @@ public class UtRepl {
         // Формируем Zip-архив
         zipOutputStream = new ZipOutputStream(outputStream);
 
-        // Файл "dat.info" (заголовок) внутри Zip-архива
+        // Файл "dat.info" внутри Zip-архива (заголовок с информацией о реплике, сериализация IReplicaInfo)
         ZipEntry zipEntryHead = new ZipEntry("dat.info");
         zipOutputStream.putNextEntry(zipEntryHead);
         String json = replica.getInfo().toString();
@@ -338,7 +338,7 @@ public class UtRepl {
         createOutput(replica);
 
 
-        // Открываем запись файлла с версией
+        // Открываем запись файла с версией
         addOutputFile("version");
         String version = parseExeVersion(exeFile.getName());
         StringInputStream versionStream = new StringInputStream(version);
