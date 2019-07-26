@@ -360,7 +360,7 @@ public class UtRepl {
         return replica;
     }
 
-    public IReplica createReplicaSetCfg(JSONObject cfg, String cfgType, long wsId) throws Exception {
+    public IReplica createReplicaSetCfg(JSONObject cfg, String cfgType, long destinationWsId) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SET_CFG);
 
@@ -370,7 +370,7 @@ public class UtRepl {
 
         // Информация о конфиге
         JSONObject cfgInfo = new JSONObject();
-        cfgInfo.put("wsId", wsId);
+        cfgInfo.put("destinationWsId", destinationWsId);
         cfgInfo.put("cfgType", cfgType);
 
         // Открываем запись файла с информацией о конфиге

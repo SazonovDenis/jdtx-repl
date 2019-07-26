@@ -250,35 +250,18 @@ public class JdxReplSrv {
 
             // Обновляем конфиг в серверных таблицах и отправляем системную команду в исходящую очередь реплик
             for (DataRecord rec : st) {
-                long recWsId = rec.getValueLong("id");
+                long wsId = rec.getValueLong("id");
 
                 //
                 log.info("  destination wsId: " + destinationWsId);
 
                 // Обновляем конфиг в серверных таблицах
                 UtCfg utCfg = new UtCfg(db);
-                switch (cfgType) {
-                    case "cfg_publications": {
-                        utCfg.setCfgPublications(cfg, recWsId);
-                        break;
-                    }
-                    case "cfg_decode": {
-                        utCfg.setCfgDecode(cfg, recWsId);
-                        break;
-                    }
-                    case "cfg_ws": {
-                        utCfg.setCfgWs(cfg, recWsId);
-                        break;
-                    }
-                    default: {
-                        throw new XError("Unknown cfg type: " + cfgType);
-                    }
-                }
-
+                utCfg.setCfg(cfg, cfgType, wsId);
 
                 // Системная команда ...
                 UtRepl utRepl = new UtRepl(db, struct);
-                IReplica replica = utRepl.createReplicaSetCfg(cfg, cfgType, recWsId);
+                IReplica replica = utRepl.createReplicaSetCfg(cfg, cfgType, wsId);
 
                 // ... в исходящую очередь реплик
                 commonQue.put(replica);
@@ -536,3 +519,5 @@ public class JdxReplSrv {
 
 
 }
+
+

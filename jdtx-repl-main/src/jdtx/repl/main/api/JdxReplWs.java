@@ -609,6 +609,46 @@ public class JdxReplWs {
                     //
                     break;
                 }
+                case JdxReplicaType.SET_CFG: {
+                    // Реакция на команду - "задать конфигурацию"
+
+                    // В этой реплике - данные о новой конфигурации
+                    JSONObject cfgInfo;
+                    InputStream cfgInfoStream = UtRepl.createInputStream(replica, "cfg.info.json");
+                    try {
+                        String cfgInfoStr = loadStringFromSream(cfgInfoStream);
+                        cfgInfo = (JSONObject) UtJson.toObject(cfgInfoStr);
+                    } finally {
+                        cfgInfoStream.close();
+                    }
+
+                    // Данные о новой конфигурации
+                    String cfgType = (String) cfgInfo.get("cfgType");
+                    long destinationWsId = Long.valueOf((String) cfgInfo.get("destinationWsId"));
+
+                    // Пришла конфигурация для нашей станции?
+                    if (destinationWsId == wsId) {
+                        // В этой реплике - новая конфигурация
+                        JSONObject cfg;
+                        InputStream cfgStream = UtRepl.createInputStream(replica, "cfg.json");
+                        try {
+                            String cfgStr = loadStringFromSream(cfgInfoStream);
+                            cfg = (JSONObject) UtJson.toObject(cfgStr);
+                        } finally {
+                            cfgStream.close();
+                        }
+
+                        // Обновляем конфиг в своей таблице
+                        UtCfg utCfg = new UtCfg(db);
+                        utCfg.setCfg(cfg, cfgType, destinationWsId);
+
+                        // Выкладывание реплики "конфигурация принята"
+                        reportMuteDone(JdxReplicaType.SET_CFG_DONE);
+
+                        //
+                        break;
+                    }
+                }
                 case JdxReplicaType.IDE:
                 case JdxReplicaType.SNAPSHOT: {
                     // Реальная структура базы НЕ совпадает с разрешенной структурой
@@ -690,6 +730,12 @@ public class JdxReplWs {
         } else {
             log.info("handleQueIn, self.wsId: " + wsId + ", queIn: " + queInNoDone + ", nothing to do");
         }
+    }
+
+    private String loadStringFromSream(InputStream stream) throws Exception {
+        StringLoader ldr = new StringLoader();
+        UtLoad.fromStream(ldr, stream);
+        return ldr.getResult();
     }
 
 

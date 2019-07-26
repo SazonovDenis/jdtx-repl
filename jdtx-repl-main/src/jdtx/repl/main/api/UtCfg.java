@@ -3,6 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.utils.error.*;
 import jandcode.web.*;
 import org.json.simple.*;
 
@@ -44,6 +45,26 @@ public class UtCfg {
 
     public void setCfgWs(JSONObject cfg) throws Exception {
         setCfgSelfInternal(cfg, "cfg_ws");
+    }
+
+    public void setCfg(JSONObject cfg, String cfgType, long wsId) throws Exception {
+        switch (cfgType) {
+            case "cfg_publications": {
+                setCfgPublications(cfg, wsId);
+                break;
+            }
+            case "cfg_decode": {
+                setCfgDecode(cfg, wsId);
+                break;
+            }
+            case "cfg_ws": {
+                setCfgWs(cfg, wsId);
+                break;
+            }
+            default: {
+                throw new XError("Unknown cfg type: " + cfgType);
+            }
+        }
     }
 
 
