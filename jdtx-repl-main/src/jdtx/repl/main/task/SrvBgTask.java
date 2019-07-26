@@ -55,7 +55,7 @@ public class SrvBgTask extends BgTask {
             //
             log.info("Сервер, настройка");
             JdxReplSrv srv = new JdxReplSrv(db);
-            srv.init(cfgFileName);
+            srv.init();
 
             //
             log.info("Формирование общей очереди");

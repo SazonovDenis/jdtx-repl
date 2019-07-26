@@ -23,7 +23,7 @@ public class JdxMuteManagerWs_Test extends ReplDatabaseStruct_Test {
         UtTest utTest = new UtTest(db2);
         //
         JdxReplWs ws = new JdxReplWs(db2);
-        ws.init("test/etalon/mail_http_ws.json");
+        ws.init();
 
         System.out.println("--------------------------------------------");
         System.out.println("mute = " + utmm.isMute());

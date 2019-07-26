@@ -23,13 +23,9 @@ public class JdxReplicaWriterXml_Test extends ReplDatabaseStruct_Test {
         long wsId = 2;
 
         // Загружаем правила публикации
+        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full.json"));
         IPublication publication = new Publication();
-        Reader r0 = new FileReader("test/etalon/publication_full.json");
-        try {
-            publication.loadRules(r0, struct2);
-        } finally {
-            r0.close();
-        }
+        publication.loadRules(cfg, struct);
 
 
         // Забираем установочную реплику

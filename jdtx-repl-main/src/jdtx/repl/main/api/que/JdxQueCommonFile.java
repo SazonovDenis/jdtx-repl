@@ -45,8 +45,6 @@ public class JdxQueCommonFile implements IJdxQueCommon {
         }
         //
         this.baseDir = UtFile.unnormPath(baseDir) + "/";
-        //
-        UtFile.mkdirs(baseDir);
     }
 
     public long put(IReplica replica) throws Exception {

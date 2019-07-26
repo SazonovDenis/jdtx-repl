@@ -1,36 +1,3 @@
 {
-
-  "1":{
-    "mailRemoteDir": "../_test-data/mail/ws_srv/",
-    "mailLocalDirTmp": "../_test-data/ws_srv/tmp",
-
-    "queIn_DirLocal": "../_test-data/ws_srv/queIn",
-    "queOut_DirLocal": "../_test-data/ws_srv/queOut",
-
-    "publicationIn": "publication_full",
-    "publicationOut": "publication_full"
-  },
-
-  "2": {
-    "mailRemoteDir": "../_test-data/mail/ws2/",
-    "mailLocalDirTmp": "../_test-data/ws2/tmp",
-
-    "queIn_DirLocal": "../_test-data/ws2/queIn",
-    "queOut_DirLocal": "../_test-data/ws2/queOut",
-
-    "publicationIn": "publication_full",
-    "publicationOut": "publication_full"
-  },
-
-  "3":{
-    "mailRemoteDir": "../_test-data/mail/ws3/",
-    "mailLocalDirTmp": "../_test-data/ws3/tmp",
-
-    "queIn_DirLocal": "../_test-data/ws3/queIn",
-    "queOut_DirLocal": "../_test-data/ws3/queOut",
-
-    "publicationIn": "publication_full",
-    "publicationOut": "publication_full"
-  }
-
+  "url": "http://localhost/lombard.systems/repl/"
 }

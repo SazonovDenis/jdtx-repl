@@ -39,11 +39,11 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db3);
         //
         ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
         ws2 = new JdxReplWs(db2);
-        ws2.init(json_ws);
+        ws2.init();
         ws3 = new JdxReplWs(db2);
-        ws3.init(json_ws);
+        ws3.init();
         //
         System.out.println("ws1 struct size: " + ws.struct.getTables().size());
         System.out.println("ws2 struct size: " + ws2.struct.getTables().size());
@@ -146,9 +146,9 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db2);
         //
         ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
         ws2 = new JdxReplWs(db2);
-        ws2.init(json_ws);
+        ws2.init();
         //
         System.out.println("ws1 struct size: " + ws.struct.getTables().size());
         System.out.println("ws2 struct size: " + ws2.struct.getTables().size());
@@ -164,7 +164,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // Устанавливаем "разрешенную" структуру
         ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
         structActual_ws1 = ws.struct;
         dbStructRW.setDbStructAllowed(structActual_ws1);
 
@@ -173,7 +173,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // Проверяем, что фиксация прошла нормально
         ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
         //
         structActual_ws1 = ws.struct;
         structFixed_ws1 = dbStructRW.getDbStructFixed();
@@ -199,7 +199,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         queInNoDone1 = stateManager_ws2.getQueInNoDone();
         //
         ws2 = new JdxReplWs(db2);
-        ws2.init(json_ws);
+        ws2.init();
 
         // Получаем входящие реплики
         ws2.receive();
@@ -219,7 +219,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // Устанавливаем "разрешенную" структуру
         ws2 = new JdxReplWs(db2);
-        ws2.init(json_ws);
+        ws2.init();
         structActual_ws1 = ws2.struct;
         dbStructRW_ws2.setDbStructAllowed(structActual_ws1);
 
@@ -228,7 +228,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // Проверяем, что фиксация прошла нормально
         ws2 = new JdxReplWs(db2);
-        ws2.init(json_ws);
+        ws2.init();
         //
         structActual_ws1 = ws2.struct;
         structFixed_ws1 = dbStructRW_ws2.getDbStructFixed();
@@ -242,7 +242,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         queInNoDone1 = stateManager_ws2.getQueInNoDone();
         //
         ws2 = new JdxReplWs(db2);
-        ws2.init(json_ws);
+        ws2.init();
 
         // Получаем входящие реплики
         ws2.receive();
@@ -304,13 +304,13 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // ===
         // Пытаемся сделать фиксацию структуры после изменения структуры
         ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
         //
         ws.dbStructApplyFixed();
 
         // Проверяем, что фиксация не удается
         ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
         //
         structActual = ws.struct;
         structFixed = dbStructRW.getDbStructFixed();
@@ -337,7 +337,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // Проверяем, что фиксация прошла нормально
         ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
         //
         structActual = ws.struct;
         structFixed = dbStructRW.getDbStructFixed();
@@ -400,11 +400,11 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db3);
         //
         ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
         ws2 = new JdxReplWs(db2);
-        ws2.init(json_ws);
+        ws2.init();
         ws3 = new JdxReplWs(db2);
-        ws3.init(json_ws);
+        ws3.init();
         //
         System.out.println("ws1 struct size: " + ws.struct.getTables().size());
         System.out.println("ws2 struct size: " + ws2.struct.getTables().size());
@@ -539,7 +539,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
     private void assertEqualsStruct_Actual_Allowed_Fixed_ws(Db db) throws Exception {
         JdxReplWs ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
         //
         IJdxDbStruct structActual = ws.struct;
         UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
@@ -593,7 +593,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     @Test
     public void test_srvDbStructStart() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init(json_srv);
+        srv.init();
 
         //
         srv.srvDbStructStart();
@@ -602,7 +602,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     @Test
     public void test_srvDbStructFinish() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init(json_srv);
+        srv.init();
 
         //
         srv.srvDbStructFinish();
@@ -620,7 +620,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         //
         ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
         //
         UtAuditAgeManager uta = new UtAuditAgeManager(db, ws.struct);
 
@@ -652,7 +652,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         //
         ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
         //
         UtAuditAgeManager uta = new UtAuditAgeManager(db, ws.struct);
 

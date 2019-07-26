@@ -431,6 +431,12 @@ public class UtRepl {
         return version;
     }
 
+    public static JSONObject loadAndValidateCfgFile(String cfgFileName) throws Exception {
+        String appCfg = UtFile.loadString(cfgFileName);
+        JSONObject cfgData = (JSONObject) UtJson.toObject(appCfg);
+        return cfgData;
+    }
+
     public static boolean tableSkipRepl(IJdxTable table) {
         return table.getPrimaryKey().size() == 0;
     }

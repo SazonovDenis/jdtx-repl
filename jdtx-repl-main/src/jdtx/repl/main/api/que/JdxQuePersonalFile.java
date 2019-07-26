@@ -58,8 +58,6 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
         }
         //
         this.baseDir = UtFile.unnormPath(baseDir) + "/";
-        //
-        UtFile.mkdirs(baseDir);
     }
 
 

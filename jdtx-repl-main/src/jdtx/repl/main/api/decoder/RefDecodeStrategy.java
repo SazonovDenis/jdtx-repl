@@ -17,17 +17,17 @@ public class RefDecodeStrategy {
 
     protected Map<String, RefDecodeStrategyItem> tablesDecodeStrategy;
 
-    public void init(String cfgFileName) throws Exception {
-        JSONArray data = (JSONArray) UtJson.toObject(UtFile.loadString(cfgFileName));
-
+    public void init(JSONObject cfgDecode) throws Exception {
         // Стратегии перекодировки каждой таблицы
         tablesDecodeStrategy = new HashMap<>();
 
         // Загрузим стратегии перекодировки
-        for (Object o : data) {
-            JSONObject st = (JSONObject) o;
-            String tableName = (String) st.get("table");
+        for (Object k : cfgDecode.keySet()) {
+            String tableName = (String) k;
             tableName = tableName.toUpperCase();
+            JSONObject st = (JSONObject) cfgDecode.get(k);
+
+            //
             RefDecodeStrategyItem tableDecodeStrategyItem = new RefDecodeStrategyItem();
             switch ((String) st.get("strategy")) {
                 case "DECODE_ID":

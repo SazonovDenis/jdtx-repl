@@ -14,7 +14,7 @@ import java.util.*;
  */
 public interface IPublication {
 
-    void loadRules(Reader r, IJdxDbStruct baseStruct) throws Exception;
+    void loadRules(JSONObject cfg, IJdxDbStruct baseStruct) throws Exception;
 
     IJdxDbStruct getData();
 

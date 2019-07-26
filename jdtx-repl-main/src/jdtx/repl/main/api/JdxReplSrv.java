@@ -58,10 +58,8 @@ public class JdxReplSrv {
 
     /**
      * Сервер, настройка
-     *
-     * @param cfgFileName json-файл с конфигурацией
      */
-    public void init(String cfgFileName) throws Exception {
+    public void init() throws Exception {
         dataRoot = db.getApp().getRt().getChild("app").getValueString("dataRoot");
         dataRoot = UtFile.unnormPath(dataRoot) + "/";
 
@@ -72,28 +70,36 @@ public class JdxReplSrv {
         // Проверка, что инициализация станции прошла
         ut.checkReplDb();
 
-        //
-        JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
 
-        //
-        String url = (String) cfgData.get("url");
+        // Чтение конфигурации
+        UtCfg utCfg = new UtCfg(db);
+        JSONObject cfgDbWs = utCfg.getCfgWs();
+/*
+        JSONObject cfgDbDecode = utCfg.getCfgDecode();
+*/
 
-        // Список активных рабочих станций
-        String sql = "select Z_Z_workstation_list.* from Z_Z_workstation_list join Z_Z_state_ws on (Z_Z_workstation_list.id = Z_Z_state_ws.ws_id) where Z_Z_state_ws.enabled = 1";
-        DataStore st = db.loadSql(sql);
+
+        // Общая очередь
+        String queCommon_DirLocal = dataRoot + "srv/queCommon/";
+        commonQue.setBaseDir(queCommon_DirLocal);
+
 
         // Почтовые курьеры, отдельные для каждой станции
+        DataStore st = loadWsList(0);
         for (DataRecord rec : st) {
             long wsId = rec.getValueLong("id");
 
+            // Рабочие каталоги
+            String sWsId = UtString.padLeft(String.valueOf(wsId), 3, "0");
+            String mailLocalDirTmp = dataRoot + "srv/ws_" + sWsId + "_tmp/";
+
             // Конфиг для мейлера
-            JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
-            if (cfgWs == null) {
-                throw new XError("JdxReplSrv.init: cfgWs == null, wsId: " + wsId + ", cfgFileName: " + cfgFileName);
-            }
-            //
-            cfgWs.put("guid", rec.getValueString("guid"));
+            JSONObject cfgWs = new JSONObject();
+            String guid = rec.getValueString("guid");
+            String url = (String) cfgDbWs.get("url");
+            cfgWs.put("guid", guid);
             cfgWs.put("url", url);
+            cfgWs.put("localDirTmp", mailLocalDirTmp);
 
             // Мейлер
             IMailer mailer = new MailerHttp();
@@ -103,14 +109,14 @@ public class JdxReplSrv {
             mailerList.put(wsId, mailer);
         }
 
-        // Общая очередь
-        commonQue.setBaseDir((String) cfgData.get("queCommon_DirLocal"));
 
         // Стратегии перекодировки каждой таблицы
-        String strategyCfgName = "decode_strategy";
-        strategyCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + strategyCfgName + ".json";
-        RefDecodeStrategy.instance = new RefDecodeStrategy();
-        RefDecodeStrategy.instance.init(strategyCfgName);
+/*
+        if (RefDecodeStrategy.instance == null) {
+            RefDecodeStrategy.instance = new RefDecodeStrategy();
+            RefDecodeStrategy.instance.init(cfgDbDecode);
+        }
+*/
 
 
         // Проверка версии приложения
@@ -240,7 +246,7 @@ public class JdxReplSrv {
         log.info("srvSetCfg, cfgFileName: " + cfgFileName + ", cfgType: " + cfgType + ", destination wsId: " + destinationWsId);
 
         //
-        JSONObject cfg = loadAndValidateCfgFile(cfgFileName);
+        JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName);
 
         //
         db.startTran();
@@ -276,11 +282,6 @@ public class JdxReplSrv {
     }
 
 
-    private JSONObject loadAndValidateCfgFile(String cfgFileName) throws Exception {
-        String appCfg = UtFile.loadString(cfgFileName);
-        JSONObject cfgData = (JSONObject) UtJson.toObject(appCfg);
-        return cfgData;
-    }
 
 
     /**

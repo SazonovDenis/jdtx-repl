@@ -1,8 +1,11 @@
 package jdtx.repl.main.api;
 
+import jandcode.utils.*;
+import jandcode.web.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
+import org.json.simple.*;
 import org.junit.*;
 
 import java.io.*;
@@ -15,21 +18,15 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_LoadRules() throws Exception {
-        Publication publication = new Publication();
-        Reader r = new FileReader("test/etalon/pub.json");
-        try {
-            publication.loadRules(r, struct);
-        } finally {
-            r.close();
-        }
+        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub.json"));
+        IPublication publication = new Publication();
+        publication.loadRules(cfg, struct);
 
         IJdxDbStruct t = publication.getData();
-
         for (IJdxTable o : t.getTables()) {
             System.out.println("table = " + o.getName());
             System.out.println("fields = " + o.getFields());
         }
-
     }
 
 
@@ -42,13 +39,9 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         UtAuditSelector utrr = new UtAuditSelector(db2, struct2, wsId);
 
         // Загружаем правила публикации
+        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full.json"));
         IPublication publication = new Publication();
-        Reader r = new FileReader("test/etalon/publication_full.json");
-        try {
-            publication.loadRules(r, struct);
-        } finally {
-            r.close();
-        }
+        publication.loadRules(cfg, struct);
 
         //
         long age;
@@ -121,13 +114,9 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         System.out.println("curr audit age: " + selfAuditAge);
 
         // Загружаем правила публикации
+        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub.json"));
         IPublication publication = new Publication();
-        Reader r = new FileReader("test/etalon/pub.json");
-        try {
-            publication.loadRules(r, struct2);
-        } finally {
-            r.close();
-        }
+        publication.loadRules(cfg, struct);
 
         // Формируем реплики
         IReplica replica = utRepl.createReplicaFromAudit(wsId, publication, selfAuditAge);
@@ -143,13 +132,9 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_applyReplica() throws Exception {
         // Загружаем правила публикации
+        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub.json"));
         IPublication publication = new Publication();
-        Reader r = new FileReader("test/etalon/pub.json");
-        try {
-            publication.loadRules(r, struct2);
-        } finally {
-            r.close();
-        }
+        publication.loadRules(cfg, struct);
 
         // Реплики
         IReplica replica = new ReplicaFile();
@@ -166,13 +151,9 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_applyReplicaSnapshot() throws Exception {
         // Загружаем правила публикации
+        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub_full.json"));
         IPublication publication = new Publication();
-        Reader r = new FileReader("test/etalon/pub_full.json");
-        try {
-            publication.loadRules(r, struct2);
-        } finally {
-            r.close();
-        }
+        publication.loadRules(cfg, struct);
 
         // Реплики
         IReplica replica = new ReplicaFile();

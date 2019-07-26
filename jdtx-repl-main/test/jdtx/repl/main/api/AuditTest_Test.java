@@ -4,10 +4,12 @@ import jandcode.app.test.*;
 import jandcode.dbm.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.web.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.io.*;
+import org.json.simple.*;
 import org.junit.*;
 
 import java.io.*;
@@ -52,13 +54,9 @@ public class AuditTest_Test extends AppTestCase {
         UtRepl utRepl = new UtRepl(db_test, db_test_struct);
 
         // Загружаем правила публикации
+        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full_152.json"));
         IPublication publication = new Publication();
-        Reader r = new FileReader("test/etalon/publication_full_152.json");
-        try {
-            publication.loadRules(r, db_test_struct);
-        } finally {
-            r.close();
-        }
+        publication.loadRules(cfg, db_test_struct);
 
         // Формируем реплики
         long wsId = 2;
@@ -75,13 +73,9 @@ public class AuditTest_Test extends AppTestCase {
         UtRepl utRepl = new UtRepl(db_test, db_test_struct);
 
         // Загружаем правила публикации
+        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full_152.json"));
         IPublication publication = new Publication();
-        Reader r = new FileReader("test/etalon/publication_full_152.json");
-        try {
-            publication.loadRules(r, db_test_struct);
-        } finally {
-            r.close();
-        }
+        publication.loadRules(cfg, db_test_struct);
 
         // Формируем реплики
         long wsId = 2;

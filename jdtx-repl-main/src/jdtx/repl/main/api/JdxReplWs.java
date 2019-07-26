@@ -4,6 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jandcode.utils.io.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.jdx_db_object.*;
@@ -48,7 +49,6 @@ public class JdxReplWs {
     //
     private static Log log = LogFactory.getLog("jdtx");
 
-
     //
     public JdxReplWs(Db db) throws Exception {
         this.db = db;
@@ -64,10 +64,8 @@ public class JdxReplWs {
 
     /**
      * Рабочая станция, настройка
-     *
-     * @param cfgFileName json-файл с конфигурацией
      */
-    public void init(String cfgFileName) throws Exception {
+    public void init() throws Exception {
         dataRoot = db.getApp().getRt().getChild("app").getValueString("dataRoot");
         dataRoot = UtFile.unnormPath(dataRoot) + "/";
 
@@ -90,61 +88,60 @@ public class JdxReplWs {
         }
         this.wsId = rec.getValueLong("id");
 
-        // Конфигурация
-        JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
-        JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
-        if (cfgWs == null) {
-            throw new XError("JdxReplWs.init: cfgWs == null, wsId: " + wsId + ", cfgFileName: " + cfgFileName);
-        }
+        // Чтение конфигурации
+        UtCfg utCfg = new UtCfg(db);
+        JSONObject cfgDbWs = utCfg.getCfgWs();
+        JSONObject cfgDbPublications = utCfg.getCfgPublications();
+        JSONObject cfgDbDecode = utCfg.getCfgDecode();
+
+        // Рабочие каталоги
+        String sWsId = UtString.padLeft(String.valueOf(wsId), 3, "0");
+        String queIn_DirLocal = dataRoot + "ws_" + sWsId + "/queIn";
+        String queOut_DirLocal = dataRoot + "ws_" + sWsId + "/queOut";
+        String mailLocalDirTmp = dataRoot + "temp/";
 
         // Читаем из этой очереди
         queIn = new JdxQueCommonFile(db, JdxQueType.IN);
-        queIn.setBaseDir((String) cfgWs.get("queIn_DirLocal"));
+        queIn.setBaseDir(queIn_DirLocal);
 
         // Пишем в эту очередь
         queOut = new JdxQuePersonalFile(db, JdxQueType.OUT);
-        queOut.setBaseDir((String) cfgWs.get("queOut_DirLocal"));
+        queOut.setBaseDir(queOut_DirLocal);
 
         // Конфиг для мейлера
-        String url = (String) cfgData.get("url");
-        cfgWs.put("guid", rec.getValueString("guid"));
+        JSONObject cfgWs = new JSONObject();
+        String url = (String) cfgDbWs.get("url");
+        String guid = rec.getValueString("guid");
+        cfgWs.put("guid", guid);
         cfgWs.put("url", url);
+        cfgWs.put("localDirTmp", mailLocalDirTmp);
 
         // Мейлер
         mailer = new MailerHttp();
         mailer.init(cfgWs);
 
         // Стратегии перекодировки каждой таблицы
-        String strategyCfgName = "decode_strategy";
-        strategyCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + strategyCfgName + ".json";
-        if (RefDecodeStrategy.instance == null) {
+        if (cfgDbDecode != null && RefDecodeStrategy.instance == null) {
             RefDecodeStrategy.instance = new RefDecodeStrategy();
-            RefDecodeStrategy.instance.init(strategyCfgName);
+            RefDecodeStrategy.instance.init(cfgDbDecode);
         }
 
-        // Правила публикаций: publicationIn
-        IPublication publication = new Publication();
-        String publicationCfgName = (String) cfgWs.get("publicationIn");
-        publicationCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + publicationCfgName + ".json";
-        Reader reader = new FileReader(publicationCfgName);
-        try {
-            publication.loadRules(reader, structActual);
-            this.publicationIn = publication;
-        } finally {
-            reader.close();
-        }
+        // Правила публикаций
+        if (cfgDbPublications != null) {
+            JSONObject cfgDbPublicationIn = (JSONObject) cfgDbPublications.get("in");
+            JSONObject cfgDbPublicationOut = (JSONObject) cfgDbPublications.get("out");
 
-        // Правила публикаций: publicationOut
-        IPublication publicationOut = new Publication();
-        String publicationOutCfgName = (String) cfgWs.get("publicationOut");
-        publicationOutCfgName = cfgFileName.substring(0, cfgFileName.length() - UtFile.filename(cfgFileName).length()) + publicationOutCfgName + ".json";
-        Reader readerOut = new FileReader(publicationOutCfgName);
-        try {
-            publicationOut.loadRules(readerOut, structActual);
+            // Правила публикаций: publicationIn
+            IPublication publicationIn = new Publication();
+            publicationIn.loadRules(cfgDbPublicationIn, structActual);
+            this.publicationIn = publicationIn;
+
+            // Правила публикаций: publicationOut
+            IPublication publicationOut = new Publication();
+            publicationOut.loadRules(cfgDbPublicationOut, structActual);
             this.publicationOut = publicationOut;
-        } finally {
-            readerOut.close();
         }
+
 
 /*
         // Фильтрация структуры: убирание того, чего нет в публикации publicationOut
@@ -188,6 +185,9 @@ public class JdxReplWs {
                 throw new XError("Failed to update application " + appVersionActual + " -> " + appVersionAllowed);
             }
         }
+
+        // Чтобы были
+        UtFile.mkdirs(dataRoot + "temp");
     }
 
     /**
@@ -273,9 +273,9 @@ public class JdxReplWs {
 
             // Для справки/отладки - структуры в файл
             JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-            struct_rw.saveToFile(structActual, "temp/dbStruct.actual.xml");
-            struct_rw.saveToFile(structAllowed, "temp/dbStruct.allowed.xml");
-            struct_rw.saveToFile(structFixed, "temp/dbStruct.fixed.xml");
+            struct_rw.saveToFile(structActual, dataRoot + "temp/dbStruct.actual.xml");
+            struct_rw.saveToFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
+            struct_rw.saveToFile(structFixed, dataRoot + "temp/dbStruct.fixed.xml");
 
             //
             return false;
@@ -406,9 +406,9 @@ public class JdxReplWs {
             log.warn("handleSelfAudit, database structActual <> structAllowed");
             // Для справки/отладки - структуры в файл
             JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-            struct_rw.saveToFile(struct, "temp/dbStruct.actual.xml");
-            struct_rw.saveToFile(structAllowed, "temp/dbStruct.allowed.xml");
-            struct_rw.saveToFile(structFixed, "temp/dbStruct.fixed.xml");
+            struct_rw.saveToFile(struct, dataRoot + "temp/dbStruct.actual.xml");
+            struct_rw.saveToFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
+            struct_rw.saveToFile(structFixed, dataRoot + "temp/dbStruct.fixed.xml");
             //
             return;
         }
@@ -417,9 +417,9 @@ public class JdxReplWs {
             log.warn("handleSelfAudit, database structActual <> structFixed");
             // Для справки/отладки - структуры в файл
             JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-            struct_rw.saveToFile(struct, "temp/dbStruct.actual.xml");
-            struct_rw.saveToFile(structAllowed, "temp/dbStruct.allowed.xml");
-            struct_rw.saveToFile(structFixed, "temp/dbStruct.fixed.xml");
+            struct_rw.saveToFile(struct, dataRoot + "temp/dbStruct.actual.xml");
+            struct_rw.saveToFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
+            struct_rw.saveToFile(structFixed, dataRoot + "temp/dbStruct.fixed.xml");
             //
             return;
         }
@@ -529,6 +529,8 @@ public class JdxReplWs {
                     }
 
                     // Распаковываем бинарник
+                    // TODO Обработать ситуацию, когда антивирус съел бинарник.
+                    // Надо научиться при отстсвии бинаарника снова искать последнюю реплику и распаковывать бинарник непосредственно перед запуском
                     InputStream replicaStream = UtRepl.createInputStream(replica, ".exe");
                     try {
                         UtFile.mkdirs("install");
@@ -615,6 +617,7 @@ public class JdxReplWs {
                 case JdxReplicaType.SET_CFG: {
                     // Реакция на команду - "задать конфигурацию"
 
+
                     // В этой реплике - данные о новой конфигурации
                     JSONObject cfgInfo;
                     InputStream cfgInfoStream = UtRepl.createInputStream(replica, "cfg.info.json");
@@ -627,7 +630,7 @@ public class JdxReplWs {
 
                     // Данные о новой конфигурации
                     String cfgType = (String) cfgInfo.get("cfgType");
-                    long destinationWsId = Long.valueOf((String) cfgInfo.get("destinationWsId"));
+                    long destinationWsId = Long.valueOf(String.valueOf(cfgInfo.get("destinationWsId")));
 
                     // Пришла конфигурация для нашей станции?
                     if (destinationWsId == wsId) {
@@ -635,7 +638,7 @@ public class JdxReplWs {
                         JSONObject cfg;
                         InputStream cfgStream = UtRepl.createInputStream(replica, "cfg.json");
                         try {
-                            String cfgStr = loadStringFromSream(cfgInfoStream);
+                            String cfgStr = loadStringFromSream(cfgStream);
                             cfg = (JSONObject) UtJson.toObject(cfgStr);
                         } finally {
                             cfgStream.close();
@@ -661,9 +664,9 @@ public class JdxReplWs {
                         doBreak = true;
                         // Для справки/отладки - структуры в файл
                         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-                        struct_rw.saveToFile(struct, "temp/dbStruct.actual.xml");
-                        struct_rw.saveToFile(structAllowed, "temp/dbStruct.allowed.xml");
-                        struct_rw.saveToFile(dbStructRW.getDbStructFixed(), "temp/dbStruct.fixed.xml");
+                        struct_rw.saveToFile(struct, dataRoot + "temp/dbStruct.actual.xml");
+                        struct_rw.saveToFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
+                        struct_rw.saveToFile(dbStructRW.getDbStructFixed(), dataRoot + "temp/dbStruct.fixed.xml");
                         //
                         break;
                     }

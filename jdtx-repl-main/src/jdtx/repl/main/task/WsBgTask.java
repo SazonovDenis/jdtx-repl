@@ -54,7 +54,7 @@ public class WsBgTask extends BgTask {
         //
         try {
             JdxReplWs ws = new JdxReplWs(db);
-            ws.init(cfgFileName);
+            ws.init();
             logInfo("Рабочая станция, wsId: " + ws.getWsId());
 
             //

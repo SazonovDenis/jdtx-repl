@@ -44,7 +44,7 @@ public class MailerHttp implements IMailer {
     public void init(JSONObject cfg) {
         remoteUrl = (String) cfg.get("url");
         guid = (String) cfg.get("guid");
-        localDirTmp = (String) cfg.get("mailLocalDirTmp");
+        localDirTmp = (String) cfg.get("localDirTmp");
         //
         if (remoteUrl == null || remoteUrl.length() == 0) {
             throw new XError("Invalid remoteUrl");

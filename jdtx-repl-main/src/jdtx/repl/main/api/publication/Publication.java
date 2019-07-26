@@ -3,9 +3,7 @@ package jdtx.repl.main.api.publication;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 import org.json.simple.*;
-import org.json.simple.parser.*;
 
-import java.io.*;
 import java.util.*;
 
 public class Publication implements IPublication {
@@ -13,11 +11,7 @@ public class Publication implements IPublication {
 
     IJdxDbStruct publicationStruct = new JdxDbStruct();
 
-    public void loadRules(Reader r, IJdxDbStruct baseStruct) throws Exception {
-        JSONParser p = new JSONParser();
-        JSONArray publicationData = (JSONArray) p.parse(r);
-
-        //
+    public void loadRules(JSONObject cfg, IJdxDbStruct baseStruct) throws Exception {
         publicationStruct.getTables().clear();
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
@@ -26,9 +20,9 @@ public class Publication implements IPublication {
 
             // Ищем таблицу в правилах публикации
             List<String> publicationFields = null;
-            for (int i = 0; i < publicationData.size(); i++) {
-                JSONObject publicationTable = (JSONObject) publicationData.get(i);
-                String publicationTableName = (String) publicationTable.get("table");
+            for (Object k : cfg.keySet()) {
+                String publicationTableName = (String) k;
+                JSONObject publicationTable = (JSONObject) cfg.get(k);
                 if (baseStructTableName.compareToIgnoreCase(publicationTableName) == 0) {
                     publicationFields = expandPublicationFields(baseStructTable, (String) publicationTable.get("fields"));
                 }

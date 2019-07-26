@@ -2,6 +2,24 @@
   "in": "full",
   "out": "full",
   "full": {
+    "TEST_TABLE_80": {
+      "fields": "*"
+    },
+    "TEST_TABLE_81": {
+      "fields": "*"
+    },
+    "TEST_TABLE_82": {
+      "fields": "*"
+    },
+    "TEST_TABLE_83": {
+      "fields": "*"
+    },
+    "TEST_TABLE_84": {
+      "fields": "*"
+    },
+    "TEST_TABLE_85": {
+      "fields": "*"
+    },
     "appupdate": {
       "fields": "*"
     },
@@ -217,5 +235,4 @@
     }
   }
 }
-
 

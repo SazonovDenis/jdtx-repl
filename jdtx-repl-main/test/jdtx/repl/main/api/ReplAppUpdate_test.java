@@ -21,7 +21,7 @@ public class ReplAppUpdate_test extends JdxReplWsSrv_Test {
         // ===
         // Реплика на обновление
         JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init(json_srv);
+        srv.init();
 
         //
         String exeFileName = "Z:/jdtx-repl/install/JadatexSync-301.exe";

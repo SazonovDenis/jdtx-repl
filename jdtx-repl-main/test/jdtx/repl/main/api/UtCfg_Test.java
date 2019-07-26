@@ -70,15 +70,12 @@ public class UtCfg_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_srvSetCfg() throws Exception {
-        String json_srv = "test/etalon/mail_http_srv.json";
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init();
+
+        //
         long destinationWsId = 2;
         String cfgFileName = "test/jdtx/repl/main/api/UtCfg_Test.publications.json";
-
-        //
-        JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init(json_srv);
-
-        //
         srv.srvSetCfg(cfgFileName, "cfg_publications", destinationWsId);
     }
 

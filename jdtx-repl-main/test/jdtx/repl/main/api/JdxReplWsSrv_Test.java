@@ -7,6 +7,7 @@ import jandcode.utils.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ut.*;
+import org.json.simple.*;
 import org.junit.*;
 
 import java.io.*;
@@ -18,6 +19,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     String json_srv = "test/etalon/mail_http_srv.json";
     String json_ws = "test/etalon/mail_http_ws.json";
+
+    String cfg_json_publications = "test/etalon/publication_full_152.json";
+    String cfg_json_decode = "test/etalon/decode_strategy.json";
+    String cfg_json_ws = "test/etalon/ws.json";
 
     @Test
     public void allSetUp() throws Exception {
@@ -41,7 +46,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         new File("d:/temp/jdtx.log").delete();
         UtFile.cleanDir("../../lombard.systems/repl/" + MailerHttp.REPL_PROTOCOL_VERSION + "/b5781df573ca6ee6.x");
 
+        // ---
         // Режим рабочей станции
+
+        // Первичная инициализация
         // db
         UtRepl utRepl = new UtRepl(db, struct);
         utRepl.dropReplication();
@@ -55,12 +63,24 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         utr3.dropReplication();
         utr3.createReplicationBase(3, "b5781df573ca6ee6.x-34f3cc20bea64503");
 
-        // Сразу инициируем "смену структуры"
-        //wsDbStructUpdate();
+        // Начальный конфиг
+        JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfg_json_ws);
+        // db
+        UtCfg utCfg = new UtCfg(db);
+        utCfg.setCfgWs(cfg);
+        // db
+        UtCfg utCfg2 = new UtCfg(db2);
+        utCfg2.setCfgWs(cfg);
+        // db
+        UtCfg utCfg3 = new UtCfg(db3);
+        utCfg3.setCfgWs(cfg);
 
+
+        // ---
         // Режим сервера
         JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init(json_srv);
+        srv.init();
+
         // Добавляем рабочие станции для режима сервера
         srv.addWorkstation(1, "Сервер", "b5781df573ca6ee6.x-17845f2f56f4d401");
         srv.addWorkstation(2, "ws 2", "b5781df573ca6ee6.x-21ba238dfc945002");
@@ -74,23 +94,26 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         createBoxes_Http();
         //createBoxes_Local();
 
+        // Для сервера - сразу инициируем настройки для всех станций
+        srv.srvSetCfg(cfg_json_publications, "cfg_publications", 0);
+        srv.srvSetCfg(cfg_json_decode, "cfg_decode", 0);
+
         // Для сервера - сразу инициализируем фиксацию структуры БД
         srv.srvDbStructFinish();
 
-
         //
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
+        UtData.outTable(db.loadSql("select id, name, guid from " + JdxUtils.sys_table_prefix + "workstation_list"));
     }
 
     @Test
     public void wsDbStructUpdate() throws Exception {
         // Рабочая станция, настройка
         JdxReplWs ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
         JdxReplWs ws2 = new JdxReplWs(db2);
-        ws2.init(json_ws);
+        ws2.init();
         JdxReplWs ws3 = new JdxReplWs(db3);
-        ws3.init(json_ws);
+        ws3.init();
 
         //
         ws.dbStructApplyFixed();
@@ -101,7 +124,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void createBoxes_Http() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init(json_srv);
+        srv.init();
         for (Map.Entry en : srv.mailerList.entrySet()) {
             long wsId = (long) en.getKey();
             MailerHttp mailer = (MailerHttp) en.getValue();
@@ -370,7 +393,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws1_getInfoWs() throws Exception {
         JdxReplWs ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
 
         //
         Map info = ws.getInfoWs();
@@ -386,7 +409,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws1_handleSelfAudit() throws Exception {
         JdxReplWs ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
 
         // Отслеживаем и обрабатываем свои изменения
         ws.handleSelfAudit();
@@ -395,7 +418,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws2_handleSelfAudit() throws Exception {
         JdxReplWs ws = new JdxReplWs(db2);
-        ws.init(json_ws);
+        ws.init();
 
         // Отслеживаем и обрабатываем свои изменения
         ws.handleSelfAudit();
@@ -404,7 +427,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws3_handleSelfAudit() throws Exception {
         JdxReplWs ws = new JdxReplWs(db3);
-        ws.init(json_ws);
+        ws.init();
 
         // Отслеживаем и обрабатываем свои изменения
         ws.handleSelfAudit();
@@ -414,7 +437,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws1_send_receive() throws Exception {
         JdxReplWs ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
 
         //
         ws.send();
@@ -424,7 +447,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws2_send_receive() throws Exception {
         JdxReplWs ws = new JdxReplWs(db2);
-        ws.init(json_ws);
+        ws.init();
 
         //
         ws.send();
@@ -434,7 +457,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws3_send_receive() throws Exception {
         JdxReplWs ws = new JdxReplWs(db3);
-        ws.init(json_ws);
+        ws.init();
 
         //
         ws.send();
@@ -445,7 +468,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws1_handleQueIn() throws Exception {
         JdxReplWs ws = new JdxReplWs(db);
-        ws.init(json_ws);
+        ws.init();
 
         // Применяем входящие реплики
         ws.handleQueIn();
@@ -454,7 +477,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws2_handleQueIn() throws Exception {
         JdxReplWs ws = new JdxReplWs(db2);
-        ws.init(json_ws);
+        ws.init();
 
         // Применяем входящие реплики
         ws.handleQueIn();
@@ -463,7 +486,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws3_handleQueIn() throws Exception {
         JdxReplWs ws = new JdxReplWs(db3);
-        ws.init(json_ws);
+        ws.init();
 
         // Применяем входящие реплики
         ws.handleQueIn();
@@ -474,13 +497,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_ws_sendLocal() throws Exception {
         // Рабочие станции
         JdxReplWs ws1 = new JdxReplWs(db);
-        ws1.init(json_ws);
+        ws1.init();
         //
         JdxReplWs ws2 = new JdxReplWs(db2);
-        ws2.init(json_ws);
+        ws2.init();
         //
         JdxReplWs ws3 = new JdxReplWs(db3);
-        ws3.init(json_ws);
+        ws3.init();
 
         //
         //JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
@@ -506,13 +529,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_ws_receiveLocal() throws Exception {
         // Рабочая станция, настройка
         JdxReplWs ws1 = new JdxReplWs(db);
-        ws1.init(json_ws);
+        ws1.init();
         //
         JdxReplWs ws2 = new JdxReplWs(db2);
-        ws2.init(json_ws);
+        ws2.init();
         //
         JdxReplWs ws3 = new JdxReplWs(db3);
-        ws3.init(json_ws);
+        ws3.init();
 
         //
         ws1.receiveFromDir(json_ws, "../_test-data/mail_local");
@@ -524,7 +547,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_sync_srv() throws Exception {
         // Сервер, настройка
         JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init(json_srv);
+        srv.init();
 
         // Формирование общей очереди
         srv.srvHandleCommonQue();
@@ -537,7 +560,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_sync_srv_Local() throws Exception {
         // Сервер, настройка
         JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init(json_srv);
+        srv.init();
 
         // Формирование общей очереди
         srv.srvHandleCommonQueFrom(json_srv, "../_test-data/mail_local");
@@ -550,7 +573,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_srvDispatchReplicasToDir_ws2() throws Exception {
         // Сервер, настройка
         JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init(json_srv);
+        srv.init();
 
         // Тиражирование реплик
         srv.srvDispatchReplicasToDir(json_srv, "../_test-data/mail_local", 0, 0, 2, false);
@@ -560,7 +583,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_srvDispatchReplicasToDir_wsAll() throws Exception {
         // Сервер, настройка
         JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init(json_srv);
+        srv.init();
 
         // Тиражирование реплик
         srv.srvDispatchReplicasToDir(json_srv, "../_test-data/mail_local", 0, 0, 0, false);

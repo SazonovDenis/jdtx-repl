@@ -14,11 +14,13 @@ import jandcode.utils.error.XError
 import jandcode.utils.variant.IVariantMap
 import jdtx.repl.main.api.JdxReplSrv
 import jdtx.repl.main.api.JdxReplWs
+import jdtx.repl.main.api.UtCfg
 import jdtx.repl.main.api.UtRepl
 import jdtx.repl.main.api.mailer.MailerHttp
 import jdtx.repl.main.api.struct.IJdxDbStruct
 import jdtx.repl.main.api.struct.IJdxDbStructReader
 import jdtx.repl.main.api.struct.JdxDbStructReader
+import org.json.simple.JSONObject
 
 /**
  * Обертка для вызовов утилиты jc с командной строки
@@ -61,7 +63,7 @@ class Jdx_Ext extends ProjectExt {
     void repl_info(IVariantMap args) {
         BgTasksService bgTasksService = app.service(BgTasksService.class)
         String cfgFileName_ws = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName")
-        String cfgFileName_server = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
+        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -98,11 +100,11 @@ class Jdx_Ext extends ProjectExt {
             // Сервер
             try {
                 System.out.println("")
-                System.out.println("Сервер, cfgFileName: " + cfgFileName_server)
+                System.out.println("Сервер, cfgFileName: " + cfgFileName_srv)
 
                 //
                 JdxReplSrv srv = new JdxReplSrv(db)
-                srv.init(cfgFileName_server)
+                srv.init(cfgFileName_srv)
 
                 //
                 System.out.println("commonQue.baseDir: " + srv.commonQue.baseDir)
@@ -130,15 +132,16 @@ class Jdx_Ext extends ProjectExt {
     void repl_create(IVariantMap args) {
         long wsId = args.getValueLong("ws")
         String guid = args.getValueString("guid")
+        String cfgFileName = args.getValueString("cfg")
         if (wsId == 0L) {
             throw new XError("Не указан [ws] - код рабочей станции")
         }
         if (guid == null || guid.length() == 0) {
             throw new XError("Не указан [guid] - guid рабочей станции")
         }
-
-        BgTasksService bgTasksService = app.service(BgTasksService.class)
-        String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName")
+        if (cfgFileName == null || cfgFileName.length() == 0) {
+            throw new XError("Не указан [cfg] - cfg рабочей станции")
+        }
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -157,6 +160,18 @@ class Jdx_Ext extends ProjectExt {
             UtRepl utRepl = new UtRepl(db, struct)
             utRepl.dropReplication()
             utRepl.createReplicationBase(wsId, guid)
+
+            // Начальный конфиг
+            JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName)
+            UtCfg utCfg = new UtCfg(db);
+            utCfg.setCfgWs(cfg);
+
+            // Создаем окружение для рабочей станции
+            JdxReplWs ws = new JdxReplWs(db)
+            ws.init()
+            //
+            UtFile.mkdirs(ws.queIn.baseDir);
+            UtFile.mkdirs(ws.queOut.baseDir);
 
         } finally {
             db.disconnect()

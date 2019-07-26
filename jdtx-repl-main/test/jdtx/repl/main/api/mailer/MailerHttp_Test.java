@@ -58,13 +58,9 @@ public class MailerHttp_Test extends ReplDatabase_Test {
         UtRepl utRepl = new UtRepl(db, struct);
 
         // Загружаем правила публикации
+        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub_full.json"));
         IPublication publication = new Publication();
-        Reader r = new FileReader("test/etalon/pub_full.json");
-        try {
-            publication.loadRules(r, struct);
-        } finally {
-            r.close();
-        }
+        publication.loadRules(cfg, struct);
 
         // Забираем установочную реплику
         IReplica replica = utRepl.createReplicaTableSnapshot(1, publication.getData().getTable("ulz"), 999);
