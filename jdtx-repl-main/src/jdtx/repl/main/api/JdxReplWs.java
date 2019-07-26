@@ -506,6 +506,7 @@ public class JdxReplWs {
 
             // Пробуем применить реплику
             boolean replicaUsed = true;
+            boolean doBreak = false;
 
             //
             switch (replica.getInfo().getReplicaType()) {
@@ -541,7 +542,8 @@ public class JdxReplWs {
 
 
                     // ===
-                    // Отмечаем разрешенную версию
+                    // Отмечаем разрешенную версию.
+                    // Реальное обновление программы будет позже, при следующем запуске
                     appVersionRW.setAppVersionAllowed(appVersionAllowed);
 
 
@@ -600,6 +602,7 @@ public class JdxReplWs {
                         // то не метим реплтику как использованную
                         log.warn("handleQueIn, dbStructApplyFixed <> true");
                         replicaUsed = false;
+                        doBreak = true;
                         break;
                     }
 
@@ -655,6 +658,7 @@ public class JdxReplWs {
                     if (!dbStructIsEqual) {
                         log.warn("handleQueIn, structActual <> structAllowed");
                         replicaUsed = false;
+                        doBreak = true;
                         // Для справки/отладки - структуры в файл
                         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
                         struct_rw.saveToFile(struct, "temp/dbStruct.actual.xml");
@@ -710,15 +714,21 @@ public class JdxReplWs {
                 }
             }
 
-            // Не использованная реплика - повод для остановки
-            if (!replicaUsed) {
-                log.info("handleQueIn, break using replica");
-                break;
+            // Реплика использованна?
+            if (replicaUsed) {
+                // Отметим применение реплики
+                stateManager.setQueInNoDone(no);
+            } else {
+                // Не отмечаем
+                log.info("handleQueIn, replica not used");
             }
 
-            // Отметим применение реплики
-            stateManager.setQueInNoDone(no);
-
+            // Надо останавливаться?
+            if (doBreak) {
+                // Останавливаемся
+                log.info("handleQueIn, break using replicas");
+                break;
+            }
 
             //
             count++;
