@@ -1,7 +1,6 @@
 package jdtx.repl.main.api.decoder;
 
-import jandcode.utils.*;
-import jandcode.web.*;
+import jandcode.utils.error.*;
 import org.json.simple.*;
 
 import java.util.*;
@@ -29,14 +28,17 @@ public class RefDecodeStrategy {
 
             //
             RefDecodeStrategyItem tableDecodeStrategyItem = new RefDecodeStrategyItem();
-            switch ((String) st.get("strategy")) {
+            String strategy = (String) st.get("strategy");
+            switch (strategy) {
                 case "DECODE_ID":
                     tableDecodeStrategyItem.strategy = DECODE_ID;
                     tableDecodeStrategyItem.decode_from_id = (Long) st.get("decode_from_id");
                     break;
                 case "NO_DECODE":
-                default:
                     tableDecodeStrategyItem.strategy = NO_DECODE;
+                    break;
+                default:
+                    throw new XError("Unknown strategy: " + strategy + ", tableName: " + tableName);
             }
             tablesDecodeStrategy.put(tableName, tableDecodeStrategyItem);
         }

@@ -67,13 +67,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfg_json_ws);
         // db
         UtCfg utCfg = new UtCfg(db);
-        utCfg.setCfgWs(cfg);
+        utCfg.setSelfCfg(cfg, UtCfgType.WS);
         // db
         UtCfg utCfg2 = new UtCfg(db2);
-        utCfg2.setCfgWs(cfg);
+        utCfg2.setSelfCfg(cfg, UtCfgType.WS);
         // db
         UtCfg utCfg3 = new UtCfg(db3);
-        utCfg3.setCfgWs(cfg);
+        utCfg3.setSelfCfg(cfg, UtCfgType.WS);
 
 
         // ---

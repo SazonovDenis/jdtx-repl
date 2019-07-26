@@ -5,7 +5,6 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
-import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.que.*;
@@ -73,7 +72,7 @@ public class JdxReplSrv {
 
         // Чтение конфигурации
         UtCfg utCfg = new UtCfg(db);
-        JSONObject cfgDbWs = utCfg.getCfgWs();
+        JSONObject cfgDbWs = utCfg.getSelfCfg(UtCfgType.WS);
 /*
         JSONObject cfgDbDecode = utCfg.getCfgDecode();
 */
@@ -263,7 +262,7 @@ public class JdxReplSrv {
 
                 // Обновляем конфиг в серверных таблицах
                 UtCfg utCfg = new UtCfg(db);
-                utCfg.setCfg(cfg, cfgType, wsId);
+                utCfg.setWsCfg(cfg, cfgType, wsId);
 
                 // Системная команда ...
                 UtRepl utRepl = new UtRepl(db, struct);
@@ -280,8 +279,6 @@ public class JdxReplSrv {
             throw e;
         }
     }
-
-
 
 
     /**

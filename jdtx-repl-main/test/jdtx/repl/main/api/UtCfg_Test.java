@@ -11,16 +11,6 @@ public class UtCfg_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void test_IterateJsonObject() throws Exception {
-        String s = UtFile.loadString("test/etalon/srv.json");
-        JSONObject cfg = (JSONObject) UtJson.toObject(s);
-        for (Object k : cfg.keySet()) {
-            Object o = cfg.get(k);
-            System.out.println(k.toString() + ": " + o.toString());
-        }
-    }
-
-    @Test
     public void test_dbStruct_SaveLoad() throws Exception {
         UtCfg utCfg = new UtCfg(db);
 
@@ -32,23 +22,23 @@ public class UtCfg_Test extends ReplDatabaseStruct_Test {
 
         // Пишем
         JSONObject cfg1 = (JSONObject) UtJson.toObject(sW_1);
-        utCfg.setCfgWs(cfg1);
+        utCfg.setSelfCfg(cfg1, UtCfgType.WS);
 
         cfg1 = (JSONObject) UtJson.toObject(sD_1);
-        utCfg.setCfgDecode(cfg1);
+        utCfg.setSelfCfg(cfg1, UtCfgType.DECODE);
 
         cfg1 = (JSONObject) UtJson.toObject(sP_1);
-        utCfg.setCfgPublications(cfg1);
+        utCfg.setSelfCfg(cfg1, UtCfgType.PUBLICATIONS);
 
 
         // Читаем
-        JSONObject cfg2 = utCfg.getCfgWs();
+        JSONObject cfg2 = utCfg.getSelfCfg(UtCfgType.WS);
         String sW_2 = UtJson.toString(cfg2);
 
-        cfg2 = utCfg.getCfgDecode();
+        cfg2 = utCfg.getSelfCfg(UtCfgType.DECODE);
         String sD_2 = UtJson.toString(cfg2);
 
-        cfg2 = utCfg.getCfgPublications();
+        cfg2 = utCfg.getSelfCfg(UtCfgType.PUBLICATIONS);
         String sP_2 = UtJson.toString(cfg2);
 
 

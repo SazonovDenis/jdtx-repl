@@ -90,9 +90,9 @@ public class JdxReplWs {
 
         // Чтение конфигурации
         UtCfg utCfg = new UtCfg(db);
-        JSONObject cfgDbWs = utCfg.getCfgWs();
-        JSONObject cfgDbPublications = utCfg.getCfgPublications();
-        JSONObject cfgDbDecode = utCfg.getCfgDecode();
+        JSONObject cfgDbWs = utCfg.getSelfCfg(UtCfgType.WS);
+        JSONObject cfgDbPublications = utCfg.getSelfCfg(UtCfgType.PUBLICATIONS);
+        JSONObject cfgDbDecode = utCfg.getSelfCfg(UtCfgType.DECODE);
 
         // Рабочие каталоги
         String sWsId = UtString.padLeft(String.valueOf(wsId), 3, "0");
@@ -128,8 +128,11 @@ public class JdxReplWs {
 
         // Правила публикаций
         if (cfgDbPublications != null) {
-            JSONObject cfgDbPublicationIn = (JSONObject) cfgDbPublications.get("in");
-            JSONObject cfgDbPublicationOut = (JSONObject) cfgDbPublications.get("out");
+            String cfgPublicationIn = (String) cfgDbPublications.get("in");
+            String cfgPublicationOut = (String) cfgDbPublications.get("out");
+
+            JSONObject cfgDbPublicationIn = (JSONObject) cfgDbPublications.get(cfgPublicationIn);
+            JSONObject cfgDbPublicationOut = (JSONObject) cfgDbPublications.get(cfgPublicationOut);
 
             // Правила публикаций: publicationIn
             IPublication publicationIn = new Publication();
@@ -499,7 +502,7 @@ public class JdxReplWs {
         //
         long count = 0;
         for (long no = queInNoDone + 1; no <= queInNoAvailable; no++) {
-            log.info("handleQueIn, self.wsId: " + wsId + ", no: " + no + " (" + count + "/" + (queInNoAvailable - queInNoDone) + ")");
+            log.info("handleQueIn, self.wsId: " + wsId + ", queIn.no: " + no + " (" + count + "/" + (queInNoAvailable - queInNoDone) + ")");
 
             //
             IReplica replica = queIn.getByNo(no);
@@ -646,14 +649,17 @@ public class JdxReplWs {
 
                         // Обновляем конфиг в своей таблице
                         UtCfg utCfg = new UtCfg(db);
-                        utCfg.setCfg(cfg, cfgType, destinationWsId);
+                        utCfg.setSelfCfg(cfg, cfgType);
 
                         // Выкладывание реплики "конфигурация принята"
                         reportMuteDone(JdxReplicaType.SET_CFG_DONE);
 
-                        //
-                        break;
+                        // Обновление конфигурации требует переинициализацию репликатора, поэтому прерываемся
+                        doBreak = true;
                     }
+
+                    //
+                    break;
                 }
                 case JdxReplicaType.IDE:
                 case JdxReplicaType.SNAPSHOT: {
@@ -721,6 +727,8 @@ public class JdxReplWs {
             if (replicaUsed) {
                 // Отметим применение реплики
                 stateManager.setQueInNoDone(no);
+                //
+                count++;
             } else {
                 // Не отмечаем
                 log.info("handleQueIn, replica not used");
@@ -733,8 +741,6 @@ public class JdxReplWs {
                 break;
             }
 
-            //
-            count++;
         }
 
         //
