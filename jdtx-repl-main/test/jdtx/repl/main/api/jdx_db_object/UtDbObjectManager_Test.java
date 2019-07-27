@@ -8,7 +8,7 @@ public class UtDbObjectManager_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_checkReplVerDb() throws Exception {
-        UtDbObjectManager objectManager = new UtDbObjectManager(db, struct);
+        UtDbObjectManager objectManager = new UtDbObjectManager(db);
         objectManager.checkReplVerDb();
     }
 

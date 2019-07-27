@@ -15,7 +15,6 @@ public class UtDbObjectManager {
 
     int CURRENT_VER_DB = 3;
 
-    IJdxDbStruct struct;
     Db db;
 
     protected static Log log = LogFactory.getLog("jdtx");
@@ -23,9 +22,8 @@ public class UtDbObjectManager {
     enum updMods {INSERT, UPDATE, DELETE}
 
 
-    public UtDbObjectManager(Db db, IJdxDbStruct struct) {
+    public UtDbObjectManager(Db db) {
         this.db = db;
-        this.struct = struct;
     }
 
 

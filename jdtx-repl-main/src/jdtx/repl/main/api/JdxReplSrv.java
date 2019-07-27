@@ -49,7 +49,7 @@ public class JdxReplSrv {
         // Почтовые курьеры для чтения/отправки сообщений, для каждой рабочей станции
         mailerList = new HashMap<>();
 
-        // чтение структуры
+        // Чтение структуры БД
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);
         struct = reader.readDbStruct();
@@ -63,7 +63,7 @@ public class JdxReplSrv {
         dataRoot = UtFile.unnormPath(dataRoot) + "/";
 
         // Проверка наличия в БД служебных структур и их версии
-        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
+        UtDbObjectManager ut = new UtDbObjectManager(db);
         ut.checkReplVerDb();
 
         // Проверка, что инициализация станции прошла

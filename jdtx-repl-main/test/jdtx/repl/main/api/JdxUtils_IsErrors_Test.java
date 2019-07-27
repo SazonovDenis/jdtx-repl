@@ -8,7 +8,7 @@ public class JdxUtils_IsErrors_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_createAudit_twice() throws Exception {
-        UtDbObjectManager objectManager = new UtDbObjectManager(db, struct);
+        UtDbObjectManager objectManager = new UtDbObjectManager(db);
         IJdxTable table = struct.getTable("AppUpdate");
         //
         System.out.println("----------");

@@ -70,7 +70,7 @@ public class JdxReplWs {
         dataRoot = UtFile.unnormPath(dataRoot) + "/";
 
         // Проверка наличия в БД служебных структур и их версии
-        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
+        UtDbObjectManager ut = new UtDbObjectManager(db);
         ut.checkReplVerDb();
 
         // Проверка, что инициализация станции прошла

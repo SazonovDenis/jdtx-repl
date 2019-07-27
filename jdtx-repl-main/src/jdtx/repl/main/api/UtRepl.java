@@ -53,7 +53,7 @@ public class UtRepl {
      */
     public void createReplicationBase(long wsId, String guid) throws Exception {
         // Создание базовых структур
-        UtDbObjectManager objectManager = new UtDbObjectManager(db, struct);
+        UtDbObjectManager objectManager = new UtDbObjectManager(db);
         objectManager.createReplBase(wsId, guid);
 
         // Создаем необходимые для перекодировки таблицы
@@ -77,7 +77,7 @@ public class UtRepl {
      * Удалить репликационные структуры
      */
     public void dropReplication() throws Exception {
-        UtDbObjectManager ut = new UtDbObjectManager(db, struct);
+        UtDbObjectManager ut = new UtDbObjectManager(db);
 
         // Удаляем связанную с каждой таблицей таблицу журнала изменений
         log.info("dropAudit - журналы");
