@@ -3,12 +3,14 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jdtx.repl.main.api.struct.*;
+import org.json.simple.*;
 import org.junit.*;
 
 /**
  */
 public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
+    String cfg_publications_full_152_1 = "test/etalon/publication_full_152_1.json";
 
     @Override
     public void setUp() throws Exception {
@@ -473,7 +475,21 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ===
-        // Завершаем (на сервере) смену версии БД - рассылаем сигнал "всем говорить"
+        // Завершаем (на сервере) смену версии БД
+
+        // На сервере напрямую задаем структуру публикаций (команда repl_set_cfg)
+        JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfg_publications_full_152_1);
+        UtCfg utCfg = new UtCfg(db);
+        utCfg.setSelfCfg(cfg, UtCfgType.PUBLICATIONS);
+
+        // От сервера рассылаем...
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init();
+
+        // ... рассылаем на рабочие станции новые правила публикаций (команда repl_send_cfg) ...
+        srv.srvSendCfg(cfg_publications_full_152_1, UtCfgType.PUBLICATIONS, 0);
+
+        // ... рассылаем сигнал "всем говорить" (команда repl_dbstruct_finish)
         test_srvDbStructFinish();
 
         //
@@ -484,10 +500,12 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Цикл синхронизации
         sync_http();
         sync_http();
+        sync_http();
 
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
         UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        // Только сервер изменил структуру и перестал молчать, а станции еще не смогли сделать SET_DB_STRUCT
+        // Только сервер изменил структуру и перестал молчать, а станции еще не смогли сделать SET_DB_STRUCT,
+        // потому что у них реальная структура не совпадает с разрешенной (не хватает новых таблиц TEST_TABLE_*)
         assertEquals(1, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
 
 
@@ -525,6 +543,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         assert_handleSelfAudit_true(db3);
 
         // Цикл синхронизации
+        sync_http();
         sync_http();
         sync_http();
 

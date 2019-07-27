@@ -20,7 +20,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     String json_srv = "test/etalon/mail_http_srv.json";
     String json_ws = "test/etalon/mail_http_ws.json";
 
-    String cfg_json_publications = "test/etalon/publication_full_152.json";
+    String cfg_json_publications_full_152 = "test/etalon/publication_full_152.json";
     String cfg_json_decode = "test/etalon/decode_strategy.json";
     String cfg_json_ws = "test/etalon/ws.json";
 
@@ -79,12 +79,15 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         // ---
         // На сервере
 
-        // Начальный конфиг сервера
-        cfg = UtRepl.loadAndValidateCfgFile(cfg_json_publications);
+        // Начальный конфиг сервера: напрямую задаем структуру публикаций (команда repl_set_cfg)
+        //
+        // На сервере правила публикациий и правила перекодировок
+        //
+        cfg = UtRepl.loadAndValidateCfgFile(cfg_json_publications_full_152);
         utCfg.setSelfCfg(cfg, UtCfgType.PUBLICATIONS);
         //
-        cfg = UtRepl.loadAndValidateCfgFile(cfg_json_decode);
-        utCfg.setSelfCfg(cfg, UtCfgType.DECODE);
+        //cfg = UtRepl.loadAndValidateCfgFile(cfg_json_decode);
+        //utCfg.setSelfCfg(cfg, UtCfgType.DECODE);
 
         //
         JdxReplSrv srv = new JdxReplSrv(db);
@@ -103,8 +106,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         createBoxes_Http();
         //createBoxes_Local();
 
-        // Для сервера - сразу инициируем настройки для всех станций
-        srv.srvSendCfg(cfg_json_publications, UtCfgType.PUBLICATIONS, 0);
+        // Сразу рассылаем настройки для всех станций
+        srv.srvSendCfg(cfg_json_publications_full_152, UtCfgType.PUBLICATIONS, 0);
         srv.srvSendCfg(cfg_json_decode, UtCfgType.DECODE, 0);
 
         // Для сервера - сразу инициализируем фиксацию структуры БД

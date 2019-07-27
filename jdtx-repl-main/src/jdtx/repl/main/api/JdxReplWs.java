@@ -468,10 +468,10 @@ public class JdxReplWs {
         JdxMuteManagerWs muteManager = new JdxMuteManagerWs(db);
 
         // Проверяем совпадает ли реальная структура БД с разрешенной структурой
-        boolean dbStructIsEqual = true;
+        boolean equal_Actual_Allowed = true;
         IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
         if (!UtDbComparer.dbStructIsEqual(struct, structAllowed)) {
-            dbStructIsEqual = false;
+            equal_Actual_Allowed = false;
         }
 
         //
@@ -643,7 +643,7 @@ public class JdxReplWs {
                 case JdxReplicaType.IDE:
                 case JdxReplicaType.SNAPSHOT: {
                     // Реальная структура базы НЕ совпадает с разрешенной структурой
-                    if (!dbStructIsEqual) {
+                    if (!equal_Actual_Allowed) {
                         log.warn("handleQueIn, structActual <> structAllowed");
                         replicaUsed = false;
                         doBreak = true;
