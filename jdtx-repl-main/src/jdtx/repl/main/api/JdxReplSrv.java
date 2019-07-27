@@ -7,6 +7,7 @@ import jandcode.utils.error.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
+import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
@@ -48,11 +49,6 @@ public class JdxReplSrv {
 
         // Почтовые курьеры для чтения/отправки сообщений, для каждой рабочей станции
         mailerList = new HashMap<>();
-
-        // Чтение структуры БД
-        IJdxDbStructReader reader = new JdxDbStructReader();
-        reader.setDb(db);
-        struct = reader.readDbStruct();
     }
 
     /**
@@ -73,9 +69,7 @@ public class JdxReplSrv {
         // Чтение конфигурации
         UtCfg utCfg = new UtCfg(db);
         JSONObject cfgDbWs = utCfg.getSelfCfg(UtCfgType.WS);
-/*
-        JSONObject cfgDbDecode = utCfg.getCfgDecode();
-*/
+        JSONObject cfgDbPublications = utCfg.getSelfCfg(UtCfgType.PUBLICATIONS);
 
 
         // Общая очередь
@@ -109,13 +103,20 @@ public class JdxReplSrv {
         }
 
 
-        // Стратегии перекодировки каждой таблицы
-/*
-        if (RefDecodeStrategy.instance == null) {
-            RefDecodeStrategy.instance = new RefDecodeStrategy();
-            RefDecodeStrategy.instance.init(cfgDbDecode);
-        }
-*/
+        // Чтение структуры БД
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(db);
+        IJdxDbStruct structActual = reader.readDbStruct();
+
+
+        // Правила публикаций
+        IPublication publicationIn = new Publication();
+        IPublication publicationOut = new Publication();
+        UtRepl.fillPublications(cfgDbPublications, structActual, publicationIn, publicationOut);
+
+
+        // Фильтрация структуры: убирание того, чего нет в публикациях publicationIn и publicationOut
+        struct = UtRepl.getStructCommon(structActual, publicationIn, publicationOut);
 
 
         // Проверка версии приложения
@@ -129,6 +130,9 @@ public class JdxReplSrv {
         } else if (appVersionAllowed.compareToIgnoreCase(appVersionActual) != 0) {
             throw new XError("appVersionAllowed != appVersionActual, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
         }
+
+        // Чтобы были
+        UtFile.mkdirs(dataRoot + "temp");
     }
 
     public void addWorkstation(long wsId, String wsName, String wsGuid) throws Exception {
@@ -241,8 +245,8 @@ public class JdxReplSrv {
     }
 
 
-    public void srvSetCfg(String cfgFileName, String cfgType, long destinationWsId) throws Exception {
-        log.info("srvSetCfg, cfgFileName: " + cfgFileName + ", cfgType: " + cfgType + ", destination wsId: " + destinationWsId);
+    public void srvSendCfg(String cfgFileName, String cfgType, long destinationWsId) throws Exception {
+        log.info("srvSendCfg, cfgFileName: " + cfgFileName + ", cfgType: " + cfgType + ", destination wsId: " + destinationWsId);
 
         //
         JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName);
@@ -260,7 +264,7 @@ public class JdxReplSrv {
                 //
                 log.info("  destination wsId: " + destinationWsId);
 
-                // Обновляем конфиг в серверных таблицах
+                // Обновляем конфиг в таблицах для рабочих станций (workstation_list)
                 UtCfg utCfg = new UtCfg(db);
                 utCfg.setWsCfg(cfg, cfgType, wsId);
 

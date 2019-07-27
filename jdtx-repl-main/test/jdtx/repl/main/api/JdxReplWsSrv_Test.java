@@ -47,7 +47,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtFile.cleanDir("../../lombard.systems/repl/" + MailerHttp.REPL_PROTOCOL_VERSION + "/b5781df573ca6ee6.x");
 
         // ---
-        // Режим рабочей станции
+        // На рабочих станциях
 
         // Первичная инициализация
         // db
@@ -63,7 +63,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         utr3.dropReplication();
         utr3.createReplicationBase(3, "b5781df573ca6ee6.x-34f3cc20bea64503");
 
-        // Начальный конфиг
+        // Начальный конфиг рабочих станций
         JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfg_json_ws);
         // db
         UtCfg utCfg = new UtCfg(db);
@@ -77,7 +77,16 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
         // ---
-        // Режим сервера
+        // На сервере
+
+        // Начальный конфиг сервера
+        cfg = UtRepl.loadAndValidateCfgFile(cfg_json_publications);
+        utCfg.setSelfCfg(cfg, UtCfgType.PUBLICATIONS);
+        //
+        cfg = UtRepl.loadAndValidateCfgFile(cfg_json_decode);
+        utCfg.setSelfCfg(cfg, UtCfgType.DECODE);
+
+        //
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init();
 
@@ -95,13 +104,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         //createBoxes_Local();
 
         // Для сервера - сразу инициируем настройки для всех станций
-        srv.srvSetCfg(cfg_json_publications, "cfg_publications", 0);
-        srv.srvSetCfg(cfg_json_decode, "cfg_decode", 0);
+        srv.srvSendCfg(cfg_json_publications, UtCfgType.PUBLICATIONS, 0);
+        srv.srvSendCfg(cfg_json_decode, UtCfgType.DECODE, 0);
 
         // Для сервера - сразу инициализируем фиксацию структуры БД
         srv.srvDbStructFinish();
 
-        //
+
+        // ---
         UtData.outTable(db.loadSql("select id, name, guid from " + JdxUtils.sys_table_prefix + "workstation_list"));
     }
 
@@ -819,3 +829,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
 }
+
+/*
+
+^c
+затестить применение конфигов при смене версии БД
+реализовать невидимость таблиц, которых нет в конфиге
+затестить инициализацию и смену версии БД на бинарной сборке
+
+*/

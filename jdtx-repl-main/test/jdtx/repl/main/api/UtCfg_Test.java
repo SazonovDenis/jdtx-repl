@@ -66,7 +66,7 @@ public class UtCfg_Test extends ReplDatabaseStruct_Test {
         //
         long destinationWsId = 2;
         String cfgFileName = "test/jdtx/repl/main/api/UtCfg_Test.publications.json";
-        srv.srvSetCfg(cfgFileName, "cfg_publications", destinationWsId);
+        srv.srvSendCfg(cfgFileName, "cfg_publications", destinationWsId);
     }
 
 

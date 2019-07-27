@@ -441,5 +441,38 @@ public class UtRepl {
         return table.getPrimaryKey().size() == 0;
     }
 
+    static IJdxDbStruct getStructCommon(IJdxDbStruct structActual, IPublication publicationIn, IPublication publicationOut) {
+        IJdxDbStruct structCommon = new JdxDbStruct();
+        for (IJdxTable publicationTable : publicationIn.getData().getTables()) {
+            if (structCommon.getTable(publicationTable.getName()) == null) {
+                IJdxTable structTable = structActual.getTable(publicationTable.getName());
+                structCommon.getTables().add(structTable);
+            }
+        }
+        for (IJdxTable publicationTable : publicationOut.getData().getTables()) {
+            if (structCommon.getTable(publicationTable.getName()) == null) {
+                IJdxTable structTable = structActual.getTable(publicationTable.getName());
+                structCommon.getTables().add(structTable);
+            }
+        }
+        return structCommon;
+    }
+
+    static void fillPublications(JSONObject cfgDbPublications, IJdxDbStruct structActual, IPublication publicationIn, IPublication publicationOut) throws Exception {
+        if (cfgDbPublications != null) {
+            String cfgPublicationIn = (String) cfgDbPublications.get("in");
+            String cfgPublicationOut = (String) cfgDbPublications.get("out");
+
+            JSONObject cfgDbPublicationIn = (JSONObject) cfgDbPublications.get(cfgPublicationIn);
+            JSONObject cfgDbPublicationOut = (JSONObject) cfgDbPublications.get(cfgPublicationOut);
+
+            // Правила публикаций: publicationIn
+            publicationIn.loadRules(cfgDbPublicationIn, structActual);
+
+            // Правила публикаций: publicationOut
+            publicationOut.loadRules(cfgDbPublicationOut, structActual);
+        }
+    }
+
 
 }

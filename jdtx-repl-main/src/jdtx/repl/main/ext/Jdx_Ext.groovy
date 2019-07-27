@@ -460,7 +460,7 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
-    void repl_set_cfg(IVariantMap args) {
+    void repl_send_cfg(IVariantMap args) {
         String cfgFileName = args.getValueString("file")
         if (cfgFileName == null || cfgFileName.length() == 0) {
             throw new XError("Не указан [file] - cfg-файл")
@@ -483,7 +483,35 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvSetCfg(cfgFileName, cfgType, destinationWsId);
+            srv.srvSendCfg(cfgFileName, cfgType, destinationWsId);
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
+
+    void repl_set_cfg(IVariantMap args) {
+        String cfgFileName = args.getValueString("file")
+        if (cfgFileName == null || cfgFileName.length() == 0) {
+            throw new XError("Не указан [file] - cfg-файл")
+        }
+        //
+        String cfgType = args.getValueString("cfg")
+        if (cfgType == null || cfgType.length() == 0) {
+            throw new XError("Не указан [cfg] - вид конфиг-файла")
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        try {
+            // Обновляем конфиг в своей таблице
+            JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName);
+            UtCfg utCfg = new UtCfg(db);
+            utCfg.setSelfCfg(cfg, cfgType);
 
         } finally {
             db.disconnect()

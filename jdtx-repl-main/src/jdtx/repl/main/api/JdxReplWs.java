@@ -127,35 +127,13 @@ public class JdxReplWs {
         }
 
         // Правила публикаций
-        if (cfgDbPublications != null) {
-            String cfgPublicationIn = (String) cfgDbPublications.get("in");
-            String cfgPublicationOut = (String) cfgDbPublications.get("out");
-
-            JSONObject cfgDbPublicationIn = (JSONObject) cfgDbPublications.get(cfgPublicationIn);
-            JSONObject cfgDbPublicationOut = (JSONObject) cfgDbPublications.get(cfgPublicationOut);
-
-            // Правила публикаций: publicationIn
-            IPublication publicationIn = new Publication();
-            publicationIn.loadRules(cfgDbPublicationIn, structActual);
-            this.publicationIn = publicationIn;
-
-            // Правила публикаций: publicationOut
-            IPublication publicationOut = new Publication();
-            publicationOut.loadRules(cfgDbPublicationOut, structActual);
-            this.publicationOut = publicationOut;
-        }
+        this.publicationIn = new Publication();
+        this.publicationOut = new Publication();
+        UtRepl.fillPublications(cfgDbPublications, structActual, this.publicationIn, this.publicationOut);
 
 
-/*
-        // Фильтрация структуры: убирание того, чего нет в публикации publicationOut
-        IJdxDbStruct structDiffCommon = new JdxDbStruct();
-        IJdxDbStruct structDiffNew = new JdxDbStruct();
-        IJdxDbStruct structDiffRemoved = new JdxDbStruct();
-        UtDbComparer.dbStructDiff(structActual, publicationOut.getData(), structDiffCommon, structDiffNew, structDiffRemoved);
-        struct = structDiffCommon;
-        structFull = structActual;
-*/
-        struct = structActual;
+        // Фильтрация структуры: убирание того, чего нет в публикациях publicationIn и publicationOut
+        struct = UtRepl.getStructCommon(structActual, this.publicationIn, this.publicationOut);
 
 
         // Проверка версии приложения
@@ -192,6 +170,7 @@ public class JdxReplWs {
         // Чтобы были
         UtFile.mkdirs(dataRoot + "temp");
     }
+
 
     /**
      * Формируем установочную реплику
@@ -296,7 +275,7 @@ public class JdxReplWs {
         db.startTran();
         try {
             //
-            UtDbObjectManager objectManager = new UtDbObjectManager(db, structActual);
+            UtDbObjectManager objectManager = new UtDbObjectManager(db);
 
             //
             long n;
@@ -391,7 +370,7 @@ public class JdxReplWs {
 
         //
         UtRepl utRepl = new UtRepl(db, struct);
-        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
+        UtDbStructApprove dbStructApprove = new UtDbStructApprove(db);
 
         // Если в стостоянии "я замолчал", то молчим
         JdxMuteManagerWs utmm = new JdxMuteManagerWs(db);
@@ -401,11 +380,11 @@ public class JdxReplWs {
         }
 
         // Проверяем совпадение структур
-        IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
-        IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
+        IJdxDbStruct structAllowed = dbStructApprove.getDbStructAllowed();
+        IJdxDbStruct structFixed = dbStructApprove.getDbStructFixed();
 
         // Проверяем совпадает ли реальная структура БД с разрешенной структурой
-        if (!UtDbComparer.dbStructIsEqual(struct, structAllowed)) {
+        if (struct.getTables().size() == 0 || !UtDbComparer.dbStructIsEqual(struct, structAllowed)) {
             log.warn("handleSelfAudit, database structActual <> structAllowed");
             // Для справки/отладки - структуры в файл
             JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
@@ -416,7 +395,7 @@ public class JdxReplWs {
             return;
         }
         // Проверяем совпадает ли реальная структура БД с фиксированной структурой
-        if (!UtDbComparer.dbStructIsEqual(struct, structFixed)) {
+        if (struct.getTables().size() == 0 || !UtDbComparer.dbStructIsEqual(struct, structFixed)) {
             log.warn("handleSelfAudit, database structActual <> structFixed");
             // Для справки/отладки - структуры в файл
             JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
