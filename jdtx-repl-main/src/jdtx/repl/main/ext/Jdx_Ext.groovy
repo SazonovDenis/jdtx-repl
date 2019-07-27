@@ -61,10 +61,6 @@ class Jdx_Ext extends ProjectExt {
 
 
     void repl_info(IVariantMap args) {
-        BgTasksService bgTasksService = app.service(BgTasksService.class)
-        String cfgFileName_ws = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName")
-        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
-
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -75,9 +71,9 @@ class Jdx_Ext extends ProjectExt {
         try {
             // Рабочая станция
             JdxReplWs ws = new JdxReplWs(db)
-            ws.init(cfgFileName_ws)
+            ws.init()
             //
-            System.out.println("Рабочая станция, cfgFileName: " + cfgFileName_ws + ", wsId: " + ws.getWsId())
+            System.out.println("Рабочая станция, wsId: " + ws.getWsId())
 
             //
             System.out.println("ws.wsId: " + ws.getWsId())
@@ -100,11 +96,11 @@ class Jdx_Ext extends ProjectExt {
             // Сервер
             try {
                 System.out.println("")
-                System.out.println("Сервер, cfgFileName: " + cfgFileName_srv)
+                System.out.println("Сервер")
 
                 //
                 JdxReplSrv srv = new JdxReplSrv(db)
-                srv.init(cfgFileName_srv)
+                srv.init()
 
                 //
                 System.out.println("commonQue.baseDir: " + srv.commonQue.baseDir)
@@ -257,34 +253,6 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
-/*
-    void repl_snapshot(IVariantMap args) {
-        BgTasksService bgTasksService = app.service(BgTasksService.class)
-        String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName")
-
-        // БД
-        Db db = app.service(ModelService.class).model.getDb()
-        db.connect()
-        //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
-
-        //
-        try {
-            // Рабочая станция
-            JdxReplWs ws = new JdxReplWs(db)
-            ws.init(cfgFileName)
-            //
-            System.out.println("Рабочая станция, cfgFileName: " + cfgFileName + ", wsId: " + ws.getWsId())
-
-            // Формируем установочную реплику
-            ws.createTableSnapshotReplica()
-
-        } finally {
-            db.disconnect()
-        }
-    }
-*/
-
 
     void repl_sync_ws(IVariantMap args) {
         String mailDir = args.getValueString("dir")
@@ -310,7 +278,7 @@ class Jdx_Ext extends ProjectExt {
         try {
             // Рабочая станция
             JdxReplWs ws = new JdxReplWs(db)
-            ws.init(cfgFileName)
+            ws.init()
             System.out.println("Рабочая станция, cfgFileName: " + cfgFileName + ", wsId: " + ws.getWsId())
 
             //
@@ -381,10 +349,6 @@ class Jdx_Ext extends ProjectExt {
     void repl_mail_check(IVariantMap args) {
         boolean doCreate = args.getValueBoolean("create")
 
-        //
-        BgTasksService bgTasksService = app.service(BgTasksService.class)
-        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
-
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -393,9 +357,7 @@ class Jdx_Ext extends ProjectExt {
         //
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
-            srv.init(cfgFileName_srv)
-            //
-            System.out.println("Сервер, cfgFileName: " + cfgFileName_srv)
+            srv.init()
 
             //
             String[] boxes = ["from", "to"]
@@ -403,9 +365,6 @@ class Jdx_Ext extends ProjectExt {
                 long wsId = (long) en.getKey()
 
                 for (String box : boxes) {
-                    //System.out.println("wsId: " + wsId + ", box: " + box)
-
-                    //
                     MailerHttp mailer = (MailerHttp) en.getValue()
                     try {
                         if (doCreate) {
@@ -430,9 +389,6 @@ class Jdx_Ext extends ProjectExt {
     }
 
     void repl_dbstruct_start(IVariantMap args) {
-        BgTasksService bgTasksService = app.service(BgTasksService.class)
-        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
-
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -440,7 +396,7 @@ class Jdx_Ext extends ProjectExt {
         //
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
-            srv.init(cfgFileName_srv)
+            srv.init()
 
             //
             srv.srvDbStructStart();
@@ -453,10 +409,6 @@ class Jdx_Ext extends ProjectExt {
     void repl_dbstruct_state(IVariantMap args) {
         boolean doWaitMute = args.getValueBoolean("wait")
 
-        //
-        BgTasksService bgTasksService = app.service(BgTasksService.class)
-        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
-
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -465,7 +417,7 @@ class Jdx_Ext extends ProjectExt {
         //
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
-            srv.init(cfgFileName_srv)
+            srv.init()
 
             //
             while (true) {
@@ -489,9 +441,6 @@ class Jdx_Ext extends ProjectExt {
     }
 
     void repl_dbstruct_finish(IVariantMap args) {
-        BgTasksService bgTasksService = app.service(BgTasksService.class)
-        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
-
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -500,7 +449,7 @@ class Jdx_Ext extends ProjectExt {
         //
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
-            srv.init(cfgFileName_srv)
+            srv.init()
 
             //
             srv.srvDbStructFinish();
@@ -524,10 +473,6 @@ class Jdx_Ext extends ProjectExt {
         //
         long destinationWsId = args.getValueLong("ws")
 
-        //
-        BgTasksService bgTasksService = app.service(BgTasksService.class)
-        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
-
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -535,7 +480,7 @@ class Jdx_Ext extends ProjectExt {
         //
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
-            srv.init(cfgFileName_srv)
+            srv.init()
 
             //
             srv.srvSetCfg(cfgFileName, cfgType, destinationWsId);
@@ -558,10 +503,6 @@ class Jdx_Ext extends ProjectExt {
             throw new XError("Не указан [file] - файл для установки обновления")
         }
 
-        //
-        BgTasksService bgTasksService = app.service(BgTasksService.class)
-        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
-
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -572,7 +513,7 @@ class Jdx_Ext extends ProjectExt {
         try {
             //
             JdxReplSrv srv = new JdxReplSrv(db)
-            srv.init(cfgFileName_srv)
+            srv.init()
 
             //
             srv.srvAppUpdate(exeFileName);
