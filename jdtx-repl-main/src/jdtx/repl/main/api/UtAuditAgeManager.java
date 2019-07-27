@@ -49,7 +49,7 @@ public class UtAuditAgeManager {
 
             // Увеличиваем возраст БД
             auditAgeNext = auditAgeNext + 1;
-            // Перезапоминаем возраста аудита для каждой таблицы
+            // Перезапоминаем состояниния журналов аудита у каждой таблицы для возраста auditAgeNext
             fillAgeTable(auditAgeNext, maxIdsFixed);
 
             //
@@ -105,7 +105,7 @@ public class UtAuditAgeManager {
             if (wasChange) {
                 // Увеличился возраст БД
                 auditAgeNext = auditAgeNext + 1;
-                // Запоминаем новые возраста аудита для каждой таблицы
+                // Запоминаем состояниния журналов аудита у каждой таблицы для возраста auditAgeNext
                 fillAgeTable(auditAgeNext, maxIdsCurr);
             }
 
@@ -142,6 +142,8 @@ public class UtAuditAgeManager {
     private void fillAgeTable(long auditAgeActual, Map maxIdsActual) throws Exception {
         DateTime dt = new DateTime();
         String sqlIns = "insert into " + JdxUtils.sys_table_prefix + "age(age, table_name, " + JdxUtils.prefix + "id, dt) values (:age, :table_name, :maxId, :dt)";
+
+        // У каждой таблицы зафиксируем состояние журналов для возраста auditAgeActual
         for (IJdxTable table : struct.getTables()) {
             String tableName = table.getName();
             Object maxIdO = maxIdsActual.get(tableName);
@@ -151,6 +153,13 @@ public class UtAuditAgeManager {
             }
             //
             db.execSql(sqlIns, UtCnv.toMap("age", auditAgeActual, "table_name", tableName, "maxId", maxId, "dt", dt));
+        }
+
+        // Зафиксируем возраст auditAgeActual для таблицы с пустым table_name.
+        // Это нужно, если требуется запомнить возраст, а в структуре struct нет ни одной таблицы.
+        // Так бывает при процессах первичной инициализации.
+        if (struct.getTables().size() == 0) {
+            db.execSql(sqlIns, UtCnv.toMap("age", auditAgeActual, "table_name", "", "maxId", 0, "dt", dt));
         }
     }
 
