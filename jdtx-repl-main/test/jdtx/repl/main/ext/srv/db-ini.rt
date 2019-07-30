@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <!-- настройки базы данных -->
+
+    <db name="default"
+        dbdriver="jdbc" 
+        jdbcDriverClass="org.firebirdsql.jdbc.FBDriver"
+        url="jdbc:firebirdsql:localhost/3050:${database}?charSet=Cp1251"
+        
+        database="db.gdb"
+        username="SYSDBA"
+        password="masterkey"
+        host="localhost"
+    />
+                
+
+</root>
