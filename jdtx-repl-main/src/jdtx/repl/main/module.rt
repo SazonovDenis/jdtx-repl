@@ -58,5 +58,11 @@
 
     </service>
 
+    <!-- Коннект к БД без пула -->
+    <dbdriver name="jdbc" parent="sys">
+        <service name="jandcode.dbm.db.ConnectionService"
+                 class="jdtx.repl.main.ut.DirectConnectionService"
+        />
+    </dbdriver>
 
 </root>
