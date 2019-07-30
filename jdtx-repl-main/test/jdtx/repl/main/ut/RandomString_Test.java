@@ -1,11 +1,11 @@
-package jdtx.repl.main.ext;
+package jdtx.repl.main.ut;
 
 import jandcode.app.test.*;
 import org.junit.*;
 
 /**
  */
-public class UtSetupGen_Test extends AppTestCase {
+public class RandomString_Test extends AppTestCase {
 
     @Test
     public void test_rndHexStr() throws Exception {
@@ -14,15 +14,6 @@ public class UtSetupGen_Test extends AppTestCase {
             String guid = rnd.nextHexStr(16);
             System.out.println(guid);
         }
-    }
-
-    @Test
-    public void test_gen() throws Exception {
-        UtSetup utSetup = new UtSetup();
-        utSetup.app = app.getApp();
-
-        String fileName = "D:\\t\\jantas\\ws_list.txt";
-        utSetup.gen(fileName, "temp/");
     }
 
 }

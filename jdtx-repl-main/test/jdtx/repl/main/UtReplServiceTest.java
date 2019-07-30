@@ -1,7 +1,7 @@
 package jdtx.repl.main;
 
 import jandcode.app.test.*;
-import jdtx.repl.main.ext.*;
+import jdtx.repl.main.ut.*;
 import org.junit.*;
 
 public class UtReplServiceTest extends AppTestCase {

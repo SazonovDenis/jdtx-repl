@@ -1,16 +1,18 @@
-package jdtx.repl.main.ext;
+package jdtx.repl.main.ut;
 
 import jandcode.app.*;
 import jandcode.jc.*;
 import jandcode.utils.*;
 import jandcode.web.*;
+import jdtx.repl.main.ut.*;
 
 import java.io.*;
 import java.util.*;
 
 /**
+ * Генератор bat-файлов для первичной настройки рабочих станций на клинете и сервере после инсталяции.
  */
-public class UtSetup extends ProjectExt {
+public class UtGenSetup extends ProjectExt {
 
     App app;
 
@@ -55,7 +57,7 @@ public class UtSetup extends ProjectExt {
         // Настройка сервера
         // setup.srv.bat
         OutBuilder b = new OutBuilder(app);
-        b.outTml("res:jdtx/repl/main/ext/setup.srv.bat.gsp", args_srv, null);
+        b.outTml("res:jdtx/repl/main/ut/UtGenSetup.srv.bat.gsp", args_srv, null);
         UtFile.saveString(b.toString(), new File(outDirName + "setup." + name_main + ".srv.bat"), "cp866");
 
 
@@ -70,7 +72,7 @@ public class UtSetup extends ProjectExt {
             args_ws.put("ws_no", ws.get("ws_no"));
             // Файл
             b = new OutBuilder(app);
-            b.outTml("res:jdtx/repl/main/ext/setup.ws.bat.gsp", args_ws, null);
+            b.outTml("res:jdtx/repl/main/ut/UtGenSetup.ws.bat.gsp", args_ws, null);
             UtFile.saveString(b.toString(), new File(outDirName + "setup." + name_main + ".ws" + ws.get("ws_no") + ".bat"), "cp866");
         }
     }

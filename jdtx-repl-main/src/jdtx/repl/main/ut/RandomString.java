@@ -1,4 +1,4 @@
-package jdtx.repl.main.ext;
+package jdtx.repl.main.ut;
 
 import jandcode.utils.*;
 import org.joda.time.*;
@@ -13,7 +13,7 @@ public class RandomString {
         rnd = new Random(new DateTime().getMillis());
     }
 
-    String nextHexStr(int len) {
+    public String nextHexStr(int len) {
         byte[] x = new byte[(len / 2) + 1];
         rnd.nextBytes(x);
         String s = UtString.toHexString(x);
