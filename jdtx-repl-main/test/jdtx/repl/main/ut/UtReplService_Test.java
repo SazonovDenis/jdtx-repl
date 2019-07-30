@@ -1,10 +1,10 @@
-package jdtx.repl.main;
+package jdtx.repl.main.ut;
 
 import jandcode.app.test.*;
 import jdtx.repl.main.ut.*;
 import org.junit.*;
 
-public class UtReplServiceTest extends AppTestCase {
+public class UtReplService_Test extends AppTestCase {
 
 
     @Test
