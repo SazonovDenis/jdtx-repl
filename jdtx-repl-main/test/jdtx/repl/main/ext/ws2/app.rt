@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 
-    <x-include module="jandcode.jc"/>
-
+    <!--  -->
     <x-include module="jdtx.repl.main"/>
+
+
+    <!-- Настройки базы данных -->
+    <x-include path="db-ini.rt"/>
+
 
     <!-- Перекрытие настроек -->
     <x-include path="_app.rt" required="false"/>
+    <x-include path="_db-ini.rt" required="false"/>
 
 </root>
