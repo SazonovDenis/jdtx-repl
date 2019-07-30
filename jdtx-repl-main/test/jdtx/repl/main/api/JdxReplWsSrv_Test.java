@@ -24,6 +24,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     String cfg_json_decode = "test/etalon/decode_strategy.json";
     String cfg_json_ws = "test/etalon/ws.json";
 
+
     @Test
     public void allSetUp() throws Exception {
         UtFile.cleanDir("../_test-data/csv");
