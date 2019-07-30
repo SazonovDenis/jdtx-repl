@@ -12,14 +12,13 @@ import jandcode.utils.UtFile
 import jandcode.utils.UtLog
 import jandcode.utils.error.XError
 import jandcode.utils.variant.IVariantMap
-import jdtx.repl.main.api.JdxReplSrv
-import jdtx.repl.main.api.JdxReplWs
-import jdtx.repl.main.api.UtCfg
-import jdtx.repl.main.api.UtRepl
+import jdtx.repl.main.api.*
 import jdtx.repl.main.api.mailer.MailerHttp
 import jdtx.repl.main.api.struct.IJdxDbStruct
 import jdtx.repl.main.api.struct.IJdxDbStructReader
 import jdtx.repl.main.api.struct.JdxDbStructReader
+import jdtx.repl.main.ut.UtGenSetup
+import jdtx.repl.main.ut.UtReplService
 import org.json.simple.JSONObject
 
 /**
@@ -160,7 +159,7 @@ class Jdx_Ext extends ProjectExt {
             // Начальный конфиг
             JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName)
             UtCfg utCfg = new UtCfg(db);
-            utCfg.setCfgWs(cfg);
+            utCfg.setSelfCfg(cfg, UtCfgType.WS);
 
             // Создаем окружение для рабочей станции
             JdxReplWs ws = new JdxReplWs(db)
@@ -587,7 +586,7 @@ class Jdx_Ext extends ProjectExt {
         outDirName = UtFile.unnormPath(outDirName) + "/"
 
         //
-        UtSetup utSetup = new UtSetup()
+        UtGenSetup utSetup = new UtGenSetup()
         utSetup.app = app
         utSetup.gen(inFileName, outDirName)
     }
