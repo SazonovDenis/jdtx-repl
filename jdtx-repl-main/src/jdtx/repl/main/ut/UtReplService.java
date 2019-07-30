@@ -19,7 +19,7 @@ public class UtReplService {
 
         //
         List<String> res = new ArrayList<>();
-        int exitCode = run(res, "wmic", "process", "list", "/format:csv");
+        int exitCode = UtRun.run(res, "wmic", "process", "list", "/format:csv");
 
         //
         if (exitCode == 0) {
@@ -43,7 +43,7 @@ public class UtReplService {
                 }
             }
         } else {
-            printRes(exitCode, res);
+            UtRun.printRes(exitCode, res);
         }
 
 
@@ -65,13 +65,13 @@ public class UtReplService {
 
         //
         List<String> res = new ArrayList<>();
-        int exitCode = run(res, "cscript.exe", getVbsScript());
+        int exitCode = UtRun.run(res, "cscript.exe", getVbsScript());
 
         //
         if (exitCode == 0) {
-            printRes(res);
+            UtRun.printRes(res);
         } else {
-            printRes(exitCode, res);
+            UtRun.printRes(exitCode, res);
         }
 
         //
@@ -90,7 +90,7 @@ public class UtReplService {
 
         //
         List<String> res = new ArrayList<>();
-        int exitCode = run(res, "wmic", "process", "where", "\"processid=" + processId + "\"", "call", "terminate");
+        int exitCode = UtRun.run(res, "wmic", "process", "where", "\"processid=" + processId + "\"", "call", "terminate");
 
         //
         if (exitCode == 0) {
@@ -104,7 +104,7 @@ public class UtReplService {
                 }
             }
         } else {
-            printRes(exitCode, res);
+            UtRun.printRes(exitCode, res);
         }
     }
 
@@ -115,20 +115,20 @@ public class UtReplService {
 
         //
         String sql = UtFile.loadString("res:jdtx/repl/main/ut/UtReplService.JadatexSync.xml", "utf-16LE");
-        sql = sql.replace("${WorkingDirectory}", getAppDir());
+        sql = sql.replace("${WorkingDirectory}", UtRun.getAppDir());
         sql = sql.replace("${VbsScript}", getVbsScript());
-        File xmlFileTmp = new File(getAppDir() + "JadatexSync.xml");
+        File xmlFileTmp = new File(UtRun.getAppDir() + "JadatexSync.xml");
         UtFile.saveString(sql, xmlFileTmp, "utf-16LE");
 
         //
         List<String> res = new ArrayList<>();
-        int exitCode = run(res, "schtasks", "/Create", "/TN", "JadatexSync", "/XML", "JadatexSync.xml");
+        int exitCode = UtRun.run(res, "schtasks", "/Create", "/TN", "JadatexSync", "/XML", "JadatexSync.xml");
 
         //
         if (exitCode == 0) {
-            printRes(res);
+            UtRun.printRes(res);
         } else {
-            printRes(exitCode, res);
+            UtRun.printRes(exitCode, res);
         }
 
         //
@@ -141,81 +141,17 @@ public class UtReplService {
 
         //
         List<String> res = new ArrayList<>();
-        int exitCode = run(res, "schtasks", "/Delete", "/TN", "JadatexSync", "/f");
+        int exitCode = UtRun.run(res, "schtasks", "/Delete", "/TN", "JadatexSync", "/f");
 
         //
         if (exitCode == 0) {
-            printRes(res);
+            UtRun.printRes(res);
         } else {
-            printRes(exitCode, res);
+            UtRun.printRes(exitCode, res);
         }
     }
 
 
-    public static int run(List<String> res, String... args) throws Exception {
-        printArgs(args);
-
-        //
-        ProcessBuilder pb = new ProcessBuilder();
-        String processPath = getAppDir();
-        pb.command(args);
-        pb.directory(new File(processPath));
-        pb.redirectErrorStream(true);
-
-        //
-        Process process = pb.start();
-
-        //
-        if (res == null) {
-            res = new ArrayList<>();
-        }
-        //String charset = UtConsole.getConsoleCharset();
-        String charset = "cp866";
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), charset));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            res.add(line);
-        }
-
-        //
-        int exitCode = process.waitFor();
-
-        //
-        return exitCode;
-    }
-
-
-    private static void printArgs(String... args) {
-        String argsStr = "";
-        for (String s : args) {
-            argsStr = argsStr + s + " ";
-        }
-        log.info("--- run:");
-        log.info(argsStr);
-    }
-
-
-    static void printRes(long exitCode, List<String> res) {
-        log.info("--- run exit code:");
-        log.info(exitCode);
-        printRes(res);
-    }
-
-
-    static void printRes(List<String> res) {
-        log.info("--- run res:");
-        for (String outLine : res) {
-            log.info(outLine);
-        }
-        log.info("---");
-    }
-
-
-    private static String getAppDir() {
-        String dir = UtFile.getWorkdir().getAbsolutePath();
-        dir = UtFile.unnormPath(dir) + "\\";
-        return dir;
-    }
 
 
     private static String getVbsScript() {

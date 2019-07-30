@@ -13,7 +13,7 @@ import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
-import jdtx.repl.main.ext.*;
+import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
 
@@ -153,7 +153,7 @@ public class JdxReplWs {
 
             // Запуск обновления
             List<String> res = new ArrayList<>();
-            int exitCode = UtReplService.run(res, exeFile.getAbsolutePath(), "/SILENT", "/repl-service-install");
+            int exitCode = UtRun.run(res, exeFile.getAbsolutePath(), "/SILENT", "/repl-service-install");
 
             //
             if (exitCode != 0) {
