@@ -27,7 +27,7 @@ import org.json.simple.JSONObject
 class Jdx_Ext extends ProjectExt {
 
 
-    private static AppProjectExt _appProjectExt
+    private AppProjectExt _appProjectExt
 
     public Jdx_Ext() {
         if (UtFile.exists("_log.properties")) {
@@ -592,3 +592,4 @@ class Jdx_Ext extends ProjectExt {
     }
 
 }
+
