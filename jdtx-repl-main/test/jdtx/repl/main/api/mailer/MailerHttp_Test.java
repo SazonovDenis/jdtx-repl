@@ -1,12 +1,10 @@
 package jdtx.repl.main.api.mailer;
 
+import jandcode.app.test.*;
 import jandcode.utils.*;
 import jandcode.utils.test.*;
 import jandcode.web.*;
-import jdtx.repl.main.api.*;
-import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
-import jdtx.repl.main.api.struct.*;
 import org.apache.http.*;
 import org.apache.http.client.*;
 import org.apache.http.client.methods.*;
@@ -19,11 +17,12 @@ import java.io.*;
 
 /**
  */
-public class MailerHttp_Test extends ReplDatabase_Test {
+public class MailerHttp_Test extends AppTestCase {
 
 
     JSONObject cfgData;
     IMailer mailer;
+    String guid = "b5781df573ca6ee6.x-21ba238dfc945002";
 
 
     @Override
@@ -31,14 +30,14 @@ public class MailerHttp_Test extends ReplDatabase_Test {
         super.setUp();
 
         long wsId = 2;
-        String guid = "b5781df573ca6ee6.x-21ba238dfc945002";
 
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/mail_http_ws.json"));
         String url = (String) cfgData.get("url");
 
         JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
-        cfgWs.put("guid", guid);
         cfgWs.put("url", url);
+        cfgWs.put("guid", guid);
+        cfgWs.put("localDirTmp", "../_test-data/temp");
 
         mailer = new MailerHttp();
         mailer.init(cfgWs);
@@ -50,28 +49,46 @@ public class MailerHttp_Test extends ReplDatabase_Test {
         // ---
         System.out.println("getSrvState.from: " + mailer.getSrvState("from"));
 
+        // ---
+        File srcFile = new File("../_test-data/srv/queCommon/000000001.zip");
+        assertEquals("Исходный файл не существует", srcFile.exists(), true);
+        //
+        File destFile = new File("../../lombard.systems/repl/02/" + guid.replace("-", "/") + "/from/000000999.000");
+        destFile.delete();
+        assertEquals("Конечный файл не удалось удалить", destFile.exists(), false);
+        //
+        File infoFile = new File("../../lombard.systems/repl/02/" + guid.replace("-", "/") + "/from/last.info");
+        infoFile.delete();
+        assertEquals("Служебный файл 'last.info' не удалось удалить", infoFile.exists(), false);
+        //
+/*
+        File datFile = new File("../../lombard.systems/repl/02/" + guid + "/from/last.info");
+        infoFile.delete();
+        assertEquals("Служебный файл 'last.info' не удалось удалить", infoFile.exists(), false);
+*/
 
         // ---
-        IJdxDbStructReader dbStructReader = new JdxDbStructReader();
-        dbStructReader.setDb(db);
-        IJdxDbStruct struct = dbStructReader.readDbStruct();
-        UtRepl utRepl = new UtRepl(db, struct);
-
-        // Загружаем правила публикации
-        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub_full.json"));
-        IPublication publication = new Publication();
-        publication.loadRules(cfg, struct);
-
-        // Забираем установочную реплику
-        IReplica replica = utRepl.createReplicaTableSnapshot(1, publication.getData().getTable("ulz"), 999);
+        // Создаем реплику (из мусора - ее содержимое неважно)
+        IReplica replica = new ReplicaFile();
+        replica.getInfo().setDbStructCrc("00000000000000000000");
+        replica.getInfo().setWsId(1);
+        replica.getInfo().setAge(999);
+        replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
+        replica.setFile(srcFile);
 
 
         // ---
+        // Отправляем реплику
         mailer.send(replica, "from", 999);
 
 
         // ---
+        // Проверяем
         System.out.println("new getSrvState.from: " + mailer.getSrvState("from"));
+
+        //
+        assertEquals("Файл не скопировался", destFile.exists(), true);
+        assertEquals("Размер исходного и конечного файла не совпадает", destFile.length(), srcFile.length());
     }
 
 
