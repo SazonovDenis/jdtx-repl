@@ -45,7 +45,7 @@ class Jdx_Ext_Test extends JcTestCase {
         IVariantMap args = new VariantMap();
         args.put("ws", 1)
         args.put("guid", "b5781df573ca6ee6.x-17845f2f56f4d401")
-        args.put("cfg", cfg_json_ws)
+        args.put("file", cfg_json_ws)
 
         extSrv.repl_create(args)
     }
