@@ -345,8 +345,11 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
-    void repl_mail_check(IVariantMap args) {
+    boolean repl_mail_check(IVariantMap args) {
         boolean doCreate = args.getValueBoolean("create")
+
+        //
+        boolean result = true;
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -374,6 +377,7 @@ class Jdx_Ext extends ProjectExt {
                         System.out.println("wsId: " + wsId + ", box: " + box + " - ok")
                     } catch (Exception e) {
                         System.out.println("wsId: " + wsId + ", box: " + box + ", error: " + e.message)
+                        result = false
                     }
 
                     //
@@ -385,6 +389,9 @@ class Jdx_Ext extends ProjectExt {
         } finally {
             db.disconnect()
         }
+
+        //
+        return result;
     }
 
     void repl_dbstruct_start(IVariantMap args) {

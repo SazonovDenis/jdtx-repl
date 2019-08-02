@@ -4,10 +4,10 @@ import jandcode.bgtasks.*;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.utils.variant.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ut.*;
-import org.json.simple.*;
 import org.junit.*;
 
 import java.io.*;
@@ -27,6 +27,113 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void allSetUp() throws Exception {
+        clearAllTestData();
+        prepareEtalon();
+
+        //
+        IVariantMap args = new VariantMap();
+
+        // ---
+        // На рабочих станциях
+
+        // Первичная инициализация и начальный конфиг рабочих станций
+        args.clear();
+        args.put("ws", 1);
+        args.put("guid", "b5781df573ca6ee6.x-17845f2f56f4d401");
+        args.put("cfg", cfg_json_ws);
+        extSrv.repl_create(args);
+
+        args.clear();
+        args.put("ws", 2);
+        args.put("guid", "b5781df573ca6ee6.x-21ba238dfc945002");
+        args.put("cfg", cfg_json_ws);
+        extWs2.repl_create(args);
+
+        args.clear();
+        args.put("ws", 3);
+        args.put("guid", "b5781df573ca6ee6.x-34f3cc20bea64503");
+        args.put("cfg", cfg_json_ws);
+        extWs3.repl_create(args);
+
+
+        // ---
+        // На сервере
+
+        // Начальный конфиг сервера: напрямую задаем структуру публикаций (команда repl_set_cfg)
+        args.clear();
+        args.put("file", cfg_json_publications_full_152);
+        args.put("cfg", UtCfgType.PUBLICATIONS);
+        extSrv.repl_set_cfg(args);
+
+        // Добавляем рабочие станции
+        args.clear();
+        args.put("ws", 1);
+        args.put("name", "Сервер");
+        args.put("guid", "b5781df573ca6ee6.x-17845f2f56f4d401");
+        extSrv.repl_add_ws(args);
+        //
+        args.clear();
+        args.put("ws", 2);
+        args.put("name", "ws 2");
+        args.put("guid", "b5781df573ca6ee6.x-21ba238dfc945002");
+        extSrv.repl_add_ws(args);
+        //
+        args.clear();
+        args.put("ws", 3);
+        args.put("name", "ws 3");
+        args.put("guid", "b5781df573ca6ee6.x-34f3cc20bea64503");
+        extSrv.repl_add_ws(args);
+        //
+        args.clear();
+        args.put("ws", 4);
+        args.put("name", "ws 4");
+        args.put("guid", "b5781df573ca6ee6.x-444fed23da93ab04");
+        extSrv.repl_add_ws(args);
+
+        // Активируем 3 рабочие станции
+        args.clear();
+        args.put("ws", 1);
+        extSrv.repl_enable(args);
+        //
+        args.clear();
+        args.put("ws", 2);
+        extSrv.repl_enable(args);
+        //
+        args.clear();
+        args.put("ws", 3);
+        extSrv.repl_enable(args);
+
+
+        // Создаем ящики рабочих станций
+        args.clear();
+        args.put("create", true);
+        assertEquals("Ящики не созданы", true, extSrv.repl_mail_check(args));
+        //createBoxes_Local();
+
+        // Сразу рассылаем настройки для всех станций
+        args.clear();
+        args.put("file", cfg_json_publications_full_152);
+        args.put("cfg", UtCfgType.PUBLICATIONS);
+        extSrv.repl_send_cfg(args);
+        //
+        args.clear();
+        args.put("file", cfg_json_decode);
+        args.put("cfg", UtCfgType.DECODE);
+        extSrv.repl_send_cfg(args);
+
+        // Для сервера - сразу инициализируем фиксацию структуры БД
+        args.clear();
+        extSrv.repl_dbstruct_finish(args);
+
+
+        // ---
+        UtData.outTable(db.loadSql("select id, name, guid from " + JdxUtils.sys_table_prefix + "workstation_list"));
+    }
+
+    /**
+     * Стираем все каталоги с данными, почтой и т.п.
+     */
+    private void clearAllTestData() {
         UtFile.cleanDir("../_test-data/csv");
         UtFile.cleanDir("../_test-data/mail");
         UtFile.cleanDir("../_test-data/mail_local");
@@ -46,77 +153,24 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         new File("d:/temp/dbm.log").delete();
         new File("d:/temp/jdtx.log").delete();
         UtFile.cleanDir("../../lombard.systems/repl/" + MailerHttp.REPL_PROTOCOL_VERSION + "/b5781df573ca6ee6.x");
+    }
 
-        // ---
-        // На рабочих станциях
-
-        // Первичная инициализация
-        // db
-        UtRepl utRepl = new UtRepl(db, struct);
-        utRepl.dropReplication();
-        utRepl.createReplicationBase(1, "b5781df573ca6ee6.x-17845f2f56f4d401");
-        // db2
-        UtRepl utr2 = new UtRepl(db2, struct2);
-        utr2.dropReplication();
-        utr2.createReplicationBase(2, "b5781df573ca6ee6.x-21ba238dfc945002");
-        // db3
-        UtRepl utr3 = new UtRepl(db3, struct3);
-        utr3.dropReplication();
-        utr3.createReplicationBase(3, "b5781df573ca6ee6.x-34f3cc20bea64503");
-
-        // Начальный конфиг рабочих станций
-        JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfg_json_ws);
-        // db
-        UtCfg utCfg = new UtCfg(db);
-        utCfg.setSelfCfg(cfg, UtCfgType.WS);
-        // db
-        UtCfg utCfg2 = new UtCfg(db2);
-        utCfg2.setSelfCfg(cfg, UtCfgType.WS);
-        // db
-        UtCfg utCfg3 = new UtCfg(db3);
-        utCfg3.setSelfCfg(cfg, UtCfgType.WS);
-
-
-        // ---
-        // На сервере
-
-        // Начальный конфиг сервера: напрямую задаем структуру публикаций (команда repl_set_cfg)
-        //
-        // На сервере правила публикациий и правила перекодировок
-        //
-        cfg = UtRepl.loadAndValidateCfgFile(cfg_json_publications_full_152);
-        utCfg.setSelfCfg(cfg, UtCfgType.PUBLICATIONS);
-        //
-        //cfg = UtRepl.loadAndValidateCfgFile(cfg_json_decode);
-        //utCfg.setSelfCfg(cfg, UtCfgType.DECODE);
+    /**
+     * Копируем эталонную в рабочую
+     */
+    @Test
+    public void prepareEtalon() throws Exception {
+        db.disconnect();
+        db2.disconnect();
+        db3.disconnect();
 
         //
-        JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init();
+        DbPrepareEtalon_Test.prepareEtalon(app.getApp());
 
-        // Добавляем рабочие станции для режима сервера
-        srv.addWorkstation(1, "Сервер", "b5781df573ca6ee6.x-17845f2f56f4d401");
-        srv.addWorkstation(2, "ws 2", "b5781df573ca6ee6.x-21ba238dfc945002");
-        srv.addWorkstation(3, "ws 3", "b5781df573ca6ee6.x-34f3cc20bea64503");
-        srv.addWorkstation(4, "ws 4", "b5781df573ca6ee6.x-444fed23da93ab04");
-        // Активируем рабочие станции
-        srv.enableWorkstation(1);
-        srv.enableWorkstation(2);
-        srv.enableWorkstation(3);
-        // Создаем ящики рабочих станций
-        createBoxes_Http();
-        //createBoxes_Local();
-
-        // Сразу рассылаем настройки для всех станций
-        srv.srvSendCfg(cfg_json_publications_full_152, UtCfgType.PUBLICATIONS, 0);
-        srv.srvSendCfg(cfg_json_decode, UtCfgType.DECODE, 0);
-
-        // Для сервера - сразу инициализируем фиксацию структуры БД
-        srv.srvDbStructFinish();
-
-
-        // ---
-        UtData.outTable(db.loadSql("select id, name, guid from " + JdxUtils.sys_table_prefix + "workstation_list"));
+        //
+        db.connect();
+        db2.connect();
+        db3.connect();
     }
 
     @Test

@@ -34,6 +34,10 @@ public class ReplDatabaseStruct_Test extends AppTestCase {
         //
         super.setUp();
 
+        //
+        UtLog.loadProperties("../_log.properties");
+        logOn();
+
         // ---
         // Экземпляры db и db2, db3
         Model m = app.getApp().service(ModelService.class).getModel();
@@ -55,9 +59,9 @@ public class ReplDatabaseStruct_Test extends AppTestCase {
         // ---
         // Утилиты Jdx_Ext
         TestExtJc jc = createExt(TestExtJc.class);
-        ProjectScript p1 = jc.loadProject("srv/project.jc");
-        ProjectScript p2 = jc.loadProject("ws2/project.jc");
-        ProjectScript p3 = jc.loadProject("ws3/project.jc");
+        ProjectScript p1 = jc.loadProject("../ext/srv/project.jc");
+        ProjectScript p2 = jc.loadProject("../ext/ws2/project.jc");
+        ProjectScript p3 = jc.loadProject("../ext/ws3/project.jc");
         extSrv = (Jdx_Ext) p1.createExt("jdtx.repl.main.ext.Jdx_Ext");
         extWs2 = (Jdx_Ext) p2.createExt("jdtx.repl.main.ext.Jdx_Ext");
         extWs3 = (Jdx_Ext) p3.createExt("jdtx.repl.main.ext.Jdx_Ext");

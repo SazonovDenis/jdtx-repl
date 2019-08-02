@@ -1,8 +1,7 @@
 package jdtx.repl.main.api;
 
+import jandcode.app.*;
 import jandcode.app.test.*;
-import jandcode.dbm.*;
-import jandcode.dbm.db.*;
 import org.apache.commons.io.*;
 import org.junit.*;
 
@@ -14,12 +13,17 @@ public class DbPrepareEtalon_Test extends AppTestCase {
 
 
     @Test
+    public void test_PrepareEtalon() throws Exception {
+        prepareEtalon(app.getApp());
+    }
+
+
     /**
      * Копируем эталонную в рабочую
      */
-    public void doPrepareEtalon() throws Exception {
-        String dbNameDest = app.getApp().getRt().getChild("db/default").getValue("database").toString();
-        String dbNameSour = app.getApp().getRt().getChild("db/default").getValue("database_etalon").toString();
+    public static void prepareEtalon(App app) throws IOException {
+        String dbNameDest = app.getRt().getChild("db/default").getValue("database").toString();
+        String dbNameSour = app.getRt().getChild("db/default").getValue("database_etalon").toString();
         FileUtils.copyFile(new File(dbNameSour), new File(dbNameDest));
 
         //
@@ -27,8 +31,8 @@ public class DbPrepareEtalon_Test extends AppTestCase {
 
 
         // ---
-        String dbNameDest2 = app.getApp().getRt().getChild("db/db2").getValue("database").toString();
-        String dbNameSour2 = app.getApp().getRt().getChild("db/db2").getValue("database_etalon").toString();
+        String dbNameDest2 = app.getRt().getChild("db/db2").getValue("database").toString();
+        String dbNameSour2 = app.getRt().getChild("db/db2").getValue("database_etalon").toString();
         FileUtils.copyFile(new File(dbNameSour2), new File(dbNameDest2));
 
         //
@@ -36,30 +40,12 @@ public class DbPrepareEtalon_Test extends AppTestCase {
 
 
         // ---
-        String dbNameDest3 = app.getApp().getRt().getChild("db/db3").getValue("database").toString();
-        String dbNameSour3 = app.getApp().getRt().getChild("db/db3").getValue("database_etalon").toString();
+        String dbNameDest3 = app.getRt().getChild("db/db3").getValue("database").toString();
+        String dbNameSour3 = app.getRt().getChild("db/db3").getValue("database_etalon").toString();
         FileUtils.copyFile(new File(dbNameSour3), new File(dbNameDest3));
 
         //
         System.out.println("База подготовлена [" + dbNameDest3 + "]");
-    }
-
-    @Test
-    public void test_connect() throws Exception {
-        //
-        Model m = app.getApp().service(ModelService.class).getModel();
-        Db db = m.getDb();
-        db.connect();
-
-        //
-        Model m2 = app.getApp().service(ModelService.class).getModel("db2");
-        Db db2 = m2.getDb();
-        db2.connect();
-
-        //
-        Model m3 = app.getApp().service(ModelService.class).getModel("db3");
-        Db db3 = m3.getDb();
-        db3.connect();
     }
 
 
