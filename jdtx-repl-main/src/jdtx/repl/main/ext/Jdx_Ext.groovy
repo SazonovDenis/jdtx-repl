@@ -127,7 +127,7 @@ class Jdx_Ext extends ProjectExt {
     void repl_create(IVariantMap args) {
         long wsId = args.getValueLong("ws")
         String guid = args.getValueString("guid")
-        String cfgFileName = args.getValueString("cfg")
+        String cfgFileName = args.getValueString("file")
         if (wsId == 0L) {
             throw new XError("Не указан [ws] - код рабочей станции")
         }

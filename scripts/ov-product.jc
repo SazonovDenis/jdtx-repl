@@ -94,6 +94,9 @@ repl_app_update = cm("Послать сигнал на обновление ПО
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_app_update(args)
 }
+
+
+
 //
 repl_dbstruct_start = cm("Начать смену структуры") {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
@@ -113,6 +116,22 @@ repl_dbstruct_finish = cm("Завершить смену структуры") {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_dbstruct_finish(args)
 }
+
+
+
+//
+repl_set_cfg = cm("repl_set_cfg") {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_set_cfg(args)
+}
+
+//
+repl_send_cfg = cm("repl_send_cfg") {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_send_cfg(args)
+}
+
+
 
 //
 repl_service_start = cm("Запуск службы") {
