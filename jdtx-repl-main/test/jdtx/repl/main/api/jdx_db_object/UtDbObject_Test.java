@@ -17,9 +17,9 @@ public class UtDbObject_Test extends ReplDatabase_Test {
      */
     public void test_compareCreateDrop() throws Exception {
         JdxDbStructReader dbStructReader = new JdxDbStructReader();
-        dbStructReader.setDb(db);
+        dbStructReader.setDb(db1);
         IJdxDbStruct struct = dbStructReader.readDbStruct();
-        UtRepl utRepl = new UtRepl(db, struct);
+        UtRepl utRepl = new UtRepl(db1, struct);
         //
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
 
