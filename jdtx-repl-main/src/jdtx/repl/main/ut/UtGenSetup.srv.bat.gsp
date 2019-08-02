@@ -1,12 +1,6 @@
+<%@ page import="jdtx.repl.main.api.UtCfgType" %>
 @echo off
 
-rem серверные конфиги
-
-rem rename %cd%\web\WEB-INF\cfg\sample.srv.json srv.json
-
-rem del %cd%\web\WEB-INF\_app.rt
-
-rem rename %cd%\web\WEB-INF\sample.srv._app.rt _app.rt
 
 
 rem удаление старого - служба
@@ -16,28 +10,47 @@ rem удаление старого - данные
 rmdir /Q /S %cd%\web\WEB-INF\data
 
 
-rem рабочая станция
-call jc repl-create -ws:${args.ws_list[0].ws_no} -guid:${args.repl_guid}-${args.ws_list[0].ws_guid}
+
+rem рабочая станция "${args.ws_name}"
+call jc repl-create -ws:${args.ws_list[0].ws_no} -guid:${args.repl_guid}-${args.ws_list[0].ws_guid} -file:"cfg/ws.json"
+
 
 
 rem сервер
 
+rem напрямую задаем структуру публикаций
+call jc repl-set-cfg -cfg:${UtCfgType.PUBLICATIONS}: -file:"cfg/publication_full_152.json"
 
+
+
+rem добавляем рабочие станции
 <% for (int i = 0; i < args.ws_list.size; i++) { %>
 call jc repl-add-ws -ws:${args.ws_list[i].ws_no} -guid:${args.repl_guid}-${args.ws_list[i].ws_guid} -name:"${args.ws_list[i].ws_name}"
 <% } %>
 
+
+
+rem активируем рабочие станции
 <% for (int i = 0; i < args.ws_list.size; i++) { %>
 call jc repl-enable -ws:${args.ws_list[i].ws_no}
 <% } %>
 
 
-rem инициализация структуры БД
+
+rem создаем ящики рабочих станций
+call jc repl-mail-check -create:true
+
+
+
+rem сразу рассылаем настройки для всех станций
+call jc repl-send-cfg -cfg:${UtCfgType.PUBLICATIONS}: -file:"cfg/publication_full_152.json"
+call jc repl-send-cfg -cfg:${UtCfgType.DECODE}: -file:"cfg/decode_strategy.json"
+
+
+
+rem сразу инициируем фиксацию структуры БД
 call jc repl-dbstruct-finish
 
-
-rem почта
-call jc repl-mail-check -create:true
 
 
 rem служба

@@ -135,7 +135,7 @@ class Jdx_Ext extends ProjectExt {
             throw new XError("Не указан [guid] - guid рабочей станции")
         }
         if (cfgFileName == null || cfgFileName.length() == 0) {
-            throw new XError("Не указан [cfg] - cfg рабочей станции")
+            throw new XError("Не указан [file] - cfg-файл для рабочей станции")
         }
 
         // БД

@@ -89,12 +89,12 @@ Source: {#SourceDirJre}\*.*; DestDir: {app}\jre; Flags: ignoreversion recursesub
 Source: install\cm.bat;                        DestDir: {app};                 Flags: ignoreversion
 Source: install\jc-run.bat;                    DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
 Source: install\jc-run.vbs;                    DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
+
 Source: install\sample.log.properties;         DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
 Source: install\cfg\decode_strategy.json;      DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 Source: install\cfg\publication_full_152.json; DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 Source: install\cfg\publication_full_163.json; DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 Source: install\cfg\publication_null.json;     DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
-Source: install\cfg\sample.srv.json;           DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 Source: install\cfg\sample.ws.json;            DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 
 Source: install\sample.srv._app.rt;            DestDir: {app}\web\WEB-INF;     Flags: ignoreversion;     DestName: sample.srv._app.rt; 

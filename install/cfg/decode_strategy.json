@@ -1,43 +1,33 @@
-[
-  {
-    "table": "BondTip",
+{
+  "BondTip": {
     "strategy": "NO_DECODE"
   },
-  {
-    "table": "CommentTip",
+  "CommentTip": {
     "strategy": "NO_DECODE"
   },
-  {
-    "table": "DataTip",
+  "DataTip": {
     "strategy": "NO_DECODE"
   },
-  {
-    "table": "NchTip",
+  "NchTip": {
     "strategy": "NO_DECODE"
   },
-  {
-    "table": "OprTip",
+  "OprTip": {
     "strategy": "NO_DECODE"
   },
-  {
-    "table": "PawnChitStatusTip",
+  "PawnChitStatusTip": {
     "strategy": "NO_DECODE"
   },
-  {
-    "table": "PawnChitSubjectStatusTip",
+  "PawnChitSubjectStatusTip": {
     "strategy": "NO_DECODE"
   },
-  {
-    "table": "UsrOprTip",
+  "UsrOprTip": {
     "strategy": "NO_DECODE"
   },
-  {
-    "table": "VarTip",
+  "VarTip": {
     "strategy": "NO_DECODE"
   },
-  {
-    "table": "UsrGrp",
+  "UsrGrp": {
     "strategy": "DECODE_ID",
     "decode_from_id": 3
   }
-]
+}

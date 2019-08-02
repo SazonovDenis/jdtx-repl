@@ -40,19 +40,19 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         args.clear();
         args.put("ws", 1);
         args.put("guid", "b5781df573ca6ee6.x-17845f2f56f4d401");
-        args.put("cfg", cfg_json_ws);
+        args.put("file", cfg_json_ws);
         extSrv.repl_create(args);
 
         args.clear();
         args.put("ws", 2);
         args.put("guid", "b5781df573ca6ee6.x-21ba238dfc945002");
-        args.put("cfg", cfg_json_ws);
+        args.put("file", cfg_json_ws);
         extWs2.repl_create(args);
 
         args.clear();
         args.put("ws", 3);
         args.put("guid", "b5781df573ca6ee6.x-34f3cc20bea64503");
-        args.put("cfg", cfg_json_ws);
+        args.put("file", cfg_json_ws);
         extWs3.repl_create(args);
 
 
@@ -121,7 +121,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         args.put("cfg", UtCfgType.DECODE);
         extSrv.repl_send_cfg(args);
 
-        // Для сервера - сразу инициализируем фиксацию структуры БД
+        // Для сервера - сразу инициируем фиксацию структуры БД
         args.clear();
         extSrv.repl_dbstruct_finish(args);
 

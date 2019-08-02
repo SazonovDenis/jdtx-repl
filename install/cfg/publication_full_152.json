@@ -1,282 +1,221 @@
-[
-  {
-    "table": "BILLINGVARHIST",
-    "fields": "*"
-  },
-  {
-    "table": "BILLINGVARVALUES",
-    "fields": "*"
-  },
-  {
-    "table": "BONDTIP",
-    "fields": "*"
-  },
-  {
-    "table": "CASHENCASH",
-    "fields": "*"
-  },
-  {
-    "table": "CASHENCASHREASON",
-    "fields": "*"
-  },
-  {
-    "table": "CASHLOG",
-    "fields": "*"
-  },
-  {
-    "table": "CASHORDERGEN",
-    "fields": "*"
-  },
-  {
-    "table": "CASHSUMM",
-    "fields": "*"
-  },
-  {
-    "table": "COMMENTTEXT",
-    "fields": "*"
-  },
-  {
-    "table": "COMMENTTIP",
-    "fields": "*"
-  },
-  {
-    "table": "DATATIP",
-    "fields": "*"
-  },
-  {
-    "table": "DAYOFF",
-    "fields": "*"
-  },
-  {
-    "table": "DBINFO",
-    "fields": "*"
-  },
-  {
-    "table": "DICTLIST",
-    "fields": "*"
-  },
-  {
-    "table": "DICTLISTVAL",
-    "fields": "*"
-  },
-  {
-    "table": "INVENTORY",
-    "fields": "*"
-  },
-  {
-    "table": "INVENTORYBOND",
-    "fields": "*"
-  },
-  {
-    "table": "INVENTORYCASH",
-    "fields": "*"
-  },
-  {
-    "table": "INVENTORYCHECKSUBJECT",
-    "fields": "*"
-  },
-  {
-    "table": "INVENTORYEXTRASUBJECT",
-    "fields": "*"
-  },
-  {
-    "table": "INVENTORYMISSINGSUBJECT",
-    "fields": "*"
-  },
-  {
-    "table": "INVENTORYUSR",
-    "fields": "*"
-  },
-  {
-    "table": "LIC",
-    "fields": "*"
-  },
-  {
-    "table": "LICDAT",
-    "fields": "*"
-  },
-  {
-    "table": "LICDOCTIP",
-    "fields": "*"
-  },
-  {
-    "table": "LICDOCVID",
-    "fields": "*"
-  },
-  {
-    "table": "MEASURE",
-    "fields": "*"
-  },
-  {
-    "table": "NCH",
-    "fields": "*"
-  },
-  {
-    "table": "NCHOPL",
-    "fields": "*"
-  },
-  {
-    "table": "NCHTIP",
-    "fields": "*"
-  },
-  {
-    "table": "OPERDAY",
-    "fields": "*"
-  },
-  {
-    "table": "OPERDAYUSR",
-    "fields": "*"
-  },
-  {
-    "table": "OPR",
-    "fields": "*"
-  },
-  {
-    "table": "OPRTIP",
-    "fields": "*"
-  },
-  {
-    "table": "PAWNCHIT",
-    "fields": "*"
-  },
-  {
-    "table": "PAWNCHITDAT",
-    "fields": "*"
-  },
-  {
-    "table": "PAWNCHITDATSTRUCT",
-    "fields": "*"
-  },
-  {
-    "table": "PAWNCHITDATSTRUCTVALUES",
-    "fields": "*"
-  },
-  {
-    "table": "PAWNCHITOPR",
-    "fields": "*"
-  },
-  {
-    "table": "PAWNCHITSTATUSTIP",
-    "fields": "*"
-  },
-  {
-    "table": "PAWNCHITSUBJECT",
-    "fields": "*"
-  },
-  {
-    "table": "PAWNCHITSUBJECTEXHIBIT",
-    "fields": "*"
-  },
-  {
-    "table": "PAWNCHITSUBJECTSELL",
-    "fields": "*"
-  },
-  {
-    "table": "PAWNCHITSUBJECTSTATUSTIP",
-    "fields": "*"
-  },
-  {
-    "table": "PAWNCHITSUBJECTTOSALE",
-    "fields": "*"
-  },
-  {
-    "table": "PAWNRECEIPT",
-    "fields": "*"
-  },
-  {
-    "table": "REGION",
-    "fields": "*"
-  },
-  {
-    "table": "REGIONTIP",
-    "fields": "*"
-  },
-  {
-    "table": "STORNOPR",
-    "fields": "*"
-  },
-  {
-    "table": "SUBJECTENCASH",
-    "fields": "*"
-  },
-  {
-    "table": "SUBJECTENCASHREASON",
-    "fields": "*"
-  },
-  {
-    "table": "SUBJECTTIP",
-    "fields": "*"
-  },
-  {
-    "table": "SUBJECTTIPPROPERT",
-    "fields": "*"
-  },
-  {
-    "table": "TARIFFPLAN",
-    "fields": "*"
-  },
-  {
-    "table": "TARIFFPLANBILLINGVAR",
-    "fields": "*"
-  },
-  {
-    "table": "TARIFFPLANPERCSTAVKA",
-    "fields": "*"
-  },
-  {
-    "table": "TARIFFPLANREFLIC",
-    "fields": "*"
-  },
-  {
-    "table": "TARIFFPLANREFSUBJECTTIP",
-    "fields": "*"
-  },
-  {
-    "table": "TARIFFPLANVER",
-    "fields": "*"
-  },
-  {
-    "table": "ULZ",
-    "fields": "*"
-  },
-  {
-    "table": "ULZTIP",
-    "fields": "*"
-  },
-  {
-    "table": "USR",
-    "fields": "*"
-  },
-  {
-    "table": "USRGRP",
-    "fields": "*"
-  },
-  {
-    "table": "USRLOG",
-    "fields": "*"
-  },
-  {
-    "table": "USROPRTIP",
-    "fields": "*"
-  },
-  {
-    "table": "USROTDEL",
-    "fields": "*"
-  },
-  {
-    "table": "VALPAWNCHITSUBJECT",
-    "fields": "*"
-  },
-  {
-    "table": "VALSUBJECTTIP",
-    "fields": "*"
-  },
-  {
-    "table": "VARTIP",
-    "fields": "*"
-  },
-  {
-    "table": "WS_LIST",
-    "fields": "*"
+{
+  "in": "full",
+  "out": "full",
+  "full": {
+    "appupdate": {
+      "fields": "*"
+    },
+    "billingvarhist": {
+      "fields": "*"
+    },
+    "billingvarvalues": {
+      "fields": "*"
+    },
+    "bondtip": {
+      "fields": "*"
+    },
+    "cashencash": {
+      "fields": "*"
+    },
+    "cashencashreason": {
+      "fields": "*"
+    },
+    "cashlog": {
+      "fields": "*"
+    },
+    "cashordergen": {
+      "fields": "*"
+    },
+    "cashsumm": {
+      "fields": "*"
+    },
+    "commenttext": {
+      "fields": "*"
+    },
+    "commenttip": {
+      "fields": "*"
+    },
+    "datatip": {
+      "fields": "*"
+    },
+    "dayoff": {
+      "fields": "*"
+    },
+    "dbinfo": {
+      "fields": "*"
+    },
+    "dictlist": {
+      "fields": "*"
+    },
+    "dictlistval": {
+      "fields": "*"
+    },
+    "inventory": {
+      "fields": "*"
+    },
+    "inventorybond": {
+      "fields": "*"
+    },
+    "inventorycash": {
+      "fields": "*"
+    },
+    "inventorychecksubject": {
+      "fields": "*"
+    },
+    "inventoryextrasubject": {
+      "fields": "*"
+    },
+    "inventorymissingsubject": {
+      "fields": "*"
+    },
+    "inventoryusr": {
+      "fields": "*"
+    },
+    "lic": {
+      "fields": "*"
+    },
+    "licdat": {
+      "fields": "*"
+    },
+    "licdoctip": {
+      "fields": "*"
+    },
+    "licdocvid": {
+      "fields": "*"
+    },
+    "measure": {
+      "fields": "*"
+    },
+    "nch": {
+      "fields": "*"
+    },
+    "nchopl": {
+      "fields": "*"
+    },
+    "nchtip": {
+      "fields": "*"
+    },
+    "operday": {
+      "fields": "*"
+    },
+    "operdayusr": {
+      "fields": "*"
+    },
+    "opr": {
+      "fields": "*"
+    },
+    "oprtip": {
+      "fields": "*"
+    },
+    "pawnchit": {
+      "fields": "*"
+    },
+    "pawnchitdat": {
+      "fields": "*"
+    },
+    "pawnchitdatstruct": {
+      "fields": "*"
+    },
+    "pawnchitdatstructvalues": {
+      "fields": "*"
+    },
+    "pawnchitopr": {
+      "fields": "*"
+    },
+    "pawnchitstatustip": {
+      "fields": "*"
+    },
+    "pawnchitsubject": {
+      "fields": "*"
+    },
+    "pawnchitsubjectexhibit": {
+      "fields": "*"
+    },
+    "pawnchitsubjectsell": {
+      "fields": "*"
+    },
+    "pawnchitsubjectstatustip": {
+      "fields": "*"
+    },
+    "pawnchitsubjecttosale": {
+      "fields": "*"
+    },
+    "pawnreceipt": {
+      "fields": "*"
+    },
+    "region": {
+      "fields": "*"
+    },
+    "regiontip": {
+      "fields": "*"
+    },
+    "stornopr": {
+      "fields": "*"
+    },
+    "subjectencash": {
+      "fields": "*"
+    },
+    "subjectencashreason": {
+      "fields": "*"
+    },
+    "subjecttip": {
+      "fields": "*"
+    },
+    "subjecttippropert": {
+      "fields": "*"
+    },
+    "tariffplan": {
+      "fields": "*"
+    },
+    "tariffplanbillingvar": {
+      "fields": "*"
+    },
+    "tariffplanpercstavka": {
+      "fields": "*"
+    },
+    "tariffplanreflic": {
+      "fields": "*"
+    },
+    "tariffplanrefsubjecttip": {
+      "fields": "*"
+    },
+    "tariffplanver": {
+      "fields": "*"
+    },
+    "ulz": {
+      "fields": "*"
+    },
+    "ulztip": {
+      "fields": "*"
+    },
+    "usr": {
+      "fields": "*"
+    },
+    "usrgrp": {
+      "fields": "*"
+    },
+    "usrlog": {
+      "fields": "*"
+    },
+    "usroprtip": {
+      "fields": "*"
+    },
+    "usrotdel": {
+      "fields": "*"
+    },
+    "valpawnchitsubject": {
+      "fields": "*"
+    },
+    "valsubjecttip": {
+      "fields": "*"
+    },
+    "vartip": {
+      "fields": "*"
+    },
+    "ws_list": {
+      "fields": "*"
+    }
   }
-]
+}
+
+
