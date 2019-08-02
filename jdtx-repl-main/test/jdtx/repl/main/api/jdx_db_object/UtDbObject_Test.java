@@ -4,10 +4,7 @@ import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
-/**
- * Создание/удаление репликационных структур
- */
-public class UtDbObject_Test extends ReplDatabase_Test {
+public class UtDbObject_Test extends Database_Test {
 
 
     @Test

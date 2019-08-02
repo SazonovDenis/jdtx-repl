@@ -11,7 +11,7 @@ import java.sql.*;
 
 /**
  */
-public class ReplDatabase_Test extends AppTestCase {
+public class Database_Test extends AppTestCase {
 
     // 
     protected Db db1;
