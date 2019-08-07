@@ -135,7 +135,10 @@ public class JdxReplWs {
 
 
         // Фильтрация структуры: убирание того, чего нет в публикациях publicationIn и publicationOut
-        struct = UtRepl.getStructCommon(structActual, this.publicationIn, this.publicationOut);
+        IJdxDbStruct structCommon = UtRepl.getStructCommon(structActual, this.publicationIn, this.publicationOut);
+        // Обеспечиваем порядок сортировки таблиц с учетом foreign key
+        struct = new JdxDbStruct();
+        struct.getTables().addAll(JdxUtils.sortTablesByReference(structCommon.getTables()));
 
 
         // Проверка версии приложения
@@ -269,7 +272,7 @@ public class JdxReplWs {
         // реальная совпадает с разрешенной, но отличается от зафиксированной
         log.info("dbStructApplyFixed, start");
 
-        // Обеспечиваем порядок сортировки таблиц с учетом foreign key (при выгрузке snapsot это важно)
+        // Обеспечиваем порядок сортировки таблиц с учетом foreign key (при применении структуры будем делать snapsot, там важен порядок)
         List<IJdxTable> tablesNew = JdxUtils.sortTablesByReference(structDiffNew.getTables());
 
 
@@ -283,7 +286,7 @@ public class JdxReplWs {
             long n;
 
             // Удаляем аудит для удаленных таблиц
-            ArrayList<IJdxTable> tablesRemoved = structDiffRemoved.getTables();
+            List<IJdxTable> tablesRemoved = structDiffRemoved.getTables();
             n = 0;
             for (IJdxTable table : tablesRemoved) {
                 n++;
