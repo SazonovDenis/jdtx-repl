@@ -112,13 +112,26 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         // Сразу рассылаем настройки для всех станций
         args.clear();
-        args.put("file", cfg_json_publications_full_152);
-        args.put("cfg", UtCfgType.PUBLICATIONS);
+        args.put("file", cfg_json_decode);
+        args.put("cfg", UtCfgType.DECODE);
         extSrv.repl_send_cfg(args);
         //
         args.clear();
-        args.put("file", cfg_json_decode);
-        args.put("cfg", UtCfgType.DECODE);
+        args.put("file", cfg_json_publications_full_152);
+        args.put("cfg", UtCfgType.PUBLICATIONS);
+        args.put("ws", 1);
+        extSrv.repl_send_cfg(args);
+        //
+        args.clear();
+        args.put("file", cfg_json_publications_full_152);
+        args.put("cfg", UtCfgType.PUBLICATIONS);
+        args.put("ws", 2);
+        extSrv.repl_send_cfg(args);
+        //
+        args.clear();
+        args.put("file", cfg_json_publications_full_152);
+        args.put("cfg", UtCfgType.PUBLICATIONS);
+        args.put("ws", 3);
         extSrv.repl_send_cfg(args);
 
         // Для сервера - сразу инициируем фиксацию структуры БД
@@ -267,6 +280,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         utTest2.make_InsDel_1(struct2, 2);
 
         //
+        sync_http();
+        sync_http();
         sync_http();
         sync_http();
         sync_http();

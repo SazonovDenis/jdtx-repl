@@ -265,7 +265,7 @@ public class JdxReplSrv {
                 long wsId = rec.getValueLong("id");
 
                 //
-                log.info("  destination wsId: " + destinationWsId);
+                log.info("  destination wsId: " + wsId);
 
                 // Обновляем конфиг в таблицах для рабочих станций (workstation_list)
                 UtCfg utCfg = new UtCfg(db);

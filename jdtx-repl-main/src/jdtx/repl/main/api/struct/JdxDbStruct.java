@@ -4,7 +4,7 @@ import java.util.*;
 
 public class JdxDbStruct implements IJdxDbStruct {
 
-    protected ArrayList<IJdxTable> tables;
+    protected List<IJdxTable> tables;
 
     public JdxDbStruct() {
         tables = new ArrayList<IJdxTable>();
@@ -37,7 +37,7 @@ public class JdxDbStruct implements IJdxDbStruct {
     }
 */
 
-    public ArrayList<IJdxTable> getTables() {
+    public List<IJdxTable> getTables() {
         return tables;
     }
 

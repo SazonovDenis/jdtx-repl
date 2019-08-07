@@ -10,7 +10,7 @@ import java.util.*;
  */
 public class JdxDbStruct_XmlRW {
 
-    boolean doSort = true;
+    boolean doSortByName = true;
 
     public String toString(IJdxDbStruct struct) throws Exception {
         EasyXml xml = new EasyXml();
@@ -59,7 +59,7 @@ public class JdxDbStruct_XmlRW {
         //
         List<IJdxField> fields;
         List<IJdxForeignKey> foreignKeys;
-        if (doSort) {
+        if (doSortByName) {
             fields = new ArrayList<>();
             fields.addAll(table.getFields());
             Collections.sort(fields, new JdxFieldComparator());
