@@ -86,22 +86,21 @@ Source: {#SourceDirJre}\*.*; DestDir: {app}\jre; Flags: ignoreversion recursesub
 
 
 
-Source: install\cm.bat;                        DestDir: {app};                 Flags: ignoreversion
-Source: install\jc-run.bat;                    DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
-Source: install\jc-run.vbs;                    DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
+Source: install\cm.bat;                          DestDir: {app};                 Flags: ignoreversion
+Source: install\jc-run.bat;                      DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
+Source: install\jc-run.vbs;                      DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
 
-Source: install\sample.log.properties;         DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
-Source: install\cfg\decode_strategy.json;      DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
-Source: install\cfg\publication_full_152.json; DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
-Source: install\cfg\publication_full_163.json; DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
-Source: install\cfg\publication_null.json;     DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
-Source: install\cfg\sample.ws.json;            DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
+Source: install\sample.log.properties;           DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
+Source: install\cfg\decode_strategy.json;        DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
+Source: install\cfg\publication_up_152_srv.json; DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
+Source: install\cfg\publication_up_152_ws.json;  DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
+Source: install\cfg\sample.ws.json;              DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 
-Source: install\sample.srv._app.rt;            DestDir: {app}\web\WEB-INF;     Flags: ignoreversion;     DestName: sample.srv._app.rt; 
-Source: install\sample._app.rt;                DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _app.rt; 
-Source: install\sample._db-ini.rt;             DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _db-ini.rt
-Source: install\sample.log.properties;         DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: log.properties
-Source: install\cfg\sample.ws.json;            DestDir: {app}\web\WEB-INF\cfg; Flags: onlyifdoesntexist; DestName: ws.json
+Source: install\sample.srv._app.rt;              DestDir: {app}\web\WEB-INF;     Flags: ignoreversion;     DestName: sample.srv._app.rt; 
+Source: install\sample._app.rt;                  DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _app.rt; 
+Source: install\sample._db-ini.rt;               DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _db-ini.rt
+Source: install\sample.log.properties;           DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: log.properties
+Source: install\cfg\sample.ws.json;              DestDir: {app}\web\WEB-INF\cfg; Flags: onlyifdoesntexist; DestName: ws.json
 
 
 
