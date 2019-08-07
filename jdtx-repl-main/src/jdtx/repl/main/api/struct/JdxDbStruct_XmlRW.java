@@ -10,13 +10,15 @@ import java.util.*;
  */
 public class JdxDbStruct_XmlRW {
 
-    boolean doSortByName = true;
+    boolean doSortFieldsByName = true;
+    boolean doSortTablesByName = true;
 
     public String toString(IJdxDbStruct struct) throws Exception {
         EasyXml xml = new EasyXml();
 
         //
-        for (IJdxTable t : struct.getTables()) {
+        List<IJdxTable> tables = getStructTables(struct);
+        for (IJdxTable t : tables) {
             writeTableStruct(t, xml);
         }
 
@@ -28,7 +30,8 @@ public class JdxDbStruct_XmlRW {
         EasyXml xml = new EasyXml();
 
         //
-        for (IJdxTable t : struct.getTables()) {
+        List<IJdxTable> tables = getStructTables(struct);
+        for (IJdxTable t : tables) {
             writeTableStruct(t, xml);
         }
 
@@ -40,12 +43,26 @@ public class JdxDbStruct_XmlRW {
         EasyXml xml = new EasyXml();
 
         //
-        for (IJdxTable t : struct.getTables()) {
+        List<IJdxTable> tables = getStructTables(struct);
+        for (IJdxTable t : tables) {
             writeTableStruct(t, xml);
         }
 
         //
         return xml.save().toBytes();
+    }
+
+    private List<IJdxTable> getStructTables(IJdxDbStruct struct) {
+        List<IJdxTable> tables;
+        if (doSortTablesByName) {
+            tables = new ArrayList<>();
+            tables.addAll(struct.getTables());
+            Collections.sort(tables, new JdxTableComparator());
+        } else {
+            tables = struct.getTables();
+        }
+
+        return tables;
     }
 
     private void writeTableStruct(IJdxTable table, EasyXml xml) {
@@ -59,7 +76,7 @@ public class JdxDbStruct_XmlRW {
         //
         List<IJdxField> fields;
         List<IJdxForeignKey> foreignKeys;
-        if (doSortByName) {
+        if (doSortFieldsByName) {
             fields = new ArrayList<>();
             fields.addAll(table.getFields());
             Collections.sort(fields, new JdxFieldComparator());
