@@ -1,6 +1,34 @@
 {
   "in": "full",
-  "out": "full",
+  "out": "lic",
+
+  "lic": {
+    "appupdate": {
+      "fields": "*"
+    },
+    "lic": {
+      "fields": "*"
+    },
+    "licdoctip": {
+      "fields": "*"
+    },
+    "licdocvid": {
+      "fields": "*"
+    },
+    "region": {
+      "fields": "*"
+    },
+    "ulz": {
+      "fields": "*"
+    },
+    "regiontip": {
+      "fields": "*"
+    },
+    "ulztip": {
+      "fields": "*"
+    }
+  },
+
   "full": {
     "appupdate": {
       "fields": "*"
