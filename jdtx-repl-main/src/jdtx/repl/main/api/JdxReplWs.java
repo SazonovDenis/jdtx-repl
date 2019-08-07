@@ -135,10 +135,7 @@ public class JdxReplWs {
 
 
         // Фильтрация структуры: убирание того, чего нет в публикациях publicationIn и publicationOut
-        IJdxDbStruct structCommon = UtRepl.getStructCommon(structActual, this.publicationIn, this.publicationOut);
-        // Обеспечиваем порядок сортировки таблиц с учетом foreign key
-        struct = new JdxDbStruct();
-        struct.getTables().addAll(JdxUtils.sortTablesByReference(structCommon.getTables()));
+        struct = UtRepl.getStructCommon(structActual, this.publicationIn, this.publicationOut);
 
 
         // Проверка версии приложения

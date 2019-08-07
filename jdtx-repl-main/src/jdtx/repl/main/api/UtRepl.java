@@ -441,7 +441,7 @@ public class UtRepl {
         return table.getPrimaryKey().size() == 0;
     }
 
-    static IJdxDbStruct getStructCommon(IJdxDbStruct structActual, IPublication publicationIn, IPublication publicationOut) {
+    static IJdxDbStruct getStructCommon(IJdxDbStruct structActual, IPublication publicationIn, IPublication publicationOut) throws Exception {
         IJdxDbStruct structCommon = new JdxDbStruct();
         for (IJdxTable publicationTable : publicationIn.getData().getTables()) {
             if (structCommon.getTable(publicationTable.getName()) == null) {
@@ -455,7 +455,13 @@ public class UtRepl {
                 structCommon.getTables().add(structTable);
             }
         }
-        return structCommon;
+
+        // Обеспечиваем порядок сортировки таблиц с учетом foreign key
+        IJdxDbStruct structCommonSorted = new JdxDbStruct();
+        structCommonSorted.getTables().addAll(JdxUtils.sortTablesByReference(structCommon.getTables()));
+
+        //
+        return structCommonSorted;
     }
 
     static void fillPublications(JSONObject cfgDbPublications, IJdxDbStruct structActual, IPublication publicationIn, IPublication publicationOut) throws Exception {
