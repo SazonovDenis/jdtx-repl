@@ -66,8 +66,10 @@ public class JdxReplWs {
      * Рабочая станция, настройка
      */
     public void init() throws Exception {
-        dataRoot = db.getApp().getRt().getChild("app").getValueString("dataRoot");
-        dataRoot = UtFile.unnormPath(dataRoot) + "/";
+        //dataRoot = db.getApp().getRt().getChild("app").getValueString("dataRoot");
+        dataRoot = new File(".").getCanonicalPath();
+        dataRoot = UtFile.unnormPath(dataRoot) + "/data/";
+        System.out.println("dataRoot: " + dataRoot);
 
         // Проверка наличия в БД служебных структур и их версии
         UtDbObjectManager ut = new UtDbObjectManager(db);
