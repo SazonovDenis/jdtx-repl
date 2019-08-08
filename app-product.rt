@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 
-
-    <app appdir="#{path}"/>
-
     <x-include module="jdtx.repl.main"/>
 
     <web>
         <resource name="app.webdir" path="#{path}/.."/>
     </web>
+
+
+    <app dataRoot="#{path}\data"/>
+
+
+    <app appdir="#{path}"/>
 
 
     <!-- Фоновые задачи -->

@@ -56,9 +56,8 @@ public class JdxReplSrv {
      * Сервер, настройка
      */
     public void init() throws Exception {
-        //dataRoot = db.getApp().getRt().getChild("app").getValueString("dataRoot");
-        dataRoot = new File(".").getCanonicalPath();
-        dataRoot = UtFile.unnormPath(dataRoot) + "/data/";
+        dataRoot = new File(db.getApp().getRt().getChild("app").getValueString("dataRoot")).getCanonicalPath();
+        dataRoot = UtFile.unnormPath(dataRoot) + "/";
         System.out.println("dataRoot: " + dataRoot);
 
         // Проверка наличия в БД служебных структур и их версии
@@ -162,7 +161,7 @@ public class JdxReplSrv {
         //
         String sql = "update " + JdxUtils.sys_table_prefix + "state_ws set enabled = 1 where id = " + wsId;
         db.execSql(sql);
-        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 1 where id = 1";
+        sql = "update " + JdxUtils.sys_table_prefix + "sinitate set enabled = 1 where id = 1";
         db.execSql(sql);
     }
 
