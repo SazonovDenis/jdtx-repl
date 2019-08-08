@@ -29,8 +29,11 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void allSetUp() throws Exception {
-        clearAllTestData();
+        doDisconnectAll();
         prepareEtalon();
+        doConnectAll();
+        //
+        clearAllTestData();
 
         //
         IVariantMap args = new VariantMap();
@@ -146,6 +149,18 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtData.outTable(db.loadSql("select id, name, guid from " + JdxUtils.sys_table_prefix + "workstation_list"));
     }
 
+    private void doConnectAll() throws Exception {
+        db.connect();
+        db2.connect();
+        db3.connect();
+    }
+
+    private void doDisconnectAll() throws Exception {
+        db.disconnect();
+        db2.disconnect();
+        db3.disconnect();
+    }
+
     /**
      * Стираем все каталоги с данными, почтой и т.п.
      */
@@ -171,23 +186,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtFile.cleanDir("../../lombard.systems/repl/" + MailerHttp.REPL_PROTOCOL_VERSION + "/b5781df573ca6ee6.x");
     }
 
-    /**
-     * Копируем эталонную в рабочую
-     */
-    @Test
-    public void prepareEtalon() throws Exception {
-        db.disconnect();
-        db2.disconnect();
-        db3.disconnect();
-
-        //
-        DbPrepareEtalon_Test.prepareEtalon(app.getApp());
-
-        //
-        db.connect();
-        db2.connect();
-        db3.connect();
-    }
 
     @Test
     public void wsDbStructUpdate() throws Exception {
