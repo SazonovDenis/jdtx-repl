@@ -161,7 +161,7 @@ public class JdxReplSrv {
         //
         String sql = "update " + JdxUtils.sys_table_prefix + "state_ws set enabled = 1 where id = " + wsId;
         db.execSql(sql);
-        sql = "update " + JdxUtils.sys_table_prefix + "sinitate set enabled = 1 where id = 1";
+        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 1 where id = 1";
         db.execSql(sql);
     }
 
