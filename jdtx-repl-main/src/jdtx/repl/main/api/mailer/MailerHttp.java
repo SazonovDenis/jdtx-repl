@@ -75,6 +75,52 @@ public class MailerHttp implements IMailer {
     }
 
     @Override
+    public long getSendRequired(String box) throws Exception {
+        HttpClient httpclient = HttpClientBuilder.create().build();
+
+        //
+        Map info = new HashMap<>();
+        info.put("box", box);
+        HttpGet httpGet = new HttpGet(getUrl("repl_get_send_required", info));
+
+        //
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        handleErrors(response);
+
+        //
+        JSONObject res = parseResult(response);
+
+        //
+        JSONObject required = (JSONObject) res.get("required");
+        if (required == null)
+            return 0;
+        else
+            return Long.valueOf(String.valueOf(required.get("required")));
+    }
+
+    @Override
+    public void setSendRequired(String box, long required) throws Exception {
+        HttpClient httpclient = HttpClientBuilder.create().build();
+
+        //
+        Map info = new HashMap<>();
+        info.put("box", box);
+        info.put("required", required);
+        HttpGet httpGet = new HttpGet(getUrl("repl_set_send_required", info));
+
+        //
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        handleErrors(response);
+
+        //
+        parseResult(response);
+    }
+
+    @Override
     public void send(IReplica replica, String box, long no) throws Exception {
         log.info("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
 

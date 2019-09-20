@@ -224,6 +224,29 @@ public class MailerHttp_Test extends AppTestCase {
 
 
     @Test
+    public void test_required() throws Exception {
+        long required0 = mailer.getSendRequired("from");
+        System.out.println("required: " + required0);
+
+        // ---
+        mailer.setSendRequired("from", required0 + 2);
+
+
+        // ---
+        long required1 = mailer.getSendRequired("from");
+        System.out.println("required: " + required1);
+
+        // ---
+        mailer.setSendRequired("from", 0);
+
+
+        // ---
+        long required2 = mailer.getSendRequired("from");
+        System.out.println("required: " + required2);
+    }
+
+
+    @Test
     public void test_getSrvState() throws Exception {
         long no_from = mailer.getSrvState("from");
         long no_to = mailer.getSrvState("to");

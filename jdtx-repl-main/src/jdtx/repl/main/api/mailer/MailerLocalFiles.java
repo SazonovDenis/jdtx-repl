@@ -62,6 +62,16 @@ public class MailerLocalFiles implements IMailer {
         return idx;
     }
 
+    @Override
+    public long getSendRequired(String box) throws Exception {
+        return 0;
+    }
+
+    @Override
+    public void setSendRequired(String box, long required) throws Exception {
+
+    }
+
     public void send(IReplica replica, String box, long no) throws Exception {
         log.info("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", remoteDir: " + remoteDir + "/" + box);
 

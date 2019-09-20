@@ -800,28 +800,36 @@ public class JdxReplWs {
         IMailer mailerLocal = new MailerLocalFiles();
         mailerLocal.init(cfgWs);
 
-
-        // Физически забираем данные
-        receiveInternal(mailerLocal);
-    }
-
-
-    // Физически забираем данные
-    public void receive() throws Exception {
-        receiveInternal(mailer);
-    }
-
-
-    void receiveInternal(IMailer mailer) throws Exception {
         // Узнаем сколько получено у нас
         long selfReceivedNo = queIn.getMaxNo();
 
         // Узнаем сколько есть на сервере
         long srvAvailableNo = mailer.getSrvState("to");
 
+        // Физически забираем данные
+        receiveInternal(mailerLocal, selfReceivedNo + 1, srvAvailableNo);
+    }
+
+
+    // Физически забираем данные
+    public void receive() throws Exception {
+        // Узнаем сколько получено у нас
+        long selfReceivedNo = queIn.getMaxNo();
+
+        // Узнаем сколько есть на сервере
+        long srvAvailableNo = mailer.getSrvState("to");
+
+        // Физически отправляем данные
+        selfReceivedNo = selfReceivedNo + 1;
+        receiveInternal(mailer, selfReceivedNo, srvAvailableNo);
+    }
+
+
+    void receiveInternal(IMailer mailer, long no_from, long no_to) throws Exception {
+
         //
         long count = 0;
-        for (long no = selfReceivedNo + 1; no <= srvAvailableNo; no++) {
+        for (long no = no_from; no <= no_to; no++) {
             log.info("receive, wsId: " + wsId + ", receiving.no: " + no);
 
             // Информация о реплике с почтового сервера
@@ -830,7 +838,7 @@ public class JdxReplWs {
             // Нужно ли скачивать эту реплику с сервера?
             IReplica replica;
             if (info.getWsId() == wsId && info.getReplicaType() == JdxReplicaType.SNAPSHOT) {
-                // Свои собственные установочные реплики можно не скачивать (и не применять)
+                // Свои собственные установочные реплики (snapshot таблиц) можно не скачивать (и не применять)
                 log.info("Found self snapshot replica, age: " + info.getAge());
                 //
                 replica = new ReplicaFile();
@@ -877,10 +885,10 @@ public class JdxReplWs {
 
 
         //
-        if (selfReceivedNo <= srvAvailableNo) {
-            log.info("UtMailer, wsId: " + wsId + ", receive.no: " + selfReceivedNo + " .. " + srvAvailableNo + ", done count: " + count);
+        if (no_from <= no_to) {
+            log.info("UtMailer, wsId: " + wsId + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
         } else {
-            log.info("UtMailer, wsId: " + wsId + ", receive.no: " + selfReceivedNo + ", nothing to receive");
+            log.info("UtMailer, wsId: " + wsId + ", receive.no: " + no_from + ", nothing to receive");
         }
     }
 
@@ -925,15 +933,24 @@ public class JdxReplWs {
     }
 
     public void send() throws Exception {
+        // Узнаем сколько есть у нас в очереди на отправку
+        long selfQueOutAge = queOut.getMaxAge();
+
         // Узнаем сколько уже отправлено на сервер
         JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
         long srvSendAge = stateManager.getMailSendDone();
 
-        // Узнаем сколько есть у нас в очереди на отправку
-        long selfQueOutAge = queOut.getMaxAge();
+        // Узнаем сколько просит сервер
+        long srvRequireSendAge = mailer.getSendRequired("from");
+        if (srvRequireSendAge != 0) {
+            log.info("Repeat send required, srvRequireSendAge: " + srvRequireSendAge + ", srvSendAge: " + srvSendAge);
+            srvSendAge = srvRequireSendAge;
+        } else {
+            srvSendAge = srvSendAge + 1;
+        }
 
         // Физически отправляем данные
-        sendInternal(mailer, srvSendAge + 1, selfQueOutAge, true);
+        sendInternal(mailer, srvSendAge, selfQueOutAge, true);
     }
 
     void sendInternal(IMailer mailer, long age_from, long age_to, boolean doMarkDone) throws Exception {
