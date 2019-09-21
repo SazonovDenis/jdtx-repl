@@ -13,6 +13,7 @@ import org.junit.*;
 import java.io.*;
 
 /**
+ *
  */
 public class DbPrepareEtalon_Test extends AppTestCase {
 
@@ -51,6 +52,27 @@ public class DbPrepareEtalon_Test extends AppTestCase {
     @Test
     public void test_PrepareEtalon() throws Exception {
         prepareEtalon();
+    }
+
+    @Test
+    public void test_ConnectAll() throws Exception {
+        db.disconnect();
+        db2.disconnect();
+        db3.disconnect();
+
+        db.connect();
+        System.out.println("db1.connect()");
+        db2.connect();
+        System.out.println("db2.connect()");
+        db3.connect();
+        System.out.println("db3.connect()");
+
+        db.disconnect();
+        System.out.println("db1.disconnect()");
+        db2.disconnect();
+        System.out.println("db2.disconnect()");
+        db3.disconnect();
+        System.out.println("db3.disconnect()");
     }
 
 
