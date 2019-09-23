@@ -237,7 +237,7 @@ public class MailerHttp_Test extends AppTestCase {
         System.out.println("required: " + required1);
 
         // ---
-        mailer.setSendRequired("from", 0);
+        mailer.setSendRequired("from", -1);
 
 
         // ---

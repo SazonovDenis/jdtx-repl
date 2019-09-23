@@ -942,8 +942,8 @@ public class JdxReplWs {
 
         // Узнаем сколько просит сервер
         long srvRequireSendAge = mailer.getSendRequired("from");
-        if (srvRequireSendAge != 0) {
-            log.info("Repeat send required, srvRequireSendAge: " + srvRequireSendAge + ", srvSendAge: " + srvSendAge);
+        if (srvRequireSendAge != -1) {
+            log.warn("Repeat send required, srvRequireSendAge: " + srvRequireSendAge + ", srvSendAge: " + srvSendAge);
             srvSendAge = srvRequireSendAge;
         } else {
             srvSendAge = srvSendAge + 1;
