@@ -129,9 +129,9 @@ public class MailerHttp implements IMailer {
         // Защита от ситуации "восстановление на клиенте БД из бэкапа"
         JSONObject resState = getState_internal(box);
         JSONObject last_info = (JSONObject) resState.get("last_info");
-        long srv_age = Long.valueOf(String.valueOf(last_info.getOrDefault("age", "0")));
+        long srv_age = Long.valueOf(String.valueOf(last_info.getOrDefault("age", 0)));
         JSONObject required = (JSONObject) resState.get("required");
-        long srv_required_send = Long.valueOf(String.valueOf(required.get("required")));
+        long srv_required_send = Long.valueOf(String.valueOf(required.getOrDefault("required", -1)));
         if (no <= srv_age && srv_required_send == -1) {
             throw new XError("invalid replica.no, send.no: " + no + ", srv.no: " + srv_age);
         }
