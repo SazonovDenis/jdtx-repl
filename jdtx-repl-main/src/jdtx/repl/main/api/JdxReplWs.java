@@ -951,6 +951,12 @@ public class JdxReplWs {
 
         // Физически отправляем данные
         sendInternal(mailer, srvSendAge, selfQueOutAge, true);
+
+        // Снимем флаг просьбы сервера
+        if (srvRequireSendAge != -1) {
+            mailer.setSendRequired("from", -1);
+            log.warn("Repeat send done");
+        }
     }
 
     void sendInternal(IMailer mailer, long age_from, long age_to, boolean doMarkDone) throws Exception {
