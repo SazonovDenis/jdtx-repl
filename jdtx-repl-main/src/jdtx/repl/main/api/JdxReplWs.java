@@ -513,7 +513,7 @@ public class JdxReplWs {
 
                     // Распаковываем бинарник
                     // TODO Обработать ситуацию, когда антивирус съел бинарник.
-                    // Надо научиться при отстсвии бинаарника снова искать последнюю реплику и распаковывать бинарник непосредственно перед запуском
+                    // Надо научиться при отсутствии бинаарника снова искать последнюю реплику и распаковывать бинарник непосредственно перед запуском
                     InputStream replicaStream = UtRepl.createInputStream(replica, ".exe");
                     try {
                         UtFile.mkdirs("install");
@@ -826,11 +826,12 @@ public class JdxReplWs {
 
 
     void receiveInternal(IMailer mailer, long no_from, long no_to) throws Exception {
+        log.info("UtMailer, self.wsId: " + wsId);
 
         //
         long count = 0;
         for (long no = no_from; no <= no_to; no++) {
-            log.info("receive, wsId: " + wsId + ", receiving.no: " + no);
+            log.info("receive, receiving.no: " + no);
 
             // Информация о реплике с почтового сервера
             ReplicaInfo info = mailer.getReplicaInfo("to", no);
@@ -886,9 +887,9 @@ public class JdxReplWs {
 
         //
         if (no_from <= no_to) {
-            log.info("UtMailer, wsId: " + wsId + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
+            log.info("UtMailer, self.wsId: " + wsId + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
         } else {
-            log.info("UtMailer, wsId: " + wsId + ", receive.no: " + no_from + ", nothing to receive");
+            log.info("UtMailer, self.wsId: " + wsId + ", receive.no: " + no_from + ", nothing to receive");
         }
     }
 
@@ -960,12 +961,15 @@ public class JdxReplWs {
     }
 
     void sendInternal(IMailer mailer, long age_from, long age_to, boolean doMarkDone) throws Exception {
+        log.info("UtMailer.send, self.wsId: " + wsId);
+
+        //
         JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
 
         //
         long count = 0;
         for (long age = age_from; age <= age_to; age++) {
-            log.info("UtMailer, wsId: " + wsId + ", sending.age: " + age);
+            log.info("send, sending.age: " + age);
 
             // Берем реплику
             IReplica replica = queOut.getByAge(age);
@@ -993,9 +997,9 @@ public class JdxReplWs {
 
         //
         if (age_from <= age_to) {
-            log.info("UtMailer, wsId: " + wsId + ", send.age: " + age_from + " .. " + age_to + ", done count: " + count);
+            log.info("UtMailer, self.wsId: " + wsId + ", send.age: " + age_from + " .. " + age_to + ", done count: " + count);
         } else {
-            log.info("UtMailer, wsId: " + wsId + ", send.age: " + age_from + ", nothing to send");
+            log.info("UtMailer, self.wsId: " + wsId + ", send.age: " + age_from + ", nothing to send");
         }
     }
 
