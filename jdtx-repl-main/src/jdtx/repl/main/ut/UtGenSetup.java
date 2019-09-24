@@ -4,13 +4,12 @@ import jandcode.app.*;
 import jandcode.jc.*;
 import jandcode.utils.*;
 import jandcode.web.*;
-import jdtx.repl.main.ut.*;
 
 import java.io.*;
 import java.util.*;
 
 /**
- * Генератор bat-файлов для первичной настройки рабочих станций на клинете и сервере после инсталяции.
+ * Генератор bat-файлов для первичной настройки рабочих станций на клиенте и сервере после инсталяции.
  */
 public class UtGenSetup extends ProjectExt {
 
@@ -54,15 +53,15 @@ public class UtGenSetup extends ProjectExt {
         args_srv.put("ws_list", ws_list);
 
 
+        // Файл: setup.srv.bat
         // Настройка сервера
-        // setup.srv.bat
         OutBuilder b = new OutBuilder(app);
         b.outTml("res:jdtx/repl/main/ut/UtGenSetup.srv.bat.gsp", args_srv, null);
         UtFile.saveString(b.toString(), new File(outDirName + "setup." + name_main + ".srv.bat"), "cp866");
 
 
+        // Файл: setup.ws.bat
         // Настройка рабочих станций
-        // setup.ws.bat
         for (int i = 1; i < lines.length; i++) {
             ws = (Map) ws_list.get(i);
             Map args_ws = new HashMap();
@@ -75,5 +74,11 @@ public class UtGenSetup extends ProjectExt {
             b.outTml("res:jdtx/repl/main/ut/UtGenSetup.ws.bat.gsp", args_ws, null);
             UtFile.saveString(b.toString(), new File(outDirName + "setup." + name_main + ".ws" + ws.get("ws_no") + ".bat"), "cp866");
         }
+
+        // Файл: ws_list.json
+        // Список рабочих станций
+        b = new OutBuilder(app);
+        b.outTml("res:jdtx/repl/main/ut/UtGenSetup.ws_list.json.gsp", args_srv, null);
+        UtFile.saveString(b.toString(), new File(outDirName + "ws_list.json"), "utf-8");
     }
 }
