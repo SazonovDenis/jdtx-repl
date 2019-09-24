@@ -404,7 +404,7 @@ public class JdxReplSrv {
         // До скольки раздавать
         long no_to_ws = no_to;
         if (no_to_ws == 0L) {
-            // Не указано - зададим сами - все что у нас есть на раздачу
+            // Не указано - раздаем все что у нас есть на раздачу
             no_to_ws = commonQue.getMaxNo();
         }
 
@@ -422,6 +422,13 @@ public class JdxReplSrv {
                 if (no_from_ws == 0L) {
                     // Не указано - зададим сами (от последней отправленной)
                     no_from_ws = stateManager.getCommonQueDispatchDone(wsId) + 1;
+                }
+
+                // Узнаем сколько просит станция
+                long no_from_required = mailer.getSendRequired("to");
+                if (no_from_required != -1) {
+                    log.warn("Repeat send required, no_from_required: " + no_from_required + ", no_from_ws: " + no_from_ws);
+                    no_from_ws = no_from_required;
                 }
 
                 //
@@ -450,6 +457,12 @@ public class JdxReplSrv {
                 //
                 Map info = getInfoSrv();
                 mailer.setSrvInfo(info);
+
+                // Снимем флаг просьбы сервера
+                if (no_from_required != -1) {
+                    mailer.setSendRequired("to", -1);
+                    log.warn("Repeat send done");
+                }
 
                 //
                 if (no_from_ws <= no_to_ws) {
