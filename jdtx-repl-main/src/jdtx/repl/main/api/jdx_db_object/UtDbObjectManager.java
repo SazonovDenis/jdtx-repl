@@ -85,8 +85,9 @@ public class UtDbObjectManager {
             //
             String[] sqlArr = sqls.split(";");
             for (int ver_step_i = ver_step; ver_step_i < sqlArr.length; ) {
-                sqls = sqlArr[ver_step_i];
-                if (sqls.trim().length() == 0) {
+                sqls = sqlArr[ver_step_i].trim();
+                if (sqls.length() == 0) {
+                    ver_step_i = ver_step_i + 1;
                     continue;
                 }
                 //
