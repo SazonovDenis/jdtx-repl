@@ -629,6 +629,18 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
+    public void test_init_srv() throws Exception {
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init();
+    }
+
+    @Test
+    public void test_init_ws2() throws Exception {
+        JdxReplSrv ws2 = new JdxReplSrv(db2);
+        ws2.init();
+    }
+
+    @Test
     public void test_sync_srv() throws Exception {
         // Сервер, настройка
         JdxReplSrv srv = new JdxReplSrv(db);
