@@ -75,9 +75,8 @@ public class UtDbObjectManager {
         // Обновляем версию
         int ver_i = ver;
         int ver_to = CURRENT_VER_DB;
-        int ver_step_i = ver_step;
         while (ver_i < ver_to) {
-            log.info("Смена версии: " + ver_i + "." + ver_step_i + " -> " + (ver_i + 1) + ".0");
+            log.info("Смена версии: " + ver_i + "." + ver_step + " -> " + (ver_i + 1) + ".0");
 
             //
             String updateFileName = "update_" + UtString.padLeft(String.valueOf(ver_i), 3, "0") + "_" + UtString.padLeft(String.valueOf(ver_i + 1), 3, "0") + ".sql";
@@ -85,26 +84,27 @@ public class UtDbObjectManager {
 
             //
             String[] sqlArr = sqls.split(";");
-            for (ver_step_i = ver_step; ver_step_i < sqlArr.length; ver_step_i = ver_step_i + 1) {
+            for (int ver_step_i = ver_step; ver_step_i < sqlArr.length; ) {
                 sqls = sqlArr[ver_step_i];
                 if (sqls.trim().length() == 0) {
                     continue;
                 }
                 //
-                log.info("Смена версии, шаг: " + ver_i + "." + (ver_step_i + 1));
+                log.info("Смена версии, шаг: " + ver_i + "." + ver_step_i);
                 //
                 db.execSql(sqls);
                 //
-                db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + (ver_step_i + 1) + " where id = 1");
+                ver_step_i = ver_step_i + 1;
+                db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step_i + " where id = 1");
             }
 
             //
             ver_i = ver_i + 1;
-            //
-            db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = 0 where id = 1");
+            ver_step = 0;
+            db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step + " where id = 1");
 
             //
-            log.info("Смена версии до: " + (ver_i) + ".0 - ok");
+            log.info("Смена версии до: " + ver_i + "." + ver_step + " - ok");
         }
     }
 
