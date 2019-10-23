@@ -44,27 +44,27 @@ public class RefDecodeStrategy {
         }
     }
 
-    // todo: возможно есть более сложное поведение. Это может быть перекрыто в кастомных обработчиках
+    // todo: Это поведение для PS. Возможно есть более сложное поведение, тогда это должно быть перекрыто в кастомных обработчиках
     protected boolean needDecode(String tableName, long ws_id, long db_id) {
-        RefDecodeStrategyItem strategyItem = tablesDecodeStrategy.get(tableName);
+        RefDecodeStrategyItem tableDecodeStrategy = tablesDecodeStrategy.get(tableName);
 
         // Для PS: id находится в нерегулируемом диапазоне.
         if (db_id <= 0) {
             return false;
         }
 
-        // Стратегия не задана - по умолчанию перекодировать
-        if (strategyItem == null) {
+        // Стратегия для таблицы не задана - по умолчанию перекодировать
+        if (tableDecodeStrategy == null) {
             return true;
         }
 
         // Стратегия "не перекодировать"
-        if (strategyItem.strategy == NO_DECODE) {
+        if (tableDecodeStrategy.strategy == NO_DECODE) {
             return false;
         }
 
         // Стратегия "перекодировать" - проверяем диапазон
-        if (strategyItem.strategy == DECODE_ID && db_id < strategyItem.decode_from_id) {
+        if (tableDecodeStrategy.strategy == DECODE_ID && db_id < tableDecodeStrategy.decode_from_id) {
             return false;
         }
 

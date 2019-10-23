@@ -25,7 +25,7 @@ public class UtDataSelector {
     }
 
     /**
-     * Если в таблице есть ссылка на самого себя, обязана обеспечить правильную последовательность записей.
+     * Если в таблице есть ссылка на самого себя, процедура обязана обеспечить правильную последовательность записей.
      */
     public void readAllRecords(String tableName, String tableFields, JdxReplicaWriterXml dataWriter) throws Exception {
         IJdxTable table = struct.getTable(tableName);

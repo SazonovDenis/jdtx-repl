@@ -11,8 +11,9 @@ import java.util.*;
 
 /**
  * Перекодировщик ссылок.
- * Работает на допущении, что до определенного id записи принадлежат этой рабочей станции,
+ * Работает на допущении, что до определенного id - записи принадлежат этой рабочей станции,
  * а выше некоторого id - это места для перекодированных записей с других станций.
+ * Чужие id занимают диапазоны по слотам, по мере поступления записей.
  */
 public class RefDecoder implements IRefDecoder {
 
@@ -241,7 +242,7 @@ public class RefDecoder implements IRefDecoder {
         return own_slot_no * SLOT_SIZE + id % SLOT_SIZE;
     }
 
-    // Записываем новый слот
+    // Записываем новый слот в БД
     private void writeSlotToDb(String tableName, long ws_id, long ws_slot_no, long own_slot_no) throws Exception {
         Map params = UtCnv.toMap(
                 "table_name", tableName,
