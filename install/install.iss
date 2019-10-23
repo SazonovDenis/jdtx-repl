@@ -94,6 +94,8 @@ Source: install\sample.log.properties;           DestDir: {app}\web\WEB-INF;    
 Source: install\cfg\decode_strategy.json;        DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 Source: install\cfg\publication_up_152_srv.json; DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 Source: install\cfg\publication_up_152_ws.json;  DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
+Source: install\cfg\publication_up_163_srv.json; DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
+Source: install\cfg\publication_up_163_ws.json;  DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 Source: install\cfg\sample.ws.json;              DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 
 Source: install\sample.srv._app.rt;              DestDir: {app}\web\WEB-INF;     Flags: ignoreversion;     DestName: sample.srv._app.rt; 
