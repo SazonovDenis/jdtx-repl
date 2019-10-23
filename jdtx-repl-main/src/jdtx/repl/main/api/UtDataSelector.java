@@ -43,6 +43,7 @@ public class UtDataSelector {
             // Данные помещаем в dataWriter
             long count = 0;
             while (!rsTableLog.eof()) {
+                // Добавляем запись
                 dataWriter.appendRec();
 
                 // Тип операции
@@ -66,6 +67,7 @@ public class UtDataSelector {
                     //
                     dataWriter.setRecValue(fieldName, fieldValue);
                 }
+
                 //
                 rsTableLog.next();
 
