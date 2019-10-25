@@ -87,10 +87,10 @@ public class MailerHttp implements IMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        handleErrors(response);
+        handleHttpErrors(response);
 
         //
-        JSONObject res = parseResult(response);
+        JSONObject res = parseHttpResponse(response);
 
         //
         JSONObject required = (JSONObject) res.get("required");
@@ -111,10 +111,10 @@ public class MailerHttp implements IMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        handleErrors(response);
+        handleHttpErrors(response);
 
         //
-        parseResult(response);
+        parseHttpResponse(response);
     }
 
     @Override
@@ -148,7 +148,7 @@ public class MailerHttp implements IMailer {
 
         // Большие письма отправляем с докачкой, для чего сначала выясняем, что уже успели закачать
         if (totalBytes > HTTP_FILE_MAX_SIZE) {
-            JSONObject resInfo = getInfo_internal(box, no);
+            JSONObject resInfo = getInfo_internal(box, no, false);
             JSONObject part_info = (JSONObject) resInfo.get("part_info");
             sentBytes = (long) part_info.get("total_bytes");
             filePart = (long) part_info.get("part_max_no");
@@ -190,9 +190,9 @@ public class MailerHttp implements IMailer {
             HttpResponse response = client.execute(post);
 
             //
-            handleErrors(response);
+            handleHttpErrors(response);
             //
-            parseResult(response);
+            parseHttpResponse(response);
 
             //
             filePart = filePart + 1;
@@ -288,7 +288,7 @@ public class MailerHttp implements IMailer {
             //
             HttpResponse response = httpclient.execute(httpGet);
             //
-            handleErrors(response);
+            handleHttpErrors(response);
 
             // Физическая скачка происходит в методе response.getEntity.
             // Поэтому buff получается сразу готовым, его можно безопасно дописывать в конец частично скачанному.
@@ -336,10 +336,10 @@ public class MailerHttp implements IMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        handleErrors(response);
+        handleHttpErrors(response);
 
         //
-        parseResult(response);
+        parseHttpResponse(response);
     }
 
 
@@ -356,10 +356,10 @@ public class MailerHttp implements IMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        handleErrors(response);
+        handleHttpErrors(response);
 
         //
-        parseResult(response);
+        parseHttpResponse(response);
     }
 
 
@@ -376,10 +376,10 @@ public class MailerHttp implements IMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        handleErrors(response);
+        handleHttpErrors(response);
 
         //
-        parseResult(response);
+        parseHttpResponse(response);
     }
 
 
@@ -400,10 +400,10 @@ public class MailerHttp implements IMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        handleErrors(response);
+        handleHttpErrors(response);
 
         //
-        parseResult(response);
+        parseHttpResponse(response);
     }
 
 
@@ -423,10 +423,10 @@ public class MailerHttp implements IMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        handleErrors(response);
+        handleHttpErrors(response);
 
         //
-        JSONObject res = parseResult(response);
+        JSONObject res = parseHttpResponse(response);
 
         //
         return res;
@@ -434,6 +434,10 @@ public class MailerHttp implements IMailer {
 
 
     JSONObject getInfo_internal(String box, long no) throws Exception {
+        return getInfo_internal(box, no, true);
+    }
+
+    JSONObject getInfo_internal(String box, long no, boolean doRaiseErrors) throws Exception {
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
@@ -446,10 +450,15 @@ public class MailerHttp implements IMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        handleErrors(response);
+        handleHttpErrors(response);
 
         //
-        JSONObject res = parseResult(response);
+        JSONObject res = parseHttpResponse(response);
+
+        //
+        if (doRaiseErrors && res.get("error") != null) {
+            throw new XError(String.valueOf(res.get("error")));
+        }
 
         //
         return res;
@@ -489,10 +498,10 @@ public class MailerHttp implements IMailer {
         HttpResponse response = client.execute(post);
 
         //
-        handleErrors(response);
+        handleHttpErrors(response);
 
         //
-        parseResult(response);
+        parseHttpResponse(response);
     }
 
     byte[] readFilePart(File file, long pos, int file_max_size) throws IOException {
@@ -505,10 +514,10 @@ public class MailerHttp implements IMailer {
         return buff;
     }
 
-    void handleErrors(HttpResponse response) throws Exception {
+    void handleHttpErrors(HttpResponse response) throws Exception {
         if (response.getStatusLine().getStatusCode() != 200) {
             String resStr = EntityUtils.toString(response.getEntity());
-            JSONObject res = null;
+            JSONObject res;
             try {
                 res = parseJson(resStr);
             } catch (Exception e) {
@@ -523,12 +532,9 @@ public class MailerHttp implements IMailer {
 
     }
 
-    JSONObject parseResult(HttpResponse response) throws Exception {
+    JSONObject parseHttpResponse(HttpResponse response) throws Exception {
         String resStr = EntityUtils.toString(response.getEntity());
         JSONObject res = parseJson(resStr);
-        if (res.get("error") != null) {
-            throw new XError(String.valueOf(res.get("error")));
-        }
         return res;
     }
 
@@ -592,9 +598,9 @@ public class MailerHttp implements IMailer {
         HttpResponse response = httpclient.execute(httpGet);
 
         //
-        handleErrors(response);
+        handleHttpErrors(response);
         //
-        parseResult(response);
+        parseHttpResponse(response);
     }
 
 
