@@ -11,6 +11,7 @@ import java.util.*;
 
 public class JdxUtils {
 
+
     public static final String prefix = "Z_";
 
     public static final String audit_table_prefix = prefix;
@@ -23,8 +24,9 @@ public class JdxUtils {
 
     public static final String trig_pref = prefix + "T_";
 
+
     /**
-     * Сортирует список таблиц с учетом foreign key.
+     * Сортирует список таблиц с учетом foreign key и по алфавиту.
      * Результат можно применять для определения порядка таблиц при ins.
      *
      * @param lst исходный список
@@ -41,26 +43,38 @@ public class JdxUtils {
         List<IJdxTable> restLst = new ArrayList<IJdxTable>();
         restLst.addAll(lst);
 
+        //
+        JdxTableComparator tableComparator = new JdxTableComparator();
+
+        // В первую итерацию в sortLst помещаем таблицы, не ссылающиеся на другие таблицы
+        List<IJdxTable> curLst = new ArrayList<IJdxTable>();
         int i = 0;
-        // в первую очередь в sortLst помещаем таблицы, не ссылающиеся на другие таблицы
         while (i < restLst.size()) {
+            IJdxTable table = restLst.get(i);
             // если нет внешних ключей
-            if (restLst.get(i).getForeignKeys().size() == 0) {
-                sortLst.add(restLst.get(i));
-                usedLst.add(restLst.get(i));
+            if (table.getForeignKeys().size() == 0) {
                 restLst.remove(i);
+                curLst.add(table);
             } else {
                 i++;
             }
         }
 
-        // для всех добавленных таблиц ищем зависимые таблицы и добавляем их в sortLst до тех пор,
-        // пока в sortLst не будут все таблицы
+        // Отсортируем по алфавиту первую итерацию
+        curLst.sort(tableComparator);
+
+        // К списку отсортированнных и использованных таблиц прибавляем список таблиц первой итерации
+        sortLst.addAll(curLst);
+        usedLst.addAll(curLst);
+
+
+        // Для всех добавленных (и отсортированных) таблиц ищем зависимые таблицы и добавляем их в sortLst до тех пор,
+        // пока в sortLst не окажутся все таблицы
         while (restLst.size() != 0) {
             // список таблиц, добавленных на данной итерации
-            List<IJdxTable> curLst = new ArrayList<IJdxTable>();
+            curLst.clear();
 
-            // ищем таблицы, ссылающиеся на уже имеющиеся в usedtLst таблицы
+            // Ищем таблицы, ссылающиеся на уже имеющиеся в usedLst таблицы
             i = 0;
             while (i < restLst.size()) {
                 IJdxTable table = restLst.get(i);
@@ -69,7 +83,7 @@ public class JdxUtils {
                 // ссылается-ли table на таблицы из уже отсортированных (usedLst)
                 boolean willAdd = true;
                 for (IJdxForeignKey fk : table.getForeignKeys()) {
-                    // если ссылка в таблице ссылается не на эту же таблицу,
+                    // Если ссылка в таблице ссылается не на эту же таблицу,
                     // и целевая таблица была в исходном списке,
                     // и целевая таблица пока отсутствует в usedLst,
                     // то таблицу пока пропускаем
@@ -83,8 +97,7 @@ public class JdxUtils {
 
                 //
                 if (willAdd) {
-                    // таблица ссылается только на кого-либо из уже отсортированных (usedLst)
-                    sortLst.add(table);
+                    // Таблица ссылается только на кого-либо из уже отсортированных (usedLst)
                     restLst.remove(i);
                     curLst.add(table);
                 } else {
@@ -92,7 +105,11 @@ public class JdxUtils {
                 }
             }
 
-            // к списку использованных таблиц прибавляем список таблиц, добавленных на данной итерации
+            // Отсортируем по алфавиту список таблиц, добавленных на данной итерации
+            curLst.sort(tableComparator);
+
+            // К списку отсортированнных и использованных таблиц прибавляем список таблиц, добавленных на данной итерации
+            sortLst.addAll(curLst);
             usedLst.addAll(curLst);
 
             //
@@ -101,7 +118,7 @@ public class JdxUtils {
             }
         }
 
-        // отсортированный список таблиц
+        // Отсортированный список таблиц
         return sortLst;
     }
 
@@ -227,6 +244,14 @@ public class JdxUtils {
             return true;
         } else {
             return false;
+        }
+    }
+
+    private static class JdxTableComparator implements Comparator {
+        public int compare(Object o1, Object o2) {
+            IJdxTable table1 = (IJdxTable) o1;
+            IJdxTable table2 = (IJdxTable) o2;
+            return table1.getName().compareToIgnoreCase(table2.getName());
         }
     }
 

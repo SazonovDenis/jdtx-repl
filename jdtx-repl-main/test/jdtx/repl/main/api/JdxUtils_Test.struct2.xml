@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <table name="APPUPDATE">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="APPVER" size="50" dbdatatype="VARCHAR"/>
+        <field name="APPNAME" size="250" dbdatatype="VARCHAR"/>
+        <field name="APPDT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="APP" size="0" dbdatatype="BLOB SUB_TYPE 0"/>
+    </table>
+    <table name="BONDTIP">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="BONDKIND" size="10" dbdatatype="INTEGER"/>
+        <field name="BONDFACEVALUE" size="7" dbdatatype="FLOAT"/>
+    </table>
+    <table name="DATATIP">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+    </table>
+    <table name="INVENTORY">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="DBEG" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="DEND" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="USR" size="10" dbdatatype="INTEGER"/>
+        <field name="FILTERSTR" size="2000" dbdatatype="VARCHAR"/>
+        <fk name="FK_INV_USR" field="USR" table="USR" tablefield="ID"/>
+    </table>
+    <table name="USR">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="USERNAME" size="15" dbdatatype="VARCHAR"/>
+        <field name="NAME" size="100" dbdatatype="VARCHAR"/>
+        <field name="PASSWD" size="80" dbdatatype="VARCHAR"/>
+        <field name="USRGRP" size="10" dbdatatype="INTEGER"/>
+        <field name="USROTDEL" size="10" dbdatatype="INTEGER"/>
+        <field name="LICDOCTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="DOCNO" size="50" dbdatatype="VARCHAR"/>
+        <field name="DOCSER" size="20" dbdatatype="VARCHAR"/>
+        <field name="LICDOCVID" size="10" dbdatatype="INTEGER"/>
+        <field name="DOCDT" size="19" dbdatatype="TIMESTAMP"/>
+        <fk name="FK_USR_LICDOCTIP" field="LICDOCTIP" table="LICDOCTIP"
+            tablefield="ID"/>
+        <fk name="FK_USR_LICDOCVID" field="LICDOCVID" table="LICDOCVID"
+            tablefield="ID"/>
+    </table>
+    <table name="LICDOCTIP">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="SHORTNAME" size="15" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="LICDOCVID">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+    </table>
+    <table name="REGIONTIP">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="SHORTNAME" size="15" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="REGION">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="200" dbdatatype="VARCHAR"/>
+        <field name="REGIONTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="PARENT" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_REGION_PARENT" field="PARENT" table="REGION"
+            tablefield="ID"/>
+        <fk name="FK_REGION_REGIONTIP" field="REGIONTIP" table="REGIONTIP"
+            tablefield="ID"/>
+    </table>
+    <table name="LIC">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAMEF" size="30" dbdatatype="VARCHAR"/>
+        <field name="NAMEI" size="30" dbdatatype="VARCHAR"/>
+        <field name="NAMEO" size="30" dbdatatype="VARCHAR"/>
+        <field name="BORNDT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="RNN" size="12" dbdatatype="VARCHAR"/>
+        <field name="LICDOCTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="DOCNO" size="50" dbdatatype="VARCHAR"/>
+        <field name="DOCSER" size="20" dbdatatype="VARCHAR"/>
+        <field name="LICDOCVID" size="10" dbdatatype="INTEGER"/>
+        <field name="DOCDT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="REGION" size="10" dbdatatype="INTEGER"/>
+        <field name="ULZ" size="10" dbdatatype="INTEGER"/>
+        <field name="DOM" size="12" dbdatatype="VARCHAR"/>
+        <field name="KV" size="12" dbdatatype="VARCHAR"/>
+        <field name="TEL" size="50" dbdatatype="VARCHAR"/>
+        <field name="INFO" size="200" dbdatatype="VARCHAR"/>
+        <fk name="FK_LIC_LICDOCTIP" field="LICDOCTIP" table="LICDOCTIP"
+            tablefield="ID"/>
+        <fk name="FK_LIC_LICDOCVID" field="LICDOCVID" table="LICDOCVID"
+            tablefield="ID"/>
+        <fk name="FK_LIC_REGION" field="REGION" table="REGION" tablefield="ID"/>
+    </table>
+    <table name="LICDAT">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHITDATSTRUCTVALUES" size="10" dbdatatype="INTEGER"/>
+        <field name="LIC" size="10" dbdatatype="INTEGER"/>
+        <field name="DAT" size="0" dbdatatype="BLOB SUB_TYPE 0"/>
+        <fk name="FK_LICDAT_LIC" field="LIC" table="LIC" tablefield="ID"/>
+    </table>
+</root>

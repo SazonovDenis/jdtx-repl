@@ -1,0 +1,731 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <table name="APPUPDATE">
+        <field name="APP" size="0" dbdatatype="BLOB SUB_TYPE 0"/>
+        <field name="APPDT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="APPNAME" size="250" dbdatatype="VARCHAR"/>
+        <field name="APPVER" size="50" dbdatatype="VARCHAR"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+    </table>
+    <table name="BILLINGVARHIST">
+        <field name="DBEG" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="DEND" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="SUBJECTTIP" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_BVHIST_SUBJECTTIP" field="SUBJECTTIP" table="SUBJECTTIP"
+            tablefield="ID"/>
+    </table>
+    <table name="BILLINGVARVALUES">
+        <field name="BILLINGVARHIST" size="10" dbdatatype="INTEGER"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="VARTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="VARVALUEFLT" size="7" dbdatatype="FLOAT"/>
+        <field name="VARVALUESTR" size="200" dbdatatype="VARCHAR"/>
+        <fk name="FK_BVVALUES_BILLINGVARHIST" field="BILLINGVARHIST"
+            table="BILLINGVARHIST" tablefield="ID"/>
+        <fk name="FK_BVVALUES_VARTIP" field="VARTIP" table="VARTIP"
+            tablefield="ID"/>
+    </table>
+    <table name="BONDTIP">
+        <field name="BONDFACEVALUE" size="7" dbdatatype="FLOAT"/>
+        <field name="BONDKIND" size="10" dbdatatype="INTEGER"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+    </table>
+    <table name="CASHENCASH">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INFO" size="500" dbdatatype="VARCHAR"/>
+        <field name="OPR" size="10" dbdatatype="INTEGER"/>
+        <field name="ORDERNO" size="16" dbdatatype="VARCHAR"/>
+        <field name="REASON" size="10" dbdatatype="INTEGER"/>
+        <field name="USR" size="10" dbdatatype="INTEGER"/>
+        <field name="WS_LIST_DEST" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_CASHENCASH_OPR" field="OPR" table="OPR" tablefield="ID"/>
+        <fk name="FK_CASHENCASH_REASON" field="REASON" table="CASHENCASHREASON"
+            tablefield="ID"/>
+        <fk name="FK_CASHENCASH_USR" field="USR" table="USR" tablefield="ID"/>
+    </table>
+    <table name="CASHENCASHREASON">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="CASHLOG">
+        <field name="CASHSUMM" size="18" dbdatatype="NUMERIC"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="OPR" size="10" dbdatatype="INTEGER"/>
+        <field name="OPRSUMM" size="18" dbdatatype="NUMERIC"/>
+        <field name="WS_LIST" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_CASHLOG_OPR" field="OPR" table="OPR" tablefield="ID"/>
+        <fk name="FK_CASHLOG_WS_LIST" field="WS_LIST" table="WS_LIST"
+            tablefield="ID"/>
+    </table>
+    <table name="CASHORDERGEN">
+        <field name="GENIN" size="10" dbdatatype="INTEGER"/>
+        <field name="GENOUT" size="10" dbdatatype="INTEGER"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="WS_LIST" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_CASHORDERGEN_WS_LIST" field="WS_LIST" table="WS_LIST"
+            tablefield="ID"/>
+    </table>
+    <table name="CASHSUMM">
+        <field name="CASHSUMM" size="18" dbdatatype="NUMERIC"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="WS_LIST" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_CASHSUMM_WS_LIST" field="WS_LIST" table="WS_LIST"
+            tablefield="ID"/>
+    </table>
+    <table name="COMMENTTEXT">
+        <field name="COMMENTDT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="COMMENTTEXT" size="500" dbdatatype="VARCHAR"/>
+        <field name="COMMENTTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="COMMENTUSR" size="10" dbdatatype="INTEGER"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="LIC" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHIT" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHITSUBJECT" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_COMMENTTEXT_COMMENTTIP" field="COMMENTTIP"
+            table="COMMENTTIP" tablefield="ID"/>
+        <fk name="FK_COMMENTTEXT_COMMENTUSR" field="COMMENTUSR" table="USR"
+            tablefield="ID"/>
+        <fk name="FK_COMMENTTEXT_LIC" field="LIC" table="LIC" tablefield="ID"/>
+        <fk name="FK_COMMENTTEXT_PAWNCHIT" field="PAWNCHIT" table="PAWNCHIT"
+            tablefield="ID"/>
+        <fk name="FK_COMMENTTEXT_PAWNCHITSUBJECT" field="PAWNCHITSUBJECT"
+            table="PAWNCHITSUBJECT" tablefield="ID"/>
+    </table>
+    <table name="COMMENTTIP">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="DATATIP">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="DAYOFF">
+        <field name="DT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INFO" size="500" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="DBINFO">
+        <field name="ADDRESSSTR" size="100" dbdatatype="VARCHAR"/>
+        <field name="BASTIK" size="10" dbdatatype="INTEGER"/>
+        <field name="DBLABEL" size="250" dbdatatype="VARCHAR"/>
+        <field name="GLAVBUH" size="10" dbdatatype="INTEGER"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="OKPO" size="10" dbdatatype="VARCHAR"/>
+        <field name="ORGNAME" size="100" dbdatatype="VARCHAR"/>
+        <field name="PAWNCHIT_BIGPACKTALON" size="5" dbdatatype="SMALLINT"/>
+        <field name="PAWNCHIT_PACKTALONPOSITION" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHIT_SUBJECTCOUNTONPAGE0" size="10"
+               dbdatatype="INTEGER"/>
+        <field name="PAWNCHIT_SUBJECTCOUNTONPAGE1" size="10"
+               dbdatatype="INTEGER"/>
+        <field name="PAWNCHIT_TEXT" size="2000" dbdatatype="VARCHAR"/>
+        <field name="PAWNCHIT_TMLNAME" size="250" dbdatatype="VARCHAR"/>
+        <field name="REGION" size="10" dbdatatype="INTEGER"/>
+        <field name="RNN" size="12" dbdatatype="VARCHAR"/>
+        <field name="TELNO" size="50" dbdatatype="VARCHAR"/>
+        <field name="WORKSCHEDULE" size="150" dbdatatype="VARCHAR"/>
+        <field name="WS_LIST" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_DBINFO_BASTIK" field="BASTIK" table="USR" tablefield="ID"/>
+        <fk name="FK_DBINFO_GLAVBUH" field="GLAVBUH" table="USR" tablefield="ID"/>
+        <fk name="FK_DBINFO_REGION" field="REGION" table="REGION"
+            tablefield="ID"/>
+        <fk name="FK_DBINFO_WS_LIST" field="WS_LIST" table="WS_LIST"
+            tablefield="ID"/>
+    </table>
+    <table name="DICTLIST">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="DICTLISTVAL">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="DICTLIST" size="10" dbdatatype="INTEGER"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+        <field name="SHORTNAME" size="15" dbdatatype="VARCHAR"/>
+        <fk name="FK_DICTLISTVAL_DICTLIST" field="DICTLIST" table="DICTLIST"
+            tablefield="ID"/>
+    </table>
+    <table name="INVENTORY">
+        <field name="DBEG" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="DEND" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="FILTERSTR" size="2000" dbdatatype="VARCHAR"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="USR" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_INV_USR" field="USR" table="USR" tablefield="ID"/>
+    </table>
+    <table name="INVENTORYBOND">
+        <field name="BONDCOUNT" size="10" dbdatatype="INTEGER"/>
+        <field name="BONDFACEVALUE" size="7" dbdatatype="FLOAT"/>
+        <field name="BONDKIND" size="10" dbdatatype="INTEGER"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INVENTORY" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_INVBOND_INVENTORY" field="INVENTORY" table="INVENTORY"
+            tablefield="ID"/>
+    </table>
+    <table name="INVENTORYCASH">
+        <field name="CASHFACTSUMM" size="18" dbdatatype="NUMERIC"/>
+        <field name="CASHSUMM" size="18" dbdatatype="NUMERIC"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INVENTORY" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_INVCASH_INVENTORY" field="INVENTORY" table="INVENTORY"
+            tablefield="ID"/>
+    </table>
+    <table name="INVENTORYCHECKSUBJECT">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INVENTORY" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHITSUBJECT" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_INVCHECKSUBJ_INVENTORY" field="INVENTORY" table="INVENTORY"
+            tablefield="ID"/>
+        <fk name="FK_INVCHECKSUBJ_PAWNCHITSUBJECT" field="PAWNCHITSUBJECT"
+            table="PAWNCHITSUBJECT" tablefield="ID"/>
+    </table>
+    <table name="INVENTORYEXTRASUBJECT">
+        <field name="CHITSUBJECTNO" size="10" dbdatatype="VARCHAR"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INVENTORY" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHITSUBJECT" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_INVEXTRASUBJ_INVENTORY" field="INVENTORY" table="INVENTORY"
+            tablefield="ID"/>
+        <fk name="FK_INVEXTRASUBJ_PAWNCHITSUBJECT" field="PAWNCHITSUBJECT"
+            table="PAWNCHITSUBJECT" tablefield="ID"/>
+    </table>
+    <table name="INVENTORYMISSINGSUBJECT">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INVENTORY" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHITSUBJECT" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_INVMISSSUBJ_INVENTORY" field="INVENTORY" table="INVENTORY"
+            tablefield="ID"/>
+        <fk name="FK_INVMISSSUBJ_PAWNCHITSUBJECT" field="PAWNCHITSUBJECT"
+            table="PAWNCHITSUBJECT" tablefield="ID"/>
+    </table>
+    <table name="INVENTORYUSR">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INVENTORY" size="10" dbdatatype="INTEGER"/>
+        <field name="USR" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_INVUSR_INVENTORY" field="INVENTORY" table="INVENTORY"
+            tablefield="ID"/>
+        <fk name="FK_INVUSR_USR" field="USR" table="USR" tablefield="ID"/>
+    </table>
+    <table name="LIC">
+        <field name="BORNDT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="DOCDT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="DOCNO" size="50" dbdatatype="VARCHAR"/>
+        <field name="DOCSER" size="20" dbdatatype="VARCHAR"/>
+        <field name="DOM" size="12" dbdatatype="VARCHAR"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INFO" size="200" dbdatatype="VARCHAR"/>
+        <field name="KV" size="12" dbdatatype="VARCHAR"/>
+        <field name="LICDOCTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="LICDOCVID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAMEF" size="30" dbdatatype="VARCHAR"/>
+        <field name="NAMEI" size="30" dbdatatype="VARCHAR"/>
+        <field name="NAMEO" size="30" dbdatatype="VARCHAR"/>
+        <field name="REGION" size="10" dbdatatype="INTEGER"/>
+        <field name="RNN" size="12" dbdatatype="VARCHAR"/>
+        <field name="TEL" size="50" dbdatatype="VARCHAR"/>
+        <field name="ULZ" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_LIC_LICDOCTIP" field="LICDOCTIP" table="LICDOCTIP"
+            tablefield="ID"/>
+        <fk name="FK_LIC_LICDOCVID" field="LICDOCVID" table="LICDOCVID"
+            tablefield="ID"/>
+        <fk name="FK_LIC_REGION" field="REGION" table="REGION" tablefield="ID"/>
+        <fk name="FK_LIC_ULZ" field="ULZ" table="ULZ" tablefield="ID"/>
+    </table>
+    <table name="LICDAT">
+        <field name="DAT" size="0" dbdatatype="BLOB SUB_TYPE 0"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="LIC" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHITDATSTRUCTVALUES" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_LICDAT_LIC" field="LIC" table="LIC" tablefield="ID"/>
+        <fk name="FK_LICDAT_PCDSVALUES" field="PAWNCHITDATSTRUCTVALUES"
+            table="PAWNCHITDATSTRUCTVALUES" tablefield="ID"/>
+    </table>
+    <table name="LICDOCTIP">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+        <field name="SHORTNAME" size="15" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="LICDOCVID">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="MEASURE">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+        <field name="SHORTNAME" size="15" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="NCH">
+        <field name="BASESUMM" size="18" dbdatatype="NUMERIC"/>
+        <field name="BILLINGVAR_5" size="7" dbdatatype="FLOAT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="ISMANUAL" size="10" dbdatatype="INTEGER"/>
+        <field name="NCHDBEG" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="NCHDEND" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="NCHSUMM" size="18" dbdatatype="NUMERIC"/>
+        <field name="NCHTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="OLDNCHDBEG" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="OLDNCHDEND" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="OLDNCHSUMM" size="18" dbdatatype="NUMERIC"/>
+        <field name="OLDSROK" size="10" dbdatatype="INTEGER"/>
+        <field name="OPR" size="10" dbdatatype="INTEGER"/>
+        <field name="PERC" size="7" dbdatatype="FLOAT"/>
+        <field name="PERCDISCONT" size="7" dbdatatype="FLOAT"/>
+        <field name="PERCDISCONTSIGN" size="10" dbdatatype="INTEGER"/>
+        <field name="SROK" size="10" dbdatatype="INTEGER"/>
+        <field name="USEDMINSROK" size="5" dbdatatype="SMALLINT"/>
+        <field name="USEDPERCMANUAL" size="5" dbdatatype="SMALLINT"/>
+        <field name="USEDPERCPERSONAL" size="5" dbdatatype="SMALLINT"/>
+        <field name="WASUNPROFITAHEAD" size="5" dbdatatype="SMALLINT"/>
+        <fk name="FK_NCH_NCHTIP" field="NCHTIP" table="NCHTIP" tablefield="ID"/>
+        <fk name="FK_NCH_OPR" field="OPR" table="OPR" tablefield="ID"/>
+    </table>
+    <table name="NCHOPL">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NCH" size="10" dbdatatype="INTEGER"/>
+        <field name="OPLDT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="OPLSUMM" size="18" dbdatatype="NUMERIC"/>
+        <fk name="FK_NCHOPL_NCH" field="NCH" table="NCH" tablefield="ID"/>
+    </table>
+    <table name="NCHTIP">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="OPERDAY">
+        <field name="DBEG" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="DEND" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="OPERDAYNO" size="10" dbdatatype="VARCHAR"/>
+        <field name="USR" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_OPERDAY_USR" field="USR" table="USR" tablefield="ID"/>
+    </table>
+    <table name="OPERDAYUSR">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="OPERDAY" size="10" dbdatatype="INTEGER"/>
+        <field name="USR" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_OPERDAYUSR_OPERDAY" field="OPERDAY" table="OPERDAY"
+            tablefield="ID"/>
+        <fk name="FK_OPERDAYUSR_USR" field="USR" table="USR" tablefield="ID"/>
+    </table>
+    <table name="OPR">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="OPERDAYUSR" size="10" dbdatatype="INTEGER"/>
+        <field name="OPRDT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="OPRTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHIT" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHITSUBJECT" size="10" dbdatatype="INTEGER"/>
+        <field name="STORN" size="10" dbdatatype="INTEGER"/>
+        <field name="WS_LIST" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_OPR_OPERDAYUSR" field="OPERDAYUSR" table="OPERDAYUSR"
+            tablefield="ID"/>
+        <fk name="FK_OPR_OPRTIP" field="OPRTIP" table="OPRTIP" tablefield="ID"/>
+        <fk name="FK_OPR_PAWNCHIT" field="PAWNCHIT" table="PAWNCHIT"
+            tablefield="ID"/>
+        <fk name="FK_OPR_PAWNCHITSUBJECT" field="PAWNCHITSUBJECT"
+            table="PAWNCHITSUBJECT" tablefield="ID"/>
+        <fk name="FK_OPR_WS_LIST" field="WS_LIST" table="WS_LIST"
+            tablefield="ID"/>
+    </table>
+    <table name="OPRTIP">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+        <field name="NOPREFIX" size="10" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="PAWNCHIT">
+        <field name="CHITDT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="CHITNO" size="10" dbdatatype="VARCHAR"/>
+        <field name="CREDITSUMM" size="18" dbdatatype="NUMERIC"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="LIC" size="10" dbdatatype="INTEGER"/>
+        <field name="STATUSTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="STORN" size="10" dbdatatype="INTEGER"/>
+        <field name="VALUATIONSUMM" size="18" dbdatatype="NUMERIC"/>
+        <field name="WS_LIST" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_PAWNCHIT_LIC" field="LIC" table="LIC" tablefield="ID"/>
+        <fk name="FK_PAWNCHIT_STATUSTIP" field="STATUSTIP"
+            table="PAWNCHITSTATUSTIP" tablefield="ID"/>
+        <fk name="FK_PAWNCHIT_WS_LIST" field="WS_LIST" table="WS_LIST"
+            tablefield="ID"/>
+    </table>
+    <table name="PAWNCHITDAT">
+        <field name="DAT" size="0" dbdatatype="BLOB SUB_TYPE 0"/>
+        <field name="DT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHIT" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHITDATSTRUCTVALUES" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHITSUBJECT" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_PAWNCHITDAT_PAWNCHIT" field="PAWNCHIT" table="PAWNCHIT"
+            tablefield="ID"/>
+        <fk name="FK_PAWNCHITDAT_PAWNCHITSUBJECT" field="PAWNCHITSUBJECT"
+            table="PAWNCHITSUBJECT" tablefield="ID"/>
+        <fk name="FK_PAWNCHITDAT_PCDSVALUES" field="PAWNCHITDATSTRUCTVALUES"
+            table="PAWNCHITDATSTRUCTVALUES" tablefield="ID"/>
+    </table>
+    <table name="PAWNCHITDATSTRUCT">
+        <field name="DBEG" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="DEND" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="SUBJECTTIP" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_PCDSTRUCT_SUBJECTTIP" field="SUBJECTTIP" table="SUBJECTTIP"
+            tablefield="ID"/>
+    </table>
+    <table name="PAWNCHITDATSTRUCTVALUES">
+        <field name="DATPURPOSE" size="10" dbdatatype="INTEGER"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="30" dbdatatype="VARCHAR"/>
+        <field name="OPRTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="ORDNO" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHITDATSTRUCT" size="10" dbdatatype="INTEGER"/>
+        <field name="REQ" size="5" dbdatatype="SMALLINT"/>
+        <fk name="FK_PCDSVALUES_OPRTIP" field="OPRTIP" table="OPRTIP"
+            tablefield="ID"/>
+        <fk name="FK_PCDSVALUES_PAWNCHITDATSTRUCT" field="PAWNCHITDATSTRUCT"
+            table="PAWNCHITDATSTRUCT" tablefield="ID"/>
+    </table>
+    <table name="PAWNCHITOPR">
+        <field name="CHITDTEND" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="CHITDTENDGARANT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="CREDITSUMM" size="18" dbdatatype="NUMERIC"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="OPR" size="10" dbdatatype="INTEGER"/>
+        <field name="PERC" size="7" dbdatatype="FLOAT"/>
+        <field name="PERCCUSTOM" size="10" dbdatatype="INTEGER"/>
+        <field name="PERCGARANT" size="7" dbdatatype="FLOAT"/>
+        <field name="PERCGARANTPAYED" size="7" dbdatatype="FLOAT"/>
+        <field name="PERCPAYED" size="7" dbdatatype="FLOAT"/>
+        <field name="RETURNMAINSUMM" size="18" dbdatatype="NUMERIC"/>
+        <field name="RETURNPERCSUMM" size="18" dbdatatype="NUMERIC"/>
+        <field name="SROK" size="10" dbdatatype="INTEGER"/>
+        <field name="SROKGARANTPAYED" size="10" dbdatatype="INTEGER"/>
+        <field name="SROKPAYED" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_PAWNCHITOPR_OPR" field="OPR" table="OPR" tablefield="ID"/>
+    </table>
+    <table name="PAWNCHITSTATUSTIP">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="PAWNCHITSUBJECT">
+        <field name="CREDITSUMM" size="18" dbdatatype="NUMERIC"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INFO" size="500" dbdatatype="VARCHAR"/>
+        <field name="PAWNCHIT" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNRECEIPT" size="10" dbdatatype="INTEGER"/>
+        <field name="STATUSTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="STORN" size="10" dbdatatype="INTEGER"/>
+        <field name="SUBJECTNO" size="10" dbdatatype="INTEGER"/>
+        <field name="SUBJECTTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="VALUATIONSUMM" size="18" dbdatatype="NUMERIC"/>
+        <field name="WS_LIST" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_PAWNCHITSUBJECT_PAWNCHIT" field="PAWNCHIT" table="PAWNCHIT"
+            tablefield="ID"/>
+        <fk name="FK_PAWNCHITSUBJECT_PAWNRECEIPT" field="PAWNRECEIPT"
+            table="PAWNRECEIPT" tablefield="ID"/>
+        <fk name="FK_PAWNCHITSUBJECT_STATUSTIP" field="STATUSTIP"
+            table="PAWNCHITSUBJECTSTATUSTIP" tablefield="ID"/>
+        <fk name="FK_PAWNCHITSUBJECT_SUBJECTTIP" field="SUBJECTTIP"
+            table="SUBJECTTIP" tablefield="ID"/>
+        <fk name="FK_PAWNCHITSUBJECT_WS_LIST" field="WS_LIST" table="WS_LIST"
+            tablefield="ID"/>
+    </table>
+    <table name="PAWNCHITSUBJECTEXHIBIT">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INFO" size="500" dbdatatype="VARCHAR"/>
+        <field name="OPR" size="10" dbdatatype="INTEGER"/>
+        <field name="SALESUMMPLAN" size="18" dbdatatype="NUMERIC"/>
+        <fk name="FK_PCSEXHIBIT_OPR" field="OPR" table="OPR" tablefield="ID"/>
+    </table>
+    <table name="PAWNCHITSUBJECTSELL">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INFO" size="500" dbdatatype="VARCHAR"/>
+        <field name="OPR" size="10" dbdatatype="INTEGER"/>
+        <field name="ORDERNO" size="16" dbdatatype="VARCHAR"/>
+        <field name="SALESUMM" size="18" dbdatatype="NUMERIC"/>
+        <fk name="FK_PCSSELL_OPR" field="OPR" table="OPR" tablefield="ID"/>
+    </table>
+    <table name="PAWNCHITSUBJECTSTATUSTIP">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="PAWNCHITSUBJECTTOSALE">
+        <field name="DT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHITSUBJECT" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_PCSSALE_PAWNCHITSUBJECT" field="PAWNCHITSUBJECT"
+            table="PAWNCHITSUBJECT" tablefield="ID"/>
+    </table>
+    <table name="PAWNRECEIPT">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INFO" size="500" dbdatatype="VARCHAR"/>
+        <field name="LIC" size="10" dbdatatype="INTEGER"/>
+        <field name="RECEIPTDT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="RECEIPTNO" size="10" dbdatatype="VARCHAR"/>
+        <field name="STORN" size="10" dbdatatype="INTEGER"/>
+        <field name="USR" size="10" dbdatatype="INTEGER"/>
+        <field name="WS_LIST" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_SRECEIPT_LIC" field="LIC" table="LIC" tablefield="ID"/>
+        <fk name="FK_SRECEIPT_USR" field="USR" table="USR" tablefield="ID"/>
+        <fk name="FK_SRECEIPT_WS_LIST" field="WS_LIST" table="WS_LIST"
+            tablefield="ID"/>
+    </table>
+    <table name="REGION">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="200" dbdatatype="VARCHAR"/>
+        <field name="PARENT" size="10" dbdatatype="INTEGER"/>
+        <field name="REGIONTIP" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_REGION_PARENT" field="PARENT" table="REGION"
+            tablefield="ID"/>
+        <fk name="FK_REGION_REGIONTIP" field="REGIONTIP" table="REGIONTIP"
+            tablefield="ID"/>
+    </table>
+    <table name="REGIONTIP">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+        <field name="SHORTNAME" size="15" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="STORNOPR">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="OPR" size="10" dbdatatype="INTEGER"/>
+        <field name="STORN" size="10" dbdatatype="INTEGER"/>
+        <field name="STORNDT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="USR" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_STORNOPR_OPR" field="OPR" table="OPR" tablefield="ID"/>
+        <fk name="FK_STORNOPR_USR" field="USR" table="USR" tablefield="ID"/>
+    </table>
+    <table name="SUBJECTENCASH">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INFO" size="500" dbdatatype="VARCHAR"/>
+        <field name="OPR" size="10" dbdatatype="INTEGER"/>
+        <field name="REASON" size="10" dbdatatype="INTEGER"/>
+        <field name="USR" size="10" dbdatatype="INTEGER"/>
+        <field name="WS_LIST_DEST" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_SENCASH_OPR" field="OPR" table="OPR" tablefield="ID"/>
+        <fk name="FK_SENCASH_REASON" field="REASON" table="SUBJECTENCASHREASON"
+            tablefield="ID"/>
+        <fk name="FK_SENCASH_USR" field="USR" table="USR" tablefield="ID"/>
+        <fk name="FK_SENCASH_WS_LIST_DEST" field="WS_LIST_DEST" table="WS_LIST"
+            tablefield="ID"/>
+    </table>
+    <table name="SUBJECTENCASHREASON">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="SUBJECTTIP">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INFO" size="500" dbdatatype="VARCHAR"/>
+        <field name="LEV" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+        <field name="PARENT" size="10" dbdatatype="INTEGER"/>
+        <field name="SHOWINPANEL" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_SUBJECTTIP_PARENT" field="PARENT" table="SUBJECTTIP"
+            tablefield="ID"/>
+    </table>
+    <table name="SUBJECTTIPPROPERT">
+        <field name="DATATIP" size="10" dbdatatype="INTEGER"/>
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="DICTLIST" size="10" dbdatatype="INTEGER"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="MEASURE" size="10" dbdatatype="VARCHAR"/>
+        <field name="NAME" size="50" dbdatatype="VARCHAR"/>
+        <field name="ORDNO" size="10" dbdatatype="INTEGER"/>
+        <field name="REQ" size="5" dbdatatype="SMALLINT"/>
+        <field name="SUBJECTTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="USEINPAWNCHIT" size="5" dbdatatype="SMALLINT"/>
+        <fk name="FK_STP_DATATIP" field="DATATIP" table="DATATIP"
+            tablefield="ID"/>
+        <fk name="FK_STP_DICTLIST" field="DICTLIST" table="DICTLIST"
+            tablefield="ID"/>
+        <fk name="FK_STP_SUBJECTTIP" field="SUBJECTTIP" table="SUBJECTTIP"
+            tablefield="ID"/>
+    </table>
+    <table name="TARIFFPLAN">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="100" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="TARIFFPLANBILLINGVAR">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="TARIFFPLANVER" size="10" dbdatatype="INTEGER"/>
+        <field name="VARTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="VARVALUEFLT" size="7" dbdatatype="FLOAT"/>
+        <field name="VARVALUESTR" size="200" dbdatatype="VARCHAR"/>
+        <fk name="FK_TPBV_TARIFFPLANVER" field="TARIFFPLANVER"
+            table="TARIFFPLANVER" tablefield="ID"/>
+        <fk name="FK_TPBV_VARTIP" field="VARTIP" table="VARTIP" tablefield="ID"/>
+    </table>
+    <table name="TARIFFPLANPERCSTAVKA">
+        <field name="CREDITSUMM1" size="18" dbdatatype="NUMERIC"/>
+        <field name="CREDITSUMM2" size="18" dbdatatype="NUMERIC"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="PERC" size="7" dbdatatype="FLOAT"/>
+        <field name="PERCGARANT" size="7" dbdatatype="FLOAT"/>
+        <field name="SROK1" size="10" dbdatatype="INTEGER"/>
+        <field name="SROK2" size="10" dbdatatype="INTEGER"/>
+        <field name="TARIFFPLANVER" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_TPPS_TARIFFPLANVER" field="TARIFFPLANVER"
+            table="TARIFFPLANVER" tablefield="ID"/>
+    </table>
+    <table name="TARIFFPLANREFLIC">
+        <field name="DBEG" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="DEND" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="LIC" size="10" dbdatatype="INTEGER"/>
+        <field name="TARIFFPLAN" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_TPRLIC_LIC" field="LIC" table="LIC" tablefield="ID"/>
+        <fk name="FK_TPRLIC_TARIFFPLAN" field="TARIFFPLAN" table="TARIFFPLAN"
+            tablefield="ID"/>
+    </table>
+    <table name="TARIFFPLANREFSUBJECTTIP">
+        <field name="DBEG" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="DEND" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="SUBJECTTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="TARIFFPLAN" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_TPRSUBJECTTIP_SUBJECTTIP" field="SUBJECTTIP"
+            table="SUBJECTTIP" tablefield="ID"/>
+        <fk name="FK_TPRSUBJECTTIP_TARIFFPLAN" field="TARIFFPLAN"
+            table="TARIFFPLAN" tablefield="ID"/>
+    </table>
+    <table name="TARIFFPLANVER">
+        <field name="DBEG" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="DEND" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="TARIFFPLAN" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_TARIFFPLANVER_TARIFFPLAN" field="TARIFFPLAN"
+            table="TARIFFPLAN" tablefield="ID"/>
+    </table>
+    <table name="ULZ">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="200" dbdatatype="VARCHAR"/>
+        <field name="REGION" size="10" dbdatatype="INTEGER"/>
+        <field name="ULZTIP" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_ULZ_REGION" field="REGION" table="REGION" tablefield="ID"/>
+        <fk name="FK_ULZ_ULZTIP" field="ULZTIP" table="ULZTIP" tablefield="ID"/>
+    </table>
+    <table name="ULZTIP">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+        <field name="SHORTNAME" size="15" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="USR">
+        <field name="DOCDT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="DOCNO" size="50" dbdatatype="VARCHAR"/>
+        <field name="DOCSER" size="20" dbdatatype="VARCHAR"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="LICDOCTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="LICDOCVID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="100" dbdatatype="VARCHAR"/>
+        <field name="PASSWD" size="80" dbdatatype="VARCHAR"/>
+        <field name="USERNAME" size="15" dbdatatype="VARCHAR"/>
+        <field name="USRGRP" size="10" dbdatatype="INTEGER"/>
+        <field name="USROTDEL" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_USR_LICDOCTIP" field="LICDOCTIP" table="LICDOCTIP"
+            tablefield="ID"/>
+        <fk name="FK_USR_LICDOCVID" field="LICDOCVID" table="LICDOCVID"
+            tablefield="ID"/>
+        <fk name="FK_USR_USRGRP" field="USRGRP" table="USRGRP" tablefield="ID"/>
+        <fk name="FK_USR_USROTDEL" field="USROTDEL" table="USROTDEL"
+            tablefield="ID"/>
+    </table>
+    <table name="USRGRP">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="30" dbdatatype="VARCHAR"/>
+        <field name="PERM" size="2000" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="USRLOG">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INFO" size="500" dbdatatype="VARCHAR"/>
+        <field name="OPRDT" size="19" dbdatatype="TIMESTAMP"/>
+        <field name="PAWNCHIT" size="10" dbdatatype="INTEGER"/>
+        <field name="USR" size="10" dbdatatype="INTEGER"/>
+        <field name="USROPRTIP" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_USRLOG_PAWNCHIT" field="PAWNCHIT" table="PAWNCHIT"
+            tablefield="ID"/>
+        <fk name="FK_USRLOG_USR" field="USR" table="USR" tablefield="ID"/>
+        <fk name="FK_USRLOG_USROPRTIP" field="USROPRTIP" table="USROPRTIP"
+            tablefield="ID"/>
+    </table>
+    <table name="USROPRTIP">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+    </table>
+    <table name="USROTDEL">
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="ISJOBTITLE" size="5" dbdatatype="SMALLINT"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+        <field name="PARENT" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_USROTDEL_PARENT" field="PARENT" table="USROTDEL"
+            tablefield="ID"/>
+    </table>
+    <table name="VALPAWNCHITSUBJECT">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="PAWNCHITSUBJECT" size="10" dbdatatype="INTEGER"/>
+        <field name="PROPERTVAL" size="500" dbdatatype="VARCHAR"/>
+        <field name="SUBJECTTIPPROPERT" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_PCSPVAL_PAWNCHITSUBJECT" field="PAWNCHITSUBJECT"
+            table="PAWNCHITSUBJECT" tablefield="ID"/>
+        <fk name="FK_PCSPVAL_SUBJECTTIPPROPERT" field="SUBJECTTIPPROPERT"
+            table="SUBJECTTIPPROPERT" tablefield="ID"/>
+    </table>
+    <table name="VALSUBJECTTIP">
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="PROPERTVAL" size="500" dbdatatype="VARCHAR"/>
+        <field name="SUBJECTTIP" size="10" dbdatatype="INTEGER"/>
+        <field name="SUBJECTTIPPROPERT" size="10" dbdatatype="INTEGER"/>
+        <fk name="FK_STPVAL_SUBJECTTIP" field="SUBJECTTIP" table="SUBJECTTIP"
+            tablefield="ID"/>
+        <fk name="FK_STPVAL_SUBJECTTIPPROPERT" field="SUBJECTTIPPROPERT"
+            table="SUBJECTTIPPROPERT" tablefield="ID"/>
+    </table>
+    <table name="VARTIP">
+        <field name="DATATIP" size="10" dbdatatype="INTEGER"/>
+        <field name="DEFAULTVALUEFLT" size="7" dbdatatype="FLOAT"/>
+        <field name="DEFAULTVALUESTR" size="200" dbdatatype="VARCHAR"/>
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="GROUPNAME" size="200" dbdatatype="VARCHAR"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="INFOSTR" size="500" dbdatatype="VARCHAR"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+        <field name="ORDNO" size="10" dbdatatype="INTEGER"/>
+        <field name="RTDICT" size="50" dbdatatype="VARCHAR"/>
+        <fk name="FK_VARTIP_DATATIP" field="DATATIP" table="DATATIP"
+            tablefield="ID"/>
+    </table>
+    <table name="WS_LIST">
+        <field name="ADDRESSSTR" size="100" dbdatatype="VARCHAR"/>
+        <field name="BASTIK" size="10" dbdatatype="INTEGER"/>
+        <field name="DOPRINTCHECK" size="5" dbdatatype="SMALLINT"/>
+        <field name="DOSHOW" size="5" dbdatatype="SMALLINT"/>
+        <field name="GENNO" size="10" dbdatatype="INTEGER"/>
+        <field name="GLAVBUH" size="10" dbdatatype="INTEGER"/>
+        <field name="ID" size="10" dbdatatype="INTEGER"/>
+        <field name="NAME" size="120" dbdatatype="VARCHAR"/>
+        <field name="NOPREFIX" size="10" dbdatatype="VARCHAR"/>
+        <field name="OKPO" size="10" dbdatatype="VARCHAR"/>
+        <field name="ORGNAME" size="100" dbdatatype="VARCHAR"/>
+        <field name="PAWNCHIT_TEXT" size="2000" dbdatatype="VARCHAR"/>
+        <field name="RECEIPTGENNO" size="10" dbdatatype="INTEGER"/>
+        <field name="RNN" size="12" dbdatatype="VARCHAR"/>
+        <field name="TELNO" size="50" dbdatatype="VARCHAR"/>
+        <field name="USESELFCASH" size="5" dbdatatype="SMALLINT"/>
+        <field name="WORKSCHEDULE" size="150" dbdatatype="VARCHAR"/>
+        <fk name="FK_WS_LIST_BASTIK" field="BASTIK" table="USR" tablefield="ID"/>
+        <fk name="FK_WS_LIST_GLAVBUH" field="GLAVBUH" table="USR"
+            tablefield="ID"/>
+    </table>
+</root>

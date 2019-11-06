@@ -3,14 +3,15 @@ package jdtx.repl.main.api;
 import jandcode.utils.*;
 import jandcode.utils.test.*;
 import jdtx.repl.main.api.struct.*;
-import org.junit.*;
+import junit.framework.*;
+import org.junit.Test;
 
 import java.io.*;
 import java.util.*;
 
 /**
  */
-public class JdxUtils_Test {
+public class JdxUtils_Test extends TestCase {
 
     @Test
     public void test_file() throws Exception {
@@ -50,6 +51,7 @@ public class JdxUtils_Test {
         System.out.println("md5, JdxUtils.getMd5File: " + JdxUtils.getMd5File(f));
     }
 
+
     /**
      * Проверяет проблему, ныне устраненную - некорректная сортировка при разрыве в разреженном списке таблиц
      */
@@ -61,6 +63,7 @@ public class JdxUtils_Test {
         IJdxDbStruct structDiffRemoved = new JdxDbStruct();
         //
         JdxDbStruct_XmlRW dbStruct_XmlRW = new JdxDbStruct_XmlRW();
+        //
         IJdxDbStruct structActual = dbStruct_XmlRW.read("test/jdtx/repl/main/api/JdxUtils_Test.structActual.xml");
         IJdxDbStruct structFixed = dbStruct_XmlRW.read("test/jdtx/repl/main/api/JdxUtils_Test.structFixed.xml");
 
@@ -82,6 +85,71 @@ public class JdxUtils_Test {
         System.out.println("=== structDiffNewSorted");
         for (IJdxTable table : structDiffNewSorted) {
             System.out.println(table.getName());
+        }
+    }
+
+
+    /**
+     * Проверяет проблему - сортировка должна быть не только по зависимостям, но также и по алфафиту
+     */
+    @Test
+    public void test_sort_alphabet() throws Exception {
+        JdxDbStruct_XmlRW dbStruct_XmlRW = new JdxDbStruct_XmlRW();
+
+        //
+        IJdxDbStruct struct1 = dbStruct_XmlRW.read("test/jdtx/repl/main/api/JdxUtils_Test.struct1.xml");
+        IJdxDbStruct struct2 = dbStruct_XmlRW.read("test/jdtx/repl/main/api/JdxUtils_Test.struct2.xml");
+
+        // Печатаем список до сортировки
+        List<IJdxTable> list1 = struct1.getTables();
+        List<IJdxTable> list2 = struct2.getTables();
+        for (int i = 0; i < list1.size(); i++) {
+            IJdxTable table1 = list1.get(i);
+            IJdxTable table2 = list2.get(i);
+            System.out.println(table1.getName() + " - " + table2.getName());
+        }
+
+        //
+        System.out.println("---");
+
+        // Сортируем
+        list1 = JdxUtils.sortTablesByReference(struct1.getTables());
+        list2 = JdxUtils.sortTablesByReference(struct2.getTables());
+
+        // Печатаем список после сортировки
+        for (int i = 0; i < list1.size(); i++) {
+            IJdxTable table1 = list1.get(i);
+            IJdxTable table2 = list2.get(i);
+            System.out.println(table1.getName() + " - " + table2.getName());
+        }
+
+        // Проверяем
+        for (int i = 0; i < list1.size(); i++) {
+            IJdxTable table1 = list1.get(i);
+            IJdxTable table2 = list2.get(i);
+            assertEquals(table1.getName(), table2.getName());
+        }
+
+        // ===
+        System.out.println("======");
+
+
+        // ===
+        // Проверяем сортировку полного списка
+        // ===
+
+        struct1 = dbStruct_XmlRW.read("test/jdtx/repl/main/api/JdxUtils_Test.structFull1.xml");
+        struct2 = dbStruct_XmlRW.read("test/jdtx/repl/main/api/JdxUtils_Test.structFull2.xml");
+
+        // Сортируем
+        list1 = JdxUtils.sortTablesByReference(struct1.getTables());
+        list2 = JdxUtils.sortTablesByReference(struct2.getTables());
+
+        // Проверяем
+        for (int i = 0; i < list1.size(); i++) {
+            IJdxTable table1 = list1.get(i);
+            IJdxTable table2 = list2.get(i);
+            assertEquals(table1.getName(), table2.getName());
         }
     }
 
