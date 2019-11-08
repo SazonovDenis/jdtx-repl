@@ -44,7 +44,7 @@ public class MailerLocalFiles implements IMailer {
         UtFile.mkdirs(localDirTmp);
     }
 
-    public long getSrvState(String box) {
+    public long getBoxState(String box) {
         UtFile.mkdirs(remoteDir + box);
         //
         File dir = new File(remoteDir + box);
@@ -139,24 +139,16 @@ public class MailerLocalFiles implements IMailer {
         FileUtils.forceDelete(remoteFile);
     }
 
+
     @Override
-    public void pingRead(String box) throws Exception {
+    public void setData(Map data, String name, String box) throws Exception {
         //throw new XError("Not implemented");
     }
 
     @Override
-    public void pingWrite(String box) throws Exception {
+    public JSONObject getData(String name, String box) throws Exception {
         //throw new XError("Not implemented");
-    }
-
-    @Override
-    public void setSrvInfo(Map info) throws Exception {
-        //throw new XError("Not implemented");
-    }
-
-    @Override
-    public void setWsInfo(Map info) throws Exception {
-        //throw new XError("Not implemented");
+        return null;
     }
 
     String getFileName(long no) {

@@ -52,6 +52,11 @@ public class JdxReplSrv {
         mailerList = new HashMap<>();
     }
 
+    public IMailer getMailer() {
+        long wsId = 1; // Ошибки сервера кладем в ящик рабьочей станции №1
+        return mailerList.get(wsId);
+    }
+
     /**
      * Сервер, настройка
      */
@@ -308,7 +313,7 @@ public class JdxReplSrv {
 
                 //
                 long queDoneAge = stateManager.getWsQueInAgeDone(wsId);
-                long queMaxAge = mailer.getSrvState("from");
+                long queMaxAge = mailer.getBoxState("from");
 
                 //
                 long count = 0;
@@ -373,11 +378,11 @@ public class JdxReplSrv {
                 }
 
 
-                //
-                mailer.pingRead("from");
-                //
+                // Отметить попытку чтения (для отслеживания активности станции, когда нет данных для реальной передачи)
+                mailer.setData(null, "ping.read", "from");
+                // Отметить состояние сервера данные сервера (сервер отчитывается о себе для отслеживания активности сервера)
                 Map info = getInfoSrv();
-                mailer.setSrvInfo(info);
+                mailer.setData(info, "srv.info", null);
 
 
                 //
@@ -452,11 +457,13 @@ public class JdxReplSrv {
                     count++;
                 }
 
-                //
-                mailer.pingWrite("to");
-                //
+
+                // Отметить попытку записи (для отслеживания активности станции, когда нет данных для реальной передачи)
+                mailer.setData(null, "ping.write", "to");
+                // Отметить состояние сервера данные сервера (сервер отчитывается о себе для отслеживания активности сервера)
                 Map info = getInfoSrv();
-                mailer.setSrvInfo(info);
+                mailer.setData(info, "srv.info", null);
+
 
                 // Снимем флаг просьбы сервера
                 if (no_from_required != -1) {
@@ -481,7 +488,7 @@ public class JdxReplSrv {
     }
 
     private Map getInfoSrv() {
-        return new HashMap<>();
+        return null;
     }
 
 

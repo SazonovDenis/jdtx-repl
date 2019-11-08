@@ -37,7 +37,7 @@ public class MailerHttp implements IMailer {
     public static final int HTTP_FILE_MAX_SIZE = 1024 * 1024 * 32;
     //int HTTP_FILE_MAX_SIZE = 512;
 
-    public static final String REPL_PROTOCOL_VERSION = "02";
+    public static final String REPL_PROTOCOL_VERSION = "03";
 
 
     @Override
@@ -68,7 +68,7 @@ public class MailerHttp implements IMailer {
 
 
     @Override
-    public long getSrvState(String box) throws Exception {
+    public long getBoxState(String box) throws Exception {
         JSONObject res = getState_internal(box);
         JSONObject files = (JSONObject) res.get("files");
         return Long.valueOf(String.valueOf(files.get("max")));
@@ -180,7 +180,7 @@ public class MailerHttp implements IMailer {
             builder.addPart("guid", stringBody_guid);
             builder.addPart("box", stringBody_box);
             builder.addPart("no", stringBody_no);
-            builder.addPart("filePart", stringBody_part);
+            builder.addPart("part", stringBody_part);
             builder.addPart("file", byteBody);
             HttpEntity entity = builder.build();
             //
@@ -282,7 +282,7 @@ public class MailerHttp implements IMailer {
             Map info = new HashMap<>();
             info.put("box", box);
             info.put("no", no);
-            info.put("filePart", filePart);
+            info.put("part", filePart);
             HttpGet httpGet = new HttpGet(getUrl("repl_receive_part", info));
 
             //
@@ -331,70 +331,6 @@ public class MailerHttp implements IMailer {
         info.put("box", box);
         info.put("no", no);
         HttpGet httpGet = new HttpGet(getUrl("repl_delete", info));
-
-        //
-        HttpResponse response = httpclient.execute(httpGet);
-
-        //
-        handleHttpErrors(response);
-
-        //
-        parseHttpResponse(response);
-    }
-
-
-    @Override
-    public void pingRead(String box) throws Exception {
-        HttpClient httpclient = HttpClientBuilder.create().build();
-
-        //
-        Map info = new HashMap<>();
-        info.put("box", box);
-        HttpGet httpGet = new HttpGet(getUrl("repl_ping_read", info));
-
-        //
-        HttpResponse response = httpclient.execute(httpGet);
-
-        //
-        handleHttpErrors(response);
-
-        //
-        parseHttpResponse(response);
-    }
-
-
-    @Override
-    public void pingWrite(String box) throws Exception {
-        HttpClient httpclient = HttpClientBuilder.create().build();
-
-        //
-        Map info = new HashMap<>();
-        info.put("box", box);
-        HttpGet httpGet = new HttpGet(getUrl("repl_ping_write", info));
-
-        //
-        HttpResponse response = httpclient.execute(httpGet);
-
-        //
-        handleHttpErrors(response);
-
-        //
-        parseHttpResponse(response);
-    }
-
-
-    @Override
-    public void setSrvInfo(Map info) throws Exception {
-
-    }
-
-
-    @Override
-    public void setWsInfo(Map info) throws Exception {
-        HttpClient httpclient = HttpClientBuilder.create().build();
-
-        //
-        HttpGet httpGet = new HttpGet(getUrl("repl_set_ws_info", info));
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -610,6 +546,52 @@ public class MailerHttp implements IMailer {
 
         // Обращение getState_internal ящика доказывает его нормальную работу
         getState_internal(box);
+    }
+
+
+    public JSONObject getData(String name, String box) throws Exception {
+        HttpClient httpclient = HttpClientBuilder.create().build();
+
+        //
+        Map params = new HashMap<>();
+        params.put("name", name);
+        params.put("box", box);
+        HttpGet httpGet = new HttpGet(getUrl("repl_get_data", params));
+
+        //
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        handleHttpErrors(response);
+
+        //
+        return parseHttpResponse(response);
+    }
+
+    public void setData(Map data, String name, String box) throws Exception {
+        HttpClient httpclient = HttpClientBuilder.create().build();
+
+        //
+        JSONObject data_json = null;
+        if (data != null) {
+            data_json = new JSONObject(data);
+        }
+
+        //
+        Map params = new HashMap<>();
+        params.put("data", data_json);
+        params.put("name", name);
+        params.put("box", box);
+        HttpGet httpGet = new HttpGet(getUrl("repl_set_data", params));
+
+        //
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        handleHttpErrors(response);
+
+        //
+        parseHttpResponse(response);
     }
 
 }

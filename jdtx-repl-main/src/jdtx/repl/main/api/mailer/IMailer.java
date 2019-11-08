@@ -18,7 +18,7 @@ public interface IMailer {
      *
      * @return Сколько писем есть на сервере (age или no) в папке box
      */
-    long getSrvState(String box) throws Exception;
+    long getBoxState(String box) throws Exception;
 
     /**
      * Информация о желаемом состоянии почтового ящика (используется для запроса повторной отправки реплик)
@@ -38,40 +38,31 @@ public interface IMailer {
     void send(IReplica repl, String box, long no) throws Exception;
 
     /**
-     * Информация о письме (реплике)
+     * Информация о реплике (письме)
      *
      * @return заголовок с возрастом реплики, её типом, размером, crc и т.п.
      */
     ReplicaInfo getReplicaInfo(String box, long no) throws Exception;
 
     /**
-     * Получение реплики
+     * Получение реплики (письма)
      */
     IReplica receive(String box, long no) throws Exception;
 
     /**
-     * Удалить письмо из ящика
+     * Удалить реплику (письмо) из ящика
      */
     void delete(String box, long no) throws Exception;
 
-    /**
-     * Отметить попытку чтения (для отслеживания активности станции, когда нет данных для реальной передачи)
-     */
-    void pingRead(String box) throws Exception;
 
     /**
-     * Отметить попытку записи (для отслеживания активности станции, когда нет данных для реальной передачи)
+     * Отметить (сообщить) произвольные данные (для отслеживания состояния, ошибок и т.п.)
      */
-    void pingWrite(String box) throws Exception;
+    void setData(Map data, String name, String box) throws Exception;
 
     /**
-     * Отметить (сообщить) данные сервера (для отслеживания состояния сервера)
+     * Прочитать произвольные данные
      */
-    void setSrvInfo(Map info) throws Exception;
-
-    /**
-     * Отметить (сообщить) данные о рабочей станции (станция отчитывается о себе - для отслеживания состояния станции)
-     */
-    void setWsInfo(Map info) throws Exception;
+    JSONObject getData(String name, String box) throws Exception;
 
 }

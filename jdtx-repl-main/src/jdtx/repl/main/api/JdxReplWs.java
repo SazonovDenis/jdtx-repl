@@ -62,6 +62,10 @@ public class JdxReplWs {
         return wsId;
     }
 
+    public IMailer getMailer() {
+        return mailer;
+    }
+
     /**
      * Рабочая станция, настройка
      */
@@ -475,6 +479,7 @@ public class JdxReplWs {
             equal_Actual_Allowed = false;
         }
 
+
         //
         long queInNoDone = stateManager.getQueInNoDone();
         long queInNoAvailable = queIn.getMaxNo();
@@ -804,7 +809,7 @@ public class JdxReplWs {
         long selfReceivedNo = queIn.getMaxNo();
 
         // Узнаем сколько есть на сервере
-        long srvAvailableNo = mailer.getSrvState("to");
+        long srvAvailableNo = mailer.getBoxState("to");
 
         // Физически забираем данные
         receiveInternal(mailerLocal, selfReceivedNo + 1, srvAvailableNo);
@@ -817,7 +822,7 @@ public class JdxReplWs {
         long selfReceivedNo = queIn.getMaxNo();
 
         // Узнаем сколько есть на сервере
-        long srvAvailableNo = mailer.getSrvState("to");
+        long srvAvailableNo = mailer.getBoxState("to");
 
         // Физически отправляем данные
         selfReceivedNo = selfReceivedNo + 1;
@@ -878,11 +883,11 @@ public class JdxReplWs {
         }
 
 
-        //
-        mailer.pingRead("to");
-        //
+        // Отметить попытку чтения (для отслеживания активности станции, когда нет данных для реальной передачи)
+        mailer.setData(null, "ping.read", "to");
+        // Отметить состояние рабочей станции (станция отчитывается о себе для отслеживания активности станции)
         Map info = getInfoWs();
-        mailer.setWsInfo(info);
+        mailer.setData(info, "ws.info", null);
 
 
         //
@@ -989,11 +994,13 @@ public class JdxReplWs {
             count++;
         }
 
-        //
-        mailer.pingWrite("from");
-        //
+
+        // Отметить попытку записи (для отслеживания активности станции, когда нет данных для реальной передачи)
+        mailer.setData(null, "ping.write", "from");
+        // Отметить состояние рабочей станции (станция отчитывается о себе для отслеживания активности станции)
         Map info = getInfoWs();
-        mailer.setWsInfo(info);
+        mailer.setData(info, "ws.info", null);
+
 
         //
         if (age_from <= age_to) {
@@ -1028,7 +1035,7 @@ public class JdxReplWs {
 
         //
         try {
-            long in_mailAvailable = mailer.getSrvState("to");    // Сколько есть на сервере в ящике для станции
+            long in_mailAvailable = mailer.getBoxState("to");    // Сколько есть на сервере в ящике для станции
             info.put("in_mailAvailable", in_mailAvailable);
         } catch (Exception e) {
             info.put("in_mailAvailable", e.getMessage());
