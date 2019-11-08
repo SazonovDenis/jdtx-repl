@@ -1,49 +1,30 @@
 package jdtx.repl.main.task;
 
-import jandcode.bgtasks.BgTask;
-import jandcode.dbm.ModelService;
-import jandcode.dbm.db.Db;
-import jdtx.repl.main.api.JdxReplSrv;
-import jdtx.repl.main.ut.*;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import jandcode.dbm.*;
+import jandcode.dbm.db.*;
+import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.mailer.*;
 
 /**
+ * BgTask - сервер
  */
-public class SrvBgTask extends BgTask {
-
-
-    //
-    protected static Log log = LogFactory.getLog("bgTask");
-
-
-    //
-    public String getCfgFileName() {
-        return cfgFileName;
-    }
-
-    public void setCfgFileName(String cfgFileName) {
-        this.cfgFileName = cfgFileName;
-    }
-
-    String cfgFileName;
+public class SrvBgTask extends BgTaskCustom {
 
 
     //
     public void run() throws Exception {
         try {
+            errors.clear();
             step_server();
         } catch (Exception e) {
-            String msg = Ut.getExceptionMessage(e);
-            log.error("Сервер: " + msg);
-            e.printStackTrace();
+            logError(e, "Сервер");
         }
     }
 
 
     //
     void step_server() throws Exception {
-        log.info("Сервер: " + cfgFileName);
+        log.info("Сервер");
 
         //
         ModelService app = getApp().service(ModelService.class);
@@ -59,11 +40,26 @@ public class SrvBgTask extends BgTask {
 
             //
             log.info("Формирование общей очереди");
-            srv.srvHandleCommonQue();
+            try {
+                srv.srvHandleCommonQue();
+            } catch (Exception e) {
+                logError(e);
+                collectError("srv.srvHandleCommonQue", e);
+            }
 
             //
             log.info("Тиражирование реплик");
-            srv.srvDispatchReplicas();
+            try {
+                srv.srvDispatchReplicas();
+            } catch (Exception e) {
+                logError(e);
+                collectError("srv.srvDispatchReplicas", e);
+            }
+
+            //
+            IMailer mailer = srv.getMailer();
+            logInfo("Отправка ошибок");
+            sendErrors(mailer, "srv.errors");
 
             //
             log.info("Сервер завершен");

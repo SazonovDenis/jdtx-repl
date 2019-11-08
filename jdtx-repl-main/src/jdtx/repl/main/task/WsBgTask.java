@@ -1,32 +1,17 @@
 package jdtx.repl.main.task;
 
-import jandcode.bgtasks.*;
 import jandcode.dbm.*;
 import jandcode.dbm.db.*;
 import jdtx.repl.main.api.*;
-import jdtx.repl.main.ut.*;
-import org.apache.commons.logging.*;
+import jdtx.repl.main.api.mailer.*;
 
 /**
+ * BgTask - рабочая станция
  */
-public class WsBgTask extends BgTask {
+public class WsBgTask extends BgTaskCustom {
 
 
     //
-    protected static Log log = LogFactory.getLog("bgTask");
-
-
-    //
-    public String getCfgFileName() {
-        return cfgFileName;
-    }
-
-    public void setCfgFileName(String cfgFileName) {
-        this.cfgFileName = cfgFileName;
-    }
-
-    String cfgFileName;
-
     public boolean runImmediate;
 
 
@@ -34,17 +19,19 @@ public class WsBgTask extends BgTask {
     public void run() throws Exception {
         runImmediate = false;
 
+        //
         try {
+            errors.clear();
             step_ws();
         } catch (Exception e) {
-            logError(e, "Рабочая станция: ");
+            logError(e, "Рабочая станция");
         }
     }
 
 
     //
     void step_ws() throws Exception {
-        logInfo("Рабочая станция, настройка: " + cfgFileName);
+        logInfo("Рабочая станция");
 
         //
         ModelService app = getApp().service(ModelService.class);
@@ -53,6 +40,7 @@ public class WsBgTask extends BgTask {
 
         //
         try {
+            logInfo("Рабочая станция, настройка");
             JdxReplWs ws = new JdxReplWs(db);
             ws.init();
             logInfo("Рабочая станция, wsId: " + ws.getWsId());
@@ -63,6 +51,7 @@ public class WsBgTask extends BgTask {
                 ws.handleSelfAudit();
             } catch (Exception e) {
                 logError(e);
+                collectError("ws.handleSelfAudit", e);
             }
 
             //
@@ -71,6 +60,7 @@ public class WsBgTask extends BgTask {
                 ws.send();
             } catch (Exception e) {
                 logError(e);
+                collectError("ws.send", e);
             }
 
             //
@@ -79,6 +69,7 @@ public class WsBgTask extends BgTask {
                 ws.receive();
             } catch (Exception e) {
                 logError(e);
+                collectError("ws.receive", e);
             }
 
             //
@@ -87,7 +78,13 @@ public class WsBgTask extends BgTask {
                 ws.handleQueIn();
             } catch (Exception e) {
                 logError(e);
+                collectError("ws.handleQueIn", e);
             }
+
+            //
+            logInfo("Отправка ошибок");
+            IMailer mailer = ws.getMailer();
+            sendErrors(mailer, "ws.errors");
 
             //
             logInfo("Рабочая станция завершена");
@@ -96,20 +93,5 @@ public class WsBgTask extends BgTask {
         }
     }
 
-
-    void logInfo(String info) {
-        log.info(info);
-        getLogger().put("state", info);
-    }
-
-    void logError(Exception e, String info) {
-        getLogger().put("state", info + Ut.getExceptionMessage(e));
-        log.error(info + Ut.getExceptionMessage(e));
-        log.error(Ut.getStackTrace(e));
-    }
-
-    void logError(Exception e) {
-        logError(e, "");
-    }
 
 }
