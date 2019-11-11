@@ -244,7 +244,10 @@ public class MailerHttp implements IMailer {
 
         // Проверим протокол репликатора, с помощью которого было отправлено письмо
         String protocolVersion = (String) file_info.get("protocolVersion");
-        if (protocolVersion.compareToIgnoreCase(REPL_PROTOCOL_VERSION) != 0) {
+        if (protocolVersion.compareToIgnoreCase("02") == 0 && REPL_PROTOCOL_VERSION.compareToIgnoreCase("03") == 0) {
+            // Нормальное сочетание
+        } else if (protocolVersion.compareToIgnoreCase(REPL_PROTOCOL_VERSION) != 0) {
+            // Версия протокола не совпадает
             throw new XError("mailer.receive, protocolVersion.expected: " + REPL_PROTOCOL_VERSION + ", actual: " + protocolVersion);
         }
 
