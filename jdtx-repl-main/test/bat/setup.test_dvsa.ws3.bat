@@ -1,15 +1,23 @@
-@echo off 
+@echo off
 
-rem служба
+
+
+rem удаление старого - служба
 call jc repl-service-remove -csc
+
+rem удаление старого - данные
+rmdir /Q /S %cd%\web\WEB-INF\data
+
 
 
 rem рабочая станция "ws3"
-call jc repl-create -ws:3 -guid:413DF2C54CC9D2A2.test_dvsa-030A2C4C0B819CA3
+call jc repl-create -ws:3 -guid:ADC29897BF797F1D.test_dvsa-033E684FC1511565 -file:"cfg/ws.json"
+
 
 
 rem служба
 call jc repl-service-install
+
 
 
 rem для сведения

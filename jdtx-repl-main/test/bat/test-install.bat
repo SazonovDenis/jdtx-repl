@@ -1,8 +1,11 @@
 rem @echo off
 
+rem Предполагается, что Jadatex.PawnShop уже установлена, заменяем только базу
+rem Каталог JadatexSync стираем и устанавливаем заново
 
 
-rem === удаляем старое JadatexSync
+
+rem === удаляем старое: JadatexSync
 
 call C:\Users\Public\Documents\Jadatex.Sync\unins000.exe /SILENT
 
@@ -10,7 +13,7 @@ rmdir /S /Q C:\Users\Public\Documents\Jadatex.Sync
 
 
 
-rem === удаляем старое Jadatex.PawnShop
+rem === удаляем старое: Jadatex.PawnShop
 
 del C:\Users\Public\Documents\Jadatex.PawnShop\ini.rt 
 
@@ -29,15 +32,19 @@ pause
 
 
 
-rem === ставим новое Jadatex.PawnShop
+rem === ставим новое: Jadatex.PawnShop
 
 if not "%WS_NAME%"=="srv" goto srv1_false
+
+
+:srv1_true
 
 copy db_work.gdb C:\Users\Public\Documents\Jadatex.PawnShop
 
 rename C:\Users\Public\Documents\Jadatex.PawnShop\db_work.gdb db.gdb
 
 goto srv1_end
+
 
 :srv1_false
 
@@ -49,7 +56,7 @@ rename C:\Users\Public\Documents\Jadatex.PawnShop\db_demo.gdb db.gdb
 
 
 
-rem === ставим новый JadatexSync
+rem === ставим новое: JadatexSync
 
 call %EXE_FILE% /SILENT
 
@@ -59,16 +66,21 @@ rem === настраиваем JadatexSync
 
 if not "%WS_NAME%"=="srv" goto srv2_false
 
+
+:srv2_true
+
 echo Настройка сервера
 
 rename C:\Users\Public\Documents\Jadatex.Sync\web\WEB-INF\cfg\sample.srv.json srv.json 
 
 del C:\Users\Public\Documents\Jadatex.Sync\web\WEB-INF\_app.rt
 
-copy _app.rt C:\Users\Public\Documents\Jadatex.Sync\web\WEB-INF\
+copy _app.srv.rt C:\Users\Public\Documents\Jadatex.Sync\web\WEB-INF\
+
 
 :srv2_false
 
+echo Настройка рабочей станции %WS_NAME%
 
 copy setup.test_dvsa.%WS_NAME%.bat C:\Users\Public\Documents\Jadatex.Sync\
 
