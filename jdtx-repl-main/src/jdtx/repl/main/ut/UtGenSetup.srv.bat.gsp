@@ -44,10 +44,9 @@ call jc repl-mail-check -create:true
 
 rem сразу рассылаем настройки для всех станций
 call jc repl-send-cfg -cfg:${UtCfgType.DECODE} -file:"cfg/decode_strategy.json"
-call jc repl-send-cfg -ws:1 -cfg:${UtCfgType.PUBLICATIONS} -file:"cfg/publication_up_152_srv.json"
-<% for (int i = 1; i < args.ws_list.size; i++) { %>
-call jc repl-send-cfg -ws:${args.ws_list[i].ws_no} -cfg:${UtCfgType.PUBLICATIONS} -file:"cfg/publication_up_152_ws.json"
-<% } %>
+call jc repl-send-cfg -cfg:${UtCfgType.PUBLICATIONS} -file:"cfg/publication_up_152_ws.json"
+rem рассылаем особую настройку для сервера
+call jc repl-send-cfg -cfg:${UtCfgType.PUBLICATIONS} -file:"cfg/publication_up_152_srv.json" -ws:1
 
 
 

@@ -123,21 +123,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         extSrv.repl_send_cfg(args);
         //
         args.clear();
+        args.put("file", cfg_json_publication_lic_152_ws);
+        args.put("cfg", UtCfgType.PUBLICATIONS);
+        extSrv.repl_send_cfg(args);
+        //
+        args.clear();
         args.put("file", cfg_json_publication_lic_152_srv);
         args.put("cfg", UtCfgType.PUBLICATIONS);
         args.put("ws", 1);
-        extSrv.repl_send_cfg(args);
-        //
-        args.clear();
-        args.put("file", cfg_json_publication_lic_152_ws);
-        args.put("cfg", UtCfgType.PUBLICATIONS);
-        args.put("ws", 2);
-        extSrv.repl_send_cfg(args);
-        //
-        args.clear();
-        args.put("file", cfg_json_publication_lic_152_ws);
-        args.put("cfg", UtCfgType.PUBLICATIONS);
-        args.put("ws", 3);
         extSrv.repl_send_cfg(args);
 
         // Для сервера - сразу инициируем фиксацию структуры БД
