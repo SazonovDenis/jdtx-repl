@@ -620,8 +620,8 @@ public class JdxReplWs {
                     String cfgType = (String) cfgInfo.get("cfgType");
                     long destinationWsId = Long.valueOf(String.valueOf(cfgInfo.get("destinationWsId")));
 
-                    // Пришла конфигурация для нашей станции?
-                    if (destinationWsId == wsId) {
+                    // Пришла конфигурация для нашей станции (или всем станциям)?
+                    if (destinationWsId == 0 || destinationWsId == wsId) {
                         // В этой реплике - новая конфигурация
                         JSONObject cfg;
                         InputStream cfgStream = UtRepl.createInputStream(replica, "cfg.json");

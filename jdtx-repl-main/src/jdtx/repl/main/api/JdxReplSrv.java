@@ -261,27 +261,16 @@ public class JdxReplSrv {
             //
             JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName);
 
-            // Список активных рабочих станций (или одна конкретная)
-            DataStore st = loadWsList(destinationWsId);
+            // Обновляем конфиг в таблицах для рабочих станций (workstation_list)
+            UtCfg utCfg = new UtCfg(db);
+            utCfg.setWsCfg(cfg, cfgType, destinationWsId);
 
-            // Обновляем конфиг в серверных таблицах и отправляем системную команду в исходящую очередь реплик
-            for (DataRecord rec : st) {
-                long wsId = rec.getValueLong("id");
+            // Системная команда ...
+            UtRepl utRepl = new UtRepl(db, struct);
+            IReplica replica = utRepl.createReplicaSetCfg(cfg, cfgType, destinationWsId);
 
-                //
-                log.info("  destination wsId: " + wsId);
-
-                // Обновляем конфиг в таблицах для рабочих станций (workstation_list)
-                UtCfg utCfg = new UtCfg(db);
-                utCfg.setWsCfg(cfg, cfgType, wsId);
-
-                // Системная команда ...
-                UtRepl utRepl = new UtRepl(db, struct);
-                IReplica replica = utRepl.createReplicaSetCfg(cfg, cfgType, wsId);
-
-                // ... в исходящую очередь реплик
-                commonQue.put(replica);
-            }
+            // ... в исходящую очередь реплик
+            commonQue.put(replica);
 
             //
             db.commit();
