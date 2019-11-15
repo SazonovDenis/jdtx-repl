@@ -51,7 +51,7 @@ public class UtRepl {
      * <p>
      * Поставить метку wsId
      */
-    public void createReplicationBase(long wsId, String guid) throws Exception {
+    public void createReplication(long wsId, String guid) throws Exception {
         // Создание базовых структур
         UtDbObjectManager objectManager = new UtDbObjectManager(db);
         objectManager.createReplBase(wsId, guid);

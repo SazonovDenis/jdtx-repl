@@ -154,7 +154,7 @@ class Jdx_Ext extends ProjectExt {
             // Создаем базовые объекты
             UtRepl utRepl = new UtRepl(db, struct)
             utRepl.dropReplication()
-            utRepl.createReplicationBase(wsId, guid)
+            utRepl.createReplication(wsId, guid)
 
             // Начальный конфиг
             JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName)

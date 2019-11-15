@@ -1,6 +1,5 @@
 package jdtx.repl.main.api;
 
-import jdtx.repl.main.api.jdx_db_object.*;
 import org.junit.*;
 
 /**
@@ -16,7 +15,7 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
     public void test_StateManager_setUp() throws Exception {
         UtRepl utRepl = new UtRepl(db, struct);
         utRepl.dropReplication();
-        utRepl.createReplicationBase(wsId_1, "");
+        utRepl.createReplication(wsId_1, "");
 
         //
         JdxReplSrv srv = new JdxReplSrv(db);
