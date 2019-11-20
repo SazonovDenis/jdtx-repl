@@ -109,8 +109,10 @@ public class UtDataSelector {
                         "order by 1";
             }
         }
-        //
-        return "select " + tableFields + " from " + tableFrom.getName();
+
+        // Порядок следования записей важен даже при получении snapshot,
+        // т.к. важно обеспечить аправильный порядок вставки, например: триггер учитывает данные новой и ПРЕДЫДУЩЕЙ записи (см. например calc_SubjectOpr)
+        return "select " + tableFields + " from " + tableFrom.getName() + " order by " + tableFrom.getPrimaryKey().get(0).getName();
     }
 
 
