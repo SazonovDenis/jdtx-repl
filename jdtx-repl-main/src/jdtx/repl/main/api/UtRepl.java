@@ -190,7 +190,7 @@ public class UtRepl {
         //
         UtAuditSelector utrr = new UtAuditSelector(db, struct, wsId);
 
-        // Узнаем интервалы для аудита
+        // Для выборки из аудита - узнаем интервалы id в таблицах аудита
         Map auditInfo = utrr.loadAutitIntervals(publication, age);
 
         //
@@ -201,6 +201,7 @@ public class UtRepl {
         replica.getInfo().setDtFrom((DateTime) auditInfo.get("z_opr_dttm_from"));
         replica.getInfo().setDtTo((DateTime) auditInfo.get("z_opr_dttm_to"));
         replica.getInfo().setReplicaType(JdxReplicaType.IDE);
+
 
         // Стартуем запись реплики
         createOutputXML(replica);
