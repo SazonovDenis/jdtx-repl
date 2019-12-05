@@ -71,7 +71,7 @@ public class JdxReplWs {
      * Рабочая станция, настройка
      */
     public void init() throws Exception {
-        MDC.put("serviceName", "ws ");
+        MDC.put("serviceName", "ws");
 
         //
         dataRoot = new File(db.getApp().getRt().getChild("app").getValueString("dataRoot")).getCanonicalPath();
