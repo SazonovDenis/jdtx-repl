@@ -115,11 +115,11 @@ Filename: jc.bat; Parameters: repl-service-remove; WorkingDir: {app}
 
 
 [UninstallDelete]
-Name: {app}\output.err; Type: files
-Name: {app}\output.msg; Type: files
-Name: {app}\jdtx.log; Type: files
+Name: {app}\output.err;   Type: files
+Name: {app}\output.msg;   Type: files
+Name: {app}\jdtx.log;     Type: files
 Name: {app}\jdtx-dbm.log; Type: files
-
+Name: {app}\jre;          Type: filesandordirs
 
 
 [Messages]
@@ -129,7 +129,7 @@ ClickNext=Нажмите «Далее», чтобы установить версию _CFG_APP_VERSION, или «Отмена
 
 StatusRunProgram=Заключительные шаги установки...
 
-UninstalledAll=Программа %1 была удалена с Вашего компьютера.%nИз соображений сохранности данных файлы рабочие каталоги (web\WEB-INF\*) не были удалены. Вы можете удалить их самостоятельно.
+UninstalledAll=Программа %1 была удалена с Вашего компьютера.%nИз соображений сохранности данных рабочие каталоги (в каталоге web\WEB-INF\*) не были удалены. Вы можете удалить их самостоятельно.
 
 
 
