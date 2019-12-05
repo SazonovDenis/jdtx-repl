@@ -10,7 +10,7 @@ public class JdxMuteManagerSrv {
 
     private Db db;
 
-    protected static Log log = LogFactory.getLog("jdtx");
+    protected static Log log = LogFactory.getLog("jdtx.MuteManagerSrv");
 
     public JdxMuteManagerSrv(Db db) {
         this.db = db;

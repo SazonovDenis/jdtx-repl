@@ -31,7 +31,7 @@ public class MailerHttp implements IMailer {
     String localDirTmp;
     Random rnd;
 
-    protected static Log log = LogFactory.getLog("jdtx");
+    protected static Log log = LogFactory.getLog("jdtx.Mailer");
 
     // 32 Mb
     public static final int HTTP_FILE_MAX_SIZE = 1024 * 1024 * 32;

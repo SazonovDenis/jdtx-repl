@@ -21,7 +21,7 @@ public class MailerLocalFiles implements IMailer {
     String localDirTmp;
 
 
-    protected static Log log = LogFactory.getLog("jdtx");
+    protected static Log log = LogFactory.getLog("jdtx.MailerFiles");
 
     private String inFileMask = "*.zip";
 

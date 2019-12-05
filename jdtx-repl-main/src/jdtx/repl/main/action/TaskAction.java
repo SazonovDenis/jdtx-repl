@@ -19,7 +19,7 @@ import java.util.Map;
 public class TaskAction extends WebAction {
 
 
-    protected static Log log = LogFactory.getLog("jdtx");
+    protected static Log log = LogFactory.getLog("jdtx.TaskAction");
 
 
     /**

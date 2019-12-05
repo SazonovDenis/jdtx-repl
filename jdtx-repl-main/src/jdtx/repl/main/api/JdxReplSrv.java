@@ -13,6 +13,7 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
+import org.apache.log4j.*;
 import org.json.simple.*;
 
 import java.io.*;
@@ -38,7 +39,7 @@ public class JdxReplSrv {
     private String dataRoot;
 
     //
-    protected static Log log = LogFactory.getLog("jdtx");
+    protected static Log log = LogFactory.getLog("jdtx.Server");
 
 
     //
@@ -61,9 +62,12 @@ public class JdxReplSrv {
      * Сервер, настройка
      */
     public void init() throws Exception {
+        MDC.put("serviceName", "srv");
+
+        //
         dataRoot = new File(db.getApp().getRt().getChild("app").getValueString("dataRoot")).getCanonicalPath();
         dataRoot = UtFile.unnormPath(dataRoot) + "/";
-        System.out.println("dataRoot: " + dataRoot);
+        log.info("dataRoot: " + dataRoot);
 
         // Проверка наличия в БД служебных структур и их версии
         UtDbObjectManager ut = new UtDbObjectManager(db);

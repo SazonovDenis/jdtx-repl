@@ -11,7 +11,7 @@ public class JdxMuteManagerWs {
 
     private Db db;
 
-    protected static Log log = LogFactory.getLog("jdtx");
+    protected static Log log = LogFactory.getLog("jdtx.MuteManagerWs");
 
     static long STATE_MUTE_OFF = 0;
     static long STATE_MUTE = 1;

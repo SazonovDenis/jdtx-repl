@@ -27,7 +27,7 @@ public class UtRepl {
     private Db db;
     private IJdxDbStruct struct;
 
-    protected static Log log = LogFactory.getLog("jdtx");
+    protected static Log log = LogFactory.getLog("jdtx.Ut");
 
     //
     private OutputStream outputStream = null;

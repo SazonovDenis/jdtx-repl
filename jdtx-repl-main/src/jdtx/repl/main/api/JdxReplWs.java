@@ -15,6 +15,7 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
+import org.apache.log4j.*;
 import org.json.simple.*;
 
 import java.io.*;
@@ -47,7 +48,7 @@ public class JdxReplWs {
     private String dataRoot;
 
     //
-    private static Log log = LogFactory.getLog("jdtx");
+    private static Log log = LogFactory.getLog("jdtx.Workstation");
 
     //
     public JdxReplWs(Db db) throws Exception {
@@ -70,9 +71,12 @@ public class JdxReplWs {
      * Рабочая станция, настройка
      */
     public void init() throws Exception {
+        MDC.put("serviceName", "ws ");
+
+        //
         dataRoot = new File(db.getApp().getRt().getChild("app").getValueString("dataRoot")).getCanonicalPath();
         dataRoot = UtFile.unnormPath(dataRoot) + "/";
-        System.out.println("dataRoot: " + dataRoot);
+        log.info("dataRoot: " + dataRoot);
 
         // Проверка наличия в БД служебных структур и их версии
         UtDbObjectManager ut = new UtDbObjectManager(db);
@@ -831,7 +835,7 @@ public class JdxReplWs {
 
 
     void receiveInternal(IMailer mailer, long no_from, long no_to) throws Exception {
-        log.info("UtMailer, self.wsId: " + wsId);
+        log.info("receive, self.wsId: " + wsId);
 
         //
         long count = 0;
@@ -892,9 +896,9 @@ public class JdxReplWs {
 
         //
         if (no_from <= no_to) {
-            log.info("UtMailer, self.wsId: " + wsId + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
+            log.info("receive, self.wsId: " + wsId + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
         } else {
-            log.info("UtMailer, self.wsId: " + wsId + ", receive.no: " + no_from + ", nothing to receive");
+            log.info("receive, self.wsId: " + wsId + ", receive.no: " + no_from + ", nothing to receive");
         }
     }
 
@@ -966,7 +970,7 @@ public class JdxReplWs {
     }
 
     void sendInternal(IMailer mailer, long age_from, long age_to, boolean doMarkDone) throws Exception {
-        log.info("UtMailer.send, self.wsId: " + wsId);
+        log.info("send, self.wsId: " + wsId);
 
         //
         JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
@@ -1004,9 +1008,9 @@ public class JdxReplWs {
 
         //
         if (age_from <= age_to) {
-            log.info("UtMailer, self.wsId: " + wsId + ", send.age: " + age_from + " .. " + age_to + ", done count: " + count);
+            log.info("send, self.wsId: " + wsId + ", send.age: " + age_from + " .. " + age_to + ", done count: " + count);
         } else {
-            log.info("UtMailer, self.wsId: " + wsId + ", send.age: " + age_from + ", nothing to send");
+            log.info("send, self.wsId: " + wsId + ", send.age: " + age_from + ", nothing to send");
         }
     }
 

@@ -8,7 +8,7 @@ import java.util.*;
 
 public class UtRun {
 
-    private static Log log = LogFactory.getLog("jdtx.run");
+    private static Log log = LogFactory.getLog("jdtx.UtRun");
 
     public static int run(List<String> res, String... args) throws Exception {
         printArgs(args);

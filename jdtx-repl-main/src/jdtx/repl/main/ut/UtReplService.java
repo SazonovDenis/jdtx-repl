@@ -11,7 +11,7 @@ import java.util.*;
 public class UtReplService {
 
     //
-    private static Log log = LogFactory.getLog("jdtx.service");
+    private static Log log = LogFactory.getLog("jdtx.Service");
 
     public static long list() throws Exception {
         long processId = -1;

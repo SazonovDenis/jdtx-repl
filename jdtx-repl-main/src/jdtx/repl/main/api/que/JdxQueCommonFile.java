@@ -23,7 +23,7 @@ public class JdxQueCommonFile implements IJdxQueCommon {
     private Db db;
 
     //
-    protected static Log log = LogFactory.getLog("jdtx");
+    protected static Log log = LogFactory.getLog("jdtx.QueCommon");
 
 
     public JdxQueCommonFile(Db db, int queType) throws Exception {

@@ -14,7 +14,7 @@ public class UtDataSelector {
     private long wsId;
 
     //
-    protected static Log log = LogFactory.getLog("jdtx");
+    protected static Log log = LogFactory.getLog("jdtx.DataSelector");
 
 
     //

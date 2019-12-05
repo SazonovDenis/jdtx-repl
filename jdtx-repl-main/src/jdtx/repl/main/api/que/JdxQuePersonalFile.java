@@ -30,7 +30,7 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
     private DbUtils ut;
 
     //
-    protected static Log log = LogFactory.getLog("jdtx");
+    protected static Log log = LogFactory.getLog("jdtx.QuePersonal");
 
 
     public JdxQuePersonalFile(Db db, int queType) throws Exception {

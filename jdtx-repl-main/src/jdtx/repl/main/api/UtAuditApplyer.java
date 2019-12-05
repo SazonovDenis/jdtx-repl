@@ -21,7 +21,7 @@ public class UtAuditApplyer {
     private IJdxDbStruct struct;
 
     //
-    protected static Log log = LogFactory.getLog("jdtx");
+    protected static Log log = LogFactory.getLog("jdtx.AuditApplyer");
 
 
     //

@@ -15,7 +15,7 @@ public class BgTaskCustom extends BgTask {
 
 
     //
-    static Log log = LogFactory.getLog("bgTask");
+    static Log log = LogFactory.getLog("jdtx.BgTask");
 
     List errors = new ArrayList();
 

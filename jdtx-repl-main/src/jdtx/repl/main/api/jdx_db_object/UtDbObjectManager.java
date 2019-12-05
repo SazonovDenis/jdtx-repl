@@ -17,7 +17,7 @@ public class UtDbObjectManager {
 
     Db db;
 
-    protected static Log log = LogFactory.getLog("jdtx");
+    protected static Log log = LogFactory.getLog("jdtx.DbObject");
 
     enum updMods {INSERT, UPDATE, DELETE}
 

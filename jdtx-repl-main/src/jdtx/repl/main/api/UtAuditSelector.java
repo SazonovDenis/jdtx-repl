@@ -19,7 +19,7 @@ public class UtAuditSelector {
     long wsId;
 
     //
-    protected static Log log = LogFactory.getLog("jdtx");
+    protected static Log log = LogFactory.getLog("jdtx.AuditSelector");
 
 
     //
