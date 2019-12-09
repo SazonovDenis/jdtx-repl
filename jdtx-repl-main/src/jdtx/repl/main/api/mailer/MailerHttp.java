@@ -191,6 +191,7 @@ public class MailerHttp implements IMailer {
 
             //
             handleHttpErrors(response);
+
             //
             parseHttpResponse(response);
 
@@ -290,6 +291,7 @@ public class MailerHttp implements IMailer {
 
             //
             HttpResponse response = httpclient.execute(httpGet);
+
             //
             handleHttpErrors(response);
 
@@ -454,6 +456,8 @@ public class MailerHttp implements IMailer {
     }
 
     void handleHttpErrors(HttpResponse response) throws Exception {
+        log.debug("response: " + response.getStatusLine().toString());
+        //
         if (response.getStatusLine().getStatusCode() != 200) {
             String resStr = EntityUtils.toString(response.getEntity());
             JSONObject res;
@@ -510,11 +514,19 @@ public class MailerHttp implements IMailer {
         if (info != null) {
             b.append(info);
         }
-        return remoteUrl + url + ".php" + b.toString();
+        String urlRes = remoteUrl + url + ".php" + b.toString();
+        //
+        log.debug("getUrl: " + urlRes);
+        //
+        return urlRes;
     }
 
     String getUrlPost(String url) {
-        return remoteUrl + url + ".php?" + "protocolVersion=" + REPL_PROTOCOL_VERSION + "&appVersion=" + UtRepl.getVersion();
+        String urlRes = remoteUrl + url + ".php?" + "protocolVersion=" + REPL_PROTOCOL_VERSION + "&appVersion=" + UtRepl.getVersion();
+        //
+        log.debug("getUrlPost: " + urlRes);
+        //
+        return urlRes;
     }
 
     String getFileName(long no) {
@@ -538,6 +550,7 @@ public class MailerHttp implements IMailer {
 
         //
         handleHttpErrors(response);
+
         //
         parseHttpResponse(response);
     }
