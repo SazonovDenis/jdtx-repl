@@ -51,7 +51,12 @@ public class MailerHttp_Test extends AppTestCase {
         logOn();
 
         // ---
-        File srcFile = new File("../_test-data/_test-data_srv/srv/queCommon/000000001.zip");
+        // Файл - наполнение реплики - из мусора - ее содержимое неважно, проверяем только транспорт
+        //File srcFile = new File("../_test-data/_test-data_srv/srv/queCommon/000000001.zip");
+        //File srcFile = new File("D:/Install/apache-tomcat-6.0.44.zip");  // 7.2 Mb
+        //File srcFile = new File("D:/Install/tortoisehg-4.1.0-x64.msi");   // 26 Mb
+        File srcFile = new File("D:/Install/jdk-1.8.0_202.zip");   // 179 Mb
+
         assertEquals("Исходный файл не существует", srcFile.exists(), true);
         //
         UtFile.cleanDir("../../lombard.systems/repl/" + MailerHttp.REPL_PROTOCOL_VERSION + "/" + guid.replace("-", "/") + "/from");
@@ -156,7 +161,7 @@ public class MailerHttp_Test extends AppTestCase {
         sw.start();
 
         //
-        HttpGet httpGet = new HttpGet("http://lombard.systems/repl/repl_part_receive.php?seed=4751547061763885136&guid=98178b66d083dd79.jovid-0324d9edabc5b860&box=from&no=1&part=0");
+        HttpGet httpGet = new HttpGet("http://lombard.systems/repl/repl_part_receive.php?seed=4751547061763885136&guid=b5781df573ca6ee6.x-17845f2f56f4d401&box=from&no=1&part=0");
 
         //
         HttpClient client = HttpClientBuilder.create().build();
