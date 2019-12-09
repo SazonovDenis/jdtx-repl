@@ -309,6 +309,9 @@ public class MailerHttp implements IMailer {
             receivedBytes = receivedBytes + buff.length;
 
             //
+            log.debug("response.entity.contentLength: " + entity.getContentLength());
+
+            //
             if (receivedBytes != totalBytes) {
                 log.info("mailer.receive, part: " + filePart + "/" + filePartsCount + ", receivedBytes: " + receivedBytes + "/" + totalBytes);
             } else {
@@ -476,7 +479,15 @@ public class MailerHttp implements IMailer {
     }
 
     JSONObject parseHttpResponse(HttpResponse response) throws Exception {
-        String resStr = EntityUtils.toString(response.getEntity());
+        HttpEntity entity = response.getEntity();
+
+        //
+        log.debug("response.entity.contentLength: " + entity.getContentLength());
+
+        //
+        String resStr = EntityUtils.toString(entity);
+
+        //
         JSONObject res = parseJson(resStr);
         return res;
     }
