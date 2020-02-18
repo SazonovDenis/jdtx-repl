@@ -10,17 +10,20 @@
 
 Создать репликационные структры с указанием кода станции:
 
->jc repl-create -ws:1 -guid:XXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXX
-                           
+```
+jc repl-create -ws:1 -guid:XXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXX
+```
 
 
 Добавить все рабочие станции:
 
->jc repl-add-ws -ws:1 -name:"Sever" -guid:XXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXX
+```
+jc repl-add-ws -ws:1 -name:"Sever" -guid:XXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXX
 
->jc repl-add-ws -ws:2 -name:"ws filial 2" -guid:XXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXX
+jc repl-add-ws -ws:2 -name:"ws filial 2" -guid:XXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXX
 
->jc repl-add-ws -ws:3 -name:"ws filial 3" -guid:XXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXX
+jc repl-add-ws -ws:3 -name:"ws filial 3" -guid:XXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXX
+```
 
 ...
 
@@ -29,11 +32,13 @@
 
 Вновь добавленные станции нужно активировать:
 
->jc repl-enable -ws:1
+```
+jc repl-enable -ws:1
 
->jc repl-enable -ws:2
+jc repl-enable -ws:2
 
->jc repl-enable -ws:3
+jc repl-enable -ws:3
+```
 
 ...
 
@@ -47,12 +52,11 @@
 
 Создать структуру почтовых каталогов:
 
->jc repl-mail-check -create:true
-
-...
+```
+jc repl-mail-check -create:true
+```
 
 и т.д.
-
 
 
 
@@ -66,9 +70,10 @@
 
 Создать репликационные структры с указанием кода станции:
 
->jc repl-create -ws:XXX -guid:XXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXX
+```
+jc repl-create -ws:XXX -guid:XXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXX
+```
                            
-
 
 
 
@@ -77,16 +82,18 @@
 
 Запуск
 
->jc run
-
+```
+jc run
+```
 
 Добавить в опции запуска java:
 
->-Xms256m -Xmx1024m
-
-
+```
+-Xms256m -Xmx1024m
+```
 
 Проверть репликационные структры: 
 
->jc repl-info 
-
+```
+jc repl-info 
+```
