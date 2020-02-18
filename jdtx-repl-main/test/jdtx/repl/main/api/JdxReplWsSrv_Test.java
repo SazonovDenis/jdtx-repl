@@ -357,13 +357,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         String sql = "select Lic.nameF, Lic.nameI, Lic.nameO, Region.name as RegionName, RegionTip.name as RegionTip, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) left join RegionTip on (Region.RegionTip = RegionTip.id) order by Lic.NameF";
         DataStore st1 = db.loadSql(sql);
         OutTableSaver svr1 = new OutTableSaver(st1);
-        //svr1.save().saveToFile("../_test-data/csv/ws1-all.csv");
+        //svr1.save().toFile("../_test-data/csv/ws1-all.csv");
         DataStore st2 = db2.loadSql(sql);
         OutTableSaver svr2 = new OutTableSaver(st2);
-        //svr2.save().saveToFile("../_test-data/csv/ws2-all.csv");
+        //svr2.save().toFile("../_test-data/csv/ws2-all.csv");
         DataStore st3 = db3.loadSql(sql);
         OutTableSaver svr3 = new OutTableSaver(st3);
-        //svr3.save().saveToFile("../_test-data/csv/ws3-all.csv");
+        //svr3.save().toFile("../_test-data/csv/ws3-all.csv");
 
         // dumpTables Region*
         String regionTestFields = "";

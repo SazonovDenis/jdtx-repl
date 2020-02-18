@@ -247,7 +247,7 @@ public class JdxReplWs {
         IJdxDbStruct structDiffRemoved = new JdxDbStruct();
         //
         boolean equal_Actual_Allowed = UtDbComparer.dbStructIsEqualTables(structActual, structAllowed);
-        boolean equal_Actual_Fixed = UtDbComparer.dbStructDiffTables(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
+        boolean equal_Actual_Fixed = UtDbComparer.getStructDiffTables(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
 
         // Нет необходимости в фиксации структуры -
         // все структуры совпадают
@@ -264,9 +264,9 @@ public class JdxReplWs {
 
             // Для справки/отладки - структуры в файл
             JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-            struct_rw.saveToFile(structActual, dataRoot + "temp/dbStruct.actual.xml");
-            struct_rw.saveToFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
-            struct_rw.saveToFile(structFixed, dataRoot + "temp/dbStruct.fixed.xml");
+            struct_rw.toFile(structActual, dataRoot + "temp/dbStruct.actual.xml");
+            struct_rw.toFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
+            struct_rw.toFile(structFixed, dataRoot + "temp/dbStruct.fixed.xml");
 
             //
             return false;
@@ -397,9 +397,9 @@ public class JdxReplWs {
             log.warn("handleSelfAudit, database structActual <> structAllowed");
             // Для справки/отладки - структуры в файл
             JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-            struct_rw.saveToFile(struct, dataRoot + "temp/dbStruct.actual.xml");
-            struct_rw.saveToFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
-            struct_rw.saveToFile(structFixed, dataRoot + "temp/dbStruct.fixed.xml");
+            struct_rw.toFile(struct, dataRoot + "temp/dbStruct.actual.xml");
+            struct_rw.toFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
+            struct_rw.toFile(structFixed, dataRoot + "temp/dbStruct.fixed.xml");
             //
             return;
         }
@@ -408,9 +408,9 @@ public class JdxReplWs {
             log.warn("handleSelfAudit, database structActual <> structFixed");
             // Для справки/отладки - структуры в файл
             JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-            struct_rw.saveToFile(struct, dataRoot + "temp/dbStruct.actual.xml");
-            struct_rw.saveToFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
-            struct_rw.saveToFile(structFixed, dataRoot + "temp/dbStruct.fixed.xml");
+            struct_rw.toFile(struct, dataRoot + "temp/dbStruct.actual.xml");
+            struct_rw.toFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
+            struct_rw.toFile(structFixed, dataRoot + "temp/dbStruct.fixed.xml");
             //
             return;
         }
@@ -673,9 +673,9 @@ public class JdxReplWs {
                         doBreak = true;
                         // Для справки/отладки - структуры в файл
                         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-                        struct_rw.saveToFile(struct, dataRoot + "temp/dbStruct.actual.xml");
-                        struct_rw.saveToFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
-                        struct_rw.saveToFile(dbStructRW.getDbStructFixed(), dataRoot + "temp/dbStruct.fixed.xml");
+                        struct_rw.toFile(struct, dataRoot + "temp/dbStruct.actual.xml");
+                        struct_rw.toFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
+                        struct_rw.toFile(dbStructRW.getDbStructFixed(), dataRoot + "temp/dbStruct.fixed.xml");
                         //
                         break;
                     }
@@ -688,7 +688,7 @@ public class JdxReplWs {
                     // Реальная структура базы НЕ совпадает со структурой, с которой была подготовлена реплика
                     JdxReplicaReaderXml.readReplicaInfo(replica);
                     String replicaStructCrc = replica.getInfo().getDbStructCrc();
-                    String dbStructActualCrc = UtDbComparer.calcDbStructCrc(struct);
+                    String dbStructActualCrc = UtDbComparer.getDbStructCrcTables(struct);
                     if (replicaStructCrc.compareToIgnoreCase(dbStructActualCrc) != 0) {
                         log.error("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
 

@@ -715,7 +715,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         //
         struct = reader.readDbStruct();
-        struct_rw.saveToFile(struct, "../_test-data/dbStruct_0.xml");
+        struct_rw.toFile(struct, "../_test-data/dbStruct_0.xml");
 
         //
         UtTest utTest = new UtTest(db);
@@ -738,7 +738,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         //
         struct = reader.readDbStruct();
-        struct_rw.saveToFile(struct, "../_test-data/dbStruct_1.xml");
+        struct_rw.toFile(struct, "../_test-data/dbStruct_1.xml");
     }
 
 

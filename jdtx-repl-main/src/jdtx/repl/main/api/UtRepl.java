@@ -195,7 +195,7 @@ public class UtRepl {
 
         //
         IReplica replica = new ReplicaFile();
-        replica.getInfo().setDbStructCrc(UtDbComparer.calcDbStructCrc(struct));
+        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
         replica.getInfo().setWsId(wsId);
         replica.getInfo().setAge(age);
         replica.getInfo().setDtFrom((DateTime) auditInfo.get("z_opr_dttm_from"));
@@ -247,7 +247,7 @@ public class UtRepl {
      */
     public IReplica createReplicaTableSnapshot(long wsId, IJdxTable publicationTable, long age) throws Exception {
         IReplica replica = new ReplicaFile();
-        replica.getInfo().setDbStructCrc(UtDbComparer.calcDbStructCrc(struct));
+        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
         replica.getInfo().setWsId(wsId);
         replica.getInfo().setAge(age);
         replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);

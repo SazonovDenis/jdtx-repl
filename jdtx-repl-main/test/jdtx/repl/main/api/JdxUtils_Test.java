@@ -72,7 +72,7 @@ public class JdxUtils_Test extends TestCase {
         JdxUtils.sortTablesByReference(structFixed.getTables());
 
         //
-        UtDbComparer.dbStructDiff(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
+        UtDbComparer.getStructDiff(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
 
         //
         System.out.println("=== structDiffNew");

@@ -12,14 +12,14 @@ public class UtDbComparer {
         IJdxDbStruct structCommon = new JdxDbStruct();
         IJdxDbStruct structDiffNewIn1 = new JdxDbStruct();
         IJdxDbStruct structDiffNewIn2 = new JdxDbStruct();
-        return UtDbComparer.dbStructDiff(struct1, struct2, structCommon, structDiffNewIn1, structDiffNewIn2);
+        return UtDbComparer.getStructDiff(struct1, struct2, structCommon, structDiffNewIn1, structDiffNewIn2);
     }
 
     public static boolean dbStructIsEqualTables(IJdxDbStruct struct1, IJdxDbStruct struct2) throws Exception {
         IJdxDbStruct structCommon = new JdxDbStruct();
         IJdxDbStruct structDiffNewIn1 = new JdxDbStruct();
         IJdxDbStruct structDiffNewIn2 = new JdxDbStruct();
-        return UtDbComparer.dbStructDiffTables(struct1, struct2, structCommon, structDiffNewIn1, structDiffNewIn2);
+        return UtDbComparer.getStructDiffTables(struct1, struct2, structCommon, structDiffNewIn1, structDiffNewIn2);
     }
 
     /**
@@ -32,7 +32,7 @@ public class UtDbComparer {
      * @param structDiffNewIn2 возвращает объекты во второй структуре, которых нет впервой
      * @return =true, если структуры БД одинаковые, иначе в structDiff*** возвращается разница
      */
-    public static boolean dbStructDiff(IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct structCommon, IJdxDbStruct structDiffNewIn1, IJdxDbStruct structDiffNewIn2) throws Exception {
+    public static boolean getStructDiff(IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct structCommon, IJdxDbStruct structDiffNewIn1, IJdxDbStruct structDiffNewIn2) throws Exception {
         // сравниваем таблицы из первой базы с таблицами со второй базы
         for (IJdxTable t1 : struct1.getTables()) {
             // таблица первой базы - находим такую же таблицу во второй базе
@@ -128,7 +128,7 @@ public class UtDbComparer {
      * @param structDiffNewIn2 возвращает таблицы во второй структуре, которых нет впервой
      * @return =true, если структуры БД одинаковые, иначе в structDiff*** возвращается разница
      */
-    public static boolean dbStructDiffTables(IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct structCommon, IJdxDbStruct structDiffNewIn1, IJdxDbStruct structDiffNewIn2) throws Exception {
+    public static boolean getStructDiffTables(IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct structCommon, IJdxDbStruct structDiffNewIn1, IJdxDbStruct structDiffNewIn2) throws Exception {
         // сравниваем таблицы из первой базы с таблицами со второй базы
         for (IJdxTable t1 : struct1.getTables()) {
             // таблица первой базы - находим такую же таблицу во второй базе
@@ -159,6 +159,16 @@ public class UtDbComparer {
         }
     }
 
+    public static String getDbStructCrc(IJdxDbStruct struct) throws Exception {
+        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+        return UtString.md5Str(struct_rw.toString(struct, false));
+    }
+
+    public static String getDbStructCrcTables(IJdxDbStruct struct) throws Exception {
+        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+        return UtString.md5Str(struct_rw.toString(struct, false));
+    }
+
     private static boolean compareField(IJdxField f1, IJdxField f2) {
         if (f1.getDbDatatype().compareToIgnoreCase(f2.getDbDatatype()) != 0) {
             return false;
@@ -169,10 +179,5 @@ public class UtDbComparer {
         return true;
     }
 
-
-    public static String calcDbStructCrc(IJdxDbStruct struct) throws Exception {
-        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-        return UtString.md5Str(struct_rw.toString(struct, false));
-    }
 
 }

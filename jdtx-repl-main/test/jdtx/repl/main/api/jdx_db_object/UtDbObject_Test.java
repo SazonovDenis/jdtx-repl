@@ -22,7 +22,7 @@ public class UtDbObject_Test extends Database_Test {
 
         //
         IJdxDbStruct struct_1 = dbStructReader.readDbStruct(false);
-        struct_rw.saveToFile(struct_1, "../_test-data/dbStruct_1.xml");
+        struct_rw.toFile(struct_1, "../_test-data/dbStruct_1.xml");
 
         //
         utRepl.createReplication(1, "");
@@ -31,7 +31,7 @@ public class UtDbObject_Test extends Database_Test {
 
         //
         IJdxDbStruct struct_2 = dbStructReader.readDbStruct(false);
-        struct_rw.saveToFile(struct_2, "../_test-data/dbStruct_2.xml");
+        struct_rw.toFile(struct_2, "../_test-data/dbStruct_2.xml");
 
         // Проверим совпадение
         assertEquals(true, UtDbComparer.dbStructIsEqual(struct_1, struct_2));

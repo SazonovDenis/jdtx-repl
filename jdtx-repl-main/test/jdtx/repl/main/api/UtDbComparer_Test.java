@@ -22,10 +22,10 @@ public class UtDbComparer_Test {
         structDiffCommon = new JdxDbStruct();
         structDiffNew = new JdxDbStruct();
         structDiffRemoved = new JdxDbStruct();
-        UtDbComparer.dbStructDiff(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
+        UtDbComparer.getStructDiff(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
 
         //
-        System.out.println("=== dbStructDiff ===");
+        System.out.println("=== getStructDiff ===");
         System.out.println("structNew:");
         //
         for (IJdxTable table : structDiffNew.getTables()) {
@@ -42,11 +42,11 @@ public class UtDbComparer_Test {
         structDiffCommon = new JdxDbStruct();
         structDiffNew = new JdxDbStruct();
         structDiffRemoved = new JdxDbStruct();
-        UtDbComparer.dbStructDiffTables(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
+        UtDbComparer.getStructDiffTables(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
 
         //
         System.out.println();
-        System.out.println("=== dbStructDiffTables ===");
+        System.out.println("=== getStructDiffTables ===");
         //
         System.out.println("structNew:");
         for (IJdxTable table : structDiffNew.getTables()) {

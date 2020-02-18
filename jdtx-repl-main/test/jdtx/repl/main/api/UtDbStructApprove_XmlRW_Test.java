@@ -27,7 +27,7 @@ public class UtDbStructApprove_XmlRW_Test extends ReplDatabaseStruct_Test {
 
         // Сохраняем структуру (через файл) в БД
         File file = new File("../_test-data/dbStruct.xml");
-        struct_rw.saveToFile(struct, file.getPath());
+        struct_rw.toFile(struct, file.getPath());
         //
         IJdxDbStruct struct = struct_rw.read(file.getPath());
         //
