@@ -691,7 +691,9 @@ public class JdxReplWs {
                     String dbStructActualCrc = UtDbComparer.getDbStructCrcTables(struct);
                     if (replicaStructCrc.compareToIgnoreCase(dbStructActualCrc) != 0) {
                         log.error("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
-
+                        // Для справки/отладки - структуры в файл
+                        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+                        struct_rw.toFile(struct, dataRoot + "temp/dbStruct.actual.xml");
                         //
                         return;
                     }
