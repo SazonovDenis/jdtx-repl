@@ -13,26 +13,26 @@ public class JdxDbStruct_XmlRW {
     boolean doSortFieldsByName = true;
     boolean doSortTablesByName = true;
 
-    public String toString(IJdxDbStruct struct) throws Exception {
+    public String toString(IJdxDbStruct struct, boolean doforeignKeys) throws Exception {
         EasyXml xml = new EasyXml();
 
         //
         List<IJdxTable> tables = getStructTables(struct);
         for (IJdxTable t : tables) {
-            writeTableStruct(t, xml);
+            writeTableStruct(t, xml, doforeignKeys);
         }
 
         //
         return xml.save().toString();
     }
 
-    public void saveToFile(IJdxDbStruct struct, String fileName) throws Exception {
+    public void toFile(IJdxDbStruct struct, String fileName) throws Exception {
         EasyXml xml = new EasyXml();
 
         //
         List<IJdxTable> tables = getStructTables(struct);
         for (IJdxTable t : tables) {
-            writeTableStruct(t, xml);
+            writeTableStruct(t, xml, true);
         }
 
         //
@@ -45,7 +45,7 @@ public class JdxDbStruct_XmlRW {
         //
         List<IJdxTable> tables = getStructTables(struct);
         for (IJdxTable t : tables) {
-            writeTableStruct(t, xml);
+            writeTableStruct(t, xml, true);
         }
 
         //
@@ -65,7 +65,7 @@ public class JdxDbStruct_XmlRW {
         return tables;
     }
 
-    private void writeTableStruct(IJdxTable table, EasyXml xml) {
+    private void writeTableStruct(IJdxTable table, EasyXml xml, boolean doforeignKeys) {
         EasyXml item_table = new EasyXml();
         xml.addChild(item_table);
 
@@ -95,8 +95,10 @@ public class JdxDbStruct_XmlRW {
         }
 
         //
-        for (IJdxForeignKey fk : foreignKeys) {
-            writeFkStruct(fk, item_table);
+        if (doforeignKeys) {
+            for (IJdxForeignKey fk : foreignKeys) {
+                writeFkStruct(fk, item_table);
+            }
         }
     }
 

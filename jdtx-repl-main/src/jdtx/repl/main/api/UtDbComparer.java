@@ -172,7 +172,7 @@ public class UtDbComparer {
 
     public static String calcDbStructCrc(IJdxDbStruct struct) throws Exception {
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-        return UtString.md5Str(struct_rw.toString(struct));
+        return UtString.md5Str(struct_rw.toString(struct, false));
     }
 
 }
