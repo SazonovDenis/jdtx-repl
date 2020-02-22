@@ -23,7 +23,7 @@
   "SmsTemplate": {
     "strategy": "DECODE_ID",
     "decode_from_id": 3
-  }
+  },
   "UsrOprTip": {
     "strategy": "NO_DECODE"
   },
