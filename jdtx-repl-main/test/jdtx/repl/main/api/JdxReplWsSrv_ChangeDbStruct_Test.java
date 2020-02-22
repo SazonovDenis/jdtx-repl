@@ -10,7 +10,7 @@ import org.junit.*;
  */
 public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
-    String cfg_publications_full_152_1 = "test/etalon/publication_full_152_1.json";
+    String cfg_publications = "test/etalon/publication_full_152_1.json";
 
     @Override
     public void setUp() throws Exception {
@@ -361,16 +361,19 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      * Инициализация и прогон полного цикла смены структуры БД
      */
     @Test
-    public void test_init_modifyDbStruct() throws Exception {
+    public void test_allSetUp_ModifyDbStruct() throws Exception {
         allSetUp();
+        //
         sync_http();
         sync_http();
         sync_http();
-        test_ModifyDbStruct();
+        //
+        modifyDbStruct();
     }
 
     /**
-     * Инициализация и прогон полного цикла смены структуры БД, ТРИ РАЗА
+     * Инициализация и прогон полного цикла смены структуры БД,
+     * ТРИ РАЗА
      */
     @Test
     public void test_allSetUp_modifyDbStruct_triple() throws Exception {
@@ -380,16 +383,16 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         sync_http();
         sync_http();
         //
-        test_ModifyDbStruct();
-        test_ModifyDbStruct();
-        test_ModifyDbStruct();
+        modifyDbStruct();
+        modifyDbStruct();
+        modifyDbStruct();
     }
 
     /**
      * Прогон полного цикла смены структуры БД
      */
     @Test
-    public void test_ModifyDbStruct() throws Exception {
+    public void modifyDbStruct() throws Exception {
         JdxReplWs ws;
         JdxReplWs ws2;
         JdxReplWs ws3;
@@ -453,7 +456,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Физически меняем свою структуру на сервере
-        test_ModifyDbStruct(db);
+        modifyDbStruct_internal(db);
 
         //
         test_ws1_makeChange_Unimportant();
@@ -476,7 +479,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Завершаем (на сервере) смену версии БД
 
         // На сервере напрямую задаем структуру публикаций (команда repl_set_cfg)
-        JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfg_publications_full_152_1);
+        JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfg_publications);
         UtCfg utCfg = new UtCfg(db);
         utCfg.setSelfCfg(cfg, UtCfgType.PUBLICATIONS);
 
@@ -485,7 +488,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         srv.init();
 
         // ... рассылаем на рабочие станции новые правила публикаций (команда repl_send_cfg) ...
-        srv.srvSendCfg(cfg_publications_full_152_1, UtCfgType.PUBLICATIONS, 0);
+        srv.srvSendCfg(cfg_publications, UtCfgType.PUBLICATIONS, 0);
 
         // ... рассылаем сигнал "всем говорить" (команда repl_dbstruct_finish)
         test_srvDbStructFinish();
@@ -516,8 +519,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Физически меняем структуру на рабочих станциях ws2 и ws3
-        test_ModifyDbStruct(db2);
-        test_ModifyDbStruct(db3);
+        modifyDbStruct_internal(db2);
+        modifyDbStruct_internal(db3);
         //reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
 
 
@@ -575,7 +578,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     public void test_sync_changeDbStruct() throws Exception {
         sync_http();
         test_dumpTables();
-        test_ModifyDbStruct();
+        modifyDbStruct_internal();
         reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
     }
 */
@@ -583,17 +586,17 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
     @Test
     public void test_ws1_changeDbStruct() throws Exception {
-        test_ModifyDbStruct(db);
+        modifyDbStruct_internal(db);
     }
 
     @Test
     public void test_ws2_changeDbStruct() throws Exception {
-        test_ModifyDbStruct(db2);
+        modifyDbStruct_internal(db2);
     }
 
     @Test
     public void test_ws3_changeDbStruct() throws Exception {
-        test_ModifyDbStruct(db3);
+        modifyDbStruct_internal(db3);
     }
 
     /**
@@ -706,7 +709,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      * добавляет одну таблицу,
      * в таблицу Region добавляет поле
      */
-    void test_ModifyDbStruct(Db db) throws Exception {
+    void modifyDbStruct_internal(Db db) throws Exception {
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
         IJdxDbStructReader reader = new JdxDbStructReader();
         reader.setDb(db);

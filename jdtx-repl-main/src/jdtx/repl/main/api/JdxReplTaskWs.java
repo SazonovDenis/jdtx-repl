@@ -25,6 +25,14 @@ public class JdxReplTaskWs extends JdxReplTaskCustom {
         ws.init();
         logInfo("Рабочая станция, wsId: " + ws.getWsId());
 
+        // Очистим состояние "ошибка" на мониторинге
+        try {
+            sendErrors(ws.getMailer(), "ws.errors");
+        } catch (Exception e) {
+            logError(e);
+            collectError("ws.sendErrors", e);
+        }
+
         //
         logInfo("Отслеживаем и обрабатываем свои изменения");
         try {

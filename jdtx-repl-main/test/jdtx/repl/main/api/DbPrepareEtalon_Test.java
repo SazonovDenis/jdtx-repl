@@ -86,7 +86,7 @@ public class DbPrepareEtalon_Test extends AppTestCase {
         //
         FileUtils.copyFile(new File(dbNameSour), new File(dbNameDest));
         //
-        System.out.println("База подготовлена [" + dbNameDest + "]");
+        System.out.println("Новая база скопирована [" + dbNameDest + "]");
 
         //
         rt = extWs2.getApp().getRt().getChild("db/default");
@@ -95,7 +95,7 @@ public class DbPrepareEtalon_Test extends AppTestCase {
         //
         FileUtils.copyFile(new File(dbNameSour), new File(dbNameDest));
         //
-        System.out.println("База подготовлена [" + dbNameDest + "]");
+        System.out.println("Новая база скопирована [" + dbNameDest + "]");
 
         //
         rt = extWs3.getApp().getRt().getChild("db/default");
@@ -104,7 +104,7 @@ public class DbPrepareEtalon_Test extends AppTestCase {
         //
         FileUtils.copyFile(new File(dbNameSour), new File(dbNameDest));
         //
-        System.out.println("База подготовлена [" + dbNameDest + "]");
+        System.out.println("Новая база скопирована [" + dbNameDest + "]");
     }
 
 

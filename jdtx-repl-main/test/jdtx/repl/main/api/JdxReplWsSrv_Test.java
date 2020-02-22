@@ -22,9 +22,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     String cfg_json_ws = "test/etalon/ws.json";
     String cfg_json_decode = "test/etalon/decode_strategy.json";
-    //String cfg_json_publications_full_152 = "test/etalon/publication_full_152.json";
-    String cfg_json_publication_lic_152_srv = "test/etalon/publication_lic_152_srv.json";
-    String cfg_json_publication_lic_152_ws = "test/etalon/publication_lic_152_ws.json";
+    String cfg_json_publication_srv = "test/etalon/publication_full_152.json";
+    String cfg_json_publication_ws = "test/etalon/publication_full_152.json";
+    //String cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
+    //String cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
 
 
     @Test
@@ -67,7 +68,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         // Начальный конфиг сервера: напрямую задаем структуру публикаций (команда repl_set_cfg)
         args.clear();
         //args.put("file", cfg_json_publications_full_152);
-        args.put("file", cfg_json_publication_lic_152_srv);
+        args.put("file", cfg_json_publication_srv);
         args.put("cfg", UtCfgType.PUBLICATIONS);
         extSrv.repl_set_cfg(args);
 
@@ -123,12 +124,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         extSrv.repl_send_cfg(args);
         //
         args.clear();
-        args.put("file", cfg_json_publication_lic_152_ws);
+        args.put("file", cfg_json_publication_ws);
         args.put("cfg", UtCfgType.PUBLICATIONS);
         extSrv.repl_send_cfg(args);
         //
         args.clear();
-        args.put("file", cfg_json_publication_lic_152_srv);
+        args.put("file", cfg_json_publication_srv);
         args.put("cfg", UtCfgType.PUBLICATIONS);
         args.put("ws", 1);
         extSrv.repl_send_cfg(args);
