@@ -300,27 +300,20 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void sync_http() throws Exception {
-        test_ws1_handleSelfAudit();
-        test_ws2_handleSelfAudit();
-        test_ws3_handleSelfAudit();
+        test_ws1_doReplSesssion();
+        test_ws2_doReplSesssion();
+        test_ws3_doReplSesssion();
 
-        test_ws1_send_receive();
-        test_ws2_send_receive();
-        test_ws3_send_receive();
+        test_srv_doReplSesssion();
 
-        test_sync_srv();
-
-        test_ws1_send_receive();
-        test_ws2_send_receive();
-        test_ws3_send_receive();
-
-        test_ws1_handleQueIn();
-        test_ws2_handleQueIn();
-        test_ws3_handleQueIn();
+        test_ws1_doReplSesssion();
+        test_ws2_doReplSesssion();
+        test_ws3_doReplSesssion();
     }
 
     @Test
     public void syncLocal() throws Exception {
+/*
         test_ws1_handleSelfAudit();
         test_ws2_handleSelfAudit();
         test_ws3_handleSelfAudit();
@@ -339,6 +332,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         //
         test_dumpTables();
+*/
     }
 
     @Test
@@ -485,33 +479,31 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_ws1_handleSelfAudit() throws Exception {
+    public void test_ws1_doReplSesssion() throws Exception {
         JdxReplWs ws = new JdxReplWs(db);
-        ws.init();
-
-        // Отслеживаем и обрабатываем свои изменения
-        ws.handleSelfAudit();
+        JdxReplTaskWs replTask = new JdxReplTaskWs(ws);
+        //
+        replTask.doReplSesssion();
     }
 
     @Test
-    public void test_ws2_handleSelfAudit() throws Exception {
+    public void test_ws2_doReplSesssion() throws Exception {
         JdxReplWs ws = new JdxReplWs(db2);
-        ws.init();
-
-        // Отслеживаем и обрабатываем свои изменения
-        ws.handleSelfAudit();
+        JdxReplTaskWs replTask = new JdxReplTaskWs(ws);
+        //
+        replTask.doReplSesssion();
     }
 
     @Test
-    public void test_ws3_handleSelfAudit() throws Exception {
+    public void test_ws3_doReplSesssion() throws Exception {
         JdxReplWs ws = new JdxReplWs(db3);
-        ws.init();
-
-        // Отслеживаем и обрабатываем свои изменения
-        ws.handleSelfAudit();
+        JdxReplTaskWs replTask = new JdxReplTaskWs(ws);
+        //
+        replTask.doReplSesssion();
     }
 
 
+/*
     @Test
     public void test_ws1_send_receive() throws Exception {
         JdxReplWs ws = new JdxReplWs(db);
@@ -541,8 +533,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ws.send();
         ws.receive();
     }
+*/
 
 
+/*
     @Test
     public void test_ws1_handleQueIn() throws Exception {
         JdxReplWs ws = new JdxReplWs(db);
@@ -570,6 +564,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ws.handleQueIn();
     }
 
+*/
 
     @Test
     public void test_ws_sendLocal() throws Exception {
@@ -634,16 +629,11 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_sync_srv() throws Exception {
-        // Сервер, настройка
+    public void test_srv_doReplSesssion() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init();
-
-        // Формирование общей очереди
-        srv.srvHandleCommonQue();
-
-        // Тиражирование реплик
-        srv.srvDispatchReplicas();
+        JdxReplTaskSrv replTask = new JdxReplTaskSrv(srv);
+        //
+        replTask.doReplSesssion();
     }
 
     @Test
@@ -692,7 +682,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_run_srv() throws Exception {
         while (true) {
-            test_sync_srv();
+            test_srv_doReplSesssion();
         }
     }
 
@@ -700,8 +690,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_run_1() throws Exception {
         while (true) {
             test_ws1_makeChange_Unimportant();
-            test_ws1_handleSelfAudit();
-            test_ws1_handleQueIn();
+            test_ws1_doReplSesssion();
         }
     }
 
@@ -709,8 +698,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_run_2() throws Exception {
         while (true) {
             test_ws2_makeChange();
-            test_ws2_handleSelfAudit();
-            test_ws2_handleQueIn();
+            test_ws2_doReplSesssion();
         }
     }
 
@@ -718,8 +706,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_run_3() throws Exception {
         while (true) {
             test_ws3_makeChange();
-            test_ws3_handleSelfAudit();
-            test_ws3_handleQueIn();
+            test_ws3_doReplSesssion();
         }
     }
 
@@ -783,10 +770,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void loop_1_repl() throws Exception {
         while (true) {
             try {
-                test_ws1_handleSelfAudit();
-                test_ws1_handleQueIn();
-                test_ws1_send_receive();
-                test_ws1_handleQueIn();
+                test_ws1_doReplSesssion();
             } catch (Exception e) {
                 String msg = Ut.getExceptionMessage(e);
                 if (canSkipException(msg)) {
@@ -803,10 +787,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void loop_2_repl() throws Exception {
         while (true) {
             try {
-                test_ws2_handleSelfAudit();
-                test_ws2_handleQueIn();
-                test_ws2_send_receive();
-                test_ws2_handleQueIn();
+                test_ws2_doReplSesssion();
             } catch (Exception e) {
                 String msg = Ut.getExceptionMessage(e);
                 if (canSkipException(msg)) {
@@ -823,10 +804,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void loop_3_repl() throws Exception {
         while (true) {
             try {
-                test_ws3_handleSelfAudit();
-                test_ws3_handleQueIn();
-                test_ws3_send_receive();
-                test_ws3_handleQueIn();
+                test_ws3_doReplSesssion();
             } catch (Exception e) {
                 String msg = Ut.getExceptionMessage(e);
                 if (canSkipException(msg)) {
@@ -844,7 +822,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void loop_srv() throws Exception {
         while (true) {
             try {
-                test_sync_srv();
+                test_srv_doReplSesssion();
                 TimeUnit.SECONDS.sleep(5);
             } catch (Exception e) {
                 String msg = Ut.getExceptionMessage(e);

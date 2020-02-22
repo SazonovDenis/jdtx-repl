@@ -189,11 +189,9 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Формируем изменения данных на ws1, отправка в сеть
         test_ws1_makeChange();
         //
-        test_ws1_handleSelfAudit();
+        test_ws1_doReplSesssion();
         //
-        test_ws1_send_receive();
-        //
-        test_sync_srv();
+        test_srv_doReplSesssion();
 
 
         // ===
@@ -532,8 +530,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Заставляем станции зафиксировать структуру
-        test_ws2_handleQueIn();
-        test_ws3_handleQueIn();
+        test_ws2_doReplSesssion();
+        test_ws3_doReplSesssion();
 
 
         // ===
@@ -607,7 +605,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         utTest.make_InsDel(struct2, 2);
 
         // Формирование аудита
-        test_ws2_handleSelfAudit();
+        JdxReplWs ws = new JdxReplWs(db2);
+        ws.handleSelfAudit();
     }
 
 

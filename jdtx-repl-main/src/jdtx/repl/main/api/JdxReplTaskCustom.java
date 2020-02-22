@@ -1,25 +1,22 @@
-package jdtx.repl.main.task;
+package jdtx.repl.main.api;
 
-import jandcode.bgtasks.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.action.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
 
 import java.util.*;
 
-/**
- * BgTask - предок
- */
-public class BgTaskCustom extends BgTask {
-
+public class JdxReplTaskCustom {
 
     //
-    static Log log = LogFactory.getLog("jdtx.BgTask");
-
     List errors = new ArrayList();
 
+    //
+    Log log;
 
+    //
     void collectError(String err, Exception e) {
         Map info = new HashMap();
         info.put("operation", err);
@@ -30,17 +27,17 @@ public class BgTaskCustom extends BgTask {
 
     void logInfo(String info) {
         log.info(info);
-        getLogger().put("state", info);
+        //getLogger().put("state", info);
     }
 
 
-    void logError(Exception e, String info) {
+    private void logError(Exception e, String info) {
         if (info != null) {
             info = info + ": ";
         } else {
             info = "";
         }
-        getLogger().put("state", info + Ut.getExceptionMessage(e));
+        //getLogger().put("state", info + Ut.getExceptionMessage(e));
         log.error(info + Ut.getExceptionMessage(e));
         log.error(Ut.getStackTrace(e));
     }
@@ -50,6 +47,11 @@ public class BgTaskCustom extends BgTask {
         logError(e, null);
     }
 
+/*
+    public BgTasksLogger getLogger() {
+        return logger;
+    }
+*/
 
     void sendErrors(IMailer mailer, String name) {
         try {

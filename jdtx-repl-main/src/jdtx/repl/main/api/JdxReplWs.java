@@ -657,7 +657,7 @@ public class JdxReplWs {
                         // Выкладывание реплики "конфигурация принята"
                         reportMuteDone(JdxReplicaType.SET_CFG_DONE);
 
-                        // Обновление конфигурации требует переинициализацию репликатора, поэтому прерываемся
+                        // Обновление конфигурации требует переинициализацию репликатора, поэтому обработка входящих реплик прерывается
                         doBreak = true;
                     }
 
@@ -668,17 +668,17 @@ public class JdxReplWs {
                 case JdxReplicaType.SNAPSHOT: {
                     // Реальная структура базы НЕ совпадает с разрешенной структурой
                     if (!equal_Actual_Allowed) {
-                        log.warn("handleQueIn, structActual <> structAllowed");
-                        replicaUsed = false;
-                        doBreak = true;
+                        //log.warn("handleQueIn, structActual <> structAllowed");
+                        //replicaUsed = false;
+                        //doBreak = true;
                         // Для справки/отладки - структуры в файл
                         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
                         struct_rw.toFile(struct, dataRoot + "temp/dbStruct.actual.xml");
                         struct_rw.toFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
                         struct_rw.toFile(dbStructRW.getDbStructFixed(), dataRoot + "temp/dbStruct.fixed.xml");
                         //
-                        break;
-                    }
+                        throw new XError("handleQueIn, structActual <> structAllowed");
+                    }         
 
                     // Свои собственные установочные реплики можно не применять
                     if (replica.getInfo().getWsId() == wsId && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
@@ -690,12 +690,12 @@ public class JdxReplWs {
                     String replicaStructCrc = replica.getInfo().getDbStructCrc();
                     String dbStructActualCrc = UtDbComparer.getDbStructCrcTables(struct);
                     if (replicaStructCrc.compareToIgnoreCase(dbStructActualCrc) != 0) {
-                        log.error("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
+                        //log.error("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
                         // Для справки/отладки - структуры в файл
                         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
                         struct_rw.toFile(struct, dataRoot + "temp/dbStruct.actual.xml");
                         //
-                        return;
+                        throw new XError("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
                     }
 
                     // todo: Проверим протокол репликатора, с помощью которого была подготовлена репоика

@@ -40,14 +40,10 @@ public class ReplAppUpdate_test extends JdxReplWsSrv_Test {
      */
     @Test
     public void sync_ws1() throws Exception {
-        test_ws1_handleSelfAudit();
+        test_ws1_doReplSesssion();
         //
-        test_ws1_send_receive();
+        test_srv_doReplSesssion();
         //
-        test_sync_srv();
-        //
-        test_ws1_send_receive();
-        //
-        test_ws1_handleQueIn();
+        test_ws1_doReplSesssion();
     }
 }
