@@ -65,7 +65,7 @@ public class UtReplService {
 
         //
         List<String> res = new ArrayList<>();
-        int exitCode = UtRun.run(res, "cscript.exe", getVbsScript());
+        int exitCode = UtRun.run(res, "cscript.exe", getVbsScriptStart());
 
         //
         if (exitCode == 0) {
@@ -111,51 +111,84 @@ public class UtReplService {
 
     public static void install() throws Exception {
         System.out.println("Service install");
-        //log.info("Service install");
+
+        // Задача "Запуск процесса"
+        String s1 = UtFile.loadString("res:jdtx/repl/main/ut/UtReplService.JadatexSync.xml", "utf-16LE");
+        s1 = s1.replace("${WorkingDirectory}", UtRun.getAppDir());
+        s1 = s1.replace("${VbsScript}", getVbsScriptStart());
+        File xmlFileTmp1 = new File(UtRun.getAppDir() + "JadatexSync.xml");
+        UtFile.saveString(s1, xmlFileTmp1, "utf-16LE");
 
         //
-        String sql = UtFile.loadString("res:jdtx/repl/main/ut/UtReplService.JadatexSync.xml", "utf-16LE");
-        sql = sql.replace("${WorkingDirectory}", UtRun.getAppDir());
-        sql = sql.replace("${VbsScript}", getVbsScript());
-        File xmlFileTmp = new File(UtRun.getAppDir() + "JadatexSync.xml");
-        UtFile.saveString(sql, xmlFileTmp, "utf-16LE");
+        List<String> res1 = new ArrayList<>();
+        int exitCode1 = UtRun.run(res1, "schtasks", "/Create", "/TN", "JadatexSync", "/XML", "JadatexSync.xml");
 
         //
-        List<String> res = new ArrayList<>();
-        int exitCode = UtRun.run(res, "schtasks", "/Create", "/TN", "JadatexSync", "/XML", "JadatexSync.xml");
-
-        //
-        if (exitCode == 0) {
-            UtRun.printRes(res);
+        if (exitCode1 == 0) {
+            UtRun.printRes(res1);
         } else {
-            UtRun.printRes(exitCode, res);
+            UtRun.printRes(exitCode1, res1);
         }
 
         //
-        xmlFileTmp.delete();
+        xmlFileTmp1.delete();
+
+        // Задача "Перезапуск процесса"
+        String s2 = UtFile.loadString("res:jdtx/repl/main/ut/UtReplService.JadatexSyncWatchdog.xml", "utf-16LE");
+        s2 = s2.replace("${WorkingDirectory}", UtRun.getAppDir());
+        s2 = s2.replace("${VbsScript}", getVbsScriptStop());
+        File xmlFileTmp2 = new File(UtRun.getAppDir() + "JadatexSyncWatchdog.xml");
+        UtFile.saveString(s2, xmlFileTmp2, "utf-16LE");
+
+        //
+        List<String> res2 = new ArrayList<>();
+        int exitCode2 = UtRun.run(res2, "schtasks", "/Create", "/TN", "JadatexSyncWatchdog", "/XML", "JadatexSyncWatchdog.xml");
+
+        //
+        if (exitCode2 == 0) {
+            UtRun.printRes(res2);
+        } else {
+            UtRun.printRes(exitCode2, res2);
+        }
+
+        //
+        xmlFileTmp2.delete();
     }
 
 
     public static void remove() throws Exception {
         System.out.println("Service remove");
 
-        //
+        // Задача "Запуск процесса"
         List<String> res = new ArrayList<>();
-        int exitCode = UtRun.run(res, "schtasks", "/Delete", "/TN", "JadatexSync", "/f");
+        int exitCode1 = UtRun.run(res, "schtasks", "/Delete", "/TN", "JadatexSync", "/f");
 
         //
-        if (exitCode == 0) {
+        if (exitCode1 == 0) {
             UtRun.printRes(res);
         } else {
-            UtRun.printRes(exitCode, res);
+            UtRun.printRes(exitCode1, res);
+        }
+
+        // Задача "Перезапуск процесса"
+        List<String> res2 = new ArrayList<>();
+        int exitCode2 = UtRun.run(res, "schtasks", "/Delete", "/TN", "JadatexSyncWatchdog", "/f");
+
+        //
+        if (exitCode2 == 0) {
+            UtRun.printRes(res2);
+        } else {
+            UtRun.printRes(exitCode2, res2);
         }
     }
 
 
+    private static String getVbsScriptStart() {
+        return "jc-start.vbs";
+    }
 
-
-    private static String getVbsScript() {
-        return "jc-run.vbs";
+    private static String getVbsScriptStop() {
+        return "jc-stop.vbs";
     }
 
 
