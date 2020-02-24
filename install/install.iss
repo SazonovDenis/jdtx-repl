@@ -87,13 +87,14 @@ Source: {#SourceDirJre}\*.*; DestDir: {app}\jre; Flags: ignoreversion recursesub
 
 
 Source: install\cm.bat;                           DestDir: {app};                 Flags: ignoreversion
-Source: install\jc-run.bat;                       DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
-Source: install\jc-run.vbs;                       DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
+Source: install\jc-start.bat;                     DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
+Source: install\jc-start.vbs;                     DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
+Source: install\jc-stop.bat;                      DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
+Source: install\jc-stop.vbs;                      DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
 
-Source: install\cfg\decode_strategy.json;         DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
-Source: install\cfg\publication_up_152_srv.json;  DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
-Source: install\cfg\publication_up_152_ws.json;   DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 Source: install\cfg\decode_strategy_166.json;     DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
+Source: install\cfg\publication_up_166_srv.json;  DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
+Source: install\cfg\publication_up_166_ws.json;   DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 Source: install\cfg\publication_lic_166_srv.json; DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 Source: install\cfg\publication_lic_166_ws.json;  DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 Source: install\cfg\ws.json;                      DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion

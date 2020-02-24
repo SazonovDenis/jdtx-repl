@@ -1,8 +1,8 @@
 {
-  "in": "lic",
+  "in": "some",
   "out": "full",
 
-  "lic": {
+  "some": {
     "appupdate": {
       "fields": "*"
     },
@@ -186,15 +186,6 @@
     "regiontip": {
       "fields": "*"
     },
-    "smsjournal": {
-      "fields": "*"
-    },
-    "smsinfo": {
-      "fields": "*"
-    },
-    "smstemplate": {
-      "fields": "*"
-    },
     "stornopr": {
       "fields": "*"
     },
@@ -208,6 +199,15 @@
       "fields": "*"
     },
     "subjecttippropert": {
+      "fields": "*"
+    },
+    "smsjournal": {
+      "fields": "*"
+    },
+    "smsinfo": {
+      "fields": "*"
+    },
+    "smstemplate": {
       "fields": "*"
     },
     "tariffplan": {
