@@ -189,9 +189,9 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Формируем изменения данных на ws1, отправка в сеть
         test_ws1_makeChange();
         //
-        test_ws1_doReplSesssion();
+        test_ws1_doReplSession();
         //
-        test_srv_doReplSesssion();
+        test_srv_doReplSession();
 
 
         // ===
@@ -533,8 +533,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Заставляем станции зафиксировать структуру
-        test_ws2_doReplSesssion();
-        test_ws3_doReplSesssion();
+        test_ws2_doReplSession();
+        test_ws3_doReplSession();
 
 
         // ===

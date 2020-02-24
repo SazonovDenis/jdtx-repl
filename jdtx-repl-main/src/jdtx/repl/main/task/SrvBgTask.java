@@ -37,7 +37,7 @@ public class SrvBgTask extends BgTask {
             //
             JdxReplTaskSrv replTask = new JdxReplTaskSrv(srv);
             //
-            replTask.doReplSesssion();
+            replTask.doReplSession();
         } finally {
             db.disconnect();
         }

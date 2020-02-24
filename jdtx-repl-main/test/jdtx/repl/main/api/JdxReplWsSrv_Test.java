@@ -301,15 +301,15 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void sync_http() throws Exception {
-        test_ws1_doReplSesssion();
-        test_ws2_doReplSesssion();
-        test_ws3_doReplSesssion();
+        test_ws1_doReplSession();
+        test_ws2_doReplSession();
+        test_ws3_doReplSession();
 
-        test_srv_doReplSesssion();
+        test_srv_doReplSession();
 
-        test_ws1_doReplSesssion();
-        test_ws2_doReplSesssion();
-        test_ws3_doReplSesssion();
+        test_ws1_doReplSession();
+        test_ws2_doReplSession();
+        test_ws3_doReplSession();
     }
 
     @Test
@@ -480,27 +480,27 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_ws1_doReplSesssion() throws Exception {
+    public void test_ws1_doReplSession() throws Exception {
         JdxReplWs ws = new JdxReplWs(db);
         JdxReplTaskWs replTask = new JdxReplTaskWs(ws);
         //
-        replTask.doReplSesssion();
+        replTask.doReplSession();
     }
 
     @Test
-    public void test_ws2_doReplSesssion() throws Exception {
+    public void test_ws2_doReplSession() throws Exception {
         JdxReplWs ws = new JdxReplWs(db2);
         JdxReplTaskWs replTask = new JdxReplTaskWs(ws);
         //
-        replTask.doReplSesssion();
+        replTask.doReplSession();
     }
 
     @Test
-    public void test_ws3_doReplSesssion() throws Exception {
+    public void test_ws3_doReplSession() throws Exception {
         JdxReplWs ws = new JdxReplWs(db3);
         JdxReplTaskWs replTask = new JdxReplTaskWs(ws);
         //
-        replTask.doReplSesssion();
+        replTask.doReplSession();
     }
 
 
@@ -630,11 +630,11 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_srv_doReplSesssion() throws Exception {
+    public void test_srv_doReplSession() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
         JdxReplTaskSrv replTask = new JdxReplTaskSrv(srv);
         //
-        replTask.doReplSesssion();
+        replTask.doReplSession();
     }
 
     @Test
@@ -683,7 +683,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_run_srv() throws Exception {
         while (true) {
-            test_srv_doReplSesssion();
+            test_srv_doReplSession();
         }
     }
 
@@ -691,7 +691,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_run_1() throws Exception {
         while (true) {
             test_ws1_makeChange_Unimportant();
-            test_ws1_doReplSesssion();
+            test_ws1_doReplSession();
         }
     }
 
@@ -699,7 +699,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_run_2() throws Exception {
         while (true) {
             test_ws2_makeChange();
-            test_ws2_doReplSesssion();
+            test_ws2_doReplSession();
         }
     }
 
@@ -707,7 +707,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_run_3() throws Exception {
         while (true) {
             test_ws3_makeChange();
-            test_ws3_doReplSesssion();
+            test_ws3_doReplSession();
         }
     }
 
@@ -771,7 +771,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void loop_1_repl() throws Exception {
         while (true) {
             try {
-                test_ws1_doReplSesssion();
+                test_ws1_doReplSession();
             } catch (Exception e) {
                 String msg = Ut.getExceptionMessage(e);
                 if (canSkipException(msg)) {
@@ -788,7 +788,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void loop_2_repl() throws Exception {
         while (true) {
             try {
-                test_ws2_doReplSesssion();
+                test_ws2_doReplSession();
             } catch (Exception e) {
                 String msg = Ut.getExceptionMessage(e);
                 if (canSkipException(msg)) {
@@ -805,7 +805,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void loop_3_repl() throws Exception {
         while (true) {
             try {
-                test_ws3_doReplSesssion();
+                test_ws3_doReplSession();
             } catch (Exception e) {
                 String msg = Ut.getExceptionMessage(e);
                 if (canSkipException(msg)) {
@@ -823,7 +823,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void loop_srv() throws Exception {
         while (true) {
             try {
-                test_srv_doReplSesssion();
+                test_srv_doReplSession();
                 TimeUnit.SECONDS.sleep(5);
             } catch (Exception e) {
                 String msg = Ut.getExceptionMessage(e);

@@ -44,7 +44,7 @@ public class WsBgTask extends BgTask {
             //
             JdxReplTaskWs replTask = new JdxReplTaskWs(ws);
             //
-            replTask.doReplSesssion();
+            replTask.doReplSession();
         } finally {
             db.disconnect();
         }

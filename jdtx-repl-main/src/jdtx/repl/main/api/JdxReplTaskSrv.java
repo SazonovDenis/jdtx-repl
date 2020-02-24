@@ -18,7 +18,7 @@ public class JdxReplTaskSrv extends JdxReplTaskCustom {
     }
 
     //
-    public void doReplSesssion() throws Exception {
+    public void doReplSession() throws Exception {
         //
         log.info("Сервер, настройка");
         srv.init();
