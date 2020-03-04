@@ -698,7 +698,7 @@ public class JdxReplWs {
                         throw new XError("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
                     }
 
-                    // todo: Проверим протокол репликатора, с помощью которого была подготовлена репоика
+                    // todo: Проверим протокол репликатора, с помощью которого была подготовлена реплика
                     // String protocolVersion = (String) replica.getInfo().getProtocolVersion();
                     // if (protocolVersion.compareToIgnoreCase(REPL_PROTOCOL_VERSION) != 0) {
                     //      throw new XError("mailer.receive, protocolVersion.expected: " + REPL_PROTOCOL_VERSION + ", actual: " + protocolVersion);
