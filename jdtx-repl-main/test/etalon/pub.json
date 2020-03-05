@@ -1,15 +1,16 @@
-[
-  {
-    "table": "Region",
-    "fields": "*"
-  },
-  {
-    "table": "LIC",
-    "fields": "NameF,NameI,NameO,Dom,Kv,Ulz",
-    "filter": "Region.ID in (2, 3844) and LicDocTip=1002"
-  },
-  {
-    "table": "Ulz",
-    "fields": "*"
+{
+  "in": "full",
+  "out": "full",
+  "full": {
+    "region": {
+      "fields": "*"
+    },
+    "lic": {
+      "fields": "NameF,NameI,NameO,Dom,Kv,Ulz",
+      "filter": "Region.ID in (2, 3844) and LicDocTip=1002"
+    },
+    "ulz": {
+      "fields": "*"
+    }
   }
-]
+}

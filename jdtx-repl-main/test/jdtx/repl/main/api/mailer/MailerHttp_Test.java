@@ -6,6 +6,7 @@ import jandcode.utils.test.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.replica.*;
+import org.apache.commons.io.*;
 import org.apache.http.*;
 import org.apache.http.client.*;
 import org.apache.http.client.methods.*;
@@ -43,6 +44,60 @@ public class MailerHttp_Test extends AppTestCase {
 
         mailer = new MailerHttp();
         mailer.init(cfgWs);
+    }
+
+    @Test
+    public void test_MailerSendReceive() throws Exception {
+        long wsId = 2;
+
+        // Готовим реплику
+        UtData_Test writerXml_test = new UtData_Test();
+        writerXml_test.setUp();
+        IReplica replicaSnapshot = writerXml_test.createReplicaSnapshot_Ulz_ws2();
+
+        // Копируем реплику для анализа
+        File fileSnapshot = new File("../_test-data/ws_002/tmp/000000001-src.zip");
+        FileUtils.copyFile(replicaSnapshot.getFile(), fileSnapshot);
+
+
+        // --------------------------------
+        // Проверяем mailer.send
+
+        // Готовим mailer
+        JSONObject wsCfgData = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/mail_http_ws.json"));
+        String url = (String) wsCfgData.get("url");
+        String guid = "b5781df573ca6ee6.x-21ba238dfc945002";
+        JSONObject cfgWs = (JSONObject) wsCfgData.get(String.valueOf(wsId));
+        cfgWs.put("guid", guid);
+        cfgWs.put("url", url);
+        //
+        IMailer mailer = new MailerHttp();
+        mailer.init(cfgWs);
+
+
+        // Отправляем реплику
+        File fileReplica = new File(replicaSnapshot.getFile().getAbsolutePath());
+        IReplica replica = new ReplicaFile();
+        replica.setFile(fileReplica);
+        JdxReplicaReaderXml.readReplicaInfo(replica);
+        mailer.send(replica, "from", 1);
+
+
+        // --------------------------------
+        // Проверяем mailer.receive
+
+        // Скачиваем реплику
+        IReplica replica2 = mailer.receive("from", 1);
+
+        // Копируем ее для анализа
+        File f2 = new File("../_test-data/ws_002/tmp/000000001-receive.zip");
+        FileUtils.copyFile(replica2.getFile(), f2);
+        System.out.println("mailer.receive: " + f2);
+
+        // Информацмия о реплике с почтового сервера
+        ReplicaInfo info = mailer.getReplicaInfo("from", 1);
+        System.out.println("receive.replica.md5: " + JdxUtils.getMd5File(replica2.getFile()));
+        System.out.println("mailer.info.crc:     " + info.getCrc());
     }
 
 

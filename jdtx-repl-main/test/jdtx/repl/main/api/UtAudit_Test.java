@@ -145,27 +145,9 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
         // Применяем реплики
         UtAuditApplyer utaa = new UtAuditApplyer(db2, struct2);
-        utaa.applyReplica(reader, publication, 2);
+        utaa.applyReplica(reader, publication, 2, 0);
     }
 
-    @Test
-    public void test_applyReplicaSnapshot() throws Exception {
-        // Загружаем правила публикации
-        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub_full.json"));
-        IPublication publication = new Publication();
-        publication.loadRules(cfg, struct);
-
-        // Реплики
-        IReplica replica = new ReplicaFile();
-        replica.setFile(new File("../_test-data/csv_full.xml"));
-
-        //
-        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(new FileInputStream(replica.getFile()));
-
-        // Применяем реплики
-        UtAuditApplyer utaa = new UtAuditApplyer(db2, struct);
-        utaa.applyReplica(reader, publication, 2);
-    }
 
 
 }
