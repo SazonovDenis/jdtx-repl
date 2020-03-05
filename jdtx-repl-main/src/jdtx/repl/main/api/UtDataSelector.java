@@ -13,6 +13,8 @@ public class UtDataSelector {
     private IJdxDbStruct struct;
     private long wsId;
 
+    private long MAX_SNAPSHOT_RECS = 5000;
+
     //
     protected static Log log = LogFactory.getLog("jdtx.DataSelector");
 
@@ -42,7 +44,15 @@ public class UtDataSelector {
 
             // Данные помещаем в dataWriter
             long count = 0;
+            long countPortion = 0;
             while (!rsTableLog.eof()) {
+                // Обеспечим не слишком огромные порции данных
+                if (countPortion >= MAX_SNAPSHOT_RECS) {
+                    countPortion = 0;
+                    dataWriter.startTable(tableName);
+                }
+                countPortion++;
+
                 // Добавляем запись
                 dataWriter.appendRec();
 

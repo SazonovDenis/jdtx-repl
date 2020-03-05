@@ -27,6 +27,8 @@ import java.util.*;
  */
 public class JdxReplWs {
 
+    //
+    private long MAX_COMMIT_RECS = 10000;
 
     // Правила публикации
     private IPublication publicationIn;
@@ -678,7 +680,7 @@ public class JdxReplWs {
                         struct_rw.toFile(dbStructRW.getDbStructFixed(), dataRoot + "temp/dbStruct.fixed.xml");
                         //
                         throw new XError("handleQueIn, structActual <> structAllowed");
-                    }         
+                    }
 
                     // Свои собственные установочные реплики можно не применять
                     if (replica.getInfo().getWsId() == wsId && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
@@ -714,8 +716,14 @@ public class JdxReplWs {
                         //
                         JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
 
+                        // Для реплики типа SNAPSHOT - не слишком огромные порции коммитов
+                        long commitPortionMax = 0;
+                        if (replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
+                            commitPortionMax = MAX_COMMIT_RECS;
+                        }
+
                         //
-                        applyer.applyReplica(replicaReader, publicationIn, wsId);
+                        applyer.applyReplica(replicaReader, publicationIn, wsId, commitPortionMax);
                     } finally {
                         // Закроем читателя Zip-файла
                         if (inputStream != null) {

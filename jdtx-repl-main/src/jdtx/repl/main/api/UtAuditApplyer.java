@@ -20,6 +20,7 @@ public class UtAuditApplyer {
     private Db db;
     private IJdxDbStruct struct;
 
+
     //
     protected static Log log = LogFactory.getLog("jdtx.AuditApplyer");
 
@@ -33,7 +34,7 @@ public class UtAuditApplyer {
     /**
      * Применить данные из dataReader на рабочей станции selfWsId
      */
-    public void applyReplica(JdxReplicaReaderXml dataReader, IPublication publication, long selfWsId) throws Exception {
+    public void applyReplica(JdxReplicaReaderXml dataReader, IPublication publication, long selfWsId, long portionMax) throws Exception {
         log.info("applyReplica, self.WsId: " + selfWsId + ", replica.WsId: " + dataReader.getWsId() + ", replica.age: " + dataReader.getAge());
 
         //
@@ -106,7 +107,19 @@ public class UtAuditApplyer {
                 // Перебираем записи
                 Map recValues = dataReader.nextRec();
                 long count = 0;
+                long countPortion = 0;
                 while (recValues != null) {
+                    // Обеспечим не слишком огромные порции коммитов
+                    if (portionMax != 0 && countPortion >= portionMax) {
+                        countPortion = 0;
+                        //
+                        db.commit();
+                        db.startTran();
+                        //
+                        log.info("  table: " + tableName + ", " + count + ", commit/startTran");
+                    }
+                    countPortion++;
+
                     // Подготовка полей записи в recValues
                     for (IJdxField publicationField : publicationTable.getFields()) {
                         String publicationFieldName = publicationField.getName();
@@ -180,6 +193,7 @@ public class UtAuditApplyer {
                         log.info("  table: " + tableName + ", " + count);
                     }
                 }
+
 
                 //
                 log.info("  table: " + tableName + ", total: " + count);
