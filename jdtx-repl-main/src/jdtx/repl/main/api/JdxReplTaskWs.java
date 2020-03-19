@@ -33,6 +33,26 @@ public class JdxReplTaskWs extends JdxReplTaskCustom {
             collectError("ws.sendErrors", e);
         }
 
+
+        //
+        logInfo("Проверяем аварийную ситуацию");
+        try {
+            ws.recoverAfterBackupRestore();
+        } catch (Exception e) {
+            logError(e);
+            collectError("ws.recoverAfterBackupRestore", e);
+
+            //
+            logInfo("Отправка ошибок");
+            IMailer mailer = ws.getMailer();
+            sendErrors(mailer, "ws.errors");
+
+            //
+            logInfo("Рабочая станция прервана");
+            return;
+        }
+
+
         //
         logInfo("Отслеживаем и обрабатываем свои изменения");
         try {

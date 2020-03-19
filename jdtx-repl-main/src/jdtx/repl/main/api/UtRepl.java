@@ -61,7 +61,7 @@ public class UtRepl {
         decodeManager.createRefDecodeObject();
 
         //
-        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
+        UtDbStructApprover dbStructRW = new UtDbStructApprover(db);
 
         // Для начала "разрешенная" структура будет пустая
         IJdxDbStruct structAllowed = new JdxDbStruct();

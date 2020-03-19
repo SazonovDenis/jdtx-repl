@@ -8,11 +8,11 @@ import jdtx.repl.main.api.struct.*;
 /**
  * Сохранение данных о разрешенной/фиксированной структуре для реплицируемой БД (в таблице Z_Z_state)
  */
-public class UtDbStructApprove {
+public class UtDbStructApprover {
 
     private Db db;
 
-    public UtDbStructApprove(Db db) {
+    public UtDbStructApprover(Db db) {
         this.db = db;
     }
 

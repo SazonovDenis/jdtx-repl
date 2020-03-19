@@ -27,6 +27,12 @@ import java.util.*;
  */
 public class JdxReplWs {
 
+
+    private class ReplicaUseResult {
+        boolean replicaUsed = true;
+        boolean doBreak = false;
+    }
+
     //
     private long MAX_COMMIT_RECS = 10000;
 
@@ -35,13 +41,17 @@ public class JdxReplWs {
     private IPublication publicationOut;
 
     //
-    private JdxQueCommonFile queIn;
-    private JdxQuePersonalFile queOut;
+    private IJdxQueCommon queIn;
+    private IJdxQuePersonal queOut;
+    //private JdxQueCommonFile queIn;
+    //private JdxQuePersonalFile queOut;
 
     //
     private Db db;
     protected long wsId;
     protected IJdxDbStruct struct;
+    protected IJdxDbStruct structAllowed;
+    protected IJdxDbStruct structFixed;
 
     //
     private IMailer mailer;
@@ -147,6 +157,12 @@ public class JdxReplWs {
         struct = UtRepl.getStructCommon(structActual, this.publicationIn, this.publicationOut);
 
 
+        //
+        UtDbStructApprover dbStructApprover = new UtDbStructApprover(db);
+        structAllowed = dbStructApprover.getDbStructAllowed();
+        structFixed = dbStructApprover.getDbStructFixed();
+
+
         // Проверка версии приложения
         UtAppVersion_DbRW appVersionRW = new UtAppVersion_DbRW(db);
         String appVersionAllowed = appVersionRW.getAppVersionAllowed();
@@ -239,7 +255,7 @@ public class JdxReplWs {
 
         // Читаем структуры
         IJdxDbStruct structActual = struct;
-        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
+        UtDbStructApprover dbStructRW = new UtDbStructApprover(db);
         IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
         IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
 
@@ -373,15 +389,15 @@ public class JdxReplWs {
 
 
     /**
-     * Отслеживаем и обрабатываем свои изменения,
-     * формируем исходящие реплики
+     * Обрабатываем свои таблицы аудита на предмет изменений,
+     * формируем исходящие реплики.
      */
     public void handleSelfAudit() throws Exception {
         log.info("handleSelfAudit, wsId: " + wsId);
 
         //
         UtRepl utRepl = new UtRepl(db, struct);
-        UtDbStructApprove dbStructApprove = new UtDbStructApprove(db);
+        UtDbStructApprover dbStructApprover = new UtDbStructApprover(db);
 
         // Если в стостоянии "я замолчал", то молчим
         JdxMuteManagerWs utmm = new JdxMuteManagerWs(db);
@@ -391,8 +407,8 @@ public class JdxReplWs {
         }
 
         // Проверяем совпадение структур
-        IJdxDbStruct structAllowed = dbStructApprove.getDbStructAllowed();
-        IJdxDbStruct structFixed = dbStructApprove.getDbStructFixed();
+        IJdxDbStruct structAllowed = dbStructApprover.getDbStructAllowed();
+        IJdxDbStruct structFixed = dbStructApprover.getDbStructFixed();
 
         // Проверяем совпадает ли реальная структура БД с разрешенной структурой
         if (struct.getTables().size() == 0 || !UtDbComparer.dbStructIsEqual(struct, structAllowed)) {
@@ -424,10 +440,10 @@ public class JdxReplWs {
             long count = 0;
 
             // Узнаем (и заодно фиксируем) возраст своего аудита
-            UtAuditAgeManager uta = new UtAuditAgeManager(db, struct);
-            long auditAgeTo = uta.markAuditAge();
+            UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
+            long auditAgeTo = auditAgeManager.markAuditAge();
 
-            // До какого возраста сформировали реплики для своего аудита
+            // До какого возраста сформировали (выложили в очередь) реплики для своего аудита
             JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
             long auditAgeFrom = stateManager.getAuditAgeDone();
 
@@ -453,7 +469,7 @@ public class JdxReplWs {
                 // Пополнение исходящей очереди реплик
                 queOut.put(replica);
 
-                //
+                // Отметка о пополнении исходящей очереди реплик
                 stateManager.setAuditAgeDone(age);
 
                 //
@@ -483,22 +499,9 @@ public class JdxReplWs {
     public void handleQueIn() throws Exception {
         log.info("handleQueIn, self.wsId: " + wsId);
 
-        //
-        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
-        UtAppVersion_DbRW appVersionRW = new UtAppVersion_DbRW(db);
-        UtAuditApplyer applyer = new UtAuditApplyer(db, struct);
 
         //
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-        JdxMuteManagerWs muteManager = new JdxMuteManagerWs(db);
-
-        // Проверяем совпадает ли реальная структура БД с разрешенной структурой
-        boolean equal_Actual_Allowed = true;
-        IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
-        if (!UtDbComparer.dbStructIsEqual(struct, structAllowed)) {
-            equal_Actual_Allowed = false;
-        }
-
 
         //
         long queInNoDone = stateManager.getQueInNoDone();
@@ -513,231 +516,10 @@ public class JdxReplWs {
             IReplica replica = queIn.getByNo(no);
 
             // Пробуем применить реплику
-            boolean replicaUsed = true;
-            boolean doBreak = false;
-
-            //
-            switch (replica.getInfo().getReplicaType()) {
-                case JdxReplicaType.UPDATE_APP: {
-                    // Реакция на команду - запуск обновления
-
-                    // ===
-                    // В этой реплике - версия приложения и бинарник для обновления (для запуска)
-
-                    // Версия
-                    String appVersionAllowed;
-                    InputStream stream = UtRepl.createInputStream(replica, "version");
-                    try {
-                        File versionFile = File.createTempFile("~JadatexSync", ".version");
-                        UtFile.copyStream(stream, versionFile);
-                        appVersionAllowed = UtFile.loadString(versionFile);
-                        versionFile.delete();
-                    } finally {
-                        stream.close();
-                    }
-
-                    // Распаковываем бинарник
-                    // TODO Обработать ситуацию, когда антивирус съел бинарник.
-                    // Надо научиться при отсутствии бинаарника снова искать последнюю реплику и распаковывать бинарник непосредственно перед запуском
-                    InputStream replicaStream = UtRepl.createInputStream(replica, ".exe");
-                    try {
-                        UtFile.mkdirs("install");
-                        File exeFile = new File("install/JadatexSync-update-" + appVersionAllowed + ".exe");
-                        OutputStream exeFileStream = new FileOutputStream(exeFile);
-                        UtFile.copyStream(replicaStream, exeFileStream);
-                        exeFileStream.close();
-                    } finally {
-                        replicaStream.close();
-                    }
-
-
-                    // ===
-                    // Отмечаем разрешенную версию.
-                    // Реальное обновление программы будет позже, при следующем запуске
-                    appVersionRW.setAppVersionAllowed(appVersionAllowed);
-
-
-                    // ===
-                    // Выкладывание реплики "Я принял обновление"
-                    reportMuteDone(JdxReplicaType.UPDATE_APP_DONE);
-
-
-                    //
-                    break;
-                }
-                case JdxReplicaType.MUTE: {
-                    // Реакция на команду - перевод в режим "MUTE"
-
-                    // Последняя обработка собственного аудита
-                    handleSelfAudit();
-
-                    // Переход в состояние "Я замолчал"
-                    muteManager.muteWorkstation();
-
-                    // Выкладывание реплики "Я замолчал"
-                    reportMuteDone(JdxReplicaType.MUTE_DONE);
-
-                    //
-                    break;
-                }
-                case JdxReplicaType.UNMUTE: {
-                    // Реакция на команду - отключение режима "MUTE"
-
-                    // Выход из состояния "Я замолчал"
-                    muteManager.unmuteWorkstation();
-
-                    // Выкладывание реплики "Я уже не молчу"
-                    reportMuteDone(JdxReplicaType.UNMUTE_DONE);
-
-                    //
-                    break;
-                }
-                case JdxReplicaType.SET_DB_STRUCT: {
-                    // Реакция на команду - задать "разрешенную" структуру БД 
-
-                    // В этой реплике - новая "разрешенная" структура
-                    InputStream stream = UtRepl.getReplicaInputStream(replica);
-                    try {
-                        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-                        IJdxDbStruct struct = struct_rw.read(stream);
-                        // Запоминаем "разрешенную" структуру БД
-                        dbStructRW.setDbStructAllowed(struct);
-                    } finally {
-                        stream.close();
-                    }
-
-                    // Проверяем структуры и пересоздаем аудит
-                    if (!dbStructApplyFixed()) {
-                        // Если пересоздать аудит не удалось (структуры не обновлены или по иным причинам),
-                        // то не метим реплтику как использованную
-                        log.warn("handleQueIn, dbStructApplyFixed <> true");
-                        replicaUsed = false;
-                        doBreak = true;
-                        break;
-                    }
-
-                    // Выкладывание реплики "структура принята"
-                    reportMuteDone(JdxReplicaType.SET_DB_STRUCT_DONE);
-
-                    //
-                    break;
-                }
-                case JdxReplicaType.SET_CFG: {
-                    // Реакция на команду - "задать конфигурацию"
-
-
-                    // В этой реплике - данные о новой конфигурации
-                    JSONObject cfgInfo;
-                    InputStream cfgInfoStream = UtRepl.createInputStream(replica, "cfg.info.json");
-                    try {
-                        String cfgInfoStr = loadStringFromSream(cfgInfoStream);
-                        cfgInfo = (JSONObject) UtJson.toObject(cfgInfoStr);
-                    } finally {
-                        cfgInfoStream.close();
-                    }
-
-                    // Данные о новой конфигурации
-                    String cfgType = (String) cfgInfo.get("cfgType");
-                    long destinationWsId = Long.valueOf(String.valueOf(cfgInfo.get("destinationWsId")));
-
-                    // Пришла конфигурация для нашей станции (или всем станциям)?
-                    if (destinationWsId == 0 || destinationWsId == wsId) {
-                        // В этой реплике - новая конфигурация
-                        JSONObject cfg;
-                        InputStream cfgStream = UtRepl.createInputStream(replica, "cfg.json");
-                        try {
-                            String cfgStr = loadStringFromSream(cfgStream);
-                            cfg = (JSONObject) UtJson.toObject(cfgStr);
-                        } finally {
-                            cfgStream.close();
-                        }
-
-                        // Обновляем конфиг в своей таблице
-                        UtCfg utCfg = new UtCfg(db);
-                        utCfg.setSelfCfg(cfg, cfgType);
-
-                        // Выкладывание реплики "конфигурация принята"
-                        reportMuteDone(JdxReplicaType.SET_CFG_DONE);
-
-                        // Обновление конфигурации требует переинициализацию репликатора, поэтому обработка входящих реплик прерывается
-                        doBreak = true;
-                    }
-
-                    //
-                    break;
-                }
-                case JdxReplicaType.IDE:
-                case JdxReplicaType.SNAPSHOT: {
-                    // Реальная структура базы НЕ совпадает с разрешенной структурой
-                    if (!equal_Actual_Allowed) {
-                        //log.warn("handleQueIn, structActual <> structAllowed");
-                        //replicaUsed = false;
-                        //doBreak = true;
-                        // Для справки/отладки - структуры в файл
-                        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-                        struct_rw.toFile(struct, dataRoot + "temp/dbStruct.actual.xml");
-                        struct_rw.toFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
-                        struct_rw.toFile(dbStructRW.getDbStructFixed(), dataRoot + "temp/dbStruct.fixed.xml");
-                        //
-                        throw new XError("handleQueIn, structActual <> structAllowed");
-                    }
-
-                    // Свои собственные установочные реплики можно не применять
-                    if (replica.getInfo().getWsId() == wsId && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
-                        break;
-                    }
-
-                    // Реальная структура базы НЕ совпадает со структурой, с которой была подготовлена реплика
-                    JdxReplicaReaderXml.readReplicaInfo(replica);
-                    String replicaStructCrc = replica.getInfo().getDbStructCrc();
-                    String dbStructActualCrc = UtDbComparer.getDbStructCrcTables(struct);
-                    if (replicaStructCrc.compareToIgnoreCase(dbStructActualCrc) != 0) {
-                        //log.error("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
-                        // Для справки/отладки - структуры в файл
-                        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-                        struct_rw.toFile(struct, dataRoot + "temp/dbStruct.actual.xml");
-                        //
-                        throw new XError("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
-                    }
-
-                    // todo: Проверим протокол репликатора, с помощью которого была подготовлена реплика
-                    // String protocolVersion = (String) replica.getInfo().getProtocolVersion();
-                    // if (protocolVersion.compareToIgnoreCase(REPL_PROTOCOL_VERSION) != 0) {
-                    //      throw new XError("mailer.receive, protocolVersion.expected: " + REPL_PROTOCOL_VERSION + ", actual: " + protocolVersion);
-                    //}
-
-
-                    // Применение реплик
-                    InputStream inputStream = null;
-                    try {
-                        // Распакуем XML-файл из Zip-архива
-                        inputStream = UtRepl.getReplicaInputStream(replica);
-
-                        //
-                        JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
-
-                        // Для реплики типа SNAPSHOT - не слишком огромные порции коммитов
-                        long commitPortionMax = 0;
-                        if (replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
-                            commitPortionMax = MAX_COMMIT_RECS;
-                        }
-
-                        //
-                        applyer.applyReplica(replicaReader, publicationIn, wsId, commitPortionMax);
-                    } finally {
-                        // Закроем читателя Zip-файла
-                        if (inputStream != null) {
-                            inputStream.close();
-                        }
-                    }
-
-                    //
-                    break;
-                }
-            }
+            ReplicaUseResult useResult = useReplica(replica);
 
             // Реплика использованна?
-            if (replicaUsed) {
+            if (useResult.replicaUsed) {
                 // Отметим применение реплики
                 stateManager.setQueInNoDone(no);
                 //
@@ -748,7 +530,7 @@ public class JdxReplWs {
             }
 
             // Надо останавливаться?
-            if (doBreak) {
+            if (useResult.doBreak) {
                 // Останавливаемся
                 log.info("handleQueIn, break using replicas");
                 break;
@@ -762,6 +544,249 @@ public class JdxReplWs {
         } else {
             log.info("handleQueIn, self.wsId: " + wsId + ", queIn: " + queInNoDone + ", nothing to do");
         }
+    }
+
+    private ReplicaUseResult useReplica(IReplica replica) throws Exception {
+        ReplicaUseResult useResult = new ReplicaUseResult();
+        useResult.replicaUsed = true;
+        useResult.doBreak = false;
+
+        // Инструменты
+        UtAuditApplyer auditApplyer = new UtAuditApplyer(db, struct);
+        JdxMuteManagerWs muteManager = new JdxMuteManagerWs(db);
+        UtDbStructApprover dbStructApprover = new UtDbStructApprover(db);
+        UtAppVersion_DbRW appVersionManager = new UtAppVersion_DbRW(db);
+
+        // Совпадает ли реальная структура БД с разрешенной структурой
+        boolean isEqualStruct_Actual_Allowed = true;
+        if (!UtDbComparer.dbStructIsEqual(struct, structAllowed)) {
+            isEqualStruct_Actual_Allowed = false;
+        }
+
+
+        //
+        switch (replica.getInfo().getReplicaType()) {
+            case JdxReplicaType.UPDATE_APP: {
+                // Реакция на команду - запуск обновления
+
+                // ===
+                // В этой реплике - версия приложения и бинарник для обновления (для запуска)
+
+                // Версия
+                String appVersionAllowed;
+                InputStream stream = UtRepl.createInputStream(replica, "version");
+                try {
+                    File versionFile = File.createTempFile("~JadatexSync", ".version");
+                    UtFile.copyStream(stream, versionFile);
+                    appVersionAllowed = UtFile.loadString(versionFile);
+                    versionFile.delete();
+                } finally {
+                    stream.close();
+                }
+
+                // Распаковываем бинарник
+                // TODO Обработать ситуацию, когда антивирус съел бинарник.
+                // Надо научиться при отсутствии бинарника снова искать последнюю реплику и распаковывать бинарник непосредственно перед запуском
+                InputStream replicaStream = UtRepl.createInputStream(replica, ".exe");
+                try {
+                    UtFile.mkdirs("install");
+                    File exeFile = new File("install/JadatexSync-update-" + appVersionAllowed + ".exe");
+                    OutputStream exeFileStream = new FileOutputStream(exeFile);
+                    UtFile.copyStream(replicaStream, exeFileStream);
+                    exeFileStream.close();
+                } finally {
+                    replicaStream.close();
+                }
+
+
+                // ===
+                // Отмечаем разрешенную версию.
+                // Реальное обновление программы будет позже, при следующем запуске
+                appVersionManager.setAppVersionAllowed(appVersionAllowed);
+
+
+                // ===
+                // Выкладывание реплики "Я принял обновление"
+                reportMuteDone(JdxReplicaType.UPDATE_APP_DONE);
+
+
+                //
+                break;
+            }
+
+            case JdxReplicaType.MUTE: {
+                // Реакция на команду - перевод в режим "MUTE"
+
+                // Последняя обработка собственного аудита
+                handleSelfAudit();
+
+                // Переход в состояние "Я замолчал"
+                muteManager.muteWorkstation();
+
+                // Выкладывание реплики "Я замолчал"
+                reportMuteDone(JdxReplicaType.MUTE_DONE);
+
+                //
+                break;
+            }
+
+            case JdxReplicaType.UNMUTE: {
+                // Реакция на команду - отключение режима "MUTE"
+
+                // Выход из состояния "Я замолчал"
+                muteManager.unmuteWorkstation();
+
+                // Выкладывание реплики "Я уже не молчу"
+                reportMuteDone(JdxReplicaType.UNMUTE_DONE);
+
+                //
+                break;
+            }
+
+            case JdxReplicaType.SET_DB_STRUCT: {
+                // Реакция на команду - задать "разрешенную" структуру БД
+
+                // В этой реплике - новая "разрешенная" структура
+                InputStream stream = UtRepl.getReplicaInputStream(replica);
+                try {
+                    JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+                    IJdxDbStruct struct = struct_rw.read(stream);
+                    // Запоминаем "разрешенную" структуру БД
+                    dbStructApprover.setDbStructAllowed(struct);
+                } finally {
+                    stream.close();
+                }
+
+                // Проверяем структуры и пересоздаем аудит
+                if (!dbStructApplyFixed()) {
+                    // Если пересоздать аудит не удалось (структуры не обновлены или по иным причинам),
+                    // то не метим реплтику как использованную
+                    log.warn("handleQueIn, dbStructApplyFixed <> true");
+                    useResult.replicaUsed = false;
+                    useResult.doBreak = true;
+                    break;
+                }
+
+                // Выкладывание реплики "структура принята"
+                reportMuteDone(JdxReplicaType.SET_DB_STRUCT_DONE);
+
+                //
+                break;
+            }
+
+            case JdxReplicaType.SET_CFG: {
+                // Реакция на команду - "задать конфигурацию"
+
+
+                // В этой реплике - данные о новой конфигурации
+                JSONObject cfgInfo;
+                InputStream cfgInfoStream = UtRepl.createInputStream(replica, "cfg.info.json");
+                try {
+                    String cfgInfoStr = loadStringFromSream(cfgInfoStream);
+                    cfgInfo = (JSONObject) UtJson.toObject(cfgInfoStr);
+                } finally {
+                    cfgInfoStream.close();
+                }
+
+                // Данные о новой конфигурации
+                String cfgType = (String) cfgInfo.get("cfgType");
+                long destinationWsId = Long.valueOf(String.valueOf(cfgInfo.get("destinationWsId")));
+
+                // Пришла конфигурация для нашей станции (или всем станциям)?
+                if (destinationWsId == 0 || destinationWsId == wsId) {
+                    // В этой реплике - новая конфигурация
+                    JSONObject cfg;
+                    InputStream cfgStream = UtRepl.createInputStream(replica, "cfg.json");
+                    try {
+                        String cfgStr = loadStringFromSream(cfgStream);
+                        cfg = (JSONObject) UtJson.toObject(cfgStr);
+                    } finally {
+                        cfgStream.close();
+                    }
+
+                    // Обновляем конфиг в своей таблице
+                    UtCfg utCfg = new UtCfg(db);
+                    utCfg.setSelfCfg(cfg, cfgType);
+
+                    // Выкладывание реплики "конфигурация принята"
+                    reportMuteDone(JdxReplicaType.SET_CFG_DONE);
+
+                    // Обновление конфигурации требует переинициализацию репликатора, поэтому обработка входящих реплик прерывается
+                    useResult.doBreak = true;
+                }
+
+                //
+                break;
+            }
+            case JdxReplicaType.IDE:
+            case JdxReplicaType.SNAPSHOT: {
+                // Реальная структура базы НЕ совпадает с разрешенной структурой
+                if (!isEqualStruct_Actual_Allowed) {
+                    // Для справки/отладки - не совпадающие структуры - в файл
+                    JdxDbStruct_XmlRW structRwXml = new JdxDbStruct_XmlRW();
+                    structRwXml.toFile(struct, dataRoot + "temp/dbStruct.actual.xml");
+                    structRwXml.toFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
+                    structRwXml.toFile(structFixed, dataRoot + "temp/dbStruct.fixed.xml");
+                    // Генерим ошибку
+                    throw new XError("handleQueIn, structActual <> structAllowed");
+                }
+
+                // Свои собственные установочные реплики можно не применять
+                if (replica.getInfo().getWsId() == wsId && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
+                    break;
+                }
+
+                // Реальная структура базы НЕ совпадает со структурой, с которой была подготовлена реплика
+                JdxReplicaReaderXml.readReplicaInfo(replica);
+                String replicaStructCrc = replica.getInfo().getDbStructCrc();
+                String dbStructActualCrc = UtDbComparer.getDbStructCrcTables(struct);
+                if (replicaStructCrc.compareToIgnoreCase(dbStructActualCrc) != 0) {
+                    //log.error("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
+                    // Для справки/отладки - структуры в файл
+                    JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+                    struct_rw.toFile(struct, dataRoot + "temp/dbStruct.actual.xml");
+                    //
+                    throw new XError("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
+                }
+
+                // todo: Проверим протокол репликатора, с помощью которого была подготовлена реплика
+                // String protocolVersion = (String) replica.getInfo().getProtocolVersion();
+                // if (protocolVersion.compareToIgnoreCase(REPL_PROTOCOL_VERSION) != 0) {
+                //      throw new XError("mailer.receive, protocolVersion.expected: " + REPL_PROTOCOL_VERSION + ", actual: " + protocolVersion);
+                //}
+
+
+                // Применение реплик
+                InputStream inputStream = null;
+                try {
+                    // Распакуем XML-файл из Zip-архива
+                    inputStream = UtRepl.getReplicaInputStream(replica);
+
+                    //
+                    JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
+
+                    // Для реплики типа SNAPSHOT - не слишком огромные порции коммитов
+                    long commitPortionMax = 0;
+                    if (replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
+                        commitPortionMax = MAX_COMMIT_RECS;
+                    }
+
+                    //
+                    auditApplyer.applyReplica(replicaReader, publicationIn, wsId, commitPortionMax);
+                } finally {
+                    // Закроем читателя Zip-файла
+                    if (inputStream != null) {
+                        inputStream.close();
+                    }
+                }
+
+                //
+                break;
+            }
+        }
+
+        //
+        return useResult;
     }
 
     private String loadStringFromSream(InputStream stream) throws Exception {
@@ -944,7 +969,7 @@ public class JdxReplWs {
         mailerLocal.init(cfgData);
 
 
-        // Сколько уже отправлено на сервер
+        // Сколько своего аудита уже отправлено на сервер
         JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
         long srvSendAge = stateManager.getMailSendDone();
 
@@ -970,7 +995,7 @@ public class JdxReplWs {
         // Узнаем сколько есть у нас в очереди на отправку
         long selfQueOutAge = queOut.getMaxAge();
 
-        // Узнаем сколько уже отправлено на сервер
+        // Узнаем сколько своего аудита уже отправлено на сервер
         JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
         long srvSendAge = stateManager.getMailSendDone();
 
@@ -1073,5 +1098,153 @@ public class JdxReplWs {
         return info;
     }
 
+
+    /**
+     * Выявить ситуацию "станцию восстановили из бэкапа"
+     */
+    /*
+
+    1) Восстановить данные из своих реплик
+        а) локально, из очереди исходящих реплик
+        б) с сервера, из отправленных исходящих реплик
+    2) восстановить состояние "отправлено" исходящей очереди
+
+    3) разобраться с обработанным аудитом
+    4) разобраться с НЕ обработанным аудитом
+
+    5) запросить повтор реплик для входящей очереди
+    6) восстановить состояние "получено" для входящей очереди
+
+    7) понять, когда НЕВОЗМОЖНО продолжить?
+    8) понять, когда НЕ НУЖНО ничего чинить?
+
+    */
+    public void recoverAfterBackupRestore() throws Exception {
+        // Догоняем свой собственный аудит - локально
+        // Спрашиваем у себя - ищем уже отправленные реплики, которые больше нашего возраста отправки.
+        // Применяем их у себя.
+
+        // Сколько реплик есть у нас "в закромах", т.е. в рабочем каталоге?
+        long ageSelfAuditQueOutDir = ((JdxQueFile) queOut).getMaxNoFromDir();
+
+        // Cколько реплик есть у нас в очереди реплик (в базе)
+        long ageSelfAuditQueOutMarked = queOut.getMaxAge();
+
+        //
+        if (ageSelfAuditQueOutMarked == ageSelfAuditQueOutDir) {
+            return;
+        }
+
+        //
+        log.warn("recoverAfterBackupRestore: ageSelfAuditQueOutMarked != ageSelfAuditQueOutDir, ageSelfAuditQueOutMarked: " + ageSelfAuditQueOutMarked + ", ageSelfAuditQueOutDir: " + ageSelfAuditQueOutDir);
+
+
+        // ---
+        // Чиним данные - берем из собственного аудита
+        // ---
+
+
+        // Догоняем свой собственный аудит - с сервера.
+        // Спрашиваем у сервера - есть уже отправленные нами реплики, которые больше нашего возраста отправки?
+        // Просим их отправить нам.
+        // Применяем их у себя.
+
+        // Догоняем входящую очередь.
+        // Спрашиваем у сервера - есть входящие реплики, которые мы пропустили?
+        // Запрос повторной отправки входящих реплик.
+
+        // До какого возраста сформировали (выложили в очередь) реплики (из своего аудита)
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+        //long selfAuditAge = stateManager.getAuditAgeDone();
+
+
+        //
+        long count = 0;
+        for (long age = ageSelfAuditQueOutMarked + 1; age <= ageSelfAuditQueOutDir; age++) {
+            log.warn("Repair queOut, self.wsId: " + wsId + ", queOut.age: " + age + " (" + count + "/" + (ageSelfAuditQueOutDir - ageSelfAuditQueOutMarked) + ")");
+
+            // Извлекаем свою реплику из закромов
+            IReplica replica = ((JdxQueFile) queOut).readByNoFromDir(age);
+
+            // Пробуем применить свою реплику
+            ReplicaUseResult useResult = useReplica(replica);
+
+            //
+            if (!useResult.replicaUsed) {
+                throw new XError("Repair queOut, useResult.replicaUsed == false");
+            }
+            if (useResult.doBreak) {
+                throw new XError("Repair queOut, replica useResult.doBreak == true");
+            }
+
+            // Пополнение (восстановление) исходящей очереди реплик
+            queOut.put(replica);
+
+            // Отметка о пополнении исходящей очереди реплик
+            stateManager.setAuditAgeDone(age);
+
+            //
+            count = count + 1;
+        }
+
+
+        //
+        if (ageSelfAuditQueOutMarked <= ageSelfAuditQueOutDir) {
+            log.warn("Repair queOut, self.wsId: " + wsId + ", queOut: " + ageSelfAuditQueOutMarked + " .. " + ageSelfAuditQueOutDir + ", done count: " + count);
+        } else {
+            log.info("Repair queOut, self.wsId: " + wsId + ", queOut: " + ageSelfAuditQueOutMarked + ", nothing to do");
+        }
+
+
+        // ---
+        // Чиним отправку собственных реплик
+        // ---
+
+        // Сколько своего аудита фактически отправлено на сервер
+        long selfAuditSendAgeDone = mailer.getSendDone("from");
+
+        // Сколько своего аудита отмечено как отправленое на сервер
+        JdxStateManagerMail stateManagerMail = new JdxStateManagerMail(db);
+        long selfAuditSendAge = stateManagerMail.getMailSendDone();
+
+        // Восстановим отметку о состоянии "отправлено на сервер"
+        if (selfAuditSendAgeDone > selfAuditSendAge) {
+            stateManagerMail.setMailSendDone(selfAuditSendAgeDone);
+        }
+
+
+        // ---
+        // Чиним получение реплик - запрашиваем у сервера повтор
+        // ---
+
+        // Сколько реплик есть у нас "в закромах", т.е. в рабочем каталоге?
+        long noQueInDir = ((JdxQueFile) queIn).getMaxNoFromDir();
+
+        // Узнаем сколько получено у нас
+        long noQueInMarked = queIn.getMaxNo();
+
+        count = 0;
+        for (long no = noQueInMarked + 1; no <= noQueInDir; no++) {
+            log.warn("Repair queIn, self.wsId: " + wsId + ", queIn.no: " + no + " (" + count + "/" + (noQueInDir - noQueInMarked) + ")");
+
+            // Извлекаем свою реплику из закромов
+            IReplica replica = ((JdxQueFile) queIn).readByNoFromDir(no);
+
+            // Помещаем реплику в свою входящую очередь
+            queIn.put(replica);
+        }
+
+        //
+        if (noQueInMarked <= noQueInDir) {
+            log.warn("Repair queIn, self.wsId: " + wsId + ", queIn: " + noQueInMarked + " .. " + noQueInDir + ", done count: " + count);
+        } else {
+            log.info("Repair queIn, self.wsId: " + wsId + ", queIn: " + noQueInMarked + ", nothing to do");
+        }
+
+
+        // Говорим серверу, что нам это нужно получить
+        //mailer.setSendRequired("to", noQueInMarked + 1);
+
+    }
 
 }

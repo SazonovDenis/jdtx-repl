@@ -1,31 +1,26 @@
 package jdtx.repl.main.api.que;
 
-import jandcode.dbm.data.DataRecord;
-import jandcode.dbm.db.Db;
-import jandcode.utils.UtCnv;
-import jandcode.utils.UtFile;
-import jandcode.utils.UtString;
-import jandcode.utils.error.XError;
+import jandcode.dbm.data.*;
+import jandcode.dbm.db.*;
+import jandcode.utils.*;
+import jandcode.utils.error.*;
+import jdtx.repl.main.api.DbUtils;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.replica.*;
-import jdtx.repl.main.api.struct.IJdxDbStruct;
-import jdtx.repl.main.api.struct.IJdxDbStructReader;
-import jdtx.repl.main.api.struct.JdxDbStructReader;
-import org.apache.commons.io.FileUtils;
+import jdtx.repl.main.api.struct.*;
+import org.apache.commons.io.*;
+import org.apache.commons.io.filefilter.*;
 import org.apache.commons.logging.*;
 
-import java.io.File;
+import java.io.*;
 
 /**
  * Формирователь очереди реплик.
  * Физическая реализация хранения реплик и их упорядочивание.
  */
-public class JdxQuePersonalFile implements IJdxQuePersonal {
+public class JdxQuePersonalFile extends JdxQueFile implements IJdxQuePersonal {
 
-    private String queType;
-
-    private String baseDir;
-
+    //
     private Db db;
     private DbUtils ut;
 
@@ -130,8 +125,5 @@ public class JdxQuePersonalFile implements IJdxQuePersonal {
     }
 
 
-    String genFileName(long age) {
-        return UtString.padLeft(String.valueOf(age), 9, '0') + ".zip";
-    }
 
 }

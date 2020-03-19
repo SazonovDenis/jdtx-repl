@@ -7,13 +7,13 @@ import java.io.*;
 
 /**
  */
-public class UtDbStructApprove_XmlRW_Test extends ReplDatabaseStruct_Test {
+public class UtDbStructApprover_XmlRW_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
     public void test_dbStruct_SaveLoad() throws Exception {
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
+        UtDbStructApprover dbStructRW = new UtDbStructApprover(db);
 
 
         // Сохраняем структуру в БД

@@ -134,8 +134,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         IJdxDbStruct structFixed_ws1;
         IJdxDbStruct structAllowed_ws1;
         //
-        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
-        UtDbStructApprove dbStructRW_ws2 = new UtDbStructApprove(db2);
+        UtDbStructApprover dbStructRW = new UtDbStructApprover(db);
+        UtDbStructApprover dbStructRW_ws2 = new UtDbStructApprover(db2);
         //
         long queInNoDone1;
         long queInNoDone2;
@@ -278,7 +278,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         IJdxDbStruct structFixed;
         IJdxDbStruct structAllowed;
         //
-        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
+        UtDbStructApprover dbStructRW = new UtDbStructApprover(db);
 
 
         // ===
@@ -564,7 +564,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws.init();
         //
         IJdxDbStruct structActual = ws.struct;
-        UtDbStructApprove dbStructRW = new UtDbStructApprove(db);
+        UtDbStructApprover dbStructRW = new UtDbStructApprover(db);
         IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
         IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
         //

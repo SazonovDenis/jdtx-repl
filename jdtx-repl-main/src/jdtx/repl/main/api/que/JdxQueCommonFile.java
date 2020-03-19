@@ -7,6 +7,7 @@ import jandcode.utils.error.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.replica.*;
 import org.apache.commons.io.*;
+import org.apache.commons.io.filefilter.*;
 import org.apache.commons.logging.*;
 
 import java.io.*;
@@ -14,11 +15,8 @@ import java.io.*;
 /**
  *
  */
-public class JdxQueCommonFile implements IJdxQueCommon {
+public class JdxQueCommonFile extends JdxQueFile implements IJdxQueCommon {
 
-    private String queType;
-
-    private String baseDir;
 
     private Db db;
 
@@ -135,10 +133,6 @@ public class JdxQueCommonFile implements IJdxQueCommon {
         } else {
             return rec.getValueLong("maxNo");
         }
-    }
-
-    String genFileName(long no) {
-        return UtString.padLeft(String.valueOf(no), 9, '0') + ".zip";
     }
 
 }

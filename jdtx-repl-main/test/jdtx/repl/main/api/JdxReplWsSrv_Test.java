@@ -31,10 +31,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void allSetUp() throws Exception {
         doDisconnectAll();
+        clearAllTestData();
         prepareEtalon();
         doConnectAll();
-        //
-        clearAllTestData();
 
         //
         IVariantMap args = new VariantMap();
@@ -143,13 +142,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtData.outTable(db.loadSql("select id, name, guid from " + JdxUtils.sys_table_prefix + "workstation_list"));
     }
 
-    private void doConnectAll() throws Exception {
+    void doConnectAll() throws Exception {
         db.connect();
         db2.connect();
         db3.connect();
     }
 
-    private void doDisconnectAll() throws Exception {
+    void doDisconnectAll() throws Exception {
         db.disconnect();
         db2.disconnect();
         db3.disconnect();
@@ -159,22 +158,23 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
      * Стираем все каталоги с данными, почтой и т.п.
      */
     private void clearAllTestData() {
+        UtFile.cleanDir("../_test-data/_test-data_srv");
+        UtFile.cleanDir("../_test-data/_test-data_ws1");
+        UtFile.cleanDir("../_test-data/_test-data_ws2");
+        UtFile.cleanDir("../_test-data/_test-data_ws3");
+        UtFile.cleanDir("../_test-data/_test-data_ws4");
+        new File("../_test-data/_test-data_srv").delete();
+        new File("../_test-data/_test-data_ws1").delete();
+        new File("../_test-data/_test-data_ws2").delete();
+        new File("../_test-data/_test-data_ws3").delete();
+        new File("../_test-data/_test-data_ws4").delete();
+
         UtFile.cleanDir("../_test-data/csv");
         UtFile.cleanDir("../_test-data/mail");
         UtFile.cleanDir("../_test-data/mail_local");
-        UtFile.cleanDir("../_test-data/srv");
-        UtFile.cleanDir("../_test-data/ws_001");
-        UtFile.cleanDir("../_test-data/ws_002");
-        UtFile.cleanDir("../_test-data/ws_003");
-        UtFile.cleanDir("../_test-data/ws_004");
         new File("../_test-data/csv").delete();
         new File("../_test-data/mail").delete();
         new File("../_test-data/mail_local").delete();
-        new File("../_test-data/srv").delete();
-        new File("../_test-data/ws_001").delete();
-        new File("../_test-data/ws_002").delete();
-        new File("../_test-data/ws_003").delete();
-        new File("../_test-data/ws_004").delete();
         new File("d:/temp/dbm.log").delete();
         new File("d:/temp/jdtx.log").delete();
         UtFile.cleanDir("../../lombard.systems/repl/" + MailerHttp.REPL_PROTOCOL_VERSION + "/b5781df573ca6ee6.x");

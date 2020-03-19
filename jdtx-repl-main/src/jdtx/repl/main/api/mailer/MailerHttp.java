@@ -75,6 +75,14 @@ public class MailerHttp implements IMailer {
     }
 
     @Override
+    public long getSendDone(String box) throws Exception {
+        JSONObject resState = getState_internal(box);
+        JSONObject last_info = (JSONObject) resState.get("last_info");
+        long age = Long.valueOf(String.valueOf(last_info.getOrDefault("age", 0)));
+        return age;
+    }
+
+    @Override
     public long getSendRequired(String box) throws Exception {
         HttpClient httpclient = HttpClientBuilder.create().build();
 

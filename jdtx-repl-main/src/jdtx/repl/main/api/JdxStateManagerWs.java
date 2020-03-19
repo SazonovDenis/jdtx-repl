@@ -26,6 +26,7 @@ public class JdxStateManagerWs {
 
     /**
      * Задает возраст аудита, до которого сформирована исходящая очередь
+     * (заполняется при выкладывании реплики в исходящую очередь).
      */
     public void setAuditAgeDone(long queOutAgeDone) throws Exception {
         String sql = "update " + JdxUtils.sys_table_prefix + "state set que_out_age_done = " + queOutAgeDone+" where id = 1";
