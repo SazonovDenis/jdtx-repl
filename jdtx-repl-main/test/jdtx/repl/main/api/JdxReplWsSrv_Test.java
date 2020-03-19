@@ -265,7 +265,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_all_http() throws Exception {
+    public void test_AllHttp() throws Exception {
+        logOn();
+        //
         test_ws1_makeChange_Unimportant();
         test_ws2_makeChange();
         test_ws3_makeChange();

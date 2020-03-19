@@ -1,6 +1,7 @@
 package jdtx.repl.main.api;
 
 import jandcode.utils.rt.*;
+import jdtx.repl.main.ext.*;
 import org.apache.commons.io.*;
 import org.junit.*;
 
@@ -45,14 +46,7 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
         test_ws3_makeChange();
 
         // Сохраним "бэкап" базы для ws2
-        doDisconnectAll();
-        //
-        Rt rt = extWs2.getApp().getRt().getChild("db/default");
-        String dbName = rt.getValue("database").toString();
-        String dbNameBackup = dbName + ".bak";
-        FileUtils.copyFile(new File(dbName), new File(dbNameBackup));
-        //
-        doConnectAll();
+        testBackup(extWs2);
 
 
         // Изменения в базах
@@ -71,16 +65,34 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
 
 
         // "Откат" базы
-        doDisconnectAll();
-        //
-        FileUtils.copyFile(new File(dbNameBackup), new File(dbName));
-        //
-        doConnectAll();
+        testRestore(extWs2);
 
 
         // Синхронизация
         sync_http();
         sync_http();
+    }
+
+    private void testRestore(Jdx_Ext extWs) throws Exception {
+        doDisconnectAll();
+        //
+        Rt rt = extWs.getApp().getRt().getChild("db/default");
+        String dbName = rt.getValue("database").toString();
+        String dbNameBackup = dbName + ".bak";
+        FileUtils.copyFile(new File(dbNameBackup), new File(dbName));
+        //
+        doConnectAll();
+    }
+
+    private void testBackup(Jdx_Ext extWs) throws Exception {
+        doDisconnectAll();
+        //
+        Rt rt = extWs.getApp().getRt().getChild("db/default");
+        String dbName = rt.getValue("database").toString();
+        String dbNameBackup = dbName + ".bak";
+        FileUtils.copyFile(new File(dbName), new File(dbNameBackup));
+        //
+        doConnectAll();
     }
 
 }
