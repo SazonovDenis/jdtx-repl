@@ -13,7 +13,6 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
     public void test_DatabaseRestore() throws Exception {
         // Первичная инициализация
         allSetUp();
-        //
         sync_http();
         sync_http();
 
@@ -49,15 +48,17 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
         testBackup(extWs2);
 
 
-        // Изменения в базах
-        test_ws1_makeChange_Unimportant();
-        test_ws2_makeChange();
-        test_ws3_makeChange();
+        // Изменения в базах и синхронизация
+        for (int i = 0; i <= 3; i++) {
+            // Изменения в базах
+            test_ws1_makeChange_Unimportant();
+            test_ws2_makeChange();
+            test_ws3_makeChange();
 
-        // Синхронизация
-        sync_http();
-        sync_http();
-
+            // Синхронизация
+            sync_http();
+            sync_http();
+        }
         // Изменения в базах
         test_ws1_makeChange_Unimportant();
         test_ws2_makeChange();
@@ -68,7 +69,7 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
         testRestore(extWs2);
 
 
-        // Синхронизация
+        // Попытка синхронизации
         sync_http();
         sync_http();
 

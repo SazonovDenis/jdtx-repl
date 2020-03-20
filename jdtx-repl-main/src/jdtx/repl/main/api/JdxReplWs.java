@@ -1104,6 +1104,14 @@ public class JdxReplWs {
      */
     public void recoverAfterBackupRestore() throws Exception {
         // ---
+        // Сколько входящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
+        long noQueInDir = ((JdxQueFile) queIn).getMaxNoFromDir();
+
+        // Сколько входящих получено у нас в "официальной" очереди
+        long noQueInMarked = queIn.getMaxNo();
+
+
+        // ---
         // Сколько исходящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
         long ageQueOutDir = ((JdxQueFile) queOut).getMaxNoFromDir();
 
@@ -1116,14 +1124,6 @@ public class JdxReplWs {
 
 
         // ---
-        // Сколько входящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
-        long noQueInDir = ((JdxQueFile) queIn).getMaxNoFromDir();
-
-        // Сколько входящих получено у нас в "официальной" очереди
-        long noQueInMarked = queIn.getMaxNo();
-
-
-        // ---
         // Сколько своего аудита фактически отправлено на сервер
         long ageSendDone = mailer.getSendDone("from");
 
@@ -1133,19 +1133,57 @@ public class JdxReplWs {
 
 
         //
-        if (ageQueOut == ageQueOutDir && ageQueOutMarked == ageQueOutDir && noQueInMarked == noQueInDir && ageSendMarked == ageSendDone) {
+        if (noQueInMarked == noQueInDir && ageQueOut == ageQueOutDir && ageQueOutMarked == ageQueOutDir && ageSendMarked == ageSendDone) {
             return;
         }
 
         //
         log.warn("recoverAfterBackupRestore");
+        log.warn("  noQueInDir: " + noQueInDir);
+        log.warn("  noQueInMarked: " + noQueInMarked);
         log.warn("  ageQueOutDir: " + ageQueOutDir);
         log.warn("  ageQueOut: " + ageQueOut);
         log.warn("  ageQueOutMarked: " + ageQueOutMarked);
         log.warn("  ageSendDone: " + ageSendDone);
         log.warn("  ageSendMarked: " + ageSendMarked);
-        log.warn("  noQueInDir: " + noQueInDir);
-        log.warn("  noQueInMarked: " + noQueInMarked);
+
+
+        // ---
+        // Сначала чиним получение реплик
+        // ---
+
+        // Берем входящие реплики, которые мы пропустили.
+        // Кладем из в свою входящую очередь (потом они будут использованы штатным механизмом).
+        // Запрос на сервер повторной отправки входящих реплик - НЕ НУЖНО - они у нас уже есть.
+        long count = 0;
+        for (long no = noQueInMarked + 1; no <= noQueInDir; no++) {
+            log.warn("Repair queIn, self.wsId: " + wsId + ", queIn.no: " + no + " (" + count + "/" + (noQueInDir - noQueInMarked) + ")");
+
+            // Извлекаем входящую реплику из закромов
+            IReplica replica = ((JdxQueFile) queIn).readByNoFromDir(no);
+
+            // Пополнение (восстановление) входящей очереди
+            queIn.put(replica);
+
+            //
+            count = count + 1;
+        }
+
+        //
+        if (noQueInMarked <= noQueInDir) {
+            log.warn("Repair queIn, self.wsId: " + wsId + ", queIn: " + noQueInMarked + " .. " + noQueInDir + ", done count: " + count);
+        } else {
+            log.info("Repair queIn, self.wsId: " + wsId + ", queIn: " + noQueInMarked + ", nothing to do");
+        }
+
+        // ---
+        // А теперь применяем все входящие реплики штатным механизмом.
+        // Важно их применить, т.к. среди входящих есть и НАШИ СОБСТВЕННЫЕ, но еще не примененные.
+        handleQueIn();
+
+
+        // Узнаем, до каоторого возраста мы молучили НАШИ СОБСТВЕННЫЕ реплики
+        long ageQueOutUsedFromQueIn = 0;
 
 
         // ---
@@ -1156,7 +1194,7 @@ public class JdxReplWs {
         // Спрашиваем у себя - ищем уже отправленные реплики, которые больше нашего возраста отправки.
         // Применяем их у себя.
         // Восстанавливаем очередь (вообще то уже не нужно).
-        long count = 0;
+        count = 0;
         for (long age = ageQueOut + 1; age <= ageQueOutDir; age++) {
             log.warn("Repair queOut, self.wsId: " + wsId + ", queOut.age: " + age + " (" + count + "/" + (ageQueOutDir - ageQueOut) + ")");
 
@@ -1221,33 +1259,6 @@ public class JdxReplWs {
         }
 
 
-        // ---
-        // Чиним получение реплик
-        // ---
-
-        // Берем входящие реплики, которые мы пропустили.
-        // Кладем из в свою входящую очередь (потом они будут использованы штатным механизмом).
-        // Запрос на сервер повторной отправки входящих реплик - НЕ НУЖНО - они у нас уже есть.
-        count = 0;
-        for (long no = noQueInMarked + 1; no <= noQueInDir; no++) {
-            log.warn("Repair queIn, self.wsId: " + wsId + ", queIn.no: " + no + " (" + count + "/" + (noQueInDir - noQueInMarked) + ")");
-
-            // Извлекаем входящую реплику из закромов
-            IReplica replica = ((JdxQueFile) queIn).readByNoFromDir(no);
-
-            // Пополнение (восстановление) входящей очереди
-            queIn.put(replica);
-
-            //
-            count = count + 1;
-        }
-
-        //
-        if (noQueInMarked <= noQueInDir) {
-            log.warn("Repair queIn, self.wsId: " + wsId + ", queIn: " + noQueInMarked + " .. " + noQueInDir + ", done count: " + count);
-        } else {
-            log.info("Repair queIn, self.wsId: " + wsId + ", queIn: " + noQueInMarked + ", nothing to do");
-        }
     }
 
 }
