@@ -122,7 +122,7 @@ public class UtTest extends UtilsTestCase {
         DbUtils dbu = new DbUtils(db, struct);
 
 
-        //
+        // ---
         long id0 = dbu.getNextGenerator("g_region");
         Map params = UtCnv.toMap(
                 "id", id0,
@@ -142,7 +142,25 @@ public class UtTest extends UtilsTestCase {
         dbu.insertRec("region", params);
 
 
-        //
+        // --- DictList
+        long id5 = dbu.getNextGenerator("g_DictList");
+        dbu.insertRec("DictList", UtCnv.toMap(
+                "id", id5,
+                "Name", "-ins-ws:" + ws_id + "-" + rnd.nextInt()
+        ), "Name");
+        // диапазон "старых" значений
+        long id5_01 = db.loadSql("select min(id) id from DictList where id > 0 and id < 1000").getCurRec().getValueLong("id");
+        long id5_02 = db.loadSql("select max(id) id from DictList where id > 0 and id < 1000").getCurRec().getValueLong("id");
+        if (id5_02 > id5_01) {
+            id5 = id5_01 + rnd.nextInt((int) (id5_02 - id5_01));
+            dbu.updateRec("DictList", UtCnv.toMap(
+                    "id", id5,
+                    "Name", "-upd-ws:" + ws_id + "-" + rnd.nextInt()
+            ), "Name");
+        }
+
+
+        // ---
         long id1 = dbu.getNextGenerator("g_ulz");
         dbu.insertRec("ulz", UtCnv.toMap(
                 "id", id1,
@@ -152,7 +170,7 @@ public class UtTest extends UtilsTestCase {
         ));
 
 
-        //
+        // ---
         long id2 = dbu.getNextGenerator("g_lic");
         dbu.insertRec("lic", UtCnv.toMap(
                 "lic", id2,
@@ -200,13 +218,15 @@ public class UtTest extends UtilsTestCase {
             ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,dom,kv,tel,info");
         }
 
-        // Апдейт общей записи
+        // ---
+        // Апдейт общей записи Lic
         dbu.db.execSql("update Lic set NameI = :NameI where Dom = :Dom", UtCnv.toMap(
                 "Dom", "12",
                 "NameI", "NameI-upd-com-ws:" + ws_id + "-" + rnd.nextInt()
         ));
 
 
+        // ---
         // Апдейт таблиц TEST_TABLE_**
         for (IJdxTable table : struct.getTables()) {
             if (table.getName().startsWith("TEST_TABLE_")) {

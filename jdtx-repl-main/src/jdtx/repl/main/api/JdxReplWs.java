@@ -516,7 +516,7 @@ public class JdxReplWs {
             IReplica replica = queIn.getByNo(no);
 
             // Пробуем применить реплику
-            ReplicaUseResult useResult = useReplica(replica);
+            ReplicaUseResult useResult = useReplica(replica, false);
 
             // Реплика использованна?
             if (useResult.replicaUsed) {
@@ -546,7 +546,7 @@ public class JdxReplWs {
         }
     }
 
-    private ReplicaUseResult useReplica(IReplica replica) throws Exception {
+    private ReplicaUseResult useReplica(IReplica replica, boolean forceUse) throws Exception {
         ReplicaUseResult useResult = new ReplicaUseResult();
         useResult.replicaUsed = true;
         useResult.doBreak = false;
@@ -772,7 +772,7 @@ public class JdxReplWs {
                     }
 
                     //
-                    auditApplyer.applyReplica(replicaReader, publicationIn, wsId, commitPortionMax);
+                    auditApplyer.applyReplica(replicaReader, publicationIn, forceUse, wsId, commitPortionMax);
                 } finally {
                     // Закроем читателя Zip-файла
                     if (inputStream != null) {
@@ -1163,8 +1163,8 @@ public class JdxReplWs {
             // Извлекаем свою реплику из закромов
             IReplica replica = ((JdxQueFile) queOut).readByNoFromDir(age);
 
-            // Пробуем применить свою реплику
-            ReplicaUseResult useResult = useReplica(replica);
+            // Пробуем применить собственную реплику
+            ReplicaUseResult useResult = useReplica(replica, true);
 
             //
             if (!useResult.replicaUsed) {

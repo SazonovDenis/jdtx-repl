@@ -145,7 +145,7 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
 
         // Применяем реплики
         UtAuditApplyer utaa = new UtAuditApplyer(db2, struct2);
-        utaa.applyReplica(reader, publication, 2, 0);
+        utaa.applyReplica(reader, publication, false, 2, 0);
     }
 
 

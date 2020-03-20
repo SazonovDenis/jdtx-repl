@@ -69,7 +69,7 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
         // Применятель
         UtAuditApplyer auditApplyer = new UtAuditApplyer(db, struct);
         long wsId = 1;
-        auditApplyer.applyReplica(replicaReader, publication, wsId, 0);
+        auditApplyer.applyReplica(replicaReader, publication, false, wsId, 0);
         //
         sw.stop();
 

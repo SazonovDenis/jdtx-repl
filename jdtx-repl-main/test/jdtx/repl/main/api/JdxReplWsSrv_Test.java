@@ -24,6 +24,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     String cfg_json_decode = "test/etalon/decode_strategy.json";
     String cfg_json_publication_srv = "test/etalon/publication_full_152.json";
     String cfg_json_publication_ws = "test/etalon/publication_full_152.json";
+    //String cfg_json_publication_srv = "test/etalon/publication_full_152_srv.json";
+    //String cfg_json_publication_ws = "test/etalon/publication_full_152_ws.json";
     //String cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
     //String cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
 
@@ -403,17 +405,30 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         OutTableSaver svr3_r = new OutTableSaver(st3_r);
 
         //
-        String struct_t_XXX1 = dump_table_testXXX(db, struct);
-        String struct_t_XXX2 = dump_table_testXXX(db2, struct2);
-        String struct_t_XXX3 = dump_table_testXXX(db3, struct3);
+        String sql_bt = "select DictList.Name as DictListName\n" +
+                "from DictList\n" +
+                "where id <> 0\n" +
+                "order by Name\n";
+        DataStore st1_bt = db.loadSql(sql_bt);
+        OutTableSaver svr1_bt = new OutTableSaver(st1_bt);
+        DataStore st2_bt = db2.loadSql(sql_bt);
+        OutTableSaver svr2_bt = new OutTableSaver(st2_bt);
+        DataStore st3_bt = db3.loadSql(sql_bt);
+        OutTableSaver svr3_bt = new OutTableSaver(st3_bt);
+
 
         //
-        UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_r.save().toString() + "\n\n" + struct_t_XXX1, new File("../_test-data/csv/ws1-all.csv"));
-        UtFile.saveString(svr2.save().toString() + "\n\n" + svr2_r.save().toString() + "\n\n" + struct_t_XXX2, new File("../_test-data/csv/ws2-all.csv"));
-        UtFile.saveString(svr3.save().toString() + "\n\n" + svr3_r.save().toString() + "\n\n" + struct_t_XXX3, new File("../_test-data/csv/ws3-all.csv"));
+        String struct_t_XXX1 = dump_table_new_created(db, struct);
+        String struct_t_XXX2 = dump_table_new_created(db2, struct2);
+        String struct_t_XXX3 = dump_table_new_created(db3, struct3);
+
+        //
+        UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_r.save().toString() + "\n\n" + struct_t_XXX1 + "\n\n" + svr1_bt.save().toString(), new File("../_test-data/csv/ws1-all.csv"));
+        UtFile.saveString(svr2.save().toString() + "\n\n" + svr2_r.save().toString() + "\n\n" + struct_t_XXX2 + "\n\n" + svr2_bt.save().toString(), new File("../_test-data/csv/ws2-all.csv"));
+        UtFile.saveString(svr3.save().toString() + "\n\n" + svr3_r.save().toString() + "\n\n" + struct_t_XXX3 + "\n\n" + svr3_bt.save().toString(), new File("../_test-data/csv/ws3-all.csv"));
     }
 
-    private String dump_table_testXXX(Db db, IJdxDbStruct struct) throws Exception {
+    private String dump_table_new_created(Db db, IJdxDbStruct struct) throws Exception {
         String content = "";
         for (IJdxTable table : struct.getTables()) {
             if (table.getName().startsWith("TEST_TABLE_")) {
@@ -436,7 +451,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_dump_table_testXXX() throws Exception {
-        String struct_t_XXX = dump_table_testXXX(db, struct);
+        String struct_t_XXX = dump_table_new_created(db, struct);
         UtFile.saveString(struct_t_XXX, new File("../_test-data/csv/ws1-xxx.csv"));
     }
 

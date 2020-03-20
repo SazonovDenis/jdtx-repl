@@ -34,7 +34,7 @@ public class UtAuditApplyer {
     /**
      * Применить данные из dataReader на рабочей станции selfWsId
      */
-    public void applyReplica(JdxReplicaReaderXml dataReader, IPublication publication, long selfWsId, long portionMax) throws Exception {
+    public void applyReplica(JdxReplicaReaderXml dataReader, IPublication publication, boolean forceUse, long selfWsId, long portionMax) throws Exception {
         log.info("applyReplica, self.WsId: " + selfWsId + ", replica.WsId: " + dataReader.getWsId() + ", replica.age: " + dataReader.getAge());
 
         //
@@ -81,16 +81,22 @@ public class UtAuditApplyer {
                 String idFieldName = table.getPrimaryKey().get(0).getName();
 
                 // Поиск полей таблицы в публикации (поля берем именно из правил публикаций)
-                IJdxTable publicationTable = publicationData.getTable(tableName);
-                //
-                if (publicationTable == null) {
-                    log.info("  skip table: " + tableName);
+                IJdxTable publicationTable;
+                if (forceUse) {
+                    publicationTable = struct.getTable(tableName);
+                } else {
 
+                    publicationTable = publicationData.getTable(tableName);
                     //
-                    tableName = dataReader.nextTable();
+                    if (publicationTable == null) {
+                        log.info("  skip table: " + tableName);
 
-                    //
-                    continue;
+                        //
+                        tableName = dataReader.nextTable();
+
+                        //
+                        continue;
+                    }
                 }
 /*
                 String publicationFields = null;
