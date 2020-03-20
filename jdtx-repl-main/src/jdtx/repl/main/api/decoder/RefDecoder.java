@@ -18,8 +18,8 @@ import java.util.*;
 public class RefDecoder implements IRefDecoder {
 
     // Своими записи считаются значения id в диапазоне от 0 до 100 000 000
-    long SLOT_SIZE = 1000000;
-    long SLOT_START_NUMBER = 100;  //todo: политика назначения диапазонов
+    static long SLOT_SIZE = 1000000;
+    static long SLOT_START_NUMBER = 100;  //todo: политика назначения диапазонов
 
     Db db = null;
     long self_ws_id = -1;
@@ -82,7 +82,7 @@ public class RefDecoder implements IRefDecoder {
     // ------------------------------------------
 
     public boolean is_own_id(String tableName, long own_id) {
-        if (own_id < SLOT_SIZE * SLOT_START_NUMBER) {
+        if (own_id <= get_max_own_id()) {
             return true;
         } else {
             return false;
@@ -179,6 +179,10 @@ public class RefDecoder implements IRefDecoder {
     //
     // ------------------------------------------
 
+
+    public static long get_max_own_id() {
+        return SLOT_SIZE * SLOT_START_NUMBER-1;
+    }
 
     /**
      * @return Нужно ли перекодировать
