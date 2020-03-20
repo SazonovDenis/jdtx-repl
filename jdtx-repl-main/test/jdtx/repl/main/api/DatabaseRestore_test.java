@@ -71,6 +71,9 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
         // Синхронизация
         sync_http();
         sync_http();
+
+        //
+        test_dumpTables();
     }
 
     private void testRestore(Jdx_Ext extWs) throws Exception {

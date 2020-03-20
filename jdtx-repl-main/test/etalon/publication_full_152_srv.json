@@ -1,32 +1,6 @@
 {
-  "in": "lic",
-  "out": "full",
-  "lic": {
-    "appupdate": {
-      "fields": "*"
-    },
-    "lic": {
-      "fields": "*"
-    },
-    "licdoctip": {
-      "fields": "*"
-    },
-    "licdocvid": {
-      "fields": "*"
-    },
-    "region": {
-      "fields": "*"
-    },
-    "ulz": {
-      "fields": "*"
-    },
-    "regiontip": {
-      "fields": "*"
-    },
-    "ulztip": {
-      "fields": "*"
-    }
-  },
+  "in": "full",
+  "out": "full_no_dictlist",
   "full": {
     "appupdate": {
       "fields": "*"
@@ -74,6 +48,215 @@
       "fields": "*"
     },
     "dictlistval": {
+      "fields": "*"
+    },
+    "inventory": {
+      "fields": "*"
+    },
+    "inventorybond": {
+      "fields": "*"
+    },
+    "inventorycash": {
+      "fields": "*"
+    },
+    "inventorychecksubject": {
+      "fields": "*"
+    },
+    "inventoryextrasubject": {
+      "fields": "*"
+    },
+    "inventorymissingsubject": {
+      "fields": "*"
+    },
+    "inventoryusr": {
+      "fields": "*"
+    },
+    "lic": {
+      "fields": "*"
+    },
+    "licdat": {
+      "fields": "*"
+    },
+    "licdoctip": {
+      "fields": "*"
+    },
+    "licdocvid": {
+      "fields": "*"
+    },
+    "measure": {
+      "fields": "*"
+    },
+    "nch": {
+      "fields": "*"
+    },
+    "nchopl": {
+      "fields": "*"
+    },
+    "nchtip": {
+      "fields": "*"
+    },
+    "operday": {
+      "fields": "*"
+    },
+    "operdayusr": {
+      "fields": "*"
+    },
+    "opr": {
+      "fields": "*"
+    },
+    "oprtip": {
+      "fields": "*"
+    },
+    "pawnchit": {
+      "fields": "*"
+    },
+    "pawnchitdat": {
+      "fields": "*"
+    },
+    "pawnchitdatstruct": {
+      "fields": "*"
+    },
+    "pawnchitdatstructvalues": {
+      "fields": "*"
+    },
+    "pawnchitopr": {
+      "fields": "*"
+    },
+    "pawnchitstatustip": {
+      "fields": "*"
+    },
+    "pawnchitsubject": {
+      "fields": "*"
+    },
+    "pawnchitsubjectexhibit": {
+      "fields": "*"
+    },
+    "pawnchitsubjectsell": {
+      "fields": "*"
+    },
+    "pawnchitsubjectstatustip": {
+      "fields": "*"
+    },
+    "pawnchitsubjecttosale": {
+      "fields": "*"
+    },
+    "pawnreceipt": {
+      "fields": "*"
+    },
+    "region": {
+      "fields": "*"
+    },
+    "regiontip": {
+      "fields": "*"
+    },
+    "stornopr": {
+      "fields": "*"
+    },
+    "subjectencash": {
+      "fields": "*"
+    },
+    "subjectencashreason": {
+      "fields": "*"
+    },
+    "subjecttip": {
+      "fields": "*"
+    },
+    "subjecttippropert": {
+      "fields": "*"
+    },
+    "tariffplan": {
+      "fields": "*"
+    },
+    "tariffplanbillingvar": {
+      "fields": "*"
+    },
+    "tariffplanpercstavka": {
+      "fields": "*"
+    },
+    "tariffplanreflic": {
+      "fields": "*"
+    },
+    "tariffplanrefsubjecttip": {
+      "fields": "*"
+    },
+    "tariffplanver": {
+      "fields": "*"
+    },
+    "ulz": {
+      "fields": "*"
+    },
+    "ulztip": {
+      "fields": "*"
+    },
+    "usr": {
+      "fields": "*"
+    },
+    "usrgrp": {
+      "fields": "*"
+    },
+    "usrlog": {
+      "fields": "*"
+    },
+    "usroprtip": {
+      "fields": "*"
+    },
+    "usrotdel": {
+      "fields": "*"
+    },
+    "valpawnchitsubject": {
+      "fields": "*"
+    },
+    "valsubjecttip": {
+      "fields": "*"
+    },
+    "vartip": {
+      "fields": "*"
+    },
+    "ws_list": {
+      "fields": "*"
+    }
+  },
+  "full_no_dictlist": {
+    "appupdate": {
+      "fields": "*"
+    },
+    "billingvarhist": {
+      "fields": "*"
+    },
+    "billingvarvalues": {
+      "fields": "*"
+    },
+    "bondtip": {
+      "fields": "*"
+    },
+    "cashencash": {
+      "fields": "*"
+    },
+    "cashencashreason": {
+      "fields": "*"
+    },
+    "cashlog": {
+      "fields": "*"
+    },
+    "cashordergen": {
+      "fields": "*"
+    },
+    "cashsumm": {
+      "fields": "*"
+    },
+    "commenttext": {
+      "fields": "*"
+    },
+    "commenttip": {
+      "fields": "*"
+    },
+    "datatip": {
+      "fields": "*"
+    },
+    "dayoff": {
+      "fields": "*"
+    },
+    "dbinfo": {
       "fields": "*"
     },
     "inventory": {
