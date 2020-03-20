@@ -443,7 +443,7 @@ public class JdxReplWs {
             UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
             long auditAgeTo = auditAgeManager.markAuditAge();
 
-            // До какого возраста сформировали (выложили в очередь) реплики для своего аудита
+            // До какого возраста отметили выкладывание в очередь реплик (из своего аудита)
             JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
             long auditAgeFrom = stateManager.getAuditAgeDone();
 
@@ -1100,68 +1100,65 @@ public class JdxReplWs {
 
 
     /**
-     * Выявить ситуацию "станцию восстановили из бэкапа"
+     * Выявить ситуацию "станцию восстановили из бэкапа" и починить ее
      */
-    /*
-
-    1) Восстановить данные из своих реплик
-        а) локально, из очереди исходящих реплик
-        б) с сервера, из отправленных исходящих реплик
-    2) восстановить состояние "отправлено" исходящей очереди
-
-    3) разобраться с обработанным аудитом
-    4) разобраться с НЕ обработанным аудитом
-
-    5) запросить повтор реплик для входящей очереди
-    6) восстановить состояние "получено" для входящей очереди
-
-    7) понять, когда НЕВОЗМОЖНО продолжить?
-    8) понять, когда НЕ НУЖНО ничего чинить?
-
-    */
     public void recoverAfterBackupRestore() throws Exception {
-        // Догоняем свой собственный аудит - локально
-        // Спрашиваем у себя - ищем уже отправленные реплики, которые больше нашего возраста отправки.
-        // Применяем их у себя.
+        // ---
+        // Сколько исходящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
+        long ageQueOutDir = ((JdxQueFile) queOut).getMaxNoFromDir();
 
-        // Сколько реплик есть у нас "в закромах", т.е. в рабочем каталоге?
-        long ageSelfAuditQueOutDir = ((JdxQueFile) queOut).getMaxNoFromDir();
+        // Cколько исходящих реплик есть у нас в очереди реплик (в базе)
+        long ageQueOut = queOut.getMaxAge();
 
-        // Cколько реплик есть у нас в очереди реплик (в базе)
-        long ageSelfAuditQueOutMarked = queOut.getMaxAge();
+        // Cколько исходящих реплик отметили как выложенные в очередь
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+        long ageQueOutMarked = stateManager.getAuditAgeDone();
+
+
+        // ---
+        // Сколько входящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
+        long noQueInDir = ((JdxQueFile) queIn).getMaxNoFromDir();
+
+        // Сколько входящих получено у нас в "официальной" очереди
+        long noQueInMarked = queIn.getMaxNo();
+
+
+        // ---
+        // Сколько своего аудита фактически отправлено на сервер
+        long ageSendDone = mailer.getSendDone("from");
+
+        // Сколько своего аудита отмечено как отправленое на сервер
+        JdxStateManagerMail stateManagerMail = new JdxStateManagerMail(db);
+        long ageSendMarked = stateManagerMail.getMailSendDone();
+
 
         //
-        if (ageSelfAuditQueOutMarked == ageSelfAuditQueOutDir) {
+        if (ageQueOut == ageQueOutDir && ageQueOutMarked == ageQueOutDir && noQueInMarked == noQueInDir && ageSendMarked == ageSendDone) {
             return;
         }
 
         //
-        log.warn("recoverAfterBackupRestore: ageSelfAuditQueOutMarked != ageSelfAuditQueOutDir, ageSelfAuditQueOutMarked: " + ageSelfAuditQueOutMarked + ", ageSelfAuditQueOutDir: " + ageSelfAuditQueOutDir);
+        log.warn("recoverAfterBackupRestore");
+        log.warn("  ageQueOutDir: " + ageQueOutDir);
+        log.warn("  ageQueOut: " + ageQueOut);
+        log.warn("  ageQueOutMarked: " + ageQueOutMarked);
+        log.warn("  ageSendDone: " + ageSendDone);
+        log.warn("  ageSendMarked: " + ageSendMarked);
+        log.warn("  noQueInDir: " + noQueInDir);
+        log.warn("  noQueInMarked: " + noQueInMarked);
 
 
         // ---
         // Чиним данные - берем из собственного аудита
         // ---
 
-
-        // Догоняем свой собственный аудит - с сервера.
-        // Спрашиваем у сервера - есть уже отправленные нами реплики, которые больше нашего возраста отправки?
-        // Просим их отправить нам.
+        // Догоняем свой собственный аудит - локально
+        // Спрашиваем у себя - ищем уже отправленные реплики, которые больше нашего возраста отправки.
         // Применяем их у себя.
-
-        // Догоняем входящую очередь.
-        // Спрашиваем у сервера - есть входящие реплики, которые мы пропустили?
-        // Запрос повторной отправки входящих реплик.
-
-        // До какого возраста сформировали (выложили в очередь) реплики (из своего аудита)
-        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-        //long selfAuditAge = stateManager.getAuditAgeDone();
-
-
-        //
+        // Восстанавливаем очередь (вообще то уже не нужно).
         long count = 0;
-        for (long age = ageSelfAuditQueOutMarked + 1; age <= ageSelfAuditQueOutDir; age++) {
-            log.warn("Repair queOut, self.wsId: " + wsId + ", queOut.age: " + age + " (" + count + "/" + (ageSelfAuditQueOutDir - ageSelfAuditQueOutMarked) + ")");
+        for (long age = ageQueOut + 1; age <= ageQueOutDir; age++) {
+            log.warn("Repair queOut, self.wsId: " + wsId + ", queOut.age: " + age + " (" + count + "/" + (ageQueOutDir - ageQueOut) + ")");
 
             // Извлекаем свою реплику из закромов
             IReplica replica = ((JdxQueFile) queOut).readByNoFromDir(age);
@@ -1180,58 +1177,69 @@ public class JdxReplWs {
             // Пополнение (восстановление) исходящей очереди реплик
             queOut.put(replica);
 
-            // Отметка о пополнении исходящей очереди реплик
-            stateManager.setAuditAgeDone(age);
-
             //
             count = count + 1;
         }
 
 
+        // ---
+        // Чиним генераторы (после собственных реплик)
+        // ---
+
+        UtGenerators utGenerators = new UtGenerators_PS(db, struct);
+        utGenerators.repairGenerators();
+
+
         //
-        if (ageSelfAuditQueOutMarked <= ageSelfAuditQueOutDir) {
-            log.warn("Repair queOut, self.wsId: " + wsId + ", queOut: " + ageSelfAuditQueOutMarked + " .. " + ageSelfAuditQueOutDir + ", done count: " + count);
+        if (ageQueOut < ageQueOutDir) {
+            log.warn("Repair queOut, self.wsId: " + wsId + ", queOut: " + ageQueOut + " .. " + ageQueOutDir + ", done count: " + count);
         } else {
-            log.info("Repair queOut, self.wsId: " + wsId + ", queOut: " + ageSelfAuditQueOutMarked + ", nothing to do");
+            log.info("Repair queOut, self.wsId: " + wsId + ", queOut: " + ageQueOut + ", nothing to do");
+        }
+
+        //
+        if (ageQueOutMarked < ageQueOutDir) {
+            log.warn("Repair queOut.Marked, ageQueOutMarked: " + ageQueOutMarked + ", ageQueOutDir: " + ageQueOutDir);
+        } else {
+            log.info("Repair queOut.Marked, nothing to do");
         }
 
 
         // ---
-        // Чиним отправку собственных реплик
+        // Чиним отметку о пополнении исходящей очереди реплик.
         // ---
+        stateManager.setAuditAgeDone(ageQueOutDir);
 
-        // Сколько своего аудита фактически отправлено на сервер
-        long selfAuditSendAgeDone = mailer.getSendDone("from");
 
-        // Сколько своего аудита отмечено как отправленое на сервер
-        JdxStateManagerMail stateManagerMail = new JdxStateManagerMail(db);
-        long selfAuditSendAge = stateManagerMail.getMailSendDone();
+        // ---
+        // Чиним отметку об отправке собственных реплик.
+        // ---
 
         // Восстановим отметку о состоянии "отправлено на сервер"
-        if (selfAuditSendAgeDone > selfAuditSendAge) {
-            stateManagerMail.setMailSendDone(selfAuditSendAgeDone);
+        if (ageSendDone > ageSendMarked) {
+            stateManagerMail.setMailSendDone(ageSendDone);
         }
 
 
         // ---
-        // Чиним получение реплик - запрашиваем у сервера повтор
+        // Чиним получение реплик
         // ---
 
-        // Сколько реплик есть у нас "в закромах", т.е. в рабочем каталоге?
-        long noQueInDir = ((JdxQueFile) queIn).getMaxNoFromDir();
-
-        // Узнаем сколько получено у нас
-        long noQueInMarked = queIn.getMaxNo();
-
+        // Берем входящие реплики, которые мы пропустили.
+        // Кладем из в свою входящую очередь (потом они будут использованы штатным механизмом).
+        // Запрос на сервер повторной отправки входящих реплик - НЕ НУЖНО - они у нас уже есть.
         count = 0;
         for (long no = noQueInMarked + 1; no <= noQueInDir; no++) {
             log.warn("Repair queIn, self.wsId: " + wsId + ", queIn.no: " + no + " (" + count + "/" + (noQueInDir - noQueInMarked) + ")");
 
-            // Извлекаем свою реплику из закромов
+            // Извлекаем входящую реплику из закромов
             IReplica replica = ((JdxQueFile) queIn).readByNoFromDir(no);
 
-            // Помещаем реплику в свою входящую очередь
+            // Пополнение (восстановление) входящей очереди
             queIn.put(replica);
+
+            //
+            count = count + 1;
         }
 
         //
@@ -1240,11 +1248,6 @@ public class JdxReplWs {
         } else {
             log.info("Repair queIn, self.wsId: " + wsId + ", queIn: " + noQueInMarked + ", nothing to do");
         }
-
-
-        // Говорим серверу, что нам это нужно получить
-        //mailer.setSendRequired("to", noQueInMarked + 1);
-
     }
 
 }
