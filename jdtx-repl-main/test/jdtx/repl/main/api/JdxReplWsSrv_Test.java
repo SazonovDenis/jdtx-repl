@@ -22,10 +22,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     String cfg_json_ws = "test/etalon/ws.json";
     String cfg_json_decode = "test/etalon/decode_strategy.json";
-    String cfg_json_publication_srv = "test/etalon/publication_full_152.json";
-    String cfg_json_publication_ws = "test/etalon/publication_full_152.json";
-    //String cfg_json_publication_srv = "test/etalon/publication_full_152_srv.json";
-    //String cfg_json_publication_ws = "test/etalon/publication_full_152_ws.json";
+    //String cfg_json_publication_srv = "test/etalon/publication_full_152.json";
+    //String cfg_json_publication_ws = "test/etalon/publication_full_152.json";
+    String cfg_json_publication_srv = "test/etalon/publication_full_152_srv.json";
+    String cfg_json_publication_ws = "test/etalon/publication_full_152_ws.json";
     //String cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
     //String cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
 
@@ -405,10 +405,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         OutTableSaver svr3_r = new OutTableSaver(st3_r);
 
         //
-        String sql_bt = "select DictList.Name as DictListName\n" +
-                "from DictList\n" +
+        String sql_bt = "select UsrLog.Info as Info\n" +
+                "from UsrLog\n" +
                 "where id <> 0\n" +
-                "order by Name\n";
+                "order by Info\n";
         DataStore st1_bt = db.loadSql(sql_bt);
         OutTableSaver svr1_bt = new OutTableSaver(st1_bt);
         DataStore st2_bt = db2.loadSql(sql_bt);

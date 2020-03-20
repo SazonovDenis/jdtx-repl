@@ -142,21 +142,21 @@ public class UtTest extends UtilsTestCase {
         dbu.insertRec("region", params);
 
 
-        // --- DictList
-        long id5 = dbu.getNextGenerator("g_DictList");
-        dbu.insertRec("DictList", UtCnv.toMap(
+        // --- UsrLog.Info
+        long id5 = dbu.getNextGenerator("g_UsrLog");
+        dbu.insertRec("UsrLog", UtCnv.toMap(
                 "id", id5,
-                "Name", "-ins-ws:" + ws_id + "-" + rnd.nextInt()
-        ), "Name");
+                "Info", "-ins-ws:" + ws_id + "-" + rnd.nextInt()
+        ), "Info");
         // диапазон "старых" значений
-        long id5_01 = db.loadSql("select min(id) id from DictList where id > 0 and id < 1000").getCurRec().getValueLong("id");
-        long id5_02 = db.loadSql("select max(id) id from DictList where id > 0 and id < 1000").getCurRec().getValueLong("id");
+        long id5_01 = db.loadSql("select min(id) id from UsrLog where id > 0 and id < 2000").getCurRec().getValueLong("id");
+        long id5_02 = db.loadSql("select max(id) id from UsrLog where id > 0 and id < 2000").getCurRec().getValueLong("id");
         if (id5_02 > id5_01) {
             id5 = id5_01 + rnd.nextInt((int) (id5_02 - id5_01));
-            dbu.updateRec("DictList", UtCnv.toMap(
+            dbu.updateRec("UsrLog", UtCnv.toMap(
                     "id", id5,
-                    "Name", "-upd-ws:" + ws_id + "-" + rnd.nextInt()
-            ), "Name");
+                    "Info", "-upd-ws:" + ws_id + "-" + rnd.nextInt()
+            ), "Info");
         }
 
 

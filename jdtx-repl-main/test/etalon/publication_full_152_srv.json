@@ -1,6 +1,6 @@
 {
   "in": "full",
-  "out": "full_no_dictlist",
+  "out": "full_no_usrlog",
   "full": {
     "appupdate": {
       "fields": "*"
@@ -216,7 +216,7 @@
       "fields": "*"
     }
   },
-  "full_no_dictlist": {
+  "full_no_usrlog": {
     "appupdate": {
       "fields": "*"
     },
@@ -257,6 +257,12 @@
       "fields": "*"
     },
     "dbinfo": {
+      "fields": "*"
+    },
+    "dictlist": {
+      "fields": "*"
+    },
+    "dictlistval": {
       "fields": "*"
     },
     "inventory": {
@@ -401,9 +407,6 @@
       "fields": "*"
     },
     "usrgrp": {
-      "fields": "*"
-    },
-    "usrlog": {
       "fields": "*"
     },
     "usroprtip": {
