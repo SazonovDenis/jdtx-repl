@@ -31,6 +31,8 @@ public class JdxReplWs {
     private class ReplicaUseResult {
         boolean replicaUsed = true;
         boolean doBreak = false;
+        // Возраст своих использованных реплик (важно при восстановлении после сбоев)
+        long lastOwnAgeUsed = -1;
     }
 
     //
@@ -496,9 +498,11 @@ public class JdxReplWs {
     /**
      * Применяем входящие реплики
      */
-    public void handleQueIn() throws Exception {
+    public ReplicaUseResult handleQueIn() throws Exception {
         log.info("handleQueIn, self.wsId: " + wsId);
 
+        //
+        ReplicaUseResult handleQueInUseResult = new ReplicaUseResult();
 
         //
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
@@ -516,10 +520,14 @@ public class JdxReplWs {
             IReplica replica = queIn.getByNo(no);
 
             // Пробуем применить реплику
-            ReplicaUseResult useResult = useReplica(replica, false);
+            ReplicaUseResult replicaUseResult = useReplica(replica, false);
+
+            if (replicaUseResult.replicaUsed && replicaUseResult.lastOwnAgeUsed > handleQueInUseResult.lastOwnAgeUsed) {
+                handleQueInUseResult.lastOwnAgeUsed = replicaUseResult.lastOwnAgeUsed;
+            }
 
             // Реплика использованна?
-            if (useResult.replicaUsed) {
+            if (replicaUseResult.replicaUsed) {
                 // Отметим применение реплики
                 stateManager.setQueInNoDone(no);
                 //
@@ -530,7 +538,7 @@ public class JdxReplWs {
             }
 
             // Надо останавливаться?
-            if (useResult.doBreak) {
+            if (replicaUseResult.doBreak) {
                 // Останавливаемся
                 log.info("handleQueIn, break using replicas");
                 break;
@@ -544,12 +552,19 @@ public class JdxReplWs {
         } else {
             log.info("handleQueIn, self.wsId: " + wsId + ", queIn: " + queInNoDone + ", nothing to do");
         }
+
+
+        //
+        return handleQueInUseResult;
     }
 
     private ReplicaUseResult useReplica(IReplica replica, boolean forceUse) throws Exception {
         ReplicaUseResult useResult = new ReplicaUseResult();
         useResult.replicaUsed = true;
         useResult.doBreak = false;
+        if (wsId == replica.getInfo().getWsId()) {
+            useResult.lastOwnAgeUsed = replica.getInfo().getAge();
+        }
 
         // Инструменты
         UtAuditApplyer auditApplyer = new UtAuditApplyer(db, struct);
@@ -1153,7 +1168,7 @@ public class JdxReplWs {
         // ---
 
         // Берем входящие реплики, которые мы пропустили.
-        // Кладем из в свою входящую очередь (потом они будут использованы штатным механизмом).
+        // Кладем их в свою входящую очередь (потом они будут использованы штатным механизмом).
         // Запрос на сервер повторной отправки входящих реплик - НЕ НУЖНО - они у нас уже есть.
         long count = 0;
         for (long no = noQueInMarked + 1; no <= noQueInDir; no++) {
@@ -1179,11 +1194,7 @@ public class JdxReplWs {
         // ---
         // А теперь применяем все входящие реплики штатным механизмом.
         // Важно их применить, т.к. среди входящих есть и НАШИ СОБСТВЕННЫЕ, но еще не примененные.
-        handleQueIn();
-
-
-        // Узнаем, до каоторого возраста мы молучили НАШИ СОБСТВЕННЫЕ реплики
-        long ageQueOutUsedFromQueIn = 0;
+        ReplicaUseResult handleQueInUseResult = handleQueIn();
 
 
         // ---
@@ -1192,8 +1203,8 @@ public class JdxReplWs {
 
         // Догоняем свой собственный аудит - локально
         // Спрашиваем у себя - ищем уже отправленные реплики, которые больше нашего возраста отправки.
-        // Применяем их у себя.
-        // Восстанавливаем очередь (вообще то уже не нужно).
+        // Применяем их у себя (это нужно).
+        // Восстанавливаем очередь (вообще-то уже не нужно).
         count = 0;
         for (long age = ageQueOut + 1; age <= ageQueOutDir; age++) {
             log.warn("Repair queOut, self.wsId: " + wsId + ", queOut.age: " + age + " (" + count + "/" + (ageQueOutDir - ageQueOut) + ")");
@@ -1201,15 +1212,21 @@ public class JdxReplWs {
             // Извлекаем свою реплику из закромов
             IReplica replica = ((JdxQueFile) queOut).readByNoFromDir(age);
 
-            // Пробуем применить собственную реплику
-            ReplicaUseResult useResult = useReplica(replica, true);
+            // Учтем, до которого возраста мы получили из QueIn НАШИ СОБСТВЕННЫЕ реплики
+            if (handleQueInUseResult.lastOwnAgeUsed > 0 && age > handleQueInUseResult.lastOwnAgeUsed) {
+                // Пробуем применить собственную реплику
+                ReplicaUseResult useResult = useReplica(replica, true);
 
-            //
-            if (!useResult.replicaUsed) {
-                throw new XError("Repair queOut, useResult.replicaUsed == false");
-            }
-            if (useResult.doBreak) {
-                throw new XError("Repair queOut, replica useResult.doBreak == true");
+                //
+                if (!useResult.replicaUsed) {
+                    throw new XError("Repair queOut, useResult.replicaUsed == false");
+                }
+                if (useResult.doBreak) {
+                    throw new XError("Repair queOut, replica useResult.doBreak == true");
+                }
+                log.warn("Repair queOut, used: " + age);
+            } else {
+                log.warn("Repair queOut, already used: " + age + ", skipped");
             }
 
             // Пополнение (восстановление) исходящей очереди реплик
@@ -1221,7 +1238,7 @@ public class JdxReplWs {
 
 
         // ---
-        // Чиним генераторы (после собственных реплик)
+        // Чиним генераторы (после применения собственных реплик)
         // ---
 
         UtGenerators utGenerators = new UtGenerators_PS(db, struct);

@@ -24,25 +24,13 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
 
         // Синхронизация
         sync_http();
-        sync_http();
 
         // Изменения в базах
-        test_ws1_makeChange_Unimportant();
-        test_ws2_makeChange();
-        test_ws3_makeChange();
-
-
-        // "Неполная" синхронизация ws2
-        JdxReplWs ws = new JdxReplWs(db2);
-        ws.init();
-        JdxReplTaskWs replTask = new JdxReplTaskWs(ws);
-        replTask.ws.handleSelfAudit();
-        //test_ws2_doReplSession();
-
-        // Изменения в базах
-        test_ws1_makeChange_Unimportant();
-        test_ws2_makeChange();
-        test_ws3_makeChange();
+        for (int i = 0; i <= 3; i++) {
+            test_ws1_makeChange_Unimportant();
+            test_ws2_makeChange();
+            test_ws3_makeChange();
+        }
 
         // Сохраним "бэкап" базы для ws2
         testBackup(extWs2);
@@ -57,12 +45,18 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
 
             // Синхронизация
             sync_http();
-            sync_http();
         }
         // Изменения в базах
         test_ws1_makeChange_Unimportant();
         test_ws2_makeChange();
         test_ws3_makeChange();
+
+
+        // "Неполная" синхронизация ws2
+        JdxReplWs ws = new JdxReplWs(db2);
+        ws.init();
+        JdxReplTaskWs replTask = new JdxReplTaskWs(ws);
+        replTask.ws.handleSelfAudit();
 
 
         // "Откат" базы
