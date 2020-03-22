@@ -61,16 +61,14 @@ public class JdxQueCommonFile extends JdxQueFile implements IJdxQueCommon {
         long queNextNo = getMaxNo() + 1;
 
         // Помещаем файл на место хранения файлов очереди.
-        // Если file, указанный у реплики не совпадает с постоянным местом хранения, то файл переносим на постоянное место.
-        // Если какой-то файл уже находится на постоянном месте, то этого самозванца сначала удаляем.
         String actualFileName = genFileName(queNextNo);
         File actualFile = new File(baseDir + actualFileName);
         File replicaFile = replica.getFile();
+        // Если файл, указанный у реплики не совпадает с постоянным местом хранения, то файл переносим на постоянное место.
         if (replicaFile != null && replicaFile.getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
-            // Место случайно не занято?
+            // Если какой-то файл уже занимает постоянное место, то этот файл НЕ удаляем.
             if (actualFile.exists()) {
-                log.debug("actualFile.exists: " + actualFile.getAbsolutePath());
-                actualFile.delete();
+                throw new XError("ActualFile already exists: " + actualFile.getAbsolutePath());
             }
             // Переносим файл на постоянное место
             FileUtils.moveFile(replicaFile, actualFile);

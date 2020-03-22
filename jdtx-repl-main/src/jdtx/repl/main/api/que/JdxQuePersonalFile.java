@@ -9,7 +9,6 @@ import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.io.*;
-import org.apache.commons.io.filefilter.*;
 import org.apache.commons.logging.*;
 
 import java.io.*;
@@ -67,15 +66,13 @@ public class JdxQuePersonalFile extends JdxQueFile implements IJdxQuePersonal {
         }
 
         // Помещаем файл на место хранения файлов очереди.
-        // Если file, указанный у реплики не совпадает с постоянным местом хранения, то файл переносим на постоянное место.
-        // Если какой-то файл уже находится на постоянном месте, то этого самозванца сначала удаляем.
         String actualFileName = genFileName(replica.getInfo().getAge());
         File actualFile = new File(baseDir + actualFileName);
+        // Если файл, указанный у реплики не совпадает с постоянным местом хранения, то файл переносим на постоянное место.
         if (replica.getFile().getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
-            // Место случайно не занято?
+            // Если какой-то файл уже занимает постоянное место, то этот файл НЕ удаляем.
             if (actualFile.exists()) {
-                log.debug("actualFile.exists: " + actualFile.getAbsolutePath());
-                actualFile.delete();
+                throw new XError("ActualFile already exists: " + actualFile.getAbsolutePath());
             }
             // Переносим файл на постоянное место
             FileUtils.moveFile(replica.getFile(), actualFile);
@@ -123,7 +120,6 @@ public class JdxQuePersonalFile extends JdxQueFile implements IJdxQuePersonal {
         //
         return replica;
     }
-
 
 
 }
