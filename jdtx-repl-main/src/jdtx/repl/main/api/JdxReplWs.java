@@ -837,7 +837,7 @@ public class JdxReplWs {
 
         //
         utRepl.createOutputXML(replica);
-        utRepl.closeOutput();
+        utRepl.closeOutputXML();
 
         //
         db.startTran();

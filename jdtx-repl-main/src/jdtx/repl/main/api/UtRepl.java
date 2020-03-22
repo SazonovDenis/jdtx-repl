@@ -131,12 +131,12 @@ public class UtRepl {
     }
 
     // Добавляет файл внутри формируемого Zip-архива
-    void addOutputFile(String fileName) throws Exception {
+    void addFileToOutput(String fileName) throws Exception {
         ZipEntry zipEntry = new ZipEntry(fileName);
         zipOutputStream.putNextEntry(zipEntry);
     }
 
-    void createOutput(IReplica replica) throws Exception {
+    void createOutputZipFile(IReplica replica) throws Exception {
         // Файл
         String fileNameTemplate = UtString.padLeft(String.valueOf(replica.getInfo().getWsId()), 3, '0') + "-" + UtString.padLeft(String.valueOf(replica.getInfo().getAge()), 9, '0');
         File outFile = File.createTempFile("~jdx-" + fileNameTemplate + "-", ".zip");
@@ -156,16 +156,16 @@ public class UtRepl {
     }
 
     void createOutputXML(IReplica replica) throws Exception {
-        createOutput(replica);
+        createOutputZipFile(replica);
 
         // Файл "dat.xml" (данные) внутри Zip-архива
-        addOutputFile("dat.xml");
+        addFileToOutput("dat.xml");
 
         // Писатель для XML-файла
         writerXml = new JdxReplicaWriterXml(zipOutputStream);
     }
 
-    void closeOutput() throws Exception {
+    void closeOutputXML() throws Exception {
         // Заканчиваем запись в XML-файл
         if (writerXml != null) {
             writerXml.close();
@@ -231,7 +231,7 @@ public class UtRepl {
 
         //
         writerXml.closeDocument();
-        closeOutput();
+        closeOutputXML();
 
 
         //
@@ -268,7 +268,7 @@ public class UtRepl {
 
         // Заканчиваем запись
         writerXml.closeDocument();
-        closeOutput();
+        closeOutputXML();
 
 
         //
@@ -287,7 +287,7 @@ public class UtRepl {
         zipOutputStream.write(struct_rw.getBytes(struct));
 
         // Заканчиваем запись
-        closeOutput();
+        closeOutputXML();
 
         //
         return replica;
@@ -304,7 +304,7 @@ public class UtRepl {
         // ...
 
         // Заканчиваем запись
-        closeOutput();
+        closeOutputXML();
 
         //
         return replica;
@@ -321,7 +321,7 @@ public class UtRepl {
         // ...
 
         // Заканчиваем запись
-        closeOutput();
+        closeOutputXML();
 
         //
         return replica;
@@ -335,19 +335,20 @@ public class UtRepl {
         File exeFile = new File(exeFileName);
 
 
+        // Начинаем запись
         // В этой реплике - версия приложения и бинарник для обновления (для запуска)
-        createOutput(replica);
+        createOutputZipFile(replica);
 
 
         // Открываем запись файла с версией
-        addOutputFile("version");
+        addFileToOutput("version");
         String version = parseExeVersion(exeFile.getName());
         StringInputStream versionStream = new StringInputStream(version);
         UtFile.copyStream(versionStream, zipOutputStream);
 
 
         // Открываем запись файла - бинарника для обновления
-        addOutputFile(exeFile.getName());
+        addFileToOutput(exeFile.getName());
 
         // Пишем содержимое exe
         InputStream exeFileStream = new FileInputStream(exeFile);
@@ -355,7 +356,7 @@ public class UtRepl {
 
 
         // Заканчиваем запись
-        closeOutput();
+        closeOutputXML();
 
         //
         return replica;
@@ -365,8 +366,10 @@ public class UtRepl {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SET_CFG);
 
+
+        // Начинаем запись
         // В этой реплике - информация о конфиге и сам конфиг
-        createOutput(replica);
+        createOutputZipFile(replica);
 
 
         // Информация о конфиге
@@ -375,14 +378,14 @@ public class UtRepl {
         cfgInfo.put("cfgType", cfgType);
 
         // Открываем запись файла с информацией о конфиге
-        addOutputFile("cfg.info.json");
+        addFileToOutput("cfg.info.json");
         String version = UtJson.toString(cfgInfo);
         StringInputStream versionStream = new StringInputStream(version);
         UtFile.copyStream(versionStream, zipOutputStream);
 
 
         // Открываем запись файла - сам конфиг
-        addOutputFile("cfg.json");
+        addFileToOutput("cfg.json");
 
         // Пишем содержимое конфига
         String cfgStr = UtJson.toString(cfg);
@@ -391,7 +394,7 @@ public class UtRepl {
 
 
         // Заканчиваем запись
-        closeOutput();
+        closeOutputXML();
 
         //
         return replica;
