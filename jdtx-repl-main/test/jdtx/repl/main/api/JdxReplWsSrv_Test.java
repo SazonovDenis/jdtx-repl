@@ -407,7 +407,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         //
         String sql_bt = "select UsrLog.Info as Info\n" +
                 "from UsrLog\n" +
-                "where id <> 0\n" +
+                "where id <> 0 and Info <> ''\n" +
                 "order by Info\n";
         DataStore st1_bt = db.loadSql(sql_bt);
         OutTableSaver svr1_bt = new OutTableSaver(st1_bt);

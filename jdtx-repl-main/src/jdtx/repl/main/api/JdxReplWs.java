@@ -1130,19 +1130,21 @@ public class JdxReplWs {
         // Сколько исходящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
         long ageQueOutDir = ((JdxQueFile) queOut).getMaxNoFromDir();
 
-        // Cколько исходящих реплик есть у нас в очереди реплик (в базе)
+        // Cколько исходящих реплик есть у нас "официально", т.е. в очереди реплик (в базе)
         long ageQueOut = queOut.getMaxAge();
 
         // Cколько исходящих реплик отметили как выложенные в очередь
+        // При работе репликатора - совпадает с базой, но после запуска ПРОЦЕДУРЫ РЕМОНТА recoverAfterBackupRestore - может отличаться.
+        // Является флагом, помогающим отследить НЕЗАВЕРШЕННОСТЬ РЕМОНТА.
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         long ageQueOutMarked = stateManager.getAuditAgeDone();
 
 
         // ---
-        // Сколько своего аудита фактически отправлено на сервер
+        // Сколько исходящих реплик фактически отправлено на сервер (спросим у почтового сервера)
         long ageSendDone = mailer.getSendDone("from");
 
-        // Сколько своего аудита отмечено как отправленое на сервер
+        // Сколько исходящих реплик отмечено как отправленое на сервер
         JdxStateManagerMail stateManagerMail = new JdxStateManagerMail(db);
         long ageSendMarked = stateManagerMail.getMailSendDone();
 
@@ -1153,7 +1155,7 @@ public class JdxReplWs {
         }
 
         //
-        log.warn("recoverAfterBackupRestore");
+        log.warn("recoverAfterBackupRestore, self.wsId: " + wsId);
         log.warn("  noQueInDir: " + noQueInDir);
         log.warn("  noQueInMarked: " + noQueInMarked);
         log.warn("  ageQueOutDir: " + ageQueOutDir);
@@ -1161,6 +1163,13 @@ public class JdxReplWs {
         log.warn("  ageQueOutMarked: " + ageQueOutMarked);
         log.warn("  ageSendDone: " + ageSendDone);
         log.warn("  ageSendMarked: " + ageSendMarked);
+
+
+        // ---
+        // Обнуляем отметку о пополнении исходящей очереди реплик.
+        // После этой отметки ремонт считается НАЧАТЫМ, но НЕ ЗАВЕРШЕННЫМ.
+        // ---
+        stateManager.setAuditAgeDone(-1);
 
 
         // ---
@@ -1198,11 +1207,9 @@ public class JdxReplWs {
 
 
         // ---
-        // Чиним данные - берем из собственного аудита
+        // Чиним данные на основе собственного аудита
         // ---
 
-        // Догоняем свой собственный аудит - локально
-        // Спрашиваем у себя - ищем уже отправленные реплики, которые больше нашего возраста отправки.
         // Применяем их у себя (это нужно).
         // Восстанавливаем очередь (вообще-то уже не нужно).
         count = 0;
@@ -1212,7 +1219,9 @@ public class JdxReplWs {
             // Извлекаем свою реплику из закромов
             IReplica replica = ((JdxQueFile) queOut).readByNoFromDir(age);
 
-            // Учтем, до которого возраста мы получили из QueIn НАШИ СОБСТВЕННЫЕ реплики
+            // Применяем реплику у себя.
+            // Учтем, до которого возраста мы получили и применили НАШИ СОБСТВЕННЫЕ реплики
+            // из ВХОДЯЩЕЙ очереди QueIn и применим ТОЛЬКО не примененные
             if (handleQueInUseResult.lastOwnAgeUsed > 0 && age > handleQueInUseResult.lastOwnAgeUsed) {
                 // Пробуем применить собственную реплику
                 ReplicaUseResult useResult = useReplica(replica, true);
@@ -1236,15 +1245,6 @@ public class JdxReplWs {
             count = count + 1;
         }
 
-
-        // ---
-        // Чиним генераторы (после применения собственных реплик)
-        // ---
-
-        UtGenerators utGenerators = new UtGenerators_PS(db, struct);
-        utGenerators.repairGenerators();
-
-
         //
         if (ageQueOut < ageQueOutDir) {
             log.warn("Repair queOut, self.wsId: " + wsId + ", queOut: " + ageQueOut + " .. " + ageQueOutDir + ", done count: " + count);
@@ -1252,28 +1252,28 @@ public class JdxReplWs {
             log.info("Repair queOut, self.wsId: " + wsId + ", queOut: " + ageQueOut + ", nothing to do");
         }
 
-        //
-        if (ageQueOutMarked < ageQueOutDir) {
-            log.warn("Repair queOut.Marked, ageQueOutMarked: " + ageQueOutMarked + ", ageQueOutDir: " + ageQueOutDir);
-        } else {
-            log.info("Repair queOut.Marked, nothing to do");
+
+        // ---
+        // Чиним генераторы.
+        // Это нужно после применения собственных реплик
+        // ---
+
+        UtGenerators utGenerators = new UtGenerators_PS(db, struct);
+        utGenerators.repairGenerators();
+
+
+        // ---
+        // Чиним отметку об отправке собственных реплик (о состоянии "отправлено на сервер")
+        if (ageSendMarked < ageSendDone) {
+            stateManagerMail.setMailSendDone(ageSendDone);
         }
 
 
         // ---
         // Чиним отметку о пополнении исходящей очереди реплик.
+        // После этой отметки ремонт считается завершенным.
         // ---
         stateManager.setAuditAgeDone(ageQueOutDir);
-
-
-        // ---
-        // Чиним отметку об отправке собственных реплик.
-        // ---
-
-        // Восстановим отметку о состоянии "отправлено на сервер"
-        if (ageSendDone > ageSendMarked) {
-            stateManagerMail.setMailSendDone(ageSendDone);
-        }
 
 
     }
