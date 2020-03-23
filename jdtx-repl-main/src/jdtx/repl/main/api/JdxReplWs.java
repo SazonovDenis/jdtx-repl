@@ -1211,7 +1211,7 @@ public class JdxReplWs {
         // ---
 
         // Применяем их у себя (это нужно).
-        // Восстанавливаем очередь (вообще-то уже не нужно).
+        // Восстанавливаем исходящую очередь (вообще-то уже не нужно).
         count = 0;
         for (long age = ageQueOut + 1; age <= ageQueOutDir; age++) {
             log.warn("Repair queOut, self.wsId: " + wsId + ", queOut.age: " + age + " (" + count + "/" + (ageQueOutDir - ageQueOut) + ")");
@@ -1254,8 +1254,21 @@ public class JdxReplWs {
 
 
         // ---
+        // Чиним отметку аудита.
+        // После применения собственных реплик таблица возрастов для таблиц (z_z_age) все ещё содержит устаревшее состояние.
+        // ---
+
+        UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
+        long auditAge = auditAgeManager.getAuditAge();
+        while (auditAge < ageQueOutDir) {
+            auditAge = auditAgeManager.incAuditAge();
+            log.warn("Repair auditAge, age: " + auditAge);
+        }
+
+
+        // ---
         // Чиним генераторы.
-        // Это нужно после применения собственных реплик
+        // После применения собственных реплик генераторы находятся в устаревшем сосоянии.
         // ---
 
         UtGenerators utGenerators = new UtGenerators_PS(db, struct);
@@ -1267,6 +1280,7 @@ public class JdxReplWs {
         // чиним отметку об отправке собственных реплик.
         if (ageSendMarked < ageSendDone) {
             stateManagerMail.setMailSendDone(ageSendDone);
+            log.warn("Repair mailSendDone, " + ageSendMarked + " -> " + ageSendDone);
         }
 
 

@@ -69,6 +69,19 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
 
         //
         test_dumpTables();
+
+
+        // Изменения в базах
+        test_ws1_makeChange_Unimportant();
+        test_ws2_makeChange();
+        test_ws3_makeChange();
+
+        // Синхронизация
+        sync_http();
+        sync_http();
+
+        //
+        test_dumpTables();
     }
 
     private void testRestore(Jdx_Ext extWs) throws Exception {
