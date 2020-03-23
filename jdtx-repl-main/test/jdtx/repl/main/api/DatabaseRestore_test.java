@@ -84,6 +84,20 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
         test_dumpTables();
     }
 
+    @Test
+    public void test_repairAfterBackupRestore() throws Exception {
+        // Ремонт
+        JdxReplWs ws = new JdxReplWs(db2);
+        ws.init();
+        ws.repairAfterBackupRestore(true);
+
+        // Синхронизация
+        sync_http();
+
+        //
+        test_dumpTables();
+    }
+
     private void testRestore(Jdx_Ext extWs) throws Exception {
         doDisconnectAll();
         //

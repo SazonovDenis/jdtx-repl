@@ -132,6 +132,12 @@ repl_send_cfg = cm("repl_send_cfg") {
 }
 
 
+//
+repl_repair_backup = cm("Исправить репликацию после восстановления базы из бэкапа") {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_repair_backup(args)
+}
+
 
 //
 repl_service_start = cm("Запуск службы") {

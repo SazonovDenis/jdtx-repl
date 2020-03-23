@@ -1117,7 +1117,7 @@ public class JdxReplWs {
     /**
      * Выявить ситуацию "станцию восстановили из бэкапа" и починить ее
      */
-    public void recoverAfterBackupRestore() throws Exception {
+    public void repairAfterBackupRestore(boolean doRepair) throws Exception {
         // ---
         // Сколько входящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
         long noQueInDir = ((JdxQueFile) queIn).getMaxNoFromDir();
@@ -1134,7 +1134,7 @@ public class JdxReplWs {
         long ageQueOut = queOut.getMaxAge();
 
         // Cколько исходящих реплик отметили как выложенные в очередь
-        // При работе репликатора - совпадает с базой, но после запуска ПРОЦЕДУРЫ РЕМОНТА recoverAfterBackupRestore - может отличаться.
+        // При работе репликатора - совпадает с базой, но после запуска ПРОЦЕДУРЫ РЕМОНТА repairAfterBackupRestore - может отличаться.
         // Является флагом, помогающим отследить НЕЗАВЕРШЕННОСТЬ РЕМОНТА.
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         long ageQueOutMarked = stateManager.getAuditAgeDone();
@@ -1155,7 +1155,7 @@ public class JdxReplWs {
         }
 
         //
-        log.warn("recoverAfterBackupRestore, self.wsId: " + wsId);
+        log.warn("Detected restore from backup, self.wsId: " + wsId);
         log.warn("  noQueInDir: " + noQueInDir);
         log.warn("  noQueInMarked: " + noQueInMarked);
         log.warn("  ageQueOutDir: " + ageQueOutDir);
@@ -1164,6 +1164,10 @@ public class JdxReplWs {
         log.warn("  ageSendDone: " + ageSendDone);
         log.warn("  ageSendMarked: " + ageSendMarked);
 
+        //
+        if (!doRepair) {
+            throw new XError("Detected restore from backup, repair needed");
+        }
 
         // ---
         // Обнуляем отметку о пополнении исходящей очереди реплик.

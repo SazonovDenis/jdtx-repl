@@ -557,6 +557,27 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
+    void repl_repair_backup(IVariantMap args) {
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+        //
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
+
+        //
+        try {
+            //
+            JdxReplWs ws = new JdxReplWs(db)
+            ws.init()
+
+            //
+            ws.repairAfterBackupRestore(true)
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
     void repl_service_start(IVariantMap args) {
         UtReplService.start()
     }
