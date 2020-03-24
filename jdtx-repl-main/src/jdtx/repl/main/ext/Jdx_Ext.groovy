@@ -566,12 +566,17 @@ class Jdx_Ext extends ProjectExt {
 
         //
         try {
-            //
-            JdxReplWs ws = new JdxReplWs(db)
-            ws.init()
+            try {
+                //
+                JdxReplWs ws = new JdxReplWs(db)
+                ws.init()
 
-            //
-            ws.repairAfterBackupRestore(true)
+                //
+                ws.repairAfterBackupRestore(true)
+            } catch (Exception e) {
+                e.printStackTrace()
+                throw e
+            }
 
         } finally {
             db.disconnect()
