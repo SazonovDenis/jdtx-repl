@@ -34,7 +34,7 @@ public class UtAuditApplyer {
     /**
      * Применить данные из dataReader на рабочей станции selfWsId
      */
-    public void applyReplica(JdxReplicaReaderXml dataReader, IPublication publication, boolean forceUse, long selfWsId, long portionMax) throws Exception {
+    public void applyReplica(JdxReplicaReaderXml dataReader, IPublication publication, boolean forceApply_ignorePublicationRules, long selfWsId, long portionMax) throws Exception {
         log.info("applyReplica, self.WsId: " + selfWsId + ", replica.WsId: " + dataReader.getWsId() + ", replica.age: " + dataReader.getAge());
 
         //
@@ -45,7 +45,7 @@ public class UtAuditApplyer {
         DbUtils dbu = new DbUtils(db, struct);
 
         //
-        IJdxDbStruct publicationData = publication.getData();
+        IJdxDbStruct publicationRules = publication.getData();
 
         //
         DbAuditTriggersManager triggersManager = new DbAuditTriggersManager(db);
@@ -80,16 +80,17 @@ public class UtAuditApplyer {
                 IJdxTable table = tables.get(n);
                 String idFieldName = table.getPrimaryKey().get(0).getName();
 
-                // Поиск полей таблицы в публикации (поля берем именно из правил публикаций)
+                // Поиск таблицы и ее полей в публикации (поля берем именно из правил публикаций)
                 IJdxTable publicationTable;
-                if (forceUse) {
+                if (forceApply_ignorePublicationRules) {
+                    // Таблицу и ее поля берем из структуры
                     publicationTable = struct.getTable(tableName);
+                    log.info("  force apply table: " + tableName + ", ignore publication rules");
                 } else {
-
-                    publicationTable = publicationData.getTable(tableName);
-                    //
+                    // Таблицу и ее поля берем именно из правил публикаций
+                    publicationTable = publicationRules.getTable(tableName);
                     if (publicationTable == null) {
-                        log.info("  skip table: " + tableName);
+                        log.info("  skip table: " + tableName + ", not found in publication");
 
                         //
                         tableName = dataReader.nextTable();
@@ -100,8 +101,8 @@ public class UtAuditApplyer {
                 }
 /*
                 String publicationFields = null;
-                for (int i = 0; i < publicationData.size(); i++) {
-                    JSONObject publicationTable = (JSONObject) publicationData.get(i);
+                for (int i = 0; i < publicationRules.size(); i++) {
+                    JSONObject publicationTable = (JSONObject) publicationRules.get(i);
                     String publicationTableName = (String) publicationTable.get("table");
                     if (table.getName().compareToIgnoreCase(publicationTableName) == 0) {
                         publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));

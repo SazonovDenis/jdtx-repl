@@ -498,7 +498,7 @@ public class JdxReplWs {
     /**
      * Применяем входящие реплики
      */
-    public ReplicaUseResult handleQueIn() throws Exception {
+    public ReplicaUseResult handleQueIn(boolean forceUse) throws Exception {
         log.info("handleQueIn, self.wsId: " + wsId);
 
         //
@@ -520,7 +520,7 @@ public class JdxReplWs {
             IReplica replica = queIn.getByNo(no);
 
             // Пробуем применить реплику
-            ReplicaUseResult replicaUseResult = useReplica(replica, false);
+            ReplicaUseResult replicaUseResult = useReplica(replica, forceUse);
 
             if (replicaUseResult.replicaUsed && replicaUseResult.lastOwnAgeUsed > handleQueInUseResult.lastOwnAgeUsed) {
                 handleQueInUseResult.lastOwnAgeUsed = replicaUseResult.lastOwnAgeUsed;
@@ -558,7 +558,7 @@ public class JdxReplWs {
         return handleQueInUseResult;
     }
 
-    private ReplicaUseResult useReplica(IReplica replica, boolean forceUse) throws Exception {
+    private ReplicaUseResult useReplica(IReplica replica, boolean forceApplySelf) throws Exception {
         ReplicaUseResult useResult = new ReplicaUseResult();
         useResult.replicaUsed = true;
         useResult.doBreak = false;
@@ -746,8 +746,8 @@ public class JdxReplWs {
                     throw new XError("handleQueIn, structActual <> structAllowed");
                 }
 
-                // Свои собственные установочные реплики можно не применять
-                if (replica.getInfo().getWsId() == wsId && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
+                // Свои собственные установочные реплики точно можно не применять
+                if (replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT && replica.getInfo().getWsId() == wsId) {
                     break;
                 }
 
@@ -772,6 +772,12 @@ public class JdxReplWs {
 
 
                 // Применение реплик
+                boolean forceApply = false;
+                if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE && replica.getInfo().getWsId() == wsId && forceApplySelf) {
+                    // Свои применяем принудительно, даже если они отфильтруются правилами публикации
+                    forceApply = true;
+                }
+                //
                 InputStream inputStream = null;
                 try {
                     // Распакуем XML-файл из Zip-архива
@@ -787,7 +793,7 @@ public class JdxReplWs {
                     }
 
                     //
-                    auditApplyer.applyReplica(replicaReader, publicationIn, forceUse, wsId, commitPortionMax);
+                    auditApplyer.applyReplica(replicaReader, publicationIn, forceApply, wsId, commitPortionMax);
                 } finally {
                     // Закроем читателя Zip-файла
                     if (inputStream != null) {
@@ -802,6 +808,10 @@ public class JdxReplWs {
 
         //
         return useResult;
+    }
+
+    public ReplicaUseResult handleQueIn() throws Exception {
+        return handleQueIn(false);
     }
 
     private String loadStringFromSream(InputStream stream) throws Exception {
@@ -1207,7 +1217,7 @@ public class JdxReplWs {
         // ---
         // А теперь применяем все входящие реплики штатным механизмом.
         // Важно их применить, т.к. среди входящих есть и НАШИ СОБСТВЕННЫЕ, но еще не примененные.
-        ReplicaUseResult handleQueInUseResult = handleQueIn();
+        ReplicaUseResult handleQueInUseResult = handleQueIn(true);
 
 
         // ---
