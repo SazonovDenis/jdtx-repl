@@ -17,6 +17,8 @@ _test-data/*
 _app.rt
 _db-ini.rt
 
+notuse
+
 syntax: regexp
 ^_
 

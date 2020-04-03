@@ -1159,8 +1159,9 @@ public class JdxReplWs {
         long ageSendMarked = stateManagerMail.getMailSendDone();
 
 
-        //
-        if (noQueInMarked == noQueInDir && ageQueOut == ageQueOutDir && ageQueOutMarked == ageQueOutDir && ageSendMarked == ageSendDone) {
+        // Допускается, если в каталоге для QueIn меньше реплик, чем помечено в очереди QueIn (noQueInMarked >= noQueInDir)
+        // Это бывает из-за того, что при получении собственных snapshot-реплик, мы ее не скачиваем (она нам не нужна)
+        if (noQueInMarked >= noQueInDir && ageQueOut == ageQueOutDir && ageQueOutMarked == ageQueOutDir && ageSendMarked == ageSendDone) {
             return;
         }
 
