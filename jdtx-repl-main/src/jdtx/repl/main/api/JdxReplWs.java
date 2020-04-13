@@ -748,6 +748,7 @@ public class JdxReplWs {
 
                 // Свои собственные установочные реплики точно можно не применять
                 if (replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT && replica.getInfo().getWsId() == wsId) {
+                    log.info("skip self snapshot");
                     break;
                 }
 
