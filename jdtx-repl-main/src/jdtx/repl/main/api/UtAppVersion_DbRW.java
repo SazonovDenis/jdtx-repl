@@ -3,10 +3,15 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import org.apache.commons.logging.*;
 
 public class UtAppVersion_DbRW {
 
     private Db db;
+
+    //
+    private static Log log = LogFactory.getLog("jdtx.UtAppVersion_DbRW");
+
 
     public UtAppVersion_DbRW(Db db) {
         this.db = db;

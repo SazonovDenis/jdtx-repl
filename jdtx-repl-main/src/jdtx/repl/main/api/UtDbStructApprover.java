@@ -32,22 +32,27 @@ public class UtDbStructApprover {
         setDbStructInternal(struct, "db_struct_fixed");
     }
 
-    private IJdxDbStruct getDbStructInternal(String structCode) throws Exception {
-        DataStore st = db.loadSql("select " + structCode + " from Z_Z_workstation");
-        byte[] db_struct = (byte[]) st.getCurRec().getValue(structCode);
+    private IJdxDbStruct getDbStructInternal(String structName) throws Exception {
+        DataStore st = db.loadSql("select " + structName + " from " + JdxUtils.sys_table_prefix + "workstation");
+
         //
-        if (db_struct.length == 0) {
+        byte[] structBytes = (byte[]) st.getCurRec().getValue(structName);
+        if (structBytes.length == 0) {
             return null;
         }
+
         //
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-        return struct_rw.read(db_struct);
+        IJdxDbStruct struct = struct_rw.read(structBytes);
+
+        //
+        return struct;
     }
 
     private void setDbStructInternal(IJdxDbStruct struct, String structCode) throws Exception {
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
         byte[] bytes = struct_rw.getBytes(struct);
-        db.execSql("update Z_Z_workstation set " + structCode + " = :struct", UtCnv.toMap("struct", bytes));
+        db.execSql("update " + JdxUtils.sys_table_prefix + "workstation set " + structCode + " = :struct", UtCnv.toMap("struct", bytes));
     }
 
 }

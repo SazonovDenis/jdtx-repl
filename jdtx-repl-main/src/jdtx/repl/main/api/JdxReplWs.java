@@ -623,8 +623,11 @@ public class JdxReplWs {
 
                 // ===
                 // Выкладывание реплики "Я принял обновление"
-                reportMuteDone(JdxReplicaType.UPDATE_APP_DONE);
+                reportReplica(JdxReplicaType.UPDATE_APP_DONE);
 
+
+                // Обновление приложения требует перезапуск репликатора, поэтому обработка входящих реплик прерывается
+                useResult.doBreak = true;
 
                 //
                 break;
@@ -640,7 +643,7 @@ public class JdxReplWs {
                 muteManager.muteWorkstation();
 
                 // Выкладывание реплики "Я замолчал"
-                reportMuteDone(JdxReplicaType.MUTE_DONE);
+                reportReplica(JdxReplicaType.MUTE_DONE);
 
                 //
                 break;
@@ -653,7 +656,7 @@ public class JdxReplWs {
                 muteManager.unmuteWorkstation();
 
                 // Выкладывание реплики "Я уже не молчу"
-                reportMuteDone(JdxReplicaType.UNMUTE_DONE);
+                reportReplica(JdxReplicaType.UNMUTE_DONE);
 
                 //
                 break;
@@ -684,7 +687,7 @@ public class JdxReplWs {
                 }
 
                 // Выкладывание реплики "структура принята"
-                reportMuteDone(JdxReplicaType.SET_DB_STRUCT_DONE);
+                reportReplica(JdxReplicaType.SET_DB_STRUCT_DONE);
 
                 //
                 break;
@@ -725,7 +728,7 @@ public class JdxReplWs {
                     utCfg.setSelfCfg(cfg, cfgType);
 
                     // Выкладывание реплики "конфигурация принята"
-                    reportMuteDone(JdxReplicaType.SET_CFG_DONE);
+                    reportReplica(JdxReplicaType.SET_CFG_DONE);
 
                     // Обновление конфигурации требует переинициализацию репликатора, поэтому обработка входящих реплик прерывается
                     useResult.doBreak = true;
@@ -828,7 +831,7 @@ public class JdxReplWs {
      * (например, ответа "я замолчал" или "Я уже не молчу")
      * в исходящую очередь
      */
-    public void reportMuteDone(int replicaType) throws Exception {
+    public void reportReplica(int replicaType) throws Exception {
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         UtRepl utRepl = new UtRepl(db, struct);
 
@@ -839,7 +842,7 @@ public class JdxReplWs {
 
         // Искусственно увеличиваем возраст (системная реплика сдвигает возраст БД на 1)
         long age = utRepl.incAuditAge();
-        log.info("reportMuteDone, new age: " + age);
+        log.info("reportReplica, replicaType: " + replicaType + ", new age: " + age);
 
         //
         IReplica replica = new ReplicaFile();

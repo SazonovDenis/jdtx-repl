@@ -3,7 +3,6 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
-import jandcode.utils.error.*;
 import jandcode.web.*;
 import org.json.simple.*;
 
@@ -18,14 +17,16 @@ public class UtCfg {
         this.db = db;
     }
 
-    JSONObject getSelfCfg(String structCode) throws Exception {
-        DataStore st = db.loadSql("select " + structCode + " from " + JdxUtils.sys_table_prefix + "workstation");
+    JSONObject getSelfCfg(String cfgName) throws Exception {
+        DataStore st = db.loadSql("select " + cfgName + " from " + JdxUtils.sys_table_prefix + "workstation");
 
         //
-        byte[] cfgBytes = (byte[]) st.getCurRec().getValue(structCode);
+        byte[] cfgBytes = (byte[]) st.getCurRec().getValue(cfgName);
         if (cfgBytes.length == 0) {
             return null;
         }
+
+        //
         String cfgStr = new String(cfgBytes);
         JSONObject cfg = (JSONObject) UtJson.toObject(cfgStr);
 
@@ -33,18 +34,18 @@ public class UtCfg {
         return cfg;
     }
 
-    void setSelfCfg(JSONObject cfg, String cfgCode) throws Exception {
-        UtCfgType.validateCfgCode(cfgCode);
+    void setSelfCfg(JSONObject cfg, String cfgName) throws Exception {
+        UtCfgType.validateCfgCode(cfgName);
         //
         String cfgStr = UtJson.toString(cfg);
-        db.execSql("update " + JdxUtils.sys_table_prefix + "workstation set " + cfgCode + " = :cfg", UtCnv.toMap("cfg", cfgStr));
+        db.execSql("update " + JdxUtils.sys_table_prefix + "workstation set " + cfgName + " = :cfg", UtCnv.toMap("cfg", cfgStr));
     }
 
-    void setWsCfg(JSONObject cfg, String cfgCode, long wsId) throws Exception {
-        UtCfgType.validateCfgCode(cfgCode);
+    void setWsCfg(JSONObject cfg, String cfgName, long wsId) throws Exception {
+        UtCfgType.validateCfgCode(cfgName);
         //
         String cfgStr = UtJson.toString(cfg);
-        db.execSql("update " + JdxUtils.sys_table_prefix + "workstation_list set " + cfgCode + " = :cfg where id = :id", UtCnv.toMap("cfg", cfgStr, "id", wsId));
+        db.execSql("update " + JdxUtils.sys_table_prefix + "workstation_list set " + cfgName + " = :cfg where id = :id", UtCnv.toMap("cfg", cfgStr, "id", wsId));
     }
 
 }
