@@ -31,6 +31,17 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
+    public void prepareEtalon_TestAll() throws Exception {
+        // Первичная инициализация
+        allSetUp();
+        sync_http();
+        sync_http();
+
+        // Прогон тестов
+        test_AllHttp();
+    }
+
+    @Test
     public void allSetUp() throws Exception {
         doDisconnectAll();
         clearAllTestData();
@@ -423,6 +434,17 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_r.save().toString() + "\n\n" + struct_t_XXX1 + "\n\n" + svr1_bt.save().toString(), new File("../_test-data/csv/ws1-all.csv"));
         UtFile.saveString(svr2.save().toString() + "\n\n" + svr2_r.save().toString() + "\n\n" + struct_t_XXX2 + "\n\n" + svr2_bt.save().toString(), new File("../_test-data/csv/ws2-all.csv"));
         UtFile.saveString(svr3.save().toString() + "\n\n" + svr3_r.save().toString() + "\n\n" + struct_t_XXX3 + "\n\n" + svr3_bt.save().toString(), new File("../_test-data/csv/ws3-all.csv"));
+
+        //
+        startCmpDb();
+    }
+
+    @Test
+    public void startCmpDb() throws Exception {
+        ProcessBuilder processBuilder = new ProcessBuilder("cmd", "/C",  "cmp_db.bat");
+        processBuilder.directory(new File(UtRun.getAppDir()).getParentFile());
+        Process process = processBuilder.start();
+        process.waitFor();
     }
 
     private String dump_table_new_created(Db db, IJdxDbStruct struct) throws Exception {
