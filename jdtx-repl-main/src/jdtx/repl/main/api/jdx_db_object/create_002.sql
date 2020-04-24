@@ -54,7 +54,7 @@ CREATE TABLE Z_Z_workstation (
   db_struct_allowed      BLOB
 );
 
-INSERT INTO Z_Z_workstation (id, ws_id, guid) VALUES (1, 0, '');
+INSERT INTO Z_Z_workstation (id,guid) VALUES (1, '');
 
 
 /*
