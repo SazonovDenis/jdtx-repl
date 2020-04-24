@@ -170,7 +170,7 @@ public class JdxReplSrv {
         //
         String sql = "update " + JdxUtils.sys_table_prefix + "state_ws set enabled = 1 where id = " + wsId;
         db.execSql(sql);
-        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 1 where id = 1";
+        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 1";
         db.execSql(sql);
     }
 
@@ -179,7 +179,7 @@ public class JdxReplSrv {
         //
         String sql = "update " + JdxUtils.sys_table_prefix + "state_ws set enabled = 0 where id = " + wsId;
         db.execSql(sql);
-        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 0 where id = 1";
+        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 0";
         db.execSql(sql);
     }
 
@@ -527,7 +527,11 @@ public class JdxReplSrv {
             sql = "select * from " + JdxUtils.sys_table_prefix + "workstation_list where id = " + wsId;
         } else {
             // Берем только активные
-            sql = "select Z_Z_workstation_list.* from Z_Z_workstation_list join Z_Z_state_ws on (Z_Z_workstation_list.id = Z_Z_state_ws.ws_id) where Z_Z_state_ws.enabled = 1";
+            sql = "select " + JdxUtils.sys_table_prefix + "workstation_list.* " +
+                    "from " + JdxUtils.sys_table_prefix + "workstation_list " +
+                    "join " + JdxUtils.sys_table_prefix + "state_ws on " +
+                    "(" + JdxUtils.sys_table_prefix + "workstation_list.id = " + JdxUtils.sys_table_prefix + "state_ws.ws_id) " +
+                    "where " + JdxUtils.sys_table_prefix + "state_ws.enabled = 1";
         }
 
         //
