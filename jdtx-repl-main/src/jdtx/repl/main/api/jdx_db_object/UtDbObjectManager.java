@@ -13,7 +13,7 @@ import java.util.*;
 
 public class UtDbObjectManager {
 
-    int CURRENT_VER_DB = 3;
+    int CURRENT_VER_DB = 4;
 
     Db db;
 
@@ -31,22 +31,19 @@ public class UtDbObjectManager {
      * Проверяем, что репликация инициализировалась
      */
     public void checkReplDb() throws Exception {
-        long ws_id = 0;
-
-        //
         try {
-            ws_id = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation").getCurRec().getValueLong("id");
+            // Читаем код нашей станции
+            DataRecord rec = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation").getCurRec();
+            // Проверяем код нашей станции
+            if (rec.getValueLong("ws_id") == 0) {
+                throw new XError("Invalid workstation.ws_id == 0");
+            }
         } catch (Exception e) {
             if (JdxUtils.errorIs_TableNotExists(e)) {
                 throw new XError("Replication is not initialized");
             } else {
                 throw e;
             }
-        }
-
-        //
-        if (ws_id == 0) {
-            throw new XError("Replication is not initialized");
         }
     }
 
@@ -57,7 +54,7 @@ public class UtDbObjectManager {
 
         // Читаем версию БД
         try {
-            DataRecord rec = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "verdb where id = 1").getCurRec();
+            DataRecord rec = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "verdb").getCurRec();
             ver = rec.getValueInt("ver");
             ver_step = rec.getValueInt("ver_step");
         } catch (Exception e) {
@@ -96,13 +93,13 @@ public class UtDbObjectManager {
                 db.execSql(sqls);
                 //
                 ver_step_i = ver_step_i + 1;
-                db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step_i + " where id = 1");
+                db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step_i);
             }
 
             //
             ver_i = ver_i + 1;
             ver_step = 0;
-            db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step + " where id = 1");
+            db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step);
 
             //
             log.info("Смена версии до: " + ver_i + "." + ver_step + " - ok");
@@ -121,7 +118,7 @@ public class UtDbObjectManager {
         checkReplVerDb();
 
         // Метка с guid БД и номером wsId
-        sql = "update " + JdxUtils.sys_table_prefix + "workstation set id = " + wsId + ", guid = '" + guid + "'";
+        sql = "update " + JdxUtils.sys_table_prefix + "workstation set ws_id = " + wsId + ", guid = '" + guid + "'";
         db.execSql(sql);
     }
 

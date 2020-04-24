@@ -104,12 +104,13 @@ public class JdxReplWs {
         structReader.setDb(db);
         IJdxDbStruct structActual = structReader.readDbStruct();
 
-        // Код нашей станции
+        // Читаем код нашей станции
         DataRecord rec = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation").getCurRec();
-        if (rec.getValueLong("id") == 0) {
-            throw new XError("Invalid workstation id == 0");
+        // Проверяем код нашей станции
+        if (rec.getValueLong("ws_id") == 0) {
+            throw new XError("Invalid workstation.ws_id == 0");
         }
-        this.wsId = rec.getValueLong("id");
+        this.wsId = rec.getValueLong("ws_id");
 
         // Чтение конфигурации
         UtCfg utCfg = new UtCfg(db);
