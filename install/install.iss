@@ -94,8 +94,8 @@ Source: install\jc-stop.vbs;                      DestDir: {app}\web\WEB-INF;   
 
 Source: install\cfg\ws.json;                      DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
 Source: install\cfg\decode_strategy_173.json;     DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
-Source: install\cfg\publication_up_173_srv.json;  DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
-Source: install\cfg\publication_up_173_ws.json;   DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
+;Source: install\cfg\publication_up_173_srv.json;  DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
+;Source: install\cfg\publication_up_173_ws.json;   DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
 Source: install\cfg\publication_lic_173_srv.json; DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
 Source: install\cfg\publication_lic_173_ws.json;  DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
 
