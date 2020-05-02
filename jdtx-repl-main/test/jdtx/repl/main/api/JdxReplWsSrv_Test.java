@@ -112,15 +112,15 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         // Активируем 3 рабочие станции
         args.clear();
         args.put("ws", 1);
-        extSrv.repl_enable(args);
+        extSrv.repl_ws_enable(args);
         //
         args.clear();
         args.put("ws", 2);
-        extSrv.repl_enable(args);
+        extSrv.repl_ws_enable(args);
         //
         args.clear();
         args.put("ws", 3);
-        extSrv.repl_enable(args);
+        extSrv.repl_ws_enable(args);
 
 
         // Создаем ящики рабочих станций

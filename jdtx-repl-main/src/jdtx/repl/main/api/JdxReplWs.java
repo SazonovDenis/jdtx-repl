@@ -636,14 +636,29 @@ public class JdxReplWs {
             case JdxReplicaType.MUTE: {
                 // Реакция на команду - перевод в режим "MUTE"
 
-                // Последняя обработка собственного аудита
-                handleSelfAudit();
+                // Узнаем получателя
+                JSONObject info;
+                InputStream infoStream = UtRepl.createInputStream(replica, "info.json");
+                try {
+                    String cfgStr = loadStringFromSream(infoStream);
+                    info = (JSONObject) UtJson.toObject(cfgStr);
+                } finally {
+                    infoStream.close();
+                }
+                long destinationWsId = Long.valueOf(String.valueOf(info.get("destinationWsId")));
 
-                // Переход в состояние "Я замолчал"
-                muteManager.muteWorkstation();
 
-                // Выкладывание реплики "Я замолчал"
-                reportReplica(JdxReplicaType.MUTE_DONE);
+                // Реакция на команду, если получатель - все станции или именно наша
+                if (destinationWsId == 0 || destinationWsId == wsId) {
+                    // Последняя обработка собственного аудита
+                    handleSelfAudit();
+
+                    // Переход в состояние "Я замолчал"
+                    muteManager.muteWorkstation();
+
+                    // Выкладывание реплики "Я замолчал"
+                    reportReplica(JdxReplicaType.MUTE_DONE);
+                }
 
                 //
                 break;
@@ -652,11 +667,26 @@ public class JdxReplWs {
             case JdxReplicaType.UNMUTE: {
                 // Реакция на команду - отключение режима "MUTE"
 
-                // Выход из состояния "Я замолчал"
-                muteManager.unmuteWorkstation();
+                // Узнаем получателя
+                JSONObject info;
+                InputStream infoStream = UtRepl.createInputStream(replica, "info.json");
+                try {
+                    String cfgStr = loadStringFromSream(infoStream);
+                    info = (JSONObject) UtJson.toObject(cfgStr);
+                } finally {
+                    infoStream.close();
+                }
+                long destinationWsId = Long.valueOf(String.valueOf(info.get("destinationWsId")));
 
-                // Выкладывание реплики "Я уже не молчу"
-                reportReplica(JdxReplicaType.UNMUTE_DONE);
+                // Реакция на команду, если получатель - все станции или именно наша
+                if (destinationWsId == 0 || destinationWsId == wsId) {
+
+                    // Выход из состояния "Я замолчал"
+                    muteManager.unmuteWorkstation();
+
+                    // Выкладывание реплики "Я уже не молчу"
+                    reportReplica(JdxReplicaType.UNMUTE_DONE);
+                }
 
                 //
                 break;

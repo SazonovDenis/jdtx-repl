@@ -209,7 +209,7 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
-    void repl_enable(IVariantMap args) {
+    void repl_ws_enable(IVariantMap args) {
         long wsId = args.getValueLong("ws")
         if (wsId == 0L) {
             throw new XError("Не указан [ws] - код рабочей станции")
@@ -231,7 +231,7 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
-    void repl_disable(IVariantMap args) {
+    void repl_ws_disable(IVariantMap args) {
         long wsId = args.getValueLong("ws")
         if (wsId == 0L) {
             throw new XError("Не указан [ws] - код рабочей станции")
@@ -393,6 +393,54 @@ class Jdx_Ext extends ProjectExt {
         //
         return result;
     }
+
+    void repl_mute(IVariantMap args) {
+        if (args.isValueNull("ws")) {
+            throw new XError("Не указан [ws] - код рабочей станции")
+        }
+        long destinationWsId = args.getValueLong("ws")
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        try {
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init()
+
+            //
+            srv.srvSetWsMute(destinationWsId);
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
+
+    void repl_unmute(IVariantMap args) {
+        if (args.isValueNull("ws")) {
+            throw new XError("Не указан [ws] - код рабочей станции")
+        }
+        long destinationWsId = args.getValueLong("ws")
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        try {
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init()
+
+            //
+            srv.srvSetWsUnmute(destinationWsId);
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
 
     void repl_dbstruct_start(IVariantMap args) {
         // БД

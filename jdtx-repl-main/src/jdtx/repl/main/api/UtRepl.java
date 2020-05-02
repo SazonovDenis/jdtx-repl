@@ -293,15 +293,23 @@ public class UtRepl {
         return replica;
     }
 
-    public IReplica createReplicaUnmute() throws Exception {
+    public IReplica createReplicaUnmute(long destinationWsId) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.UNMUTE);
 
-        // Открываем запись
-        createOutputXML(replica);
+        // Начинаем запись
+        // В этой реплике - информация о получателе
+        createOutputZipFile(replica);
 
-        // Писать в файл нечего
-        // ...
+        // Информация о получателе
+        JSONObject cfgInfo = new JSONObject();
+        cfgInfo.put("destinationWsId", destinationWsId);
+
+        // Открываем запись файла с информацией о получателе
+        addFileToOutput("info.json");
+        String version = UtJson.toString(cfgInfo);
+        StringInputStream versionStream = new StringInputStream(version);
+        UtFile.copyStream(versionStream, zipOutputStream);
 
         // Заканчиваем запись
         closeOutputXML();
@@ -310,15 +318,23 @@ public class UtRepl {
         return replica;
     }
 
-    public IReplica createReplicaMute() throws Exception {
+    public IReplica createReplicaMute(long destinationWsId) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.MUTE);
 
-        // Открываем запись
-        createOutputXML(replica);
+        // Начинаем запись
+        // В этой реплике - информация о получателе
+        createOutputZipFile(replica);
 
-        // Писать в файл нечего
-        // ...
+        // Информация о получателе
+        JSONObject cfgInfo = new JSONObject();
+        cfgInfo.put("destinationWsId", destinationWsId);
+
+        // Открываем запись файла с информацией о получателе
+        addFileToOutput("info.json");
+        String version = UtJson.toString(cfgInfo);
+        StringInputStream versionStream = new StringInputStream(version);
+        UtFile.copyStream(versionStream, zipOutputStream);
 
         // Заканчиваем запись
         closeOutputXML();

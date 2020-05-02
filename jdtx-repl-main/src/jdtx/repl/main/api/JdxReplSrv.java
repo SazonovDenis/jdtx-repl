@@ -210,14 +210,38 @@ public class JdxReplSrv {
     }
 
 
+    public void srvSetWsMute(long destinationWsId) throws Exception {
+        log.info("srvSetWs MUTE, destination.WsId: " + destinationWsId);
+
+        // Системная команда "MUTE"...
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.createReplicaMute(destinationWsId);
+
+        // ... в исходящую (общую) очередь реплик
+        commonQue.put(replica);
+    }
+
+
+    public void srvSetWsUnmute(long destinationWsId) throws Exception {
+        log.info("srvSetWs UNMUTE, destination.WsId: " + destinationWsId);
+
+        // Системная команда "UNMUTE" ...
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.createReplicaUnmute(destinationWsId);
+
+        // ... в исходящую (общую) очередь реплик
+        commonQue.put(replica);
+    }
+
+
     public void srvDbStructStart() throws Exception {
         log.info("srvDbStructStart");
 
-        // Системная команда "MUTE" в общую очередь
+        // Системная команда "MUTE"...
         UtRepl utRepl = new UtRepl(db, struct);
-        IReplica replica = utRepl.createReplicaMute();
+        IReplica replica = utRepl.createReplicaMute(0);
 
-        // Системная команда - в исходящую очередь реплик
+        // ... в исходящую (общую) очередь реплик
         commonQue.put(replica);
     }
 
@@ -238,7 +262,7 @@ public class JdxReplSrv {
 
 
         // Системная команда "UNMUTE" ...
-        replica = utRepl.createReplicaUnmute();
+        replica = utRepl.createReplicaUnmute(0);
         // ...в исходящую очередь реплик
         commonQue.put(replica);
     }
