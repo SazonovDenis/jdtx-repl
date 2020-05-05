@@ -64,7 +64,16 @@ public class JdxReplicaReaderXml {
                     Map values = new HashMap<>();
                     for (int i = 0; i < reader.getAttributeCount(); i++) {
                         String fieldName = reader.getAttributeLocalName(i);
-                        values.put(fieldName, StringEscapeUtils.unescapeJava(reader.getAttributeValue(i)));
+                        String fieldValue = reader.getAttributeValue(i);
+                        // Грязный хак: BLOB в MIME-кодировке НЕ нуждются в маскировке,
+                        // а зато StringEscapeUtils.unescapeJava() падает на больших строках,
+                        // выдает "Java heap space".
+                        // todo Хорошо бы не по длине судить, а по более надежому критерию!
+                        if (fieldValue.length() < 1024 * 10) {
+                            values.put(fieldName, StringEscapeUtils.unescapeJava(fieldValue));
+                        } else {
+                            values.put(fieldName, fieldValue);
+                        }
                     }
                     //
                     return values;
