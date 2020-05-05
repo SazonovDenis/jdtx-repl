@@ -133,21 +133,24 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
     public void test_applyReplica() throws Exception {
         // Загружаем правила публикации
         JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub.json"));
+        JSONObject cfgIn = (JSONObject) cfg.get("full");
         IPublication publication = new Publication();
-        publication.loadRules(cfg, struct);
+        publication.loadRules(cfgIn, struct);
 
         // Реплики
         IReplica replica = new ReplicaFile();
-        replica.setFile(new File("../_test-data/~tmp_csv.xml"));
+        replica.setFile(new File("../_test-data/000000001.zip"));
+
+        // Распакуем XML-файл из Zip-архива
+        InputStream inputStream = UtRepl.getReplicaInputStream(replica);
 
         //
-        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(new FileInputStream(replica.getFile()));
+        JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
 
         // Применяем реплики
         UtAuditApplyer utaa = new UtAuditApplyer(db2, struct2);
-        utaa.applyReplica(reader, publication, false, 2, 0);
+        utaa.applyReplica(replicaReader, publication, false, 2, 0);
     }
-
 
 
 }
