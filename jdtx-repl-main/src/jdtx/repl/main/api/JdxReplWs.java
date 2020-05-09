@@ -166,34 +166,22 @@ public class JdxReplWs {
         structFixed = dbStructApprover.getDbStructFixed();
 
 
-        // Проверка версии приложения
+        // Проверка версии приложения, обновление при необходимости
         UtAppVersion_DbRW appVersionRW = new UtAppVersion_DbRW(db);
         String appVersionAllowed = appVersionRW.getAppVersionAllowed();
         String appVersionActual = UtRepl.getVersion();
         if (appVersionAllowed.length() == 0) {
-            log.warn("appVersionAllowed.length == 0, appVersionActual: " + appVersionActual);
+            log.info("appVersionAllowed.length == 0, appVersionActual: " + appVersionActual);
         } else if (appVersionActual.compareToIgnoreCase("SNAPSHOT") == 0) {
             log.warn("appVersionActual == SNAPSHOT, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
         } else if (appVersionAllowed.compareToIgnoreCase(appVersionActual) != 0) {
             log.info("appVersionAllowed != appVersionActual, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
-
-            //
-            File exeFile = new File("install/JadatexSync-update-" + appVersionAllowed + ".exe");
-            log.info("start app update, exeFile: " + exeFile);
-
-            // Запуск обновления
-            List<String> res = new ArrayList<>();
-            int exitCode = UtRun.run(res, exeFile.getAbsolutePath(), "/SILENT", "/repl-service-install");
-
-            //
-            if (exitCode != 0) {
-                System.out.println("exitCode: " + exitCode);
-                for (String outLine : res) {
-                    System.out.println(outLine);
-                }
-
-                //
-                throw new XError("Failed to update application " + appVersionActual + " -> " + appVersionAllowed);
+            if (Ut.tryParseInteger(appVersionAllowed) != 0 && Ut.tryParseInteger(appVersionAllowed) < Ut.tryParseInteger(appVersionActual)) {
+                // Установлена боле новая версия - не будем обновлять до более старой
+                log.warn("appVersionAllowed < appVersionActual, skip application update");
+            } else {
+                // Есть более новая версия - будем обновлять
+                doAppUpdate(appVersionAllowed);
             }
         }
 
@@ -201,6 +189,25 @@ public class JdxReplWs {
         UtFile.mkdirs(dataRoot + "temp");
     }
 
+    void doAppUpdate(String appVersionAllowed) throws Exception {
+        File exeFile = new File("install/JadatexSync-update-" + appVersionAllowed + ".exe");
+        log.info("start app update, exeFile: " + exeFile);
+
+        // Запуск обновления
+        List<String> res = new ArrayList<>();
+        int exitCode = UtRun.run(res, exeFile.getAbsolutePath(), "/SILENT", "/repl-service-install");
+
+        //
+        if (exitCode != 0) {
+            System.out.println("exitCode: " + exitCode);
+            for (String outLine : res) {
+                System.out.println(outLine);
+            }
+
+            //
+            throw new XError("Failed to update application, appVersionAllowed: " + appVersionAllowed);
+        }
+    }
 
     /**
      * Формируем установочную реплику

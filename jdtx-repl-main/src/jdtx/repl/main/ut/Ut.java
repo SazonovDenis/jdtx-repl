@@ -54,6 +54,18 @@ public class Ut {
         return msg;
     }
 
+    public static int tryParseInteger(String value, int defaultVal) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return defaultVal;
+        }
+    }
+
+    public static int tryParseInteger(String value) {
+        return tryParseInteger(value, 0);
+    }
+
 
 
 }

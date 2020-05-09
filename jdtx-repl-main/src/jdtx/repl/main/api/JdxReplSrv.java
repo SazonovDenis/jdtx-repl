@@ -137,10 +137,18 @@ public class JdxReplSrv {
         if (appVersionAllowed.length() == 0) {
             log.info("appVersionAllowed.length == 0, appVersionActual: " + appVersionActual);
         } else if (appVersionActual.compareToIgnoreCase("SNAPSHOT") == 0) {
-            log.info("appVersionActual == SNAPSHOT, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
+            log.warn("appVersionActual == SNAPSHOT, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
         } else if (appVersionAllowed.compareToIgnoreCase(appVersionActual) != 0) {
-            throw new XError("appVersionAllowed != appVersionActual, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
+            log.info("appVersionActual != appVersionAllowed, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
+            if (Ut.tryParseInteger(appVersionAllowed) != 0 && Ut.tryParseInteger(appVersionAllowed) < Ut.tryParseInteger(appVersionActual)) {
+                // Установлена боле новая версия - не будем обновлять до более старой
+                log.warn("appVersionAllowed < appVersionActual, skip application update");
+            } else {
+                // Установлена старая версия - надо обновлять до новой, а пока не работаем
+                throw new XError("appVersionAllowed != appVersionActual, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
+            }
         }
+
 
         // Чтобы были
         UtFile.mkdirs(dataRoot + "temp");
