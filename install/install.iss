@@ -99,8 +99,8 @@ Source: install\cfg\decode_strategy_173.json;     DestDir: {app}\web\WEB-INF\cfg
 Source: install\cfg\publication_lic_173_srv.json; DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
 Source: install\cfg\publication_lic_173_ws.json;  DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
 
-Source: install\sample.srv._app.rt;               DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; Components: ServerComponent; DestName: _app.rt
-Source: install\sample.ws._app.rt;                DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; Components: ClientComponent; DestName: _app.rt
+Source: install\sample.srv._app.rt;               DestDir: {app}\web\WEB-INF;     Flags: ignoreversion; Components: ServerComponent; DestName: _app.rt
+Source: install\sample.ws._app.rt;                DestDir: {app}\web\WEB-INF;     Flags: ignoreversion; Components: ClientComponent; DestName: _app.rt
 Source: install\sample._db-ini.rt;                DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _db-ini.rt
 Source: install\sample.log.properties;            DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: log.properties
 
