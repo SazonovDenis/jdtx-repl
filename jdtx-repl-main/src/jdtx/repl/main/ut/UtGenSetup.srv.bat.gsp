@@ -32,7 +32,7 @@ call jc repl-add-ws -ws:${args.ws_list[i].ws_no} -guid:${args.repl_guid}-${args.
 
 rem активируем рабочие станции
 <% for (int i = 0; i < args.ws_list.size; i++) { %>
-call jc repl-enable -ws:${args.ws_list[i].ws_no}
+call jc repl-ws-enable -ws:${args.ws_list[i].ws_no}
 <% } %>
 
 
