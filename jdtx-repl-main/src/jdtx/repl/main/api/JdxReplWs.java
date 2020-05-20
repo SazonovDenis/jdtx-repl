@@ -784,7 +784,14 @@ public class JdxReplWs {
                     structRwXml.toFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
                     structRwXml.toFile(structFixed, dataRoot + "temp/dbStruct.fixed.xml");
                     // Генерим ошибку
-                    throw new XError("handleQueIn, structActual <> structAllowed");
+                    log.error("====================================================================");
+                    log.error("====================================================================");
+                    log.error("====================================================================");
+                    //throw new XError("handleQueIn, structActual <> structAllowed");
+                    log.error("handleQueIn, structActual <> structAllowed");
+                    log.error("====================================================================");
+                    log.error("====================================================================");
+                    log.error("====================================================================");
                 }
 
                 // Свои собственные установочные реплики точно можно не применять
