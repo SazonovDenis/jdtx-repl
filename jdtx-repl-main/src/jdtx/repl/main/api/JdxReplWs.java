@@ -802,7 +802,14 @@ public class JdxReplWs {
                     JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
                     struct_rw.toFile(struct, dataRoot + "temp/dbStruct.actual.xml");
                     //
-                    throw new XError("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
+                    log.error("====================================================================");
+                    log.error("====================================================================");
+                    log.error("====================================================================");
+                    log.error("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
+                    log.error("====================================================================");
+                    log.error("====================================================================");
+                    log.error("====================================================================");
+                    //throw new XError("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
                 }
 
                 // todo: Проверим протокол репликатора, с помощью которого была подготовлена реплика
