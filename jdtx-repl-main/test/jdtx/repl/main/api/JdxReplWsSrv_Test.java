@@ -14,6 +14,15 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+/*
+
+todo
+затестить применение конфигов при смене версии БД
+реализовать невидимость таблиц, которых нет в конфиге
+затестить инициализацию и смену версии БД на бинарной сборке
+
+*/
+
 public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
@@ -925,11 +934,3 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 }
 
-/*
-
-^c
-затестить применение конфигов при смене версии БД
-реализовать невидимость таблиц, которых нет в конфиге
-затестить инициализацию и смену версии БД на бинарной сборке
-
-*/
