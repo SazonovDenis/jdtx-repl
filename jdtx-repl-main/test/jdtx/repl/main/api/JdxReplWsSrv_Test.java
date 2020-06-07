@@ -26,18 +26,28 @@ todo
 public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
-    String json_srv = "test/etalon/mail_http_srv.json";
-    String json_ws = "test/etalon/mail_http_ws.json";
+    String json_srv = "";
+    String json_ws = "";
 
-    String cfg_json_ws = "test/etalon/ws.json";
-    String cfg_json_decode = "test/etalon/decode_strategy.json";
-    //String cfg_json_publication_srv = "test/etalon/publication_full_152.json";
-    //String cfg_json_publication_ws = "test/etalon/publication_full_152.json";
-    String cfg_json_publication_srv = "test/etalon/publication_full_152_srv.json";
-    String cfg_json_publication_ws = "test/etalon/publication_full_152_ws.json";
-    //String cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
-    //String cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
+    String cfg_json_ws = "";
+    String cfg_json_decode = "";
 
+    String cfg_json_publication_srv = "";
+    String cfg_json_publication_ws = "";
+
+    public JdxReplWsSrv_Test() {
+        json_srv = "test/etalon/mail_http_srv.json";
+        json_ws = "test/etalon/mail_http_ws.json";
+
+        cfg_json_ws = "test/etalon/ws.json";
+        cfg_json_decode = "test/etalon/decode_strategy.json";
+        // cfg_json_publication_srv = "test/etalon/publication_full_152.json";
+        // cfg_json_publication_ws = "test/etalon/publication_full_152.json";
+        cfg_json_publication_srv = "test/etalon/publication_full_152_srv.json";
+        cfg_json_publication_ws = "test/etalon/publication_full_152_ws.json";
+        // cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
+        // cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
+    }
 
     @Test
     public void prepareEtalon_TestAll() throws Exception {
@@ -450,7 +460,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void startCmpDb() throws Exception {
-        ProcessBuilder processBuilder = new ProcessBuilder("cmd", "/C",  "cmp_db.bat");
+        ProcessBuilder processBuilder = new ProcessBuilder("cmd", "/C", "cmp_db.bat");
         processBuilder.directory(new File(UtRun.getAppDir()).getParentFile());
         Process process = processBuilder.start();
         process.waitFor();

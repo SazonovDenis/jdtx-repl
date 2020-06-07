@@ -289,7 +289,10 @@ public class UtTest extends UtilsTestCase {
         }
     }
 
-    private long getDbSeed() throws Exception {
+    /**
+     * Рандом, зависимый от состояния БД
+     */
+    long getDbSeed() throws Exception {
         String sql = "  select\n" +
                 "  sum(region.id)+sum(regionTip.id)+sum(Ulz.id)+sum(UlzTip.id)+\n" +
                 "  count(region.id)+count(regionTip.id)+count(Ulz.id)+count(UlzTip.id) as n\n" +
