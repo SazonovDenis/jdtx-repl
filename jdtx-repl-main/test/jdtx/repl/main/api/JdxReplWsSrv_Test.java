@@ -26,14 +26,14 @@ todo
 public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
-    String json_srv = "";
-    String json_ws = "";
+    String json_srv;
+    String json_ws;
 
-    String cfg_json_ws = "";
-    String cfg_json_decode = "";
+    String cfg_json_ws;
+    String cfg_json_decode;
 
-    String cfg_json_publication_srv = "";
-    String cfg_json_publication_ws = "";
+    String cfg_json_publication_srv;
+    String cfg_json_publication_ws;
 
     public JdxReplWsSrv_Test() {
         json_srv = "test/etalon/mail_http_srv.json";
@@ -181,9 +181,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     void doDisconnectAll() throws Exception {
-        db.disconnect();
-        db2.disconnect();
-        db3.disconnect();
+        db.disconnectForce();
+        db2.disconnectForce();
+        db3.disconnectForce();
     }
 
     /**
