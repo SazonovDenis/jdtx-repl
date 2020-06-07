@@ -72,9 +72,9 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         printRegionTip();
 
         //
-        assertEquals(5, get_regionTip_cnt(dbuSrv));
-        assertEquals(5, get_regionTip_cnt(dbu2));
-        assertEquals(5, get_regionTip_cnt(dbu3));
+        assertEquals(15, get_regionTip_cnt(dbuSrv));
+        assertEquals(15, get_regionTip_cnt(dbu2));
+        assertEquals(15, get_regionTip_cnt(dbu3));
 
 
         // ---
@@ -125,9 +125,9 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         //System.out.println("ws3_id0_regionTip: " + ws3_id0_regionTip);
 
         //
-        assertEquals(5, get_regionTip_cnt(dbuSrv));
-        assertEquals(6, get_regionTip_cnt(dbu2));
-        assertEquals(6, get_regionTip_cnt(dbu3));
+        assertEquals(15, get_regionTip_cnt(dbuSrv));
+        assertEquals(16, get_regionTip_cnt(dbu2));
+        assertEquals(16, get_regionTip_cnt(dbu3));
 
 
         // ---
@@ -142,9 +142,9 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         printRegionTip();
 
         //
-        assertEquals(7, get_regionTip_cnt(dbuSrv));
-        assertEquals(7, get_regionTip_cnt(dbu2));
-        assertEquals(7, get_regionTip_cnt(dbu3));
+        assertEquals(17, get_regionTip_cnt(dbuSrv));
+        assertEquals(17, get_regionTip_cnt(dbu2));
+        assertEquals(17, get_regionTip_cnt(dbu3));
 
 
         // ---
@@ -161,9 +161,9 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         printRegionTip();
 
         //
-        assertEquals(7, get_regionTip_cnt(dbuSrv));
-        assertEquals(6, get_regionTip_cnt(dbu2));
-        assertEquals(6, get_regionTip_cnt(dbu3));
+        assertEquals(17, get_regionTip_cnt(dbuSrv));
+        assertEquals(16, get_regionTip_cnt(dbu2));
+        assertEquals(16, get_regionTip_cnt(dbu3));
 
 
         // ---
@@ -178,9 +178,9 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         printRegionTip();
 
         //
-        assertEquals(7, get_regionTip_cnt(dbuSrv));
-        assertEquals(7, get_regionTip_cnt(dbu2));
-        assertEquals(7, get_regionTip_cnt(dbu3));
+        assertEquals(17, get_regionTip_cnt(dbuSrv));
+        assertEquals(17, get_regionTip_cnt(dbu2));
+        assertEquals(17, get_regionTip_cnt(dbu3));
     }
 
     @Test
