@@ -233,7 +233,7 @@ public class JdxReplWs {
             long age = utRepl.incAuditAge();
             log.info("createReplicaTableSnapshot, tableName: " + tableName + ", new age: " + age);
 
-            // Забираем установочную реплику
+            // Создаем установочную реплику
             IReplica replicaSnapshot = utRepl.createReplicaTableSnapshot(wsId, publicationTable, age);
 
             // Помещаем реплику в очередь
@@ -918,7 +918,7 @@ public class JdxReplWs {
 
     /**
      * Рабочая станция: отправка системной реплики
-     * (например, ответа "я замолчал" или "Я уже не молчу")
+     * (например, ответа "Я замолчал" или "Я уже не молчу")
      * в исходящую очередь
      */
     public void reportReplica(int replicaType) throws Exception {
