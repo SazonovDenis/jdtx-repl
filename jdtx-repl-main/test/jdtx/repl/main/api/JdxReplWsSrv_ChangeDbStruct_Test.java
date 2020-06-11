@@ -368,7 +368,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         sync_http();
         sync_http();
         //
-        modifyDbStruct();
+        test_modifyDbStruct();
     }
 
     /**
@@ -383,16 +383,16 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         sync_http();
         sync_http();
         //
-        modifyDbStruct();
-        modifyDbStruct();
-        modifyDbStruct();
+        test_modifyDbStruct();
+        test_modifyDbStruct();
+        test_modifyDbStruct();
     }
 
     /**
      * Прогон полного цикла смены структуры БД
      */
     @Test
-    public void modifyDbStruct() throws Exception {
+    public void test_modifyDbStruct() throws Exception {
         JdxReplWs ws;
         JdxReplWs ws2;
         JdxReplWs ws3;

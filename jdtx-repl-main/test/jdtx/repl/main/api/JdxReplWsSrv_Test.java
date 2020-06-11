@@ -311,6 +311,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         //
         sync_http();
         sync_http();
+        sync_http();
+        sync_http();
 
         //
         test_dumpTables();

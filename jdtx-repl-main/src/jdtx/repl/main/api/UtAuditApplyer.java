@@ -19,6 +19,7 @@ public class UtAuditApplyer {
 
     private Db db;
     private IJdxDbStruct struct;
+    JdxReplWs jdxReplWs;
 
 
     //
@@ -54,7 +55,7 @@ public class UtAuditApplyer {
         IRefDecoder decoder = new RefDecoder(db, selfWsId);
 
         //
-        List<Long> skipedId = new ArrayList<>();
+        List<Long> failedDeleteId = new ArrayList<>();
 
         //
         db.startTran();
@@ -191,12 +192,11 @@ public class UtAuditApplyer {
                         dbu.updateRec(table.getName(), recValues, publicationFields, null);
                     } else if (oprType == JdxOprType.OPR_DEL) {
                         try {
-
                             dbu.deleteRec(table.getName(), (Long) recValues.get(idFieldName));
                         } catch (Exception e) {
                             if (JdxUtils.errorIs_ForeignKeyViolation(e)) {
                                 // Пропустим реплику, выдадим в исходящую очередь наш вариант удаляемой записи
-                                skipedId.add((Long) recValues.get(idFieldName));
+                                failedDeleteId.add((Long) recValues.get(idFieldName));
                             }
                         }
                     }
@@ -216,12 +216,13 @@ public class UtAuditApplyer {
                 log.info("  table: " + tableName + ", total: " + count);
 
 
-                // Обратка от удалений, которые не удалось выполнить
-                if (skipedId.size() != 0) {
-                    log.info("  table: " + tableName + ", fail to delete: " + skipedId.size());
+                // Обратка от удалений, которые не удалось выполнить - создаем реплики на вставку,
+                // чтобы те, куто уже удалил - раскаялись и вернули все назад.
+                if (failedDeleteId.size() != 0) {
+                    log.info("  table: " + tableName + ", fail to delete: " + failedDeleteId.size());
 
-                    JdxReplWs jdxReplWs = null;  //todo  комит тут внутри, а контекст с этим методом createTableReplicaByIdList() - снаружи
-                    jdxReplWs.createTableReplicaByIdList(tableName, skipedId);
+                    //todo  комит тут внутри, а контекст с этим методом createTableReplicaByIdList() - снаружи
+                    jdxReplWs.createTableReplicaByIdList(tableName, failedDeleteId);
                 }
 
 

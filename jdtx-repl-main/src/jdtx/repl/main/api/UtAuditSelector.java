@@ -30,58 +30,39 @@ public class UtAuditSelector {
     }
 
 
-    protected void readAuditData_ById(String tableName, String tableFields, long fromId, long toId, JdxReplicaWriterXml dataWriter) throws Exception {
+    protected void readAuditData_ByInterval(String tableName, String tableFields, long fromId, long toId, JdxReplicaWriterXml dataWriter) throws Exception {
         IJdxTable table = struct.getTable(tableName);
-
-        //
         IRefDecoder decoder = new RefDecoder(db, wsId);
+        UtDataWriter utDataWriter = new UtDataWriter(table, tableFields, decoder, false);
 
         // DbQuery, содержащий аудит в указанном диапазоне: id >= fromId и id <= toId
         IJdxTable tableFrom = struct.getTable(tableName);
         String sql = getSql(tableFrom, tableFields, fromId, toId);
-        DbQuery rsTableLog = db.openSql(sql);
+        DbQuery query = db.openSql(sql);
+        IJdxDataBinder dataTableAudit = new JdxDataBinder_DbQuery(query);
 
         //
         try {
-            if (!rsTableLog.eof()) {
+            if (!dataTableAudit.eof()) {
                 // Журнал аудита для таблицы (измененные записи) кладем в dataWriter
                 dataWriter.startTable(tableName);
 
                 //
                 long n = 0;
-                while (!rsTableLog.eof()) {
+                while (!dataTableAudit.eof()) {
                     // record
                     dataWriter.appendRec();
 
                     // Тип операции
-                    dataWriter.setOprType(rsTableLog.getValueInt(JdxUtils.prefix + "opr_type"));
+                    int oprType = (int) dataTableAudit.getValue(JdxUtils.prefix + "opr_type");
+                    dataWriter.setOprType(oprType);
 
-                    // Тело записи
-                    String[] tableFromFields = tableFields.split(",");
-                    for (String fieldName : tableFromFields) {
-                        Object fieldValue = rsTableLog.getValue(fieldName);
-                        IJdxField field = table.getField(fieldName);
-                        IJdxTable refTable = field.getRefTable();
-                        if (field.isPrimaryKey() || refTable != null) {
-                            // Ссылка
-                            String refTableName;
-                            if (field.isPrimaryKey()) {
-                                refTableName = table.getName();
-                            } else {
-                                refTableName = refTable.getName();
-                            }
-                            // Перекодировка ссылки
-                            JdxRef ref = decoder.get_ref(refTableName, Long.valueOf(String.valueOf(fieldValue)));
-                            dataWriter.setRecValue(fieldName, ref.toString());
-                        } else {
-                            dataWriter.setRecValue(fieldName, fieldValue);
-                        }
+                    // Тело записи (с перекодировкой ссылок)
+                    utDataWriter.dataBinderRec_To_DataWriter_WithRefDecode(dataTableAudit, dataWriter);
 
-
-                    }
 
                     //
-                    rsTableLog.next();
+                    dataTableAudit.next();
 
                     //
                     n++;
@@ -97,7 +78,7 @@ public class UtAuditSelector {
             //
             dataWriter.flush();
         } finally {
-            rsTableLog.close();
+            dataTableAudit.close();
         }
     }
 

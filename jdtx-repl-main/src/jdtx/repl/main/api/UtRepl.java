@@ -5,6 +5,7 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
+import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
@@ -225,7 +226,7 @@ public class UtRepl {
 
                 //
                 String publicationFields = Publication.filedsToString(publicationTable.getFields());
-                utrr.readAuditData_ById(publicationTable.getName(), publicationFields, fromId, toId, writerXml);
+                utrr.readAuditData_ByInterval(publicationTable.getName(), publicationFields, fromId, toId, writerXml);
             }
         }
 
@@ -275,7 +276,7 @@ public class UtRepl {
         return replica;
     }
 
-    public IReplica createReplicaTableByIdList(long wsId, IJdxTable publicationTable, long age,Collection<Long> idList) throws Exception {
+    public IReplica createReplicaTableByIdList(long wsId, IJdxTable publicationTable, long age, Collection<Long> idList) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
         replica.getInfo().setWsId(wsId);

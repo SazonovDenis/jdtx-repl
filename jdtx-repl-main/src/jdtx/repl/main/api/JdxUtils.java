@@ -196,7 +196,7 @@ public class JdxUtils {
 
     public static boolean errorIs_ForeignKeyViolation(Exception e) {
         String errText = collectExceptionText(e);
-        if (errText.contains("ForeignKeyViolation") && errText.contains("does not exist")) {
+        if (errText.contains("violation of FOREIGN KEY constraint") && errText.contains("on table")) {
             return true;
         } else {
             return false;

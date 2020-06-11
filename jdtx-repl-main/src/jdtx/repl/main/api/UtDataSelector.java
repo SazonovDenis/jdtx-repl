@@ -1,7 +1,6 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.db.*;
-import jandcode.utils.error.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
@@ -37,7 +36,7 @@ public class UtDataSelector {
 
         //
         try {
-            flushDataToWriter(rsTableLog, tableName, tableFields, dataWriter);
+            flushDataToWriter(rsTableLog, tableName, tableFields, dataWriter, true);
         } finally {
             rsTableLog.close();
         }
@@ -49,18 +48,17 @@ public class UtDataSelector {
 
         //
         try {
-            flushDataToWriter(rsTableLog, tableName, tableFields, dataWriter);
+            flushDataToWriter(rsTableLog, tableName, tableFields, dataWriter, false);
         } finally {
             rsTableLog.close();
         }
     }
 
 
-    private void flushDataToWriter(IJdxDataBinder rsTableLog, String tableName, String tableFields, JdxReplicaWriterXml dataWriter) throws Exception {
+    private void flushDataToWriter(IJdxDataBinder data, String tableName, String tableFields, JdxReplicaWriterXml dataWriter, boolean forbidNotOwnId) throws Exception {
         IJdxTable table = struct.getTable(tableName);
-
-        //
         IRefDecoder decoder = new RefDecoder(db, wsId);
+        UtDataWriter utDataWriter = new UtDataWriter(table, tableFields, decoder, forbidNotOwnId);
 
         //
         dataWriter.startTable(tableName);
@@ -68,7 +66,7 @@ public class UtDataSelector {
         // Данные помещаем в dataWriter
         long count = 0;
         long countPortion = 0;
-        while (!rsTableLog.eof()) {
+        while (!data.eof()) {
             // Обеспечим не слишком огромные порции данных
             if (countPortion >= MAX_SNAPSHOT_RECS) {
                 countPortion = 0;
@@ -83,26 +81,10 @@ public class UtDataSelector {
             dataWriter.setOprType(JdxOprType.OPR_INS);
 
             // Тело записи
-            String[] tableFromFields = tableFields.split(",");
-            for (String fieldName : tableFromFields) {
-                Object fieldValue = rsTableLog.getValue(fieldName);
-
-                // Защита от дурака: в snapshot недопустимы чужие id
-                IJdxField field = table.getField(fieldName);
-                if (field.isPrimaryKey()) {
-                    String refTableName = table.getName();
-                    long own_id = Long.valueOf(String.valueOf(fieldValue));
-                    if (!decoder.is_own_id(refTableName, own_id)) {
-                        throw new XError("Not own id found, tableName: " + refTableName + ", id: " + own_id);
-                    }
-                }
-
-                //
-                dataWriter.setRecValue(fieldName, fieldValue);
-            }
+            utDataWriter.dataBinderRec_To_DataWriter_WithRefDecode(data, dataWriter);
 
             //
-            rsTableLog.next();
+            data.next();
 
             //
             count++;

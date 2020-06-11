@@ -888,6 +888,7 @@ public class JdxReplWs {
                     }
 
                     //
+                    auditApplyer.jdxReplWs = this;
                     auditApplyer.applyReplica(replicaReader, publicationIn, forceApply, wsId, commitPortionMax);
                 } finally {
                     // Закроем читателя Zip-файла

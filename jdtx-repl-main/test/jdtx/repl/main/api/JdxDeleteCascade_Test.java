@@ -25,6 +25,7 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
         // Первичная инициализация
         allSetUp();
+        //
         sync_http();
         sync_http();
         sync_http();
@@ -52,20 +53,12 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
 
     @Test
-    public void test1() throws Exception {
-        logOff();
-        //
+    public void test_CascadeDel() throws Exception {
         DbUtils dbuSrv = new DbUtils(db, struct);
         DbUtils dbu2 = new DbUtils(db2, struct2);
         DbUtils dbu3 = new DbUtils(db3, struct3);
         Random rnd = new Random();
         rnd.setSeed(0);
-
-
-        // ---
-        // Первичная синхронизация
-        sync_http();
-        sync_http();
 
 
         // ---
@@ -104,7 +97,7 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         // ---
         // ws3: вставка regionTip + region
         String ws3_regionTip = "regionTip-ws:3-" + rnd.nextInt();
-        long ws3_id0_regionTip = dbu2.getNextGenerator("g_regionTip");
+        long ws3_id0_regionTip = dbu3.getNextGenerator("g_regionTip");
         dbu3.insertRec("regionTip", UtCnv.toMap(
                 "id", ws3_id0_regionTip,
                 "deleted", 0,
@@ -112,7 +105,7 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
                 "shortName", "sn-" + rnd.nextInt()
         ));
         //
-        long ws3_id0_region = dbu2.getNextGenerator("g_region");
+        long ws3_id0_region = dbu3.getNextGenerator("g_region");
         dbu3.insertRec("region", UtCnv.toMap(
                 "id", ws3_id0_region,
                 "parent", 0,
@@ -137,7 +130,7 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
 
         // ---
-        System.out.println("После вставки");
+        System.out.println("После вставки и синхронизации");
         //
         printRegionTip();
 
@@ -156,7 +149,7 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
 
         // ---
-        System.out.println("После удаления");
+        System.out.println("После удаления, до синхронизации");
         //
         printRegionTip();
 
@@ -173,7 +166,7 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
 
         // ---
-        System.out.println("Окончательно");
+        System.out.println("Окончательно, после синхронизации");
         //
         printRegionTip();
 

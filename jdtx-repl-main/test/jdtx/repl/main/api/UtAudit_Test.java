@@ -90,10 +90,10 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         // Забираем реплики
         UtAuditSelector utrr = new UtAuditSelector(db2, struct2, wsId);
         //
-        utrr.readAuditData_ById("lic", "id,nameF,nameI,nameO", 0, 10000, wr);
-        utrr.readAuditData_ById("usr", "id,name,userName", 0, 10000, wr);
-        utrr.readAuditData_ById("region", "id,parent,name", 0, 10000, wr);
-        utrr.readAuditData_ById("ulz", "id,region,name", 0, 10000, wr);
+        utrr.readAuditData_ByInterval("lic", "id,nameF,nameI,nameO", 0, 10000, wr);
+        utrr.readAuditData_ByInterval("usr", "id,name,userName", 0, 10000, wr);
+        utrr.readAuditData_ByInterval("region", "id,parent,name", 0, 10000, wr);
+        utrr.readAuditData_ByInterval("ulz", "id,region,name", 0, 10000, wr);
 
         // Закрываем writer
         wr.closeDocument();
