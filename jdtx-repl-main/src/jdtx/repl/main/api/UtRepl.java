@@ -275,6 +275,36 @@ public class UtRepl {
         return replica;
     }
 
+    public IReplica createReplicaTableByIdList(long wsId, IJdxTable publicationTable, long age,Collection<Long> idList) throws Exception {
+        IReplica replica = new ReplicaFile();
+        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
+        replica.getInfo().setWsId(wsId);
+        replica.getInfo().setAge(age);
+        replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
+
+        // Открываем запись
+        createOutputXML(replica);
+
+
+        // Пишем
+        writerXml.startDocument();
+        writerXml.writeReplicaHeader(replica);
+
+        // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
+        UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId);
+        String publicationFields = Publication.filedsToString(publicationTable.getFields());
+        dataSelector.readRecordsByIdList(publicationTable.getName(), idList, publicationFields, writerXml);
+
+
+        // Заканчиваем запись
+        writerXml.closeDocument();
+        closeOutputXML();
+
+
+        //
+        return replica;
+    }
+
     public IReplica createReplicaSetDbStruct() throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SET_DB_STRUCT);

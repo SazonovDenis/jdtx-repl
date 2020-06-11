@@ -194,6 +194,15 @@ public class JdxUtils {
         return errText;
     }
 
+    public static boolean errorIs_ForeignKeyViolation(Exception e) {
+        String errText = collectExceptionText(e);
+        if (errText.contains("ForeignKeyViolation") && errText.contains("does not exist")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public static boolean errorIs_TableNotExists(Exception e) {
         String errText = collectExceptionText(e);
         if ((errText.contains("table/view") && errText.contains("does not exist")) ||

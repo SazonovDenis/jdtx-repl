@@ -254,6 +254,46 @@ public class JdxReplWs {
     }
 
     /**
+     * Формируем реплику по выбранным записям
+     */
+    public void createTableReplicaByIdList(String tableName, Collection<Long> idList) throws Exception {
+        log.info("createTableReplicaByIdList, wsId: " + wsId + ", table: " + tableName + ", idListCount: " + idList.size());
+
+        //
+        IJdxTable table = struct.getTable(tableName);
+
+        //
+        UtRepl utRepl = new UtRepl(db, struct);
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+
+        //
+        db.startTran();
+        try {
+            // Искусственно увеличиваем возраст (реплика сдвигает возраст БД на 1)
+            long age = utRepl.incAuditAge();
+            log.info("createReplicaTableByIdList, tableName: " + tableName + ", new age: " + age);
+
+            // Создаем реплику
+            IReplica replicaSnapshot = utRepl.createReplicaTableByIdList(wsId, table, age, idList);
+
+            // Помещаем реплику в очередь
+            queOut.put(replicaSnapshot);
+
+            //
+            stateManager.setAuditAgeDone(age);
+
+            //
+            db.commit();
+        } catch (Exception e) {
+            db.rollback(e);
+            throw e;
+        }
+
+        //
+        log.info("createReplicaTableByIdList, wsId: " + wsId + ", done");
+    }
+
+    /**
      * Выполнение фиксации структуры:
      * - дополнение аудита
      * - "реальная" структура запоминается как "зафиксированная"

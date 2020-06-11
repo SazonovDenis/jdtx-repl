@@ -53,6 +53,8 @@ public class UtAuditApplyer {
         //
         IRefDecoder decoder = new RefDecoder(db, selfWsId);
 
+        //
+        List<Long> skipedId = new ArrayList<>();
 
         //
         db.startTran();
@@ -172,7 +174,7 @@ public class UtAuditApplyer {
                         recValues.put(publicationFieldName, recValues.get(publicationFieldName));
                     }
 
-                    // INS/UPD/DEL
+                    // Выполняем INS/UPD/DEL
                     String publicationFields = Publication.filedsToString(publicationTable.getFields());
                     int oprType = Integer.valueOf((String) recValues.get("Z_OPR"));
                     if (oprType == JdxOprType.OPR_INS) {
@@ -188,7 +190,15 @@ public class UtAuditApplyer {
                     } else if (oprType == JdxOprType.OPR_UPD) {
                         dbu.updateRec(table.getName(), recValues, publicationFields, null);
                     } else if (oprType == JdxOprType.OPR_DEL) {
-                        dbu.deleteRec(table.getName(), (Long) recValues.get(idFieldName));
+                        try {
+
+                            dbu.deleteRec(table.getName(), (Long) recValues.get(idFieldName));
+                        } catch (Exception e) {
+                            if (JdxUtils.errorIs_ForeignKeyViolation(e)) {
+                                // Пропустим реплику, выдадим в исходящую очередь наш вариант удаляемой записи
+                                skipedId.add((Long) recValues.get(idFieldName));
+                            }
+                        }
                     }
 
                     //
@@ -204,6 +214,16 @@ public class UtAuditApplyer {
 
                 //
                 log.info("  table: " + tableName + ", total: " + count);
+
+
+                // Обратка от удалений, которые не удалось выполнить
+                if (skipedId.size() != 0) {
+                    log.info("  table: " + tableName + ", fail to delete: " + skipedId.size());
+
+                    JdxReplWs jdxReplWs = null;  //todo  комит тут внутри, а контекст с этим методом createTableReplicaByIdList() - снаружи
+                    jdxReplWs.createTableReplicaByIdList(tableName, skipedId);
+                }
+
 
                 //
                 tableName = dataReader.nextTable();

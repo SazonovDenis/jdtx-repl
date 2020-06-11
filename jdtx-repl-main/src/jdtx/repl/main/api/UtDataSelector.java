@@ -7,6 +7,8 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 
+import java.util.*;
+
 public class UtDataSelector {
 
     private Db db;
@@ -30,83 +32,104 @@ public class UtDataSelector {
      * Если в таблице есть ссылка на самого себя, процедура обязана обеспечить правильную последовательность записей.
      */
     public void readAllRecords(String tableName, String tableFields, JdxReplicaWriterXml dataWriter) throws Exception {
-        IJdxTable table = struct.getTable(tableName);
-
-        //
-        IRefDecoder decoder = new RefDecoder(db, wsId);
-
-        // DbQuery, содержащие все данные
-        DbQuery rsTableLog = selectAllRecords(tableName, tableFields);
+        // DbQuery, содержащие все данные из таблицы tableName
+        IJdxDataBinder rsTableLog = selectAllRecords(tableName, tableFields);
 
         //
         try {
-            dataWriter.startTable(tableName);
-
-            // Данные помещаем в dataWriter
-            long count = 0;
-            long countPortion = 0;
-            while (!rsTableLog.eof()) {
-                // Обеспечим не слишком огромные порции данных
-                if (countPortion >= MAX_SNAPSHOT_RECS) {
-                    countPortion = 0;
-                    dataWriter.startTable(tableName);
-                }
-                countPortion++;
-
-                // Добавляем запись
-                dataWriter.appendRec();
-
-                // Тип операции
-                dataWriter.setOprType(JdxOprType.OPR_INS);
-
-                // Тело записи
-                String[] tableFromFields = tableFields.split(",");
-                for (String fieldName : tableFromFields) {
-                    Object fieldValue = rsTableLog.getValue(fieldName);
-
-                    // Защита от дурака: в snapshot недопустимы чужие id
-                    IJdxField field = table.getField(fieldName);
-                    if (field.isPrimaryKey()) {
-                        String refTableName = table.getName();
-                        long own_id = Long.valueOf(String.valueOf(fieldValue));
-                        if (!decoder.is_own_id(refTableName, own_id)) {
-                            throw new XError("Not own id found, tableName: " + refTableName + ", id: " + own_id);
-                        }
-                    }
-
-                    //
-                    dataWriter.setRecValue(fieldName, fieldValue);
-                }
-
-                //
-                rsTableLog.next();
-
-                //
-                count++;
-                if (count % 1000 == 0) {
-                    log.info("  readData: " + tableName + ", " + count);
-                }
-            }
-
-            //
-            log.info("  readData: " + tableName + ", total: " + count);
-
-            //
-            dataWriter.flush();
+            flushDataToWriter(rsTableLog, tableName, tableFields, dataWriter);
         } finally {
             rsTableLog.close();
         }
     }
 
-    protected DbQuery selectAllRecords(String tableName, String tableFields) throws Exception {
+    public void readRecordsByIdList(String tableName, Collection<Long> idList, String tableFields, JdxReplicaWriterXml dataWriter) throws Exception {
+        // Итератор, содержащий данные по списку
+        IJdxDataBinder rsTableLog = new JdxDataBinder_SelectorById(db, tableName, tableFields, idList);
+
+        //
+        try {
+            flushDataToWriter(rsTableLog, tableName, tableFields, dataWriter);
+        } finally {
+            rsTableLog.close();
+        }
+    }
+
+
+    private void flushDataToWriter(IJdxDataBinder rsTableLog, String tableName, String tableFields, JdxReplicaWriterXml dataWriter) throws Exception {
+        IJdxTable table = struct.getTable(tableName);
+
+        //
+        IRefDecoder decoder = new RefDecoder(db, wsId);
+
+        //
+        dataWriter.startTable(tableName);
+
+        // Данные помещаем в dataWriter
+        long count = 0;
+        long countPortion = 0;
+        while (!rsTableLog.eof()) {
+            // Обеспечим не слишком огромные порции данных
+            if (countPortion >= MAX_SNAPSHOT_RECS) {
+                countPortion = 0;
+                dataWriter.startTable(tableName);
+            }
+            countPortion++;
+
+            // Добавляем запись
+            dataWriter.appendRec();
+
+            // Тип операции
+            dataWriter.setOprType(JdxOprType.OPR_INS);
+
+            // Тело записи
+            String[] tableFromFields = tableFields.split(",");
+            for (String fieldName : tableFromFields) {
+                Object fieldValue = rsTableLog.getValue(fieldName);
+
+                // Защита от дурака: в snapshot недопустимы чужие id
+                IJdxField field = table.getField(fieldName);
+                if (field.isPrimaryKey()) {
+                    String refTableName = table.getName();
+                    long own_id = Long.valueOf(String.valueOf(fieldValue));
+                    if (!decoder.is_own_id(refTableName, own_id)) {
+                        throw new XError("Not own id found, tableName: " + refTableName + ", id: " + own_id);
+                    }
+                }
+
+                //
+                dataWriter.setRecValue(fieldName, fieldValue);
+            }
+
+            //
+            rsTableLog.next();
+
+            //
+            count++;
+            if (count % 1000 == 0) {
+                log.info("  readData: " + tableName + ", " + count);
+            }
+        }
+
+        //
+        log.info("  readData: " + tableName + ", total: " + count);
+
+        //
+        dataWriter.flush();
+    }
+
+    protected IJdxDataBinder selectAllRecords(String tableName, String tableFields) throws Exception {
         //
         IJdxTable tableFrom = struct.getTable(tableName);
 
         //
-        String query = getSql(tableFrom, tableFields);
+        String sql = getSql(tableFrom, tableFields);
 
         //
-        return db.openSql(query);
+        DbQuery query = db.openSql(sql);
+
+        //
+        return new JdxDataBinder_DbQuery(query);
     }
 
     protected String getSql(IJdxTable tableFrom, String tableFields) {
