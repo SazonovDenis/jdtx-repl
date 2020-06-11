@@ -18,7 +18,7 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
 
     @Test
-    public void prepareEtalon_TestAll() throws Exception {
+    public void allSetUp_CascadeDel() throws Exception {
         DbUtils dbuSrv = new DbUtils(db, struct);
         DbUtils dbu2 = new DbUtils(db2, struct2);
         DbUtils dbu3 = new DbUtils(db3, struct3);
@@ -37,18 +37,9 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         assertEquals(15, get_regionTip_cnt(dbuSrv));
         assertEquals(15, get_regionTip_cnt(dbu2));
         assertEquals(15, get_regionTip_cnt(dbu3));
-    }
 
-
-    @Test
-    public void testCnt() throws Exception {
-        DbUtils dbuSrv = new DbUtils(db, struct);
-        DbUtils dbu2 = new DbUtils(db2, struct2);
-        DbUtils dbu3 = new DbUtils(db3, struct3);
         //
-        System.out.println(get_regionTip_cnt(dbuSrv));
-        System.out.println(get_regionTip_cnt(dbu2));
-        System.out.println(get_regionTip_cnt(dbu3));
+        test_CascadeDel();
     }
 
 
@@ -72,12 +63,12 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
         // ---
         // ws2: вставка regionTip + region
-        String ws2_regionTip = "regionTip-ws:2-" + rnd.nextInt();
-        long ws2_id0_regionTip = dbu2.getNextGenerator("g_regionTip");
+        String ws2_regionTip_Name = "regionTip-ws:2-" + rnd.nextInt();
+        long ws2_regionTip_id = dbu2.getNextGenerator("g_regionTip");
         dbu2.insertRec("regionTip", UtCnv.toMap(
-                "id", ws2_id0_regionTip,
+                "id", ws2_regionTip_id,
                 "deleted", 0,
-                "name", ws2_regionTip,
+                "name", ws2_regionTip_Name,
                 "shortName", "sn-" + rnd.nextInt()
         ));
         //
@@ -85,23 +76,21 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         dbu2.insertRec("region", UtCnv.toMap(
                 "id", ws2_id0_region,
                 "parent", 0,
-                "regionTip", ws2_id0_regionTip,
+                "regionTip", ws2_regionTip_id,
                 "deleted", 0,
                 "name", "region-ws:2-" + rnd.nextInt(),
                 "shortName", "sn-" + rnd.nextInt()
         ));
-        //
-        //System.out.println("ws3_id0_regionTip: " + ws2_id0_regionTip);
 
 
         // ---
         // ws3: вставка regionTip + region
-        String ws3_regionTip = "regionTip-ws:3-" + rnd.nextInt();
-        long ws3_id0_regionTip = dbu3.getNextGenerator("g_regionTip");
+        String ws3_regionTip_Name = "regionTip-ws:3-" + rnd.nextInt();
+        long ws3_regionTip_id = dbu3.getNextGenerator("g_regionTip");
         dbu3.insertRec("regionTip", UtCnv.toMap(
-                "id", ws3_id0_regionTip,
+                "id", ws3_regionTip_id,
                 "deleted", 0,
-                "name", ws3_regionTip,
+                "name", ws3_regionTip_Name,
                 "shortName", "sn-" + rnd.nextInt()
         ));
         //
@@ -109,13 +98,11 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         dbu3.insertRec("region", UtCnv.toMap(
                 "id", ws3_id0_region,
                 "parent", 0,
-                "regionTip", ws3_id0_regionTip,
+                "regionTip", ws3_regionTip_id,
                 "deleted", 0,
                 "name", "region-ws:3-" + rnd.nextInt(),
                 "shortName", "sn-" + rnd.nextInt()
         ));
-        //
-        //System.out.println("ws3_id0_regionTip: " + ws3_id0_regionTip);
 
         //
         assertEquals(15, get_regionTip_cnt(dbuSrv));
@@ -142,10 +129,10 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
         // ---
         // ws2: Удаление чужих записей (ws3:regionTip)
-        dbu2.db.execSql("delete from regionTip where Name = :Name'", UtCnv.toMap("Name", ws3_regionTip));
+        dbu2.db.execSql("delete from regionTip where Name = :Name'", UtCnv.toMap("Name", ws3_regionTip_Name));
 
         // ws3: Удаление чужих записей (ws2:regionTip)
-        dbu3.db.execSql("delete from regionTip where Name = :Name'", UtCnv.toMap("Name", ws2_regionTip));
+        dbu3.db.execSql("delete from regionTip where Name = :Name'", UtCnv.toMap("Name", ws2_regionTip_Name));
 
 
         // ---
@@ -166,7 +153,41 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
 
         // ---
-        System.out.println("Окончательно, после синхронизации");
+        System.out.println("После удаления, после синхронизации");
+        //
+        printRegionTip();
+
+        //
+        assertEquals(17, get_regionTip_cnt(dbuSrv));
+        assertEquals(17, get_regionTip_cnt(dbu2));
+        assertEquals(17, get_regionTip_cnt(dbu3));
+
+
+        // ---
+        // ws2: Удале СВОИХ записей (ws2:regionTip)
+        dbu2.db.execSql("delete from region where regionTip = :regionTip'", UtCnv.toMap("regionTip", ws2_regionTip_id));
+        dbu2.db.execSql("delete from regionTip where id = :id'", UtCnv.toMap("id", ws2_regionTip_id));
+
+        //
+        assertEquals(17, get_regionTip_cnt(dbuSrv));
+        assertEquals(16, get_regionTip_cnt(dbu2));
+        assertEquals(17, get_regionTip_cnt(dbu3));
+
+
+        // ---
+        System.out.println("После удаления своих, после синхронизации");
+        //
+        printRegionTip();
+
+
+        // ---
+        // Синхронизация после удаления
+        sync_http();
+        sync_http();
+
+
+        // ---
+        System.out.println("После удаления своих, после синхронизации");
         //
         printRegionTip();
 
@@ -175,6 +196,18 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         assertEquals(17, get_regionTip_cnt(dbu2));
         assertEquals(17, get_regionTip_cnt(dbu3));
     }
+
+    @Test
+    public void testCnt() throws Exception {
+        DbUtils dbuSrv = new DbUtils(db, struct);
+        DbUtils dbu2 = new DbUtils(db2, struct2);
+        DbUtils dbu3 = new DbUtils(db3, struct3);
+        //
+        System.out.println(get_regionTip_cnt(dbuSrv));
+        System.out.println(get_regionTip_cnt(dbu2));
+        System.out.println(get_regionTip_cnt(dbu3));
+    }
+
 
     @Test
     public void printRegionTip() throws Exception {
