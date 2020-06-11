@@ -257,7 +257,7 @@ public class JdxReplWs {
      * Формируем реплику по выбранным записям
      */
     public void createTableReplicaByIdList(String tableName, Collection<Long> idList) throws Exception {
-        log.info("createTableReplicaByIdList, wsId: " + wsId + ", table: " + tableName + ", idListCount: " + idList.size());
+        log.info("createTableReplicaByIdList, wsId: " + wsId + ", table: " + tableName + ", count: " + idList.size());
 
         //
         IJdxTable table = struct.getTable(tableName);
