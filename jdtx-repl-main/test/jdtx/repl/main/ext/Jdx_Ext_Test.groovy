@@ -51,4 +51,13 @@ class Jdx_Ext_Test extends JcTestCase {
     }
 
 
+    @Test
+    public void repl_record_merge() {
+        IVariantMap args = new VariantMap();
+        args.put("file", "test/jdtx/repl/main/ext/UtRecMergeTest.xml")
+
+        extSrv.repl_record_merge(args)
+    }
+
+
 }

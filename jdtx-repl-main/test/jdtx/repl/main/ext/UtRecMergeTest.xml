@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <table name="REGIONTIP">
+        <rec pk_source="101000001" pk_destination="1"/>
+        <rec pk_source="102000001" pk_destination="1"/>
+        <rec pk_source="101001001" pk_destination="3"/>
+        <rec pk_source="1001" pk_destination="3"/>
+    </table>
+</root>

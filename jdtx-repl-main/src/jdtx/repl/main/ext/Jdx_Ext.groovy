@@ -672,5 +672,26 @@ class Jdx_Ext extends ProjectExt {
         utSetup.gen(inFileName, outDirName)
     }
 
+    void repl_record_merge(IVariantMap args) {
+        String mergeFileName = args.getValueString("file")
+        if (mergeFileName == null || mergeFileName.length() == 0) {
+            throw new XError("Не указан [file] - csv-файл со сливаемыми записями")
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+        //
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
+
+        //
+        try {
+            UtRecMerge.record_merge(mergeFileName)
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
 }
 
