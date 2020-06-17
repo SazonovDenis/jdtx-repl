@@ -1,29 +1,47 @@
-package jdtx.repl.main.ext;
+package jdtx.repl.main.api.rec_merge;
 
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jdtx.repl.main.api.struct.*;
 
 import java.util.*;
 
 /**
  * Утилиты по слиянию записей
  */
-class UtRecMerge {
-
-    class UtRecMergeRes {
-        Map params;
-        DataStore store;
-    }
+class UtRecMerge implements IUtRecMerge {
 
     Db db;
+    IJdxDbStruct struct;
 
-    public UtRecMerge(Db db) {
+    public UtRecMerge(Db db, IJdxDbStruct struct) {
         this.db = db;
+        this.struct = struct;
     }
 
-    public List<UtRecMergeRes> recordAnalys(String tableName, String[] fieldNames) throws Exception {
-        List<UtRecMergeRes> resList = new ArrayList<>();
+    @Override
+    public Collection<String> loadTables() {
+        Collection<String> res = new ArrayList<>();
+        for (IJdxTable table : struct.getTables()) {
+            res.add(table.getName());
+        }
+        return res;
+    }
+
+    @Override
+    public Collection<String> loadTableFields(String tableName) {
+        Collection<String> res = new ArrayList<>();
+        for (IJdxField field : struct.getTable(tableName).getFields()) {
+            res.add(field.getName());
+        }
+        return res;
+    }
+
+
+    @Override
+    public Collection<UtRecDuplicate> loadTableDuplicates(String tableName, String[] fieldNames) throws Exception {
+        List<UtRecDuplicate> resList = new ArrayList<>();
 
         //
         String sqlAll = "select * from " + tableName + " order by id";
@@ -78,9 +96,9 @@ class UtRecMerge {
             //
             DataStore store = db.loadSql(sqlRec, params);
             if (store.size() > 1) {
-                UtRecMergeRes res = new UtRecMergeRes();
+                UtRecDuplicate res = new UtRecDuplicate();
                 res.params = params;
-                res.store = store;
+                res.records = store;
                 resList.add(res);
                 //
                 paramsHashSet.add(paramsHash);
@@ -91,6 +109,46 @@ class UtRecMerge {
         //
         return resList;
     }
+
+    @Override
+    public Collection<UtRemoveDuplicatesRes> execRemoveDuplicates(Collection<UtRecMergeTask> tasks) throws Exception {
+        Collection<UtRemoveDuplicatesRes> res = new ArrayList<>();
+        //
+        for (UtRecMergeTask task : tasks) {
+            UtRemoveDuplicatesRes removeDuplicatesRes = new UtRemoveDuplicatesRes();
+            //
+            removeDuplicatesRes.tableName = null;
+            removeDuplicatesRes.recordsUpdated = null;
+            //
+            res.add(removeDuplicatesRes);
+        }
+        //
+        return res;
+    }
+
+    /**
+     * "Наивное" превращение ВСЕХ дублей в задание на удаление
+     */
+    public Collection<UtRecMergeTask> prepareRemoveDuplicatesTaskAsIs(String tableName, Collection<UtRecDuplicate> duplicates) throws Exception {
+        String pkField = "id"; //todo - узнавать PK по-нормальному!
+        //
+        Collection<UtRecMergeTask> res = new ArrayList<>();
+        //
+        for (UtRecDuplicate duplicate : duplicates) {
+            UtRecMergeTask task = new UtRecMergeTask();
+            //
+            task.tableName = tableName;
+            task.recordEtalon = duplicate.records.get(0);
+            for (int i = 1; i < duplicate.records.size(); i++) {
+                task.recordsDelete.add(duplicate.records.get(i).getValueLong(pkField));
+            }
+            //
+            res.add(task);
+        }
+        //
+        return res;
+    }
+
 
     private String getParamsHash(Map params) {
         StringBuilder sb = new StringBuilder();

@@ -1,4 +1,4 @@
-package jdtx.repl.main.ext;
+package jdtx.repl.main.api.rec_merge;
 
 import jandcode.dbm.data.*;
 import jdtx.repl.main.api.*;
@@ -9,7 +9,7 @@ import java.util.*;
 
 /**
  */
-public class UtRecMerge_Test extends DbPrepareEtalon_Test {
+public class UtRecMerge_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_1() throws Exception {
@@ -32,21 +32,21 @@ public class UtRecMerge_Test extends DbPrepareEtalon_Test {
         //String namesStr = "Name,UlzTip";
         String tableName = "Lic";
         //
-        String namesStr = "NameF,NameI,DocNo";
-        //String namesStr = "RNN";
+        //String namesStr = "NameF,NameI,DocNo";
+        String namesStr = "RNN";
         //String namesStr = "LICDOCVID";
         //String namesStr = "DocNo";
         //
         String[] fieldNames = namesStr.split(",");
 
         //
-        UtRecMerge utRecMerge = new UtRecMerge(db);
-        List<UtRecMerge.UtRecMergeRes> resList = utRecMerge.recordAnalys(tableName, fieldNames);
+        UtRecMerge utRecMerge = new UtRecMerge(db, struct);
+        Collection<UtRecDuplicate> resList = utRecMerge.loadTableDuplicates(tableName, fieldNames);
 
         //
-        for (UtRecMerge.UtRecMergeRes res : resList) {
+        for (UtRecDuplicate res : resList) {
             System.out.println(res.params);
-            UtData.outTable(res.store, 10);
+            UtData.outTable(res.records, 10);
         }
 
         //
