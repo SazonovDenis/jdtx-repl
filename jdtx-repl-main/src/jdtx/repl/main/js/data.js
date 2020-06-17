@@ -84,7 +84,13 @@ var main = new Vue({
             }
 
             if (tableField == "id") {
-                // Выделяем всю строку, а в остальных все поля - убираем
+                var newState = true;
+                var currentState = itemDoublesSelectedFieldsThis[tableField];
+                if (currentState == true) {
+                    newState = false
+                }
+
+                // Выделяем|убираем всю строку, а в остальных все поля - убираем
                 for (var tableField of this.tableFields) {
                     // В остальных это поле убираем
                     for (var tableDoubleRec of tableDouble) {
@@ -93,12 +99,13 @@ var main = new Vue({
                             itemDoublesSelectedFields[tableField] = false;
                         }
                     }
+
                     // Выделяем это поле в записи
-                    itemDoublesSelectedFieldsThis[tableField] = true;
-                    //
-                    //this.hub.state_render_helper = new Date();
+                    itemDoublesSelectedFieldsThis[tableField] = newState;
                 }
             } else {
+                var newState = true;
+
                 // В остальных это поле убираем
                 for (var tableDoubleRec of tableDouble) {
                     var itemDoublesSelectedFields = this.user_input.itemDoublesSelectedFields[tableDoubleRec.id];
@@ -106,10 +113,9 @@ var main = new Vue({
                         itemDoublesSelectedFields[tableField] = false;
                     }
                 }
+
                 // Выделяем это поле в записи
-                itemDoublesSelectedFieldsThis[tableField] = true;
-                //
-                //this.hub.state_render_helper = new Date();
+                itemDoublesSelectedFieldsThis[tableField] = newState;
             }
 
             //
