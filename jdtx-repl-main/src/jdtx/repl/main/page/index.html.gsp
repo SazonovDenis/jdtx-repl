@@ -59,14 +59,16 @@
 
     </div>
 
-    <div class="flex-container flex-container-row">
-        <div class="flex-item jdx-field-title" v-for="tableField in tableFields">
-            <div v-on:click='onClick_Field(tableField)'
-                 v-bind:class="getClass_SelectedField(tableField)">
-                {{tableField}}
-            </div>
-        </div>
-    </div>
+    <table>
+        <tr>
+            <td class="flex-item jdx-field-title" v-for="tableField in tableFields">
+                <div v-on:click='onClick_Field(tableField)'
+                     v-bind:class="getClass_SelectedField(tableField)">
+                    {{tableField}}
+                </div>
+            </td>
+        </tr>
+    </table>
 
     <div class="flex-container flex-container-row">
         <div class="flex-item">
@@ -74,18 +76,31 @@
 
             <div class="flex-container flex-container-col">
                 <div v-for="itemDouble in itemDoubles">
-                    <div class="xxxxxx">
-                        <span>{{itemDouble.params}}</span>
+                    <table class="xxxxxx">
+                        <tr>
+                            <td class="flex-item jdx-field-title"
+                                v-for="tableField in tableFields">
+                                <{{tableField}}>
+                            </td>
+                        </tr>
 
-                        <div class="flex-container flex-container-row" v-for="recordDouble in itemDouble.records">
-                            <div class="flex-item jdx-field-title"
-                                 v-bind:class="getClass_SelectedFieldInDouble(recordDouble, tableField)"
-                                 v-on:click='onClick_TableField(itemDouble.records, recordDouble, tableField)'
-                                 v-for="tableField in tableFields">
+%{--
+                        <tr>
+                            <td colspan="99">
+                                {{itemDouble.params}}
+                            </td>
+                        </tr>
+--}%
+
+                        <tr class="flex-container flex-container-row" v-for="recordDouble in itemDouble.records">
+                            <td class="flex-item jdx-field-title"
+                                v-bind:class="getClass_SelectedFieldInDouble(recordDouble, tableField)"
+                                v-on:click='onClick_TableField(itemDouble.records, recordDouble, tableField)'
+                                v-for="tableField in tableFields">
                                 {{recordDouble[tableField]}}
-                            </div>
-                        </div>
-                    </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
             </div>
         </div>
