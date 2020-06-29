@@ -72,7 +72,18 @@
 
     <div class="flex-container flex-container-row">
         <div class="flex-item">
-            <h5>Дубликаты:</h5>
+            <h5>Дубликаты 1:</h5>
+
+            <div class="jdx-grid">
+                <div class="jdx-grid-item">12hdkjf</div>
+                <div class="jdx-grid-item">23hdkjf</div>
+                <div class="jdx-grid-item">43</div>
+                <div class="jdx-grid-item">65hdkjf</div>
+                <div class="jdx-grid-item">58hdkjf</div>
+                <div class="jdx-grid-item">95hdkjf</div>
+            </div>
+
+            <h3>Дубликаты:</h3>
 
             <div class="flex-container flex-container-col">
                 <div v-for="itemDouble in itemDoubles">
@@ -84,13 +95,7 @@
                             </td>
                         </tr>
 
-%{--
-                        <tr>
-                            <td colspan="99">
-                                {{itemDouble.params}}
-                            </td>
-                        </tr>
---}%
+
 
                         <tr class="flex-container flex-container-row" v-for="recordDouble in itemDouble.records">
                             <td class="flex-item jdx-field-title"
