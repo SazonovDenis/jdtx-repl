@@ -72,15 +72,52 @@
 
     <div class="flex-container flex-container-row">
         <div class="flex-item">
+            <h4>Дубликаты:</h4>
+
+            <div class="jdx-grid">
+                <div v-bind:class="'jdx-grid-item' + (index==0?'jdx-new-row':'')"
+                     v-for="tableField in tableFields">
+                    <{{tableField}}>
+                </div>
+
+                <template v-for="(itemDouble, itemDoubleIndex) in itemDoubles">
+                    <div class="jdx-merge-row">
+                        -----
+                    </div>
+                    <template v-for="recordDouble in itemDouble.records">
+                        <div
+                                v-bind:class="getClass_SelectedFieldInDouble(recordDouble, tableField) + ' jdx-grid-item ' + (fieldIndex == 0 ? 'jdx-new-row' : '')"
+                                v-on:click='onClick_TableField(itemDouble.records, recordDouble, tableField)'
+                                v-for="(tableField, fieldIndex) in tableFields">
+                            {{recordDouble[tableField]}}
+                        </div>
+
+                    </template>
+
+                </template>
+            </div>
+
+%{--
             <h5>Дубликаты 1:</h5>
 
             <div class="jdx-grid">
-                <div class="jdx-grid-item">12hdkjf</div>
-                <div class="jdx-grid-item">23hdkjf</div>
-                <div class="jdx-grid-item">43</div>
-                <div class="jdx-grid-item">65hdkjf</div>
-                <div class="jdx-grid-item">58hdkjf</div>
-                <div class="jdx-grid-item">95hdkjf</div>
+                <div class="jdx-grid-item jdx-merge-row">0.0-dsdhtytdkjf wltheklth lrterhtkj</div>
+
+                <div class="jdx-grid-item jdx-new-row">1-hdkjf</div>
+
+                <div class="jdx-grid-item">2-ewehdkjf</div>
+
+                <div class="jdx-grid-item jdx-new-row">3-qweqweqw</div>
+
+                <div class="jdx-grid-item">4-hdkjrf</div>
+
+                <div class="jdx-grid-item">5-hewdkjf</div>
+
+                <div class="jdx-grid-item jdx-merge-row">0.1-ahhjtrj rktjkrtj krtjkrt htytdkjf</div>
+
+                <div class="jdx-grid-item jdx-new-row">6-htytdkjf</div>
+
+                <div class="jdx-grid-item">7-rjkwlejrer</div>
             </div>
 
             <h3>Дубликаты:</h3>
@@ -108,6 +145,7 @@
                     </table>
                 </div>
             </div>
+--}%
         </div>
 
     </div>

@@ -73,13 +73,23 @@ html {
     display: grid;
     grid-auto-flow: row;
 
-    grid-template-columns: 100px 100px 200px;
-    grid-template-rows: repeat(3, 50px);
+    grid-column-gap: 5px;
+    grid-row-gap: 5px;
 
-    border: 3px dashed #333;
-    grid-gap: 3px 5px;
+    grid-template-columns: repeat(20, auto);
+    _grid-template-rows: repeat(100, auto);
+
+    _border: 3px dashed #333;
 }
 
 .jdx-grid-item {
 
+}
+
+.jdx-new-row {
+    grid-column-start: 1;
+}
+
+.jdx-merge-row {
+    grid-column: 1/20;
 }
