@@ -92,12 +92,12 @@ public class JdxReplWs {
         dataRoot = UtFile.unnormPath(dataRoot) + "/";
         log.info("dataRoot: " + dataRoot);
 
-        // Проверка, что инициализация станции прошла
-        UtDbObjectManager ut = new UtDbObjectManager(db);
-        ut.checkReplDb();
-
         // Проверка версии служебных структур в БД
+        UtDbObjectManager ut = new UtDbObjectManager(db);
         ut.checkReplVerDb();
+
+        // Проверка, что инициализация станции прошла
+        ut.checkReplDb();
 
         // Чтение структуры БД
         IJdxDbStructReader structReader = new JdxDbStructReader();

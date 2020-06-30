@@ -56,7 +56,6 @@ CREATE TABLE Z_Z_workstation (
   cfg_publications    BLOB,
   cfg_decode          BLOB,
   cfg_ws              BLOB
-)
 );
 
 INSERT INTO Z_Z_workstation (id, ws_id, guid) VALUES (1, 0, '');
