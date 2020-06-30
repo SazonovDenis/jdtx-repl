@@ -80,6 +80,9 @@ public class UtRepl {
     public void dropReplication() throws Exception {
         UtDbObjectManager ut = new UtDbObjectManager(db);
 
+        //
+        log.info("Удаляем системные объекты");
+
         // Удаляем связанную с каждой таблицей таблицу журнала изменений
         log.info("dropAudit - журналы");
         long n = 0;

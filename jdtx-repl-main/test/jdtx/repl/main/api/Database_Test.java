@@ -13,7 +13,7 @@ import java.sql.*;
  */
 public class Database_Test extends AppTestCase {
 
-    // 
+    // Два коннекта к одной БД
     protected Db db1;
     protected Db db2;
 
@@ -26,16 +26,23 @@ public class Database_Test extends AppTestCase {
         UtLog.loadProperties("../_log.properties");
         logOn();
 
-        //
-        Model m1 = app.getApp().service(ModelService.class).getModel();
+        // db1 - первый коннект к БД
+        Model m1 = app.getApp().service(ModelService.class).getModel("default");
         db1 = m1.getDb();
         db1.connect();
 
 
-        //
+        // db2 - второй коннект к БД
         Model m2 = app.getApp().service(ModelService.class).getModel("db2");
         db2 = m2.getDb();
+        db2.getDbSource().setDbType(db1.getDbSource().getDbType());
+        db2.getDbSource().setDbDriver(db1.getDbSource().getDbDriver().getName());
+        db2.getDbSource().setJdbcDriverClass(db1.getDbSource().getJdbcDriverClass());
+        db2.getDbSource().setUrl(db1.getDbSource().getUrl());
         db2.getDbSource().setDatabase(db1.getDbSource().getDatabase());
+        db2.getDbSource().setHost(db1.getDbSource().getHost());
+        db2.getDbSource().setUsername(db1.getDbSource().getUsername());
+        db2.getDbSource().setPassword(db1.getDbSource().getPassword());
         db2.connect();
     }
 

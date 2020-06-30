@@ -27,6 +27,8 @@ public class UtDbObjectManager {
     }
 
 
+    DbQuery lockFlag = null;
+
     /**
      * Проверяем, что репликация инициализировалась
      */
@@ -52,7 +54,7 @@ public class UtDbObjectManager {
         int ver = 0;
         int ver_step = 0;
 
-        // Читаем версию БД
+        // --- Читаем версию БД
         try {
             DataRecord rec = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "verdb").getCurRec();
             ver = rec.getValueInt("ver");
@@ -69,46 +71,81 @@ public class UtDbObjectManager {
             }
         }
 
-        // Обновляем версию
-        int ver_i = ver;
-        int ver_to = CURRENT_VER_DB;
-        while (ver_i < ver_to) {
-            log.info("Смена версии: " + ver_i + "." + ver_step + " -> " + (ver_i + 1) + ".0");
+        // --- Обновляем версию
 
-            //
-            String updateFileName = "update_" + UtString.padLeft(String.valueOf(ver_i), 3, "0") + "_" + UtString.padLeft(String.valueOf(ver_i + 1), 3, "0") + ".sql";
-            String sqls = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/" + updateFileName);
+        // Запрещаем другим менять версию
+        lockDb();
 
-            //
-            String[] sqlArr = sqls.split(";");
-            for (int ver_step_i = ver_step; ver_step_i < sqlArr.length; ) {
-                sqls = sqlArr[ver_step_i].trim();
-                if (sqls.length() == 0) {
+        // Обновляем
+        try {
+            int ver_i = ver;
+            int ver_to = CURRENT_VER_DB;
+            while (ver_i < ver_to) {
+                log.info("Смена версии: " + ver_i + "." + ver_step + " -> " + (ver_i + 1) + ".0");
+
+                //
+                String updateFileName = "update_" + UtString.padLeft(String.valueOf(ver_i), 3, "0") + "_" + UtString.padLeft(String.valueOf(ver_i + 1), 3, "0") + ".sql";
+                String sqls = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/" + updateFileName);
+
+                //
+                String[] sqlArr = sqls.split(";");
+                for (int ver_step_i = ver_step; ver_step_i < sqlArr.length; ) {
+                    sqls = sqlArr[ver_step_i].trim();
+                    if (sqls.length() == 0) {
+                        ver_step_i = ver_step_i + 1;
+                        continue;
+                    }
+                    //
+                    log.info("Смена версии, шаг: " + ver_i + "." + ver_step_i);
+                    //
+                    db.execSql(sqls);
+                    //
                     ver_step_i = ver_step_i + 1;
-                    continue;
+                    db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step_i);
                 }
+
                 //
-                log.info("Смена версии, шаг: " + ver_i + "." + ver_step_i);
+                ver_i = ver_i + 1;
+                ver_step = 0;
+                db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step);
+
                 //
-                db.execSql(sqls);
-                //
-                ver_step_i = ver_step_i + 1;
-                db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step_i);
+                log.info("Смена версии до: " + ver_i + "." + ver_step + " - ok");
             }
-
-            //
-            ver_i = ver_i + 1;
-            ver_step = 0;
-            db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step);
-
-            //
-            log.info("Смена версии до: " + ver_i + "." + ver_step + " - ok");
+        } finally {
+            // Снимаем блокировку
+            unlockDb();
         }
+    }
+
+    public void lockDb() throws Exception {
+        if (lockFlag != null) {
+            throw new XError("Database already locked");
+        }
+
+        //
+        lockFlag = db.openSql("select * from " + JdxUtils.sys_table_prefix + "verdb for update with lock");
+
+        //
+        log.info("Database locked: " + db.getDbSource().getDatabase());
+    }
+
+    public void unlockDb() throws Exception {
+        if (lockFlag == null) {
+            throw new XError("Database is not locked");
+        }
+
+        //
+        lockFlag.close();
+        lockFlag = null;
+
+        //
+        log.info("Database unlocked: " + db.getDbSource().getDatabase());
     }
 
     public void createReplBase(long wsId, String guid) throws Exception {
         //
-        log.info("createReplBase, ws_id: " + wsId + ", guid: " + guid);
+        log.info("Создаем системные структуры, ws_id: " + wsId + ", guid: " + guid);
 
         // Базовая структура (системные структуры)
         String sql = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/UtDbObjectManager.sql");

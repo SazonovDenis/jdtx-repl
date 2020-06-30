@@ -69,13 +69,12 @@ public class JdxReplSrv {
         dataRoot = UtFile.unnormPath(dataRoot) + "/";
         log.info("dataRoot: " + dataRoot);
 
-        // Проверка наличия в БД служебных структур и их версии
-        UtDbObjectManager ut = new UtDbObjectManager(db);
-        ut.checkReplVerDb();
-
         // Проверка, что инициализация станции прошла
+        UtDbObjectManager ut = new UtDbObjectManager(db);
         ut.checkReplDb();
 
+        // Проверка версии служебных структур в БД
+        ut.checkReplVerDb();
 
         // Чтение конфигурации
         UtCfg utCfg = new UtCfg(db);

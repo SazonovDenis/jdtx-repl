@@ -6,12 +6,11 @@ import org.junit.*;
 
 public class UtDbObject_Test extends Database_Test {
 
-
-    @Test
     /**
      * Проверим неизменность структуры
      * после создания и последующего удаления репликационных структур
      */
+    @Test
     public void test_compareCreateDrop() throws Exception {
         JdxDbStructReader dbStructReader = new JdxDbStructReader();
         dbStructReader.setDb(db1);
@@ -36,6 +35,5 @@ public class UtDbObject_Test extends Database_Test {
         // Проверим совпадение
         assertEquals(true, UtDbComparer.dbStructIsEqual(struct_1, struct_2));
     }
-
 
 }
