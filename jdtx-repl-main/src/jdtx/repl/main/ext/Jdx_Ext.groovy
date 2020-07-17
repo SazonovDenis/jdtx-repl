@@ -192,8 +192,6 @@ class Jdx_Ext extends ProjectExt {
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
-        //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {
@@ -219,8 +217,6 @@ class Jdx_Ext extends ProjectExt {
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
-        //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {
@@ -241,8 +237,6 @@ class Jdx_Ext extends ProjectExt {
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
-        //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {
@@ -271,8 +265,6 @@ class Jdx_Ext extends ProjectExt {
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
-        //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {
@@ -323,8 +315,6 @@ class Jdx_Ext extends ProjectExt {
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
-        //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {
@@ -589,8 +579,6 @@ class Jdx_Ext extends ProjectExt {
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
-        //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {
@@ -610,8 +598,6 @@ class Jdx_Ext extends ProjectExt {
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
-        //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {
@@ -632,12 +618,16 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
+    void repl_service_list(IVariantMap args) {
+        UtReplService.serviceList()
+    }
+
     void repl_service_start(IVariantMap args) {
         UtReplService.start()
     }
 
     void repl_service_state(IVariantMap args) {
-        UtReplService.list()
+        UtReplService.processList()
     }
 
     void repl_service_stop(IVariantMap args) {
@@ -645,12 +635,58 @@ class Jdx_Ext extends ProjectExt {
     }
 
     void repl_service_install(IVariantMap args) {
-        UtReplService.install()
+        Db db = null
+        try {
+            // БД
+            db = app.service(ModelService.class).model.getDb()
+            db.connect()
+
+            // Рабочая станция
+            JdxReplWs ws = new JdxReplWs(db)
+            ws.init()
+
+            // Выполнение команды
+            try {
+                UtReplService.install(ws)
+                UtReplService.serviceList()
+            } catch (Exception e) {
+                e.printStackTrace()
+                throw e
+            }
+
+        } finally {
+            if (db != null && db.connected) {
+                db.disconnect()
+            }
+        }
     }
 
     void repl_service_remove(IVariantMap args) {
-        UtReplService.stop()
-        UtReplService.remove()
+        Db db = null
+        try {
+            // БД
+            db = app.service(ModelService.class).model.getDb()
+            db.connect()
+
+            // Рабочая станция
+            JdxReplWs ws = new JdxReplWs(db)
+            ws.init()
+
+            // Выполнение команды
+            try {
+                UtReplService.stop()
+                UtReplService.remove(ws)
+                UtReplService.serviceList()
+            } catch (Exception e) {
+                e.printStackTrace()
+                throw e
+            }
+
+        } finally {
+            if (db != null && db.connected) {
+                db.disconnect()
+            }
+        }
     }
 
     void gen_setup(IVariantMap args) {
@@ -682,8 +718,6 @@ class Jdx_Ext extends ProjectExt {
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
-        //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
 
         //
         try {

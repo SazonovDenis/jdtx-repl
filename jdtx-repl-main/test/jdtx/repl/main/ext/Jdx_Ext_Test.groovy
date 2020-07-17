@@ -29,7 +29,7 @@ class Jdx_Ext_Test extends JcTestCase {
 
 
     @Test
-    public void test_repl_info() {
+    void test_repl_info() {
         IVariantMap args = new VariantMap();
 
         extSrv.repl_info(args)
@@ -41,7 +41,7 @@ class Jdx_Ext_Test extends JcTestCase {
 
 
     @Test
-    public void xxx() {
+    void xxx() {
         IVariantMap args = new VariantMap();
         args.put("ws", 1)
         args.put("guid", "b5781df573ca6ee6.x-17845f2f56f4d401")
@@ -50,9 +50,39 @@ class Jdx_Ext_Test extends JcTestCase {
         extSrv.repl_create(args)
     }
 
+    @Test
+    void repl_service_list() {
+        IVariantMap args = new VariantMap();
+        extSrv.repl_service_list(args)
+    }
 
     @Test
-    public void repl_record_merge() {
+    void repl_service_install() {
+        IVariantMap args = new VariantMap();
+        extSrv.repl_service_install(args)
+    }
+
+    @Test
+    void repl_service_remove() {
+        IVariantMap args = new VariantMap();
+        extSrv.repl_service_remove(args)
+    }
+
+    @Test
+    void repl_service_start() {
+        IVariantMap args = new VariantMap();
+        extSrv.repl_service_start(args)
+    }
+
+    @Test
+    void repl_service_stop() {
+        IVariantMap args = new VariantMap();
+        extSrv.repl_service_stop(args)
+    }
+
+
+    @Test
+    void repl_record_merge() {
         IVariantMap args = new VariantMap();
         args.put("file", "test/jdtx/repl/main/ext/UtRecMergeTest.xml")
 

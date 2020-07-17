@@ -154,6 +154,12 @@ repl_repair_backup = cm("Исправить репликацию после во
 
 
 //
+repl_service_list = cm("Список служб") {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_service_list(args)
+}
+
+//
 repl_service_start = cm("Запуск службы") {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_service_start(args)

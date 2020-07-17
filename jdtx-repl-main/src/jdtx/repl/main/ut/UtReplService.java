@@ -1,6 +1,7 @@
 package jdtx.repl.main.ut;
 
 import jandcode.utils.*;
+import jdtx.repl.main.api.*;
 import org.apache.commons.logging.*;
 
 import java.io.*;
@@ -13,7 +14,7 @@ public class UtReplService {
     //
     private static Log log = LogFactory.getLog("jdtx.Service");
 
-    public static long list() throws Exception {
+    public static long processList() throws Exception {
         long processId = -1;
         Map<String, String> processInfo = new HashMap<>();
 
@@ -34,11 +35,10 @@ public class UtReplService {
                     if (processLine.contains("label:jdtx.repl.main.task")) {
                         String[] processLineEls = processLine.split(",");
                         for (int i = 0; i < processLineEls.length; i++) {
-                            //System.out.println(processHeaders[i] + ": " + processLineEls[i]);
                             processInfo.put(processHeaders[i], processLineEls[i]);
                         }
                         processId = Long.valueOf(processInfo.get("ProcessId"));
-                        System.out.println("ProcessId: " + processInfo.get("ProcessId") + ", ExecutablePath: " + processInfo.get("ExecutablePath"));
+                        log.info("ProcessId: " + processInfo.get("ProcessId") + ", " + processInfo.get("ExecutablePath"));
                     }
                 }
             }
@@ -49,19 +49,67 @@ public class UtReplService {
 
         //
         if (processId == -1) {
-            System.out.println("No running process found");
+            log.info("No running process found");
         }
 
         //
         return processId;
     }
 
-
-    public static void start() throws Exception {
-        System.out.println("Process start");
+    public static void serviceList() throws Exception {
+        List<String> res = new ArrayList<>();
+        int exitCode = UtRun.run(res, "schtasks", "/Query", "/FO", "LIST", "/V");
 
         //
-        System.out.println("UtFile.getWorkdir: " + UtFile.getWorkdir());
+        List<String> pi = new ArrayList();
+        boolean isJadatexTask = false;
+        //
+        if (exitCode == 0) {
+            for (String serviceInfoLine : res) {
+                if (serviceInfoLine.length() == 0 && pi.size() != 0) {
+                    // Flush
+                    if (isJadatexTask) {
+                        printServiceInfo(pi);
+                    }
+                    pi.clear();
+                    isJadatexTask = false;
+                } else {
+                    // Накопление
+                    pi.add(serviceInfoLine);
+                    if (serviceInfoLine.toLowerCase().contains("jadatex")) {
+                        isJadatexTask = true;
+                    }
+                }
+            }
+
+        } else {
+            UtRun.printRes(exitCode, res);
+        }
+
+        // Последний flush
+        if (isJadatexTask) {
+            printServiceInfo(pi);
+        }
+    }
+
+    private static void printServiceInfo(List<String> pi) {
+        for (String s : pi) {
+            if (s.contains("Имя задачи:") ||
+                    s.contains("Время прошлого запуска:") ||
+                    s.contains("Задача для выполнения:") ||
+                    s.contains("Рабочая папка:")
+            )
+                log.info(s);
+        }
+        log.info("---");
+    }
+
+
+    public static void start() throws Exception {
+        log.info("Process start");
+
+        //
+        log.info("UtFile.getWorkdir: " + UtFile.getWorkdir());
 
         //
         List<String> res = new ArrayList<>();
@@ -75,15 +123,15 @@ public class UtReplService {
         }
 
         //
-        list();
+        processList();
     }
 
 
     public static void stop() throws Exception {
-        System.out.println("Process stopping");
+        log.info("Process stopping");
 
         //
-        long processId = list();
+        long processId = processList();
         if (processId == -1) {
             return;
         }
@@ -97,9 +145,9 @@ public class UtReplService {
             for (String outLine : res) {
                 if (outLine.length() > 0 && outLine.contains("ReturnValue")) {
                     if (outLine.contains("ReturnValue = 0;")) {
-                        System.out.println("Process terminated, ProcessId: " + processId);
+                        log.info("Process terminated, ProcessId: " + processId);
                     } else {
-                        System.out.println(outLine);
+                        log.info(">> " + outLine);
                     }
                 }
             }
@@ -109,10 +157,10 @@ public class UtReplService {
     }
 
 
-    public static void install() throws Exception {
-        System.out.println("Service install");
+    public static void install(JdxReplWs ws) throws Exception {
+        log.info("Service install");
 
-        // Задача "Запуск процесса"
+        // Создаем задачу "Запуск процесса"
         String s1 = UtFile.loadString("res:jdtx/repl/main/ut/UtReplService.JadatexSync.xml", "utf-16LE");
         s1 = s1.replace("${WorkingDirectory}", UtRun.getAppDir());
         s1 = s1.replace("${VbsScript}", getVbsScriptStart());
@@ -121,7 +169,7 @@ public class UtReplService {
 
         //
         List<String> res1 = new ArrayList<>();
-        int exitCode1 = UtRun.run(res1, "schtasks", "/Create", "/TN", "JadatexSync", "/XML", "JadatexSync.xml");
+        int exitCode1 = UtRun.run(res1, "schtasks", "/Create", "/TN", "JadatexSync" + getTaskNameSuffix(ws), "/XML", "JadatexSync.xml");
 
         //
         if (exitCode1 == 0) {
@@ -133,7 +181,7 @@ public class UtReplService {
         //
         xmlFileTmp1.delete();
 
-        // Задача "Перезапуск процесса"
+        // Создаем задачу "Перезапуск процесса"
         String s2 = UtFile.loadString("res:jdtx/repl/main/ut/UtReplService.JadatexSyncWatchdog.xml", "utf-16LE");
         s2 = s2.replace("${WorkingDirectory}", UtRun.getAppDir());
         s2 = s2.replace("${VbsScript}", getVbsScriptStop());
@@ -142,7 +190,7 @@ public class UtReplService {
 
         //
         List<String> res2 = new ArrayList<>();
-        int exitCode2 = UtRun.run(res2, "schtasks", "/Create", "/TN", "JadatexSyncWatchdog", "/XML", "JadatexSyncWatchdog.xml");
+        int exitCode2 = UtRun.run(res2, "schtasks", "/Create", "/TN", "JadatexSyncWatchdog" + getTaskNameSuffix(ws), "/XML", "JadatexSyncWatchdog.xml");
 
         //
         if (exitCode2 == 0) {
@@ -156,23 +204,23 @@ public class UtReplService {
     }
 
 
-    public static void remove() throws Exception {
-        System.out.println("Service remove");
+    public static void remove(JdxReplWs ws) throws Exception {
+        log.info("Service remove");
 
-        // Задача "Запуск процесса"
-        List<String> res = new ArrayList<>();
-        int exitCode1 = UtRun.run(res, "schtasks", "/Delete", "/TN", "JadatexSync", "/f");
+        // Удаляем задачу "Запуск процесса"
+        List<String> res1 = new ArrayList<>();
+        int exitCode1 = UtRun.run(res1, "schtasks", "/Delete", "/TN", "JadatexSync" + getTaskNameSuffix(ws), "/f");
 
         //
         if (exitCode1 == 0) {
-            UtRun.printRes(res);
+            UtRun.printRes(res1);
         } else {
-            UtRun.printRes(exitCode1, res);
+            UtRun.printRes(exitCode1, res1);
         }
 
-        // Задача "Перезапуск процесса"
+        // Удаляем задачу "Перезапуск процесса"
         List<String> res2 = new ArrayList<>();
-        int exitCode2 = UtRun.run(res, "schtasks", "/Delete", "/TN", "JadatexSyncWatchdog", "/f");
+        int exitCode2 = UtRun.run(res2, "schtasks", "/Delete", "/TN", "JadatexSyncWatchdog" + getTaskNameSuffix(ws), "/f");
 
         //
         if (exitCode2 == 0) {
@@ -180,6 +228,10 @@ public class UtReplService {
         } else {
             UtRun.printRes(exitCode2, res2);
         }
+    }
+
+    private static String getTaskNameSuffix(JdxReplWs ws) {
+        return "-" + UtString.md5Str(ws.getWsGuid()).substring(0, 8) + "-" + ws.getWsId();
     }
 
 

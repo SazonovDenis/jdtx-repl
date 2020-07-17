@@ -48,24 +48,22 @@ public class UtRun {
         for (String s : args) {
             argsStr = argsStr + s + " ";
         }
-        log.info("--- run:");
-        log.info(argsStr);
+        log.info("run command: " + argsStr);
     }
 
 
     static void printRes(long exitCode, List<String> res) {
-        log.info("--- run exit code:");
-        log.info(exitCode);
+        log.info("run exit code: " + exitCode);
         printRes(res);
     }
 
 
     static void printRes(List<String> res) {
-        log.info("--- run res:");
+        log.info("run out lines:");
         for (String outLine : res) {
-            log.info(outLine);
+            log.info(">> " + outLine);
         }
-        log.info("---");
+        //log.info("---");
     }
 
 

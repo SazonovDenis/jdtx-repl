@@ -78,8 +78,8 @@ public class JdxReplSrv {
 
         // Чтение конфигурации
         UtCfg utCfg = new UtCfg(db);
-        JSONObject cfgDbWs = utCfg.getSelfCfg(UtCfgType.WS);
-        JSONObject cfgDbPublications = utCfg.getSelfCfg(UtCfgType.PUBLICATIONS);
+        JSONObject cfgWs = utCfg.getSelfCfg(UtCfgType.WS);
+        JSONObject cfgPublications = utCfg.getSelfCfg(UtCfgType.PUBLICATIONS);
 
 
         // Общая очередь
@@ -97,16 +97,16 @@ public class JdxReplSrv {
             String mailLocalDirTmp = dataRoot + "srv/ws_" + sWsId + "_tmp/";
 
             // Конфиг для мейлера
-            JSONObject cfgWs = new JSONObject();
+            JSONObject cfgMailer = new JSONObject();
             String guid = rec.getValueString("guid");
-            String url = (String) cfgDbWs.get("url");
-            cfgWs.put("guid", guid);
-            cfgWs.put("url", url);
-            cfgWs.put("localDirTmp", mailLocalDirTmp);
+            String url = (String) cfgWs.get("url");
+            cfgMailer.put("guid", guid);
+            cfgMailer.put("url", url);
+            cfgMailer.put("localDirTmp", mailLocalDirTmp);
 
             // Мейлер
             IMailer mailer = new MailerHttp();
-            mailer.init(cfgWs);
+            mailer.init(cfgMailer);
 
             //
             mailerList.put(wsId, mailer);
@@ -122,7 +122,7 @@ public class JdxReplSrv {
         // Правила публикаций
         IPublication publicationIn = new Publication();
         IPublication publicationOut = new Publication();
-        UtRepl.fillPublications(cfgDbPublications, structActual, publicationIn, publicationOut);
+        UtRepl.fillPublications(cfgPublications, structActual, publicationIn, publicationOut);
 
 
         // Фильтрация структуры: убирание того, чего нет в публикациях publicationIn и publicationOut

@@ -51,6 +51,7 @@ public class JdxReplWs {
     //
     private Db db;
     protected long wsId;
+    protected String wsGuid;
     protected IJdxDbStruct struct;
     protected IJdxDbStruct structAllowed;
     protected IJdxDbStruct structFixed;
@@ -75,6 +76,10 @@ public class JdxReplWs {
 
     public long getWsId() {
         return wsId;
+    }
+
+    public String getWsGuid() {
+        return wsGuid;
     }
 
     public IMailer getMailer() {
@@ -112,11 +117,14 @@ public class JdxReplWs {
         }
         this.wsId = rec.getValueLong("ws_id");
 
+        //
+        this.wsGuid = rec.getValueString("guid");
+
         // Чтение конфигурации
         UtCfg utCfg = new UtCfg(db);
-        JSONObject cfgDbWs = utCfg.getSelfCfg(UtCfgType.WS);
-        JSONObject cfgDbPublications = utCfg.getSelfCfg(UtCfgType.PUBLICATIONS);
-        JSONObject cfgDbDecode = utCfg.getSelfCfg(UtCfgType.DECODE);
+        JSONObject cfgWs = utCfg.getSelfCfg(UtCfgType.WS);
+        JSONObject cfgPublications = utCfg.getSelfCfg(UtCfgType.PUBLICATIONS);
+        JSONObject cfgDecode = utCfg.getSelfCfg(UtCfgType.DECODE);
 
         // Рабочие каталоги
         String sWsId = UtString.padLeft(String.valueOf(wsId), 3, "0");
@@ -133,27 +141,26 @@ public class JdxReplWs {
         queOut.setBaseDir(queOut_DirLocal);
 
         // Конфиг для мейлера
-        JSONObject cfgWs = new JSONObject();
-        String url = (String) cfgDbWs.get("url");
-        String guid = rec.getValueString("guid");
-        cfgWs.put("guid", guid);
-        cfgWs.put("url", url);
-        cfgWs.put("localDirTmp", mailLocalDirTmp);
+        JSONObject cfgMailer = new JSONObject();
+        String url = (String) cfgWs.get("url");
+        cfgMailer.put("guid", this.wsGuid);
+        cfgMailer.put("url", url);
+        cfgMailer.put("localDirTmp", mailLocalDirTmp);
 
         // Мейлер
         mailer = new MailerHttp();
-        mailer.init(cfgWs);
+        mailer.init(cfgMailer);
 
         // Стратегии перекодировки каждой таблицы
-        if (cfgDbDecode != null && RefDecodeStrategy.instance == null) {
+        if (cfgDecode != null && RefDecodeStrategy.instance == null) {
             RefDecodeStrategy.instance = new RefDecodeStrategy();
-            RefDecodeStrategy.instance.init(cfgDbDecode);
+            RefDecodeStrategy.instance.init(cfgDecode);
         }
 
         // Правила публикаций
         this.publicationIn = new Publication();
         this.publicationOut = new Publication();
-        UtRepl.fillPublications(cfgDbPublications, structActual, this.publicationIn, this.publicationOut);
+        UtRepl.fillPublications(cfgPublications, structActual, this.publicationIn, this.publicationOut);
 
 
         // Фильтрация структуры: убирание того, чего нет в публикациях publicationIn и publicationOut
@@ -965,7 +972,7 @@ public class JdxReplWs {
     public void receiveFromDir(String cfgFileName, String mailDir) throws Exception {
         // Готовим локальный мейлер
         mailDir = UtFile.unnormPath(mailDir) + "/";
-        String guid = ((MailerHttp) mailer).guid;
+        String guid = this.getWsGuid();
         String guidPath = guid.replace("-", "/");
 
         //
@@ -1078,7 +1085,7 @@ public class JdxReplWs {
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
         //
         mailDir = UtFile.unnormPath(mailDir) + "/";
-        String guid = ((MailerHttp) mailer).guid;
+        String guid = getWsGuid();
         String guidPath = guid.replace("-", "/");
 
         // Конфиг для мейлера
