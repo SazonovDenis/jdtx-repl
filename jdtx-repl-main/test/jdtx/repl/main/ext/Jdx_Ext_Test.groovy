@@ -9,11 +9,11 @@ import org.junit.Test
 
 class Jdx_Ext_Test extends JcTestCase {
 
-    Jdx_Ext extSrv;
-    Jdx_Ext extWs2;
-    Jdx_Ext extWs3;
+    Jdx_Ext extSrv
+    Jdx_Ext extWs2
+    Jdx_Ext extWs3
 
-    String cfg_json_ws = "test/etalon/ws.json";
+    String cfg_json_ws = "test/etalon/ws.json"
 
 
     @Override
@@ -30,7 +30,7 @@ class Jdx_Ext_Test extends JcTestCase {
 
     @Test
     void test_repl_info() {
-        IVariantMap args = new VariantMap();
+        IVariantMap args = new VariantMap()
 
         extSrv.repl_info(args)
         System.out.println("=========================")
@@ -42,7 +42,7 @@ class Jdx_Ext_Test extends JcTestCase {
 
     @Test
     void xxx() {
-        IVariantMap args = new VariantMap();
+        IVariantMap args = new VariantMap()
         args.put("ws", 1)
         args.put("guid", "b5781df573ca6ee6.x-17845f2f56f4d401")
         args.put("file", cfg_json_ws)
@@ -51,43 +51,51 @@ class Jdx_Ext_Test extends JcTestCase {
     }
 
     @Test
+    void repl_replica_use() {
+        IVariantMap args = new VariantMap()
+        args.put("file", "../_test-data/_test-data_ws2/ws_002/queIn/000000086.zip")
+        extWs2.repl_replica_use(args)
+    }
+
+    @Test
     void repl_service_list() {
-        IVariantMap args = new VariantMap();
+        IVariantMap args = new VariantMap()
         extSrv.repl_service_list(args)
     }
 
     @Test
     void repl_service_install() {
-        IVariantMap args = new VariantMap();
+        IVariantMap args = new VariantMap()
         extSrv.repl_service_install(args)
     }
 
     @Test
     void repl_service_remove() {
-        IVariantMap args = new VariantMap();
+        IVariantMap args = new VariantMap()
         extSrv.repl_service_remove(args)
     }
 
     @Test
     void repl_service_start() {
-        IVariantMap args = new VariantMap();
+        IVariantMap args = new VariantMap()
         extSrv.repl_service_start(args)
     }
 
     @Test
     void repl_service_stop() {
-        IVariantMap args = new VariantMap();
+        IVariantMap args = new VariantMap()
         extSrv.repl_service_stop(args)
     }
 
 
     @Test
     void repl_record_merge() {
-        IVariantMap args = new VariantMap();
+        IVariantMap args = new VariantMap()
         args.put("file", "test/jdtx/repl/main/ext/UtRecMergeTest.xml")
 
         extSrv.repl_record_merge(args)
     }
+
 
 
 }

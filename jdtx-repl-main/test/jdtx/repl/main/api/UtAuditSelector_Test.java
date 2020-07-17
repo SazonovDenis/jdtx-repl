@@ -13,7 +13,7 @@ import java.util.*;
 
 /**
  */
-public class UtAudit_Test extends ReplDatabaseStruct_Test {
+public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
@@ -127,31 +127,6 @@ public class UtAudit_Test extends ReplDatabaseStruct_Test {
         // Фиксируем возраст
         selfAuditAge = utRepl.getAuditAge();
         System.out.println("new audit age: " + selfAuditAge);
-    }
-
-    @Test
-    public void test_applyReplica() throws Exception {
-        //String zipFileName = "D:/t/000007590.zip";
-        String zipFileName = "../_test-data/000000001.zip";
-        // Загружаем правила публикации
-        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub.json"));
-        JSONObject cfgIn = (JSONObject) cfg.get("full");
-        IPublication publication = new Publication();
-        publication.loadRules(cfgIn, struct2);
-
-        // Реплики
-        IReplica replica = new ReplicaFile();
-        replica.setFile(new File(zipFileName));
-
-        // Распакуем XML-файл из Zip-архива
-        InputStream inputStream = UtRepl.getReplicaInputStream(replica);
-
-        //
-        JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
-
-        // Применяем реплики
-        UtAuditApplyer utaa = new UtAuditApplyer(db2, struct2);
-        utaa.applyReplica(replicaReader, publication, false, 2, 0);
     }
 
 

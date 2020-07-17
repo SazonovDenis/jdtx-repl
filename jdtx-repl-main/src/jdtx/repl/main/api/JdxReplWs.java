@@ -178,7 +178,7 @@ public class JdxReplWs {
         String appVersionAllowed = appVersionRW.getAppVersionAllowed();
         String appVersionActual = UtRepl.getVersion();
         if (appVersionAllowed.length() == 0) {
-            log.info("appVersionAllowed.length == 0, appVersionActual: " + appVersionActual);
+            log.debug("appVersionAllowed.length == 0, appVersionActual: " + appVersionActual);
         } else if (appVersionActual.compareToIgnoreCase("SNAPSHOT") == 0) {
             log.warn("appVersionActual == SNAPSHOT, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
         } else if (appVersionAllowed.compareToIgnoreCase(appVersionActual) != 0) {
@@ -551,7 +551,7 @@ public class JdxReplWs {
     }
 
     /**
-     * Применяем входящие реплики
+     * Применяем входящие реплики из очереди
      */
     public ReplicaUseResult handleQueIn(boolean forceUse) throws Exception {
         log.info("handleQueIn, self.wsId: " + wsId);
@@ -611,6 +611,23 @@ public class JdxReplWs {
 
         //
         return handleQueInUseResult;
+    }
+
+    public void useReplicaFile(File f) throws Exception {
+        log.info("useReplicaFile, file: " + f.getAbsolutePath());
+
+        //
+        IReplica replica = new ReplicaFile();
+        replica.setFile(f);
+        JdxReplicaReaderXml.readReplicaInfo(replica);
+
+        // Пробуем применить реплику
+        JdxReplWs.ReplicaUseResult replicaUseResult = useReplica(replica, true);
+
+        // Реплика использованна?
+        if (!replicaUseResult.replicaUsed) {
+            log.info("useReplicaFile, replica not used");
+        }
     }
 
     private ReplicaUseResult useReplica(IReplica replica, boolean forceApplySelf) throws Exception {

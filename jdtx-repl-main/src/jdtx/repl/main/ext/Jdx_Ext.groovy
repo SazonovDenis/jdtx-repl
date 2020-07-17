@@ -15,6 +15,8 @@ import jandcode.utils.variant.IVariantMap
 import jdtx.repl.main.api.*
 import jdtx.repl.main.api.mailer.MailerHttp
 import jdtx.repl.main.api.rec_merge.UtRecMerge
+import jdtx.repl.main.api.replica.IReplica
+import jdtx.repl.main.api.replica.ReplicaFile
 import jdtx.repl.main.api.struct.IJdxDbStruct
 import jdtx.repl.main.api.struct.IJdxDbStructReader
 import jdtx.repl.main.api.struct.JdxDbStructReader
@@ -118,7 +120,7 @@ class Jdx_Ext extends ProjectExt {
             //
             UtRepl urRepl = new UtRepl(db, null)
             System.out.println("srv:")
-            UtData.outTable(urRepl.getInfoSrv());
+            UtData.outTable(urRepl.getInfoSrv())
 
         } finally {
             db.disconnect()
@@ -159,15 +161,15 @@ class Jdx_Ext extends ProjectExt {
 
             // Начальный конфиг
             JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName)
-            UtCfg utCfg = new UtCfg(db);
-            utCfg.setSelfCfg(cfg, UtCfgType.WS);
+            UtCfg utCfg = new UtCfg(db)
+            utCfg.setSelfCfg(cfg, UtCfgType.WS)
 
             // Создаем окружение для рабочей станции
             JdxReplWs ws = new JdxReplWs(db)
             ws.init()
             //
-            UtFile.mkdirs(ws.queIn.baseDir);
-            UtFile.mkdirs(ws.queOut.baseDir);
+            UtFile.mkdirs(ws.queIn.baseDir)
+            UtFile.mkdirs(ws.queOut.baseDir)
 
         } finally {
             db.disconnect()
@@ -247,6 +249,40 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
+    void repl_replica_use(IVariantMap args) {
+        String replicaFileName = args.getValueString("file")
+        //
+        if (replicaFileName == null || replicaFileName.length() == 0) {
+            throw new XError("Не указан [file] - файл с репликой")
+        }
+
+
+        Db db = null
+        try {
+            // БД
+            db = app.service(ModelService.class).model.getDb()
+            db.connect()
+
+            // Рабочая станция
+            JdxReplWs ws = new JdxReplWs(db)
+            ws.init()
+
+            // Выполнение команды
+            try {
+                File f = new File(replicaFileName)
+                ws.useReplicaFile(f)
+
+            } catch (Exception e) {
+                e.printStackTrace()
+                throw e
+            }
+
+        } finally {
+            if (db != null && db.connected) {
+                db.disconnect()
+            }
+        }
+    }
 
     void repl_sync_ws(IVariantMap args) {
         String mailDir = args.getValueString("dir")
@@ -340,7 +376,7 @@ class Jdx_Ext extends ProjectExt {
         boolean doCreate = args.getValueBoolean("create")
 
         //
-        boolean result = true;
+        boolean result = true
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -382,7 +418,7 @@ class Jdx_Ext extends ProjectExt {
         }
 
         //
-        return result;
+        return result
     }
 
     void repl_mute(IVariantMap args) {
@@ -401,7 +437,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvSetWsMute(destinationWsId);
+            srv.srvSetWsMute(destinationWsId)
 
         } finally {
             db.disconnect()
@@ -425,7 +461,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvSetWsUnmute(destinationWsId);
+            srv.srvSetWsUnmute(destinationWsId)
 
         } finally {
             db.disconnect()
@@ -444,7 +480,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvDbStructStart();
+            srv.srvDbStructStart()
 
         } finally {
             db.disconnect()
@@ -472,9 +508,9 @@ class Jdx_Ext extends ProjectExt {
                 DataStore stCheck = db.loadSql("select * from z_z_state_ws where enabled = 1 and mute_age = 0")
                 if (!doWaitMute || stCheck.size() == 0) {
                     if (stCheck.size() == 0) {
-                        System.out.println("All workstations is MUTE");
+                        System.out.println("All workstations is MUTE")
                     }
-                    break;
+                    break
                 }
                 //
                 Timer.sleep(5000L)
@@ -497,7 +533,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvDbStructFinish();
+            srv.srvDbStructFinish()
 
         } finally {
             db.disconnect()
@@ -528,7 +564,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvSendCfg(cfgFileName, cfgType, destinationWsId);
+            srv.srvSendCfg(cfgFileName, cfgType, destinationWsId)
 
         } finally {
             db.disconnect()
@@ -554,9 +590,9 @@ class Jdx_Ext extends ProjectExt {
         //
         try {
             // Обновляем конфиг в своей таблице
-            JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName);
-            UtCfg utCfg = new UtCfg(db);
-            utCfg.setSelfCfg(cfg, cfgType);
+            JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName)
+            UtCfg utCfg = new UtCfg(db)
+            utCfg.setSelfCfg(cfg, cfgType)
 
         } finally {
             db.disconnect()
@@ -587,7 +623,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvAppUpdate(exeFileName);
+            srv.srvAppUpdate(exeFileName)
 
         } finally {
             db.disconnect()
