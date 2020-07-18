@@ -497,89 +497,95 @@ public class UtRepl {
             log.info(countFile + "/" + files.length + ", file: " + file.getName());
 
             //
-            IReplica replica = new ReplicaFile();
-            replica.setFile(file);
-            JdxReplicaReaderXml.readReplicaInfo(replica);
-
-            if (replica.getInfo().getReplicaType() != JdxReplicaType.IDE && replica.getInfo().getReplicaType() != JdxReplicaType.SNAPSHOT) {
-                log.info("  skip, replicaType: " + replica.getInfo().getReplicaType());
-                continue;
-            }
-
-            //
-            InputStream inputStream = null;
             try {
-                // Распакуем XML-файл из Zip-архива
-                inputStream = UtRepl.getReplicaInputStream(replica);
+                IReplica replica = new ReplicaFile();
+                replica.setFile(file);
+                JdxReplicaReaderXml.readReplicaInfo(replica);
 
-                //
-                JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
-
-                //
-                IJdxTable table = null;
-                List<IJdxTable> tables = struct.getTables();
-                for (IJdxTable t : tables) {
-                    if (t.getName().compareToIgnoreCase(findTableName) == 0) {
-                        table = t;
-                    }
+                if (replica.getInfo().getReplicaType() != JdxReplicaType.IDE && replica.getInfo().getReplicaType() != JdxReplicaType.SNAPSHOT) {
+                    log.info("  skip, replicaType: " + replica.getInfo().getReplicaType());
+                    continue;
                 }
-                String idFieldName = table.getPrimaryKey().get(0).getName();
 
                 //
-                String tableName = replicaReader.nextTable();
-                while (tableName != null) {
+                InputStream inputStream = null;
+                try {
+                    // Распакуем XML-файл из Zip-архива
+                    inputStream = UtRepl.getReplicaInputStream(replica);
 
                     //
-                    if (tableName.compareToIgnoreCase(findTableName) == 0) {
-                        log.info("  table: " + tableName + ", wsId: " + replica.getInfo().getWsId());
+                    JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
 
-                        //
-                        long countRec = 0;
-
-                        //
-                        Map recValues = replicaReader.nextRec();
-                        while (recValues != null) {
-                            int oprType = Integer.valueOf((String) recValues.get("Z_OPR"));
-                            String idValueStr = (String) recValues.get(idFieldName);
-
-                            if (!idValueStr.contains(":") && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
-                                idValueStr = replica.getInfo().getWsId() + ":" + idValueStr;
-                            }
-
-                            if (idValueStr.compareTo(findRecordId) == 0) {
-                                // Нашли
-                                log.info("  record found");
-
-                                // Сохраняем запись
-                                writerXml.appendRec();
-                                writerXml.setOprType(oprType);
-                                //
-                                for (IJdxField field : table.getFields()) {
-                                    String fieldName = field.getName();
-                                    writerXml.setRecValue(fieldName, recValues.get(fieldName));
-                                }
-                            }
-
-                            //
-                            countRec++;
-                            if (countRec % 200 == 0) {
-                                log.info("  table: " + tableName + ", " + countRec);
-                            }
-                            //
-                            recValues = replicaReader.nextRec();
+                    //
+                    IJdxTable table = null;
+                    List<IJdxTable> tables = struct.getTables();
+                    for (IJdxTable t : tables) {
+                        if (t.getName().compareToIgnoreCase(findTableName) == 0) {
+                            table = t;
                         }
                     }
+                    String idFieldName = table.getPrimaryKey().get(0).getName();
 
                     //
-                    tableName = replicaReader.nextTable();
+                    String tableName = replicaReader.nextTable();
+                    while (tableName != null) {
+
+                        //
+                        if (tableName.compareToIgnoreCase(findTableName) == 0) {
+                            log.info("  table: " + tableName + ", wsId: " + replica.getInfo().getWsId());
+
+                            //
+                            long countRec = 0;
+
+                            //
+                            Map recValues = replicaReader.nextRec();
+                            while (recValues != null) {
+                                int oprType = Integer.valueOf((String) recValues.get("Z_OPR"));
+                                String idValueStr = (String) recValues.get(idFieldName);
+
+                                if (!idValueStr.contains(":") && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
+                                    idValueStr = replica.getInfo().getWsId() + ":" + idValueStr;
+                                }
+
+                                if (idValueStr.compareTo(findRecordId) == 0) {
+                                    // Нашли
+                                    log.info("  record found");
+
+                                    // Сохраняем запись
+                                    writerXml.appendRec();
+                                    writerXml.setOprType(oprType);
+                                    //
+                                    for (IJdxField field : table.getFields()) {
+                                        String fieldName = field.getName();
+                                        writerXml.setRecValue(fieldName, recValues.get(fieldName));
+                                    }
+                                }
+
+                                //
+                                countRec++;
+                                if (countRec % 200 == 0) {
+                                    log.info("  table: " + tableName + ", " + countRec);
+                                }
+                                //
+                                recValues = replicaReader.nextRec();
+                            }
+                        }
+
+                        //
+                        tableName = replicaReader.nextTable();
+                    }
+
+                } finally {
+                    // Закроем читателя Zip-файла
+                    if (inputStream != null) {
+                        inputStream.close();
+                    }
                 }
 
-            } finally {
-                // Закроем читателя Zip-файла
-                if (inputStream != null) {
-                    inputStream.close();
-                }
+            } catch (Exception e) {
+                log.error(e.getMessage());
             }
+
         }
 
 
