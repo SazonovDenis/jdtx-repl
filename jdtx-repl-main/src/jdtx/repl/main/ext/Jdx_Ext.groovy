@@ -250,22 +250,20 @@ class Jdx_Ext extends ProjectExt {
     }
 
     void repl_find_record(IVariantMap args) {
-        String tableName = args.getValueString("table")
         String recordId = args.getValueString("id")
         String dirName = args.getValueString("dir")
         String outFileName = args.getValueString("out")
         //
-        if (tableName == null || tableName.length() == 0) {
-            throw new XError("Не указана [table] - таблица")
-        }
         if (recordId == null || recordId.length() == 0) {
             throw new XError("Не указан [id] - id записи")
         }
         if (dirName == null || dirName.length() == 0) {
             throw new XError("Не указан [dir] - каталог для поиска")
         }
+        String tableName = recordId.split(":")[0]
+        String tableId = recordId.substring(tableName.length() + 1)
         if (outFileName == null || outFileName.length() == 0) {
-            throw new XError("Не указан [out] - файл с результатом")
+            outFileName = tableName + "_" + tableId.replace(":", "_") + ".zip"
         }
 
         Db db = null
@@ -282,7 +280,7 @@ class Jdx_Ext extends ProjectExt {
             try {
                 // Ищем запись и формируем реплику на вставку
                 UtRepl utRepl = new UtRepl(db, ws.struct)
-                IReplica replica = utRepl.findLastRecord(tableName, recordId, dirName)
+                IReplica replica = utRepl.findLastRecord(tableName, tableId, dirName)
 
                 // Копируем реплику для анализа
                 File outReplicaFile = new File(outFileName)

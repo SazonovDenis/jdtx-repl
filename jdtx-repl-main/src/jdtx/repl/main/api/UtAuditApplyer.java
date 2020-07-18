@@ -185,11 +185,17 @@ public class UtAuditApplyer {
                             if (isPrimaryKeyError(e.getCause().getMessage())) {
                                 dbu.updateRec(table.getName(), recValues, publicationFields, null);
                             } else {
+                                log.error("recValues: " + recValues);
                                 throw (e);
                             }
                         }
                     } else if (oprType == JdxOprType.OPR_UPD) {
-                        dbu.updateRec(table.getName(), recValues, publicationFields, null);
+                        try {
+                            dbu.updateRec(table.getName(), recValues, publicationFields, null);
+                        } catch (Exception e) {
+                            log.error("recValues: " + recValues);
+                            throw (e);
+                        }
                     } else if (oprType == JdxOprType.OPR_DEL) {
                         try {
                             dbu.deleteRec(table.getName(), (Long) recValues.get(idFieldName));
@@ -197,6 +203,9 @@ public class UtAuditApplyer {
                             if (JdxUtils.errorIs_ForeignKeyViolation(e)) {
                                 // Пропустим реплику, выдадим в исходящую очередь наш вариант удаляемой записи
                                 failedDeleteId.add((Long) recValues.get(idFieldName));
+                            } else {
+                                log.error("recValues: " + recValues);
+                                throw (e);
                             }
                         }
                     }

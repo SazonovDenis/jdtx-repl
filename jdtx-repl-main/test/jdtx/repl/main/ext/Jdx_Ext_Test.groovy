@@ -53,8 +53,7 @@ class Jdx_Ext_Test extends JcTestCase {
     @Test
     void repl_find_record() {
         IVariantMap args = new VariantMap()
-        args.put("table", "lic")
-        args.put("id", "11:1418")
+        args.put("id", "lic:11:1418")
         args.put("dir", "d:/t/Anet/temp")
         args.put("out", "../_test-data/lic_11_1418.zip")
         extWs2.repl_find_record(args)
@@ -63,8 +62,7 @@ class Jdx_Ext_Test extends JcTestCase {
     @Test
     void repl_find_record_out() {
         IVariantMap args = new VariantMap()
-        args.put("table", "region")
-        args.put("id", "2:1001")
+        args.put("id", "region:2:1001")
         args.put("dir", "../_test-data/_test-data_ws2/ws_002/queOut")
         args.put("out", "../_test-data/region_2_1001.zip")
         extWs2.repl_find_record(args)
@@ -73,10 +71,8 @@ class Jdx_Ext_Test extends JcTestCase {
     @Test
     void repl_find_record_out1() {
         IVariantMap args = new VariantMap()
-        args.put("table", "regiontip")
-        args.put("id", "2:1001")
+        args.put("id", "regiontip:2:1001")
         args.put("dir", "D:/t/esilMK/003/data/ws_003/queIn")
-        args.put("out", "../_test-data/regiontip_2_1001.zip")
         extWs2.repl_find_record(args)
     }
 
@@ -125,7 +121,6 @@ class Jdx_Ext_Test extends JcTestCase {
 
         extSrv.repl_record_merge(args)
     }
-
 
 
 }
