@@ -30,4 +30,14 @@ public class JdxRef {
         }
     }
 
+    @Override
+    public boolean equals(Object val) {
+        if (!(val instanceof JdxRef)) {
+            return false;
+        }
+
+        JdxRef ref = (JdxRef) val;
+        return ref.ws_id == this.ws_id && ref.id == this.id;
+    }
+
 }

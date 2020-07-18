@@ -5,6 +5,7 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
+import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
@@ -456,20 +457,22 @@ public class UtRepl {
      * Ищем запись в истории реплик и формируем реплику на вставку этой записи.
      * Применяется при восстановлении асинхронно удаленных записей.
      */
-    public IReplica findLastRecord(String findTableName, String findRecordId, String dirName) throws Exception {
+    public IReplica findLastRecord(String findTableName, String findRecordIdStr, String dirName) throws Exception {
         String inFileMask = "*.zip";
 
-        //
+        // Список файлов, ищем в них
         File dir = new File(dirName);
         File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
-
+        //
         if (files == null) {
             return null;
         }
-
         //
         Arrays.sort(files, new NameFileComparator());
 
+
+        //
+        JdxRef idValueFind = JdxRef.parse(findRecordIdStr);
 
         //
         IReplica replicaOut = new ReplicaFile();
@@ -540,24 +543,42 @@ public class UtRepl {
                             //
                             Map recValues = replicaReader.nextRec();
                             while (recValues != null) {
-                                int oprType = Integer.valueOf((String) recValues.get("Z_OPR"));
-                                String idValueStr = (String) recValues.get(idFieldName);
-
-                                if (!idValueStr.contains(":") && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
-                                    idValueStr = replica.getInfo().getWsId() + ":" + idValueStr;
+                                Object idValue = recValues.get(idFieldName);
+                                JdxRef idValueRef = JdxRef.parse((String) idValue);
+                                //
+                                if (idValueRef.ws_id == -1 && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
+                                    idValueRef.ws_id = replica.getInfo().getWsId();
                                 }
 
-                                if (idValueStr.compareTo(findRecordId) == 0) {
-                                    // Нашли
+                                // Нашли id?
+                                if (idValueRef.equals(idValueFind)) {
                                     log.info("  record found");
 
                                     // Сохраняем запись
                                     writerXml.appendRec();
-                                    writerXml.setOprType(oprType);
+
                                     //
+                                    int oprType = Integer.valueOf((String) recValues.get("Z_OPR"));
+                                    writerXml.setOprType(oprType);
+
+                                    // Запись значения с проверкой/перекодировкой ссылок
                                     for (IJdxField field : table.getFields()) {
                                         String fieldName = field.getName();
-                                        writerXml.setRecValue(fieldName, recValues.get(fieldName));
+                                        Object fieldValue = recValues.get(fieldName);
+                                        // Запись значения с проверкой/перекодировкой ссылок
+                                        IJdxTable refTable = field.getRefTable();
+                                        if (field.isPrimaryKey() || refTable != null) {
+                                            // Это значение - ссылка
+                                            JdxRef fieldValueRef = JdxRef.parse((String) fieldValue);
+                                            // Дополнение ссылки
+                                            if (fieldValueRef.ws_id == -1 && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
+                                                fieldValueRef.ws_id = replica.getInfo().getWsId();
+                                            }
+                                            writerXml.setRecValue(fieldName, fieldValueRef.toString());
+                                        } else {
+                                            // Это просто значение
+                                            writerXml.setRecValue(fieldName, fieldValue);
+                                        }
                                     }
                                 }
 
