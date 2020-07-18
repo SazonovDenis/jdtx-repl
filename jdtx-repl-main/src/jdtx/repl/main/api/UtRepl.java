@@ -5,11 +5,13 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
-import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
+import org.apache.commons.io.*;
+import org.apache.commons.io.comparator.*;
+import org.apache.commons.io.filefilter.*;
 import org.apache.commons.logging.*;
 import org.apache.tools.ant.filters.*;
 import org.joda.time.*;
@@ -448,6 +450,140 @@ public class UtRepl {
 
         //
         return replica;
+    }
+
+    /**
+     * Ищем запись в истории реплик и формируем реплику на вставку этой записи.
+     * Применяется при восстановлении асинхронно удаленных записей.
+     */
+    public IReplica findLastRecord(String findTableName, String findRecordId, String dirName) throws Exception {
+        String inFileMask = "*.zip";
+
+        //
+        File dir = new File(dirName);
+        File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
+
+        if (files == null) {
+            return null;
+        }
+
+        //
+        Arrays.sort(files, new NameFileComparator());
+
+
+        //
+        IReplica replicaOut = new ReplicaFile();
+        //replicaOut.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
+        //replicaOut.getInfo().setWsId(replica.getInfo().getWsId());
+        //replicaOut.getInfo().setAge(replica.getInfo().getAge());
+        replicaOut.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
+
+        // Стартуем запись реплики
+        createOutputXML(replicaOut);
+
+        // Пишем заголовок
+        writerXml.startDocument();
+        writerXml.writeReplicaHeader(replicaOut);
+        //
+        writerXml.startTable(findTableName);
+
+
+        //
+        int countFile = 0;
+        while (countFile < files.length) {
+            File file = files[files.length - countFile - 1];
+
+            countFile++;
+            log.info(countFile + "/" + files.length + ", file: " + file.getAbsolutePath());
+
+            //
+            IReplica replica = new ReplicaFile();
+            replica.setFile(file);
+            JdxReplicaReaderXml.readReplicaInfo(replica);
+
+            //
+            InputStream inputStream = null;
+            try {
+                // Распакуем XML-файл из Zip-архива
+                inputStream = UtRepl.getReplicaInputStream(replica);
+
+                //
+                JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
+
+                //
+                IJdxTable table = null;
+                List<IJdxTable> tables = struct.getTables();
+                for (IJdxTable t : tables) {
+                    if (t.getName().compareToIgnoreCase(findTableName) == 0) {
+                        table = t;
+                    }
+                }
+                String idFieldName = table.getPrimaryKey().get(0).getName();
+
+                //
+                String tableName = replicaReader.nextTable();
+                while (tableName != null) {
+
+                    //
+                    if (tableName.compareToIgnoreCase(findTableName) == 0) {
+                        log.info("  table: " + tableName + ", wsId: " + replica.getInfo().getWsId());
+
+                        //
+                        long countRec = 0;
+
+                        //
+                        Map recValues = replicaReader.nextRec();
+                        while (recValues != null) {
+                            int oprType = Integer.valueOf((String) recValues.get("Z_OPR"));
+                            String idValueStr = (String) recValues.get(idFieldName);
+
+                            if (!idValueStr.contains(":") && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
+                                idValueStr = replica.getInfo().getWsId() + ":" + idValueStr;
+                            }
+
+                            if (idValueStr.compareTo(findRecordId) == 0) {
+                                // Нашли
+                                log.info("  record found");
+
+                                // Сохраняем запись
+                                writerXml.appendRec();
+                                writerXml.setOprType(oprType);
+                                //
+                                for (IJdxField field : table.getFields()) {
+                                    String fieldName = field.getName();
+                                    writerXml.setRecValue(fieldName, recValues.get(fieldName));
+                                }
+                            }
+
+                            //
+                            countRec++;
+                            if (countRec % 200 == 0) {
+                                log.info("  table: " + tableName + ", " + countRec);
+                            }
+                            //
+                            recValues = replicaReader.nextRec();
+                        }
+                    }
+
+                    //
+                    tableName = replicaReader.nextTable();
+                }
+
+            } finally {
+                // Закроем читателя Zip-файла
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            }
+        }
+
+
+        //
+        writerXml.closeDocument();
+        closeOutputXML();
+
+        //
+        return replicaOut;
     }
 
     // Из имени файла извлекает номер версии

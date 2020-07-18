@@ -16,12 +16,12 @@ import jdtx.repl.main.api.*
 import jdtx.repl.main.api.mailer.MailerHttp
 import jdtx.repl.main.api.rec_merge.UtRecMerge
 import jdtx.repl.main.api.replica.IReplica
-import jdtx.repl.main.api.replica.ReplicaFile
 import jdtx.repl.main.api.struct.IJdxDbStruct
 import jdtx.repl.main.api.struct.IJdxDbStructReader
 import jdtx.repl.main.api.struct.JdxDbStructReader
 import jdtx.repl.main.ut.UtGenSetup
 import jdtx.repl.main.ut.UtReplService
+import org.apache.commons.io.FileUtils
 import org.json.simple.JSONObject
 
 /**
@@ -246,6 +246,56 @@ class Jdx_Ext extends ProjectExt {
             srv.disableWorkstation(wsId)
         } finally {
             db.disconnect()
+        }
+    }
+
+    void repl_find_record(IVariantMap args) {
+        String tableName = args.getValueString("table")
+        String recordId = args.getValueString("id")
+        String dirName = args.getValueString("dir")
+        String outFileName = args.getValueString("out")
+        //
+        if (tableName == null || tableName.length() == 0) {
+            throw new XError("Не указана [table] - таблица")
+        }
+        if (recordId == null || recordId.length() == 0) {
+            throw new XError("Не указан [id] - id записи")
+        }
+        if (dirName == null || dirName.length() == 0) {
+            throw new XError("Не указан [dir] - каталог для поиска")
+        }
+        if (outFileName == null || outFileName.length() == 0) {
+            throw new XError("Не указан [out] - файл с результатом")
+        }
+
+        Db db = null
+        try {
+            // БД
+            db = app.service(ModelService.class).model.getDb()
+            db.connect()
+
+            // Рабочая станция
+            JdxReplWs ws = new JdxReplWs(db)
+            ws.init()
+
+            // Выполнение команды
+            try {
+                // Ищем запись и формируем реплику на вставку
+                UtRepl utRepl = new UtRepl(db, ws.struct)
+                IReplica replica = utRepl.findLastRecord(tableName, recordId, dirName)
+
+                // Копируем реплику для анализа
+                File outReplicaFile = new File(outFileName)
+                FileUtils.copyFile(replica.getFile(), outReplicaFile)
+            } catch (Exception e) {
+                e.printStackTrace()
+                throw e
+            }
+
+        } finally {
+            if (db != null && db.connected) {
+                db.disconnect()
+            }
         }
     }
 

@@ -51,6 +51,16 @@ class Jdx_Ext_Test extends JcTestCase {
     }
 
     @Test
+    void repl_find_record() {
+        IVariantMap args = new VariantMap()
+        args.put("table", "lic")
+        args.put("id", "11:1418")
+        args.put("out", "../_test-data/lic_recover.zip")
+        args.put("dir", "d:/t/Anet/temp")
+        extWs2.repl_find_record(args)
+    }
+
+    @Test
     void repl_replica_use() {
         IVariantMap args = new VariantMap()
         args.put("file", "../_test-data/_test-data_ws2/ws_002/queIn/000000086.zip")

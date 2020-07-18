@@ -161,6 +161,13 @@ repl_replica_use = cm("Применить реплику из файла") {
 
 
 //
+repl_find_record = cm("Найти последний вариант записи в репликах") {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_find_record(args)
+}
+
+
+//
 repl_service_list = cm("Список установленных служб") {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_service_list(args)
