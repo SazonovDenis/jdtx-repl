@@ -24,11 +24,8 @@ public class UtDataWriter {
 
     public void dataBinderRec_To_DataWriter_WithRefDecode(IJdxDataBinder rsTableLog, JdxReplicaWriterXml dataWriter) throws Exception {
         for (String fieldName : tableFromFields) {
-            Object fieldValue = rsTableLog.getValue(fieldName);
-
-            // Проверка ссылок
             IJdxField field = table.getField(fieldName);
-            IJdxTable refTable = field.getRefTable();
+            Object fieldValue = rsTableLog.getValue(fieldName);
 
             // Защита от дурака (для snapshot): в snapshot недопустимы чужие id
             if (forbidNotOwnId) {
@@ -41,7 +38,8 @@ public class UtDataWriter {
                 }
             }
 
-            // Проверка/перекодировка ссылок
+            // Запись значения с проверкой/перекодировкой ссылок
+            IJdxTable refTable = field.getRefTable();
             if (field.isPrimaryKey() || refTable != null) {
                 // Это значение - ссылка
                 String refTableName;
