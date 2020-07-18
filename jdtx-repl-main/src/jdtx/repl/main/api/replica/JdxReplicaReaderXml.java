@@ -10,7 +10,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * ^c Читатель (JdxReplicaReader) создается из файла, а писатель - почему-то из потока
+ * todo: Читатель (JdxReplicaReader) создается из файла, а писатель - почему-то из потока
  */
 public class JdxReplicaReaderXml {
 

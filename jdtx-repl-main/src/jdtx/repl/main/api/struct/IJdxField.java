@@ -20,7 +20,7 @@ public interface IJdxField {
     int getSize();
 
     // todo: IJdxTable.getPrimaryKey подразумевает несколько полей в составе PrimaryKey,
-    // а тут реализовано, как будто PrimaryKey всегда одно поле. Это верно для ТБД и PS, но во общем не это так.
+    // а тут реализовано, как будто PrimaryKey всегда одно поле. Это верно для ТБД и PS, но в общем не это так.
     boolean isPrimaryKey();
 
     IJdxTable getRefTable();
