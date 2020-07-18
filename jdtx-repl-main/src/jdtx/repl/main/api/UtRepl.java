@@ -494,12 +494,17 @@ public class UtRepl {
             File file = files[files.length - countFile - 1];
 
             countFile++;
-            log.info(countFile + "/" + files.length + ", file: " + file.getAbsolutePath());
+            log.info(countFile + "/" + files.length + ", file: " + file.getName());
 
             //
             IReplica replica = new ReplicaFile();
             replica.setFile(file);
             JdxReplicaReaderXml.readReplicaInfo(replica);
+
+            if (replica.getInfo().getReplicaType() != JdxReplicaType.IDE && replica.getInfo().getReplicaType() != JdxReplicaType.SNAPSHOT) {
+                log.info("  skip, replicaType: " + replica.getInfo().getReplicaType());
+                continue;
+            }
 
             //
             InputStream inputStream = null;

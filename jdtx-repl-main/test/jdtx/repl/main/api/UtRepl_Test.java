@@ -84,7 +84,18 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
     @Test
     public void findLastRecord() throws Exception {
         UtRepl utRepl = new UtRepl(db2, struct2);
-        IReplica replica = utRepl.findLastRecord("lic", "11:1418", "d:/t/Anet/temp");
+        IReplica replica = utRepl.findLastRecord("lic", "11:1418", "d:/t/Anet/temp1");
+        if (replica == null) {
+            System.out.println("Not found");
+        } else {
+            System.out.println("Found, file: " + replica.getFile().getAbsolutePath());
+        }
+    }
+
+    @Test
+    public void findLastRecord_all() throws Exception {
+        UtRepl utRepl = new UtRepl(db2, struct2);
+        IReplica replica = utRepl.findLastRecord("lic", "3:1001", "../_test-data/_test-data_ws2/ws_002/queIn");
         if (replica == null) {
             System.out.println("Not found");
         } else {
