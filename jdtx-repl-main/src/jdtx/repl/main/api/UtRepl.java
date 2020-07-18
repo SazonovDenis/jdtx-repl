@@ -494,7 +494,7 @@ public class UtRepl {
         //
         int countFile = 0;
         while (countFile < files.length) {
-            File file = files[files.length - countFile - 1];
+            File file = files[countFile];
 
             countFile++;
             log.info(countFile + "/" + files.length + ", file: " + file.getName());
