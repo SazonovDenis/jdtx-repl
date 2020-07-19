@@ -130,7 +130,8 @@ public class UtAuditApplyer {
                     }
                     countPortion++;
 
-                    // Подготовка полей записи в recValues
+                    // Подготовка recParams - значений полей для записи в БД
+                    Map recParams = new HashMap();
                     for (IJdxField publicationField : publicationTable.getFields()) {
                         String publicationFieldName = publicationField.getName();
                         IJdxField field = table.getField(publicationFieldName);
@@ -139,7 +140,7 @@ public class UtAuditApplyer {
                         if (getDataType(field.getDbDatatype()) == DataType.BLOB) {
                             String blobBase64 = (String) recValues.get(publicationFieldName);
                             byte[] blob = UtString.decodeBase64(blobBase64);
-                            recValues.put(publicationFieldName, blob);
+                            recParams.put(publicationFieldName, blob);
                             continue;
                         }
 
@@ -147,7 +148,7 @@ public class UtAuditApplyer {
                         if (getDataType(field.getDbDatatype()) == DataType.DATETIME) {
                             String valueStr = (String) recValues.get(publicationFieldName);
                             DateTime value = new DateTime(valueStr);
-                            recValues.put(publicationFieldName, value);
+                            recParams.put(publicationFieldName, value);
                             continue;
                         }
 
@@ -167,12 +168,12 @@ public class UtAuditApplyer {
                             }
                             // Перекодировка ссылки
                             long ref_own = decoder.get_id_own(refTableName, ref.ws_id, ref.id);
-                            recValues.put(publicationFieldName, ref_own);
+                            recParams.put(publicationFieldName, ref_own);
                             continue;
                         }
 
-                        //
-                        recValues.put(publicationFieldName, recValues.get(publicationFieldName));
+                        // Просто поле, без изменений
+                        recParams.put(publicationFieldName, recValues.get(publicationFieldName));
                     }
 
                     // Выполняем INS/UPD/DEL
@@ -180,31 +181,41 @@ public class UtAuditApplyer {
                     int oprType = Integer.valueOf((String) recValues.get("Z_OPR"));
                     if (oprType == JdxOprType.OPR_INS) {
                         try {
-                            dbu.insertRec(table.getName(), recValues, publicationFields, null);
+                            insertOrUpdate(dbu, table.getName(), recParams, publicationFields);
                         } catch (Exception e) {
-                            if (isPrimaryKeyError(e.getCause().getMessage())) {
-                                dbu.updateRec(table.getName(), recValues, publicationFields, null);
+                            if (JdxUtils.errorIs_ForeignKeyViolation(e)) {
+                                JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
+                                ee.recParams = recParams;
+                                ee.recValues = recValues;
+                                throw (ee);
                             } else {
-                                log.error("recValues: " + recValues);
                                 throw (e);
                             }
                         }
+
                     } else if (oprType == JdxOprType.OPR_UPD) {
                         try {
-                            dbu.updateRec(table.getName(), recValues, publicationFields, null);
+                            dbu.updateRec(table.getName(), recParams, publicationFields, null);
                         } catch (Exception e) {
-                            log.error("recValues: " + recValues);
-                            throw (e);
+                            if (JdxUtils.errorIs_ForeignKeyViolation(e)) {
+                                JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
+                                ee.recParams = recParams;
+                                ee.recValues = recValues;
+                                throw (ee);
+                            } else {
+                                throw (e);
+                            }
                         }
                     } else if (oprType == JdxOprType.OPR_DEL) {
                         try {
-                            dbu.deleteRec(table.getName(), (Long) recValues.get(idFieldName));
+                            dbu.deleteRec(table.getName(), (Long) recParams.get(idFieldName));
                         } catch (Exception e) {
                             if (JdxUtils.errorIs_ForeignKeyViolation(e)) {
                                 // Пропустим реплику, выдадим в исходящую очередь наш вариант удаляемой записи
-                                failedDeleteId.add((Long) recValues.get(idFieldName));
+                                // todo: этот метод В КОНТЕКТСЕ ТРАНЗАКЦИИ возится с какими то файлами и проч... - нежелательно
+                                failedDeleteId.add((Long) recParams.get(idFieldName));
                             } else {
-                                log.error("recValues: " + recValues);
+                                log.error("recParams: " + recParams);
                                 throw (e);
                             }
                         }
@@ -230,7 +241,8 @@ public class UtAuditApplyer {
                 if (failedDeleteId.size() != 0) {
                     log.info("  table: " + tableName + ", fail to delete: " + failedDeleteId.size());
 
-                    //todo  комит тут внутри, а контекст с этим методом createTableReplicaByIdList() - снаружи
+                    // todo: этот метод В КОНТЕКТСЕ ТРАНЗАКЦИИ возится с какими то файлами и проч... - нежелательно
+                    // todo: комит тут внутри, а контекст с этим методом createTableReplicaByIdList() - снаружи
                     jdxReplWs.createTableReplicaByIdList(tableName, failedDeleteId);
                 }
 
@@ -260,6 +272,16 @@ public class UtAuditApplyer {
             throw e;
         }
 
+    }
+
+    private void insertOrUpdate(DbUtils dbu, String tableName, Map recParams, String publicationFields) throws Exception {
+        try {
+            dbu.insertRec(tableName, recParams, publicationFields, null);
+        } catch (Exception e) {
+            if (isPrimaryKeyError(e.getCause().getMessage())) {
+                dbu.updateRec(tableName, recParams, publicationFields, null);
+            }
+        }
     }
 
     private int getDataType(String dbDatatypeName) {

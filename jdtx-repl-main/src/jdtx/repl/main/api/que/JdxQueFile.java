@@ -11,7 +11,12 @@ public class JdxQueFile {
 
     //
     String queType;
+
     String baseDir;
+
+    public String getBaseDir() {
+        return baseDir;
+    }
 
     public long getMaxNoFromDir() throws Exception {
         String inFileMask = "*.zip";

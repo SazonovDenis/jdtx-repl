@@ -14,6 +14,7 @@ import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ut.*;
+import org.apache.commons.io.*;
 import org.apache.commons.logging.*;
 import org.apache.log4j.*;
 import org.json.simple.*;
@@ -298,6 +299,25 @@ public class JdxReplWs {
 
         //
         log.info("createReplicaTableByIdList, wsId: " + wsId + ", done");
+    }
+
+
+    /**
+     * Обработаем аварийную ситуацию - поищем у себя недостающие записи (на которые мы ссылаемся) и выложим их в готовом виде для применения
+     */
+    public void handleFailedInsertUpdateRef(JdxForeignKeyViolationException e) throws Exception {
+        IJdxField refFieldInfo = JdxUtils.get_ForeignKeyViolation_info(e, struct);
+        String refFieldName = refFieldInfo.getName();
+        String refTableName = refFieldInfo.getRefTable().getName();
+        String refTableId = (String) e.recParams.get(refFieldName);
+        File outReplicaFile = new File("temp/" + refFieldName + "_" + refTableId.replace(":", "_") + ".zip");
+        if (!outReplicaFile.exists()) {
+            String dirName = ((JdxQueFile) queIn).getBaseDir();
+            UtRepl utRepl = new UtRepl(db, struct);
+            IReplica replica = utRepl.findLastRecord(refTableName, refTableId, dirName);
+            // Копируем реплику для анализа
+            FileUtils.copyFile(replica.getFile(), outReplicaFile);
+        }
     }
 
     /**
@@ -912,8 +932,15 @@ public class JdxReplWs {
                     }
 
                     //
-                    auditApplyer.jdxReplWs = this;
-                    auditApplyer.applyReplica(replicaReader, publicationIn, forceApply, wsId, commitPortionMax);
+                    try {
+                        auditApplyer.jdxReplWs = this;
+                        auditApplyer.applyReplica(replicaReader, publicationIn, forceApply, wsId, commitPortionMax);
+                    } catch (Exception e) {
+                        if (e instanceof JdxForeignKeyViolationException) {
+                            handleFailedInsertUpdateRef((JdxForeignKeyViolationException) e);
+                        }
+                        throw (e);
+                    }
                 } finally {
                     // Закроем читателя Zip-файла
                     if (inputStream != null) {

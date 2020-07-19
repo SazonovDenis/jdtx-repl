@@ -162,7 +162,7 @@ public class JdxUtils {
                 replica.getInfo().getReplicaType() == JdxReplicaType.UPDATE_APP_DONE ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SET_CFG ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SET_CFG_DONE
-                ) {
+        ) {
             // Для системных команд мы не делаем других проверок
             return;
         }
@@ -254,6 +254,28 @@ public class JdxUtils {
         } else {
             return false;
         }
+    }
+
+    /**
+     * По тексту ошибки возвращает поле, которое содержит неправильную ссылку
+     */
+    public static IJdxField get_ForeignKeyViolation_info(JdxForeignKeyViolationException e, IJdxDbStruct struct) {
+        // violation of FOREIGN KEY constraint "FK_LIC_ULZ" on table "LIC"
+        String[] sa = e.getMessage().split("on table");
+        //
+        String foreignKeyName = sa[0].split("FOREIGN KEY constraint")[1];
+        foreignKeyName = foreignKeyName.replace("\"", "").replace(" ", "");
+        //
+        String tableName = sa[1];
+        tableName = tableName.replace("\"", "").replace(" ", "");
+        //
+        IJdxTable table = struct.getTable(tableName);
+        for (IJdxForeignKey foreignKey : table.getForeignKeys()) {
+            if (foreignKey.getName().compareToIgnoreCase(foreignKeyName) == 0) {
+                return foreignKey.getField();
+            }
+        }
+        return null;
     }
 
     private static class JdxTableComparator implements Comparator {
