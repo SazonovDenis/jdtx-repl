@@ -285,6 +285,9 @@ class Jdx_Ext extends ProjectExt {
                 // Копируем реплику для анализа
                 File outReplicaFile = new File(outFileName)
                 FileUtils.copyFile(replica.getFile(), outReplicaFile)
+
+                //
+                System.out.println("Файл сформирован: " + outReplicaFile.getAbsolutePath())
             } catch (Exception e) {
                 e.printStackTrace()
                 throw e

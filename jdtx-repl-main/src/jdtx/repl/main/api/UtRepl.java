@@ -10,6 +10,7 @@ import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.ut.*;
 import org.apache.commons.io.*;
 import org.apache.commons.io.comparator.*;
 import org.apache.commons.io.filefilter.*;
@@ -525,7 +526,11 @@ public class UtRepl {
                     for (IJdxTable t : tables) {
                         if (t.getName().compareToIgnoreCase(findTableName) == 0) {
                             table = t;
+                            break;
                         }
+                    }
+                    if (table == null) {
+                        //throw new XError("Таблица не найдена: " + findTableName);
                     }
                     String idFieldName = table.getPrimaryKey().get(0).getName();
 
@@ -604,7 +609,8 @@ public class UtRepl {
                 }
 
             } catch (Exception e) {
-                log.error(e.getMessage());
+                log.error(Ut.getExceptionMessage(e));
+                //e.printStackTrace();
             }
 
         }
