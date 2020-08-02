@@ -365,7 +365,7 @@ public class JdxReplSrv {
                     JdxReplicaReaderXml.readReplicaInfo(replica);
 
                     //
-                    log.debug("replica.age: " + replica.getInfo().getAge() + ", replica.wsId: " + replica.getInfo().getWsId());
+                    //log.debug("replica.age: " + replica.getInfo().getAge() + ", replica.wsId: " + replica.getInfo().getWsId());
 
                     // Помещаем полученные данные в общую очередь
                     db.startTran();
@@ -467,7 +467,7 @@ public class JdxReplSrv {
                     IReplica replica = commonQue.getByNo(no);
 
                     //
-                    log.debug("replica.age: " + replica.getInfo().getAge() + ", replica.wsId: " + replica.getInfo().getWsId());
+                    //log.debug("replica.age: " + replica.getInfo().getAge() + ", replica.wsId: " + replica.getInfo().getWsId());
 
                     // Физически отправим реплику
                     mailer.send(replica, "to", no); // todo это тупо - вот так копировать и перекладывать файлы из папки в папку???

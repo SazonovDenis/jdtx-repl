@@ -1095,7 +1095,7 @@ public class JdxReplWs {
             }
 
             //
-            log.debug("replica.age: " + replica.getInfo().getAge() + ", replica.wsId: " + replica.getInfo().getWsId());
+            //log.debug("replica.age: " + replica.getInfo().getAge() + ", replica.wsId: " + replica.getInfo().getWsId());
 
             // Помещаем реплику в свою входящую очередь
             queIn.put(replica);

@@ -317,7 +317,7 @@ public class MailerHttp implements IMailer {
             receivedBytes = receivedBytes + buff.length;
 
             //
-            log.debug("response.entity.contentLength: " + entity.getContentLength());
+            //log.debug("response.entity.contentLength: " + entity.getContentLength());
 
             //
             if (receivedBytes != totalBytes) {
@@ -467,7 +467,7 @@ public class MailerHttp implements IMailer {
     }
 
     void handleHttpErrors(HttpResponse response) throws Exception {
-        log.debug("response: " + response.getStatusLine().toString());
+        //log.debug("response: " + response.getStatusLine().toString());
         //
         if (response.getStatusLine().getStatusCode() != 200) {
             String resStr = EntityUtils.toString(response.getEntity());
@@ -490,7 +490,7 @@ public class MailerHttp implements IMailer {
         HttpEntity entity = response.getEntity();
 
         //
-        log.debug("response.entity.contentLength: " + entity.getContentLength());
+        //log.debug("response.entity.contentLength: " + entity.getContentLength());
 
         //
         String resStr = EntityUtils.toString(entity);
@@ -535,7 +535,7 @@ public class MailerHttp implements IMailer {
         }
         String urlRes = remoteUrl + url + ".php" + b.toString();
         //
-        log.debug("getUrl: " + urlRes);
+        //log.debug("getUrl: " + urlRes);
         //
         return urlRes;
     }
@@ -543,7 +543,7 @@ public class MailerHttp implements IMailer {
     String getUrlPost(String url) {
         String urlRes = remoteUrl + url + ".php?" + "protocolVersion=" + REPL_PROTOCOL_VERSION + "&appVersion=" + UtRepl.getVersion();
         //
-        log.debug("getUrlPost: " + urlRes);
+        //log.debug("getUrlPost: " + urlRes);
         //
         return urlRes;
     }
