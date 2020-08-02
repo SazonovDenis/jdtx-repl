@@ -194,6 +194,11 @@ public class JdxUtils {
         return errText;
     }
 
+    public static boolean errorIs_PrimaryKeyError(Exception e) {
+        String errText = collectExceptionText(e);
+        return errText.contains("violation of PRIMARY or UNIQUE KEY constraint");
+    }
+
     public static boolean errorIs_ForeignKeyViolation(Exception e) {
         String errText = collectExceptionText(e);
         if (errText.contains("violation of FOREIGN KEY constraint") && errText.contains("on table")) {
@@ -257,24 +262,47 @@ public class JdxUtils {
     }
 
     /**
-     * По тексту ошибки возвращает поле, которое содержит неправильную ссылку
+     * По тексту ошибки возвращает таблицу, в которой содержится неправильная ссылка
+     *
+     * @param e Exception, например: violation of FOREIGN KEY constraint "FK_LIC_ULZ" on table "LIC"
+     * @return IJdxTable - таблица, в которой содержится неправильная ссылка, например: Lic
      */
-    public static IJdxField get_ForeignKeyViolation_info(JdxForeignKeyViolationException e, IJdxDbStruct struct) {
-        // violation of FOREIGN KEY constraint "FK_LIC_ULZ" on table "LIC"
-        String[] sa = e.getMessage().split("on table");
+    public static IJdxTable get_ForeignKeyViolation_tableInfo(JdxForeignKeyViolationException e, IJdxDbStruct struct) {
+        //
+        String errText = e.getMessage();
+        String[] sa = errText.split("on table");
+        //
+        String thisTableName = sa[1];
+        thisTableName = thisTableName.replace("\"", "").replace(" ", "");
+        IJdxTable thisTable = struct.getTable(thisTableName);
+        //
+        return thisTable;
+    }
+
+    /**
+     * По тексту ошибки возвращает поле, которое содержит неправильную ссылку
+     *
+     * @param e Exception, например: violation of FOREIGN KEY constraint "FK_LIC_ULZ" on table "LIC"
+     * @return IJdxForeignKey - ссылочное поле, которое привело к ошибке, например: Lic.Ulz
+     */
+    public static IJdxForeignKey get_ForeignKeyViolation_refInfo(JdxForeignKeyViolationException e, IJdxDbStruct struct) {
+        //
+        String errText = e.getMessage();
+        String[] sa = errText.split("on table");
         //
         String foreignKeyName = sa[0].split("FOREIGN KEY constraint")[1];
         foreignKeyName = foreignKeyName.replace("\"", "").replace(" ", "");
         //
-        String tableName = sa[1];
-        tableName = tableName.replace("\"", "").replace(" ", "");
+        String thisTableName = sa[1];
+        thisTableName = thisTableName.replace("\"", "").replace(" ", "");
+        IJdxTable thisTable = struct.getTable(thisTableName);
         //
-        IJdxTable table = struct.getTable(tableName);
-        for (IJdxForeignKey foreignKey : table.getForeignKeys()) {
+        for (IJdxForeignKey foreignKey : thisTable.getForeignKeys()) {
             if (foreignKey.getName().compareToIgnoreCase(foreignKeyName) == 0) {
-                return foreignKey.getField();
+                return foreignKey;
             }
         }
+        //
         return null;
     }
 

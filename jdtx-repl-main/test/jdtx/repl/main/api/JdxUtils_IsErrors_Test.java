@@ -34,4 +34,23 @@ public class JdxUtils_IsErrors_Test extends ReplDatabaseStruct_Test {
         objectManager.dropAudit(table.getName());
     }
 
+    @Test
+    public void test_ForeignKeyViolation_Info() {
+        Exception e = new Exception("violation of FOREIGN KEY constraint \"FK_LIC_ULZ\" on table \"LIC\"");
+        JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
+        //
+        IJdxTable thisTable = JdxUtils.get_ForeignKeyViolation_tableInfo(ee, struct);
+        IJdxForeignKey foreignKey = JdxUtils.get_ForeignKeyViolation_refInfo(ee, struct);
+        IJdxField refField = foreignKey.getField();
+        IJdxTable refTable = refField.getRefTable();
+        //
+        String thisTableName = thisTable.getName();
+        String thisTableRefFieldName = refField.getName();
+        //
+        String refTableName = refTable.getName();
+        String refTableFieldName = foreignKey.getTableField().getName();
+        //
+        System.out.println("Foreign key: " + thisTableName + "." + thisTableRefFieldName + " -> " + refTableName + "." + refTableFieldName);
+
+    }
 }
