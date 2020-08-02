@@ -280,6 +280,8 @@ public class UtAuditApplyer {
         } catch (Exception e) {
             if (isPrimaryKeyError(e.getCause().getMessage())) {
                 dbu.updateRec(tableName, recParams, publicationFields, null);
+            } else {
+                throw e;
             }
         }
     }
