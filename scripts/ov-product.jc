@@ -164,6 +164,9 @@ repl_replica_use = cm("Применить реплику из файла") {
 repl_find_record = cm("Найти последний вариант записи в репликах, сформировать отдельный файл из этих реплик",
         "id": [value: null, help: "Таблица и полный id записи, например -id:ABN:10:12345"],
         "dir": [value: null, help: "Каталог с репликами для поиска, например -dir:\"d:/temp\""],
+        "out": [value: null, help: "Файл с репликой-результатом, например -out:\"d:/temp/ABN_10_12345.zip\""],
+        "skipDel": [value: false, help: "Пропускать реплики на удаление записи"],
+        
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_find_record(args)
