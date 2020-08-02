@@ -3,7 +3,7 @@ package jdtx.repl.main.api.struct;
 public interface IJdxForeignKey {
 
     /**
-     * @return Название в БД
+     * @return Название constraint-та в БД
      */
     String getName();
 

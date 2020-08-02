@@ -1,9 +1,12 @@
 package jdtx.repl.main.api.struct;
 
+/**
+ * Информация о поле в таблице
+ */
 public interface IJdxField {
 
     /**
-     * @return Название в БД
+     * @return Название поля в БД
      */
     String getName();
 
