@@ -63,5 +63,25 @@ public class UtAuditApplyer_Test extends ReplDatabaseStruct_Test {
         UtData.outTable(st1);
     }
 
+    @Test
+    public void test_applyReplicaFile_1() throws Exception {
+        // ---
+        DataStore st0 = db2.loadSql("select * from lic where rnn = '890415302076'");
+        UtData.outTable(st0);
+
+        // ---
+        JdxReplWs ws2 = new JdxReplWs(db2);
+        ws2.init();
+
+        String replicaFileName = "D:/t/esilMK/003/000009370.zip";
+        File replicaFile = new File(replicaFileName);
+
+        ws2.useReplicaFile(replicaFile);
+
+        // ---
+        DataStore st1 = db2.loadSql("select * from lic where rnn = '890415302076'");
+        UtData.outTable(st1);
+    }
+
 
 }

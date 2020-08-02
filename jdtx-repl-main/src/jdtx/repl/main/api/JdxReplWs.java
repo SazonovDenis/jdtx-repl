@@ -61,7 +61,7 @@ public class JdxReplWs {
     private IMailer mailer;
 
     //
-    private String dataRoot;
+    String dataRoot;
 
     //
     private static Log log = LogFactory.getLog("jdtx.Workstation");
@@ -306,18 +306,38 @@ public class JdxReplWs {
      * Обработаем аварийную ситуацию - поищем у себя недостающие записи (на которые мы ссылаемся) и выложим их в готовом виде для применения
      */
     public void handleFailedInsertUpdateRef(JdxForeignKeyViolationException e) throws Exception {
-        IJdxField refFieldInfo = JdxUtils.get_ForeignKeyViolation_info(e, struct);
-        String refFieldName = refFieldInfo.getName();
-        String refTableName = refFieldInfo.getRefTable().getName();
-        String refTableId = (String) e.recParams.get(refFieldName);
-        File outReplicaFile = new File("temp/" + refFieldName + "_" + refTableId.replace(":", "_") + ".zip");
-        if (!outReplicaFile.exists()) {
-            String dirName = ((JdxQueFile) queIn).getBaseDir();
-            UtRepl utRepl = new UtRepl(db, struct);
-            IReplica replica = utRepl.findLastRecord(refTableName, refTableId, dirName);
-            // Копируем реплику для анализа
-            FileUtils.copyFile(replica.getFile(), outReplicaFile);
+        IJdxTable thisTable = JdxUtils.get_ForeignKeyViolation_tableInfo(e, struct);
+        IJdxForeignKey foreignKey = JdxUtils.get_ForeignKeyViolation_refInfo(e, struct);
+        IJdxField refField = foreignKey.getField();
+        IJdxTable refTable = refField.getRefTable();
+        //
+        String thisTableName = thisTable.getName();
+        String thisTableRefFieldName = refField.getName();
+        //
+        String refTableName = refTable.getName();
+        String refTableFieldName = foreignKey.getTableField().getName();
+        //
+        log.error("Foreign key: " + thisTableName + "." + thisTableRefFieldName + " -> " + refTableName + "." + refTableFieldName);
+
+        //
+        String refTableId = (String) e.recValues.get(thisTableRefFieldName);
+        File outReplicaFile = new File(dataRoot + "temp/" + refTableName + "_" + refTableId.replace(":", "_") + ".zip");
+        // Если в одной реплике много ошибочных записей, то искать можно только один раз,
+        // иначе на каждую ссылку будет выполнятся поиск, что затянет выкидыванмие ошибки
+        if (outReplicaFile.exists()) {
+            log.error("Файл с репликой - результатами поиска уже есть: " + outReplicaFile.getAbsolutePath());
+            return;
         }
+
+        // Собираем все операции с записью в одну реплику
+        String dirName = ((JdxQueFile) queIn).getBaseDir();
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.findRecordInReplicas(refTableName, refTableId, dirName, true);
+        // Копируем файл реплики
+        FileUtils.copyFile(replica.getFile(), outReplicaFile);
+
+        //
+        log.error("Файл с репликой - результатами поиска сформирован: " + outReplicaFile.getAbsolutePath());
     }
 
     /**

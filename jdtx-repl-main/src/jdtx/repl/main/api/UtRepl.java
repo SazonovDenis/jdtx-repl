@@ -455,14 +455,14 @@ public class UtRepl {
     }
 
     /**
-     * Ищем запись в истории реплик и формируем реплику на вставку этой записи.
-     * Применяется при восстановлении асинхронно удаленных записей.
+     * Ищем запись в истории реплик, собираем все операции с этой записью в одну реплику.
+     * Метод применяется при восстановлении асинхронно удаленных записей.
      */
-    public IReplica findLastRecord(String findTableName, String findRecordIdStr, String dirName) throws Exception {
+    public IReplica findRecordInReplicas(String findTableName, String findRecordIdStr, String replicasDirName, boolean skipOprDel) throws Exception {
         String inFileMask = "*.zip";
 
         // Список файлов, ищем в них
-        File dir = new File(dirName);
+        File dir = new File(replicasDirName);
         File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
         //
         if (files == null) {
@@ -473,13 +473,10 @@ public class UtRepl {
 
 
         //
-        JdxRef idValueFind = JdxRef.parse(findRecordIdStr);
+        JdxRef findRecordId = JdxRef.parse(findRecordIdStr);
 
         //
         IReplica replicaOut = new ReplicaFile();
-        //replicaOut.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
-        //replicaOut.getInfo().setWsId(replica.getInfo().getWsId());
-        //replicaOut.getInfo().setAge(replica.getInfo().getAge());
         replicaOut.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
 
         // Стартуем запись реплики
@@ -555,15 +552,22 @@ public class UtRepl {
                                     idValueRef.ws_id = replica.getInfo().getWsId();
                                 }
 
+                                //
+                                boolean doSkipRec = false;
+                                int oprType = Integer.valueOf((String) recValues.get("Z_OPR"));
+                                if (oprType == JdxOprType.OPR_DEL && skipOprDel) {
+                                    doSkipRec = true;
+                                    log.info("  record OPR_DEL, skipped");
+                                }
+
                                 // Нашли id?
-                                if (idValueRef.equals(idValueFind)) {
+                                if (!doSkipRec && idValueRef.equals(findRecordId)) {
                                     log.info("  record found");
 
                                     // Сохраняем запись
                                     writerXml.appendRec();
 
                                     //
-                                    int oprType = Integer.valueOf((String) recValues.get("Z_OPR"));
                                     writerXml.setOprType(oprType);
 
                                     // Запись значения с проверкой/перекодировкой ссылок
@@ -592,6 +596,7 @@ public class UtRepl {
                                 if (countRec % 200 == 0) {
                                     log.info("  table: " + tableName + ", " + countRec);
                                 }
+
                                 //
                                 recValues = replicaReader.nextRec();
                             }

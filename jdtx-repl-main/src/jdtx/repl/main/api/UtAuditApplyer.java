@@ -184,6 +184,9 @@ public class UtAuditApplyer {
                             insertOrUpdate(dbu, table.getName(), recParams, publicationFields);
                         } catch (Exception e) {
                             if (JdxUtils.errorIs_ForeignKeyViolation(e)) {
+                                log.error("recParams: " + recParams);
+                                log.error("recValues: " + recValues);
+                                //
                                 JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
                                 ee.recParams = recParams;
                                 ee.recValues = recValues;
@@ -198,6 +201,9 @@ public class UtAuditApplyer {
                             dbu.updateRec(table.getName(), recParams, publicationFields, null);
                         } catch (Exception e) {
                             if (JdxUtils.errorIs_ForeignKeyViolation(e)) {
+                                log.error("recParams: " + recParams);
+                                log.error("recValues: " + recValues);
+                                //
                                 JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
                                 ee.recParams = recParams;
                                 ee.recValues = recValues;
@@ -216,6 +222,8 @@ public class UtAuditApplyer {
                                 failedDeleteId.add((Long) recParams.get(idFieldName));
                             } else {
                                 log.error("recParams: " + recParams);
+                                log.error("recValues: " + recValues);
+                                //
                                 throw (e);
                             }
                         }
@@ -278,7 +286,7 @@ public class UtAuditApplyer {
         try {
             dbu.insertRec(tableName, recParams, publicationFields, null);
         } catch (Exception e) {
-            if (isPrimaryKeyError(e.getCause().getMessage())) {
+            if (JdxUtils.errorIs_PrimaryKeyError(e)) {
                 dbu.updateRec(tableName, recParams, publicationFields, null);
             } else {
                 throw e;
@@ -311,10 +319,6 @@ public class UtAuditApplyer {
             default:
                 return DataType.OBJECT;
         }
-    }
-
-    private boolean isPrimaryKeyError(String message) {
-        return message.contains("violation of PRIMARY or UNIQUE KEY constraint");
     }
 
 

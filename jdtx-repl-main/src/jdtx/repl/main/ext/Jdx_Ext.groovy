@@ -253,6 +253,7 @@ class Jdx_Ext extends ProjectExt {
         String recordId = args.getValueString("id")
         String dirName = args.getValueString("dir")
         String outFileName = args.getValueString("out")
+        boolean skipOprDel = args.getValueString("skipDel")
         //
         if (recordId == null || recordId.length() == 0) {
             throw new XError("Не указан [id] - id записи")
@@ -280,14 +281,14 @@ class Jdx_Ext extends ProjectExt {
             try {
                 // Ищем запись и формируем реплику на вставку
                 UtRepl utRepl = new UtRepl(db, ws.struct)
-                IReplica replica = utRepl.findLastRecord(tableName, tableId, dirName)
+                IReplica replica = utRepl.findRecordInReplicas(tableName, tableId, dirName, skipOprDel)
 
                 // Копируем реплику для анализа
                 File outReplicaFile = new File(outFileName)
                 FileUtils.copyFile(replica.getFile(), outReplicaFile)
 
                 //
-                System.out.println("Файл сформирован: " + outReplicaFile.getAbsolutePath())
+                System.out.println("Файл с репликой - результатами поиска сформирован: " + outReplicaFile.getAbsolutePath())
             } catch (Exception e) {
                 e.printStackTrace()
                 throw e
