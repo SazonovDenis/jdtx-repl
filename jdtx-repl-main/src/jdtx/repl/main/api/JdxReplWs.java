@@ -368,6 +368,13 @@ public class JdxReplWs {
         // все структуры совпадают
         if (equal_Actual_Allowed && equal_Actual_Fixed) {
             log.info("dbStructApplyFixed, no diff found, Actual == Allowed == Fixed");
+
+            // Для справки/отладки - структуры в файл
+            JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+            struct_rw.toFile(structActual, dataRoot + "temp/1.dbStruct.actual.xml");
+            struct_rw.toFile(structAllowed, dataRoot + "temp/1.dbStruct.allowed.xml");
+            struct_rw.toFile(structFixed, dataRoot + "temp/1.dbStruct.fixed.xml");
+
             //
             return true;
         }
@@ -379,9 +386,9 @@ public class JdxReplWs {
 
             // Для справки/отладки - структуры в файл
             JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-            struct_rw.toFile(structActual, dataRoot + "temp/dbStruct.actual.xml");
-            struct_rw.toFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
-            struct_rw.toFile(structFixed, dataRoot + "temp/dbStruct.fixed.xml");
+            struct_rw.toFile(structActual, dataRoot + "temp/2.dbStruct.actual.xml");
+            struct_rw.toFile(structAllowed, dataRoot + "temp/2.dbStruct.allowed.xml");
+            struct_rw.toFile(structFixed, dataRoot + "temp/2.dbStruct.fixed.xml");
 
             //
             return false;
@@ -512,9 +519,9 @@ public class JdxReplWs {
             log.warn("handleSelfAudit, database structActual <> structAllowed");
             // Для справки/отладки - структуры в файл
             JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-            struct_rw.toFile(struct, dataRoot + "temp/dbStruct.actual.xml");
-            struct_rw.toFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
-            struct_rw.toFile(structFixed, dataRoot + "temp/dbStruct.fixed.xml");
+            struct_rw.toFile(struct, dataRoot + "temp/3.dbStruct.actual.xml");
+            struct_rw.toFile(structAllowed, dataRoot + "temp/3.dbStruct.allowed.xml");
+            struct_rw.toFile(structFixed, dataRoot + "temp/3.dbStruct.fixed.xml");
             //
             return;
         }
@@ -523,9 +530,9 @@ public class JdxReplWs {
             log.warn("handleSelfAudit, database structActual <> structFixed");
             // Для справки/отладки - структуры в файл
             JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-            struct_rw.toFile(struct, dataRoot + "temp/dbStruct.actual.xml");
-            struct_rw.toFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
-            struct_rw.toFile(structFixed, dataRoot + "temp/dbStruct.fixed.xml");
+            struct_rw.toFile(struct, dataRoot + "temp/4.dbStruct.actual.xml");
+            struct_rw.toFile(structAllowed, dataRoot + "temp/4.dbStruct.allowed.xml");
+            struct_rw.toFile(structFixed, dataRoot + "temp/4.dbStruct.fixed.xml");
             //
             return;
         }
@@ -883,10 +890,10 @@ public class JdxReplWs {
                 // Реальная структура базы НЕ совпадает с разрешенной структурой
                 if (!isEqualStruct_Actual_Allowed) {
                     // Для справки/отладки - не совпадающие структуры - в файл
-                    JdxDbStruct_XmlRW structRwXml = new JdxDbStruct_XmlRW();
-                    structRwXml.toFile(struct, dataRoot + "temp/dbStruct.actual.xml");
-                    structRwXml.toFile(structAllowed, dataRoot + "temp/dbStruct.allowed.xml");
-                    structRwXml.toFile(structFixed, dataRoot + "temp/dbStruct.fixed.xml");
+                    JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+                    struct_rw.toFile(struct, dataRoot + "temp/5.dbStruct.actual.xml");
+                    struct_rw.toFile(structAllowed, dataRoot + "temp/5.dbStruct.allowed.xml");
+                    struct_rw.toFile(structFixed, dataRoot + "temp/5.dbStruct.fixed.xml");
                     // Генерим ошибку
                     log.error("====================================================================");
                     log.error("====================================================================");
@@ -911,7 +918,9 @@ public class JdxReplWs {
                 if (replicaStructCrc.compareToIgnoreCase(dbStructActualCrc) != 0) {
                     // Для справки/отладки - структуры в файл
                     JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-                    struct_rw.toFile(struct, dataRoot + "temp/dbStruct.actual.xml");
+                    struct_rw.toFile(struct, dataRoot + "temp/6.dbStruct.actual.xml");
+                    struct_rw.toFile(structAllowed, dataRoot + "temp/6.dbStruct.allowed.xml");
+                    struct_rw.toFile(structFixed, dataRoot + "temp/6.dbStruct.fixed.xml");
                     //
                     log.error("====================================================================");
                     log.error("====================================================================");
