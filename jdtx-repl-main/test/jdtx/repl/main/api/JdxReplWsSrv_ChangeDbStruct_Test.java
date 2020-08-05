@@ -701,7 +701,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         super.test_dumpTables();
     }
 
-    //^c проверить, что лишний аудит не создается
+    //^c todo проверить, что лишний аудит не создается
 
     /**
      * Меняет структуру БД:
