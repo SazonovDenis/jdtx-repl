@@ -352,9 +352,9 @@ public class JdxReplWs {
 
         // Читаем структуры
         IJdxDbStruct structActual = struct;
-        UtDbStructApprover dbStructRW = new UtDbStructApprover(db);
-        IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
-        IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
+        UtDbStructApprover dbStructApprover = new UtDbStructApprover(db);
+        IJdxDbStruct structFixed = dbStructApprover.getDbStructFixed();
+        IJdxDbStruct structAllowed = dbStructApprover.getDbStructAllowed();
 
         // Сравниваем
         IJdxDbStruct structDiffCommon = new JdxDbStruct();
@@ -365,7 +365,7 @@ public class JdxReplWs {
         boolean equal_Actual_Fixed = UtDbComparer.getStructDiffTables(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
 
         // Нет необходимости в фиксации структуры -
-        // все структуры совпадают
+        // все структуры совпадают (до таблиц)
         if (equal_Actual_Allowed && equal_Actual_Fixed) {
             log.info("dbStructApplyFixed, no diff found, Actual == Allowed == Fixed");
 
@@ -470,10 +470,6 @@ public class JdxReplWs {
                 // Создание snapshot-реплики
                 createTableSnapshotReplica(table.getName());
             }
-
-
-            // Запоминаем текущую структуру БД как "фиксированную" структуру
-            dbStructRW.setDbStructFixed(structActual);
 
             //
             db.commit();
@@ -824,15 +820,18 @@ public class JdxReplWs {
                     stream.close();
                 }
 
-                // Проверяем структуры и пересоздаем аудит
+                // Проверяем серьезность измемения структуры и необходимость пересоздавать аудит
                 if (!dbStructApplyFixed()) {
                     // Если пересоздать аудит не удалось (структуры не обновлены или по иным причинам),
-                    // то не метим реплтику как использованную
+                    // то не метим реплику как использованную
                     log.warn("handleQueIn, dbStructApplyFixed <> true");
                     useResult.replicaUsed = false;
                     useResult.doBreak = true;
                     break;
                 }
+
+                // Запоминаем текущую структуру БД как "фиксированную" структуру
+                dbStructApprover.setDbStructFixed(struct);
 
                 // Выкладывание реплики "структура принята"
                 reportReplica(JdxReplicaType.SET_DB_STRUCT_DONE);

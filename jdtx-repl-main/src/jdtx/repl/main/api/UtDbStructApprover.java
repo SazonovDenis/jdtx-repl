@@ -4,13 +4,18 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.struct.*;
+import org.apache.commons.logging.*;
 
 /**
  * Сохранение данных о разрешенной/фиксированной структуре для реплицируемой БД (в таблице Z_Z_state)
  */
 public class UtDbStructApprover {
 
+    //
     private Db db;
+
+    //
+    private static Log log = LogFactory.getLog("jdtx.UtDbStructApprover");
 
     public UtDbStructApprover(Db db) {
         this.db = db;
@@ -53,6 +58,8 @@ public class UtDbStructApprover {
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
         byte[] bytes = struct_rw.getBytes(struct);
         db.execSql("update " + JdxUtils.sys_table_prefix + "workstation set " + structCode + " = :struct", UtCnv.toMap("struct", bytes));
+        //
+        log.info("setDbStruct: " + structCode);
     }
 
 }

@@ -16,10 +16,10 @@ public class UtDbComparer {
     }
 
     public static boolean dbStructIsEqualTables(IJdxDbStruct struct1, IJdxDbStruct struct2) throws Exception {
-        IJdxDbStruct structCommon = new JdxDbStruct();
+        IJdxDbStruct structEqual = new JdxDbStruct();
         IJdxDbStruct structDiffNewIn1 = new JdxDbStruct();
         IJdxDbStruct structDiffNewIn2 = new JdxDbStruct();
-        return UtDbComparer.getStructDiffTables(struct1, struct2, structCommon, structDiffNewIn1, structDiffNewIn2);
+        return UtDbComparer.getStructDiffTables(struct1, struct2, structEqual, structDiffNewIn1, structDiffNewIn2);
     }
 
     /**
@@ -123,12 +123,12 @@ public class UtDbComparer {
      *
      * @param struct1          первая структура для сравнения
      * @param struct2          вторая структура для сравнения
-     * @param structCommon     возвращает общие объекты в обеих структурах
+     * @param structEqual     возвращает общие объекты в обеих структурах
      * @param structDiffNewIn1 возвращает таблицы в первой структуре, которых нет во второй
      * @param structDiffNewIn2 возвращает таблицы во второй структуре, которых нет впервой
      * @return =true, если структуры БД одинаковые, иначе в structDiff*** возвращается разница
      */
-    public static boolean getStructDiffTables(IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct structCommon, IJdxDbStruct structDiffNewIn1, IJdxDbStruct structDiffNewIn2) throws Exception {
+    public static boolean getStructDiffTables(IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct structEqual, IJdxDbStruct structDiffNewIn1, IJdxDbStruct structDiffNewIn2) throws Exception {
         // сравниваем таблицы из первой базы с таблицами со второй базы
         for (IJdxTable t1 : struct1.getTables()) {
             // таблица первой базы - находим такую же таблицу во второй базе
@@ -137,7 +137,7 @@ public class UtDbComparer {
             if (t2 == null) {
                 structDiffNewIn1.getTables().add(t1);
             } else {
-                structCommon.getTables().add(t1);
+                structEqual.getTables().add(t1);
             }
         }
 
