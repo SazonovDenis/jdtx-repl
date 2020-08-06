@@ -83,7 +83,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
     @Test
     public void test_findRecordInReplicas() throws Exception {
-        UtRepl utRepl = new UtRepl(db2, struct2);
+        UtRepl utRepl = new UtRepl(null, struct);
         IReplica replica = utRepl.findRecordInReplicas("lic", "11:1418", "d:/t/Anet/temp", false);
         if (replica == null) {
             System.out.println("Not found");
@@ -94,7 +94,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
     @Test
     public void test_findRecordInReplicas_all() throws Exception {
-        UtRepl utRepl = new UtRepl(db2, struct2);
+        UtRepl utRepl = new UtRepl(null, struct);
         IReplica replica = utRepl.findRecordInReplicas("lic", "3:1001", "../_test-data/_test-data_ws2/ws_002/queIn", false);
         if (replica == null) {
             System.out.println("Not found");
