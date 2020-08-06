@@ -139,10 +139,20 @@ repl_set_cfg = cm("repl_set_cfg") {
     ext.repl_set_cfg(args)
 }
 
+
 //
 repl_send_cfg = cm("repl_send_cfg") {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_send_cfg(args)
+}
+
+
+//
+repl_set_quein = cm("Задать номер последней обработанной реплики из входящей очереди",
+        "no": [value: null, help: "Номер реплики"],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_set_quein(args)
 }
 
 
