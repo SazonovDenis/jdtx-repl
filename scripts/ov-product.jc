@@ -100,14 +100,14 @@ repl_app_update = cm("Послать сигнал на обновление ПО
 repl_ws_mute = cm("Перевести станцию в состояние MUTE",
         "ws": [value: null, help: "Код рабочей станции"]) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    ext.repl_mute(args)
+    ext.repl_ws_mute(args)
 }
 
 //
 repl_ws_unmute = cm("Вывести станцию из состояния MUTE",
         "ws": [value: null, help: "Код рабочей станции"]) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    ext.repl_unmute(args)
+    ext.repl_ws_unmute(args)
 }
 
 

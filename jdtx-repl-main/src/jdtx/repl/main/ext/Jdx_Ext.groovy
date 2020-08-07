@@ -474,7 +474,7 @@ class Jdx_Ext extends ProjectExt {
         return result
     }
 
-    void repl_mute(IVariantMap args) {
+    void repl_ws_mute(IVariantMap args) {
         if (args.isValueNull("ws")) {
             throw new XError("Не указан [ws] - код рабочей станции")
         }
@@ -498,7 +498,7 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
-    void repl_unmute(IVariantMap args) {
+    void repl_ws_unmute(IVariantMap args) {
         if (args.isValueNull("ws")) {
             throw new XError("Не указан [ws] - код рабочей станции")
         }
