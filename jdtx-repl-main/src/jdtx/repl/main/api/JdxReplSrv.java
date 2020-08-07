@@ -364,9 +364,6 @@ public class JdxReplSrv {
                     //
                     JdxReplicaReaderXml.readReplicaInfo(replica);
 
-                    //
-                    //log.debug("replica.age: " + replica.getInfo().getAge() + ", replica.wsId: " + replica.getInfo().getWsId());
-
                     // Помещаем полученные данные в общую очередь
                     db.startTran();
                     try {
