@@ -3,6 +3,7 @@ package jdtx.repl.main.ext
 import jandcode.app.App
 import jandcode.bgtasks.BgTasksService
 import jandcode.dbm.ModelService
+import jandcode.dbm.data.DataRecord
 import jandcode.dbm.data.DataStore
 import jandcode.dbm.data.UtData
 import jandcode.dbm.db.Db
@@ -556,14 +557,39 @@ class Jdx_Ext extends ProjectExt {
             while (true) {
                 DataStore stDisplay = db.loadSql("select * from z_z_state_ws where enabled = 1")
                 UtData.outTable(stDisplay)
-                //
-                DataStore stCheck = db.loadSql("select * from z_z_state_ws where enabled = 1 and mute_age = 0")
-                if (!doWaitMute || stCheck.size() == 0) {
-                    if (stCheck.size() == 0) {
-                        System.out.println("All workstations is MUTE")
+
+                // Вычисление состояния
+                long count_total = stDisplay.size()
+                long count_mute = 0
+                long mute_age_max = 0
+                long mute_age_min = Long.MAX_VALUE
+                for (DataRecord recDisplay : stDisplay) {
+                    long mute_age_ws = recDisplay.getValueLong("mute_age")
+                    if (mute_age_ws > 0) {
+                        count_mute = count_mute + 1
                     }
+                    if (mute_age_min > mute_age_ws) {
+                        mute_age_min = mute_age_ws
+                    }
+                    if (mute_age_max < mute_age_ws) {
+                        mute_age_max = mute_age_ws
+                    }
+                }
+
+                // Печать состояния
+                if (count_mute == 0) {
+                    System.out.println("No workstations in MUTE")
+                } else if (count_mute == count_total) {
+                    System.out.println("All workstations in MUTE, min age: " + mute_age_min + ", max age: " + mute_age_max)
+                } else {
+                    System.out.println("Workstations in MUTE: " + count_mute + "/" + count_total)
+                }
+
+                // Выход из ожидания, если он был
+                if (!doWaitMute || (count_mute == count_total)) {
                     break
                 }
+
                 //
                 Timer.sleep(5000L)
             }

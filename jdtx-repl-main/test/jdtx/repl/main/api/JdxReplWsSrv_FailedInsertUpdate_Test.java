@@ -117,16 +117,6 @@ public class JdxReplWsSrv_FailedInsertUpdate_Test extends JdxReplWsSrv_Test {
         System.out.println();
     }
 
-    private void sync_http_1_2() throws Exception {
-        test_ws1_doReplSession();
-        test_ws2_doReplSession();
-
-        test_srv_doReplSession();
-
-        test_ws1_doReplSession();
-        test_ws2_doReplSession();
-    }
-
 /*
     private void sync_http_3_noSend() throws Exception {
         JdxReplWs ws = new JdxReplWs(db3);

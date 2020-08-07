@@ -345,6 +345,45 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws3_doReplSession();
     }
 
+    public void sync_http_1_2() throws Exception {
+        test_ws1_doReplSession();
+        test_ws2_doReplSession();
+
+        test_srv_doReplSession();
+
+        test_ws1_doReplSession();
+        test_ws2_doReplSession();
+    }
+
+    public void sync_http_1_3() throws Exception {
+        test_ws1_doReplSession();
+        test_ws3_doReplSession();
+
+        test_srv_doReplSession();
+
+        test_ws1_doReplSession();
+        test_ws3_doReplSession();
+    }
+
+    public void sync_http_1() throws Exception {
+        test_ws1_doReplSession();
+        test_srv_doReplSession();
+        test_ws1_doReplSession();
+    }
+
+    public void sync_http_2() throws Exception {
+        test_ws2_doReplSession();
+        test_srv_doReplSession();
+        test_ws2_doReplSession();
+    }
+
+    public void sync_http_3() throws Exception {
+        test_ws3_doReplSession();
+        test_srv_doReplSession();
+        test_ws3_doReplSession();
+    }
+
+
     @Test
     public void syncLocal() throws Exception {
 /*

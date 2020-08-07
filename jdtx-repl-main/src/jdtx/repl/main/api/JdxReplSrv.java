@@ -371,15 +371,15 @@ public class JdxReplSrv {
                     db.startTran();
                     try {
                         // Помещаем в очередь
-                        commonQue.put(replica);
+                        long commonQueAge = commonQue.put(replica);
 
                         // Отмечаем факт скачивания
                         stateManager.setWsQueInAgeDone(wsId, age);
 
-                        // Реагируем на системные реплики
+                        // Реагируем на системные реплики-сообщения
                         if (replica.getInfo().getReplicaType() == JdxReplicaType.MUTE_DONE) {
                             JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
-                            utmm.setMuteDone(wsId, age);
+                            utmm.setMuteDone(wsId, commonQueAge);
                         }
                         //
                         if (replica.getInfo().getReplicaType() == JdxReplicaType.UNMUTE_DONE) {
