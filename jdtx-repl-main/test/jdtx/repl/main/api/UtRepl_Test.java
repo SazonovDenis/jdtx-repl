@@ -8,6 +8,9 @@ import org.junit.*;
  */
 public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
+    /**
+     * Проверяем команды MUTE, UNMUTE
+     */
     @Test
     public void testWsMuteUnmute() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
@@ -83,7 +86,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
     /**
      * Проверяем, повторную отправку MUTE и возрастание отметки возраста -
-     * нужно для гарантирования отсутствия реплик в сети при смене структуры базы.
+     * нужно для гарантирования отсутствия реплик в репликационной сети при смене структуры базы.
      */
     @Test
     public void testWsMuteUnmute_TwoStep() throws Exception {
