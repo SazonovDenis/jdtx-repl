@@ -117,7 +117,7 @@ public class MailerHttp_Test extends AppTestCase {
         UtFile.cleanDir("../../lombard.systems/repl/" + MailerHttp.REPL_PROTOCOL_VERSION + "/" + guid.replace("-", "/") + "/from");
         File destBoxFile = new File("../../lombard.systems/repl/" + MailerHttp.REPL_PROTOCOL_VERSION + "/" + guid.replace("-", "/") + "/from/000000999.000");
         File infoBoxFile = new File("../../lombard.systems/repl/" + MailerHttp.REPL_PROTOCOL_VERSION + "/" + guid.replace("-", "/") + "/from/last.info");
-        assertEquals("Конечный ящик не удалось очистить", destBoxFile.exists()||infoBoxFile.exists(), false);
+        assertEquals("Конечный ящик не удалось очистить", destBoxFile.exists() || infoBoxFile.exists(), false);
         //
         File destReplicaFile = new File(((MailerHttp) mailer).localDirTmp + "~000000999.zip");
         destReplicaFile.delete();
