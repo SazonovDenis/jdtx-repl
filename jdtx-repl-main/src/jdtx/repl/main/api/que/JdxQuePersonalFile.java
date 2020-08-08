@@ -103,14 +103,7 @@ public class JdxQuePersonalFile extends JdxQueFile implements IJdxQuePersonal {
         IReplica replica = new ReplicaFile();
 
         //
-        String sql = "select * from " + JdxUtils.sys_table_prefix + "que" + queType + " where age = " + age;
-        DataRecord rec = db.loadSql(sql).getCurRec();
-        if (rec.getValueLong("id") == 0) {
-            throw new XError("Replica not found: " + age);
-        }
-        replica.getInfo().setAge(rec.getValueLong("age"));
-        replica.getInfo().setWsId(rec.getValueLong("ws_id"));
-        replica.getInfo().setReplicaType(rec.getValueInt("replica_type"));
+        readReplicaInfoByAge(age, replica.getInfo());
 
         //
         String actualFileName = genFileName(age);
@@ -119,6 +112,27 @@ public class JdxQuePersonalFile extends JdxQueFile implements IJdxQuePersonal {
 
         //
         return replica;
+    }
+
+    public IReplicaInfo getInfoByAge(long age) throws Exception {
+        IReplicaInfo replicaInfo = new ReplicaInfo();
+
+        //
+        readReplicaInfoByAge(age, replicaInfo);
+
+        //
+        return replicaInfo;
+    }
+
+    void readReplicaInfoByAge(long age, IReplicaInfo replicaInfo) throws Exception {
+        String sql = "select * from " + JdxUtils.sys_table_prefix + "que" + queType + " where age = " + age;
+        DataRecord rec = db.loadSql(sql).getCurRec();
+        if (rec.getValueLong("id") == 0) {
+            throw new XError("Replica not found: " + age);
+        }
+        replicaInfo.setAge(rec.getValueLong("age"));
+        replicaInfo.setWsId(rec.getValueLong("ws_id"));
+        replicaInfo.setReplicaType(rec.getValueInt("replica_type"));
     }
 
 

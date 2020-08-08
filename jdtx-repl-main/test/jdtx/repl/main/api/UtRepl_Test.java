@@ -2,7 +2,10 @@ package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
 import jdtx.repl.main.api.replica.*;
+import org.apache.commons.io.*;
 import org.junit.*;
+
+import java.io.*;
 
 /**
  */
@@ -231,6 +234,75 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         } else {
             System.out.println("Found, file: " + replica.getFile().getAbsolutePath());
         }
+    }
+
+    @Test
+    public void test_replicaRecrate() throws Exception {
+        JdxReplWs ws2 = new JdxReplWs(db2);
+        ws2.init();
+
+        //
+        test_ws2_makeChange();
+        ws2.handleSelfAudit();
+
+        //
+        long age = ws2.queOut.getMaxAge();
+        System.out.println("age: " + age);
+
+        // Нынешний вариант реплики
+        IReplica replica0 = ws2.queOut.getByAge(age);
+
+        // Копируем для анализа
+        System.out.println("Original replica file: " + replica0.getFile().getAbsolutePath());
+        System.out.println("Original file size: " + replica0.getFile().length());
+        File newReplicaFile0 = new File("../_test-data/" + ws2.getWsId() + "." + +age + ".original.zip");
+        FileUtils.copyFile(replica0.getFile(), newReplicaFile0);
+
+        // Портим файл реплики
+        FileUtils.writeStringToFile(replica0.getFile(), "1qaz2wsx");
+
+        // Копируем для анализа
+        System.out.println("Damaged replica file: " + replica0.getFile().getAbsolutePath());
+        System.out.println("Damaged file size: " + replica0.getFile().length());
+        File newReplicaFile1 = new File("../_test-data/" + ws2.getWsId() + "." + +age + ".damaged.zip");
+        FileUtils.copyFile(replica0.getFile(), newReplicaFile1);
+
+        // Чиним файл реплики
+        IReplica replica1 = ws2.recreateQueOutReplicaAge(age);
+        //
+        System.out.println("Recreated replica file: " + replica0.getFile().getAbsolutePath());
+        System.out.println("Recreated file size: " + replica0.getFile().length());
+        // Копируем для анализа
+        File newReplicaFile2 = new File("../_test-data/" + ws2.getWsId() + "." + +age + ".new.zip");
+        FileUtils.copyFile(replica1.getFile(), newReplicaFile2);
+
+        //
+        System.out.println("Original replica file: " + newReplicaFile0.getAbsolutePath());
+        System.out.println("Damaged replica file : " + newReplicaFile1.getAbsolutePath());
+        System.out.println("New replica file     : " + newReplicaFile2.getAbsolutePath());
+
+        //
+        assertEquals("Размер файлов", newReplicaFile0.length(), newReplicaFile2.length());
+        assertEquals("Размер файлов", false, newReplicaFile1.length() == newReplicaFile2.length());
+    }
+
+    @Test
+    public void test_replicaRecrateImpossible() throws Exception {
+        JdxReplWs ws2 = new JdxReplWs(db2);
+        ws2.init();
+
+        // Чиним файл реплики
+        try {
+            long age = 10;
+            ws2.recreateQueOutReplicaAge(age);
+            throw new Exception("Реплика этого типа не должна пересоздаться");
+        } catch (Exception e) {
+            if (e.getMessage().contains("Реплика этого типа не должна пересоздаться")) {
+                throw e;
+            }
+        }
+
+        System.out.println("Реплику этого типа невозможно пересоздать");
     }
 
 

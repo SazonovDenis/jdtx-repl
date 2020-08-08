@@ -50,14 +50,12 @@ public class JdxReplWs {
     private long MAX_COMMIT_RECS = 10000;
 
     // Правила публикации
-    private IPublication publicationIn;
-    private IPublication publicationOut;
+    protected IPublication publicationIn;
+    protected IPublication publicationOut;
 
     //
-    private IJdxQueCommon queIn;
-    private IJdxQuePersonal queOut;
-    //private JdxQueCommonFile queIn;
-    //private JdxQuePersonalFile queOut;
+    protected IJdxQueCommon queIn;
+    protected IJdxQuePersonal queOut;
 
     //
     private Db db;
@@ -601,6 +599,43 @@ public class JdxReplWs {
             throw e;
         }
 
+    }
+
+/*
+    public IReplica createReplicaAge(long age) throws Exception {
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.createReplicaFromAudit(wsId, publicationOut, age);
+        return replica;
+    }
+*/
+
+    public IReplica recreateQueOutReplicaAge(long age) throws Exception {
+        // Можем пересозать только по аудиту JdxReplicaType.IDE
+        IReplicaInfo replicaInfo = queOut.getInfoByAge(age);
+        if (replicaInfo.getReplicaType() != JdxReplicaType.IDE) {
+            throw new XError("Реплику невозможно пересоздать, age:" + age + ", replicaType: " + replicaInfo.getReplicaType());
+        }
+
+
+        // Формируем реплику заново
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replicaRecreated = utRepl.createReplicaFromAudit(wsId, publicationOut, age);
+
+        // Копируем реплику на место старой
+        IReplica replicaOriginal = queOut.getByAge(age);
+        File replicaOriginalFile = replicaOriginal.getFile();
+
+        log.info("Original replica file: " + replicaOriginalFile.getAbsolutePath());
+        log.info("Original replica size: " + replicaOriginalFile.length());
+        log.info("Recreated replica file: " + replicaRecreated.getFile().getAbsolutePath());
+        log.info("Recreated replica size: " + replicaRecreated.getFile().length());
+
+        FileUtils.forceDelete(replicaOriginalFile);
+        FileUtils.copyFile(replicaRecreated.getFile(), replicaOriginalFile);
+        FileUtils.forceDelete(replicaRecreated.getFile());
+
+        //
+        return replicaOriginal;
     }
 
     /**

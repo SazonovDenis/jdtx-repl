@@ -25,6 +25,15 @@ public interface IJdxQuePersonal {
      */
     IReplica getByAge(long age) throws Exception;
 
+
+    /**
+     * Получить информацию о реплике
+     *
+     * @param age Номер (возраст)
+     * @return Информация о реплике
+     */
+    IReplicaInfo getInfoByAge(long age) throws Exception;
+
     /**
      * todo: Это только для реплик в файлах. А вообще может быть по-другому.
      */
