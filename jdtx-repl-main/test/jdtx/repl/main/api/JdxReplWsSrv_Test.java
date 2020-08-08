@@ -743,7 +743,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         srv.srvHandleCommonQueFrom(json_srv, "../_test-data/mail_local");
 
         // Тиражирование реплик
-        srv.srvDispatchReplicasToDir(json_srv, "../_test-data/mail_local", 0, 0, 0, false);
+        srv.srvDispatchReplicasToDir(json_srv, "../_test-data/mail_local", null, 0, false);
     }
 
     @Test
@@ -753,7 +753,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         srv.init();
 
         // Тиражирование реплик
-        srv.srvDispatchReplicasToDir(json_srv, "../_test-data/mail_local", 0, 0, 2, false);
+        srv.srvDispatchReplicasToDir(json_srv, "../_test-data/mail_local", null, 2, false);
     }
 
     @Test
@@ -763,7 +763,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         srv.init();
 
         // Тиражирование реплик
-        srv.srvDispatchReplicasToDir(json_srv, "../_test-data/mail_local", 0, 0, 0, false);
+        srv.srvDispatchReplicasToDir(json_srv, "../_test-data/mail_local", null, 0, false);
     }
 
     @Test

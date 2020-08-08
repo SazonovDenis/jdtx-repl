@@ -32,12 +32,12 @@ public interface IMailer {
      *
      * @return Начиная с какого письма (age или no) требуется отправить письма в папку box
      */
-    long getSendRequired(String box) throws Exception;
+    SendRequiredInfo getSendRequired(String box) throws Exception;
 
     /**
      * Сбросить информацию о желаемом состоянии почтового ящика
      */
-    void setSendRequired(String box, long required) throws Exception;
+    void setSendRequired(String box, SendRequiredInfo requiredInfo) throws Exception;
 
     /**
      * Отправка реплики

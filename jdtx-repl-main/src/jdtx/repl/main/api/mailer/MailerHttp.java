@@ -83,7 +83,7 @@ public class MailerHttp implements IMailer {
     }
 
     @Override
-    public long getSendRequired(String box) throws Exception {
+    public SendRequiredInfo getSendRequired(String box) throws Exception {
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
@@ -102,17 +102,25 @@ public class MailerHttp implements IMailer {
 
         //
         JSONObject required = (JSONObject) res.get("required");
-        return Long.valueOf(String.valueOf(required.getOrDefault("required", -1)));
+        SendRequiredInfo requiredInfo = new SendRequiredInfo();
+        requiredInfo.requiredFrom = Long.valueOf(String.valueOf(required.getOrDefault("requiredFrom", -1)));
+        requiredInfo.requiredTo = Long.valueOf(String.valueOf(required.getOrDefault("requiredTo", -1)));
+        requiredInfo.recreate = Boolean.valueOf(String.valueOf(required.getOrDefault("recreate", false)));
+
+        //
+        return requiredInfo;
     }
 
     @Override
-    public void setSendRequired(String box, long required) throws Exception {
+    public void setSendRequired(String box, SendRequiredInfo requiredInfo) throws Exception {
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
         Map info = new HashMap<>();
         info.put("box", box);
-        info.put("required", required);
+        info.put("requiredFrom", requiredInfo.requiredFrom);
+        info.put("requiredTo", requiredInfo.requiredTo);
+        info.put("recreate", requiredInfo.recreate);
         HttpGet httpGet = new HttpGet(getUrl("repl_set_send_required", info));
 
         //

@@ -195,7 +195,7 @@ public class JdxReplSrv {
     }
 
     public void srvDispatchReplicas() throws Exception {
-        srvDispatchReplicas(commonQue, mailerList, 0, 0, true);
+        srvDispatchReplicas(commonQue, mailerList, null, true);
     }
 
     public void srvHandleCommonQueFrom(String cfgFileName, String mailDir) throws Exception {
@@ -207,13 +207,13 @@ public class JdxReplSrv {
         srvHandleCommonQue(mailerListLocal, commonQue);
     }
 
-    public void srvDispatchReplicasToDir(String cfgFileName, String mailDir, long age_from, long age_to, long destinationWsId, boolean doMarkDone) throws Exception {
+    public void srvDispatchReplicasToDir(String cfgFileName, String mailDir, SendRequiredInfo requiredInfo, long destinationWsId, boolean doMarkDone) throws Exception {
         // Готовим локальных курьеров (через папку)
         Map<Long, IMailer> mailerListLocal = new HashMap<>();
         fillMailerListLocal(mailerListLocal, cfgFileName, mailDir, destinationWsId);
 
         // Физически отправляем данные
-        srvDispatchReplicas(commonQue, mailerListLocal, age_from, age_to, doMarkDone);
+        srvDispatchReplicas(commonQue, mailerListLocal, requiredInfo, doMarkDone);
     }
 
 
@@ -424,15 +424,11 @@ public class JdxReplSrv {
     /**
      * Сервер: распределение общей очереди по рабочим станциям
      */
-    private void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IMailer> mailerList, long no_from, long no_to, boolean doMarkDone) throws Exception {
+    private void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IMailer> mailerList, SendRequiredInfo requiredInfo, boolean doMarkDone) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
 
-        // До скольки раздавать
-        long no_to_ws = no_to;
-        if (no_to_ws == 0L) {
-            // Не указано - раздаем все что у нас есть на раздачу
-            no_to_ws = commonQue.getMaxNo();
-        }
+        // Все что у нас есть на раздачу
+        long commonQueMaxNo = commonQue.getMaxNo();
 
         //
         for (Map.Entry en : mailerList.entrySet()) {
@@ -443,23 +439,33 @@ public class JdxReplSrv {
             try {
                 log.info("srvDispatchReplicas, to.wsId: " + wsId);
 
-                // От какого возраста нужно отправлять для этой рабочей станции
-                long no_from_ws = no_from;
-                if (no_from_ws == 0L) {
-                    // Не указано - зададим сами (от последней отправленной)
-                    no_from_ws = stateManager.getCommonQueDispatchDone(wsId) + 1;
-                }
+                long sendFrom;
+                long sendTo;
 
-                // Узнаем сколько просит станция
-                long no_from_required = mailer.getSendRequired("to");
-                if (no_from_required != -1) {
-                    log.warn("Repeat send required, no_from_required: " + no_from_required + ", no_from_ws: " + no_from_ws);
-                    no_from_ws = no_from_required;
+                // Если никто не просит - узнаем сколько просит станция
+                SendRequiredInfo requiredInfoBox;
+                if (requiredInfo == null) {
+                    requiredInfoBox = mailer.getSendRequired("to");
+                } else {
+                    requiredInfoBox = requiredInfo;
                 }
 
                 //
+                if (requiredInfoBox.requiredFrom != -1) {
+                    // Попросили повторную отправку
+                    log.warn("Repeat send required, from: " + requiredInfoBox.requiredFrom + ", to: " + requiredInfoBox.requiredTo + ", recreate: " + requiredInfoBox.recreate);
+                    sendFrom = requiredInfoBox.requiredFrom;
+                    sendTo = requiredInfoBox.requiredTo;
+                } else {
+                    // Не просили - зададим сами (от последней отправленной до послейдней, что у нас есть на раздачу)
+                    sendFrom = stateManager.getCommonQueDispatchDone(wsId) + 1;
+                    sendTo = commonQueMaxNo;
+                }
+
+
+                //
                 long count = 0;
-                for (long no = no_from_ws; no <= no_to_ws; no++) {
+                for (long no = sendFrom; no <= sendTo; no++) {
                     // Берем реплику
                     IReplica replica = commonQue.getByNo(no);
 
@@ -487,16 +493,16 @@ public class JdxReplSrv {
 
 
                 // Снимем флаг просьбы сервера
-                if (no_from_required != -1) {
-                    mailer.setSendRequired("to", -1);
+                if (requiredInfoBox.requiredFrom != -1) {
+                    mailer.setSendRequired("to", new SendRequiredInfo());
                     log.warn("Repeat send done");
                 }
 
                 //
-                if (no_from_ws <= no_to_ws) {
-                    log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + no_from_ws + " .. " + no_to_ws + ", done count: " + count);
+                if (sendFrom <= sendTo) {
+                    log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + sendFrom + " .. " + sendTo + ", done count: " + count);
                 } else {
-                    log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + no_from_ws + ", nothing done");
+                    log.info("srvDispatchReplicas, to.wsId: " + wsId + ", que.age: " + sendFrom + ", nothing done");
                 }
 
             } catch (Exception e) {

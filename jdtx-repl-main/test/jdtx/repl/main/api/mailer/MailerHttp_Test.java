@@ -295,24 +295,42 @@ public class MailerHttp_Test extends AppTestCase {
 
     @Test
     public void test_required() throws Exception {
-        long required0 = mailer.getSendRequired("from");
-        System.out.println("required: " + required0);
+        SendRequiredInfo requiredInfo0 = mailer.getSendRequired("from");
+        System.out.println("requiredFrom: " + requiredInfo0.requiredFrom);
+        System.out.println("requiredTo: " + requiredInfo0.requiredTo);
+        System.out.println("recreate: " + requiredInfo0.recreate);
+        System.out.println();
 
         // ---
-        mailer.setSendRequired("from", required0 + 2);
+        SendRequiredInfo requiredInfo00 = new SendRequiredInfo();
+        requiredInfo00.requiredFrom = 2;
+        requiredInfo00.requiredTo = 4;
+        requiredInfo00.recreate = true;
+        mailer.setSendRequired("from", requiredInfo00);
+        //
+        SendRequiredInfo requiredInfo1 = mailer.getSendRequired("from");
+        System.out.println("requiredFrom: " + requiredInfo1.requiredFrom);
+        System.out.println("requiredTo: " + requiredInfo1.requiredTo);
+        System.out.println("recreate: " + requiredInfo1.recreate);
+        System.out.println();
+        //
+        assertEquals(2, requiredInfo1.requiredFrom);
+        assertEquals(4, requiredInfo1.requiredTo);
+        assertEquals(true, requiredInfo1.recreate);
 
 
         // ---
-        long required1 = mailer.getSendRequired("from");
-        System.out.println("required: " + required1);
-
-        // ---
-        mailer.setSendRequired("from", -1);
-
-
-        // ---
-        long required2 = mailer.getSendRequired("from");
-        System.out.println("required: " + required2);
+        SendRequiredInfo requiredInfo11 = new SendRequiredInfo();
+        mailer.setSendRequired("from", requiredInfo11);
+        //
+        SendRequiredInfo requiredInfo2 = mailer.getSendRequired("from");
+        System.out.println("requiredFrom: " + requiredInfo2.requiredFrom);
+        System.out.println("requiredTo: " + requiredInfo2.requiredTo);
+        System.out.println("recreate: " + requiredInfo2.recreate);
+        //
+        assertEquals(-1, requiredInfo2.requiredFrom);
+        assertEquals(-1, requiredInfo2.requiredTo);
+        assertEquals(false, requiredInfo2.recreate);
     }
 
 

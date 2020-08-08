@@ -15,6 +15,7 @@ import jandcode.utils.error.XError
 import jandcode.utils.variant.IVariantMap
 import jdtx.repl.main.api.*
 import jdtx.repl.main.api.mailer.MailerHttp
+import jdtx.repl.main.api.mailer.SendRequiredInfo
 import jdtx.repl.main.api.rec_merge.UtRecMerge
 import jdtx.repl.main.api.replica.IReplica
 import jdtx.repl.main.api.struct.IJdxDbStruct
@@ -385,8 +386,8 @@ class Jdx_Ext extends ProjectExt {
 
     void repl_sync_srv(IVariantMap args) {
         String mailDir = args.getValueString("dir")
-        long age_from = args.getValueLong("from", 0)
-        long age_to = args.getValueLong("to", 0)
+        long from = args.getValueLong("from", 0)
+        long to = args.getValueLong("to", 0)
         boolean doMarkDone = args.getValueBoolean("mark", false)
         long destinationWsId = args.getValueLong("ws")
         //
@@ -418,7 +419,10 @@ class Jdx_Ext extends ProjectExt {
             srv.srvHandleCommonQueFrom(cfgFileName_srv, mailDir)
 
             // Тиражирование реплик
-            srv.srvDispatchReplicasToDir(cfgFileName_srv, mailDir, age_from, age_to, destinationWsId, doMarkDone)
+            SendRequiredInfo requiredInfo = new SendRequiredInfo()
+            requiredInfo.requiredFrom = from
+            requiredInfo.requiredTo = to
+            srv.srvDispatchReplicasToDir(cfgFileName_srv, mailDir, requiredInfo, destinationWsId, doMarkDone)
         } finally {
             db.disconnect()
         }

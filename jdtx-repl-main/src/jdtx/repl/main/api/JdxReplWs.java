@@ -610,6 +610,8 @@ public class JdxReplWs {
 */
 
     public IReplica recreateQueOutReplicaAge(long age) throws Exception {
+        log.info("recreateQueOutReplica, age: " + age);
+
         // Можем пересозать только по аудиту JdxReplicaType.IDE
         IReplicaInfo replicaInfo = queOut.getInfoByAge(age);
         if (replicaInfo.getReplicaType() != JdxReplicaType.IDE) {
@@ -1244,21 +1246,34 @@ public class JdxReplWs {
         JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
         long srvSendAge = stateManager.getMailSendDone();
 
+        long sendFrom;
+        long sendTo;
+
         // Узнаем сколько просит сервер
-        long srvRequireSendAge = mailer.getSendRequired("from");
-        if (srvRequireSendAge != -1) {
-            log.warn("Repeat send required, srvRequireSendAge: " + srvRequireSendAge + ", srvSendAge: " + srvSendAge);
-            srvSendAge = srvRequireSendAge;
+        SendRequiredInfo requiredInfo = mailer.getSendRequired("from");
+        if (requiredInfo.requiredFrom != -1) {
+            // Сервер попросил повторную отправку
+            log.warn("Repeat send required, from: " + requiredInfo.requiredFrom + ", to: " + requiredInfo.requiredTo + ", recreate: " + requiredInfo.recreate);
+            sendFrom = requiredInfo.requiredFrom;
+            sendTo = requiredInfo.requiredTo;
+            // Сервер попросил переделать реплики заново
+            if (requiredInfo.recreate) {
+                for (long age = sendFrom; age <= sendTo; age++) {
+                    recreateQueOutReplicaAge(age);
+                }
+            }
         } else {
-            srvSendAge = srvSendAge + 1;
+            // Сервер не имеет просьб - выдаем очередную порцию
+            sendFrom = srvSendAge + 1;
+            sendTo = selfQueOutAge;
         }
 
         // Физически отправляем данные
-        sendInternal(mailer, srvSendAge, selfQueOutAge, true);
+        sendInternal(mailer, sendFrom, sendTo, true);
 
         // Снимем флаг просьбы сервера
-        if (srvRequireSendAge != -1) {
-            mailer.setSendRequired("from", -1);
+        if (requiredInfo.requiredFrom != -1) {
+            mailer.setSendRequired("from", new SendRequiredInfo());
             log.warn("Repeat send done");
         }
     }
