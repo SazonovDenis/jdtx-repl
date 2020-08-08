@@ -145,6 +145,10 @@ public class JdxUtils {
         }
     }
 
+    /**
+     * Проверки реплики.
+     * Защита от дурака, в отлаженнном коде - не нужна
+     */
     public static void validateReplica(IReplica replica) {
         // Проверки: правильность типа реплики
         if (replica.getInfo().getReplicaType() <= 0) {
