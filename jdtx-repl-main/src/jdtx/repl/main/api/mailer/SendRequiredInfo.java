@@ -8,6 +8,10 @@ public class SendRequiredInfo {
     public long requiredTo = -1;
     public boolean recreate = false;
 
+    public SendRequiredInfo() {
+        super();
+    }
+
     public SendRequiredInfo(JSONObject required) {
         super();
         requiredFrom = Long.valueOf(String.valueOf(required.getOrDefault("requiredFrom", -1)));
