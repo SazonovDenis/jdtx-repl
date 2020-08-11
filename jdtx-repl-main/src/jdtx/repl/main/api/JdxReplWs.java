@@ -1255,7 +1255,11 @@ public class JdxReplWs {
             // Сервер попросил повторную отправку
             log.warn("Repeat send required, from: " + requiredInfo.requiredFrom + ", to: " + requiredInfo.requiredTo + ", recreate: " + requiredInfo.recreate);
             sendFrom = requiredInfo.requiredFrom;
-            sendTo = requiredInfo.requiredTo;
+            if (requiredInfo.requiredTo != -1) {
+                sendTo = requiredInfo.requiredTo;
+            } else {
+                sendTo = selfQueOutAge;
+            }
             // Сервер попросил переделать реплики заново
             if (requiredInfo.recreate) {
                 for (long age = sendFrom; age <= sendTo; age++) {
