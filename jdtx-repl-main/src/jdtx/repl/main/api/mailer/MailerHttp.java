@@ -102,10 +102,7 @@ public class MailerHttp implements IMailer {
 
         //
         JSONObject required = (JSONObject) res.get("required");
-        SendRequiredInfo requiredInfo = new SendRequiredInfo();
-        requiredInfo.requiredFrom = Long.valueOf(String.valueOf(required.getOrDefault("requiredFrom", -1)));
-        requiredInfo.requiredTo = Long.valueOf(String.valueOf(required.getOrDefault("requiredTo", -1)));
-        requiredInfo.recreate = Boolean.valueOf(String.valueOf(required.getOrDefault("recreate", false)));
+        SendRequiredInfo requiredInfo = new SendRequiredInfo(required);
 
         //
         return requiredInfo;
@@ -147,8 +144,8 @@ public class MailerHttp implements IMailer {
         JSONObject last_info = (JSONObject) resState.get("last_info");
         long srv_age = Long.valueOf(String.valueOf(last_info.getOrDefault("age", 0)));
         JSONObject required = (JSONObject) resState.get("required");
-        long srv_required_send = Long.valueOf(String.valueOf(required.getOrDefault("required", -1)));
-        if (no <= srv_age && srv_required_send == -1) {
+        SendRequiredInfo requiredInfo = new SendRequiredInfo(required);
+        if (no <= srv_age && requiredInfo.requiredFrom == -1) {
             throw new XError("invalid replica.no, send.no: " + no + ", srv.no: " + srv_age);
         }
 
