@@ -207,11 +207,12 @@ public class JdxReplWs {
 
     void doAppUpdate(String appVersionAllowed) throws Exception {
         File exeFile = new File("install/JadatexSync-update-" + appVersionAllowed + ".exe");
-        log.info("start app update, exeFile: " + exeFile);
+        File appDirFile = new File(dataRoot).getParentFile().getParentFile();
+        log.info("start app update, exeFile: " + exeFile + ", appDir: " + appDirFile);
 
         // Запуск обновления
         List<String> res = new ArrayList<>();
-        int exitCode = UtRun.run(res, exeFile.getAbsolutePath(), "/SILENT", "/repl-service-install");
+        int exitCode = UtRun.run(res, exeFile.getAbsolutePath(), "/SILENT", "/repl-service-install", "/DIR=\"" + appDirFile.getAbsolutePath() + "\"");
 
         //
         if (exitCode != 0) {
