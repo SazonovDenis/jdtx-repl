@@ -24,7 +24,7 @@ public class ReplAppUpdate_test extends JdxReplWsSrv_Test {
         srv.init();
 
         //
-        String exeFileName = "Z:/jdtx-repl/install/JadatexSync-301.exe";
+        String exeFileName = "Z:/jdtx-repl/install/JadatexSync-542.exe";
         srv.srvAppUpdate(exeFileName);
 
 
