@@ -81,7 +81,7 @@ public class MailerLocalFiles implements IMailer {
         log.info("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", remoteDir: " + remoteDir + "/" + box);
 
         // Проверки: правильность полей реплики
-        JdxUtils.validateReplica(replica);
+        JdxUtils.validateReplicaFields(replica);
 
         //
         UtFile.mkdirs(remoteDir + box);

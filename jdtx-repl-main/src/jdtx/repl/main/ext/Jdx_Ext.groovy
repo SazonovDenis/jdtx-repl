@@ -161,17 +161,14 @@ class Jdx_Ext extends ProjectExt {
             utRepl.dropReplication()
             utRepl.createReplication(wsId, guid)
 
-            // Начальный конфиг
+            // Начальный конфиг Ws
             JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName)
-            UtCfg utCfg = new UtCfg(db)
+            UtCfgMarker utCfg = new UtCfgMarker(db)
             utCfg.setSelfCfg(cfg, UtCfgType.WS)
 
             // Создаем окружение для рабочей станции
             JdxReplWs ws = new JdxReplWs(db)
             ws.init()
-            //
-            UtFile.mkdirs(ws.queIn.baseDir)
-            UtFile.mkdirs(ws.queOut.baseDir)
 
         } finally {
             db.disconnect()
@@ -183,6 +180,8 @@ class Jdx_Ext extends ProjectExt {
         long wsId = args.getValueLong("ws")
         String name = args.getValueString("name")
         String guid = args.getValueString("guid")
+        String cfgPublications = args.getValueString("cfg_publications")
+        String cfgDecode = args.getValueString("cfg_decode")
         if (wsId == 0L) {
             throw new XError("Не указан [ws] - код рабочей станции")
         }
@@ -192,6 +191,12 @@ class Jdx_Ext extends ProjectExt {
         if (guid == null || guid.length() == 0) {
             throw new XError("Не указан [guid] - guid рабочей станции")
         }
+        if (cfgPublications == null || cfgPublications.length() == 0) {
+            throw new XError("Не указан [cfg_publications] - cfg-файл для publications рабочей станции")
+        }
+        if (cfgDecode == null || cfgDecode.length() == 0) {
+            throw new XError("Не указан [cfg_decode] - cfg-файл для decode рабочей станции")
+        }
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -200,8 +205,8 @@ class Jdx_Ext extends ProjectExt {
         //
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
-            srv.addWorkstation(wsId, name, guid)
-            //
+            srv.init()
+            srv.addWorkstation(wsId, name, guid, cfgPublications, cfgDecode)
 
             //
             System.out.println("new wsId: " + wsId)
@@ -446,7 +451,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            String[] boxes = ["from", "to"]
+            String[] boxes = ["from", "to001", "to"]
             for (Map.Entry en : srv.mailerList.entrySet()) {
                 long wsId = (long) en.getKey()
 
@@ -673,7 +678,7 @@ class Jdx_Ext extends ProjectExt {
         try {
             // Обновляем конфиг в своей таблице
             JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName)
-            UtCfg utCfg = new UtCfg(db)
+            UtCfgMarker utCfg = new UtCfgMarker(db)
             utCfg.setSelfCfg(cfg, cfgType)
 
         } finally {
@@ -681,6 +686,7 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
+/*
     void repl_set_quein(IVariantMap args) {
         Long no = args.getValueLong("no")
         if (no == null || no == 0) {
@@ -703,6 +709,7 @@ class Jdx_Ext extends ProjectExt {
             db.disconnect()
         }
     }
+*/
 
 
     void repl_app_version(IVariantMap args) {

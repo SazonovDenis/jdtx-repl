@@ -27,7 +27,7 @@ public class JdxReplTaskCustom {
 
     void logInfo(String info) {
         log.info(info);
-        //getLogger().put("state", info);
+        //getLogger().push("state", info);
     }
 
 
@@ -37,7 +37,7 @@ public class JdxReplTaskCustom {
         } else {
             info = "";
         }
-        //getLogger().put("state", info + Ut.getExceptionMessage(e));
+        //getLogger().push("state", info + Ut.getExceptionMessage(e));
         log.error(info + Ut.getExceptionMessage(e));
         log.error(Ut.getStackTrace(e));
     }

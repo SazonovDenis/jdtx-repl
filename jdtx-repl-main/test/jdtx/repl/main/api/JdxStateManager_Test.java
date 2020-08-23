@@ -11,6 +11,9 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
     long wsId_2 = 2;
     long wsId_3 = 3;
 
+    String cfg_json_decode = "test/etalon/decode_strategy.json";
+    String cfg_json_publication_ws = "test/etalon/publication_full_152_ws.json";
+
     @Test
     public void test_StateManager_setUp() throws Exception {
         UtRepl utRepl = new UtRepl(db, struct);
@@ -19,9 +22,9 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
 
         //
         JdxReplSrv srv = new JdxReplSrv(db);
-        srv.addWorkstation(wsId_1, "srv", "");
-        srv.addWorkstation(wsId_2, "ws 2", "");
-        srv.addWorkstation(wsId_3, "ws 3", "");
+        srv.addWorkstation(wsId_1, "srv", "", cfg_json_publication_ws, cfg_json_decode);
+        srv.addWorkstation(wsId_2, "ws 2", "", cfg_json_publication_ws, cfg_json_decode);
+        srv.addWorkstation(wsId_3, "ws 3", "", cfg_json_publication_ws, cfg_json_decode);
 
         //
         System.out.println("wsId_2: " + wsId_2);
@@ -33,38 +36,38 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
 
         //
-        System.out.println("getCommonQueDispatchDone[" + wsId_1 + "]: " + stateManager.getCommonQueDispatchDone(wsId_1));
+        System.out.println("getQueCommonDispatchDone[" + wsId_1 + "]: " + stateManager.getQueCommonDispatchDone(wsId_1));
         System.out.println("getWsQueInAgeDone[" + wsId_1 + "]: " + stateManager.getWsQueInAgeDone(wsId_1));
         //
-        System.out.println("getCommonQueDispatchDone[" + wsId_2 + "]: " + stateManager.getCommonQueDispatchDone(wsId_2));
+        System.out.println("getQueCommonDispatchDone[" + wsId_2 + "]: " + stateManager.getQueCommonDispatchDone(wsId_2));
         System.out.println("getWsQueInAgeDone[" + wsId_2 + "]: " + stateManager.getWsQueInAgeDone(wsId_2));
 
         // ---
-        stateManager.setCommonQueDispatchDone(wsId_1, 20);
+        stateManager.setQueCommonDispatchDone(wsId_1, 20);
         stateManager.setWsQueInAgeDone(wsId_1, 30);
         //
-        stateManager.setCommonQueDispatchDone(wsId_2, 21);
+        stateManager.setQueCommonDispatchDone(wsId_2, 21);
         stateManager.setWsQueInAgeDone(wsId_2, 31);
 
         //
-        System.out.println("getCommonQueDispatchDone[" + wsId_1 + "]: " + stateManager.getCommonQueDispatchDone(wsId_1));
+        System.out.println("getQueCommonDispatchDone[" + wsId_1 + "]: " + stateManager.getQueCommonDispatchDone(wsId_1));
         System.out.println("getWsQueInAgeDone[" + wsId_1 + "]: " + stateManager.getWsQueInAgeDone(wsId_1));
         //
-        System.out.println("getCommonQueDispatchDone[" + wsId_2 + "]: " + stateManager.getCommonQueDispatchDone(wsId_2));
+        System.out.println("getQueCommonDispatchDone[" + wsId_2 + "]: " + stateManager.getQueCommonDispatchDone(wsId_2));
         System.out.println("getWsQueInAgeDone[" + wsId_2 + "]: " + stateManager.getWsQueInAgeDone(wsId_2));
 
         // ---
-        stateManager.setCommonQueDispatchDone(wsId_1, 920);
+        stateManager.setQueCommonDispatchDone(wsId_1, 920);
         stateManager.setWsQueInAgeDone(wsId_1, 930);
         //
-        stateManager.setCommonQueDispatchDone(wsId_2, 921);
+        stateManager.setQueCommonDispatchDone(wsId_2, 921);
         stateManager.setWsQueInAgeDone(wsId_2, 931);
 
         //
-        System.out.println("getCommonQueDispatchDone[" + wsId_1 + "]: " + stateManager.getCommonQueDispatchDone(wsId_1));
+        System.out.println("getQueCommonDispatchDone[" + wsId_1 + "]: " + stateManager.getQueCommonDispatchDone(wsId_1));
         System.out.println("getWsQueInAgeDone[" + wsId_1 + "]: " + stateManager.getWsQueInAgeDone(wsId_1));
         //
-        System.out.println("getCommonQueDispatchDone[" + wsId_2 + "]: " + stateManager.getCommonQueDispatchDone(wsId_2));
+        System.out.println("getQueCommonDispatchDone[" + wsId_2 + "]: " + stateManager.getQueCommonDispatchDone(wsId_2));
         System.out.println("getWsQueInAgeDone[" + wsId_2 + "]: " + stateManager.getWsQueInAgeDone(wsId_2));
     }
 
@@ -74,23 +77,23 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
 
         //
         System.out.println("getAuditAgeDone: " + stateManager.getAuditAgeDone());
-        System.out.println("getQueInNoDone: " + stateManager.getQueInNoDone());
+        System.out.println("getQueInNoDone: " + stateManager.getQueNoDone("in"));
 
         // ---
         stateManager.setAuditAgeDone(20);
-        stateManager.setQueInNoDone(30);
+        stateManager.setQueNoDone("in", 30);
 
         //
         System.out.println("getAuditAgeDone: " + stateManager.getAuditAgeDone());
-        System.out.println("getQueInNoDone: " + stateManager.getQueInNoDone());
+        System.out.println("getQueInNoDone: " + stateManager.getQueNoDone("in"));
 
         // ---
         stateManager.setAuditAgeDone(920);
-        stateManager.setQueInNoDone(930);
+        stateManager.setQueNoDone("in", 930);
 
         //
         System.out.println("getAuditAgeDone: " + stateManager.getAuditAgeDone());
-        System.out.println("getQueInNoDone: " + stateManager.getQueInNoDone());
+        System.out.println("getQueInNoDone: " + stateManager.getQueNoDone("in"));
     }
 
 

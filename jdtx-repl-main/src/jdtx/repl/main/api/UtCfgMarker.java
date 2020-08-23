@@ -9,11 +9,11 @@ import org.json.simple.*;
 /**
  * Сохранение конфигураций в БД
  */
-public class UtCfg {
+public class UtCfgMarker {
 
     private Db db;
 
-    public UtCfg(Db db) {
+    public UtCfgMarker(Db db) {
         this.db = db;
     }
 

@@ -7,38 +7,38 @@ import org.junit.*;
 
 /**
  */
-public class UtCfg_Test extends ReplDatabaseStruct_Test {
+public class UtCfg_Marker_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
     public void test_dbStruct_SaveLoad() throws Exception {
-        UtCfg utCfg = new UtCfg(db);
+        UtCfgMarker utCfgMarker = new UtCfgMarker(db);
 
         //
-        String sP_1 = UtFile.loadString("test/jdtx/repl/main/api/UtCfg_Test.publications.json");
-        String sD_1 = UtFile.loadString("test/jdtx/repl/main/api/UtCfg_Test.decode_strategy.json");
-        String sW_1 = UtFile.loadString("test/jdtx/repl/main/api/UtCfg_Test.srv.json");
+        String sP_1 = UtFile.loadString("test/jdtx/repl/main/api/UtCfg_Marker_Test.publications.json");
+        String sD_1 = UtFile.loadString("test/jdtx/repl/main/api/UtCfg_Marker_Test.decode_strategy.json");
+        String sW_1 = UtFile.loadString("test/jdtx/repl/main/api/UtCfg_Marker_Test.srv.json");
 
 
         // Пишем
         JSONObject cfg1 = (JSONObject) UtJson.toObject(sW_1);
-        utCfg.setSelfCfg(cfg1, UtCfgType.WS);
+        utCfgMarker.setSelfCfg(cfg1, UtCfgType.WS);
 
         cfg1 = (JSONObject) UtJson.toObject(sD_1);
-        utCfg.setSelfCfg(cfg1, UtCfgType.DECODE);
+        utCfgMarker.setSelfCfg(cfg1, UtCfgType.DECODE);
 
         cfg1 = (JSONObject) UtJson.toObject(sP_1);
-        utCfg.setSelfCfg(cfg1, UtCfgType.PUBLICATIONS);
+        utCfgMarker.setSelfCfg(cfg1, UtCfgType.PUBLICATIONS);
 
 
         // Читаем
-        JSONObject cfg2 = utCfg.getSelfCfg(UtCfgType.WS);
+        JSONObject cfg2 = utCfgMarker.getSelfCfg(UtCfgType.WS);
         String sW_2 = UtJson.toString(cfg2);
 
-        cfg2 = utCfg.getSelfCfg(UtCfgType.DECODE);
+        cfg2 = utCfgMarker.getSelfCfg(UtCfgType.DECODE);
         String sD_2 = UtJson.toString(cfg2);
 
-        cfg2 = utCfg.getSelfCfg(UtCfgType.PUBLICATIONS);
+        cfg2 = utCfgMarker.getSelfCfg(UtCfgType.PUBLICATIONS);
         String sP_2 = UtJson.toString(cfg2);
 
 
@@ -65,7 +65,7 @@ public class UtCfg_Test extends ReplDatabaseStruct_Test {
 
         //
         long destinationWsId = 2;
-        String cfgFileName = "test/jdtx/repl/main/api/UtCfg_Test.publications.json";
+        String cfgFileName = "test/jdtx/repl/main/api/UtCfg_Marker_Test.publications.json";
         srv.srvSendCfg(cfgFileName, "cfg_publications", destinationWsId);
     }
 

@@ -7,20 +7,20 @@ import java.io.*;
 
 /**
  */
-public class UtDbStructApprover_XmlRW_Test extends ReplDatabaseStruct_Test {
+public class UtDbStructMarker_XmlRW_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
     public void test_dbStruct_SaveLoad() throws Exception {
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-        UtDbStructApprover dbStructRW = new UtDbStructApprover(db);
+        UtDbStructMarker utDbStructMarker = new UtDbStructMarker(db);
 
 
         // Сохраняем структуру в БД
-        dbStructRW.setDbStructAllowed(struct);
+        utDbStructMarker.setDbStructAllowed(struct);
 
         // Читаем структуру из БД
-        IJdxDbStruct structLoad = dbStructRW.getDbStructAllowed();
+        IJdxDbStruct structLoad = utDbStructMarker.getDbStructAllowed();
 
         // Сравниваем
         assertEquals(true, UtDbComparer.dbStructIsEqual(struct, structLoad));
@@ -31,10 +31,10 @@ public class UtDbStructApprover_XmlRW_Test extends ReplDatabaseStruct_Test {
         //
         IJdxDbStruct struct = struct_rw.read(file.getPath());
         //
-        dbStructRW.setDbStructAllowed(struct);
+        utDbStructMarker.setDbStructAllowed(struct);
 
         // Читаем структуру из БД
-        IJdxDbStruct structLoad1 = dbStructRW.getDbStructAllowed();
+        IJdxDbStruct structLoad1 = utDbStructMarker.getDbStructAllowed();
 
         // Сравниваем
         assertEquals(true, UtDbComparer.dbStructIsEqual(struct, structLoad1));

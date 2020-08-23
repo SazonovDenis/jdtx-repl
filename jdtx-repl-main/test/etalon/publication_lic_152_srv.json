@@ -1,7 +1,7 @@
 {
   "in": "full",
-  "out": "lic",
-  "lic": {
+  "out": "lic_only",
+  "lic_only": {
     "appupdate": {
       "fields": "*"
     },

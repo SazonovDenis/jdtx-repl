@@ -9,15 +9,15 @@ import org.apache.commons.logging.*;
 /**
  * Сохранение данных о разрешенной/фиксированной структуре для реплицируемой БД (в таблице Z_Z_state)
  */
-public class UtDbStructApprover {
+public class UtDbStructMarker {
 
     //
     private Db db;
 
     //
-    private static Log log = LogFactory.getLog("jdtx.UtDbStructApprover");
+    private static Log log = LogFactory.getLog("jdtx.UtDbStructMarker");
 
-    public UtDbStructApprover(Db db) {
+    public UtDbStructMarker(Db db) {
         this.db = db;
     }
 

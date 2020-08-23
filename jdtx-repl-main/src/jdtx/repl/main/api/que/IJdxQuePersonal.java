@@ -5,26 +5,20 @@ import jdtx.repl.main.api.replica.*;
 /**
  * Очередь собственных реплик - хранение и упорядочивание.
  */
-public interface IJdxQuePersonal {
+public interface IJdxQuePersonal extends /*IJdxReplicaStorage,*/ IJdxQueReplica, IJdxStorageFile {
 
     /**
-     * Поместить в очередь
+     * Получить реплику по возрасту
+     *
+     * @param age Возраст
+     * @return Реплика возраста age
      */
-    void put(IReplica replica) throws Exception;
+    IReplica getByAge(long age) throws Exception;
 
     /**
      * @return Реплика какого возраста есть в очереди
      */
     long getMaxAge() throws Exception;
-
-    /**
-     * Получить реплику по номеру (возрасту)
-     *
-     * @param age Номер (возраст)
-     * @return Реплика
-     */
-    IReplica getByAge(long age) throws Exception;
-
 
     /**
      * Получить информацию о реплике
@@ -33,15 +27,5 @@ public interface IJdxQuePersonal {
      * @return Информация о реплике
      */
     IReplicaInfo getInfoByAge(long age) throws Exception;
-
-    /**
-     * todo: Это только для реплик в файлах. А вообще может быть по-другому.
-     */
-    String getBaseDir();
-
-    /**
-     * todo: Это только для реплик в файлах. А вообще может быть по-другому.
-     */
-    void setBaseDir(String baseDir);
 
 }

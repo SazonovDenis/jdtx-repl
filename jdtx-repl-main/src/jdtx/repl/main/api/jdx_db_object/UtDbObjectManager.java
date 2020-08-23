@@ -13,7 +13,7 @@ import java.util.*;
 
 public class UtDbObjectManager {
 
-    int CURRENT_VER_DB = 4;
+    int CURRENT_VER_DB = 5;
 
     Db db;
 

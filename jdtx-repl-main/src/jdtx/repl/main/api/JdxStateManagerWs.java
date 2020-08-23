@@ -35,17 +35,17 @@ public class JdxStateManagerWs {
 
 
     /**
-     * @return Номер реплики, до которого обработана (применена) входящая очередь
+     * @return Номер реплики, до которого обработана (применена) очередь (queIn и queIn001)
      */
-    public long getQueInNoDone() throws Exception {
-        String sql = "select * from " + JdxUtils.sys_table_prefix + "state";
-        DataRecord rec = db.loadSql(sql).getCurRec();
-        return rec.getValueLong("que_in_no_done");
+    public void setQueNoDone(String queName, long queInNoDone) throws Exception {
+        String sql = "update " + JdxUtils.sys_table_prefix + "state set que_" + queName + "_no_done = " + queInNoDone;
+        db.execSql(sql);
     }
 
-    public void setQueInNoDone(long queInNoDone) throws Exception {
-        String sql = "update " + JdxUtils.sys_table_prefix + "state set que_in_no_done = " + queInNoDone;
-        db.execSql(sql);
+    public long getQueNoDone(String queName) throws Exception {
+        String sql = "select * from " + JdxUtils.sys_table_prefix + "state";
+        DataRecord rec = db.loadSql(sql).getCurRec();
+        return rec.getValueLong("que_" + queName + "_no_done");
     }
 
 

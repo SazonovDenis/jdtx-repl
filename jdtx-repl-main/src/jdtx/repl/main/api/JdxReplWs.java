@@ -55,6 +55,7 @@ public class JdxReplWs {
 
     //
     protected IJdxQueCommon queIn;
+    protected IJdxQueCommon queIn001;
     protected IJdxQuePersonal queOut;
 
     //
@@ -130,24 +131,29 @@ public class JdxReplWs {
         this.wsGuid = rec.getValueString("guid");
 
         // Чтение конфигурации
-        UtCfg utCfg = new UtCfg(db);
-        JSONObject cfgWs = utCfg.getSelfCfg(UtCfgType.WS);
-        JSONObject cfgPublications = utCfg.getSelfCfg(UtCfgType.PUBLICATIONS);
-        JSONObject cfgDecode = utCfg.getSelfCfg(UtCfgType.DECODE);
+        UtCfgMarker utCfgMarker = new UtCfgMarker(db);
+        JSONObject cfgWs = utCfgMarker.getSelfCfg(UtCfgType.WS);
+        JSONObject cfgPublications = utCfgMarker.getSelfCfg(UtCfgType.PUBLICATIONS);
+        JSONObject cfgDecode = utCfgMarker.getSelfCfg(UtCfgType.DECODE);
 
         // Рабочие каталоги
         String sWsId = UtString.padLeft(String.valueOf(wsId), 3, "0");
-        String queIn_DirLocal = dataRoot + "ws_" + sWsId + "/queIn";
-        String queOut_DirLocal = dataRoot + "ws_" + sWsId + "/queOut";
         String mailLocalDirTmp = dataRoot + "temp/";
 
-        // Читаем из этой очереди
-        queIn = new JdxQueCommonFile(db, JdxQueType.IN);
-        queIn.setBaseDir(queIn_DirLocal);
+        // Читаем из общей очереди
+        queIn = new JdxQueCommonFile(db, JdxQueName.IN);
+        String queIn_DirLocal = dataRoot + "ws_" + sWsId + "/queIn";
+        queIn.setDataRoot(queIn_DirLocal);
+
+        // Читаем из очереди 001
+        queIn001 = new JdxQueCommonFile(db, JdxQueName.IN001);
+        String queIn001_DirLocal = dataRoot + "ws_" + sWsId + "/queIn001";
+        queIn001.setDataRoot(queIn001_DirLocal);
 
         // Пишем в эту очередь
-        queOut = new JdxQuePersonalFile(db, JdxQueType.OUT);
-        queOut.setBaseDir(queOut_DirLocal);
+        queOut = new JdxQuePersonalFile(db, JdxQueName.OUT, wsId);
+        String queOut_DirLocal = dataRoot + "ws_" + sWsId + "/queOut";
+        queOut.setDataRoot(queOut_DirLocal);
 
         // Конфиг для мейлера
         JSONObject cfgMailer = new JSONObject();
@@ -177,9 +183,9 @@ public class JdxReplWs {
 
 
         //
-        UtDbStructApprover dbStructApprover = new UtDbStructApprover(db);
-        structAllowed = dbStructApprover.getDbStructAllowed();
-        structFixed = dbStructApprover.getDbStructFixed();
+        UtDbStructMarker utDbStructMarker = new UtDbStructMarker(db);
+        structAllowed = utDbStructMarker.getDbStructAllowed();
+        structFixed = utDbStructMarker.getDbStructFixed();
 
 
         // Проверка версии приложения, обновление при необходимости
@@ -200,6 +206,7 @@ public class JdxReplWs {
                 doAppUpdate(appVersionAllowed);
             }
         }
+
 
         // Чтобы были
         UtFile.mkdirs(dataRoot + "temp");
@@ -227,9 +234,18 @@ public class JdxReplWs {
     }
 
     /**
+     * ^c из этого изготовить аналог для подготовки снимка при добавлении WS = можект, queOut передать?
+     * А то два мтотода не очень хочется городить
+     * <p>
+     * ^c Сделать универсальный метод, подходящий как для Отправки от ws, так и для Формирование первичной на сервере
+     * Для этого  переосмыслить метод IJdxReplicaStorage.push - чтобы можно было пользоватся как JdxQueSnapshot.push() так и JdxQuePersonalFile.push()
+     * <p>
      * Формируем установочную реплику
+     * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      */
-    public void createTableSnapshotReplica(String tableName) throws Exception {
+    public void createTableSnapshotReplica_1xxxxxxxxxxxxxxxxxxxxxx(String tableName) throws Exception {
         log.info("createReplicaTableSnapshot, wsId: " + wsId + ", table: " + tableName);
 
         //
@@ -254,7 +270,7 @@ public class JdxReplWs {
             IReplica replicaSnapshot = utRepl.createReplicaTableSnapshot(wsId, publicationTable, age);
 
             // Помещаем реплику в очередь
-            queOut.put(replicaSnapshot);
+            queOut.push(replicaSnapshot);
 
             //
             stateManager.setAuditAgeDone(age);
@@ -294,7 +310,7 @@ public class JdxReplWs {
             IReplica replicaSnapshot = utRepl.createReplicaTableByIdList(wsId, table, age, idList);
 
             // Помещаем реплику в очередь
-            queOut.put(replicaSnapshot);
+            queOut.push(replicaSnapshot);
 
             //
             stateManager.setAuditAgeDone(age);
@@ -312,7 +328,8 @@ public class JdxReplWs {
 
 
     /**
-     * Обработаем аварийную ситуацию - поищем у себя недостающие записи (на которые мы ссылаемся) и выложим их в готовом виде для применения
+     * Обработаем аварийную ситуацию - поищем недостающие записи (на которые мы ссылаемся) у себя в каталоге для входящих реплик
+     * и выложим их в виде реплики (готовом виде для применения)
      */
     public void handleFailedInsertUpdateRef(JdxForeignKeyViolationException e) throws Exception {
         IJdxTable thisTable = JdxUtils.get_ForeignKeyViolation_tableInfo(e, struct);
@@ -361,9 +378,9 @@ public class JdxReplWs {
 
         // Читаем структуры
         IJdxDbStruct structActual = struct;
-        UtDbStructApprover dbStructApprover = new UtDbStructApprover(db);
-        IJdxDbStruct structFixed = dbStructApprover.getDbStructFixed();
-        IJdxDbStruct structAllowed = dbStructApprover.getDbStructAllowed();
+        UtDbStructMarker utDbStructMarker = new UtDbStructMarker(db);
+        IJdxDbStruct structFixed = utDbStructMarker.getDbStructFixed();
+        IJdxDbStruct structAllowed = utDbStructMarker.getDbStructAllowed();
 
         // Сравниваем
         IJdxDbStruct structDiffCommon = new JdxDbStruct();
@@ -465,20 +482,32 @@ public class JdxReplWs {
         db.startTran();
         try {
             //
-            long n = 0;
-            for (IJdxTable table : tablesNew) {
-                n++;
-                log.info("  createSnapshot " + n + "/" + tablesNew.size() + " " + table.getName());
+            UtRepl utRepl = new UtRepl(db, struct);
+            JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+
+            // Нумеруем реплики
+            long queOutMaxAge = queOut.getMaxAge();
+
+            // Создаем реплики
+            List<IReplica> rl = SnapshotForTables(tablesNew, queOutMaxAge);
+
+            // Помещаем реплики в очередь
+            int i = 0;
+            for (IReplica replicaSnapshot : rl) {
+                // Искусственно увеличиваем возраст (установочная реплика сдвигает возраст БД на 1)
+                long age = utRepl.incAuditAge();
+                log.info("createReplicaTableSnapshot, tableName: " + tablesNew.get(i).getName() + ", new age: " + age);
+
+                // Помещаем реплику в очередь
+                queOut.push(replicaSnapshot);
 
                 //
-                if (UtRepl.tableSkipRepl(table)) {
-                    log.info("  createSnapshot, skip not found in tableSkipRepl, table: " + table.getName());
-                    continue;
-                }
+                stateManager.setAuditAgeDone(age);
 
-                // Создание snapshot-реплики
-                createTableSnapshotReplica(table.getName());
+                //
+                i = i + 1;
             }
+
 
             //
             db.commit();
@@ -496,6 +525,42 @@ public class JdxReplWs {
         return true;
     }
 
+    List<IReplica> SnapshotForTables(List<IJdxTable> tables, long queOutAge) throws Exception {
+        List<IReplica> replicaList = new ArrayList<>();
+
+        UtRepl utRepl = new UtRepl(db, struct);
+
+        //
+        long age = queOutAge + 1;
+
+        //
+        for (IJdxTable table : tables) {
+            String tableName = table.getName();
+
+            log.info("SnapshotForTables, wsId: " + wsId + ", table: " + tableName);
+
+            //
+            IJdxTable publicationTable = publicationOut.getData().getTable(tableName);
+            if (publicationTable == null) {
+                // Пропускаем
+                log.info("SnapshotForTables, skip createSnapshot, not found in publicationOut, table: " + tableName);
+                //rl.add(null);
+            } else {
+                // Создаем установочную реплику
+                IReplica replicaSnapshot = utRepl.createReplicaTableSnapshot(wsId, publicationTable, age); // age
+                replicaList.add(replicaSnapshot);
+                age = age + 1;
+            }
+
+        }
+
+        //
+        log.info("SnapshotForTables, wsId: " + wsId + ", done");
+
+        //
+        return replicaList;
+    }
+
 
     /**
      * Обрабатываем свои таблицы аудита на предмет изменений,
@@ -506,7 +571,7 @@ public class JdxReplWs {
 
         //
         UtRepl utRepl = new UtRepl(db, struct);
-        UtDbStructApprover dbStructApprover = new UtDbStructApprover(db);
+        UtDbStructMarker utDbStructMarker = new UtDbStructMarker(db);
 
         // Если в стостоянии "я замолчал", то молчим
         JdxMuteManagerWs utmm = new JdxMuteManagerWs(db);
@@ -516,8 +581,8 @@ public class JdxReplWs {
         }
 
         // Проверяем совпадение структур
-        IJdxDbStruct structAllowed = dbStructApprover.getDbStructAllowed();
-        IJdxDbStruct structFixed = dbStructApprover.getDbStructFixed();
+        IJdxDbStruct structAllowed = utDbStructMarker.getDbStructAllowed();
+        IJdxDbStruct structFixed = utDbStructMarker.getDbStructFixed();
 
         // Проверяем совпадает ли реальная структура БД с разрешенной структурой
         if (struct.getTables().size() == 0 || !UtDbComparer.dbStructIsEqual(struct, structAllowed)) {
@@ -576,7 +641,7 @@ public class JdxReplWs {
                 IReplica replica = utRepl.createReplicaFromAudit(wsId, publicationOut, age);
 
                 // Пополнение исходящей очереди реплик
-                queOut.put(replica);
+                queOut.push(replica);
 
                 // Отметка о пополнении исходящей очереди реплик
                 stateManager.setAuditAgeDone(age);
@@ -641,67 +706,63 @@ public class JdxReplWs {
         return replicaOriginal;
     }
 
-    /**
-     * Применяем входящие реплики из очереди
-     */
-    public ReplicaUseResult handleQueIn(boolean forceUse) throws Exception {
-        log.info("handleQueIn, self.wsId: " + wsId);
+    private ReplicaUseResult handleQue(IJdxReplicaStorage que, String queName, long queNoFrom, long queNoTo, boolean forceUse) throws Exception {
+        log.info("handleQue, self.wsId: " + wsId + ", que.name: " + ((JdxQueCommonFile) que).queName + ", que: " + queNoFrom + " .. " + queNoTo);
 
         //
-        ReplicaUseResult handleQueInUseResult = new ReplicaUseResult();
+        ReplicaUseResult handleQueUseResult = new ReplicaUseResult();
 
         //
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
         //
-        long queInNoDone = stateManager.getQueInNoDone();
-        long queInNoAvailable = queIn.getMaxNo();
+
 
         //
         long count = 0;
-        for (long no = queInNoDone + 1; no <= queInNoAvailable; no++) {
-            log.info("handleQueIn, self.wsId: " + wsId + ", queIn.no: " + no + " (" + count + "/" + (queInNoAvailable - queInNoDone) + ")");
+        for (long no = queNoFrom; no <= queNoTo; no++) {
+            log.info("handleQue, self.wsId: " + wsId + ", que.no: " + no + " (count: " + count + "/" + (queNoTo - queNoFrom) + ")");
 
             //
-            IReplica replica = queIn.getByNo(no);
+            IReplica replica = que.get(no);
 
             // Пробуем применить реплику
             ReplicaUseResult replicaUseResult = useReplica(replica, forceUse);
 
-            if (replicaUseResult.replicaUsed && replicaUseResult.lastOwnAgeUsed > handleQueInUseResult.lastOwnAgeUsed) {
-                handleQueInUseResult.lastOwnAgeUsed = replicaUseResult.lastOwnAgeUsed;
+            if (replicaUseResult.replicaUsed && replicaUseResult.lastOwnAgeUsed > handleQueUseResult.lastOwnAgeUsed) {
+                handleQueUseResult.lastOwnAgeUsed = replicaUseResult.lastOwnAgeUsed;
             }
 
             // Реплика использованна?
             if (replicaUseResult.replicaUsed) {
                 // Отметим применение реплики
-                stateManager.setQueInNoDone(no);
+                stateManager.setQueNoDone(queName, no);
                 //
                 count++;
             } else {
                 // Не отмечаем
-                log.info("handleQueIn, replica not used");
+                log.info("handleQue, replica not used");
             }
 
             // Надо останавливаться?
             if (replicaUseResult.doBreak) {
                 // Останавливаемся
-                log.info("handleQueIn, break using replicas");
+                log.info("handleQue, break using replicas");
                 break;
             }
 
         }
 
         //
-        if (queInNoDone <= queInNoAvailable) {
-            log.info("handleQueIn, self.wsId: " + wsId + ", queIn: " + queInNoDone + " .. " + queInNoAvailable + ", done count: " + count);
+        if (queNoFrom <= queNoTo) {
+            log.info("handleQue, self.wsId: " + wsId + ", que: " + queNoFrom + " .. " + queNoTo + ", done count: " + count);
         } else {
-            log.info("handleQueIn, self.wsId: " + wsId + ", queIn: " + queInNoDone + ", nothing to do");
+            log.info("handleQue, self.wsId: " + wsId + ", que: " + queNoFrom + ", nothing to do");
         }
 
 
         //
-        return handleQueInUseResult;
+        return handleQueUseResult;
     }
 
     public void useReplicaFile(File f) throws Exception {
@@ -732,7 +793,7 @@ public class JdxReplWs {
         // Инструменты
         UtAuditApplyer auditApplyer = new UtAuditApplyer(db, struct);
         JdxMuteManagerWs muteManager = new JdxMuteManagerWs(db);
-        UtDbStructApprover dbStructApprover = new UtDbStructApprover(db);
+        UtDbStructMarker utDbStructMarker = new UtDbStructMarker(db);
         UtAppVersion_DbRW appVersionManager = new UtAppVersion_DbRW(db);
 
         // Совпадает ли реальная структура БД с разрешенной структурой
@@ -863,7 +924,7 @@ public class JdxReplWs {
                     JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
                     IJdxDbStruct struct = struct_rw.read(stream);
                     // Запоминаем "разрешенную" структуру БД
-                    dbStructApprover.setDbStructAllowed(struct);
+                    utDbStructMarker.setDbStructAllowed(struct);
                 } finally {
                     stream.close();
                 }
@@ -879,10 +940,14 @@ public class JdxReplWs {
                 }
 
                 // Запоминаем текущую структуру БД как "фиксированную" структуру
-                dbStructApprover.setDbStructFixed(struct);
+                utDbStructMarker.setDbStructFixed(struct);
 
                 // Выкладывание реплики "структура принята"
                 reportReplica(JdxReplicaType.SET_DB_STRUCT_DONE);
+
+                // Перечитывание собственной structAllowed, structFixed
+                structAllowed = utDbStructMarker.getDbStructAllowed();
+                structFixed = utDbStructMarker.getDbStructFixed();
 
                 //
                 break;
@@ -919,8 +984,8 @@ public class JdxReplWs {
                     }
 
                     // Обновляем конфиг в своей таблице
-                    UtCfg utCfg = new UtCfg(db);
-                    utCfg.setSelfCfg(cfg, cfgType);
+                    UtCfgMarker utCfgMarker = new UtCfgMarker(db);
+                    utCfgMarker.setSelfCfg(cfg, cfgType);
 
                     // Выкладывание реплики "конфигурация принята"
                     reportReplica(JdxReplicaType.SET_CFG_DONE);
@@ -952,7 +1017,7 @@ public class JdxReplWs {
                     log.error("====================================================================");
                 }
 
-                // Свои собственные установочные реплики точно можно не применять
+                // Свои собственные snapshot-реплики точно можно не применять
                 if (replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT && replica.getInfo().getWsId() == wsId) {
                     log.info("skip self snapshot");
                     break;
@@ -1033,8 +1098,26 @@ public class JdxReplWs {
         return useResult;
     }
 
-    public ReplicaUseResult handleQueIn() throws Exception {
-        return handleQueIn(false);
+    /**
+     * Применяем входящие реплики из очереди
+     */
+    public void handleQueIn() throws Exception {
+        handleQueIn001();
+        handleQueIn(false);
+    }
+
+    private ReplicaUseResult handleQueIn(boolean forceUse) throws Exception {
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+        long queInNoDone = stateManager.getQueNoDone("in");
+        long queInNoAvailable = queIn.getMaxNo();
+        return handleQue(queIn, "in", queInNoDone + 1, queInNoAvailable, forceUse);
+    }
+
+    private ReplicaUseResult handleQueIn001() throws Exception {
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+        long queInNoDone = stateManager.getQueNoDone("in001");
+        long queInNoAvailable = queIn001.getMaxNo();
+        return handleQue(queIn001, "in001", queInNoDone + 1, queInNoAvailable, true);
     }
 
     private String loadStringFromSream(InputStream stream) throws Exception {
@@ -1054,7 +1137,7 @@ public class JdxReplWs {
         UtRepl utRepl = new UtRepl(db, struct);
 
         // Весь свой аудит предварительно выкладываем в очередь.
-        // Это делается потому, что queOut.put() следит за монотонным увеличением возраста,
+        // Это делается потому, что queOut.push() следит за монотонным увеличением возраста,
         // а нам надо сделать искусственное увеличение возраста.
         handleSelfAudit();
 
@@ -1076,7 +1159,7 @@ public class JdxReplWs {
         db.startTran();
         try {
             // Системная реплика - в исходящую очередь реплик
-            queOut.put(replica);
+            queOut.push(replica);
 
             // Системная реплика - отметка об отправке
             stateManager.setAuditAgeDone(age);
@@ -1113,7 +1196,7 @@ public class JdxReplWs {
         long srvAvailableNo = mailer.getBoxState("to");
 
         // Физически забираем данные
-        receiveInternal(mailerLocal, selfReceivedNo + 1, srvAvailableNo);
+        receiveInternal(mailerLocal, "to", selfReceivedNo + 1, srvAvailableNo, queIn);
     }
 
 
@@ -1125,14 +1208,25 @@ public class JdxReplWs {
         // Узнаем сколько есть на сервере
         long srvAvailableNo = mailer.getBoxState("to");
 
-        // Физически отправляем данные
+        // Физически получаем данные
         selfReceivedNo = selfReceivedNo + 1;
-        receiveInternal(mailer, selfReceivedNo, srvAvailableNo);
+        receiveInternal(mailer, "to", selfReceivedNo, srvAvailableNo, queIn);
+
+        // ---
+        // Узнаем сколько получено у нас
+        long selfReceivedNo1 = queIn001.getMaxNo();
+
+        // Узнаем сколько есть на сервере
+        long srvAvailableNo1 = mailer.getBoxState("to001");
+
+        // Физически получаем данные
+        selfReceivedNo1 = selfReceivedNo1 + 1;
+        receiveInternal(mailer, "to001", selfReceivedNo1, srvAvailableNo1, queIn001);
     }
 
 
-    void receiveInternal(IMailer mailer, long no_from, long no_to) throws Exception {
-        log.info("receive, self.wsId: " + wsId);
+    void receiveInternal(IMailer mailer, String boxName, long no_from, long no_to, IJdxQueReplica que) throws Exception {
+        log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", que.name: " + ((JdxQueCommonFile) que).queName);
 
         //
         long count = 0;
@@ -1140,13 +1234,14 @@ public class JdxReplWs {
             log.info("receive, receiving.no: " + no);
 
             // Информация о реплике с почтового сервера
-            ReplicaInfo info = mailer.getReplicaInfo("to", no);
+            ReplicaInfo info = mailer.getReplicaInfo(boxName, no);
 
             // Нужно ли скачивать эту реплику с сервера?
             IReplica replica;
             if (info.getWsId() == wsId && info.getReplicaType() == JdxReplicaType.SNAPSHOT) {
-                // Свои собственные установочные реплики (snapshot таблиц) можно не скачивать (и не применять)
-                log.info("Found self snapshot replica, age: " + info.getAge());
+                // Свои собственные установочные реплики (snapshot таблиц) можно не скачивать
+                // (и в дальнейшем не применять)
+                log.info("Found self snapshot replica, no: " + no + ", replica.age: " + info.getAge());
                 //
                 replica = new ReplicaFile();
                 replica.getInfo().setWsId(info.getWsId());
@@ -1154,19 +1249,12 @@ public class JdxReplWs {
                 replica.getInfo().setReplicaType(info.getReplicaType());
             } else {
                 // Физически забираем данные реплики с сервера
-                replica = mailer.receive("to", no);
+                replica = mailer.receive(boxName, no);
+
                 // Проверяем целостность скачанного
-                String md5file = JdxUtils.getMd5File(replica.getFile());
-                if (!md5file.equals(info.getCrc())) {
-                    log.error("receive.replica: " + replica.getFile());
-                    log.error("receive.replica.md5: " + md5file);
-                    log.error("mailer.info.crc: " + info.getCrc());
-                    // Неправильно скачанный файл - удаляем, чтобы потом начать снова
-                    replica.getFile().delete();
-                    // Ошибка
-                    throw new XError("receive.replica.md5 <> mailer.info.crc");
-                }
-                //
+                JdxUtils.checkReplicaCrc(replica, info);
+
+                // Читаем заголовок
                 JdxReplicaReaderXml.readReplicaInfo(replica);
             }
 
@@ -1174,10 +1262,10 @@ public class JdxReplWs {
             //log.debug("replica.age: " + replica.getInfo().getAge() + ", replica.wsId: " + replica.getInfo().getWsId());
 
             // Помещаем реплику в свою входящую очередь
-            queIn.put(replica);
+            que.push(replica);
 
             // Удаляем с почтового сервера
-            mailer.delete("to", no);
+            mailer.delete(boxName, no);
 
             //
             count++;
@@ -1185,7 +1273,7 @@ public class JdxReplWs {
 
 
         // Отметить попытку чтения (для отслеживания активности станции, когда нет данных для реальной передачи)
-        mailer.setData(null, "ping.read", "to");
+        mailer.setData(null, "ping.read", boxName);
         // Отметить состояние рабочей станции (станция отчитывается о себе для отслеживания активности станции)
         Map info = getInfoWs();
         mailer.setData(info, "ws.info", null);
@@ -1193,9 +1281,9 @@ public class JdxReplWs {
 
         //
         if (no_from <= no_to) {
-            log.info("receive, self.wsId: " + wsId + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
+            log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
         } else {
-            log.info("receive, self.wsId: " + wsId + ", receive.no: " + no_from + ", nothing to receive");
+            log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", receive.no: " + no_from + ", nothing to receive");
         }
     }
 
@@ -1342,7 +1430,7 @@ public class JdxReplWs {
         long out_queAvailable = stateManager.getAuditAgeDone();  // Возраст аудита, до которого сформирована исходящая очередь
         long out_sendDone = stateMailManager.getMailSendDone();  // Возраст, до которого исходящая очередь отправлена на сервер
         long in_queInNoAvailable = queIn.getMaxNo();             // До какого номера есть реплики во входящей очереди
-        long in_queInNoDone = stateManager.getQueInNoDone();     // Номер реплики, до которого обработана (применена) входящая очередь
+        long in_queInNoDone = stateManager.getQueNoDone("in"); // Номер реплики, до которого обработана (применена) входящая очередь
 
         //
         info.put("out_auditAgeActual", out_auditAgeActual);
@@ -1442,7 +1530,7 @@ public class JdxReplWs {
             IReplica replica = ((JdxQueFile) queIn).readByNoFromDir(no);
 
             // Пополнение (восстановление) входящей очереди
-            queIn.put(replica);
+            queIn.push(replica);
 
             //
             count = count + 1;
@@ -1494,7 +1582,7 @@ public class JdxReplWs {
             }
 
             // Пополнение (восстановление) исходящей очереди реплик
-            queOut.put(replica);
+            queOut.push(replica);
 
             //
             count = count + 1;

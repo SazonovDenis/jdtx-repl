@@ -1,24 +1,91 @@
 package jdtx.repl.main.api.que;
 
 import jandcode.utils.*;
+import jandcode.utils.error.*;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.replica.*;
 import org.apache.commons.io.*;
 import org.apache.commons.io.filefilter.*;
 
 import java.io.*;
 
-public class JdxQueFile {
+public class JdxQueFile implements IJdxReplicaStorage, IJdxStorageFile {
 
     //
-    String queType;
+    public String queName;
 
+
+    /*
+     * IJdxStorageFile
+     */
+
+    //
     String baseDir;
 
+    @Override
     public String getBaseDir() {
         return baseDir;
     }
 
-    public long getMaxNoFromDir() throws Exception {
+    @Override
+    public void setDataRoot(String dataRoot) {
+        if (dataRoot == null || dataRoot.length() == 0) {
+            throw new XError("Invalid dataRoot");
+        }
+        //
+        this.baseDir = UtFile.unnormPath(dataRoot) + "/";
+        //
+        UtFile.mkdirs(this.baseDir);
+    }
+
+    /*
+     * IJdxReplicaStorage
+     */
+
+    @Override
+    public void put(IReplica replica, long no) throws Exception {
+        // Проверки: правильность полей реплики
+        JdxUtils.validateReplicaFields(replica);
+
+        // Переносим файл на постоянное место
+        String actualFileName = genFileName(no);
+        File actualFile = new File(baseDir + actualFileName);
+        File replicaFile = replica.getFile();
+
+        // Файл должен быть - иначе незачем делать put
+        if (replicaFile == null) {
+            throw new XError("Invalid replica.file == null");
+        }
+
+        // Если файл, указанный у реплики не совпадает с постоянным местом хранения, то файл переносим на постоянное место.
+        if (replicaFile.getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
+            // Если какой-то файл уже занимает постоянное место, то этот файл НЕ удаляем.
+            if (actualFile.exists()) {
+                throw new XError("ActualFile already exists: " + actualFile.getAbsolutePath());
+            }
+            // Переносим файл на постоянное место
+            FileUtils.moveFile(replicaFile, actualFile);
+        }
+    }
+
+    @Override
+    public IReplica get(long no) throws Exception {
+        IReplica replica = new ReplicaFile();
+        String actualFileName = genFileName(no);
+        File actualFile = new File(baseDir + actualFileName);
+        replica.setFile(actualFile);
+        return replica;
+    }
+
+    @Override
+    public long getMaxNo() throws Exception {
+        return getMaxNoFromDir();
+    }
+
+    /*
+     * Утилиты
+     */
+    public long getMaxNoFromDir() {
         String inFileMask = "*.zip";
         File dir = new File(baseDir);
         File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
@@ -47,13 +114,12 @@ public class JdxQueFile {
         return replica;
     }
 
-    long getNo(String fileName) {
+    private long getNo(String fileName) {
         return Long.valueOf(fileName.substring(0, 9));
     }
 
-    String genFileName(long no) {
+    private String genFileName(long no) {
         return UtString.padLeft(String.valueOf(no), 9, '0') + ".zip";
     }
-
 
 }

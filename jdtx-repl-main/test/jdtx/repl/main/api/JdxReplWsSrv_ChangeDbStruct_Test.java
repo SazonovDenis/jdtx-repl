@@ -10,7 +10,7 @@ import org.junit.*;
  */
 public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
-    String cfg_publications = "test/etalon/publication_full_152_1.json";
+    String cfg_publications = "test/etalon/publication_full_152.struct.json";
 
     @Override
     public void setUp() throws Exception {
@@ -134,8 +134,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         IJdxDbStruct structFixed_ws1;
         IJdxDbStruct structAllowed_ws1;
         //
-        UtDbStructApprover dbStructRW = new UtDbStructApprover(db);
-        UtDbStructApprover dbStructRW_ws2 = new UtDbStructApprover(db2);
+        UtDbStructMarker utDbStructMarker = new UtDbStructMarker(db);
+        UtDbStructMarker utDbStructMarker_ws2 = new UtDbStructMarker(db2);
         //
         long queInNoDone1;
         long queInNoDone2;
@@ -168,7 +168,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws = new JdxReplWs(db);
         ws.init();
         structActual_ws1 = ws.struct;
-        dbStructRW.setDbStructAllowed(structActual_ws1);
+        utDbStructMarker.setDbStructAllowed(structActual_ws1);
 
         // Делаем фиксацию структуры
         ws.dbStructApplyFixed();
@@ -178,8 +178,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws.init();
         //
         structActual_ws1 = ws.struct;
-        structFixed_ws1 = dbStructRW.getDbStructFixed();
-        structAllowed_ws1 = dbStructRW.getDbStructAllowed();
+        structFixed_ws1 = utDbStructMarker.getDbStructFixed();
+        structAllowed_ws1 = utDbStructMarker.getDbStructAllowed();
         //
         assertEquals(true, UtDbComparer.dbStructIsEqual(structActual_ws1, structAllowed_ws1));
         assertEquals(true, UtDbComparer.dbStructIsEqual(structActual_ws1, structFixed_ws1));
@@ -196,7 +196,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Попытка принять и использовать реплики на ws2
-        queInNoDone1 = stateManager_ws2.getQueInNoDone();
+        queInNoDone1 = stateManager_ws2.getQueNoDone("in");
         //
         ws2 = new JdxReplWs(db2);
         ws2.init();
@@ -206,7 +206,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Применяем входящие реплики
         ws2.handleQueIn();
         //
-        queInNoDone2 = stateManager_ws2.getQueInNoDone();
+        queInNoDone2 = stateManager_ws2.getQueNoDone("in");
 
         // Применение реплик приостановлено
         assertEquals(queInNoDone1, queInNoDone2);
@@ -221,7 +221,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws2 = new JdxReplWs(db2);
         ws2.init();
         structActual_ws1 = ws2.struct;
-        dbStructRW_ws2.setDbStructAllowed(structActual_ws1);
+        utDbStructMarker_ws2.setDbStructAllowed(structActual_ws1);
 
         // Делаем фиксацию структуры
         ws2.dbStructApplyFixed();
@@ -231,15 +231,15 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws2.init();
         //
         structActual_ws1 = ws2.struct;
-        structFixed_ws1 = dbStructRW_ws2.getDbStructFixed();
-        structAllowed_ws1 = dbStructRW_ws2.getDbStructAllowed();
+        structFixed_ws1 = utDbStructMarker_ws2.getDbStructFixed();
+        structAllowed_ws1 = utDbStructMarker_ws2.getDbStructAllowed();
         //
         assertEquals(true, UtDbComparer.dbStructIsEqual(structActual_ws1, structAllowed_ws1));
         assertEquals(true, UtDbComparer.dbStructIsEqual(structActual_ws1, structFixed_ws1));
 
 
         // Попытка принять и использовать реплики
-        queInNoDone1 = stateManager_ws2.getQueInNoDone();
+        queInNoDone1 = stateManager_ws2.getQueNoDone("in");
         //
         ws2 = new JdxReplWs(db2);
         ws2.init();
@@ -249,7 +249,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Применяем входящие реплики
         ws2.handleQueIn();
         //
-        queInNoDone2 = stateManager_ws2.getQueInNoDone();
+        queInNoDone2 = stateManager_ws2.getQueNoDone("in");
 
         // Применение реплик проходит нормально
         assertNotSame(queInNoDone1, queInNoDone2);
@@ -278,7 +278,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         IJdxDbStruct structFixed;
         IJdxDbStruct structAllowed;
         //
-        UtDbStructApprover dbStructRW = new UtDbStructApprover(db);
+        UtDbStructMarker utDbStructMarker = new UtDbStructMarker(db);
 
 
         // ===
@@ -313,8 +313,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws.init();
         //
         structActual = ws.struct;
-        structFixed = dbStructRW.getDbStructFixed();
-        structAllowed = dbStructRW.getDbStructAllowed();
+        structFixed = utDbStructMarker.getDbStructFixed();
+        structAllowed = utDbStructMarker.getDbStructAllowed();
         //
         assertEquals(false, UtDbComparer.dbStructIsEqual(structActual, structAllowed));
         assertEquals(false, UtDbComparer.dbStructIsEqual(structActual, structFixed));
@@ -323,7 +323,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Устанавливаем "разрешенную" структуру
-        dbStructRW.setDbStructAllowed(structActual);
+        utDbStructMarker.setDbStructAllowed(structActual);
 
 
         // ===
@@ -340,8 +340,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws.init();
         //
         structActual = ws.struct;
-        structFixed = dbStructRW.getDbStructFixed();
-        structAllowed = dbStructRW.getDbStructAllowed();
+        structFixed = utDbStructMarker.getDbStructFixed();
+        structAllowed = utDbStructMarker.getDbStructAllowed();
         //
         assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structAllowed));
         assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structFixed));
@@ -480,8 +480,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // На сервере напрямую задаем структуру публикаций (команда repl_set_cfg)
         JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfg_publications);
-        UtCfg utCfg = new UtCfg(db);
-        utCfg.setSelfCfg(cfg, UtCfgType.PUBLICATIONS);
+        UtCfgMarker utCfgMarker = new UtCfgMarker(db);
+        utCfgMarker.setSelfCfg(cfg, UtCfgType.PUBLICATIONS);
 
         // От сервера рассылаем...
         JdxReplSrv srv = new JdxReplSrv(db);
@@ -564,9 +564,9 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws.init();
         //
         IJdxDbStruct structActual = ws.struct;
-        UtDbStructApprover dbStructRW = new UtDbStructApprover(db);
-        IJdxDbStruct structFixed = dbStructRW.getDbStructFixed();
-        IJdxDbStruct structAllowed = dbStructRW.getDbStructAllowed();
+        UtDbStructMarker utDbStructMarker = new UtDbStructMarker(db);
+        IJdxDbStruct structFixed = utDbStructMarker.getDbStructFixed();
+        IJdxDbStruct structAllowed = utDbStructMarker.getDbStructAllowed();
         //
         assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structAllowed));
         assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structFixed));

@@ -41,12 +41,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         cfg_json_ws = "test/etalon/ws.json";
         cfg_json_decode = "test/etalon/decode_strategy.json";
-        // cfg_json_publication_srv = "test/etalon/publication_full_152.json";
-        // cfg_json_publication_ws = "test/etalon/publication_full_152.json";
+        //cfg_json_publication_srv = "test/etalon/publication_full_152.json";
+        //cfg_json_publication_ws = "test/etalon/publication_full_152.json";
         cfg_json_publication_srv = "test/etalon/publication_full_152_srv.json";
         cfg_json_publication_ws = "test/etalon/publication_full_152_ws.json";
-        // cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
-        // cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
+        //cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
+        //cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
     }
 
     @Test
@@ -98,7 +98,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         // Начальный конфиг сервера: напрямую задаем структуру публикаций (команда repl_set_cfg)
         args.clear();
-        //args.put("file", cfg_json_publications_full_152);
         args.put("file", cfg_json_publication_srv);
         args.put("cfg", UtCfgType.PUBLICATIONS);
         extSrv.repl_set_cfg(args);
@@ -108,24 +107,32 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         args.put("ws", 1);
         args.put("name", "Сервер");
         args.put("guid", "b5781df573ca6ee6.x-17845f2f56f4d401");
+        args.put("cfg_publications", cfg_json_publication_srv);
+        args.put("cfg_decode", cfg_json_decode);
         extSrv.repl_add_ws(args);
         //
         args.clear();
         args.put("ws", 2);
         args.put("name", "ws 2");
         args.put("guid", "b5781df573ca6ee6.x-21ba238dfc945002");
+        args.put("cfg_publications", cfg_json_publication_ws);
+        args.put("cfg_decode", cfg_json_decode);
         extSrv.repl_add_ws(args);
         //
         args.clear();
         args.put("ws", 3);
         args.put("name", "ws 3");
         args.put("guid", "b5781df573ca6ee6.x-34f3cc20bea64503");
+        args.put("cfg_publications", cfg_json_publication_ws);
+        args.put("cfg_decode", cfg_json_decode);
         extSrv.repl_add_ws(args);
         //
         args.clear();
         args.put("ws", 4);
         args.put("name", "ws 4");
         args.put("guid", "b5781df573ca6ee6.x-444fed23da93ab04");
+        args.put("cfg_publications", cfg_json_publication_ws);
+        args.put("cfg_decode", cfg_json_decode);
         extSrv.repl_add_ws(args);
 
         // Активируем 3 рабочие станции
@@ -148,6 +155,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         assertEquals("Ящики не созданы", true, extSrv.repl_mail_check(args));
         //createBoxes_Local();
 
+        /*
         // Сразу рассылаем настройки для всех станций
         args.clear();
         args.put("file", cfg_json_decode);
@@ -168,7 +176,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         // Для сервера - сразу инициируем фиксацию структуры БД
         args.clear();
         extSrv.repl_dbstruct_finish(args);
-
+        */
 
         // ---
         UtData.outTable(db.loadSql("select id, name, guid from " + JdxUtils.sys_table_prefix + "workstation_list"));
@@ -238,6 +246,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
             MailerHttp mailer = (MailerHttp) en.getValue();
             mailer.createMailBox("from");
             mailer.createMailBox("to");
+            mailer.createMailBox("to001");
             System.out.println("wsId: " + wsId + ", boxes - ok");
         }
     }
@@ -473,7 +482,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         OutTableSaver svr3_r = new OutTableSaver(st3_r);
 
         //
-        String sql_bt = "select UsrLog.Info as Info\n" +
+        String sql_bt = "select UsrLog.Info as UsrLogInfo\n" +
                 "from UsrLog\n" +
                 "where id <> 0 and Info <> ''\n" +
                 "order by Info\n";

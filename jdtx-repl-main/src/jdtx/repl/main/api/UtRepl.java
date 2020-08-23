@@ -66,15 +66,15 @@ public class UtRepl {
         decodeManager.createRefDecodeObject();
 
         //
-        UtDbStructApprover dbStructRW = new UtDbStructApprover(db);
+        UtDbStructMarker utDbStructMarker = new UtDbStructMarker(db);
 
         // Для начала "разрешенная" структура будет пустая
         IJdxDbStruct structAllowed = new JdxDbStruct();
-        dbStructRW.setDbStructAllowed(structAllowed);
+        utDbStructMarker.setDbStructAllowed(structAllowed);
 
         // Для начала "фиксированная" структура будет пустая
         IJdxDbStruct structFixed = new JdxDbStruct();
-        dbStructRW.setDbStructFixed(structFixed);
+        utDbStructMarker.setDbStructFixed(structFixed);
     }
 
 
@@ -251,7 +251,7 @@ public class UtRepl {
      * Реплика на вставку всех существующих записей в этой БД.
      * <p>
      * Используется при включении новой БД в систему:
-     * самая первая (установочная) реплика для сервера.
+     * В числе первых реплик для сервера.
      */
     public IReplica createReplicaTableSnapshot(long wsId, IJdxTable publicationTable, long age) throws Exception {
         IReplica replica = new ReplicaFile();

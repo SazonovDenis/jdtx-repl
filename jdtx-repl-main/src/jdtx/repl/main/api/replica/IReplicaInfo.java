@@ -6,6 +6,9 @@ import org.joda.time.*;
  */
 public interface IReplicaInfo {
 
+    /**
+     * @return Станция-автор реплики
+     */
     long getWsId();
 
     void setWsId(long wsId);

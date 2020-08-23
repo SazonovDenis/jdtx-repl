@@ -146,10 +146,10 @@ public class JdxUtils {
     }
 
     /**
-     * Проверки реплики.
+     * Проверки реплики, правильность полей.
      * Защита от дурака, в отлаженнном коде - не нужна
      */
-    public static void validateReplica(IReplica replica) {
+    public static void validateReplicaFields(IReplica replica) {
         // Проверки: правильность типа реплики
         if (replica.getInfo().getReplicaType() <= 0) {
             throw new XError("invalid replica.replicaType");
@@ -184,7 +184,8 @@ public class JdxUtils {
         // Проверки: обязательность файла
         File replicaFile = replica.getFile();
         if (replicaFile == null && replica.getInfo().getReplicaType() != JdxReplicaType.SNAPSHOT) {
-            //if (replicaFile == null) { todo: почему?
+            // Разрещаем SNAPSHOT быть без файла, т.к. свои собственные snapshot-реплики, поступающие в queIn,
+            // можно не скачивать (и в дальнейшем не применять)
             throw new XError("invalid replica.file is null");
         }
 
@@ -308,6 +309,19 @@ public class JdxUtils {
         }
         //
         return null;
+    }
+
+    /**
+     * Проверяет целостность файцла в реплике по crc
+     */
+    public static void checkReplicaCrc(IReplica replica, ReplicaInfo info) throws Exception {
+        String md5file = JdxUtils.getMd5File(replica.getFile());
+        if (!md5file.equals(info.getCrc())) {
+            // Неправильно скачанный файл - удаляем, чтобы потом начать снова
+            replica.getFile().delete();
+            // Ошибка
+            throw new XError("receive.replica.md5 <> info.crc, file: " + replica.getFile());
+        }
     }
 
     private static class JdxTableComparator implements Comparator {
