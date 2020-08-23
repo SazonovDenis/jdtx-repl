@@ -132,11 +132,10 @@ public class MailerHttp implements IMailer {
 
     @Override
     public void send(IReplica replica, String box, long no) throws Exception {
-        log.info("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
+        log.info("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", box: " + box + ", remoteUrl: " + remoteUrl);
 
-
-        // Проверки: правильность типа реплики
-        JdxUtils.validateReplica(replica);
+        // Проверки: правильность полей реплики
+        JdxUtils.validateReplicaFields(replica);
 
         // Проверки: не отправляли ли ранее такую реплику?
         // Защита от ситуации "восстановление на клиенте БД из бэкапа"
@@ -250,7 +249,7 @@ public class MailerHttp implements IMailer {
 
     @Override
     public IReplica receive(String box, long no) throws Exception {
-        log.info("mailer.receive, no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
+        log.info("mailer.receive, no: " + no + ", box: " + box + ", remoteUrl: " + remoteUrl);
 
         // Читаем данные об очередном письме
         JSONObject resInfo = getInfo_internal(box, no);
@@ -279,15 +278,27 @@ public class MailerHttp implements IMailer {
         File replicaFile = new File(localDirTmp + localFileName);
 
         // Большие письма получаем с докачкой, поэтому сначала выясняем, что уже успели скачать
-        long filePart = 0;
         long receivedBytes = 0;
-        if (filePartsCount > 1) {
+        if (replicaFile.exists()) {
             receivedBytes = replicaFile.length();
-            filePart = (receivedBytes + HTTP_FILE_MAX_SIZE - 1) / HTTP_FILE_MAX_SIZE;
-            //
-            if (receivedBytes > 0) {
-                log.info("mailer.receive, already received part: " + filePart + ", receive bytes: " + receivedBytes + "/" + totalBytes);
-            }
+        }
+        //
+        long filePart = (receivedBytes + HTTP_FILE_MAX_SIZE - 1) / HTTP_FILE_MAX_SIZE;
+        long filePartFrac = receivedBytes % HTTP_FILE_MAX_SIZE;
+
+        // Прверяем корректность разделения на порции
+        if (filePartFrac != 0 && receivedBytes < totalBytes) {
+            // Порция не докачана и не является частью
+            log.warn("mailer.receive, not whole received part: " + filePart + ", filePartFrac: " + filePartFrac + ", receive bytes: " + receivedBytes);
+            // Начнем скачку заново
+            replicaFile.delete();
+            receivedBytes = 0;
+            filePart = 0;
+        }
+
+        //
+        if (filePartsCount > 1 && receivedBytes > 0) {
+            log.info("mailer.receive, already received part: " + filePart + ", receive bytes: " + receivedBytes + "/" + totalBytes);
         }
 
         // Закачиваем (по частям)
@@ -342,7 +353,7 @@ public class MailerHttp implements IMailer {
 
     @Override
     public void delete(String box, long no) throws Exception {
-        log.info("mailer.delete, no: " + no + ", remoteUrl: " + remoteUrl + ", box: " + box);
+        log.info("mailer.delete, no: " + no + ", box: " + box + ", remoteUrl: " + remoteUrl);
 
         //
         HttpClient httpclient = HttpClientBuilder.create().build();
