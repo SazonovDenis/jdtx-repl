@@ -25,17 +25,8 @@ public class JdxReplTaskWs extends JdxReplTaskCustom {
         ws.init();
         logInfo("Рабочая станция, wsId: " + ws.getWsId());
 
-/*
-        // Очистим состояние "ошибка" на мониторинге
-        try {
-            IMailer mailer = ws.getMailer();
-            sendErrors(mailer, "ws.errors");
-        } catch (Exception e) {
-            logError(e);
-            collectError("ws.sendErrors", e);
-        }
-*/
-
+        // Проверка версии приложения, обновление при необходимости
+        ws.checkAppUpdate();
 
         //
         logInfo("Проверяем аварийную ситуацию");
@@ -54,7 +45,6 @@ public class JdxReplTaskWs extends JdxReplTaskCustom {
             logInfo("Рабочая станция прервана");
             return;
         }
-
 
         //
         logInfo("Отслеживаем и обрабатываем свои изменения");

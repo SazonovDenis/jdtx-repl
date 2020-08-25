@@ -23,6 +23,11 @@ public class JdxReplTaskSrv extends JdxReplTaskCustom {
         log.info("Сервер, настройка");
         srv.init();
 
+
+        // Проверка версии приложения
+        srv.checkAppUpdate();
+
+
         //
         log.info("Формирование общей очереди");
         try {
@@ -31,6 +36,7 @@ public class JdxReplTaskSrv extends JdxReplTaskCustom {
             logError(e);
             collectError("srv.srvHandleCommonQue", e);
         }
+
 
         //
         log.info("Тиражирование реплик");
@@ -41,10 +47,12 @@ public class JdxReplTaskSrv extends JdxReplTaskCustom {
             collectError("srv.srvDispatchReplicas", e);
         }
 
+
         //
         IMailer mailer = srv.getMailer();
         logInfo("Отправка ошибок");
         sendErrors(mailer, "srv.errors");
+
 
         //
         log.info("Сервер завершен");

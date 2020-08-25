@@ -129,7 +129,12 @@ public class JdxReplSrv {
         struct = UtRepl.getStructCommon(structActual, publicationIn, publicationOut);
 
 
-        // Проверка версии приложения
+        // Чтобы были
+        UtFile.mkdirs(dataRoot + "temp");
+    }
+
+    // Проверка версии приложения
+    void checkAppUpdate() throws Exception {
         UtAppVersion_DbRW appVersionRW = new UtAppVersion_DbRW(db);
         String appVersionAllowed = appVersionRW.getAppVersionAllowed();
         String appVersionActual = UtRepl.getVersion();
@@ -147,10 +152,6 @@ public class JdxReplSrv {
                 throw new XError("appVersionAllowed != appVersionActual, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
             }
         }
-
-
-        // Чтобы были
-        UtFile.mkdirs(dataRoot + "temp");
     }
 
     public void addWorkstation(long wsId, String wsName, String wsGuid, String cfgPublicationsFileName, String cfgDecodeFileName) throws Exception {

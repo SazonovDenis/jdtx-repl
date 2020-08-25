@@ -188,7 +188,12 @@ public class JdxReplWs {
         structFixed = utDbStructMarker.getDbStructFixed();
 
 
-        // Проверка версии приложения, обновление при необходимости
+        // Чтобы были
+        UtFile.mkdirs(dataRoot + "temp");
+    }
+
+    // Проверка версии приложения, обновление при необходимости
+    void checkAppUpdate() throws Exception {
         UtAppVersion_DbRW appVersionRW = new UtAppVersion_DbRW(db);
         String appVersionAllowed = appVersionRW.getAppVersionAllowed();
         String appVersionActual = UtRepl.getVersion();
@@ -206,10 +211,6 @@ public class JdxReplWs {
                 doAppUpdate(appVersionAllowed);
             }
         }
-
-
-        // Чтобы были
-        UtFile.mkdirs(dataRoot + "temp");
     }
 
     void doAppUpdate(String appVersionAllowed) throws Exception {
