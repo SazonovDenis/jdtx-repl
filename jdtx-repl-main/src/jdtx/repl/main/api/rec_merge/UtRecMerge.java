@@ -154,7 +154,7 @@ class UtRecMerge implements IUtRecMerge {
                     for (long deleteRecId : mergeTask.recordsDelete) {
                         Map params = UtCnv.toMap(
                                 fkRefFieldName + "_OLD", deleteRecId,
-                                fkRefFieldName + "_NEW", mergeTask.recordEtalon.getValue(pkField)
+                                fkRefFieldName + "_NEW", mergeTask.recordEtalon.get(pkField)
                         );
 
                         // Селектим как сейчас
@@ -233,7 +233,7 @@ class UtRecMerge implements IUtRecMerge {
             RecMergeTask task = new RecMergeTask();
             //
             task.tableName = tableName;
-            task.recordEtalon = duplicate.records.get(0);
+            task.recordEtalon = duplicate.records.get(0).getValues();
             for (int i = 1; i < duplicate.records.size(); i++) {
                 task.recordsDelete.add(duplicate.records.get(i).getValueLong(pkField));
             }
