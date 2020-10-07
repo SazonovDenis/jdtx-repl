@@ -40,8 +40,8 @@ class UtRecMerge implements IUtRecMerge {
 
 
     @Override
-    public Collection<UtRecDuplicate> loadTableDuplicates(String tableName, String[] fieldNames) throws Exception {
-        List<UtRecDuplicate> resList = new ArrayList<>();
+    public Collection<RecDuplicate> loadTableDuplicates(String tableName, String[] fieldNames) throws Exception {
+        List<RecDuplicate> resList = new ArrayList<>();
 
         //
         String sqlAll = "select * from " + tableName + " order by id";
@@ -96,7 +96,7 @@ class UtRecMerge implements IUtRecMerge {
             //
             DataStore store = db.loadSql(sqlRec, params);
             if (store.size() > 1) {
-                UtRecDuplicate res = new UtRecDuplicate();
+                RecDuplicate res = new RecDuplicate();
                 res.params = params;
                 res.records = store;
                 resList.add(res);
@@ -111,17 +111,112 @@ class UtRecMerge implements IUtRecMerge {
     }
 
     @Override
-    public Collection<UtRemoveDuplicatesRes> execRemoveDuplicates(Collection<UtRecMergeTask> tasks) throws Exception {
-        Collection<UtRemoveDuplicatesRes> res = new ArrayList<>();
+    public Map<String, Map<String, RecMergeResultRefTable>> execMergeTask(Collection<RecMergeTask> mergeTasks, boolean doDelete) throws Exception {
+        Map<String, Map<String, RecMergeResultRefTable>> result = new HashMap<>();
+
         //
-        for (UtRecMergeTask task : tasks) {
-            UtRemoveDuplicatesRes removeDuplicatesRes = new UtRemoveDuplicatesRes();
-            //
-            removeDuplicatesRes.tableName = null;
-            removeDuplicatesRes.recordsUpdated = null;
-            //
-            res.add(removeDuplicatesRes);
+        for (RecMergeTask mergeTask : mergeTasks) {
+            db.startTran();
+            try {
+                //
+                Map<String, RecMergeResultRefTable> taskResult = result.get(mergeTask.tableName);
+                if (taskResult == null) {
+                    taskResult = new HashMap();
+                    result.put(mergeTask.tableName, taskResult);
+                }
+
+                //
+                String pkField = struct.getTable(mergeTask.tableName).getPrimaryKey().get(0).getName();
+                Map<String, IJdxForeignKey> refsToTable = getRefsToTable(mergeTask.tableName);
+
+                // UPD - Перебиваем ссылки у зависимых таблиц
+                for (String refTableName : refsToTable.keySet()) {
+                    IJdxForeignKey fk = refsToTable.get(refTableName);
+
+                    //
+                    String fkRefFieldName = fk.getField().getName();
+
+                    //
+                    String key = refTableName + "_" + fkRefFieldName;
+                    RecMergeResultRefTable taskRecResult = taskResult.get(key);
+                    if (taskRecResult == null) {
+                        taskRecResult = new RecMergeResultRefTable();
+                        taskRecResult.refTtableName = refTableName;
+                        taskRecResult.refTtableRefFieldName = fkRefFieldName;
+                        taskResult.put(key, taskRecResult);
+                    }
+
+                    //
+                    String sqlUpdate = "update " + refTableName + " set " + fkRefFieldName + " = :" + fkRefFieldName + "_NEW" + " where " + fkRefFieldName + " = :" + fkRefFieldName + "_OLD";
+                    String sqlSelect = "select * from " + refTableName + " where " + fkRefFieldName + " = :" + fkRefFieldName + "_OLD";
+
+                    //
+                    for (long deleteRecId : mergeTask.recordsDelete) {
+                        Map params = UtCnv.toMap(
+                                fkRefFieldName + "_OLD", deleteRecId,
+                                fkRefFieldName + "_NEW", mergeTask.recordEtalon.getValue(pkField)
+                        );
+
+                        // Селектим как сейчас
+                        DataStore st = db.loadSql(sqlSelect, params);
+
+                        // Апдейтим
+                        db.execSql(sqlUpdate, params);
+
+                        // Отчитаемся
+                        if (taskRecResult.recordsUpdated == null) {
+                            taskRecResult.recordsUpdated = st;
+                        } else {
+                            UtData.copyStore(st, taskRecResult.recordsUpdated);
+                        }
+                    }
+
+                }
+
+                // DEL - Удаляем лишние (теперь уже) записи
+                if (doDelete) {
+                    String sqlDelete = "delete from " + mergeTask.tableName + " where " + pkField + " = :" + pkField;
+
+                    //
+                    for (long deleteRecId : mergeTask.recordsDelete) {
+                        // Удаляем
+                        Map params = UtCnv.toMap(pkField, deleteRecId);
+                        db.execSql(sqlDelete, params);
+                    }
+                }
+
+
+                //
+                db.commit();
+            } catch (Exception e) {
+                db.rollback();
+                throw e;
+            }
+
         }
+
+        //
+        return result;
+    }
+
+    /**
+     * @return Список таблиц, которые имеют ссылки на таблицу tableName
+     */
+    private Map<String, IJdxForeignKey> getRefsToTable(String tableName) {
+        Map<String, IJdxForeignKey> res = new HashMap();
+
+        //
+        IJdxTable table = struct.getTable(tableName);
+
+        //
+        for (IJdxTable refTable : struct.getTables()) {
+            for (IJdxForeignKey refTableFk : refTable.getForeignKeys()) {
+                if (refTableFk.getTable().getName().equals(table.getName())) {
+                    res.put(refTable.getName(), refTableFk);
+                }
+            }
+        }
+
         //
         return res;
     }
@@ -129,13 +224,13 @@ class UtRecMerge implements IUtRecMerge {
     /**
      * "Наивное" превращение ВСЕХ дублей в задание на удаление
      */
-    public Collection<UtRecMergeTask> prepareRemoveDuplicatesTaskAsIs(String tableName, Collection<UtRecDuplicate> duplicates) throws Exception {
-        String pkField = "id"; //todo - узнавать PK по-нормальному!
+    public Collection<RecMergeTask> prepareRemoveDuplicatesTaskAsIs(String tableName, Collection<RecDuplicate> duplicates) throws Exception {
+        String pkField = struct.getTable(tableName).getPrimaryKey().get(0).getName();
         //
-        Collection<UtRecMergeTask> res = new ArrayList<>();
+        Collection<RecMergeTask> res = new ArrayList<>();
         //
-        for (UtRecDuplicate duplicate : duplicates) {
-            UtRecMergeTask task = new UtRecMergeTask();
+        for (RecDuplicate duplicate : duplicates) {
+            RecMergeTask task = new RecMergeTask();
             //
             task.tableName = tableName;
             task.recordEtalon = duplicate.records.get(0);
@@ -172,9 +267,5 @@ class UtRecMerge implements IUtRecMerge {
         return false;
     }
 
-
-    static void record_merge(String fileName) {
-
-    }
 
 }

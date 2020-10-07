@@ -8,8 +8,20 @@ public interface IUtRecMerge {
 
     Collection<String> loadTableFields(String tableName);
 
-    Collection<UtRecDuplicate> loadTableDuplicates(String tableName, String[] fieldNames) throws Exception;
+    /**
+     * Найти дубликаты в таблице tableName с совпадениями в полях fieldNames
+     *
+     * @return Список дубликатов
+     */
+    Collection<RecDuplicate> loadTableDuplicates(String tableName, String[] fieldNames) throws Exception;
 
-    Collection<UtRemoveDuplicatesRes> execRemoveDuplicates(Collection<UtRecMergeTask> tasks) throws Exception;
+    /**
+     * Выполнить задачи на слияние
+     *
+     * @param tasks Список задач на слияние
+     * @return Для каждой RecMergeTask.tableName возвращает,
+     * что пришлось сделать с каждой из зависимых от RecMergeTask.tableName таблиц, чтобы выполнить каждую task.
+     */
+    Map<String, Map<String, RecMergeResultRefTable>> execMergeTask(Collection<RecMergeTask> tasks, boolean doDelete) throws Exception;
 
 }
