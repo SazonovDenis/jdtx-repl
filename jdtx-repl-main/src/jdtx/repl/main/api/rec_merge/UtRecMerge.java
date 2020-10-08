@@ -61,17 +61,25 @@ public class UtRecMerge implements IUtRecMerge {
             sb.append(name);
             sb.append(")");
             sb.append(")");
-
         }
+        sb.append(" order by id");
         sqlRec = sqlRec + sb.toString();
 
         //
         Set paramsHashSet = new HashSet();
 
+        //
+        int recordsTotal = db.loadSql("select count(*) cnt from " + tableName).getCurRec().getValueInt("cnt");
 
         //
         DataStore query = db.loadSql(sqlAll);
+        int n = 0;
         for (DataRecord rec : query) {
+            n = n + 1;
+            if (recordsTotal > 1000 && n % 100 == 0) {
+                System.out.println(tableName + ": " + n + "/" + recordsTotal);
+            }
+            //
             Map params = new HashMap();
             boolean valueWasEmpty = false;
             for (String name : fieldNames) {

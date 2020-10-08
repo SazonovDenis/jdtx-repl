@@ -74,8 +74,11 @@ public class UtRecMerge_Test extends DbmTestCase {
 
     @Test
     public void test_makeMergeTask() throws Exception {
-        String tableName = "LicDocTip";
+        String tableName = "Ulz";
+        //String tableName = "LicDocTip";
+        //String tableName = "Lic";
         String namesStr = "Name";
+        //String namesStr = "RNN";
 
         //
         String[] fieldNames = namesStr.split(",");
