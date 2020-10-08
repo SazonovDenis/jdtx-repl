@@ -13,6 +13,26 @@ repl_info = cm("Информация по репликации",
 }
 
 //
+rec_merge_find = cm("Поиск дубликатов",
+        "table": [value: null, help: "Имя таблицы"],
+        "fields": [value: null, help: "Поля для поиска"],
+        "file": [value: null, help: "Файл с результатом поиска в виде задач на слияние"],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
+    ext.rec_merge_find(args)
+}
+
+//
+rec_merge_exec = cm("Слияние дубликатов",
+        "file": [value: null, help: "Файл с задачами на слияние"],
+        "delete": [value: false, help: "Выполнять не только обновление зависимых, но также и удаление основных записей"],
+        
+) {
+    def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
+    ext.rec_merge_exec(args)
+}
+
+//
 repl_create = cm("Инициализация базы как рабочей станции",
         "ws": [value: 0, help: "Код этой рабочей станции"],
 ) {

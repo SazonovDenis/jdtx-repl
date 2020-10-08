@@ -96,15 +96,8 @@ public class UtRecMerge_Test extends DbmTestCase {
         // Десериализация
         Collection<RecMergeTask> mergeTasksFile = reader.readFromFile("../temp/task.json");
 
-        // Печатаем задачи, что прочистали
-        System.out.println("MergeTasks count: " + mergeTasksFile.size());
-        System.out.println();
-        for (RecMergeTask mergeTask : mergeTasksFile) {
-            System.out.println("Table: " + mergeTask.tableName);
-            System.out.println("Etalon: " + mergeTask.recordEtalon);
-            System.out.println("Delete: " + mergeTask.recordsDelete);
-            System.out.println();
-        }
+        // Печатаем задачи, что прочитали
+        UtRecMerge.printTasks(mergeTasksFile);
     }
 
     @Test
@@ -125,36 +118,13 @@ public class UtRecMerge_Test extends DbmTestCase {
         Collection<RecMergeTask> mergeTasks = utRecMerge.prepareRemoveDuplicatesTaskAsIs(tableName, duplicates);
 
         // Печатаем задачу на слияние
-        System.out.println("MergeTasks count: " + mergeTasks.size());
-        System.out.println();
-        for (RecMergeTask mergeTask : mergeTasks) {
-            System.out.println("Table: " + mergeTask.tableName);
-            System.out.println("Etalon: " + mergeTask.recordEtalon);
-            System.out.println("Delete: " + mergeTask.recordsDelete);
-            System.out.println();
-        }
+        UtRecMerge.printTasks(mergeTasks);
 
         // Исполняем задачу на слияние
-        Map<String, Map<String, RecMergeResultRefTable>> mergeResults = utRecMerge.execMergeTask(mergeTasks, true);
+        Map<String, MergeResultTable> mergeResults = utRecMerge.execMergeTask(mergeTasks, true);
 
         // Печатаем результат выполнения задачи
-        System.out.println("MergeResults:");
-        System.out.println();
-        for (String taskTableName : mergeResults.keySet()) {
-            Map<String, RecMergeResultRefTable> mergeResult = mergeResults.get(taskTableName);
-
-            for (String refTableName : mergeResult.keySet()) {
-                RecMergeResultRefTable mergeResultRec = mergeResult.get(refTableName);
-                System.out.println("Ref table: " + mergeResultRec.refTtableName);
-                System.out.println("Ref field: " + mergeResultRec.refTtableRefFieldName);
-                if (mergeResultRec.recordsUpdated.size() == 0) {
-                    System.out.println("RecordsUpdated: empty");
-                } else {
-                    UtData.outTable(mergeResultRec.recordsUpdated);
-                }
-                System.out.println();
-            }
-        }
+        UtRecMerge.printMergeResults(mergeResults);
     }
 
     @Test
@@ -164,48 +134,20 @@ public class UtRecMerge_Test extends DbmTestCase {
         Collection<RecMergeTask> mergeTasks = reader.readFromFile("../temp/task.json");
 
         // Печатаем задачу на слияние
-        System.out.println("MergeTasks count: " + mergeTasks.size());
-        System.out.println();
-        for (RecMergeTask mergeTask : mergeTasks) {
-            System.out.println("Table: " + mergeTask.tableName);
-            System.out.println("Etalon: " + mergeTask.recordEtalon);
-            System.out.println("Delete: " + mergeTask.recordsDelete);
-            System.out.println();
-        }
+        UtRecMerge.printTasks(mergeTasks);
 
         // Исполняем задачу на слияние
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
-        Map<String, Map<String, RecMergeResultRefTable>> mergeResults = utRecMerge.execMergeTask(mergeTasks, true);
+        Map<String, MergeResultTable> mergeResults = utRecMerge.execMergeTask(mergeTasks, true);
 
         // Печатаем результат выполнения задачи
-        System.out.println("MergeResults:");
-        System.out.println();
-        for (String taskTableName : mergeResults.keySet()) {
-            Map<String, RecMergeResultRefTable> mergeResult = mergeResults.get(taskTableName);
-
-            for (String refTableName : mergeResult.keySet()) {
-                RecMergeResultRefTable mergeResultRec = mergeResult.get(refTableName);
-                System.out.println("Ref table: " + mergeResultRec.refTtableName);
-                System.out.println("Ref field: " + mergeResultRec.refTtableRefFieldName);
-                if (mergeResultRec.recordsUpdated.size() == 0) {
-                    System.out.println("RecordsUpdated: empty");
-                } else {
-                    UtData.outTable(mergeResultRec.recordsUpdated);
-                }
-                System.out.println();
-            }
-        }
+        UtRecMerge.printMergeResults(mergeResults);
     }
 
 /*
-
+todo:
 Сериализация/десериализация в/из файла
-  задачи на слияние
   результат слияния
-
-интерфейс командной строки
-  слияние с удалением
-  просто слияние без удаления
 */
 
 }

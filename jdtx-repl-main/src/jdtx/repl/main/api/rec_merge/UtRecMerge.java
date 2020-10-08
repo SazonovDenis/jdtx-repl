@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * Утилиты по слиянию записей
  */
-class UtRecMerge implements IUtRecMerge {
+public class UtRecMerge implements IUtRecMerge {
 
     Db db;
     IJdxDbStruct struct;
@@ -111,18 +111,18 @@ class UtRecMerge implements IUtRecMerge {
     }
 
     @Override
-    public Map<String, Map<String, RecMergeResultRefTable>> execMergeTask(Collection<RecMergeTask> mergeTasks, boolean doDelete) throws Exception {
-        Map<String, Map<String, RecMergeResultRefTable>> result = new HashMap<>();
+    public Map<String, MergeResultTable> execMergeTask(Collection<RecMergeTask> mergeTasks, boolean doDelete) throws Exception {
+        Map<String, MergeResultTable> result = new HashMap<>();
 
         //
         for (RecMergeTask mergeTask : mergeTasks) {
             db.startTran();
             try {
                 //
-                Map<String, RecMergeResultRefTable> taskResult = result.get(mergeTask.tableName);
-                if (taskResult == null) {
-                    taskResult = new HashMap();
-                    result.put(mergeTask.tableName, taskResult);
+                MergeResultTable taskResultTable = result.get(mergeTask.tableName);
+                if (taskResultTable == null) {
+                    taskResultTable = new MergeResultTable();
+                    result.put(mergeTask.tableName, taskResultTable);
                 }
 
                 //
@@ -138,12 +138,12 @@ class UtRecMerge implements IUtRecMerge {
 
                     //
                     String key = refTableName + "_" + fkRefFieldName;
-                    RecMergeResultRefTable taskRecResult = taskResult.get(key);
+                    MergeResultRefTable taskRecResult = taskResultTable.mergeResultRefTable.get(key);
                     if (taskRecResult == null) {
-                        taskRecResult = new RecMergeResultRefTable();
+                        taskRecResult = new MergeResultRefTable();
                         taskRecResult.refTtableName = refTableName;
                         taskRecResult.refTtableRefFieldName = fkRefFieldName;
-                        taskResult.put(key, taskRecResult);
+                        taskResultTable.mergeResultRefTable.put(key, taskRecResult);
                     }
 
                     //
@@ -157,7 +157,7 @@ class UtRecMerge implements IUtRecMerge {
                                 fkRefFieldName + "_NEW", mergeTask.recordEtalon.get(pkField)
                         );
 
-                        // Селектим как сейчас
+                        // Селектим как есть сейчас
                         DataStore st = db.loadSql(sqlSelect, params);
 
                         // Апдейтим
@@ -175,12 +175,23 @@ class UtRecMerge implements IUtRecMerge {
 
                 // DEL - Удаляем лишние (теперь уже) записи
                 if (doDelete) {
+                    String sqlSelect = "select * from " + mergeTask.tableName + " where " + pkField + " = :" + pkField;
                     String sqlDelete = "delete from " + mergeTask.tableName + " where " + pkField + " = :" + pkField;
 
                     //
                     for (long deleteRecId : mergeTask.recordsDelete) {
-                        // Удаляем
                         Map params = UtCnv.toMap(pkField, deleteRecId);
+
+                        // Селектим как есть сейчас
+                        DataStore st = db.loadSql(sqlSelect, params);
+                        //
+                        if (taskResultTable.recordsDeleted == null) {
+                            taskResultTable.recordsDeleted = st;
+                        } else {
+                            UtData.copyStore(st, taskResultTable.recordsDeleted);
+                        }
+
+                        // Удаляем
                         db.execSql(sqlDelete, params);
                     }
                 }
@@ -244,7 +255,6 @@ class UtRecMerge implements IUtRecMerge {
         return res;
     }
 
-
     private String getParamsHash(Map params) {
         StringBuilder sb = new StringBuilder();
         for (Object value : params.entrySet()) {
@@ -265,6 +275,47 @@ class UtRecMerge implements IUtRecMerge {
             return UtString.isWhite((String) value);
         }
         return false;
+    }
+
+    public static void printTasks(Collection<RecMergeTask> mergeTasks) {
+        System.out.println("MergeTasks count: " + mergeTasks.size());
+        System.out.println();
+        for (RecMergeTask mergeTask : mergeTasks) {
+            System.out.println("Table: " + mergeTask.tableName);
+            System.out.println("Etalon: " + mergeTask.recordEtalon);
+            System.out.println("Delete: " + mergeTask.recordsDelete);
+            System.out.println();
+        }
+    }
+
+    public static void printMergeResults(Map<String, MergeResultTable> mergeResults) {
+        System.out.println("MergeResults:");
+        System.out.println();
+        for (String taskTableName : mergeResults.keySet()) {
+            System.out.println("TableName: " + taskTableName);
+            System.out.println();
+
+            MergeResultTable mergeResultTable = mergeResults.get(taskTableName);
+
+            for (String refTableName : mergeResultTable.mergeResultRefTable.keySet()) {
+                MergeResultRefTable mergeResultRefTable = mergeResultTable.mergeResultRefTable.get(refTableName);
+                System.out.println("Ref table: " + mergeResultRefTable.refTtableName);
+                System.out.println("Ref field: " + mergeResultRefTable.refTtableRefFieldName + " -> " + taskTableName);
+                if (mergeResultRefTable.recordsUpdated == null || mergeResultRefTable.recordsUpdated.size() == 0) {
+                    System.out.println("Ref records updated: empty");
+                } else {
+                    UtData.outTable(mergeResultRefTable.recordsUpdated);
+                }
+                System.out.println();
+            }
+
+            System.out.println("Records deleted from " + taskTableName + ":");
+            if (mergeResultTable.recordsDeleted == null || mergeResultTable.recordsDeleted.size() == 0) {
+                System.out.println("Records deleted: empty");
+            } else {
+                UtData.outTable(mergeResultTable.recordsDeleted);
+            }
+        }
     }
 
 
