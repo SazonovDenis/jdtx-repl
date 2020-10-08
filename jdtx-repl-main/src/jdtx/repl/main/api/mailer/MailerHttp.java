@@ -557,7 +557,7 @@ public class MailerHttp implements IMailer {
     }
 
     String getUrlPost(String url) {
-        String urlRes = remoteUrl + url + ".php?" + "protocolVersion=" + REPL_PROTOCOL_VERSION + "&appVersion=" + UtRepl.getVersion();
+        String urlRes = remoteUrl + url + ".php?" + "seed=" + seed() + "&protocolVersion=" + REPL_PROTOCOL_VERSION + "&appVersion=" + UtRepl.getVersion();
         //
         //log.debug("getUrlPost: " + urlRes);
         //
