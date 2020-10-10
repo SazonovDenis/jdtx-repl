@@ -133,25 +133,10 @@ public class JdxReplSrv {
         UtFile.mkdirs(dataRoot + "temp");
     }
 
-    // Проверка версии приложения
+    // Проверка версии приложения, ошибка при несовпадении
     void checkAppUpdate() throws Exception {
-        UtAppVersion_DbRW appVersionRW = new UtAppVersion_DbRW(db);
-        String appVersionAllowed = appVersionRW.getAppVersionAllowed();
-        String appVersionActual = UtRepl.getVersion();
-        if (appVersionAllowed.length() == 0) {
-            log.info("appVersionAllowed.length == 0, appVersionActual: " + appVersionActual);
-        } else if (appVersionActual.compareToIgnoreCase("SNAPSHOT") == 0) {
-            log.warn("appVersionActual == SNAPSHOT, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
-        } else if (appVersionAllowed.compareToIgnoreCase(appVersionActual) != 0) {
-            log.info("appVersionActual != appVersionAllowed, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
-            if (Ut.tryParseInteger(appVersionAllowed) != 0 && Ut.tryParseInteger(appVersionAllowed) < Ut.tryParseInteger(appVersionActual)) {
-                // Установлена боле новая версия - не будем обновлять до более старой
-                log.warn("appVersionAllowed < appVersionActual, skip application update");
-            } else {
-                // Установлена старая версия - надо обновлять до новой, а пока не работаем
-                throw new XError("appVersionAllowed != appVersionActual, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
-            }
-        }
+        UtAppUpdate ut = new UtAppUpdate(db, dataRoot);
+        ut.checkAppUpdate(false);
     }
 
     public void addWorkstation(long wsId, String wsName, String wsGuid, String cfgPublicationsFileName, String cfgDecodeFileName) throws Exception {
