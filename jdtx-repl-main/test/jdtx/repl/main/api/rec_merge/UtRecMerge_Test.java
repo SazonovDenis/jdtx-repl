@@ -59,7 +59,7 @@ public class UtRecMerge_Test extends DbmTestCase {
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
 
         // Ищем дубликаты
-        Collection<RecDuplicate> resList = utRecMerge.loadTableDuplicates(tableName, fieldNames);
+        Collection<RecDuplicate> resList = utRecMerge.findTableDuplicates(tableName, fieldNames);
 
         // Печатаем дубликаты
         for (RecDuplicate res : resList) {
@@ -87,17 +87,17 @@ public class UtRecMerge_Test extends DbmTestCase {
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
 
         // Ищем дубликаты
-        Collection<RecDuplicate> duplicates = utRecMerge.loadTableDuplicates(tableName, fieldNames);
+        Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(tableName, fieldNames);
 
         // Тупо превращаем дубликаты в задачи на слияние
         Collection<RecMergeTask> mergeTasks = utRecMerge.prepareRemoveDuplicatesTaskAsIs(tableName, duplicates);
 
-        // Сериализация
+        // Сериализация задач
         UtRecMergeReader reader = new UtRecMergeReader();
-        reader.writeToFile(mergeTasks, "../temp/task.json");
+        reader.writeTasks(mergeTasks, "../temp/task.json");
 
-        // Десериализация
-        Collection<RecMergeTask> mergeTasksFile = reader.readFromFile("../temp/task.json");
+        // Десериализация задач
+        Collection<RecMergeTask> mergeTasksFile = reader.readTasks("../temp/task.json");
 
         // Печатаем задачи, что прочитали
         UtRecMerge.printTasks(mergeTasksFile);
@@ -115,7 +115,7 @@ public class UtRecMerge_Test extends DbmTestCase {
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
 
         // Ищем дубликаты
-        Collection<RecDuplicate> duplicates = utRecMerge.loadTableDuplicates(tableName, fieldNames);
+        Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(tableName, fieldNames);
 
         // Тупо превращаем дубликаты в задачу на слияние
         Collection<RecMergeTask> mergeTasks = utRecMerge.prepareRemoveDuplicatesTaskAsIs(tableName, duplicates);
@@ -128,13 +128,17 @@ public class UtRecMerge_Test extends DbmTestCase {
 
         // Печатаем результат выполнения задачи
         UtRecMerge.printMergeResults(mergeResults);
+
+        // Сохраняем результат выполнения задачи
+        UtRecMergeReader reader = new UtRecMergeReader();
+        reader.writeResilts(mergeResults, "../temp/result.json");
     }
 
     @Test
     public void test_execMergeTaskFromFile() throws Exception {
         // Читаем задачу на слияние
         UtRecMergeReader reader = new UtRecMergeReader();
-        Collection<RecMergeTask> mergeTasks = reader.readFromFile("../temp/task.json");
+        Collection<RecMergeTask> mergeTasks = reader.readTasks("../temp/task.json");
 
         // Печатаем задачу на слияние
         UtRecMerge.printTasks(mergeTasks);
@@ -145,12 +149,17 @@ public class UtRecMerge_Test extends DbmTestCase {
 
         // Печатаем результат выполнения задачи
         UtRecMerge.printMergeResults(mergeResults);
+
+        // Сохраняем результат выполнения задачи
+        reader = new UtRecMergeReader();
+        reader.writeResilts(mergeResults, "../temp/result.json");
     }
 
 /*
 todo:
 Сериализация/десериализация в/из файла
   результат слияния
+Откат результат слияния
 */
 
 }

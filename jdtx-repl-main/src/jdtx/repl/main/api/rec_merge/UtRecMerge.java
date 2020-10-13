@@ -40,7 +40,7 @@ public class UtRecMerge implements IUtRecMerge {
 
 
     @Override
-    public Collection<RecDuplicate> loadTableDuplicates(String tableName, String[] fieldNames) throws Exception {
+    public Collection<RecDuplicate> findTableDuplicates(String tableName, String[] fieldNames) throws Exception {
         List<RecDuplicate> resList = new ArrayList<>();
 
         //
@@ -146,12 +146,12 @@ public class UtRecMerge implements IUtRecMerge {
 
                     //
                     String key = refTableName + "_" + fkRefFieldName;
-                    MergeResultRefTable taskRecResult = taskResultTable.mergeResultRefTable.get(key);
+                    MergeResultRefTable taskRecResult = taskResultTable.mergeResultsRefTable.get(key);
                     if (taskRecResult == null) {
                         taskRecResult = new MergeResultRefTable();
                         taskRecResult.refTtableName = refTableName;
                         taskRecResult.refTtableRefFieldName = fkRefFieldName;
-                        taskResultTable.mergeResultRefTable.put(key, taskRecResult);
+                        taskResultTable.mergeResultsRefTable.put(key, taskRecResult);
                     }
 
                     //
@@ -305,8 +305,8 @@ public class UtRecMerge implements IUtRecMerge {
 
             MergeResultTable mergeResultTable = mergeResults.get(taskTableName);
 
-            for (String refTableName : mergeResultTable.mergeResultRefTable.keySet()) {
-                MergeResultRefTable mergeResultRefTable = mergeResultTable.mergeResultRefTable.get(refTableName);
+            for (String refTableName : mergeResultTable.mergeResultsRefTable.keySet()) {
+                MergeResultRefTable mergeResultRefTable = mergeResultTable.mergeResultsRefTable.get(refTableName);
                 System.out.println("Ref table: " + mergeResultRefTable.refTtableName);
                 System.out.println("Ref field: " + mergeResultRefTable.refTtableRefFieldName + " -> " + taskTableName);
                 if (mergeResultRefTable.recordsUpdated == null || mergeResultRefTable.recordsUpdated.size() == 0) {
@@ -325,6 +325,5 @@ public class UtRecMerge implements IUtRecMerge {
             }
         }
     }
-
 
 }

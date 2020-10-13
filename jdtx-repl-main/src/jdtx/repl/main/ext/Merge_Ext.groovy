@@ -87,14 +87,14 @@ class Merge_Ext extends ProjectExt {
 
             // Ищем дубликаты
             UtRecMerge utRecMerge = new UtRecMerge(db, struct)
-            Collection<RecDuplicate> duplicates = utRecMerge.loadTableDuplicates(table, fieldNames)
+            Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(table, fieldNames)
 
             // Тупо превращаем дубликаты в задачи на слияние
             Collection<RecMergeTask> mergeTasks = utRecMerge.prepareRemoveDuplicatesTaskAsIs(table, duplicates)
 
             // Сериализация
             UtRecMergeReader reader = new UtRecMergeReader()
-            reader.writeToFile(mergeTasks, file)
+            reader.writeTasks(mergeTasks, file)
 
             // Печатаем задачи
             UtRecMerge.printTasks(mergeTasks)
@@ -131,7 +131,7 @@ class Merge_Ext extends ProjectExt {
 
             // Читаем задачу на слияние
             UtRecMergeReader reader = new UtRecMergeReader()
-            Collection<RecMergeTask> mergeTasks = reader.readFromFile(file)
+            Collection<RecMergeTask> mergeTasks = reader.readTasks(file)
 
             // Печатаем задачу на слияние
             UtRecMerge.printTasks(mergeTasks)
@@ -140,9 +140,9 @@ class Merge_Ext extends ProjectExt {
             UtRecMerge utRecMerge = new UtRecMerge(db, struct)
             Map<String, MergeResultTable> mergeResults = utRecMerge.execMergeTask(mergeTasks, delete)
 
-            // Печатаем результат выполнения задачи
-            UtRecMerge.printMergeResults(mergeResults)
-
+            // Сохраняем результат выполнения задачи
+            reader = new UtRecMergeReader()
+            reader.writeResilts(mergeResults, UtFile.removeExt(file) + ".result.json")
         } finally {
             db.disconnect()
         }

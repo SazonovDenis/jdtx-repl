@@ -13,7 +13,7 @@ public interface IUtRecMerge {
      *
      * @return Список дубликатов
      */
-    Collection<RecDuplicate> loadTableDuplicates(String tableName, String[] fieldNames) throws Exception;
+    Collection<RecDuplicate> findTableDuplicates(String tableName, String[] fieldNames) throws Exception;
 
     /**
      * Выполнить задачи на слияние

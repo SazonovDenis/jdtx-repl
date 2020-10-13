@@ -16,6 +16,6 @@ public class MergeResultTable {
      * что пришлось сделать с каждой из зависимых таблиц,
      * чтобы сделать merge в основной таблице
      */
-    Map<String, MergeResultRefTable> mergeResultRefTable = new HashMap<>();
+    Map<String, MergeResultRefTable> mergeResultsRefTable = new HashMap<>();
 
 }

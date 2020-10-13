@@ -1,5 +1,6 @@
 package jdtx.repl.main.api.rec_merge;
 
+import jandcode.dbm.data.*;
 import jandcode.utils.*;
 import org.json.simple.*;
 import org.json.simple.parser.*;
@@ -9,7 +10,7 @@ import java.util.*;
 
 public class UtRecMergeReader {
 
-    public Collection<RecMergeTask> readFromFile(String fileName) throws Exception {
+    public Collection<RecMergeTask> readTasks(String fileName) throws Exception {
         Collection<RecMergeTask> mergeTasks = new ArrayList<>();
 
         InputStream inputStream = new FileInputStream(fileName);
@@ -22,7 +23,7 @@ public class UtRecMergeReader {
             JSONObject taskJson = (JSONObject) k;
             RecMergeTask task = new RecMergeTask();
             task.tableName = taskJson.get("tableName").toString();
-            task.recordEtalon = new HashMap ((Map) taskJson.get("recordEtalon"));
+            task.recordEtalon = new HashMap((Map) taskJson.get("recordEtalon"));
             task.recordsDelete = new ArrayList<>((Collection<Long>) taskJson.get("recordsDelete"));
             mergeTasks.add(task);
         }
@@ -31,7 +32,7 @@ public class UtRecMergeReader {
         return mergeTasks;
     }
 
-    public void writeToFile(Collection<RecMergeTask> mergeTasks, String fileName) throws Exception {
+    public void writeTasks(Collection<RecMergeTask> mergeTasks, String fileName) throws Exception {
         JSONArray json = new JSONArray();
         for (RecMergeTask task : mergeTasks) {
             JSONObject taskJson = new JSONObject();
@@ -41,6 +42,43 @@ public class UtRecMergeReader {
             json.add(taskJson);
         }
         UtFile.saveString(json.toJSONString(), new File(fileName));
+    }
+
+    public void writeResilts(Map<String, MergeResultTable> mergeResults, String fileName) throws Exception {
+        JSONObject json = new JSONObject();
+        for (String tableName : mergeResults.keySet()) {
+            MergeResultTable mergeResult = mergeResults.get(tableName);
+
+            JSONObject resultJson = new JSONObject();
+
+            // mergeResult.mergeResultsRefTable
+            JSONObject mergeResultsRefTable = new JSONObject();
+            for (String refTableName : mergeResult.mergeResultsRefTable.keySet()) {
+                MergeResultRefTable mergeResultRefTable = mergeResult.mergeResultsRefTable.get(refTableName);
+                JSONObject mergeResultRefTableJson = new JSONObject();
+                mergeResultRefTableJson.put("refTtableName", mergeResultRefTable.refTtableName);
+                mergeResultRefTableJson.put("refTtableRefFieldName", mergeResultRefTable.refTtableRefFieldName);
+                mergeResultRefTableJson.put("recordsUpdated", dataStoreToList(mergeResultRefTable.recordsUpdated));
+                mergeResultsRefTable.put(refTableName, mergeResultRefTableJson);
+            }
+            resultJson.put("mergeResultsRefTable", mergeResultsRefTable);
+
+            // mergeResult.recordsDeleted
+            List<Map> recordsDeleted = dataStoreToList(mergeResult.recordsDeleted);
+            resultJson.put("recordsDeleted", recordsDeleted);
+
+            //
+            json.put(tableName, resultJson);
+        }
+        UtFile.saveString(json.toJSONString(), new File(fileName));
+    }
+
+    private List<Map> dataStoreToList(DataStore store) {
+        List<Map> res = new ArrayList<>();
+        for (DataRecord rec : store) {
+            res.add(rec.getValues());
+        }
+        return res;
     }
 
 }
