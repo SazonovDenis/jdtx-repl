@@ -1173,7 +1173,7 @@ public class JdxReplWs {
             selfReceivedNo = selfReceivedNo + 1;
             receiveInternal(mailer, "to", selfReceivedNo, srvAvailableNo, queIn);
         } else {
-            log.warn("queIn.getMaxNo == -1, self.wsId: " + wsId + ", box: to, que.name: in, srv.available: " + srvAvailableNo);
+            log.warn("JdxReplWs.receive wait, queIn.getMaxNo == -1, self.wsId: " + wsId + ", box: to, que.name: in, srv.available: " + srvAvailableNo);
         }
     }
 
