@@ -149,6 +149,26 @@ Name: ServerComponent; Description: Серверная конфигурация; Types: ServerInstall
 
 [Code]
 
+
+const
+  SetupMutexName = 'Jadatex.Sync';
+
+function InitializeSetup(): Boolean;
+begin
+  Result := True;
+  if CheckForMutexes(SetupMutexName) then
+  begin
+    Log('Mutex exists, setup is running already, silently aborting');
+    Result := False;
+  end
+    else
+  begin
+    Log('Creating mutex');
+    CreateMutex(SetupMutexName);
+  end;
+end;
+
+
 procedure CurStepChanged(CurStep: TSetupStep); 
 var
   resultCode: Integer;
