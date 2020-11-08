@@ -24,4 +24,10 @@ public interface IUtRecMerge {
      */
     Map<String, MergeResultTable> execMergeTask(Collection<RecMergeTask> tasks, boolean doDelete) throws Exception;
 
+    /**
+     * Откатить слияние
+     * @param taskResults результат выполнения задач на слияние (затронутые записи)
+     */
+    void revertExecTask(Map<String, MergeResultTable> taskResults);
+
 }

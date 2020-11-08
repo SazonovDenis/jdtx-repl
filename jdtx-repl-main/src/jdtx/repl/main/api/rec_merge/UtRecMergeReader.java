@@ -73,6 +73,10 @@ public class UtRecMergeReader {
         UtFile.saveString(json.toJSONString(), new File(fileName));
     }
 
+    public Map<String, MergeResultTable> readResults(String fileName) throws Exception {
+            return null;
+    }
+
     private List<Map> dataStoreToList(DataStore store) {
         List<Map> res = new ArrayList<>();
         for (DataRecord rec : store) {

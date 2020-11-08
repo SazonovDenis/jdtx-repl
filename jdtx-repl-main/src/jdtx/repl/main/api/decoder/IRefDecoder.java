@@ -22,7 +22,7 @@ public interface IRefDecoder {
      *
      * @param tableName имя таблицы
      * @param own_id    id на нашей рабочей станции
-     * @return объект JdxRef: код рабочей станции + id на этой станции
+     * @return объект JdxRef: код рабочей станции (владельца записи) + id на этой станции (владельца записи)
      */
     JdxRef get_ref(String tableName, long own_id) throws Exception;
 

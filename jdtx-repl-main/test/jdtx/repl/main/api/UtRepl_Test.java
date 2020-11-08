@@ -8,6 +8,7 @@ import org.junit.*;
 import java.io.*;
 
 /**
+ *
  */
 public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
@@ -216,8 +217,32 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
     @Test
     public void test_findRecordInReplicas() throws Exception {
-        UtRepl utRepl = new UtRepl(null, struct);
-        IReplica replica = utRepl.findRecordInReplicas("lic", "11:1418", "d:/t/Anet/temp", false);
+        UtRepl utRepl = new UtRepl(db, struct);
+        long wsId = 1;
+        String dirName = "D:/t/Anet/queOut.2.ws_003";
+
+        IReplica replica = utRepl.findRecordInReplicas("lic", "11:1418", dirName, wsId, false);
+        if (replica == null) {
+            System.out.println("Not found");
+        } else {
+            System.out.println("Found, file: " + replica.getFile().getAbsolutePath());
+        }
+
+        IReplica replica2 = utRepl.findRecordInReplicas("lic", "1418", dirName, wsId, false);
+        if (replica2 == null) {
+            System.out.println("Not found");
+        } else {
+            System.out.println("Found, file: " + replica2.getFile().getAbsolutePath());
+        }
+    }
+
+    @Test
+    public void test_findRecordInReplicasWs3() throws Exception {
+        UtRepl utRepl = new UtRepl(db3, struct3);
+        long wsId = 3;
+        String dirName = "D:/t/Anet/queOut.2.ws_003";
+
+        IReplica replica = utRepl.findRecordInReplicas("lic", "1138", dirName, wsId, false, "temp/lic_1138.json");
         if (replica == null) {
             System.out.println("Not found");
         } else {
@@ -228,7 +253,8 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
     @Test
     public void test_findRecordInReplicas_all() throws Exception {
         UtRepl utRepl = new UtRepl(null, struct);
-        IReplica replica = utRepl.findRecordInReplicas("lic", "3:1001", "../_test-data/_test-data_ws2/ws_002/queIn", false);
+        long wsId = 1;
+        IReplica replica = utRepl.findRecordInReplicas("lic", "3:1001", "../_test-data/_test-data_ws2/ws_002/queIn", wsId, false);
         if (replica == null) {
             System.out.println("Not found");
         } else {
@@ -246,11 +272,11 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         ws2.handleSelfAudit();
 
         //
-        long age = ws2.queOut.getMaxAge();
+        long age = ws2.queOut.getMaxNo();
         System.out.println("age: " + age);
 
         // Нынешний вариант реплики
-        IReplica replica0 = ws2.queOut.getByAge(age);
+        IReplica replica0 = ws2.queOut.get(age);
 
         // Копируем для анализа
         System.out.println("Original replica file: " + replica0.getFile().getAbsolutePath());

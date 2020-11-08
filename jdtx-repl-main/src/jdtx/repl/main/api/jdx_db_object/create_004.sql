@@ -11,7 +11,7 @@ INSERT INTO Z_Z_flag_tab (id, trigger_flag) VALUES (1, 1);
 
 /*
 Собственное состояния (для рабочей станции) -
-для хранения возраста созданных реплик, примененных реплик и т.п.
+для хранения возраста: созданных реплик, примененных реплик и т.п.
 */
 CREATE TABLE Z_Z_state (
   id                     INTEGER NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE Z_Z_state_ws (
   id                       INTEGER NOT NULL,
   ws_id                    INT     NOT NULL,
   que_common_dispatch_done INT     NOT NULL,
-  que_in_age_done          INT     NOT NULL,
+  que_in_age_done          INT     NOT NULL,            /* Возраст реплики, до которого обработана входящая очередь от рабочей станции */
   enabled                  INT     NOT NULL,
   mute_age                 INT     NOT NULL
 );

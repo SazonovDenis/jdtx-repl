@@ -13,6 +13,7 @@ public class UtDataSelector {
     private Db db;
     private IJdxDbStruct struct;
     private long wsId;
+    private boolean forbidNotOwnId;
 
     private long MAX_SNAPSHOT_RECS = 5000;
 
@@ -21,10 +22,11 @@ public class UtDataSelector {
 
 
     //
-    public UtDataSelector(Db db, IJdxDbStruct struct, long wsId) {
+    public UtDataSelector(Db db, IJdxDbStruct struct, long wsId, boolean forbidNotOwnId) {
         this.db = db;
         this.struct = struct;
         this.wsId = wsId;
+        this.forbidNotOwnId = forbidNotOwnId;
     }
 
     /**
@@ -36,7 +38,7 @@ public class UtDataSelector {
 
         //
         try {
-            flushDataToWriter(rsTableLog, tableName, tableFields, dataWriter, true);
+            flushDataToWriter(rsTableLog, tableName, tableFields, dataWriter);
         } finally {
             rsTableLog.close();
         }
@@ -48,14 +50,14 @@ public class UtDataSelector {
 
         //
         try {
-            flushDataToWriter(rsTableLog, tableName, tableFields, dataWriter, false);
+            flushDataToWriter(rsTableLog, tableName, tableFields, dataWriter);
         } finally {
             rsTableLog.close();
         }
     }
 
 
-    private void flushDataToWriter(IJdxDataBinder data, String tableName, String tableFields, JdxReplicaWriterXml dataWriter, boolean forbidNotOwnId) throws Exception {
+    private void flushDataToWriter(IJdxDataBinder data, String tableName, String tableFields, JdxReplicaWriterXml dataWriter) throws Exception {
         IJdxTable table = struct.getTable(tableName);
         IRefDecoder decoder = new RefDecoder(db, wsId);
         UtDataWriter utDataWriter = new UtDataWriter(table, tableFields, decoder, forbidNotOwnId);

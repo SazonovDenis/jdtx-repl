@@ -95,7 +95,7 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
         // Забираем установочную реплику
         long wsId = 2;
         UtRepl utRepl = new UtRepl(db2, struct2);
-        IReplica replica = utRepl.createReplicaTableSnapshot(wsId, publication.getData().getTable(tableName), 1);
+        IReplica replica = utRepl.createReplicaTableSnapshot(wsId, publication.getData().getTable(tableName), 1, true);
 
         //
         return replica;

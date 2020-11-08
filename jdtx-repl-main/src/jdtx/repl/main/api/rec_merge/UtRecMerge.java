@@ -12,6 +12,9 @@ import java.util.*;
  */
 public class UtRecMerge implements IUtRecMerge {
 
+    public static final boolean DO_DELETE = true;
+    public static final boolean UPDATE_ONLY = false;
+
     Db db;
     IJdxDbStruct struct;
 
@@ -216,6 +219,11 @@ public class UtRecMerge implements IUtRecMerge {
 
         //
         return result;
+    }
+
+    @Override
+    public void revertExecTask(Map<String, MergeResultTable> taskResults) {
+
     }
 
     /**

@@ -273,6 +273,7 @@ class Jdx_Ext extends ProjectExt {
         if (outFileName == null || outFileName.length() == 0) {
             outFileName = tableName + "_" + tableId.replace(":", "_") + ".zip"
         }
+        String outReplicaInfoFile = outFileName.replace(".zip", ".json")
 
         Db db = null
         try {
@@ -288,7 +289,7 @@ class Jdx_Ext extends ProjectExt {
             try {
                 // Ищем запись и формируем реплику на вставку
                 UtRepl utRepl = new UtRepl(db, ws.struct)
-                IReplica replica = utRepl.findRecordInReplicas(tableName, tableId, dirName, skipOprDel)
+                IReplica replica = utRepl.findRecordInReplicas(tableName, tableId, dirName, ws.wsId, skipOprDel, outReplicaInfoFile)
 
                 // Копируем реплику для анализа
                 File outReplicaFile = new File(outFileName)

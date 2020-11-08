@@ -17,15 +17,18 @@ import java.io.*;
  */
 public class DbPrepareEtalon_Test extends AppTestCase {
 
-    // Экземпляры db и db2, db3
+
+    // Экземпляры db, db2, db3 и db5
     protected Db db;
     protected Db db2;
     protected Db db3;
+    protected Db db5;
 
     // Утилиты Jdx_Ext
     public Jdx_Ext extSrv;
     public Jdx_Ext extWs2;
     public Jdx_Ext extWs3;
+    public Jdx_Ext extWs5;
 
 
     @Override
@@ -38,15 +41,18 @@ public class DbPrepareEtalon_Test extends AppTestCase {
         ProjectScript p1 = jc.loadProject("../ext/srv/project.jc");
         ProjectScript p2 = jc.loadProject("../ext/ws2/project.jc");
         ProjectScript p3 = jc.loadProject("../ext/ws3/project.jc");
+        ProjectScript p5 = jc.loadProject("../ext/ws5/project.jc");
         //
         extSrv = (Jdx_Ext) p1.createExt("jdtx.repl.main.ext.Jdx_Ext");
         extWs2 = (Jdx_Ext) p2.createExt("jdtx.repl.main.ext.Jdx_Ext");
         extWs3 = (Jdx_Ext) p3.createExt("jdtx.repl.main.ext.Jdx_Ext");
+        extWs5 = (Jdx_Ext) p5.createExt("jdtx.repl.main.ext.Jdx_Ext");
 
-        // Экземпляры db и db2, db3
+        // Экземпляры db, db2, db3 и db5
         db = extSrv.getApp().service(ModelService.class).getModel().getDb();
         db2 = extWs2.getApp().service(ModelService.class).getModel().getDb();
         db3 = extWs3.getApp().service(ModelService.class).getModel().getDb();
+        db5 = extWs5.getApp().service(ModelService.class).getModel().getDb();
     }
 
     @Test
@@ -59,21 +65,44 @@ public class DbPrepareEtalon_Test extends AppTestCase {
         db.disconnect();
         db2.disconnect();
         db3.disconnect();
+        db5.disconnect();
 
+        //
+        doConnectAll();
+
+        //
+        doDisconnectAll();
+    }
+
+    void doConnectAll() throws Exception {
         db.connect();
         System.out.println("db1.connect()");
         db2.connect();
         System.out.println("db2.connect()");
         db3.connect();
         System.out.println("db3.connect()");
+        db5.connect();
+        System.out.println("db5.connect()");
+    }
 
+    void doDisconnectAll() throws Exception {
         db.disconnect();
         System.out.println("db1.disconnect()");
         db2.disconnect();
         System.out.println("db2.disconnect()");
         db3.disconnect();
         System.out.println("db3.disconnect()");
+        db5.disconnect();
+        System.out.println("db5.disconnect()");
     }
+
+    void doDisconnectAllForce() throws Exception {
+        db.disconnectForce();
+        db2.disconnectForce();
+        db3.disconnectForce();
+        db5.disconnectForce();
+    }
+
 
 
     /**
@@ -99,6 +128,15 @@ public class DbPrepareEtalon_Test extends AppTestCase {
 
         //
         rt = extWs3.getApp().getRt().getChild("db/default");
+        dbNameDest = rt.getValue("database").toString();
+        dbNameSour = rt.getValue("database_etalon").toString();
+        //
+        FileUtils.copyFile(new File(dbNameSour), new File(dbNameDest));
+        //
+        System.out.println("Новая база скопирована [" + dbNameDest + "]");
+
+        //
+        rt = extWs5.getApp().getRt().getChild("db/default");
         dbNameDest = rt.getValue("database").toString();
         dbNameSour = rt.getValue("database_etalon").toString();
         //

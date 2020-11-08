@@ -21,13 +21,13 @@ public class JdxStateManagerSrv {
      * при формировании общей очереди
      */
     public long getWsQueInAgeDone(long wsId) throws Exception {
-        DataRecord rec = loadStateWsRec(wsId);
+        DataRecord rec = loadRecStateWs(wsId);
         //
         return rec.getValueLong("que_in_age_done");
     }
 
     public void setWsQueInAgeDone(long wsId, long queInAgeDone) throws Exception {
-        loadStateWsRec(wsId);
+        loadRecStateWs(wsId);
         //
         String sqlUpd = "update " + JdxUtils.sys_table_prefix + "state_ws set que_in_age_done = " + queInAgeDone + " where ws_id = " + wsId;
         db.execSql(sqlUpd);
@@ -39,13 +39,13 @@ public class JdxStateManagerSrv {
      * при тиражировании реплик для рабочей станции wsId
      */
     public long getQueCommonDispatchDone(long wsId) throws Exception {
-        DataRecord rec = loadStateWsRec(wsId);
+        DataRecord rec = loadRecStateWs(wsId);
         //
         return rec.getValueLong("que_common_dispatch_done");
     }
 
     public void setQueCommonDispatchDone(long wsId, long queCommonNoDone) throws Exception {
-        loadStateWsRec(wsId);
+        loadRecStateWs(wsId);
         //
         String sqlUpd = "update " + JdxUtils.sys_table_prefix + "state_ws set que_common_dispatch_done = " + queCommonNoDone + " where ws_id = " + wsId;
         db.execSql(sqlUpd);
@@ -56,13 +56,13 @@ public class JdxStateManagerSrv {
      * @return Отметка: до какого номера разослана очередь Out001 для рабочей станции wsId
      */
     public long getQueOut001DispatchDone(long wsId) throws Exception {
-        DataRecord rec = loadStateWsRec(wsId);
+        DataRecord rec = loadRecStateWs(wsId);
         //
         return rec.getValueLong("que_out001_dispatch_done");
     }
 
     public void setQueOut001DispatchDone(long wsId, long que001NoDone) throws Exception {
-        loadStateWsRec(wsId);
+        loadRecStateWs(wsId);
         //
         String sqlUpd = "update " + JdxUtils.sys_table_prefix + "state_ws set que_out001_dispatch_done = " + que001NoDone + " where ws_id = " + wsId;
         db.execSql(sqlUpd);
@@ -74,13 +74,13 @@ public class JdxStateManagerSrv {
      * обработанной на момент создания snapshot-а для рабочей станции wsId
      */
     public long getSnapshotAge(long wsId) throws Exception {
-        DataRecord rec = loadStateWsRec(wsId);
+        DataRecord rec = loadRecStateWs(wsId);
         //
         return rec.getValueLong("snapshot_age");
     }
 
     public void setSnapshotAge(long wsId, long snapshotAge) throws Exception {
-        loadStateWsRec(wsId);
+        loadRecStateWs(wsId);
         //
         String sqlUpd = "update " + JdxUtils.sys_table_prefix + "state_ws set snapshot_age = " + snapshotAge + " where ws_id = " + wsId;
         db.execSql(sqlUpd);
@@ -90,7 +90,7 @@ public class JdxStateManagerSrv {
     /**
      *
      */
-    private DataRecord loadStateWsRec(long wsId) throws Exception {
+    private DataRecord loadRecStateWs(long wsId) throws Exception {
         String sql = "select * from " + JdxUtils.sys_table_prefix + "state_ws where ws_id = " + wsId;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("ws_id") == 0) {

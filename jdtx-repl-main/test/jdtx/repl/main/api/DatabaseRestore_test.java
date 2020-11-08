@@ -68,7 +68,7 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
         sync_http();
 
         //
-        test_dumpTables();
+        test_DumpTables(db, db2, db3, struct, struct2, struct3);
 
 
         // Изменения в базах
@@ -81,7 +81,7 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
         sync_http();
 
         //
-        test_dumpTables();
+        test_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
     @Test
@@ -95,7 +95,7 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
         sync_http();
 
         //
-        test_dumpTables();
+        test_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
     private void testRestore(Jdx_Ext extWs) throws Exception {

@@ -13,6 +13,7 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
     public IJdxDbStruct struct;
     public IJdxDbStruct struct2;
     public IJdxDbStruct struct3;
+    public IJdxDbStruct struct5;
 
 
     public void setUp() throws Exception {
@@ -28,6 +29,7 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
         db.connect();
         db2.connect();
         db3.connect();
+        db5.connect();
 
 
         // ---
@@ -52,6 +54,9 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
         //
         reader.setDb(db3);
         struct3 = reader.readDbStruct();
+        //
+        reader.setDb(db5);
+        struct5 = reader.readDbStruct();
     }
 
     @Test
@@ -65,6 +70,9 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
         // db3
         DataStore st3 = db3.loadSql("select id, orgName, dbLabel from dbInfo");
         UtData.outTable(st3);
+        // db5
+        DataStore st5 = db5.loadSql("select id, orgName, dbLabel from dbInfo");
+        UtData.outTable(st5);
     }
 
 }

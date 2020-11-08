@@ -25,7 +25,8 @@ import java.util.zip.*;
 
 /**
  * Утилитный класс репликатора.
- * todo: Куча всего в одном месте. Зачем он вообще нужен в таком виде - неясно. А еще - есть контекст outputStream - ваще ужоссс
+ * todo: Куча всего в одном месте. Зачем он вообще нужен в таком виде - неясно.
+ * todo: А еще - есть контекст outputStream - ваще УЖОССС!!!
  */
 public class UtRepl {
 
@@ -40,7 +41,7 @@ public class UtRepl {
     private JdxReplicaWriterXml writerXml = null;
 
 
-    public UtRepl(Db db, IJdxDbStruct struct) throws Exception {
+    public UtRepl(Db db, IJdxDbStruct struct) {
         this.db = db;
         this.struct = struct;
     }
@@ -253,7 +254,7 @@ public class UtRepl {
      * Используется при включении новой БД в систему:
      * В числе первых реплик для сервера.
      */
-    public IReplica createReplicaTableSnapshot(long wsId, IJdxTable publicationTable, long age) throws Exception {
+    public IReplica createReplicaTableSnapshot(long wsId, IJdxTable publicationTable, long age, boolean forbidNotOwnId) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
         replica.getInfo().setWsId(wsId);
@@ -269,7 +270,7 @@ public class UtRepl {
         writerXml.writeReplicaHeader(replica);
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
-        UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId);
+        UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, forbidNotOwnId);
         String publicationFields = Publication.filedsToString(publicationTable.getFields());
         dataSelector.readAllRecords(publicationTable.getName(), publicationFields, writerXml);
 
@@ -299,7 +300,7 @@ public class UtRepl {
         writerXml.writeReplicaHeader(replica);
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
-        UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId);
+        UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, false);
         String publicationFields = Publication.filedsToString(publicationTable.getFields());
         dataSelector.readRecordsByIdList(publicationTable.getName(), idList, publicationFields, writerXml);
 
@@ -323,6 +324,31 @@ public class UtRepl {
         // Файл с описанием текущей структуры БД
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
         zipOutputStream.write(struct_rw.getBytes(struct));
+
+        // Заканчиваем запись
+        closeOutputXML();
+
+        //
+        return replica;
+    }
+
+    public IReplica createReplicaMute(long destinationWsId) throws Exception {
+        IReplica replica = new ReplicaFile();
+        replica.getInfo().setReplicaType(JdxReplicaType.MUTE);
+
+        // Начинаем запись
+        // В этой реплике - информация о получателе
+        createOutputZipFile(replica);
+
+        // Информация о получателе
+        JSONObject cfgInfo = new JSONObject();
+        cfgInfo.put("destinationWsId", destinationWsId);
+
+        // Открываем запись файла с информацией о получателе
+        addFileToOutput("info.json");
+        String version = UtJson.toString(cfgInfo);
+        StringInputStream versionStream = new StringInputStream(version);
+        UtFile.copyStream(versionStream, zipOutputStream);
 
         // Заканчиваем запись
         closeOutputXML();
@@ -356,9 +382,9 @@ public class UtRepl {
         return replica;
     }
 
-    public IReplica createReplicaMute(long destinationWsId) throws Exception {
+    public IReplica createReplicaQueInNo(long destinationWsId, long queInNo) throws Exception {
         IReplica replica = new ReplicaFile();
-        replica.getInfo().setReplicaType(JdxReplicaType.MUTE);
+        replica.getInfo().setReplicaType(JdxReplicaType.SET_QUE_IN_NO);
 
         // Начинаем запись
         // В этой реплике - информация о получателе
@@ -367,6 +393,7 @@ public class UtRepl {
         // Информация о получателе
         JSONObject cfgInfo = new JSONObject();
         cfgInfo.put("destinationWsId", destinationWsId);
+        cfgInfo.put("queInNo", queInNo);
 
         // Открываем запись файла с информацией о получателе
         addFileToOutput("info.json");
@@ -458,7 +485,7 @@ public class UtRepl {
      * Ищем запись в истории реплик, собираем все операции с этой записью в одну реплику.
      * Метод применяется при восстановлении асинхронно удаленных записей.
      */
-    public IReplica findRecordInReplicas(String findTableName, String findRecordIdStr, String replicasDirName, boolean skipOprDel) throws Exception {
+    public IReplica findRecordInReplicas(String findTableName, String findRecordIdStr, String replicasDirName, long wsId, boolean skipOprDel, String outReplicaInfoFile) throws Exception {
         String inFileMask = "*.zip";
 
         // Список файлов, ищем в них
@@ -472,8 +499,19 @@ public class UtRepl {
         Arrays.sort(files, new NameFileComparator());
 
 
+        // Тут сохраним данные по всем репликам
+        JSONArray replicaInfoList = new JSONArray();
+
+
         //
-        JdxRef findRecordId = JdxRef.parse(findRecordIdStr);
+        JdxRef findRecordId;
+        if (findRecordIdStr.contains(":")) {
+            findRecordId = JdxRef.parse(findRecordIdStr);
+        } else {
+            IRefDecoder decoder = new RefDecoder(db, wsId);
+            findRecordId = decoder.get_ref(findTableName, Long.parseLong(findRecordIdStr));
+            log.info("findRecordId: " + findRecordId);
+        }
 
         //
         IReplica replicaOut = new ReplicaFile();
@@ -527,14 +565,25 @@ public class UtRepl {
                         }
                     }
                     if (table == null) {
-                        //throw new XError("Таблица не найдена: " + findTableName);
+                        throw new XError("Таблица не найдена в структуре: " + findTableName);
                     }
                     String idFieldName = table.getPrimaryKey().get(0).getName();
+
+
+                    // Тут сохраним данные по реплике
+                    boolean recordsFoundInReplica = false;
+                    Map replicaInfo = new HashMap();
+                    replicaInfo.put("wsId", replica.getInfo().getWsId());
+                    replicaInfo.put("age", replica.getInfo().getAge());
+                    replicaInfo.put("replicaType", replica.getInfo().getReplicaType());
+                    replicaInfo.put("dtFrom", replica.getInfo().getDtFrom());
+                    replicaInfo.put("dtTo", replica.getInfo().getDtTo());
+                    JSONArray replicaData = new JSONArray();
+                    replicaInfo.put("data", replicaData);
 
                     //
                     String tableName = replicaReader.nextTable();
                     while (tableName != null) {
-
                         //
                         if (tableName.compareToIgnoreCase(findTableName) == 0) {
                             log.info("  table: " + tableName + ", wsId: " + replica.getInfo().getWsId());
@@ -563,6 +612,10 @@ public class UtRepl {
                                 // Нашли id?
                                 if (!doSkipRec && idValueRef.equals(findRecordId)) {
                                     log.info("  record found");
+
+                                    // В реплике нашлась запись - сохраним данные по реплике
+                                    recordsFoundInReplica = true;
+                                    replicaData.add(recValues);
 
                                     // Сохраняем запись
                                     writerXml.appendRec();
@@ -606,6 +659,13 @@ public class UtRepl {
                         tableName = replicaReader.nextTable();
                     }
 
+
+                    // Если в реплике нашлась хоть одна запись - то сохраним данные по реплике
+                    if (recordsFoundInReplica) {
+                        replicaInfoList.add(replicaInfo);
+                    }
+
+
                 } finally {
                     // Закроем читателя Zip-файла
                     if (inputStream != null) {
@@ -625,9 +685,21 @@ public class UtRepl {
         writerXml.closeDocument();
         closeOutputXML();
 
+
+        // Данные по реплике - в файл
+        if (outReplicaInfoFile != null) {
+            UtFile.saveString(UtJson.toString(replicaInfoList), new File(outReplicaInfoFile));
+        }
+
+
         //
         return replicaOut;
     }
+
+    public IReplica findRecordInReplicas(String findTableName, String findRecordIdStr, String replicasDirName, long wsId, boolean skipOprDel) throws Exception {
+        return findRecordInReplicas(findTableName, findRecordIdStr, replicasDirName, wsId, skipOprDel, null);
+    }
+
 
     // Из имени файла извлекает номер версии
     private String parseExeVersion(String exeFileName) {

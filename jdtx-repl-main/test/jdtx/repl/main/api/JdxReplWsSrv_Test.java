@@ -8,6 +8,7 @@ import jandcode.utils.variant.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ut.*;
+import org.apache.commons.io.*;
 import org.junit.*;
 
 import java.io.*;
@@ -58,11 +59,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         // Прогон тестов
         test_AllHttp();
+
+        //
+        test_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
     @Test
     public void allSetUp() throws Exception {
-        doDisconnectAll();
+        doDisconnectAllForce();
         clearAllTestData();
         prepareEtalon();
         doConnectAll();
@@ -135,6 +139,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         args.put("cfg_decode", cfg_json_decode);
         extSrv.repl_add_ws(args);
 
+        //
+        FileUtils.copyFile(new File("test/etalon/ws_list.json"), new File("../../lombard.systems/repl/" + MailerHttp.REPL_PROTOCOL_VERSION + "/b5781df573ca6ee6.x/ws_list.json"));
+
         // Активируем 3 рабочие станции
         args.clear();
         args.put("ws", 1);
@@ -182,18 +189,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtData.outTable(db.loadSql("select id, name, guid from " + JdxUtils.sys_table_prefix + "workstation_list"));
     }
 
-    void doConnectAll() throws Exception {
-        db.connect();
-        db2.connect();
-        db3.connect();
-    }
-
-    void doDisconnectAll() throws Exception {
-        db.disconnectForce();
-        db2.disconnectForce();
-        db3.disconnectForce();
-    }
-
     /**
      * Стираем все каталоги с данными, почтой и т.п.
      */
@@ -203,11 +198,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtFile.cleanDir("../_test-data/_test-data_ws2");
         UtFile.cleanDir("../_test-data/_test-data_ws3");
         UtFile.cleanDir("../_test-data/_test-data_ws4");
+        UtFile.cleanDir("../_test-data/_test-data_ws5");
         new File("../_test-data/_test-data_srv").delete();
         new File("../_test-data/_test-data_ws1").delete();
         new File("../_test-data/_test-data_ws2").delete();
         new File("../_test-data/_test-data_ws3").delete();
         new File("../_test-data/_test-data_ws4").delete();
+        new File("../_test-data/_test-data_ws5").delete();
 
         UtFile.cleanDir("../_test-data/csv");
         UtFile.cleanDir("../_test-data/mail");
@@ -302,7 +299,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         sync_http();
 
         //
-        test_dumpTables();
+        test_DumpTables(db, db2, db3, struct, struct2, struct3);
+    }
+
+    @Test
+    public void test_AllHttp_DumpTables() throws Exception {
+        test_AllHttp();
+        test_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
     @Test
@@ -322,9 +325,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         sync_http();
         sync_http();
         sync_http();
-
-        //
-        test_dumpTables();
     }
 
     @Test
@@ -337,7 +337,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         syncLocal();
 
         //
-        test_dumpTables();
+        test_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
 
@@ -413,13 +413,17 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws3_handleQueIn();
 
         //
-        test_dumpTables();
+        test_DumpTables();
 */
     }
 
     @Test
-    public void test_dumpTables() throws Exception {
-        UtTest utt1 = new UtTest(db);
+    public void test_DumpTables() throws Exception {
+        test_DumpTables(db, db2, db3, struct, struct2, struct3);
+    }
+
+    void test_DumpTables(Db db1, Db db2, Db db3, IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct struct3) throws Exception {
+        UtTest utt1 = new UtTest(db1);
         utt1.dumpTable("lic", "../_test-data/csv/ws1-lic.csv", "nameF");
         utt1.dumpTable("ulz", "../_test-data/csv/ws1-ulz.csv", "name");
         UtTest utt2 = new UtTest(db2);
@@ -431,7 +435,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         //
         String sql = "select Lic.nameF, Lic.nameI, Lic.nameO, Region.name as RegionName, RegionTip.name as RegionTip, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) left join RegionTip on (Region.RegionTip = RegionTip.id) order by Lic.NameF";
-        DataStore st1 = db.loadSql(sql);
+        DataStore st1 = db1.loadSql(sql);
         OutTableSaver svr1 = new OutTableSaver(st1);
         //svr1.save().toFile("../_test-data/csv/ws1-all.csv");
         DataStore st2 = db2.loadSql(sql);
@@ -443,7 +447,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         // dumpTables Region*
         String regionTestFields = "";
-        for (IJdxField f : struct.getTable("region").getFields()) {
+        for (IJdxField f : struct1.getTable("region").getFields()) {
             if (f.getName().startsWith("TEST_FIELD_")) {
                 regionTestFields = regionTestFields + "Region." + f.getName() + ",";
             }
@@ -474,7 +478,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 "where Region.id <> 0 and Region.regionTip = RegionTip.id\n" +
                 //"  and Region.id > 100000\n" + // доп условие - чтобы собственные данные ws1 не мозолили глаза
                 "order by Region.Name, RegionTip.Name\n";
-        DataStore st1_r = db.loadSql(sql_ws1);
+        DataStore st1_r = db1.loadSql(sql_ws1);
         OutTableSaver svr1_r = new OutTableSaver(st1_r);
         DataStore st2_r = db2.loadSql(sql_ws2);
         OutTableSaver svr2_r = new OutTableSaver(st2_r);
@@ -486,7 +490,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 "from UsrLog\n" +
                 "where id <> 0 and Info <> ''\n" +
                 "order by Info\n";
-        DataStore st1_bt = db.loadSql(sql_bt);
+        DataStore st1_bt = db1.loadSql(sql_bt);
         OutTableSaver svr1_bt = new OutTableSaver(st1_bt);
         DataStore st2_bt = db2.loadSql(sql_bt);
         OutTableSaver svr2_bt = new OutTableSaver(st2_bt);
@@ -495,7 +499,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
         //
-        String struct_t_XXX1 = dump_table_new_created(db, struct);
+        String struct_t_XXX1 = dump_table_new_created(db1, struct1);
         String struct_t_XXX2 = dump_table_new_created(db2, struct2);
         String struct_t_XXX3 = dump_table_new_created(db3, struct3);
 

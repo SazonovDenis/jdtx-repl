@@ -100,6 +100,57 @@ public class MailerHttp_Test extends AppTestCase {
         System.out.println("mailer.info.crc:     " + info.getCrc());
     }
 
+    @Test
+    public void test_MailerSendReceive_1() throws Exception {
+        logOn();
+
+        long wsId = 2;
+
+
+        // --------------------------------
+        // Проверяем mailer.send
+
+        // Готовим mailer
+        JSONObject wsCfgData = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/mail_http_ws.json"));
+        String url = (String) wsCfgData.get("url");
+        //String guid = "b5781df573ca6ee6.x-21ba238dfc945002";
+        url = "http://jadatex.ru/repl/";
+        String guid = "0000000000000000.test-0100000000000001";
+        JSONObject cfgWs = (JSONObject) wsCfgData.get(String.valueOf(wsId));
+        cfgWs.put("guid", guid);
+        cfgWs.put("url", url);
+        cfgWs.put("localDirTmp", "../_test-data/temp/");
+        //
+        IMailer mailer = new MailerHttp();
+        mailer.init(cfgWs);
+
+
+        // Отправляем реплику
+        File fileReplica = new File("test/etalon/000000067.zip");
+        IReplica replica1 = new ReplicaFile();
+        replica1.setFile(fileReplica);
+        JdxReplicaReaderXml.readReplicaInfo(replica1);
+        mailer.send(replica1, "from", 100);
+
+
+        // --------------------------------
+        // Проверяем mailer.receive
+
+        // Скачиваем реплику
+        IReplica replica2 = mailer.receive("from", 100);
+
+        // Копируем ее для анализа
+        File f2 = new File("../_test-data/000000067-receive.zip");
+        FileUtils.copyFile(replica2.getFile(), f2);
+        System.out.println("mailer.receive: " + f2);
+
+        // Информацмия о реплике с почтового сервера
+        ReplicaInfo info = mailer.getReplicaInfo("from", 100);
+        System.out.println("send.replica.md5:    " + JdxUtils.getMd5File(fileReplica));
+        System.out.println("receive.replica.md5: " + JdxUtils.getMd5File(replica2.getFile()));
+        System.out.println("mailer.info.crc:     " + info.getCrc());
+    }
+
 
     @Test
     public void test_send() throws Exception {

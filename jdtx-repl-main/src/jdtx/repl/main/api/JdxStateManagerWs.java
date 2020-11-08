@@ -48,5 +48,4 @@ public class JdxStateManagerWs {
         return rec.getValueLong("que_" + queName + "_no_done");
     }
 
-
 }

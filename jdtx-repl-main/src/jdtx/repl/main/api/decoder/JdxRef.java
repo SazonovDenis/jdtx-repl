@@ -9,6 +9,10 @@ public class JdxRef {
     public long id = -1;
 
     public static JdxRef parse(String val) {
+        if (val == null || val.length() == 0) {
+            return null;
+        }
+
         JdxRef ref = new JdxRef();
 
         String[] ref_arr = val.split(":");

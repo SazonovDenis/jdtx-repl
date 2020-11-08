@@ -13,7 +13,8 @@ import java.util.*;
 
 public class UtDbObjectManager {
 
-    int CURRENT_VER_DB = 5;
+    int CURRENT_VER_DB = 7;
+    //int CURRENT_VER_DB = 4;
 
     Db db;
 
@@ -72,49 +73,50 @@ public class UtDbObjectManager {
         }
 
         // --- Обновляем версию
+        int ver_i = ver;
+        int ver_to = CURRENT_VER_DB;
+        if (ver_i < ver_to) {
+            // Запрещаем другим менять версию
+            lockDb();
 
-        // Запрещаем другим менять версию
-        lockDb();
+            // Обновляем
+            try {
+                while (ver_i < ver_to) {
+                    log.info("Смена версии: " + ver_i + "." + ver_step + " -> " + (ver_i + 1) + ".0");
 
-        // Обновляем
-        try {
-            int ver_i = ver;
-            int ver_to = CURRENT_VER_DB;
-            while (ver_i < ver_to) {
-                log.info("Смена версии: " + ver_i + "." + ver_step + " -> " + (ver_i + 1) + ".0");
+                    //
+                    String updateFileName = "update_" + UtString.padLeft(String.valueOf(ver_i), 3, "0") + "_" + UtString.padLeft(String.valueOf(ver_i + 1), 3, "0") + ".sql";
+                    String sqls = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/" + updateFileName);
 
-                //
-                String updateFileName = "update_" + UtString.padLeft(String.valueOf(ver_i), 3, "0") + "_" + UtString.padLeft(String.valueOf(ver_i + 1), 3, "0") + ".sql";
-                String sqls = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/" + updateFileName);
-
-                //
-                String[] sqlArr = sqls.split(";");
-                for (int ver_step_i = ver_step; ver_step_i < sqlArr.length; ) {
-                    sqls = sqlArr[ver_step_i].trim();
-                    if (sqls.length() == 0) {
+                    //
+                    String[] sqlArr = sqls.split(";");
+                    for (int ver_step_i = ver_step; ver_step_i < sqlArr.length; ) {
+                        sqls = sqlArr[ver_step_i].trim();
+                        if (sqls.length() == 0) {
+                            ver_step_i = ver_step_i + 1;
+                            continue;
+                        }
+                        //
+                        log.info("Смена версии, шаг: " + ver_i + "." + ver_step_i);
+                        //
+                        db.execSql(sqls);
+                        //
                         ver_step_i = ver_step_i + 1;
-                        continue;
+                        db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step_i);
                     }
+
                     //
-                    log.info("Смена версии, шаг: " + ver_i + "." + ver_step_i);
+                    ver_i = ver_i + 1;
+                    ver_step = 0;
+                    db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step);
+
                     //
-                    db.execSql(sqls);
-                    //
-                    ver_step_i = ver_step_i + 1;
-                    db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step_i);
+                    log.info("Смена версии до: " + ver_i + "." + ver_step + " - ok");
                 }
-
-                //
-                ver_i = ver_i + 1;
-                ver_step = 0;
-                db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step);
-
-                //
-                log.info("Смена версии до: " + ver_i + "." + ver_step + " - ok");
+            } finally {
+                // Снимаем блокировку
+                unlockDb();
             }
-        } finally {
-            // Снимаем блокировку
-            unlockDb();
         }
     }
 

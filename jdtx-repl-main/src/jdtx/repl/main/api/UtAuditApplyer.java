@@ -64,6 +64,9 @@ public class UtAuditApplyer {
 
             //
             String tableName = dataReader.nextTable();
+            String tableNamePrior = "";
+            long countPortion = 0;
+            long count = 0;
             while (tableName != null) {
                 //log.debug("  table: " + tableName);
 
@@ -115,9 +118,15 @@ public class UtAuditApplyer {
 */
 
                 // Перебираем записи
+                countPortion = 0;
+                if (tableName.compareToIgnoreCase(tableNamePrior) == 0) {
+                    log.info("next portion: " + tableName);
+                } else {
+                    count = 0;
+                }
+                tableNamePrior = tableName;
+
                 Map recValues = dataReader.nextRec();
-                long count = 0;
-                long countPortion = 0;
                 while (recValues != null) {
                     // Обеспечим не слишком огромные порции коммитов
                     if (portionMax != 0 && countPortion >= portionMax) {
@@ -241,7 +250,7 @@ public class UtAuditApplyer {
 
 
                 //
-                log.info("  table: " + tableName + ", total: " + count);
+                log.info("  done: " + tableName + ", total: " + count);
 
 
                 // Обратка от удалений, которые не удалось выполнить - создаем реплики на вставку,

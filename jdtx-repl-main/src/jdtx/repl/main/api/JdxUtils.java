@@ -165,7 +165,8 @@ public class JdxUtils {
                 replica.getInfo().getReplicaType() == JdxReplicaType.UPDATE_APP ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.UPDATE_APP_DONE ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SET_CFG ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.SET_CFG_DONE
+                replica.getInfo().getReplicaType() == JdxReplicaType.SET_CFG_DONE ||
+                replica.getInfo().getReplicaType() == JdxReplicaType.SET_QUE_IN_NO
         ) {
             // Для системных команд мы не делаем других проверок
             return;

@@ -2,6 +2,9 @@ package jdtx.repl.main.api.que;
 
 import jdtx.repl.main.api.replica.*;
 
+/**
+ * Хранилище реплик
+ */
 public interface IJdxReplicaStorage {
 
     /**
@@ -10,16 +13,9 @@ public interface IJdxReplicaStorage {
     void put(IReplica replica, long no) throws Exception;
 
     /**
-     * Получить реплику по номеру
-     *
-     * @param no Номер
-     * @return Реплика
+     * @param no Номер реплики
+     * @return Реплика по номеру
      */
     IReplica get(long no) throws Exception;
-
-    /**
-     * @return До какого номера есть реплики в хранилище
-     */
-    long getMaxNo() throws Exception;
 
 }

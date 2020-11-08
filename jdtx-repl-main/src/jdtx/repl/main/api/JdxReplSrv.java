@@ -3,7 +3,6 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
-import jandcode.utils.error.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
@@ -26,7 +25,7 @@ import java.util.*;
 public class JdxReplSrv {
 
     // Общая очередь на сервере
-    IJdxQueCommon commonQue;
+    IJdxQue commonQue;
 
     // Источник для чтения/отправки сообщений всех рабочих станций
     Map<Long, IMailer> mailerList;
@@ -47,7 +46,7 @@ public class JdxReplSrv {
         this.db = db;
 
         // Общая очередь на сервере
-        commonQue = new JdxQueCommonFile(db, JdxQueName.COMMON);
+        commonQue = new JdxQueCommon(db, UtQue.QUE_COMMON, UtQue.STATE_AT_SRV_FOR_EACH_WS);
 
         // Почтовые курьеры для чтения/отправки сообщений, для каждой рабочей станции
         mailerList = new HashMap<>();
@@ -162,22 +161,20 @@ public class JdxReplSrv {
 
 
         // ---
-        // Инициализационная очередь que001
-        JdxQueCommonFile que001 = new JdxQueSnapshot(db, JdxQueName.OUT001);
-        String sWsId = UtString.padLeft(String.valueOf(wsId), 3, "0");
-        String que001_DirLocal = dataRoot + "srv/queOut001_ws_" + sWsId;
-        que001.setDataRoot(que001_DirLocal);
+        // Инициализационная очередь queOut001
+        JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
+        queOut001.setDataRoot(dataRoot);
 
-
+        //Очереди и правила их нумерации, в частности out001
         // ---
-        // Отправим системные команды для станции в ее очередь
+        // Отправим системные команды для станции в ее очередь queOut001
         JSONObject cfgPublications = UtRepl.loadAndValidateCfgFile(cfgPublicationsFileName);
-        srvSendCfgInternal(que001, cfgPublications, UtCfgType.PUBLICATIONS, wsId);
+        srvSendCfgInternal(queOut001, cfgPublications, UtCfgType.PUBLICATIONS, wsId);
         //
         JSONObject cfgDecode = UtRepl.loadAndValidateCfgFile(cfgDecodeFileName);
-        srvSendCfgInternal(que001, cfgDecode, UtCfgType.DECODE, wsId);
+        srvSendCfgInternal(queOut001, cfgDecode, UtCfgType.DECODE, wsId);
         //
-        srvDbStructFinishInternal(que001);
+        srvDbStructFinishInternal(queOut001);
 
 
         // ---
@@ -187,7 +184,7 @@ public class JdxReplSrv {
         JdxStateManagerWs stateManagerWs = new JdxStateManagerWs(db);
         long queInNoDone = stateManagerWs.getQueNoDone("in");
 
-        // Единственное место, где на сервере без рабочей станции - не обойтись
+        // Единственное место, где на сервере без экземпляра рабочей станции - не обойтись
         JdxReplWs ws = new JdxReplWs(db);
         ws.init();
 
@@ -201,7 +198,7 @@ public class JdxReplSrv {
             List<IJdxTable> publicationOutTables = ws.publicationOut.getData().getTables();
 
             // Создаем реплики
-            snapshotReplicas = ws.SnapshotForTables(publicationOutTables, 0);
+            snapshotReplicas = ws.SnapshotForTables(publicationOutTables, 0, false);
 
             //
             db.commit();
@@ -213,24 +210,30 @@ public class JdxReplSrv {
 
 
         // ---
-        // Помещаем snapshot-реплику в очередь que001
+        // Возраст snapshot рабочей станции.
+        long wsSnapshotAge = queInNoDone;
+
+        // Помещаем snapshot-реплику в очередь queOut001
         for (IReplica replica : snapshotReplicas) {
-            que001.push(replica);
+            queOut001.push(replica);
         }
 
-        // Возраст snapshot рабочей станции.
-        long replicaSnapshotAge = queInNoDone;
+        // Сообщим рабочей станции ее начальный возраст ВХОДЯЩЕЙ очереди
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.createReplicaQueInNo(wsId, wsSnapshotAge);
+        queOut001.push(replica);
 
         // Отмечаем возраст snapshot рабочей станции.
         JdxStateManagerSrv stateManagerSrv = new JdxStateManagerSrv(db);
-        stateManagerSrv.setSnapshotAge(wsId, replicaSnapshotAge);
+        stateManagerSrv.setSnapshotAge(wsId, wsSnapshotAge);
 
         // Инициализируем возраст отправленных реплик для рабочей станции.
         // Для рабочей станции ее ВХОДЯЩАЯ очередь - это отражение ИСХОДЯЩЕЙ очереди сервера.
-        // Если мы начинаем готовить Snapshot в возрасте queInNoDone, то значит все реплики ПОСЛЕ этого возраста рабочая станция должна будет получить.
+        // Если мы начинаем готовить Snapshot в возрасте queInNoDone, то все реплики ПОСЛЕ этого возраста
+        // рабочая станция должна будет получить самостоятельно через ее очередь queIn.
         // Поэтому можно взять у "серверной" рабочей станции номер обработанной ВХОДЯЩЕЙ очереди,
         // но пометить НА СЕРВЕРЕ этим возрастом номер ОТПРАВЛЕННЫХ реплик для этой станции.
-        stateManagerSrv.setQueCommonDispatchDone(wsId, queInNoDone);
+        stateManagerSrv.setQueCommonDispatchDone(wsId, wsSnapshotAge);
     }
 
     public void enableWorkstation(long wsId) throws Exception {
@@ -337,7 +340,7 @@ public class JdxReplSrv {
     /**
      * Системные команды в очередь que
      */
-    private void srvDbStructFinishInternal(IJdxQueCommon que) throws Exception {
+    private void srvDbStructFinishInternal(IJdxReplicaQue que) throws Exception {
         IReplica replica;
         UtRepl utRepl = new UtRepl(db, struct);
 
@@ -363,7 +366,7 @@ public class JdxReplSrv {
         srvSendCfgInternal(commonQue, cfg, cfgType, destinationWsId);
     }
 
-    private void srvSendCfgInternal(IJdxQueCommon que, JSONObject cfg, String cfgType, long destinationWsId) throws Exception {
+    private void srvSendCfgInternal(IJdxReplicaQue que, JSONObject cfg, String cfgType, long destinationWsId) throws Exception {
         //
         db.startTran();
         try {
@@ -396,7 +399,7 @@ public class JdxReplSrv {
      * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
      * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
      */
-    private void srvHandleCommonQue(Map<Long, IMailer> mailerList, IJdxQueCommon commonQue) throws Exception {
+    private void srvHandleCommonQue(Map<Long, IMailer> mailerList, IJdxQue commonQue) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
         for (Map.Entry en : mailerList.entrySet()) {
             long wsId = (long) en.getKey();
@@ -464,7 +467,7 @@ public class JdxReplSrv {
 
                 // Отметить попытку чтения (для отслеживания активности станции, когда нет данных для реальной передачи)
                 mailer.setData(null, "ping.read", "from");
-                // Отметить состояние сервера данные сервера (сервер отчитывается о себе для отслеживания активности сервера)
+                // Отметить состояние сервера, данные сервера (сервер отчитывается о себе для отслеживания активности сервера)
                 Map info = getInfoSrv();
                 mailer.setData(info, "srv.info", null);
 
@@ -487,7 +490,7 @@ public class JdxReplSrv {
     /**
      * Сервер: распределение общей очереди по рабочим станциям
      */
-    private void srvDispatchReplicas(IJdxQueCommon commonQue, Map<Long, IMailer> mailerList, SendRequiredInfo requiredInfo, boolean doMarkDone) throws Exception {
+    private void srvDispatchReplicas(IJdxQue commonQue, Map<Long, IMailer> mailerList, SendRequiredInfo requiredInfo, boolean doMarkDone) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
 
         // Все что у нас есть на раздачу
@@ -508,22 +511,20 @@ public class JdxReplSrv {
                 long count;
 
                 // ---
-                // que001 - очередь Que001
+                // queOut001 - очередь Que001
 
                 // Сначала проверим, надо ли отправить Snapshot
-                JdxQueCommonFile que001 = new JdxQueSnapshot(db, JdxQueName.OUT001);
-                String sWsId = UtString.padLeft(String.valueOf(wsId), 3, "0");
-                String que001_DirLocal = dataRoot + "srv/queOut001_ws_" + sWsId;
-                que001.setDataRoot(que001_DirLocal);
+                JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
+                queOut001.setDataRoot(dataRoot);
 
                 //
                 sendFrom = stateManager.getQueOut001DispatchDone(wsId) + 1;
-                sendTo = que001.getMaxNoFromDir(); // todo: очень некрасиво - путаюися "физический" (getMaxNo) и "логический" (getMaxNoFromDir) возраст
+                sendTo = queOut001.getMaxNoFromDir(); // todo: очень некрасиво - путаюися "физический" (getMaxNo) и "логический" (getMaxNoFromDir) возраст
 
                 // Берем реплику - snapshot
                 count = 0;
                 for (long no = sendFrom; no <= sendTo; no++) {
-                    IReplica replica001 = que001.get(no);
+                    IReplica replica001 = queOut001.get(no);
 
                     // Физически отправим реплику - snapshot
                     mailer.send(replica001, "to001", no);
@@ -540,9 +541,9 @@ public class JdxReplSrv {
 
                 //
                 if (sendFrom < sendTo) {
-                    log.info("Que001 DispatchReplicas done, wsId: " + wsId + ", que001.no: " + sendFrom + " .. " + sendTo + ", done count: " + count);
+                    log.info("Que001 DispatchReplicas done, wsId: " + wsId + ", queOut001.no: " + sendFrom + " .. " + sendTo + ", done count: " + count);
                 } else {
-                    log.info("Que001 DispatchReplicas done, wsId: " + wsId + ", que001.no: " + sendFrom + ", nothing done");
+                    log.info("Que001 DispatchReplicas done, wsId: " + wsId + ", queOut001.no: " + sendFrom + ", nothing done");
                 }
 
 
@@ -594,7 +595,7 @@ public class JdxReplSrv {
 
                 // Отметить попытку записи (для отслеживания активности станции, когда нет данных для реальной передачи)
                 mailer.setData(null, "ping.write", "to");
-                // Отметить состояние сервера данные сервера (сервер отчитывается о себе для отслеживания активности сервера)
+                // Отметить состояние сервера, данные сервера (сервер отчитывается о себе для отслеживания активности сервера)
                 Map info = getInfoSrv();
                 mailer.setData(info, "srv.info", null);
 
