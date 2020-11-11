@@ -159,6 +159,10 @@ begin
   if CheckForMutexes(SetupMutexName) then
   begin
     Log('Mutex exists, setup is running already, silently aborting');
+    if (not WizardSilent) then
+    begin
+      MsgBox('Установка '+ExpandConstant('{#AppName}')+' уже запущена, дождитесь её завершения.', mbError, MB_OK)
+    end;
     Result := False;
   end
     else
@@ -176,8 +180,9 @@ var
 begin
   if (CurStep=ssInstall) then
   begin
-    Exec(ExpandConstant('jc.bat'), 'repl-service-stop', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
-    Exec(ExpandConstant('jc.bat'), 'repl-service-remove', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+    Exec(ExpandConstant('jc.bat'), 'repl-service-stop' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-stop.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+    Exec(ExpandConstant('jc.bat'), 'repl-service-stop' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-stop.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+    Exec(ExpandConstant('jc.bat'), 'repl-service-remove' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-remove.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
   end;
 
   if (CurStep=ssDone) then
@@ -186,14 +191,14 @@ begin
     begin
       if Lowercase(ParamStr(i)) = '/repl-service-install' then
       begin
-        Exec(ExpandConstant('jc.bat'), 'repl-service-install', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
-        Exec(ExpandConstant('jc.bat'), 'repl-service-start', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+        Exec(ExpandConstant('jc.bat'), 'repl-service-install' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-install.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+        Exec(ExpandConstant('jc.bat'), 'repl-service-start' + ' >> '+ ExpandConstant('{app}') + '\jdtx.repl-service-start.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
         exit;
       end;
     end;
 
     //MsgBox('repl-service-remove', mbInformation, MB_OK);
-    Exec(ExpandConstant('jc.bat'), 'repl-service-remove', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+    Exec(ExpandConstant('jc.bat'), 'repl-service-remove' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-remove.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
   end;
 end;
 
