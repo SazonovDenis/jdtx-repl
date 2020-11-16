@@ -119,8 +119,8 @@ public class JdxReplSrv {
 
 
         // Правила публикаций
-        IPublication publicationIn = new Publication();
-        IPublication publicationOut = new Publication();
+        IPublicationStorage publicationIn = new PublicationStorage();
+        IPublicationStorage publicationOut = new PublicationStorage();
         UtRepl.fillPublications(cfgPublications, structActual, publicationIn, publicationOut);
 
 
@@ -194,8 +194,9 @@ public class JdxReplSrv {
         //
         db.startTran();
         try {
-            // В ws.publicationOut уже соблюден порядок сортировки таблиц с учетом foreign key (при применении snapsot важен порядок)
-            List<IJdxTable> publicationOutTables = ws.publicationOut.getData().getTables();
+            // В publicationOutTables будет соблюден порядок сортировки таблиц с учетом foreign key
+            // (при применении snapsot важен порядок)
+            List<IJdxTable> publicationOutTables = makePublicationTables(ws.struct, ws.publicationOut);
 
             // Создаем реплики
             snapshotReplicas = ws.SnapshotForTables(publicationOutTables, 0, false);
@@ -234,6 +235,16 @@ public class JdxReplSrv {
         // Поэтому можно взять у "серверной" рабочей станции номер обработанной ВХОДЯЩЕЙ очереди,
         // но пометить НА СЕРВЕРЕ этим возрастом номер ОТПРАВЛЕННЫХ реплик для этой станции.
         stateManagerSrv.setQueCommonDispatchDone(wsId, wsSnapshotAge);
+    }
+
+    private List<IJdxTable> makePublicationTables(IJdxDbStruct struct, IPublicationStorage publicationStorage) {
+        List<IJdxTable> publicationTables = new ArrayList<>();
+        for (IJdxTable table: struct.getTables()){
+            if (publicationStorage.getPublicationRule(table.getName())!=null){
+                publicationTables.add(table);
+            }
+        }
+        return publicationTables;
     }
 
     public void enableWorkstation(long wsId) throws Exception {

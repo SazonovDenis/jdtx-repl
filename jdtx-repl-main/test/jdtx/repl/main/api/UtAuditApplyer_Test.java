@@ -21,7 +21,7 @@ public class UtAuditApplyer_Test extends ReplDatabaseStruct_Test {
         // Загружаем правила публикации
         JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub.json"));
         JSONObject cfgIn = (JSONObject) cfg.get("full");
-        IPublication publication = new Publication();
+        IPublicationStorage publication = new PublicationStorage();
         publication.loadRules(cfgIn, struct2);
 
         // Реплики

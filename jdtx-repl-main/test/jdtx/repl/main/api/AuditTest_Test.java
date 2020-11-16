@@ -55,7 +55,7 @@ public class AuditTest_Test extends AppTestCase {
 
         // Загружаем правила публикации
         JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full_152.json"));
-        IPublication publication = new Publication();
+        IPublicationStorage publication = new PublicationStorage();
         publication.loadRules(cfg, db_test_struct);
 
         // Формируем реплики
@@ -74,7 +74,7 @@ public class AuditTest_Test extends AppTestCase {
 
         // Загружаем правила публикации
         JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full_152.json"));
-        IPublication publication = new Publication();
+        IPublicationStorage publication = new PublicationStorage();
         publication.loadRules(cfg, db_test_struct);
 
         // Формируем реплики

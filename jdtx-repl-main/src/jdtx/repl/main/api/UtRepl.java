@@ -190,17 +190,17 @@ public class UtRepl {
     }
 
     /**
-     * Собрать аудит и подготовить реплику по правилам публикации publication
+     * Собрать аудит и подготовить реплику по правилам публикации publicationStorage
      * от для возраста age.
      */
-    public IReplica createReplicaFromAudit(long wsId, IPublication publication, long age) throws Exception {
+    public IReplica createReplicaFromAudit(long wsId, IPublicationStorage publicationStorage, long age) throws Exception {
         log.info("createReplicaFromAudit, wsId: " + wsId + ", age: " + age);
 
         //
         UtAuditSelector utrr = new UtAuditSelector(db, struct, wsId);
 
         // Для выборки из аудита - узнаем интервалы id в таблицах аудита
-        Map auditInfo = utrr.loadAutitIntervals(publication, age);
+        Map auditInfo = utrr.loadAutitIntervals(publicationStorage, age);
 
         //
         IReplica replica = new ReplicaFile();
@@ -222,19 +222,25 @@ public class UtRepl {
 
 
         // Забираем аудит по порядку сортировки таблиц в struct
-        for (IJdxTable publicationTable : publication.getData().getTables()) {
+        for (IJdxTable structTable : struct.getTables()) {
+            IPublicationRule publicationRule = publicationStorage.getPublicationRule(structTable.getName());
+            if (publicationRule == null) {
+                log.info("  skip table: " + structTable.getName() + ", not found in publicationStorage");
+                continue;
+            }
+
             // Интервал id в таблице аудита, который покрывает возраст age
-            Map autitInfoTable = (Map) auditInfo.get(publicationTable.getName());
+            Map autitInfoTable = (Map) auditInfo.get(publicationRule.getTableName());
             if (autitInfoTable != null) {
                 long fromId = (long) autitInfoTable.get("z_id_from");
                 long toId = (long) autitInfoTable.get("z_id_to");
 
                 //
-                log.info("createReplicaFromAudit: " + publicationTable.getName() + ", age: " + age + ", z_id: [" + fromId + ".." + toId + "]");
+                log.info("createReplicaFromAudit: " + publicationRule.getTableName() + ", age: " + age + ", z_id: [" + fromId + ".." + toId + "]");
 
                 //
-                String publicationFields = Publication.filedsToString(publicationTable.getFields());
-                utrr.readAuditData_ByInterval(publicationTable.getName(), publicationFields, fromId, toId, writerXml);
+                String publicationFields = PublicationStorage.filedsToString(publicationRule.getFields());
+                utrr.readAuditData_ByInterval(publicationRule.getTableName(), publicationFields, fromId, toId, writerXml);
             }
         }
 
@@ -254,7 +260,7 @@ public class UtRepl {
      * Используется при включении новой БД в систему:
      * В числе первых реплик для сервера.
      */
-    public IReplica createReplicaTableSnapshot(long wsId, IJdxTable publicationTable, long age, boolean forbidNotOwnId) throws Exception {
+    public IReplica createReplicaTableSnapshot(long wsId, IPublicationRule publicationRule, long age, boolean forbidNotOwnId) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
         replica.getInfo().setWsId(wsId);
@@ -271,8 +277,7 @@ public class UtRepl {
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
         UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, forbidNotOwnId);
-        String publicationFields = Publication.filedsToString(publicationTable.getFields());
-        dataSelector.readAllRecords(publicationTable.getName(), publicationFields, writerXml);
+        dataSelector.readAllRecords(publicationRule, writerXml);
 
 
         // Заканчиваем запись
@@ -301,7 +306,7 @@ public class UtRepl {
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
         UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, false);
-        String publicationFields = Publication.filedsToString(publicationTable.getFields());
+        String publicationFields = PublicationStorage.filedsToString(publicationTable.getFields());
         dataSelector.readRecordsByIdList(publicationTable.getName(), idList, publicationFields, writerXml);
 
 
@@ -746,17 +751,12 @@ public class UtRepl {
         return table.getPrimaryKey().size() == 0;
     }
 
-    static IJdxDbStruct getStructCommon(IJdxDbStruct structActual, IPublication publicationIn, IPublication publicationOut) throws Exception {
+    static IJdxDbStruct getStructCommon(IJdxDbStruct structActual, IPublicationStorage publicationIn, IPublicationStorage publicationOut) throws Exception {
         IJdxDbStruct structCommon = new JdxDbStruct();
-        for (IJdxTable publicationTable : publicationIn.getData().getTables()) {
-            if (structCommon.getTable(publicationTable.getName()) == null) {
-                IJdxTable structTable = structActual.getTable(publicationTable.getName());
+        for (IJdxTable structTable : structActual.getTables()) {
+            if (publicationIn.getPublicationRule(structTable.getName()) != null) {
                 structCommon.getTables().add(structTable);
-            }
-        }
-        for (IJdxTable publicationTable : publicationOut.getData().getTables()) {
-            if (structCommon.getTable(publicationTable.getName()) == null) {
-                IJdxTable structTable = structActual.getTable(publicationTable.getName());
+            } else if (publicationOut.getPublicationRule(structTable.getName()) != null) {
                 structCommon.getTables().add(structTable);
             }
         }
@@ -769,7 +769,7 @@ public class UtRepl {
         return structCommonSorted;
     }
 
-    static void fillPublications(JSONObject cfgDbPublications, IJdxDbStruct structActual, IPublication publicationIn, IPublication publicationOut) throws Exception {
+    static void fillPublications(JSONObject cfgDbPublications, IJdxDbStruct structActual, IPublicationStorage publicationIn, IPublicationStorage publicationOut) throws Exception {
         if (cfgDbPublications != null) {
             String cfgPublicationIn = (String) cfgDbPublications.get("in");
             String cfgPublicationOut = (String) cfgDbPublications.get("out");

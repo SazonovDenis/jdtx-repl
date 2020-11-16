@@ -2,6 +2,7 @@ package jdtx.repl.main.api;
 
 import jandcode.dbm.db.*;
 import jdtx.repl.main.api.decoder.*;
+import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
@@ -32,12 +33,14 @@ public class UtDataSelector {
     /**
      * Если в таблице есть ссылка на самого себя, процедура обязана обеспечить правильную последовательность записей.
      */
-    public void readAllRecords(String tableName, String tableFields, JdxReplicaWriterXml dataWriter) throws Exception {
+    public void readAllRecords(IPublicationRule publicationRule, JdxReplicaWriterXml dataWriter) throws Exception {
         // DbQuery, содержащие все данные из таблицы tableName
-        IJdxDataBinder rsTableLog = selectAllRecords(tableName, tableFields);
+        IJdxDataBinder rsTableLog = selectAllRecords(publicationRule);
 
         //
         try {
+            String tableName = publicationRule.getTableName();
+            String tableFields = PublicationStorage.filedsToString(publicationRule.getFields());
             flushDataToWriter(rsTableLog, tableName, tableFields, dataWriter);
         } finally {
             rsTableLog.close();
@@ -102,12 +105,9 @@ public class UtDataSelector {
         dataWriter.flush();
     }
 
-    protected IJdxDataBinder selectAllRecords(String tableName, String tableFields) throws Exception {
+    protected IJdxDataBinder selectAllRecords(IPublicationRule publicationRule) throws Exception {
         //
-        IJdxTable tableFrom = struct.getTable(tableName);
-
-        //
-        String sql = getSql(tableFrom, tableFields);
+        String sql = getSqlAllRecords(publicationRule);
 
         //
         DbQuery query = db.openSql(sql);
@@ -116,20 +116,78 @@ public class UtDataSelector {
         return new JdxDataBinder_DbQuery(query);
     }
 
-    protected String getSql(IJdxTable tableFrom, String tableFields) {
+    protected String getSqlAllRecords(IPublicationRule publicationRule) {
+        String tableName = publicationRule.getTableName();
+        IJdxTable tableFrom = struct.getTable(tableName);
+        //
+        String tableFields = PublicationStorage.filedsToString(publicationRule.getFields(), tableFrom.getName() + ".");
+        //
+        String condWhere = "";
+        if (publicationRule.getAuthorWs() != null) {
+            condWhere = "where z_z_decode.ws_id in (" + publicationRule.getAuthorWs() + ")\n";
+        }
+
+        // Таблица древовидная (имеет ссылки на саму себя)?
         for (IJdxForeignKey fk : tableFrom.getForeignKeys()) {
             if (fk.getTable().getName().equals(tableFrom.getName())) {
                 // todo: Пока так реализуем правильную последовательность записей (если есть ссылка на самого себя)
-                return "select 0 as dummySortField, " + tableFields + " from " + tableFrom.getName() + " where " + fk.getField().getName() + " = 0\n" +
+                return "select\n" +
+                        "  0 as dummySortField, \n" +
+                        "  " + tableFields + "\n" +
+                        "from\n" +
+                        "  " + tableFrom.getName() + "\n" +
+                        "  left join z_z_decode on (z_z_decode.table_name = '" + tableFrom.getName() + "' and z_z_decode.own_slot = (" + tableFrom.getName() + ".id / " + RefDecoder.SLOT_SIZE + "))\n" +
+                        condWhere +
+                        "where\n" +
+                        "  " + fk.getField().getName() + " = 0\n" +
+                        "\n" +
                         "union\n" +
-                        "select 1 as dummySortField, " + tableFields + " from " + tableFrom.getName() + " where " + fk.getField().getName() + " <> 0\n" +
-                        "order by 1";
+                        "\n" +
+                        "select\n" +
+                        "  1 as dummySortField, " + tableFields + "\n" +
+                        "from\n" +
+                        "  " + tableFrom.getName() + "\n" +
+                        "  left join z_z_decode on (z_z_decode.table_name = '" + tableFrom.getName() + "' and z_z_decode.own_slot = (" + tableFrom.getName() + ".id / " + RefDecoder.SLOT_SIZE + "))\n" +
+                        "where\n" +
+                        "  " + fk.getField().getName() + " <> 0\n" +
+                        condWhere +
+                        "order by\n" +
+                        "  1";
             }
         }
 
         // Порядок следования записей важен даже при получении snapshot,
-        // т.к. важно обеспечить аправильный порядок вставки, например: триггер учитывает данные новой и ПРЕДЫДУЩЕЙ записи (см. например calc_SubjectOpr)
-        return "select " + tableFields + " from " + tableFrom.getName() + " order by " + tableFrom.getPrimaryKey().get(0).getName();
+        // т.к. важно обеспечить правильный порядок вставки, например: триггер учитывает данные новой и ПРЕДЫДУЩЕЙ записи (см. например calc_SubjectOpr)
+        return "select\n" +
+                "  z_z_decode.own_slot,\n" +
+                "  z_z_decode.ws_slot,\n" +
+                "  z_z_decode.ws_id,\n" +
+                "  (" + tableFrom.getName() + ".id - z_z_decode.own_slot * " + RefDecoder.SLOT_SIZE + ") as id_ws,\n" +
+                "  " + tableFields + "\n" +
+                "from\n" +
+                "  " + tableFrom.getName() + "\n" +
+                "  left join z_z_decode on (z_z_decode.table_name = '" + tableFrom.getName() + "' and z_z_decode.own_slot = (" + tableFrom.getName() + ".id / " + RefDecoder.SLOT_SIZE + "))\n" +
+                condWhere +
+                "order by\n" +
+                "  " + tableFrom.getPrimaryKey().get(0).getName();
+
+        //return "select " + tableFields + " from " + tableFrom.getName() + " where " + conditions + " order by " + tableFrom.getPrimaryKey().get(0).getName();
+
+    /*
+фильтр по автору
+select
+  z_z_decode.own_slot,
+  z_z_decode.ws_slot,
+  z_z_decode.ws_id,
+  (lic.id - z_z_decode.own_slot * 1000000) as id_ws,
+  lic.*
+from
+  lic
+  left join z_z_decode on (z_z_decode.table_name = 'LIC' and z_z_decode.own_slot = (lic.id / 1000000))
+order by
+  rnn
+
+     */
     }
 
 

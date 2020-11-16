@@ -55,7 +55,7 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
         String publicationName = (String) cfgPublication.get("in");
         JSONObject cfgPublicationIn = (JSONObject) cfgPublication.get(publicationName);
         //
-        IPublication publication = new Publication();
+        IPublicationStorage publication = new PublicationStorage();
         publication.loadRules(cfgPublicationIn, struct);
 
         // Применяем реплику на ws1
@@ -89,13 +89,13 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
         String publicationName = (String) cfgPublication.get("out");
         JSONObject cfgPublicationOut = (JSONObject) cfgPublication.get(publicationName);
         //
-        IPublication publication = new Publication();
-        publication.loadRules(cfgPublicationOut, struct2);
+        IPublicationStorage publicationStorage = new PublicationStorage();
+        publicationStorage.loadRules(cfgPublicationOut, struct2);
 
         // Забираем установочную реплику
         long wsId = 2;
         UtRepl utRepl = new UtRepl(db2, struct2);
-        IReplica replica = utRepl.createReplicaTableSnapshot(wsId, publication.getData().getTable(tableName), 1, true);
+        IReplica replica = utRepl.createReplicaTableSnapshot(wsId, publicationStorage.getPublicationRule(tableName), 1, true);
 
         //
         return replica;

@@ -19,13 +19,14 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_LoadRules() throws Exception {
         JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub.json"));
-        IPublication publication = new Publication();
+        IPublicationStorage publication = new PublicationStorage();
         publication.loadRules(cfg, struct);
 
-        IJdxDbStruct t = publication.getData();
-        for (IJdxTable o : t.getTables()) {
-            System.out.println("table = " + o.getName());
+        Collection<IPublicationRule> t = publication.getPublicationRules();
+        for (IPublicationRule o : t) {
+            System.out.println("table = " + o.getTableName());
             System.out.println("fields = " + o.getFields());
+            System.out.println("authorWs = " + o.getAuthorWs());
         }
     }
 
@@ -40,7 +41,7 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
 
         // Загружаем правила публикации
         JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full.json"));
-        IPublication publication = new Publication();
+        IPublicationStorage publication = new PublicationStorage();
         publication.loadRules(cfg, struct);
 
         //
@@ -115,7 +116,7 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
 
         // Загружаем правила публикации
         JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub.json"));
-        IPublication publication = new Publication();
+        IPublicationStorage publication = new PublicationStorage();
         publication.loadRules(cfg, struct);
 
         // Формируем реплики

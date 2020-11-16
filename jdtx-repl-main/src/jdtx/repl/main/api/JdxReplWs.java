@@ -40,8 +40,8 @@ public class JdxReplWs {
     private long MAX_COMMIT_RECS = 10000;
 
     // Правила публикации
-    protected IPublication publicationIn;
-    protected IPublication publicationOut;
+    protected IPublicationStorage publicationIn;
+    protected IPublicationStorage publicationOut;
 
     //
     protected IJdxQue queIn;
@@ -164,8 +164,8 @@ public class JdxReplWs {
         }
 
         // Правила публикаций
-        this.publicationIn = new Publication();
-        this.publicationOut = new Publication();
+        this.publicationIn = new PublicationStorage();
+        this.publicationOut = new PublicationStorage();
         UtRepl.fillPublications(cfgPublications, structActual, this.publicationIn, this.publicationOut);
 
 
@@ -447,7 +447,7 @@ public class JdxReplWs {
             log.info("SnapshotForTables, wsId: " + wsId + ", table: " + tableName);
 
             //
-            IJdxTable publicationTable = publicationOut.getData().getTable(tableName);
+            IPublicationRule publicationTable = publicationOut.getPublicationRule(tableName);
             if (publicationTable == null) {
                 // Пропускаем
                 log.info("SnapshotForTables, skip createSnapshot, not found in publicationOut, table: " + tableName);

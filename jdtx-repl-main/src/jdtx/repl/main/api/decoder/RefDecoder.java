@@ -18,7 +18,7 @@ import java.util.*;
 public class RefDecoder implements IRefDecoder {
 
     // Своими записи считаются значения id в диапазоне от 0 до 100 000 000
-    static long SLOT_SIZE = 1000000;
+    public static long SLOT_SIZE = 1000000;
     static long SLOT_START_NUMBER = 100;  //todo: политика назначения диапазонов
 
     Db db = null;
