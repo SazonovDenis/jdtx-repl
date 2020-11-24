@@ -1,0 +1,36 @@
+package jdtx.repl.main.api.jdx_db_object;
+
+import jandcode.dbm.db.*;
+import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.struct.*;
+import org.apache.commons.logging.*;
+
+public class Update_006_007 implements ISqlScriptExecutor {
+
+    protected static Log log = LogFactory.getLog("jdtx.Update_006_007");
+
+    @Override
+    public void exec(Db db) throws Exception {
+        IJdxDbStructReader dbStructReader = new JdxDbStructReader();
+        dbStructReader.setDb(db);
+        IJdxDbStruct struct = dbStructReader.readDbStruct();
+
+        //
+        UtDbObjectManager objectManager = new UtDbObjectManager(db);
+
+        //
+        for (IJdxTable table : struct.getTables()) {
+            try {
+                objectManager.createAuditTableIndex(table);
+            } catch (Exception e) {
+                if (JdxUtils.collectExceptionText(e).contains("Unknown columns in index")) {
+                    log.warn("createAuditTableIndex, table: " + table.getName() + ", error: " + e.getMessage().replace("\n", " ").replace("~", ""));
+                } else {
+                    throw e;
+                }
+            }
+
+        }
+    }
+
+}

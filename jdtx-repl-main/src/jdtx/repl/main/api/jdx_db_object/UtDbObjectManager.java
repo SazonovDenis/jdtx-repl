@@ -13,7 +13,7 @@ import java.util.*;
 
 public class UtDbObjectManager {
 
-    int CURRENT_VER_DB = 7;
+    int CURRENT_VER_DB = 6;
 
     Db db;
 
@@ -98,7 +98,13 @@ public class UtDbObjectManager {
                         //
                         log.info("Смена версии, шаг: " + ver_i + "." + ver_step_i);
                         //
-                        db.execSql(sqls);
+                        if (sqls.startsWith("@")) {
+                            SqlScriptExecutorService svc = db.getApp().service(SqlScriptExecutorService.class);
+                            ISqlScriptExecutor script = svc.createByName(sqls.substring(1));
+                            script.exec(db);
+                        } else {
+                            db.execSql(sqls);
+                        }
                         //
                         ver_step_i = ver_step_i + 1;
                         db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step_i);
@@ -273,6 +279,22 @@ public class UtDbObjectManager {
         } catch (Exception e) {
             if (JdxUtils.errorIs_GeneratorAlreadyExists(e)) {
                 log.warn("createAuditTable, generator already exists, table: " + table.getName());
+            } else {
+                throw e;
+            }
+        }
+
+        // Индекс для таблицы журнала
+        createAuditTableIndex(table);
+    }
+
+    void createAuditTableIndex(IJdxTable table) throws Exception {
+        try {
+            String sql = "CREATE UNIQUE INDEX " + JdxUtils.prefix + table.getName() + "_idx ON " + JdxUtils.prefix + table.getName() + " (Z_ID)";
+            db.execSql(sql);
+        } catch (Exception e) {
+            if (JdxUtils.errorIs_GeneratorAlreadyExists(e)) {
+                log.warn("createAuditTable, index already exists, table: " + table.getName());
             } else {
                 throw e;
             }
