@@ -2,12 +2,12 @@ package jdtx.repl.main.api.decoder;
 
 import jandcode.dbm.test.*;
 import jdtx.repl.main.api.*;
-import jdtx.repl.main.api.decoder.*;
 import org.junit.*;
 
 import java.util.*;
 
 /**
+ *
  */
 // todo: тест сломался
 public class RefDecoder_Test extends DbmTestCase {

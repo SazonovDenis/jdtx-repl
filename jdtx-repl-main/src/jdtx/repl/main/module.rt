@@ -74,4 +74,10 @@
     </service>
 
 
+    <service name="jdtx.repl.main.api.decoder.JdxRefDecoderService"
+             class="jdtx.repl.main.api.decoder.JdxRefDecoderService_PS">
+
+    </service>
+
+
 </root>
