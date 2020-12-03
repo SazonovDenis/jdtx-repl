@@ -12,9 +12,14 @@
 - Если в структуре изменился состав таблиц, то для сервера напрямую задаем структуру публикаций. 
   На сервере выполняется команда `repl_set_cfg -cfg:cfg_publications -file:...`, 
   в качестве параметра `-file` указываем json-файл с новыми правилами публикаций.
+
+  Для сервера напрямую задаем стратегию перекодировок. 
 - Рассылаем на рабочие станции новые правила публикаций. 
   На сервере выполняется команда `repl_send_cfg -cfg:cfg_publications -file:... -ws:...`,
   в качестве параметра `-file` указываем json-файл с новыми правилами публикаций. 
+
+  Для рабочих станций напрямую задаем стратегию перекодировок. 
+
   **Важно!** Команда repl_send_cfg должна быть адресована конкретным станциям (кроме серверной базы),
   широковещательная команда не применяется! 
 - Выполняется реальная смена структуры БД на рабочих станциях (вручную или обновлением прикладного ПО). 
@@ -55,13 +60,20 @@ rem Обновляем прикладное ПО на сервере, меняе
 pause Смените структуру серверной базы (обновите прикладное ПО, запустите, дождитесь смены структуры БД сервера)
 
 rem Для сервера напрямую задаем структуру публикаций
-jc repl_set_cfg -cfg:cfg_publications -file:cfg/publication_lic_173_srv.json
+jc repl_set_cfg -cfg:cfg_decode -file:cfg/decode_strategy_186.json
+jc repl_set_cfg -cfg:cfg_publications -file:cfg/publication_lic_186_srv.json
+
+rem Рассылаем на рабочие станции новую стратегию перекодировки
+jc repl_send_cfg -cfg:cfg_decode -file:cfg/decode_strategy_186.json -ws:2
+jc repl_send_cfg -cfg:cfg_decode -file:cfg/decode_strategy_186.json -ws:3
+jc repl_send_cfg -cfg:cfg_decode -file:cfg/decode_strategy_186.json -ws:4
+jc repl_send_cfg -cfg:cfg_decode -file:cfg/decode_strategy_186.json -ws:5
 
 rem Рассылаем на рабочие станции новые правила публикаций
-jc repl_send_cfg -cfg:cfg_publications -file:cfg/publication_lic_173_ws.json -ws:2
-jc repl_send_cfg -cfg:cfg_publications -file:cfg/publication_lic_173_ws.json -ws:3
-jc repl_send_cfg -cfg:cfg_publications -file:cfg/publication_lic_173_ws.json -ws:4
-jc repl_send_cfg -cfg:cfg_publications -file:cfg/publication_lic_173_ws.json -ws:5
+jc repl_send_cfg -cfg:cfg_publications -file:cfg/publication_lic_186_ws.json -ws:2
+jc repl_send_cfg -cfg:cfg_publications -file:cfg/publication_lic_186_ws.json -ws:3
+jc repl_send_cfg -cfg:cfg_publications -file:cfg/publication_lic_186_ws.json -ws:4
+jc repl_send_cfg -cfg:cfg_publications -file:cfg/publication_lic_186_ws.json -ws:5
 
 rem Завершение изменения структуры
 jc repl-dbstruct-finish
