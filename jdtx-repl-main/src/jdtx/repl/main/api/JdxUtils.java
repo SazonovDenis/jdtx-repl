@@ -130,8 +130,9 @@ public class JdxUtils {
                 FileInputStream inputStream = new FileInputStream(file)
         ) {
             MessageDigest md = MessageDigest.getInstance("MD5"); //NON-NLS
-            md.reset();
 
+            //
+            md.reset();
             //
             while (inputStream.available() > 0) {
                 int n = inputStream.read(buffer);
@@ -143,6 +144,20 @@ public class JdxUtils {
             //
             return UtString.toHexString(a);
         }
+    }
+
+    public static String getMd5Buffer(byte[] buffer) throws Exception {
+        MessageDigest md = MessageDigest.getInstance("MD5"); //NON-NLS
+
+        //
+        md.reset();
+        //
+        md.update(buffer, 0, buffer.length);
+        //
+        byte[] a = md.digest();
+
+        //
+        return UtString.toHexString(a);
     }
 
     /**
