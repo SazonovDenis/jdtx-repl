@@ -101,6 +101,55 @@ public class MailerHttp_Test extends AppTestCase {
     }
 
     @Test
+    public void test_MailerSendCrc() throws Exception {
+        long wsId = 2;
+
+        // Готовим реплику
+        IReplica replica1 = new ReplicaFile();
+        File fileSnapshot = new File("../_test-data/_test-data_srv/srv/queOut001_ws_001/000000001.zip");
+        replica1.setFile(fileSnapshot);
+
+
+        // --------------------------------
+        // Проверяем mailer.send
+
+        // Готовим mailer
+        JSONObject wsCfgData = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/mail_http_ws.json"));
+        String url = (String) wsCfgData.get("url");
+        String guid = "b5781df573ca6ee6.x-21ba238dfc945002";
+        JSONObject cfgMailer = (JSONObject) wsCfgData.get(String.valueOf(wsId));
+        String mailLocalDirTmp = "../_test-data/_test-data_srv/srv/ws_001_tmp/";
+        cfgMailer.put("localDirTmp", mailLocalDirTmp);
+        cfgMailer.put("guid", guid);
+        cfgMailer.put("url", url);
+        //
+        IMailer mailer = new MailerHttp();
+        mailer.init(cfgMailer);
+
+
+        // Отправляем реплику
+        JdxReplicaReaderXml.readReplicaInfo(replica1);
+        mailer.send(replica1, "from", 1);
+
+
+        // --------------------------------
+        // Проверяем mailer.receive
+
+        // Скачиваем реплику
+        IReplica replica2 = mailer.receive("from", 1);
+
+        // Копируем ее для анализа
+        File f2 = new File("../_test-data/ws_002/tmp/000000001-receive.zip");
+        FileUtils.copyFile(replica2.getFile(), f2);
+        System.out.println("mailer.receive: " + f2);
+
+        // Информацмия о реплике с почтового сервера
+        ReplicaInfo info = mailer.getReplicaInfo("from", 1);
+        System.out.println("receive.replica.md5: " + JdxUtils.getMd5File(replica2.getFile()));
+        System.out.println("mailer.info.crc:     " + info.getCrc());
+    }
+
+    @Test
     public void test_MailerSendReceive_1() throws Exception {
         logOn();
 

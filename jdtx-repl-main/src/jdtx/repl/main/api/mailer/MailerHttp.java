@@ -179,12 +179,16 @@ public class MailerHttp implements IMailer {
             HttpPost post = new HttpPost(getUrlPost("repl_send_part"));
 
             //
+            byte[] buff = readFilePart(replica.getFile(), sentBytes, HTTP_FILE_MAX_SIZE);
+            ByteArrayBody byteBody = new ByteArrayBody(buff, "file");
+            //
+            String partCrc = JdxUtils.getMd5Buffer(buff);
+            //
             StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
             StringBody stringBody_box = new StringBody(box, ContentType.MULTIPART_FORM_DATA);
             StringBody stringBody_no = new StringBody(String.valueOf(no), ContentType.MULTIPART_FORM_DATA);
             StringBody stringBody_part = new StringBody(String.valueOf(filePart), ContentType.MULTIPART_FORM_DATA);
-            byte[] buff = readFilePart(replica.getFile(), sentBytes, HTTP_FILE_MAX_SIZE);
-            ByteArrayBody byteBody = new ByteArrayBody(buff, "file");
+            StringBody stringBody_partCrc = new StringBody(partCrc, ContentType.MULTIPART_FORM_DATA);
 
             //
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
@@ -193,6 +197,7 @@ public class MailerHttp implements IMailer {
             builder.addPart("box", stringBody_box);
             builder.addPart("no", stringBody_no);
             builder.addPart("part", stringBody_part);
+            builder.addPart("partCrc", stringBody_partCrc);
             builder.addPart("file", byteBody);
             HttpEntity entity = builder.build();
             //
