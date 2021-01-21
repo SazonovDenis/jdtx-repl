@@ -2,6 +2,7 @@ package jdtx.repl.main.api.replica;
 
 import jandcode.utils.*;
 import jdtx.repl.main.api.*;
+import org.joda.time.*;
 
 import javax.xml.stream.*;
 import java.io.*;
@@ -115,6 +116,9 @@ public class JdxReplicaWriterXml {
             byte[] blob = (byte[]) value;
             String blobBase64 = UtString.encodeBase64(blob);
             writer.writeAttribute(name, blobBase64);
+        } else if (value instanceof DateTime) {
+            // Сериализация с или без timezone
+            writer.writeAttribute(name, UtDate.toString((DateTime) value));
         } else {
             // Обычная сериализация
             writer.writeAttribute(name, UtStringEscape.escapeJava(String.valueOf(value)));
