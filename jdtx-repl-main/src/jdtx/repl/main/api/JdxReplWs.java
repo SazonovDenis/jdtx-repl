@@ -670,6 +670,10 @@ public class JdxReplWs {
     }
 
     public void useReplicaFile(File f) throws Exception {
+        useReplicaFile(f, true);
+    }
+
+    public void useReplicaFile(File f, boolean forceApplySelf) throws Exception {
         log.info("useReplicaFile, file: " + f.getAbsolutePath());
 
         //
@@ -678,7 +682,7 @@ public class JdxReplWs {
         JdxReplicaReaderXml.readReplicaInfo(replica);
 
         // Пробуем применить реплику
-        JdxReplWs.ReplicaUseResult replicaUseResult = useReplica(replica, true);
+        JdxReplWs.ReplicaUseResult replicaUseResult = useReplica(replica, forceApplySelf);
 
         // Реплика использованна?
         if (!replicaUseResult.replicaUsed) {
@@ -957,7 +961,7 @@ public class JdxReplWs {
                 }
 
                 // Свои собственные snapshot-реплики точно можно не применять
-                if (replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT && replica.getInfo().getWsId() == wsId) {
+                if (replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT && replica.getInfo().getWsId() == wsId && !forceApplySelf) {
                     log.info("skip self snapshot");
                     break;
                 }
@@ -990,11 +994,11 @@ public class JdxReplWs {
                 //}
 
 
-                // Применение реплик
-                boolean forceApply = false;
+                // Режим применения собственных реплик
+                boolean forceApply_ignorePublicationRules = false;
                 if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE && replica.getInfo().getWsId() == wsId && forceApplySelf) {
                     // Свои применяем принудительно, даже если они отфильтруются правилами публикации
-                    forceApply = true;
+                    forceApply_ignorePublicationRules = true;
                 }
                 //
                 InputStream inputStream = null;
@@ -1014,7 +1018,7 @@ public class JdxReplWs {
                     //
                     try {
                         auditApplyer.jdxReplWs = this;
-                        auditApplyer.applyReplica(replicaReader, publicationIn, forceApply, wsId, commitPortionMax);
+                        auditApplyer.applyReplica(replicaReader, publicationIn, forceApply_ignorePublicationRules, wsId, commitPortionMax);
                     } catch (Exception e) {
                         if (e instanceof JdxForeignKeyViolationException) {
                             handleFailedInsertUpdateRef((JdxForeignKeyViolationException) e);
