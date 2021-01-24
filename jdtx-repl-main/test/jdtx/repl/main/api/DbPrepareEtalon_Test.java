@@ -56,8 +56,8 @@ public class DbPrepareEtalon_Test extends AppTestCase {
     }
 
     @Test
-    public void test_PrepareEtalon() throws Exception {
-        prepareEtalon();
+    public void prepareEtalon() throws Exception {
+        doPrepareEtalon();
     }
 
     @Test
@@ -108,7 +108,7 @@ public class DbPrepareEtalon_Test extends AppTestCase {
     /**
      * Копируем эталонную в рабочую
      */
-    public void prepareEtalon() throws IOException {
+    public void doPrepareEtalon() throws IOException {
         Rt rt = extSrv.getApp().getRt().getChild("db/default");
         String dbNameDest = rt.getValue("database").toString();
         String dbNameSour = rt.getValue("database_etalon").toString();
