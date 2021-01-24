@@ -68,7 +68,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void allSetUp() throws Exception {
         doDisconnectAllForce();
         clearAllTestData();
-        prepareEtalon();
+        doPrepareEtalon();
         doConnectAll();
 
         //
