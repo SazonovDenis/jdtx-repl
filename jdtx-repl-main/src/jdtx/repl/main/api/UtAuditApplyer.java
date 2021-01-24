@@ -87,7 +87,7 @@ public class UtAuditApplyer {
                 IPublicationRule publicationTable;
                 if (forceApply_ignorePublicationRules) {
                     // Таблицу и ее поля берем из структуры
-                    publicationTable=new PublicationRule(struct.getTable(tableName));
+                    publicationTable = new PublicationRule(struct.getTable(tableName));
                     //publicationTable = struct.getTable(tableName);
                     log.info("  force apply table: " + tableName + ", ignore publication rules");
                 } else {
