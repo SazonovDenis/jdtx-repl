@@ -15,6 +15,7 @@ public class UtDataSelector {
     private IJdxDbStruct struct;
     private long wsId;
     private boolean forbidNotOwnId;
+    private IRefDecoder decoder;
 
     private long MAX_SNAPSHOT_RECS = 5000;
 
@@ -23,11 +24,12 @@ public class UtDataSelector {
 
 
     //
-    public UtDataSelector(Db db, IJdxDbStruct struct, long wsId, boolean forbidNotOwnId) {
+    public UtDataSelector(Db db, IJdxDbStruct struct, long wsId, boolean forbidNotOwnId) throws Exception {
         this.db = db;
         this.struct = struct;
         this.wsId = wsId;
         this.forbidNotOwnId = forbidNotOwnId;
+        this.decoder = new RefDecoder(db, wsId);
     }
 
     /**
@@ -62,7 +64,6 @@ public class UtDataSelector {
 
     private void flushDataToWriter(IJdxDataBinder data, String tableName, String tableFields, JdxReplicaWriterXml dataWriter) throws Exception {
         IJdxTable table = struct.getTable(tableName);
-        IRefDecoder decoder = new RefDecoder(db, wsId);
         UtDataWriter utDataWriter = new UtDataWriter(table, tableFields, decoder, forbidNotOwnId);
 
         //
