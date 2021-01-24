@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import jandcode.dbm.data.*;
 import jandcode.utils.*;
 import jandcode.utils.test.*;
 import jandcode.web.*;
@@ -11,6 +12,7 @@ import org.json.simple.*;
 import org.junit.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  * Проверяем формирование и прием Snapshot-реплик
@@ -42,7 +44,7 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
         // Готовим реплику от ws2
         sw.start("Готовим реплику");
         //
-        IReplica replicaSnapshot = createReplicaTableSnapshot_ws2("pawnchitopr");
+        IReplica replicaSnapshot = createReplicaTableSnapshot_ws2("PawnChitOpr");
         //
         sw.stop();
 
@@ -78,8 +80,56 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
     }
 
 
+    @Test
+    public void test_JdxReplicaReader() throws Exception {
+        // Создаем репликацию (ws1, ws2, ws3) через prepareEtalon_TestAll
+
+        // Вот что у нас есть базе!
+        UtData.outTable(db2.loadSql("select id, ChitNo, ChitDt from PawnChit order by id"));
+        UtData.outTable(db2.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by id"));
+
+        // Готовим реплику от ws2
+        IReplica replicaSnapshotUlz = createReplicaSnapshot_Ulz_ws2();
+        IReplica replicaSnapshotLic = createReplicaSnapshot_Lic_ws2();
+
+        // Читаем и печатаем реплику
+        readPrintReplica(replicaSnapshotUlz);
+        readPrintReplica(replicaSnapshotLic);
+
+        // Копируем реплику для анализа
+        File replicaSnapshotFileUlz = new File("../_test-data/ws_002_000000001-Ulz.zip");
+        File replicaSnapshotFileLic = new File("../_test-data/ws_002_000000001-Lic.zip");
+        FileUtils.copyFile(replicaSnapshotUlz.getFile(), replicaSnapshotFileUlz);
+        FileUtils.copyFile(replicaSnapshotLic.getFile(), replicaSnapshotFileLic);
+
+
+        // Ой! Кто-то удалил все нафиг!
+        //db2.execSql("delete from PawnChit where id <> 0");
+        //db2.execSql("delete from Lic where id <> 0");
+        ////
+        //UtData.outTable(db2.loadSql("select id, ChitNo, ChitDt from PawnChit order by id"));
+        //UtData.outTable(db2.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by id"));
+
+
+        // Не страшно, сейчас вернем!
+
+        // Выполнение команды
+        JdxReplWs ws2 = new JdxReplWs(db2);
+        ws2.init();
+        ws2.useReplicaFile(replicaSnapshotFileLic, true);
+
+        //
+        UtData.outTable(db2.loadSql("select id, ChitNo, ChitDt from PawnChit order by id"));
+        UtData.outTable(db2.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by id"));
+    }
+
+
     public IReplica createReplicaSnapshot_Ulz_ws2() throws Exception {
         return createReplicaTableSnapshot_ws2("ulz");
+    }
+
+    public IReplica createReplicaSnapshot_Lic_ws2() throws Exception {
+        return createReplicaTableSnapshot_ws2("lic");
     }
 
     public IReplica createReplicaTableSnapshot_ws2(String tableName) throws Exception {
@@ -101,5 +151,59 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
         return replica;
     }
 
+    public static void readPrintReplica(IReplica replicaSnapshot) throws Exception {
+        // Откроем Zip-файл реплики
+        IReplica replica = new ReplicaFile();
+        replica.setFile(new File(replicaSnapshot.getFile().getAbsolutePath()));
+        InputStream inputStream = UtRepl.getReplicaInputStream(replica);
+
+        // Читаем заголовки
+        JdxReplicaReaderXml reader = new JdxReplicaReaderXml(inputStream);
+        System.out.println("WsId = " + reader.getWsId());
+        System.out.println("Age = " + reader.getAge());
+        System.out.println("ReplicaType = " + reader.getReplicaType());
+
+        // Читаем данные
+        String tableName = reader.nextTable();
+        while (tableName != null) {
+            System.out.println("table [" + tableName + "]");
+
+            //
+            long count = 0;
+
+            // Перебираем записи
+            Map rec = reader.nextRec();
+            StringBuffer sb = new StringBuffer();
+            while (rec != null) {
+                count++;
+                //
+                sb.setLength(0);
+                Set<Map.Entry> es = rec.entrySet();
+                for (Map.Entry x : es) {
+                    if (sb.length() != 0) {
+                        sb.append(", ");
+                    }
+                    String val = String.valueOf(x.getValue());
+                    if (val.length() > 30) {
+                        val = val.substring(0, 20) + "...";
+                    }
+                    sb.append(x.getKey() + ": " + val);
+                }
+                System.out.println("  " + sb);
+
+                //
+                rec = reader.nextRec();
+            }
+
+            //
+            System.out.println(tableName + ".count: " + count);
+
+            //
+            tableName = reader.nextTable();
+        }
+
+        // Закроем читателя Zip-файла
+        inputStream.close();
+    }
 
 }
