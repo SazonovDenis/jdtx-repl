@@ -118,6 +118,7 @@ public class JdxReplicaWriterXml {
             writer.writeAttribute(name, blobBase64);
         } else if (value instanceof DateTime) {
             // Сериализация с или без timezone
+            // todo: Проверить сериализацию и десериализацию с/без timezone
             writer.writeAttribute(name, UtDate.toString((DateTime) value));
         } else {
             // Обычная сериализация
