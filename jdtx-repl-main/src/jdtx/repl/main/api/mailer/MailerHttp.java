@@ -13,6 +13,7 @@ import org.apache.http.entity.*;
 import org.apache.http.entity.mime.*;
 import org.apache.http.entity.mime.content.*;
 import org.apache.http.impl.client.*;
+import org.apache.http.message.*;
 import org.apache.http.util.*;
 import org.joda.time.*;
 import org.json.simple.*;
@@ -89,7 +90,7 @@ public class MailerHttp implements IMailer {
         //
         Map info = new HashMap<>();
         info.put("box", box);
-        HttpGet httpGet = new HttpGet(getUrl("repl_get_send_required", info));
+        HttpGet httpGet = createHttpGet("repl_get_send_required", info);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -118,7 +119,7 @@ public class MailerHttp implements IMailer {
         info.put("requiredFrom", requiredInfo.requiredFrom);
         info.put("requiredTo", requiredInfo.requiredTo);
         info.put("recreate", requiredInfo.recreate);
-        HttpGet httpGet = new HttpGet(getUrl("repl_set_send_required", info));
+        HttpGet httpGet = createHttpGet("repl_set_send_required", info);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -176,7 +177,7 @@ public class MailerHttp implements IMailer {
         // Часть за частью
         while (sentBytes < totalBytes) {
             //
-            HttpPost post = new HttpPost(getUrlPost("repl_send_part"));
+            HttpPost post = createHttpPost("repl_send_part");
 
             //
             byte[] buff = readFilePart(replica.getFile(), sentBytes, HTTP_FILE_MAX_SIZE);
@@ -309,6 +310,7 @@ public class MailerHttp implements IMailer {
         // Закачиваем (по частям)
         HttpClient httpclient = HttpClientBuilder.create().build();
 
+
         //
         while (receivedBytes < totalBytes) {
             //
@@ -316,8 +318,7 @@ public class MailerHttp implements IMailer {
             info.put("box", box);
             info.put("no", no);
             info.put("part", filePart);
-            HttpGet httpGet = new HttpGet(getUrl("repl_receive_part", info));
-
+            HttpGet httpGet = createHttpGet("repl_receive_part", info);
             //
             HttpResponse response = httpclient.execute(httpGet);
 
@@ -367,7 +368,7 @@ public class MailerHttp implements IMailer {
         Map info = new HashMap<>();
         info.put("box", box);
         info.put("no", no);
-        HttpGet httpGet = new HttpGet(getUrl("repl_delete", info));
+        HttpGet httpGet = createHttpGet("repl_delete", info);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -390,7 +391,7 @@ public class MailerHttp implements IMailer {
         //
         Map info = new HashMap<>();
         info.put("box", box);
-        HttpGet httpGet = new HttpGet(getUrl("repl_get_state", info));
+        HttpGet httpGet = createHttpGet("repl_get_state", info);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -417,7 +418,7 @@ public class MailerHttp implements IMailer {
         Map info = new HashMap<>();
         info.put("box", box);
         info.put("no", no);
-        HttpGet httpGet = new HttpGet(getUrl("repl_get_info", info));
+        HttpGet httpGet = createHttpGet("repl_get_info", info);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -441,7 +442,7 @@ public class MailerHttp implements IMailer {
     void sendCommit_internal(String box, long no, ReplicaInfo info, long partsCount, long totalBytes) throws Exception {
         HttpClient client = HttpClientBuilder.create().build();
 
-        HttpPost post = new HttpPost(getUrlPost("repl_send_commit"));
+        HttpPost post = createHttpPost("repl_send_commit");
 
         //
         JSONObject infoJson = info.toJSONObject();
@@ -476,6 +477,7 @@ public class MailerHttp implements IMailer {
         //
         parseHttpResponse(response);
     }
+
 
     byte[] readFilePart(File file, long pos, int file_max_size) throws IOException {
         long lenMax = file.length();
@@ -541,38 +543,6 @@ public class MailerHttp implements IMailer {
         return jsonObject;
     }
 
-    String seed() {
-        return String.valueOf(Math.abs(rnd.nextLong()));
-    }
-
-    String getUrl(String url, Map info) {
-        UrlBuilder b = new UrlBuilder();
-        b.append("seed", seed());
-        b.append("protocolVersion", REPL_PROTOCOL_VERSION);
-        b.append("appVersion", UtRepl.getVersion());
-        b.append("guid", guid);
-        if (info != null) {
-            b.append(info);
-        }
-        String urlRes = remoteUrl + url + ".php" + b.toString();
-        //
-        //log.debug("getUrl: " + urlRes);
-        //
-        return urlRes;
-    }
-
-    String getUrlPost(String url) {
-        String urlRes = remoteUrl + url + ".php?" + "seed=" + seed() + "&protocolVersion=" + REPL_PROTOCOL_VERSION + "&appVersion=" + UtRepl.getVersion();
-        //
-        //log.debug("getUrlPost: " + urlRes);
-        //
-        return urlRes;
-    }
-
-    String getFileName(long no) {
-        return UtString.padLeft(String.valueOf(no), 9, '0') + ".zip";
-    }
-
     public void createMailBox(String box) throws Exception {
         log.info("createMailBox, url: " + remoteUrl);
         log.info("createMailBox, guid: " + guid + ", box: " + box);
@@ -583,7 +553,7 @@ public class MailerHttp implements IMailer {
         //
         Map info = new HashMap<>();
         info.put("box", box);
-        HttpGet httpGet = new HttpGet(getUrl("repl_create_box", info));
+        HttpGet httpGet = createHttpGet("repl_create_box", info);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -612,7 +582,7 @@ public class MailerHttp implements IMailer {
         Map params = new HashMap<>();
         params.put("name", name);
         params.put("box", box);
-        HttpGet httpGet = new HttpGet(getUrl("repl_get_data", params));
+        HttpGet httpGet = createHttpGet("repl_get_data", params);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -638,7 +608,7 @@ public class MailerHttp implements IMailer {
         params.put("data", data_json);
         params.put("name", name);
         params.put("box", box);
-        HttpGet httpGet = new HttpGet(getUrl("repl_set_data", params));
+        HttpGet httpGet = createHttpGet("repl_set_data", params);
 
         //
         HttpResponse response = httpclient.execute(httpGet);
@@ -648,6 +618,53 @@ public class MailerHttp implements IMailer {
 
         //
         parseHttpResponse(response);
+    }
+
+
+    private String seed() {
+        return String.valueOf(Math.abs(rnd.nextLong()));
+    }
+
+    private String getUrl(String url, Map info) {
+        UrlBuilder b = new UrlBuilder();
+        b.append("seed", seed());
+        b.append("protocolVersion", REPL_PROTOCOL_VERSION);
+        b.append("appVersion", UtRepl.getVersion());
+        b.append("guid", guid);
+        if (info != null) {
+            b.append(info);
+        }
+        String urlRes = remoteUrl + url + ".php" + b.toString();
+        //
+        //log.debug("getUrl: " + urlRes);
+        //
+        return urlRes;
+    }
+
+    private String getUrlPost(String url) {
+        String urlRes = remoteUrl + url + ".php?" + "seed=" + seed() + "&protocolVersion=" + REPL_PROTOCOL_VERSION + "&appVersion=" + UtRepl.getVersion();
+        //
+        //log.debug("getUrlPost: " + urlRes);
+        //
+        return urlRes;
+    }
+
+    private String getFileName(long no) {
+        return UtString.padLeft(String.valueOf(no), 9, '0') + ".zip";
+    }
+
+    private HttpGet createHttpGet(String funcName, Map params) {
+        HttpGet httpGet = new HttpGet(getUrl(funcName, params));
+        httpGet.setHeader(new BasicHeader("Pragma", "no-cache"));
+        httpGet.setHeader(new BasicHeader("Cache-Control", "no-cache"));
+        return httpGet;
+    }
+
+    private HttpPost createHttpPost(String funcName) {
+        HttpPost httpPost = new HttpPost(getUrlPost(funcName));
+        httpPost.setHeader(new BasicHeader("Pragma", "no-cache"));
+        httpPost.setHeader(new BasicHeader("Cache-Control", "no-cache"));
+        return httpPost;
     }
 
 }
