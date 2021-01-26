@@ -269,8 +269,12 @@ public class JdxReplSrv {
         srvHandleCommonQue(mailerList, commonQue);
     }
 
-    public void srvDispatchReplicas() throws Exception {
-        srvDispatchReplicas(commonQue, mailerList, null, true);
+    public void srvDispatchReplicasQue() throws Exception {
+        srvDispatchReplicasQue(commonQue, mailerList, null, true);
+    }
+
+    public void srvDispatchReplicasMail() throws Exception {
+        srvDispatchReplicasMail(commonQue, mailerList, null, true);
     }
 
     public void srvHandleCommonQueFrom(String cfgFileName, String mailDir) throws Exception {
@@ -410,7 +414,7 @@ public class JdxReplSrv {
      * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
      * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
      */
-    private void srvHandleCommonQue(Map<Long, IMailer> mailerList, IJdxQue commonQue) throws Exception {
+    private void srvHandleCommonQue(Map<Long, IMailer> mailerList, IJdxReplicaQue commonQue) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
         for (Map.Entry en : mailerList.entrySet()) {
             long wsId = (long) en.getKey();
@@ -496,6 +500,18 @@ public class JdxReplSrv {
                 log.error(Ut.getStackTrace(e));
             }
         }
+    }
+
+    /**
+     * Сервер: распределение общей очереди по рабочим станциям
+     */
+    private void srvDispatchReplicasQue(IJdxReplicaQue commonQue, Map<Long, IMailer> mailerList, SendRequiredInfo requiredInfo, boolean doMarkDone) throws Exception {
+    }
+
+    /**
+     * Сервер: распределение общей очереди по рабочим станциям
+     */
+    private void srvDispatchReplicasMail(IJdxReplicaQue commonQue, Map<Long, IMailer> mailerList, SendRequiredInfo requiredInfo, boolean doMarkDone) throws Exception {
     }
 
     /**
