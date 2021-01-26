@@ -47,15 +47,21 @@ public class IdRelocator_Test extends DbmTestCase {
         //
         long idSour = 1357;
         long idDest = 200001357;
+        MergeResultTable relocateCheckResult = relocator.relocateIdCheck("Lic", idSour, idDest);
+        System.out.println("Record relocated:");
+        UtData.outTable(relocateCheckResult.recordsDeleted);
         System.out.println("Records updated for tables, referenced to " + "Lic" + ":");
-        UtRecMerge.printRecordsUpdated(relocator.relocateIdCheck("Lic", idSour, idDest));
+        UtRecMerge.printRecordsUpdated(relocateCheckResult.recordsUpdated);
 
         //
         idSour = 200001357;
         idDest = 1357;
         try {
+            relocateCheckResult = relocator.relocateIdCheck("Lic", idSour, idDest);
+            System.out.println("Record deleted:");
+            UtData.outTable(relocateCheckResult.recordsDeleted);
             System.out.println("Records updated for tables, referenced to " + "Lic" + ":");
-            UtRecMerge.printRecordsUpdated(relocator.relocateIdCheck("Lic", idSour, idDest));
+            UtRecMerge.printRecordsUpdated(relocateCheckResult.recordsUpdated);
         } catch (Exception e) {
             if (e.getMessage().compareToIgnoreCase("No result in sqlrec") != 0) {
                 throw e;

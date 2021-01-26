@@ -12,12 +12,12 @@ public class MergeResultTable {
     /**
      * Удаленные записи в самой таблице (как были до удаления)
      */
-    DataStore recordsDeleted;
+    public DataStore recordsDeleted;
 
     /**
      * Обновленные записи в зависимых таблицах:
      * что пришлось сделать с каждой из зависимых таблиц, чтобы сделать merge в основной таблице.
      */
-    RecordsUpdatedMap recordsUpdated = new RecordsUpdatedMap();
+    public RecordsUpdatedMap recordsUpdated = new RecordsUpdatedMap();
 
 }

@@ -1,18 +1,16 @@
 package jdtx.repl.main.ext
 
-import jandcode.app.App
-import jandcode.dbm.ModelService
-import jandcode.dbm.db.Db
-import jandcode.jc.AppProjectExt
-import jandcode.jc.ProjectExt
-import jandcode.utils.UtFile
-import jandcode.utils.UtLog
-import jandcode.utils.error.XError
-import jandcode.utils.variant.IVariantMap
+import jandcode.app.*
+import jandcode.dbm.*
+import jandcode.dbm.data.*
+import jandcode.dbm.db.*
+import jandcode.jc.*
+import jandcode.utils.*
+import jandcode.utils.error.*
+import jandcode.utils.variant.*
 import jdtx.repl.main.api.rec_merge.*
-import jdtx.repl.main.api.struct.IJdxDbStruct
-import jdtx.repl.main.api.struct.IJdxDbStructReader
-import jdtx.repl.main.api.struct.JdxDbStructReader
+import jdtx.repl.main.api.relocator.*
+import jdtx.repl.main.api.struct.*
 
 /**
  * Обертка для вызовов утилиты jc с командной строки
@@ -50,7 +48,6 @@ class Merge_Ext extends ProjectExt {
     App getApp() {
         return getAppExt().getInst()
     }
-
 
     /**
      * rec_merge_find
@@ -104,7 +101,6 @@ class Merge_Ext extends ProjectExt {
         }
     }
 
-
     /**
      * rec_merge_find
      * @param args
@@ -143,6 +139,97 @@ class Merge_Ext extends ProjectExt {
             // Сохраняем результат выполнения задачи
             reader = new UtRecMergeReader()
             reader.writeMergeResilts(mergeResults, UtFile.removeExt(file) + ".result.json")
+        } finally {
+            db.disconnect()
+        }
+    }
+
+    /**
+     */
+    void rec_relocate_check(IVariantMap args) {
+        String tableName = args.getValueString("table")
+        long idSour = args.getValueLong("sour")
+        long idDest = args.getValueLong("dest")
+        if (tableName == null || tableName.length() == 0) {
+            throw new XError("Не указана [table] - имя таблицы")
+        }
+        if (idSour == 0) {
+            throw new XError("Не указан [sour] - исходный pk")
+        }
+        if (idDest == 0) {
+            throw new XError("Не указан [dest] - конечный pk")
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+        //
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
+
+        //
+        try {
+            IJdxDbStructReader structReader = new JdxDbStructReader()
+            structReader.setDb(db)
+            IJdxDbStruct struct = structReader.readDbStruct()
+
+            //
+            IdRelocator relocator = new IdRelocator(db, struct)
+
+            //
+            MergeResultTable relocateCheckResult = relocator.relocateIdCheck(tableName, idSour, idDest)
+            System.out.println("Record sour:")
+            UtData.outTable(relocateCheckResult.recordsDeleted)
+            System.out.println("Records updated for tables, referenced to " + "Lic" + ":")
+            UtRecMerge.printRecordsUpdated(relocateCheckResult.recordsUpdated)
+            System.out.println("Record dest:")
+            UtData.outTable(db.loadSql("select * from " + tableName + " where id = " + idDest))
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
+    /**
+     */
+    void rec_relocate(IVariantMap args) {
+        String tableName = args.getValueString("table")
+        long idSour = args.getValueLong("sour")
+        long idDest = args.getValueLong("dest")
+        if (tableName == null || tableName.length() == 0) {
+            throw new XError("Не указана [table] - имя таблицы")
+        }
+        if (idSour == 0) {
+            throw new XError("Не указан [sour] - исходный pk")
+        }
+        if (idDest == 0) {
+            throw new XError("Не указан [dest] - конечный pk")
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+        //
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
+
+        //
+        try {
+            IJdxDbStructReader structReader = new JdxDbStructReader()
+            structReader.setDb(db)
+            IJdxDbStruct struct = structReader.readDbStruct()
+
+            //
+            IdRelocator relocator = new IdRelocator(db, struct)
+
+            System.out.println("Record sour:")
+            UtData.outTable(db.loadSql("select * from " + tableName + " where id = " + idSour))
+
+            //
+            relocator.relocateId(tableName, idSour, idDest)
+
+            //
+            System.out.println("Record dest:")
+            UtData.outTable(db.loadSql("select * from " + tableName + " where id = " + idDest))
+
         } finally {
             db.disconnect()
         }

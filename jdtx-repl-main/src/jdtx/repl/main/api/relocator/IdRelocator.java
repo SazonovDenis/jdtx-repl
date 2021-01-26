@@ -4,7 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
-import jdtx.repl.main.api.JdxDbUtils;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.rec_merge.*;
 import jdtx.repl.main.api.struct.*;
 
@@ -25,16 +25,18 @@ public class IdRelocator {
         dbu = new JdxDbUtils(db, struct);
     }
 
-    RecordsUpdatedMap relocateIdCheck(String tableName, long idSour, long idDest) throws Exception {
-        RecordsUpdatedMap recordsUpdatedMap = new RecordsUpdatedMap();
+    public MergeResultTable relocateIdCheck(String tableName, long idSour, long idDest) throws Exception {
+        MergeResultTable relocateCheckResult = new MergeResultTable();
 
+
+        //
         db.startTran();
         try {
             String pkField = struct.getTable(tableName).getPrimaryKey().get(0).getName();
 
             // Проверяем, что idSour не пустая
             String sql = "select * from " + tableName + " where " + pkField + " = :" + pkField;
-            DataRecord rec = dbu.loadSqlRec(sql, UtCnv.toMap(pkField, idSour));
+            relocateCheckResult.recordsDeleted = db.loadSql(sql, UtCnv.toMap(pkField, idSour));
 
             // Проверякм все ссылки tableName.idSour на tableName.idDest
             for (IJdxTable refTable : struct.getTables()) {
@@ -48,7 +50,7 @@ public class IdRelocator {
                         Map paramsSelect = UtCnv.toMap(refFieldName + "_sour", idSour);
                         DataStore refData = db.loadSql(sqlSelect, paramsSelect);
                         //
-                        RecordsUpdated recordsUpdated = recordsUpdatedMap.addForTable(refTableName, refFieldName);
+                        RecordsUpdated recordsUpdated = relocateCheckResult.recordsUpdated.addForTable(refTableName, refFieldName);
                         recordsUpdated.recordsUpdated = refData;
                     }
                 }
@@ -63,10 +65,10 @@ public class IdRelocator {
 
 
         //
-        return recordsUpdatedMap;
+        return relocateCheckResult;
     }
 
-    void relocateId(String tableName, long idSour, long idDest) throws Exception {
+    public void relocateId(String tableName, long idSour, long idDest) throws Exception {
         if (idSour == idDest) {
             throw new XError("Error relocateId: idSour == idDest");
         }

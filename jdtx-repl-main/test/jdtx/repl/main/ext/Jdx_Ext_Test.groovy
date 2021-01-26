@@ -1,12 +1,12 @@
 package jdtx.repl.main.ext
 
-
-import jandcode.jc.ProjectScript
-import jandcode.jc.test.JcTestCase
-import jandcode.jc.test.TestExtJc
-import jandcode.utils.variant.IVariantMap
-import jandcode.utils.variant.VariantMap
-import org.junit.Test
+import jandcode.dbm.*
+import jandcode.dbm.data.*
+import jandcode.dbm.db.*
+import jandcode.jc.*
+import jandcode.jc.test.*
+import jandcode.utils.variant.*
+import org.junit.*
 
 class Jdx_Ext_Test extends JcTestCase {
 
@@ -116,7 +116,7 @@ class Jdx_Ext_Test extends JcTestCase {
 
 
     @Test
-    public void repl_record_merge_file() {
+    void repl_record_merge_file() {
         //TestExtJc jc = createExt(TestExtJc.class);
         ProjectScript project = jc.loadProject("one/project.jc");
         Merge_Ext ext = (Merge_Ext) project.createExt("jdtx.repl.main.ext.Merge_Ext");
@@ -137,6 +137,35 @@ class Jdx_Ext_Test extends JcTestCase {
         ext.rec_merge_exec(args);
     }
 
+
+    @Test
+    void relocate() {
+        ProjectScript p1 = jc.loadProject("ws2/project.jc")
+        Merge_Ext ext = (Merge_Ext) p1.createExt("jdtx.repl.main.ext.Merge_Ext")
+
+        //
+        Db db = ext.getApp().service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        //UtData.outTable(db.loadSql("select * from Lic order by Id"));
+
+        //
+        IVariantMap args = new VariantMap();
+        args.put("table", "Lic");
+        args.put("sour", 1357)
+        args.put("dest", 7777)
+
+        //
+        System.out.println("==================")
+        System.out.println("rec_relocate_check")
+        ext.rec_relocate_check(args);
+
+        //
+        System.out.println("==================")
+        System.out.println("rec_relocate")
+        ext.rec_relocate(args);
+    }
 
 
 }
