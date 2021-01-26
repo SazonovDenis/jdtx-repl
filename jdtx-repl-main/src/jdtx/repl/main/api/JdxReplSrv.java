@@ -154,7 +154,7 @@ public class JdxReplSrv {
         db.execSql(sql, params);
 
         // state_ws
-        DbUtils dbu = new DbUtils(db, null);
+        JdxDbUtils dbu = new JdxDbUtils(db, null);
         long id = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "state_ws");
         sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws (id, ws_id, que_common_dispatch_done, que_out001_dispatch_done, que_in_age_done, enabled, mute_age) values (" + id + ", " + wsId + ", 0, 0, 0, 0, 0)";
         db.execSql(sql);

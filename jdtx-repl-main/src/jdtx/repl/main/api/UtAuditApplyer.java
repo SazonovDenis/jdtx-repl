@@ -43,7 +43,7 @@ public class UtAuditApplyer {
         int tIdx = 0;
 
         //
-        DbUtils dbu = new DbUtils(db, struct);
+        JdxDbUtils dbu = new JdxDbUtils(db, struct);
 
         //
         DbAuditTriggersManager triggersManager = new DbAuditTriggersManager(db);
@@ -289,7 +289,7 @@ public class UtAuditApplyer {
 
     }
 
-    private void insertOrUpdate(DbUtils dbu, String tableName, Map recParams, String publicationFields) throws Exception {
+    private void insertOrUpdate(JdxDbUtils dbu, String tableName, Map recParams, String publicationFields) throws Exception {
         try {
             dbu.insertRec(tableName, recParams, publicationFields, null);
         } catch (Exception e) {

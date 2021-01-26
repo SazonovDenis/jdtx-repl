@@ -19,9 +19,9 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
     @Test
     public void allSetUp_CascadeDel() throws Exception {
-        DbUtils dbuSrv = new DbUtils(db, struct);
-        DbUtils dbu2 = new DbUtils(db2, struct2);
-        DbUtils dbu3 = new DbUtils(db3, struct3);
+        JdxDbUtils dbuSrv = new JdxDbUtils(db, struct);
+        JdxDbUtils dbu2 = new JdxDbUtils(db2, struct2);
+        JdxDbUtils dbu3 = new JdxDbUtils(db3, struct3);
 
         // Первичная инициализация
         allSetUp();
@@ -45,9 +45,9 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
     @Test
     public void test_CascadeDel() throws Exception {
-        DbUtils dbuSrv = new DbUtils(db, struct);
-        DbUtils dbu2 = new DbUtils(db2, struct2);
-        DbUtils dbu3 = new DbUtils(db3, struct3);
+        JdxDbUtils dbuSrv = new JdxDbUtils(db, struct);
+        JdxDbUtils dbu2 = new JdxDbUtils(db2, struct2);
+        JdxDbUtils dbu3 = new JdxDbUtils(db3, struct3);
         Random rnd = new Random();
         rnd.setSeed(0);
 
@@ -199,9 +199,9 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
     @Test
     public void testCnt() throws Exception {
-        DbUtils dbuSrv = new DbUtils(db, struct);
-        DbUtils dbu2 = new DbUtils(db2, struct2);
-        DbUtils dbu3 = new DbUtils(db3, struct3);
+        JdxDbUtils dbuSrv = new JdxDbUtils(db, struct);
+        JdxDbUtils dbu2 = new JdxDbUtils(db2, struct2);
+        JdxDbUtils dbu3 = new JdxDbUtils(db3, struct3);
         //
         System.out.println(get_regionTip_cnt(dbuSrv));
         System.out.println(get_regionTip_cnt(dbu2));
@@ -215,9 +215,9 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         String sql = "select * from RegionTip where RegionTip.id <> 0 order by RegionTip.id";
 
         //
-        DbUtils dbu1 = new DbUtils(db, struct);
-        DbUtils dbu2 = new DbUtils(db2, struct2);
-        DbUtils dbu3 = new DbUtils(db3, struct3);
+        JdxDbUtils dbu1 = new JdxDbUtils(db, struct);
+        JdxDbUtils dbu2 = new JdxDbUtils(db2, struct2);
+        JdxDbUtils dbu3 = new JdxDbUtils(db3, struct3);
 
         //
         System.out.println("srv");
@@ -228,7 +228,7 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         UtData.outTable(dbu3.db.loadSql(sql));
     }
 
-    private long get_regionTip_cnt(DbUtils dbu) throws Exception {
+    private long get_regionTip_cnt(JdxDbUtils dbu) throws Exception {
         return dbu.db.loadSql("select count(*) cnt from regionTip where id <> 0").getCurRec().getValueLong("cnt");
     }
 

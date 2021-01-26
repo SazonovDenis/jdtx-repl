@@ -4,7 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
-import jdtx.repl.main.api.DbUtils;
+import jdtx.repl.main.api.JdxDbUtils;
 import jdtx.repl.main.api.rec_merge.*;
 import jdtx.repl.main.api.struct.*;
 
@@ -16,13 +16,13 @@ import java.util.*;
 public class IdRelocator {
 
     Db db;
-    DbUtils dbu;
+    JdxDbUtils dbu;
     IJdxDbStruct struct;
 
     public IdRelocator(Db db, IJdxDbStruct struct) {
         this.db = db;
         this.struct = struct;
-        dbu = new DbUtils(db, struct);
+        dbu = new JdxDbUtils(db, struct);
     }
 
     RecordsUpdatedMap relocateIdCheck(String tableName, long idSour, long idDest) throws Exception {

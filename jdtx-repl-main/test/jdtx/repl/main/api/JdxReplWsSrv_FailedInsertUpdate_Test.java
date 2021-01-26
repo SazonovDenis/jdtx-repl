@@ -207,7 +207,7 @@ public class JdxReplWsSrv_FailedInsertUpdate_Test extends JdxReplWsSrv_Test {
     }
 
     void useDeletedRef_db3() throws Exception {
-        DbUtils dbu = new DbUtils(db3, struct3);
+        JdxDbUtils dbu = new JdxDbUtils(db3, struct3);
         dbu.insertRec("Ulz", UtCnv.toMap("Name", "Новая ул ХХХ", "UlzTip", UlzTip, "Region", Region));
     }
 

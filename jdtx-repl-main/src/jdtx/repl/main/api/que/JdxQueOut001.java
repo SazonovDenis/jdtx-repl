@@ -3,7 +3,7 @@ package jdtx.repl.main.api.que;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
-import jdtx.repl.main.api.DbUtils;
+import jdtx.repl.main.api.JdxDbUtils;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.replica.*;
 
@@ -51,7 +51,7 @@ public class JdxQueOut001 extends JdxQue implements IJdxQue {
         // Отмечаем в БД
         db.startTran();
         try {
-            DbUtils dbu = new DbUtils(db, null);
+            JdxDbUtils dbu = new JdxDbUtils(db, null);
             long id = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "que_" + queName);
             //
             String sql = "insert into " + JdxUtils.sys_table_prefix + "que_" + queName + " (id, destination_ws_id, destination_no, ws_id, age, replica_type) values (:id, :destination_ws_id, :destination_no, :ws_id, :age, :replica_type)";

@@ -70,11 +70,11 @@ public class PublicationStorage implements IPublicationStorage {
         List<String> res = new ArrayList<>();
 
         //
-        // DbUtils.ID_FIELD пусть будет всегда спереди (необязательно, но... во-первых это красиво!)
-        res.add(DbUtils.ID_FIELD);
+        // JdxDbUtils.ID_FIELD пусть будет всегда спереди (необязательно, но... во-первых это красиво!)
+        res.add(JdxDbUtils.ID_FIELD);
         if (publicationFields.compareToIgnoreCase("*") == 0) {
             for (IJdxField fieldStruct : table.getFields()) {
-                if (fieldStruct.getName().equalsIgnoreCase(DbUtils.ID_FIELD)) {
+                if (fieldStruct.getName().equalsIgnoreCase(JdxDbUtils.ID_FIELD)) {
                     continue;
                 }
                 res.add(fieldStruct.getName());
@@ -82,7 +82,7 @@ public class PublicationStorage implements IPublicationStorage {
         } else {
             String[] publicationFieldsArr = publicationFields.split(",");
             for (String publicationField : publicationFieldsArr) {
-                if (publicationField.equalsIgnoreCase(DbUtils.ID_FIELD)) {
+                if (publicationField.equalsIgnoreCase(JdxDbUtils.ID_FIELD)) {
                     continue;
                 }
                 res.add(publicationField);

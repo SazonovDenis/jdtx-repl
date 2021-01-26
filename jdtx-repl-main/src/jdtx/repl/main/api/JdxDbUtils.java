@@ -12,14 +12,14 @@ import java.util.*;
 /**
  * Манипуляции с базой - CRUD
  */
-public class DbUtils {
+public class JdxDbUtils {
 
     Db db;
     IJdxDbStruct struct;
 
     public static String ID_FIELD = "ID";
 
-    public DbUtils(Db db, IJdxDbStruct struct) {
+    public JdxDbUtils(Db db, IJdxDbStruct struct) {
         this.db = db;
         this.struct = struct;
     }
@@ -355,9 +355,9 @@ public class DbUtils {
     }
 
     public DataRecord loadSqlRec(String sql, Map params) throws Exception {
-            DataStore res = db.loadSql(sql, params);
-            checkOneLoadSqlRec(res);
-            return res.getCurRec();
+        DataStore res = db.loadSql(sql, params);
+        checkOneLoadSqlRec(res);
+        return res.getCurRec();
     }
 
     protected void checkOneLoadSqlRec(DataStore st) {

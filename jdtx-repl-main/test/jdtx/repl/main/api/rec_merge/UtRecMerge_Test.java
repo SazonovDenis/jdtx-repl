@@ -4,7 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.dbm.test.*;
 import jandcode.utils.*;
-import jdtx.repl.main.api.DbUtils;
+import jdtx.repl.main.api.JdxDbUtils;
 import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
@@ -82,7 +82,7 @@ public class UtRecMerge_Test extends DbmTestCase {
         // =================
 
         // Копируем запись
-        DbUtils dbu = new DbUtils(db, struct);
+        JdxDbUtils dbu = new JdxDbUtils(db, struct);
         long idMax = db.loadSql("select max(id) id from " + tableName).get(0).getValueLong("id");
         DataRecord rec = dbu.loadSqlRec("select * from " + tableName + " where id = :id", UtCnv.toMap("id", idMax));
         rec.setValue("id", idMax + 1);

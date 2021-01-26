@@ -94,7 +94,7 @@ public class UtTest extends UtilsTestCase {
         // Немного повставляем записей
         Random rnd = new Random();
         rnd.setSeed(getDbSeed());
-        DbUtils dbu = new DbUtils(db, struct);
+        JdxDbUtils dbu = new JdxDbUtils(db, struct);
         //
         long id = dbu.getNextGenerator("g_" + tableName);
         sql = "insert into " + tableName + " (id, name) values (" + id + ", '" + "new~" + rnd.nextInt() + "')";
@@ -106,7 +106,7 @@ public class UtTest extends UtilsTestCase {
     }
 
     public void makeChangeUnimportant(IJdxDbStruct struct, long ws_id) throws Exception {
-        DbUtils dbu = new DbUtils(db, struct);
+        JdxDbUtils dbu = new JdxDbUtils(db, struct);
         long id01 = db.loadSql("select min(id) id from lic where id > 0").getCurRec().getValueLong("id");
         DataRecord rec = db.loadSql("select * from lic where id = " + id01).getCurRec();
         dbu.updateRec("lic",
@@ -119,7 +119,7 @@ public class UtTest extends UtilsTestCase {
     public void makeChange(IJdxDbStruct struct, long ws_id) throws Exception {
         Random rnd = new Random();
         rnd.setSeed(getDbSeed());
-        DbUtils dbu = new DbUtils(db, struct);
+        JdxDbUtils dbu = new JdxDbUtils(db, struct);
 
 
         // ---
@@ -315,7 +315,7 @@ public class UtTest extends UtilsTestCase {
      * Удаление только что вставленной A1
      */
     void make_InsDel(IJdxDbStruct struct, long ws_id) throws Exception {
-        DbUtils dbu = new DbUtils(db, struct);
+        JdxDbUtils dbu = new JdxDbUtils(db, struct);
         //UtRepl utRepl = new UtRepl(db, struct);
         Random rnd = new Random();
         rnd.setSeed(getDbSeed());
@@ -386,7 +386,7 @@ public class UtTest extends UtilsTestCase {
      * Фиксация возраста
      */
     void make_InsDel_1(IJdxDbStruct struct, long ws_id) throws Exception {
-        DbUtils dbu = new DbUtils(db, struct);
+        JdxDbUtils dbu = new JdxDbUtils(db, struct);
         //UtRepl utRepl = new UtRepl(db, struct);
         Random rnd = new Random();
         rnd.setSeed(getDbSeed());
