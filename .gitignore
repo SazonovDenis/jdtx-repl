@@ -3,3 +3,13 @@ temp
 out
 notuse
 install/JadatexSync*.exe
+
+*.iws
+*.iml
+*.ipr
+
+notuse
+
+_app.rt
+_db-ini.rt
+_log.properties
