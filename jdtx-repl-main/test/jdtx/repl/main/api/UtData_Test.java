@@ -104,11 +104,11 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
 
 
         // Ой! Кто-то удалил все нафиг!
-        //db2.execSql("delete from PawnChit where id <> 0");
-        //db2.execSql("delete from Lic where id <> 0");
-        ////
-        //UtData.outTable(db2.loadSql("select id, ChitNo, ChitDt from PawnChit order by id"));
-        //UtData.outTable(db2.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by id"));
+        db2.execSql("delete from PawnChit where id <> 0");
+        db2.execSql("delete from Lic where id <> 0");
+        //
+        UtData.outTable(db2.loadSql("select id, ChitNo, ChitDt from PawnChit order by id"));
+        UtData.outTable(db2.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by id"));
 
 
         // Не страшно, сейчас вернем!
