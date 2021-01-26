@@ -5,7 +5,9 @@ import java.io.*;
 import java.util.*;
 
 /**
+ * @deprecated Сейчас используется UtRecMergeReader с JSON
  */
+@Deprecated
 public class UtRecMergeReaderXml {
 
     InputStream inputStream = null;

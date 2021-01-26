@@ -44,7 +44,7 @@ public class UtRecMergeReader {
         UtFile.saveString(json.toJSONString(), new File(fileName));
     }
 
-    public void writeResilts(Map<String, MergeResultTable> mergeResults, String fileName) throws Exception {
+    public void writeMergeResilts(MergeResultTableMap mergeResults, String fileName) throws Exception {
         JSONObject json = new JSONObject();
         for (String tableName : mergeResults.keySet()) {
             MergeResultTable mergeResult = mergeResults.get(tableName);
@@ -54,12 +54,11 @@ public class UtRecMergeReader {
             // mergeResult.recordsUpdated
             JSONObject mergeResultsRefTable = new JSONObject();
             for (String refTableName : mergeResult.recordsUpdated.keySet()) {
-                MergeResultRecordsUpdated mergeResultRecordsUpdated = mergeResult.recordsUpdated.get(refTableName);
+                RecordsUpdated recordsUpdated = mergeResult.recordsUpdated.get(refTableName);
                 JSONObject mergeResultRefTableJson = new JSONObject();
-                //mergeResultRefTableJson.put("tableName", mergeResultRecordsUpdated.tableName);
-                mergeResultRefTableJson.put("refTableName", refTableName);
-                mergeResultRefTableJson.put("refFieldName", mergeResultRecordsUpdated.refFieldName);
-                mergeResultRefTableJson.put("recordsUpdated", dataStoreToList(mergeResultRecordsUpdated.recordsUpdated));
+                mergeResultRefTableJson.put("refTableName", recordsUpdated.refTableName);
+                mergeResultRefTableJson.put("refFieldName", recordsUpdated.refFieldName);
+                mergeResultRefTableJson.put("recordsUpdated", dataStoreToList(recordsUpdated.recordsUpdated));
                 mergeResultsRefTable.put(refTableName, mergeResultRefTableJson);
             }
             resultJson.put("recordsUpdated", mergeResultsRefTable);
@@ -74,7 +73,8 @@ public class UtRecMergeReader {
         UtFile.saveString(json.toJSONString(), new File(fileName));
     }
 
-    public Map<String, MergeResultTable> readResults(String fileName) throws Exception {
+    public MergeResultTableMap readResults(String fileName) throws Exception {
+        // todo: реализовать
         return null;
     }
 

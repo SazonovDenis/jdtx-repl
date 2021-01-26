@@ -84,7 +84,7 @@ public class UtRecMerge_Test extends DbmTestCase {
         // Копируем запись
         DbUtils dbu = new DbUtils(db, struct);
         long idMax = db.loadSql("select max(id) id from " + tableName).get(0).getValueLong("id");
-        DataRecord rec = db.loadSql("select * from " + tableName + " where id = :id", UtCnv.toMap("id", idMax)).get(0);
+        DataRecord rec = dbu.loadSqlRec("select * from " + tableName + " where id = :id", UtCnv.toMap("id", idMax));
         rec.setValue("id", idMax + 1);
         dbu.insertRec(tableName, rec.getValues());
 
@@ -126,14 +126,14 @@ public class UtRecMerge_Test extends DbmTestCase {
         UtRecMerge.printTasks(mergeTasks);
 
         // Исполняем задачу на слияние
-        Map<String, MergeResultTable> mergeResults = utRecMerge.execMergeTask(mergeTasks, UtRecMerge.DO_DELETE);
+        MergeResultTableMap mergeResults = utRecMerge.execMergeTask(mergeTasks, UtRecMerge.DO_DELETE);
 
         // Печатаем результат выполнения задачи
         UtRecMerge.printMergeResults(mergeResults);
 
         // Сохраняем результат выполнения задачи
         UtRecMergeReader reader = new UtRecMergeReader();
-        reader.writeResilts(mergeResults, "../temp/result.json");
+        reader.writeMergeResilts(mergeResults, "../temp/result.json");
     }
 
     @Test
@@ -179,14 +179,14 @@ public class UtRecMerge_Test extends DbmTestCase {
 
         // Исполняем задачу на слияние
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
-        Map<String, MergeResultTable> mergeResults = utRecMerge.execMergeTask(mergeTasks, UtRecMerge.DO_DELETE);
+        MergeResultTableMap mergeResults = utRecMerge.execMergeTask(mergeTasks, UtRecMerge.DO_DELETE);
 
         // Печатаем результат выполнения задачи
         UtRecMerge.printMergeResults(mergeResults);
 
         // Сохраняем результат выполнения задачи
         reader = new UtRecMergeReader();
-        reader.writeResilts(mergeResults, "../temp/result.json");
+        reader.writeMergeResilts(mergeResults, "../temp/result.json");
     }
 
     @Test
@@ -200,17 +200,17 @@ public class UtRecMerge_Test extends DbmTestCase {
 
         // Исполняем задачу на слияние
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
-        Map<String, MergeResultTable> mergeResults = utRecMerge.execMergeTask(mergeTasks, UtRecMerge.DO_DELETE);
+        MergeResultTableMap mergeResults = utRecMerge.execMergeTask(mergeTasks, UtRecMerge.DO_DELETE);
 
         // Печатаем результат выполнения задачи
         UtRecMerge.printMergeResults(mergeResults);
 
         // Сохраняем результат выполнения задачи
         reader = new UtRecMergeReader();
-        reader.writeResilts(mergeResults, "../temp/result.json");
+        reader.writeMergeResilts(mergeResults, "../temp/result.json");
 
         // Читаем результат выполнения задачи
-        Map<String, MergeResultTable> mergeResults1 = reader.readResults("../temp/result.json");
+        MergeResultTableMap mergeResults1 = reader.readResults("../temp/result.json");
 
         //
         utRecMerge.revertExecTask(mergeResults1);

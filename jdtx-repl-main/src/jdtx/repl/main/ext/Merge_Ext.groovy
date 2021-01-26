@@ -138,11 +138,11 @@ class Merge_Ext extends ProjectExt {
 
             // Исполняем задачу на слияние
             UtRecMerge utRecMerge = new UtRecMerge(db, struct)
-            Map<String, MergeResultTable> mergeResults = utRecMerge.execMergeTask(mergeTasks, delete)
+            MergeResultTableMap mergeResults = utRecMerge.execMergeTask(mergeTasks, delete)
 
             // Сохраняем результат выполнения задачи
             reader = new UtRecMergeReader()
-            reader.writeResilts(mergeResults, UtFile.removeExt(file) + ".result.json")
+            reader.writeMergeResilts(mergeResults, UtFile.removeExt(file) + ".result.json")
         } finally {
             db.disconnect()
         }

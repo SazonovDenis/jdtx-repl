@@ -25,12 +25,12 @@ public interface IUtRecMerge {
      * @return Для каждой RecMergeTask.tableName возвращает,
      * что пришлось сделать с каждой из зависимых от RecMergeTask.tableName таблиц, чтобы выполнить каждую task.
      */
-    Map<String, MergeResultTable> execMergeTask(Collection<RecMergeTask> tasks, boolean doDelete) throws Exception;
+    MergeResultTableMap execMergeTask(Collection<RecMergeTask> tasks, boolean doDelete) throws Exception;
 
     /**
      * Откатить слияние
      * @param taskResults результат выполнения задач на слияние (затронутые записи)
      */
-    void revertExecTask(Map<String, MergeResultTable> taskResults);
+    void revertExecTask(MergeResultTableMap taskResults);
 
 }

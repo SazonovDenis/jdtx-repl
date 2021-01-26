@@ -1,7 +1,9 @@
 package jdtx.repl.main.api;
 
+import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.utils.error.*;
 import jdtx.repl.main.api.struct.*;
 
 import java.sql.*;
@@ -351,4 +353,20 @@ public class DbUtils {
     private long getTableNextId(String tableName) throws SQLException {
         return getNextGenerator("g_" + tableName);
     }
+
+    public DataRecord loadSqlRec(String sql, Map params) throws Exception {
+            DataStore res = db.loadSql(sql, params);
+            checkOneLoadSqlRec(res);
+            return res.getCurRec();
+    }
+
+    protected void checkOneLoadSqlRec(DataStore st) {
+        if (st.size() == 0) {
+            throw new XError("No result in sqlrec");
+        }
+        if (st.size() > 10) {
+            throw new XError("Many result in sqlrec");
+        }
+    }
+
 }

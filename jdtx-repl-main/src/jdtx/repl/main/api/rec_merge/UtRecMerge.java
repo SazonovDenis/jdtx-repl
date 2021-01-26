@@ -23,6 +23,19 @@ public class UtRecMerge implements IUtRecMerge {
         this.struct = struct;
     }
 
+    public static void printRecordsUpdated(RecordsUpdatedMap recordsUpdatedMap) {
+        for (String key : recordsUpdatedMap.keySet()) {
+            RecordsUpdated recordsUpdated = recordsUpdatedMap.get(key);
+            System.out.println("ref: " + recordsUpdated.refTableName + "." + recordsUpdated.refFieldName);
+            if (recordsUpdated.recordsUpdated == null || recordsUpdated.recordsUpdated.size() == 0) {
+                System.out.println("Ref records updated: empty");
+            } else {
+                UtData.outTable(recordsUpdated.recordsUpdated);
+            }
+            System.out.println();
+        }
+    }
+
     @Override
     public Collection<String> loadTables() {
         Collection<String> res = new ArrayList<>();
@@ -122,19 +135,15 @@ public class UtRecMerge implements IUtRecMerge {
     }
 
     @Override
-    public Map<String, MergeResultTable> execMergeTask(Collection<RecMergeTask> mergeTasks, boolean doDelete) throws Exception {
-        Map<String, MergeResultTable> result = new HashMap<>();
+    public MergeResultTableMap execMergeTask(Collection<RecMergeTask> mergeTasks, boolean doDelete) throws Exception {
+        MergeResultTableMap result = new MergeResultTableMap();
 
         //
         for (RecMergeTask mergeTask : mergeTasks) {
             db.startTran();
             try {
                 //
-                MergeResultTable taskResultTable = result.get(mergeTask.tableName);
-                if (taskResultTable == null) {
-                    taskResultTable = new MergeResultTable();
-                    result.put(mergeTask.tableName, taskResultTable);
-                }
+                MergeResultTable taskResultTable = result.addForTable(mergeTask.tableName);
 
                 //
                 String pkField = struct.getTable(mergeTask.tableName).getPrimaryKey().get(0).getName();
@@ -148,14 +157,7 @@ public class UtRecMerge implements IUtRecMerge {
                     String fkRefFieldName = fk.getField().getName();
 
                     //
-                    String key = refTableName + "_" + fkRefFieldName;
-                    MergeResultRecordsUpdated taskRecResult = taskResultTable.recordsUpdated.get(key);
-                    if (taskRecResult == null) {
-                        taskRecResult = new MergeResultRecordsUpdated();
-                        //taskRecResult.tableName = refTableName;
-                        taskRecResult.refFieldName = fkRefFieldName;
-                        taskResultTable.recordsUpdated.put(key, taskRecResult);
-                    }
+                    RecordsUpdated taskRecResult = taskResultTable.recordsUpdated.addForTable(refTableName, fkRefFieldName);
 
                     //
                     String sqlUpdate = "update " + refTableName + " set " + fkRefFieldName + " = :" + fkRefFieldName + "_NEW" + " where " + fkRefFieldName + " = :" + fkRefFieldName + "_OLD";
@@ -222,8 +224,8 @@ public class UtRecMerge implements IUtRecMerge {
     }
 
     @Override
-    public void revertExecTask(Map<String, MergeResultTable> taskResults) {
-
+    public void revertExecTask(MergeResultTableMap taskResults) {
+        // todo: реализовать
     }
 
     /**
@@ -310,7 +312,7 @@ public class UtRecMerge implements IUtRecMerge {
         }
     }
 
-    public static void printMergeResults(Map<String, MergeResultTable> mergeResults) {
+    public static void printMergeResults(MergeResultTableMap mergeResults) {
         System.out.println("MergeResults:");
         System.out.println();
         for (String taskTableName : mergeResults.keySet()) {
@@ -319,18 +321,8 @@ public class UtRecMerge implements IUtRecMerge {
 
             MergeResultTable mergeResultTable = mergeResults.get(taskTableName);
 
-            for (String refTableName : mergeResultTable.recordsUpdated.keySet()) {
-                MergeResultRecordsUpdated mergeResultRecordsUpdated = mergeResultTable.recordsUpdated.get(refTableName);
-                //System.out.println("Ref table: " + mergeResultRecordsUpdated.tableName);
-                System.out.println("refTableName: " + refTableName);
-                System.out.println("refFieldName: " + mergeResultRecordsUpdated.refFieldName + " -> " + taskTableName);
-                if (mergeResultRecordsUpdated.recordsUpdated == null || mergeResultRecordsUpdated.recordsUpdated.size() == 0) {
-                    System.out.println("Ref records updated: empty");
-                } else {
-                    UtData.outTable(mergeResultRecordsUpdated.recordsUpdated);
-                }
-                System.out.println();
-            }
+            System.out.println("Records updated for tables, referenced to " + taskTableName + ":");
+            printRecordsUpdated(mergeResultTable.recordsUpdated);
 
             System.out.println("Records deleted from " + taskTableName + ":");
             if (mergeResultTable.recordsDeleted == null || mergeResultTable.recordsDeleted.size() == 0) {

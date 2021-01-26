@@ -5,21 +5,21 @@ import jandcode.dbm.data.*;
 /**
  * Обновленные записи в таблице
  */
-public class MergeResultRecordsUpdated {
+public class RecordsUpdated {
 
     /**
      * Таблица, чьи записи обновили, чтобы сделать merge в основной таблице
      */
-    //String tableName;
+    String refTableName;
 
     /**
-     * По какому полю искали в таблице tableName
+     * По какому полю искали в таблице refTableName
      */
-    String refFieldName;
+    public String refFieldName;
 
     /**
      * Обновленные записи в таблице tableName
      */
-    DataStore recordsUpdated;
+    public DataStore recordsUpdated;
 
 }
