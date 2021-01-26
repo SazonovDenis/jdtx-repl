@@ -68,6 +68,8 @@ public class IdRelocator_Test extends DbmTestCase {
         IdRelocator relocator = new IdRelocator(db, struct);
 
         //
+        System.out.println("===");
+        System.out.println("Было");
         UtData.outTable(db.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by NameF"));
 
         //
@@ -76,6 +78,8 @@ public class IdRelocator_Test extends DbmTestCase {
         relocator.relocateId("Lic", idSour, idDest);
 
         //
+        System.out.println("===");
+        System.out.println("Стало");
         UtData.outTable(db.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by NameF"));
 
         //
@@ -84,6 +88,8 @@ public class IdRelocator_Test extends DbmTestCase {
         relocator.relocateId("Lic", idSour, idDest);
 
         //
+        System.out.println("===");
+        System.out.println("Вернулось");
         UtData.outTable(db.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by NameF"));
     }
 
