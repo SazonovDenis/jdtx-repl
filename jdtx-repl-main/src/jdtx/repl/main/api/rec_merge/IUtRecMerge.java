@@ -2,6 +2,9 @@ package jdtx.repl.main.api.rec_merge;
 
 import java.util.*;
 
+/**
+ * Исполнитель слияния дубликатов
+ */
 public interface IUtRecMerge {
 
     Collection<String> loadTables();

@@ -149,12 +149,12 @@ public class UtRecMerge implements IUtRecMerge {
 
                     //
                     String key = refTableName + "_" + fkRefFieldName;
-                    MergeResultRefTable taskRecResult = taskResultTable.mergeResultsRefTable.get(key);
+                    MergeResultRecordsUpdated taskRecResult = taskResultTable.recordsUpdated.get(key);
                     if (taskRecResult == null) {
-                        taskRecResult = new MergeResultRefTable();
-                        taskRecResult.refTtableName = refTableName;
-                        taskRecResult.refTtableRefFieldName = fkRefFieldName;
-                        taskResultTable.mergeResultsRefTable.put(key, taskRecResult);
+                        taskRecResult = new MergeResultRecordsUpdated();
+                        //taskRecResult.tableName = refTableName;
+                        taskRecResult.refFieldName = fkRefFieldName;
+                        taskResultTable.recordsUpdated.put(key, taskRecResult);
                     }
 
                     //
@@ -252,6 +252,12 @@ public class UtRecMerge implements IUtRecMerge {
      * "Наивное" превращение ВСЕХ дублей в задание на удаление
      */
     public Collection<RecMergeTask> prepareRemoveDuplicatesTaskAsIs(String tableName, Collection<RecDuplicate> duplicates) throws Exception {
+
+
+        //todo:^с обязательно: стартегия слияния частично заполенных полей в разных экземплярах (например у человека в одной записи есть телефон, а в другой - номер дома) - чтобы в качестве кандидата получалась "объединанная" по полям запись
+        //todo:task.recordEtalon - пополняется полями из всех экземпляров.
+        //todo:Проработать "антагонистичные" поля! - Иногда 1) не все поля могут быть заполнены одновременно или 2) они заполняются в связи с друг с другом (см. "Группы связных полей")
+
         String pkField = struct.getTable(tableName).getPrimaryKey().get(0).getName();
         //
         Collection<RecMergeTask> res = new ArrayList<>();
@@ -313,14 +319,15 @@ public class UtRecMerge implements IUtRecMerge {
 
             MergeResultTable mergeResultTable = mergeResults.get(taskTableName);
 
-            for (String refTableName : mergeResultTable.mergeResultsRefTable.keySet()) {
-                MergeResultRefTable mergeResultRefTable = mergeResultTable.mergeResultsRefTable.get(refTableName);
-                System.out.println("Ref table: " + mergeResultRefTable.refTtableName);
-                System.out.println("Ref field: " + mergeResultRefTable.refTtableRefFieldName + " -> " + taskTableName);
-                if (mergeResultRefTable.recordsUpdated == null || mergeResultRefTable.recordsUpdated.size() == 0) {
+            for (String refTableName : mergeResultTable.recordsUpdated.keySet()) {
+                MergeResultRecordsUpdated mergeResultRecordsUpdated = mergeResultTable.recordsUpdated.get(refTableName);
+                //System.out.println("Ref table: " + mergeResultRecordsUpdated.tableName);
+                System.out.println("refTableName: " + refTableName);
+                System.out.println("refFieldName: " + mergeResultRecordsUpdated.refFieldName + " -> " + taskTableName);
+                if (mergeResultRecordsUpdated.recordsUpdated == null || mergeResultRecordsUpdated.recordsUpdated.size() == 0) {
                     System.out.println("Ref records updated: empty");
                 } else {
-                    UtData.outTable(mergeResultRefTable.recordsUpdated);
+                    UtData.outTable(mergeResultRecordsUpdated.recordsUpdated);
                 }
                 System.out.println();
             }

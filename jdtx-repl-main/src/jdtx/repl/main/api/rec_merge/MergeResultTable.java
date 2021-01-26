@@ -4,18 +4,22 @@ import jandcode.dbm.data.*;
 
 import java.util.*;
 
+/**
+ * Результат слияния записей-дубликатов в таблицы.
+ * Записи, затронутые слиянием - как удаленные из самой таблице(recordsDeleted),
+ * так и обновленные в зависимых таблицах (recordsUpdated)
+ */
 public class MergeResultTable {
 
     /**
-     * Удаленные записи в таблице (как были до удаления)
+     * Удаленные записи в самой таблице (как были до удаления)
      */
     DataStore recordsDeleted;
 
     /**
      * Обновленные записи в зависимых таблицах:
-     * что пришлось сделать с каждой из зависимых таблиц,
-     * чтобы сделать merge в основной таблице
+     * что пришлось сделать с каждой из зависимых таблиц, чтобы сделать merge в основной таблице.
      */
-    Map<String, MergeResultRefTable> mergeResultsRefTable = new HashMap<>();
+    Map<String, MergeResultRecordsUpdated> recordsUpdated = new HashMap<>();
 
 }

@@ -51,17 +51,18 @@ public class UtRecMergeReader {
 
             JSONObject resultJson = new JSONObject();
 
-            // mergeResult.mergeResultsRefTable
+            // mergeResult.recordsUpdated
             JSONObject mergeResultsRefTable = new JSONObject();
-            for (String refTableName : mergeResult.mergeResultsRefTable.keySet()) {
-                MergeResultRefTable mergeResultRefTable = mergeResult.mergeResultsRefTable.get(refTableName);
+            for (String refTableName : mergeResult.recordsUpdated.keySet()) {
+                MergeResultRecordsUpdated mergeResultRecordsUpdated = mergeResult.recordsUpdated.get(refTableName);
                 JSONObject mergeResultRefTableJson = new JSONObject();
-                mergeResultRefTableJson.put("refTtableName", mergeResultRefTable.refTtableName);
-                mergeResultRefTableJson.put("refTtableRefFieldName", mergeResultRefTable.refTtableRefFieldName);
-                mergeResultRefTableJson.put("recordsUpdated", dataStoreToList(mergeResultRefTable.recordsUpdated));
+                //mergeResultRefTableJson.put("tableName", mergeResultRecordsUpdated.tableName);
+                mergeResultRefTableJson.put("refTableName", refTableName);
+                mergeResultRefTableJson.put("refFieldName", mergeResultRecordsUpdated.refFieldName);
+                mergeResultRefTableJson.put("recordsUpdated", dataStoreToList(mergeResultRecordsUpdated.recordsUpdated));
                 mergeResultsRefTable.put(refTableName, mergeResultRefTableJson);
             }
-            resultJson.put("mergeResultsRefTable", mergeResultsRefTable);
+            resultJson.put("recordsUpdated", mergeResultsRefTable);
 
             // mergeResult.recordsDeleted
             List<Map> recordsDeleted = dataStoreToList(mergeResult.recordsDeleted);
@@ -74,13 +75,15 @@ public class UtRecMergeReader {
     }
 
     public Map<String, MergeResultTable> readResults(String fileName) throws Exception {
-            return null;
+        return null;
     }
 
     private List<Map> dataStoreToList(DataStore store) {
         List<Map> res = new ArrayList<>();
-        for (DataRecord rec : store) {
-            res.add(rec.getValues());
+        if (store != null) {
+            for (DataRecord rec : store) {
+                res.add(rec.getValues());
+            }
         }
         return res;
     }
