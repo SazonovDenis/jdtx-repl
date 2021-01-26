@@ -3,6 +3,7 @@ package jdtx.repl.main.ext
 
 import jandcode.jc.ProjectScript
 import jandcode.jc.test.JcTestCase
+import jandcode.jc.test.TestExtJc
 import jandcode.utils.variant.IVariantMap
 import jandcode.utils.variant.VariantMap
 import org.junit.Test
@@ -115,12 +116,27 @@ class Jdx_Ext_Test extends JcTestCase {
 
 
     @Test
-    void repl_record_merge() {
-        IVariantMap args = new VariantMap()
-        args.put("file", "test/jdtx/repl/main/ext/UtRecMergeTest.xml")
+    public void repl_record_merge_file() {
+        //TestExtJc jc = createExt(TestExtJc.class);
+        ProjectScript project = jc.loadProject("one/project.jc");
+        Merge_Ext ext = (Merge_Ext) project.createExt("jdtx.repl.main.ext.Merge_Ext");
 
-        extSrv.repl_record_merge(args)
+        //
+        IVariantMap args = new VariantMap();
+        //args.put("table", "LicDocTip");
+        //args.put("file", "temp/_LicDocTip.task");
+        //args.put("fields", "Name,ShortName");
+        args.put("table", "LicDocVid");
+        args.put("file", "temp/_LicDocVid.task");
+        args.put("fields", "Name");
+
+        //
+        ext.rec_merge_find(args);
+
+        //
+        ext.rec_merge_exec(args);
     }
+
 
 
 }

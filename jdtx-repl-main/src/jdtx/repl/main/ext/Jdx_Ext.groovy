@@ -1,30 +1,21 @@
 package jdtx.repl.main.ext
 
-import jandcode.app.App
-import jandcode.bgtasks.BgTasksService
-import jandcode.dbm.ModelService
-import jandcode.dbm.data.DataRecord
-import jandcode.dbm.data.DataStore
-import jandcode.dbm.data.UtData
-import jandcode.dbm.db.Db
-import jandcode.jc.AppProjectExt
-import jandcode.jc.ProjectExt
-import jandcode.utils.UtFile
-import jandcode.utils.UtLog
-import jandcode.utils.error.XError
-import jandcode.utils.variant.IVariantMap
+import jandcode.app.*
+import jandcode.bgtasks.*
+import jandcode.dbm.*
+import jandcode.dbm.data.*
+import jandcode.dbm.db.*
+import jandcode.jc.*
+import jandcode.utils.*
+import jandcode.utils.error.*
+import jandcode.utils.variant.*
 import jdtx.repl.main.api.*
-import jdtx.repl.main.api.mailer.MailerHttp
-import jdtx.repl.main.api.mailer.SendRequiredInfo
-import jdtx.repl.main.api.rec_merge.UtRecMerge
-import jdtx.repl.main.api.replica.IReplica
-import jdtx.repl.main.api.struct.IJdxDbStruct
-import jdtx.repl.main.api.struct.IJdxDbStructReader
-import jdtx.repl.main.api.struct.JdxDbStructReader
-import jdtx.repl.main.ut.UtGenSetup
-import jdtx.repl.main.ut.UtReplService
-import org.apache.commons.io.FileUtils
-import org.json.simple.JSONObject
+import jdtx.repl.main.api.mailer.*
+import jdtx.repl.main.api.replica.*
+import jdtx.repl.main.api.struct.*
+import jdtx.repl.main.ut.*
+import org.apache.commons.io.*
+import org.json.simple.*
 
 /**
  * Обертка для вызовов утилиты jc с командной строки
@@ -858,25 +849,6 @@ class Jdx_Ext extends ProjectExt {
         UtGenSetup utSetup = new UtGenSetup()
         utSetup.app = app
         utSetup.gen(inFileName, outDirName)
-    }
-
-    void repl_record_merge(IVariantMap args) {
-        String mergeFileName = args.getValueString("file")
-        if (mergeFileName == null || mergeFileName.length() == 0) {
-            throw new XError("Не указан [file] - csv-файл со сливаемыми записями")
-        }
-
-        // БД
-        Db db = app.service(ModelService.class).model.getDb()
-        db.connect()
-
-        //
-        try {
-            UtRecMerge.record_merge(mergeFileName)
-
-        } finally {
-            db.disconnect()
-        }
     }
 
 }
