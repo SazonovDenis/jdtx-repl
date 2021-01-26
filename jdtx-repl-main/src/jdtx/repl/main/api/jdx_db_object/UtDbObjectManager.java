@@ -172,7 +172,9 @@ public class UtDbObjectManager {
         String[] jdx_sys_tables = new String[]{
                 "db_info", // старая, но тоже удаляем
                 "age", "flag_tab", "state", "state_ws", "workstation_list", "workstation",
-                "que_in", "que_out", "que_common", "verdb"
+                "que_in", "que_out", "que_common",
+                "que_in001", "que_out001",
+                "verdb"
         };
         dropSysTables(jdx_sys_tables, db);
     }
