@@ -466,8 +466,10 @@ class Jdx_Ext extends ProjectExt {
                         }
                         System.out.println("wsId: " + wsId + ", box: " + box + " - ok")
                     } catch (Exception e) {
-                        System.out.println("wsId: " + wsId + ", box: " + box + ", error: " + e.message)
-                        result = false
+                        if (!e.message.contains("Box already exists")) {
+                            System.out.println("wsId: " + wsId + ", box: " + box + ", error: " + e.message)
+                            result = false
+                        }
                     }
 
                     //
