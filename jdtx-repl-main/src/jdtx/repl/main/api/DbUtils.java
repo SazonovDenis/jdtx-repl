@@ -315,10 +315,17 @@ public class DbUtils {
     public long insertRec(String tableName, Map params, String includeFields, String excludeFields) throws Exception {
         Map p = new HashMapNoCase();
         p.putAll(params);
-        Long id = (Long) p.get(ID_FIELD);
-        if (id == null) {
+        Object idValue = p.get(ID_FIELD);
+        Long id;
+        if (idValue == null) {
             id = getTableNextId(tableName);
             p.put(ID_FIELD, id);
+        } else if (idValue instanceof Long) {
+            id = (Long) idValue;
+        } else if (idValue instanceof Integer) {
+            id = Long.valueOf((Integer) idValue);
+        } else {
+            id = Long.valueOf(idValue.toString());
         }
         //
         String sql = generateSqlInsert(tableName, includeFields, excludeFields);
