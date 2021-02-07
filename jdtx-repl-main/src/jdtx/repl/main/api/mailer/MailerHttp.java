@@ -22,6 +22,8 @@ import org.json.simple.parser.*;
 import java.io.*;
 import java.util.*;
 
+import static jdtx.repl.main.api.JdxUtils.*;
+
 /**
  */
 public class MailerHttp implements IMailer {
@@ -72,14 +74,14 @@ public class MailerHttp implements IMailer {
     public long getBoxState(String box) throws Exception {
         JSONObject res = getState_internal(box);
         JSONObject files = (JSONObject) res.get("files");
-        return Long.valueOf(String.valueOf(files.get("max")));
+        return longValueOf(files.get("max"));
     }
 
     @Override
     public long getSendDone(String box) throws Exception {
         JSONObject resState = getState_internal(box);
         JSONObject last_info = (JSONObject) resState.get("last_info");
-        long age = Long.valueOf(String.valueOf(last_info.getOrDefault("age", 0)));
+        long age = longValueOf(last_info.getOrDefault("age", 0));
         return age;
     }
 
@@ -142,7 +144,7 @@ public class MailerHttp implements IMailer {
         // Защита от ситуации "восстановление на клиенте БД из бэкапа"
         JSONObject resState = getState_internal(box);
         JSONObject last_info = (JSONObject) resState.get("last_info");
-        long srv_age = Long.valueOf(String.valueOf(last_info.getOrDefault("age", 0)));
+        long srv_age = longValueOf(last_info.getOrDefault("age", 0));
         JSONObject required = (JSONObject) resState.get("required");
         SendRequiredInfo requiredInfo = new SendRequiredInfo(required);
         if (no <= srv_age && requiredInfo.requiredFrom == -1) {

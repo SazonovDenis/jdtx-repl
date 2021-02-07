@@ -22,6 +22,8 @@ import java.io.*;
 import java.sql.*;
 import java.util.*;
 
+import static jdtx.repl.main.api.JdxUtils.longValueOf;
+
 
 /**
  * Контекст рабочей станции
@@ -776,7 +778,7 @@ public class JdxReplWs {
                 } finally {
                     infoStream.close();
                 }
-                long destinationWsId = Long.valueOf(String.valueOf(info.get("destinationWsId")));
+                long destinationWsId = longValueOf(info.get("destinationWsId"));
 
 
                 // Реакция на команду, если получатель - все станции или именно наша
@@ -807,7 +809,7 @@ public class JdxReplWs {
                 } finally {
                     infoStream.close();
                 }
-                long destinationWsId = Long.valueOf(String.valueOf(info.get("destinationWsId")));
+                long destinationWsId = longValueOf(info.get("destinationWsId"));
 
                 // Реакция на команду, если получатель - все станции или именно наша
                 if (destinationWsId == 0 || destinationWsId == wsId) {
@@ -835,8 +837,8 @@ public class JdxReplWs {
                 } finally {
                     infoStream.close();
                 }
-                long destinationWsId = Long.valueOf(String.valueOf(info.get("destinationWsId")));
-                long queInNo = Long.valueOf(String.valueOf(info.get("queInNo")));
+                long destinationWsId = longValueOf(info.get("destinationWsId"));
+                long queInNo = longValueOf(info.get("queInNo"));
 
                 // Реакция на команду, если получатель - именно наша
                 if (destinationWsId == wsId) {
@@ -911,7 +913,7 @@ public class JdxReplWs {
 
                 // Данные о новой конфигурации
                 String cfgType = (String) cfgInfo.get("cfgType");
-                long destinationWsId = Long.valueOf(String.valueOf(cfgInfo.get("destinationWsId")));
+                long destinationWsId = longValueOf(cfgInfo.get("destinationWsId"));
 
                 // Пришла конфигурация для нашей станции (или всем станциям)?
                 if (destinationWsId == 0 || destinationWsId == wsId) {

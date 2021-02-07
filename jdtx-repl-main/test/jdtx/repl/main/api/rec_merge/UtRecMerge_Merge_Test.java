@@ -4,7 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.dbm.test.*;
 import jandcode.utils.*;
-import jdtx.repl.main.api.JdxDbUtils;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
@@ -170,6 +170,9 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
 
     @Test
     public void test_execMergeTaskFromFile() throws Exception {
+        // Формируем задачу на слияние
+        test_makeMergeTaskToFile();
+
         // Читаем задачу на слияние
         UtRecMergeReader reader = new UtRecMergeReader();
         Collection<RecMergeTask> mergeTasks = reader.readTasks("../temp/task.json");
@@ -191,6 +194,9 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
 
     @Test
     public void test_execRevertExecTask() throws Exception {
+        // Формируем задачу на слияние
+        test_makeMergeTaskToFile();
+
         // Читаем задачу на слияние
         UtRecMergeReader reader = new UtRecMergeReader();
         Collection<RecMergeTask> mergeTasks = reader.readTasks("../temp/task.json");

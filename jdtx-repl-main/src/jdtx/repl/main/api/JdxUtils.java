@@ -348,4 +348,18 @@ public class JdxUtils {
         }
     }
 
+    public static Long longValueOf(Object idValue) {
+        Long id;
+        if (idValue == null) {
+            id = null;
+        } else if (idValue instanceof Long) {
+            id = (Long) idValue;
+        } else if (idValue instanceof Integer) {
+            id = Long.valueOf((Integer) idValue);
+        } else {
+            id = Long.valueOf(idValue.toString());
+        }
+        return id;
+    }
+
 }

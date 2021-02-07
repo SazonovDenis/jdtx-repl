@@ -9,6 +9,8 @@ import jdtx.repl.main.api.struct.*;
 
 import java.util.*;
 
+import static jdtx.repl.main.api.JdxUtils.longValueOf;
+
 /**
  * Утилиты по слиянию записей
  */
@@ -151,7 +153,7 @@ public class UtRecMerge implements IUtRecMerge {
 
                 //
                 String pkField = struct.getTable(mergeTask.tableName).getPrimaryKey().get(0).getName();
-                long etalonRecId = (long) mergeTask.recordEtalon.get(pkField);
+                long etalonRecId = longValueOf(mergeTask.recordEtalon.get(pkField));
 
                 // UPD - Перебиваем ссылки у зависимых таблиц
                 recordsRelocateRefs(mergeTask.tableName, etalonRecId, mergeTask.recordsDelete, taskResultForTable);
