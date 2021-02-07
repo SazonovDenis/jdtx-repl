@@ -8,7 +8,7 @@ public class RecordsUpdatedMap extends HashMap<String, RecordsUpdated> {
      * Возвращает RecordsUpdated для таблицы tableName и поля fieldName.
      * Добавляет новый, если такого нет.
      */
-    public RecordsUpdated addForTable(String tableName, String fieldName) {
+    public RecordsUpdated getOrAddForTable(String tableName, String fieldName) {
         String key = tableName + "_" + fieldName;
         //
         RecordsUpdated item = get(key);
@@ -22,6 +22,5 @@ public class RecordsUpdatedMap extends HashMap<String, RecordsUpdated> {
         //
         return item;
     }
-
 
 }

@@ -7,7 +7,9 @@ import java.util.*;
 public class RecDuplicate {
     /**
      * Поля и их значения - ключ для поикса дублей
-     * Name -> МВД РК
+     * Например:
+     * Name -> МВД РК,
+     * Cod -> 012000
      */
     Map params;
 

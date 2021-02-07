@@ -149,15 +149,11 @@ class Merge_Ext extends ProjectExt {
     void rec_relocate_check(IVariantMap args) {
         String tableName = args.getValueString("table")
         long idSour = args.getValueLong("sour")
-        long idDest = args.getValueLong("dest")
         if (tableName == null || tableName.length() == 0) {
             throw new XError("Не указана [table] - имя таблицы")
         }
         if (idSour == 0) {
             throw new XError("Не указан [sour] - исходный pk")
-        }
-        if (idDest == 0) {
-            throw new XError("Не указан [dest] - конечный pk")
         }
 
         // БД
@@ -173,16 +169,14 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             //
-            IdRelocator relocator = new IdRelocator(db, struct)
+            UtRecMerge relocator = new UtRecMerge(db, struct)
 
             //
-            MergeResultTable relocateCheckResult = relocator.relocateIdCheck(tableName, idSour, idDest)
+            MergeResultTable relocateCheckResult = relocator.recordsRelocateFindRefs(tableName, idSour)
             System.out.println("Record sour:")
             UtData.outTable(relocateCheckResult.recordsDeleted)
             System.out.println("Records updated for tables, referenced to " + "Lic" + ":")
             UtRecMerge.printRecordsUpdated(relocateCheckResult.recordsUpdated)
-            System.out.println("Record dest:")
-            UtData.outTable(db.loadSql("select * from " + tableName + " where id = " + idDest))
 
         } finally {
             db.disconnect()
@@ -218,7 +212,7 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             //
-            IdRelocator relocator = new IdRelocator(db, struct)
+            UtRecMerge relocator = new UtRecMerge(db, struct)
 
             System.out.println("Record sour:")
             UtData.outTable(db.loadSql("select * from " + tableName + " where id = " + idSour))

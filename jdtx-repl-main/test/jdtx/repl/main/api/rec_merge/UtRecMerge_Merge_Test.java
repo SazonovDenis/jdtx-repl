@@ -14,7 +14,7 @@ import java.util.*;
 /**
  *
  */
-public class UtRecMerge_Test extends DbmTestCase {
+public class UtRecMerge_Merge_Test extends DbmTestCase {
 
     Db db;
     IJdxDbStruct struct;

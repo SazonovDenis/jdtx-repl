@@ -3,6 +3,8 @@ package jdtx.repl.main.api.rec_merge;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.utils.error.*;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 
 import java.util.*;
@@ -16,11 +18,13 @@ public class UtRecMerge implements IUtRecMerge {
     public static final boolean UPDATE_ONLY = false;
 
     Db db;
+    JdxDbUtils dbu;
     IJdxDbStruct struct;
 
     public UtRecMerge(Db db, IJdxDbStruct struct) {
         this.db = db;
         this.struct = struct;
+        this.dbu = new JdxDbUtils(db, struct);
     }
 
     public static void printRecordsUpdated(RecordsUpdatedMap recordsUpdatedMap) {
@@ -143,71 +147,24 @@ public class UtRecMerge implements IUtRecMerge {
             db.startTran();
             try {
                 //
-                MergeResultTable taskResultTable = result.addForTable(mergeTask.tableName);
+                MergeResultTable taskResultForTable = result.addForTable(mergeTask.tableName);
 
                 //
                 String pkField = struct.getTable(mergeTask.tableName).getPrimaryKey().get(0).getName();
-                Map<String, IJdxForeignKey> refsToTable = getRefsToTable(mergeTask.tableName);
+                long etalonRecId = (long) mergeTask.recordEtalon.get(pkField);
 
                 // UPD - Перебиваем ссылки у зависимых таблиц
-                for (String refTableName : refsToTable.keySet()) {
-                    IJdxForeignKey fk = refsToTable.get(refTableName);
+                recordsRelocateRefs(mergeTask.tableName, etalonRecId, mergeTask.recordsDelete, taskResultForTable);
 
-                    //
-                    String fkRefFieldName = fk.getField().getName();
-
-                    //
-                    RecordsUpdated taskRecResult = taskResultTable.recordsUpdated.addForTable(refTableName, fkRefFieldName);
-
-                    //
-                    String sqlUpdate = "update " + refTableName + " set " + fkRefFieldName + " = :" + fkRefFieldName + "_NEW" + " where " + fkRefFieldName + " = :" + fkRefFieldName + "_OLD";
-                    String sqlSelect = "select * from " + refTableName + " where " + fkRefFieldName + " = :" + fkRefFieldName + "_OLD";
-
-                    //
-                    for (long deleteRecId : mergeTask.recordsDelete) {
-                        Map params = UtCnv.toMap(
-                                fkRefFieldName + "_OLD", deleteRecId,
-                                fkRefFieldName + "_NEW", mergeTask.recordEtalon.get(pkField)
-                        );
-
-                        // Селектим как есть сейчас
-                        DataStore st = db.loadSql(sqlSelect, params);
-
-                        // Апдейтим
-                        db.execSql(sqlUpdate, params);
-
-                        // Отчитаемся
-                        if (taskRecResult.recordsUpdated == null) {
-                            taskRecResult.recordsUpdated = st;
-                        } else {
-                            UtData.copyStore(st, taskRecResult.recordsUpdated);
-                        }
-                    }
-
-                }
 
                 // DEL - Удаляем лишние (теперь уже) записи
                 if (doDelete) {
-                    String sqlSelect = "select * from " + mergeTask.tableName + " where " + pkField + " = :" + pkField;
-                    String sqlDelete = "delete from " + mergeTask.tableName + " where " + pkField + " = :" + pkField;
-
-                    //
-                    for (long deleteRecId : mergeTask.recordsDelete) {
-                        Map params = UtCnv.toMap(pkField, deleteRecId);
-
-                        // Селектим как есть сейчас
-                        DataStore st = db.loadSql(sqlSelect, params);
-                        //
-                        if (taskResultTable.recordsDeleted == null) {
-                            taskResultTable.recordsDeleted = st;
-                        } else {
-                            UtData.copyStore(st, taskResultTable.recordsDeleted);
-                        }
-
-                        // Удаляем
-                        db.execSql(sqlDelete, params);
-                    }
+                    recordsDelete(mergeTask.tableName, mergeTask.recordsDelete, taskResultForTable);
                 }
+
+
+                // UPD для эталонной записи
+                // todo UPD эталонной записи
 
 
                 //
@@ -223,6 +180,150 @@ public class UtRecMerge implements IUtRecMerge {
         return result;
     }
 
+
+    /**
+     * Перемещатель id записей
+     */
+    public void relocateId(String tableName, long idSour, long idDest) throws Exception {
+        if (idSour == idDest) {
+            throw new XError("Error relocateId: idSour == idDest");
+        }
+        if (idSour == 0) {
+            throw new XError("Error relocateId: idSour == 0");
+        }
+        if (idDest == 0) {
+            throw new XError("Error relocateId: idDest == 0");
+        }
+
+
+        db.startTran();
+        try {
+            // Проверяем, что idSour не пустая
+            String pkField = struct.getTable(tableName).getPrimaryKey().get(0).getName();
+            String sql = "select * from " + tableName + " where " + pkField + " = :" + pkField;
+            DataRecord recSour = dbu.loadSqlRec(sql, UtCnv.toMap(pkField, idSour));
+
+            // Копируем запись tableName.idSour в tableName.idDest
+            recSour.setValue(pkField, idDest);
+            dbu.insertRec(tableName, recSour.getValues());
+
+            //
+            UtRecMerge utrm = new UtRecMerge(db, struct);
+            MergeResultTable taskResultForTable = new MergeResultTable();
+            ArrayList<Long> recordsDelete = new ArrayList<>();
+            recordsDelete.add(idSour);
+
+            // Перебиваем ссылки у зависимых таблиц с tableName.idSour на tableName.idDest
+            utrm.recordsRelocateRefs(tableName, idDest, recordsDelete, taskResultForTable);
+
+            // Удаляем старую запись tableName.idSour
+            utrm.recordsDelete(tableName, recordsDelete, taskResultForTable);
+
+            //
+            db.commit();
+        } catch (Exception e) {
+            db.rollback();
+            throw e;
+        }
+    }
+
+
+    // Вытаскиват все, что нужно будет обновить (в разных таблицах),
+    // если делать relocate/delete записи idSour в таблице tableName
+    public MergeResultTable recordsRelocateFindRefs(String tableName, long idSour) throws Exception {
+        MergeResultTable relocateCheckResult = new MergeResultTable();
+
+        // Проверяем, что idSour не пустая
+        String pkField = struct.getTable(tableName).getPrimaryKey().get(0).getName();
+        String sql = "select * from " + tableName + " where " + pkField + " = :" + pkField;
+        relocateCheckResult.recordsDeleted = db.loadSql(sql, UtCnv.toMap(pkField, idSour));
+
+        // Проверяем все ссылки tableName.idSour на tableName.idDest
+        Map<String, IJdxForeignKey> refsToTable = getRefsToTable(tableName);
+        for (String refTableName : refsToTable.keySet()) {
+            IJdxForeignKey fk = refsToTable.get(refTableName);
+            String fkRefFieldName = fk.getField().getName();
+            //
+            String sqlSelect = "select * from " + refTableName + " where " + fkRefFieldName + " = :" + fkRefFieldName + "_SOUR";
+            Map paramsSelect = UtCnv.toMap(fkRefFieldName + "_SOUR", idSour);
+            DataStore refData = db.loadSql(sqlSelect, paramsSelect);
+            //
+            RecordsUpdated recordsUpdated = relocateCheckResult.recordsUpdated.getOrAddForTable(refTableName, fkRefFieldName);
+            recordsUpdated.recordsUpdated = refData;
+        }
+
+        //
+        return relocateCheckResult;
+    }
+
+
+    // UPD - Перебиваем ссылки у зависимых таблиц tableName с записей recordsDelete на запись etalonRecId
+    public void recordsRelocateRefs(String tableName, long etalonRecId, Collection<Long> recordsDelete, MergeResultTable taskResultForTable) throws Exception {
+        // Собираем зависимости
+        Map<String, IJdxForeignKey> refsToTable = getRefsToTable(tableName);
+
+        // Обрабатываем зависимости
+        for (String refTableName : refsToTable.keySet()) {
+            IJdxForeignKey fk = refsToTable.get(refTableName);
+            String fkRefFieldName = fk.getField().getName();
+
+            //
+            RecordsUpdated taskRecResult = taskResultForTable.recordsUpdated.getOrAddForTable(refTableName, fkRefFieldName);
+
+            //
+            String sqlUpdate = "update " + refTableName + " set " + fkRefFieldName + " = :" + fkRefFieldName + "_NEW" + " where " + fkRefFieldName + " = :" + fkRefFieldName + "_OLD";
+            String sqlSelect = "select * from " + refTableName + " where " + fkRefFieldName + " = :" + fkRefFieldName + "_OLD";
+
+            //
+            for (long deleteRecId : recordsDelete) {
+                Map params = UtCnv.toMap(
+                        fkRefFieldName + "_OLD", deleteRecId,
+                        fkRefFieldName + "_NEW", etalonRecId
+                );
+
+                // Селектим как есть сейчас
+                DataStore stUpdated = db.loadSql(sqlSelect, params);
+
+                // Апдейтим
+                db.execSql(sqlUpdate, params);
+
+                // Отчитаемся
+                if (taskRecResult.recordsUpdated == null) {
+                    taskRecResult.recordsUpdated = stUpdated;
+                } else {
+                    UtData.copyStore(stUpdated, taskRecResult.recordsUpdated);
+                }
+            }
+
+        }
+    }
+
+    // DEL - Удаляем записи recordsDelete из tableName
+    public void recordsDelete(String tableName, Collection<Long> recordsDelete, MergeResultTable taskResultForTable) throws Exception {
+        String pkField = struct.getTable(tableName).getPrimaryKey().get(0).getName();
+        //
+        String sqlSelect = "select * from " + tableName + " where " + pkField + " = :" + pkField;
+        String sqlDelete = "delete from " + tableName + " where " + pkField + " = :" + pkField;
+
+        //
+        for (long deleteRecId : recordsDelete) {
+            Map params = UtCnv.toMap(pkField, deleteRecId);
+
+            // Селектим как есть сейчас
+            DataStore st = db.loadSql(sqlSelect, params);
+            //
+            if (taskResultForTable.recordsDeleted == null) {
+                taskResultForTable.recordsDeleted = st;
+            } else {
+                UtData.copyStore(st, taskResultForTable.recordsDeleted);
+            }
+
+            // Удаляем
+            db.execSql(sqlDelete, params);
+        }
+    }
+
+
     @Override
     public void revertExecTask(MergeResultTableMap taskResults) {
         // todo: реализовать
@@ -232,7 +333,7 @@ public class UtRecMerge implements IUtRecMerge {
      * @return Список таблиц, которые имеют ссылки на таблицу tableName
      */
     private Map<String, IJdxForeignKey> getRefsToTable(String tableName) {
-        Map<String, IJdxForeignKey> res = new HashMap();
+        Map<String, IJdxForeignKey> res = new HashMap<>();
 
         //
         IJdxTable table = struct.getTable(tableName);
@@ -251,7 +352,8 @@ public class UtRecMerge implements IUtRecMerge {
     }
 
     /**
-     * "Наивное" превращение ВСЕХ дублей в задание на удаление
+     * Превращение ВСЕХ дублей в задание на удаление в "лоб".
+     * В живых оставляем первую запись, остальные - планируем удалить.
      */
     public Collection<RecMergeTask> prepareRemoveDuplicatesTaskAsIs(String tableName, Collection<RecDuplicate> duplicates) throws Exception {
 
