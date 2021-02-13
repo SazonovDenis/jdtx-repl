@@ -6,7 +6,7 @@ import jandcode.dbm.db.*;
 /**
  * Состояние почты: отметка, насколько отправлена почта.
  */
-public class JdxStateManagerMail {
+public class JdxStateManagerMail implements IJdxStateManagerMail {
 
     private Db db;
 
@@ -24,8 +24,8 @@ public class JdxStateManagerMail {
         return rec.getValueLong("mail_send_done");
     }
 
-    public void setMailSendDone(long mailSendDone) throws Exception {
-        String sql = "update " + JdxUtils.sys_table_prefix + "state set mail_send_done = " + mailSendDone;
+    public void setMailSendDone(long sendDone) throws Exception {
+        String sql = "update " + JdxUtils.sys_table_prefix + "state set mail_send_done = " + sendDone;
         db.execSql(sql);
     }
 

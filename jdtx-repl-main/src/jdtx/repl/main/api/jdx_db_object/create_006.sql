@@ -35,7 +35,6 @@ CREATE TABLE Z_Z_state_ws (
   ws_id                    INT     NOT NULL,
   snapshot_age             INT     DEFAULT 0 NOT NULL,  /* Возраст входящей очереди, обработанной на момент создания snapshot-а для рабочей станции */
   que_common_dispatch_done INT     NOT NULL,
-  que_out001_dispatch_done INT     DEFAULT 0 NOT NULL,
   que_in_age_done          INT     NOT NULL,            /* Возраст реплики, до которого обработана входящая очередь от рабочей станции */
   enabled                  INT     NOT NULL,
   mute_age                 INT     NOT NULL

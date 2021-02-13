@@ -35,16 +35,16 @@ public class JdxStateManagerSrv {
 
 
     /**
-     * @return Отметка: номер реплики, до которого обработана (разослана) общая очередь
+     * @return Отметка: номер реплики, до которого обработана общая очередь
      * при тиражировании реплик для рабочей станции wsId
      */
-    public long getQueCommonDispatchDone(long wsId) throws Exception {
+    public long getDispatchDoneQueCommon(long wsId) throws Exception {
         DataRecord rec = loadRecStateWs(wsId);
         //
         return rec.getValueLong("que_common_dispatch_done");
     }
 
-    public void setQueCommonDispatchDone(long wsId, long queCommonNoDone) throws Exception {
+    public void setDispatchDoneQueCommon(long wsId, long queCommonNoDone) throws Exception {
         loadRecStateWs(wsId);
         //
         String sqlUpd = "update " + JdxUtils.sys_table_prefix + "state_ws set que_common_dispatch_done = " + queCommonNoDone + " where ws_id = " + wsId;
@@ -52,19 +52,40 @@ public class JdxStateManagerSrv {
     }
 
 
-    /**
-     * @return Отметка: до какого номера разослана очередь Out001 для рабочей станции wsId
-     */
-    public long getQueOut001DispatchDone(long wsId) throws Exception {
+/*
+    */
+/**
+     * @return Отметка: до какого номера распределена очередь Out001 для рабочей станции wsId
+     *//*
+
+    public long getDispatchDoneQueOut001(long wsId) throws Exception {
         DataRecord rec = loadRecStateWs(wsId);
         //
         return rec.getValueLong("que_out001_dispatch_done");
     }
 
-    public void setQueOut001DispatchDone(long wsId, long que001NoDone) throws Exception {
+    public void setDispatchDoneQueOut001(long wsId, long que001NoDone) throws Exception {
         loadRecStateWs(wsId);
         //
         String sqlUpd = "update " + JdxUtils.sys_table_prefix + "state_ws set que_out001_dispatch_done = " + que001NoDone + " where ws_id = " + wsId;
+        db.execSql(sqlUpd);
+    }
+*/
+
+
+    /**
+     * @return Отметка: до какого номера отправлена очередь queName для рабочей станции wsId
+     */
+    public long getMailSendDone(long wsId, String queName) throws Exception {
+        DataRecord rec = loadRecStateWs(wsId);
+        //
+        return rec.getValueLong("que_" + queName + "_send_done");
+    }
+
+    public void setMailSendDone(long wsId, String queName, long queNoDone) throws Exception {
+        loadRecStateWs(wsId);
+        //
+        String sqlUpd = "update " + JdxUtils.sys_table_prefix + "state_ws set que_" + queName + "_send_done = " + queNoDone + " where ws_id = " + wsId;
         db.execSql(sqlUpd);
     }
 

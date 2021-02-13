@@ -422,6 +422,11 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
+    @Test
+    public void test_DumpTables_2_3_5() throws Exception {
+        test_DumpTables(db2, db3, db5, struct2, struct3, struct5);
+    }
+
     void test_DumpTables(Db db1, Db db2, Db db3, IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct struct3) throws Exception {
         UtTest utt1 = new UtTest(db1);
         utt1.dumpTable("lic", "../_test-data/csv/ws1-lic.csv", "nameF");

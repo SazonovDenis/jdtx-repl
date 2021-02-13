@@ -1,7 +1,7 @@
 package jdtx.repl.main.api.que;
 
 /**
- * Очередь реплик - хранение и упорядочивание.
+ * Очередь реплик - упорядоченное хранилище.
  */
 public interface IJdxQue extends IJdxReplicaStorage, IJdxReplicaQue, IJdxStorageFile {
 

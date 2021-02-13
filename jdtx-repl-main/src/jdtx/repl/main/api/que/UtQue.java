@@ -15,6 +15,7 @@ public class UtQue {
 
     // Имена очередей: на сервере
     public static final String QUE_COMMON = "common";
+    public static final String QUE_OUT000 = "out000";
     public static final String QUE_OUT001 = "out001";
 
     public static String getTableSuffix(String queName) {
@@ -30,6 +31,9 @@ public class UtQue {
             }
             case QUE_COMMON: {
                 return "common";
+            }
+            case QUE_OUT000: {
+                return "out000";
             }
             case QUE_OUT001: {
                 return "out001";

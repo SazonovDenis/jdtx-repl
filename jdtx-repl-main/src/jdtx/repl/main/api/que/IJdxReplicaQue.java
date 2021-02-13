@@ -2,6 +2,9 @@ package jdtx.repl.main.api.que;
 
 import jdtx.repl.main.api.replica.*;
 
+/**
+ * Очередь реплик
+ */
 public interface IJdxReplicaQue {
 
 

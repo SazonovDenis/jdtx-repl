@@ -81,8 +81,9 @@ public class MailerHttp implements IMailer {
     public long getSendDone(String box) throws Exception {
         JSONObject resState = getState_internal(box);
         JSONObject last_info = (JSONObject) resState.get("last_info");
-        long age = longValueOf(last_info.getOrDefault("age", 0));
-        return age;
+        //long age = longValueOf(last_info.getOrDefault("age", 0));
+        long no = longValueOf(last_info.getOrDefault("no", 0));
+        return no;
     }
 
     @Override
@@ -141,13 +142,16 @@ public class MailerHttp implements IMailer {
         JdxUtils.validateReplicaFields(replica);
 
         // Проверки: не отправляли ли ранее такую реплику?
-        // Защита от ситуации "восстановление на клиенте БД из бэкапа"
+        // Защита от ситуации "восстановление БД из бэкапа"
         JSONObject resState = getState_internal(box);
         JSONObject last_info = (JSONObject) resState.get("last_info");
-        long srv_age = longValueOf(last_info.getOrDefault("age", 0));
+        long srv_age = longValueOf(last_info.getOrDefault("no", 0));
         JSONObject required = (JSONObject) resState.get("required");
         SendRequiredInfo requiredInfo = new SendRequiredInfo(required);
         if (no <= srv_age && requiredInfo.requiredFrom == -1) {
+            throw new XError("invalid replica.no, send.no: " + no + ", srv.no: " + srv_age);
+        }
+        if (no != srv_age + 1 && srv_age != 0 && requiredInfo.requiredFrom == -1) {
             throw new XError("invalid replica.no, send.no: " + no + ", srv.no: " + srv_age);
         }
 
@@ -651,7 +655,7 @@ public class MailerHttp implements IMailer {
         return urlRes;
     }
 
-    private String getFileName(long no) {
+    public static String getFileName(long no) {
         return UtString.padLeft(String.valueOf(no), 9, '0') + ".zip";
     }
 

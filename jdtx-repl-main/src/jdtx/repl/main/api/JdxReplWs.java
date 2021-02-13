@@ -22,7 +22,7 @@ import java.io.*;
 import java.sql.*;
 import java.util.*;
 
-import static jdtx.repl.main.api.JdxUtils.longValueOf;
+import static jdtx.repl.main.api.JdxUtils.*;
 
 
 /**
@@ -616,7 +616,7 @@ public class JdxReplWs {
     }
 
     private ReplicaUseResult handleQue(IJdxReplicaStorage que, String queName, long queNoFrom, long queNoTo, boolean forceUse) throws Exception {
-        log.info("handleQue, self.wsId: " + wsId + ", que.name: " + ((JdxQue) que).getQueName() + ", que: " + queNoFrom + " .. " + queNoTo);
+        log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que.name: " + ((JdxQue) que).getQueName() + ", que: " + queNoFrom + " .. " + queNoTo);
 
         //
         ReplicaUseResult handleQueUseResult = new ReplicaUseResult();
@@ -627,7 +627,7 @@ public class JdxReplWs {
         //
         long count = 0;
         for (long no = queNoFrom; no <= queNoTo; no++) {
-            log.info("handleQue, self.wsId: " + wsId + ", que.no: " + no + " (count: " + count + "/" + (queNoTo - queNoFrom) + ")");
+            log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que.no: " + no + " (count: " + count + "/" + (queNoTo - queNoFrom) + ")");
 
             //
             IReplica replica = que.get(no);
@@ -661,9 +661,9 @@ public class JdxReplWs {
 
         //
         if (queNoFrom <= queNoTo) {
-            log.info("handleQue, self.wsId: " + wsId + ", que: " + queNoFrom + " .. " + queNoTo + ", done count: " + count);
+            log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que: " + queNoFrom + " .. " + queNoTo + ", done count: " + count);
         } else {
-            log.info("handleQue, self.wsId: " + wsId + ", que: " + queNoFrom + ", nothing to do");
+            log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que: " + queNoFrom + ", nothing to do");
         }
 
 
@@ -1062,7 +1062,7 @@ public class JdxReplWs {
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         long queInNoDone = stateManager.getQueNoDone("in001");
         long queInNoAvailable = queIn001.getMaxNo();
-        return handleQue(queIn001, "in001", queInNoDone + 1, queInNoAvailable, true);
+        return handleQue(queIn001, "in001", queInNoDone + 1, queInNoAvailable, false);
     }
 
     private String loadStringFromSream(InputStream stream) throws Exception {
@@ -1117,7 +1117,12 @@ public class JdxReplWs {
         }
     }
 
+    /**
+     * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано
+     */
+    @Deprecated
     public void receiveFromDir(String cfgFileName, String mailDir) throws Exception {
+/*
         // Готовим локальный мейлер
         mailDir = UtFile.unnormPath(mailDir) + "/";
         String guid = this.getWsGuid();
@@ -1142,6 +1147,7 @@ public class JdxReplWs {
 
         // Физически забираем данные
         receiveInternal(mailerLocal, "to", selfReceivedNo + 1, srvAvailableNo, queIn);
+*/
     }
 
 
@@ -1185,14 +1191,14 @@ public class JdxReplWs {
 
             // Информация о реплике с почтового сервера
             ReplicaInfo info = mailer.getReplicaInfo(boxName, no);
-
+                         
             // Нужно ли скачивать эту реплику с сервера?
             IReplica replica;
             if (info.getWsId() == wsId && info.getReplicaType() == JdxReplicaType.SNAPSHOT) {
                 // Свои собственные установочные реплики (snapshot таблиц) можно не скачивать
                 // (и в дальнейшем не применять)
                 log.info("Found self snapshot replica, no: " + no + ", replica.age: " + info.getAge());
-                //
+                // Имитируем реплику просто чтобы положить в очередь. Никто не заменить, что она пустая, т.к. она НЕ нужна
                 replica = new ReplicaFile();
                 replica.getInfo().setWsId(info.getWsId());
                 replica.getInfo().setAge(info.getAge());
@@ -1238,6 +1244,10 @@ public class JdxReplWs {
     }
 
 
+    /**
+     * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано
+     */
+    @Deprecated
     public void sendToDir(String cfgFileName, String mailDir, long age_from, long age_to, boolean doMarkDone) throws Exception {
         // Готовим локальный мейлер
         JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
@@ -1274,54 +1284,16 @@ public class JdxReplWs {
 
 
         // Физически отправляем данные
-        sendInternal(mailerLocal, age_from, age_to, doMarkDone);
+        // sendInternal(mailerLocal, age_from, age_to, doMarkDone); // Заменен на UtMail.sendQueToMail
     }
+
 
     public void send() throws Exception {
-        // Узнаем сколько есть у нас в очереди на отправку
-        long selfQueOutAge = queOut.getMaxNo();
-
-        // Узнаем сколько своего аудита уже отправлено на сервер
         JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
-        long srvSendAge = stateManager.getMailSendDone();
-
-        long sendFrom;
-        long sendTo;
-
-        // Узнаем сколько просит сервер
-        SendRequiredInfo requiredInfo = mailer.getSendRequired("from");
-        if (requiredInfo.requiredFrom != -1) {
-            // Сервер попросил повторную отправку
-            log.warn("Repeat send required, from: " + requiredInfo.requiredFrom + ", to: " + requiredInfo.requiredTo + ", recreate: " + requiredInfo.recreate);
-            sendFrom = requiredInfo.requiredFrom;
-            if (requiredInfo.requiredTo != -1) {
-                sendTo = requiredInfo.requiredTo;
-            } else {
-                sendTo = selfQueOutAge;
-            }
-            // Сервер попросил переделать реплики заново
-            if (requiredInfo.recreate) {
-                for (long age = sendFrom; age <= sendTo; age++) {
-                    recreateQueOutReplicaAge(age);
-                }
-            }
-        } else {
-            // Сервер не имеет просьб - выдаем очередную порцию
-            sendFrom = srvSendAge + 1;
-            sendTo = selfQueOutAge;
-        }
-
-        // Физически отправляем данные
-        sendInternal(mailer, sendFrom, sendTo, true);
-
-        // Снимем флаг просьбы сервера
-        if (requiredInfo.requiredFrom != -1) {
-            mailer.setSendRequired("from", new SendRequiredInfo());
-            log.warn("Repeat send done");
-        }
+        UtMail.sendQueToMail(wsId, queOut, mailer, "from", stateManager);
     }
 
-    void sendInternal(IMailer mailer, long age_from, long age_to, boolean doMarkDone) throws Exception {
+    void sendInternal__(IMailer mailer, long age_from, long age_to, boolean doMarkDone) throws Exception {
         log.info("send, self.wsId: " + wsId);
 
         //

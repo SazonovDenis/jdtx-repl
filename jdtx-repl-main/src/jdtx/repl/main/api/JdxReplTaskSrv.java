@@ -41,20 +41,20 @@ public class JdxReplTaskSrv extends JdxReplTaskCustom {
         //
         log.info("Тиражирование реплик");
         try {
-            srv.srvDispatchReplicasQue();
+            srv.srvReplicasDispatch();
         } catch (Exception e) {
             logError(e);
-            collectError("srv.srvDispatchReplicasQue", e);
+            collectError("srv.srvReplicasDispatch", e);
         }
 
 
         //
         log.info("Рассылка реплик");
         try {
-            srv.srvDispatchReplicasMail();
+            srv.srvReplicasSendMail();
         } catch (Exception e) {
             logError(e);
-            collectError("srv.srvDispatchReplicasMail", e);
+            collectError("srv.srvReplicasSendMail", e);
         }
 
 

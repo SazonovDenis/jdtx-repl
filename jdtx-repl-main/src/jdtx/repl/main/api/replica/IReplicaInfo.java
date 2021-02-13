@@ -37,4 +37,6 @@ public interface IReplicaInfo {
 
     void setDbStructCrc(String crc);
 
+    void assign(IReplicaInfo info);
+
 }

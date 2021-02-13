@@ -19,16 +19,16 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
 
     String queName;
 
-    String wsPrefix;
+    String wsPrefixForTableNames;
 
     //
     public JdxQue(Db db, String queName, boolean queForEachWsAtSrv) {
         this.db = db;
         this.queName = UtQue.getTableSuffix(queName);
         if (queForEachWsAtSrv) {
-            this.wsPrefix = "_ws";
+            this.wsPrefixForTableNames = "_ws";
         } else {
-            this.wsPrefix = "";
+            this.wsPrefixForTableNames = "";
         }
     }
 
@@ -102,13 +102,13 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
     }
 
     public long getMaxNo() throws Exception {
-        String sql = "select * from " + JdxUtils.sys_table_prefix + "state" + wsPrefix;
+        String sql = "select * from " + JdxUtils.sys_table_prefix + "state" + wsPrefixForTableNames;
         DataRecord rec = db.loadSql(sql).getCurRec();
         return rec.getValueLong("que_" + queName + "_no");
     }
 
     public void setMaxNo(long queNo) throws Exception {
-        String sql = "update " + JdxUtils.sys_table_prefix + "state" + wsPrefix + " set que_" + queName + "_no = " + queNo;
+        String sql = "update " + JdxUtils.sys_table_prefix + "state" + wsPrefixForTableNames + " set que_" + queName + "_no = " + queNo;
         db.execSql(sql);
     }
 
@@ -117,7 +117,7 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
      * Утилиты
      */
 
-    private DataRecord loadReplicaRec(long no) throws Exception {
+    DataRecord loadReplicaRec(long no) throws Exception {
         String sql = "select * from " + JdxUtils.sys_table_prefix + "que_" + queName + " where id = " + no;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("id") == 0) {
@@ -130,6 +130,20 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
         info.setAge(rec.getValueLong("age"));
         info.setWsId(rec.getValueLong("ws_id"));
         info.setReplicaType(rec.getValueInt("replica_type"));
+    }
+
+
+    /**
+     * @return Последний возраст реплики в очереди, созданный рабочей станцией wsId
+     */
+    long getMaxAgeForWs(long wsId) throws Exception {
+        String sql = "select max(age) as maxAge, count(*) as cnt from " + JdxUtils.sys_table_prefix + "que_" + queName + " where ws_id = " + wsId;
+        DataRecord rec = db.loadSql(sql).getCurRec();
+        if (rec.getValueLong("cnt") == 0) {
+            return -1;
+        } else {
+            return rec.getValueLong("maxAge");
+        }
     }
 
 

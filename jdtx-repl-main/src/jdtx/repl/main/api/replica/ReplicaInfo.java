@@ -73,6 +73,16 @@ public class ReplicaInfo implements IReplicaInfo {
         this.dbStructCrc = crc;
     }
 
+    public void assign(IReplicaInfo src) {
+        this.wsId = src.getWsId();
+        this.age = src.getAge();
+        this.dtFrom = src.getDtFrom();
+        this.dtTo = src.getDtTo();
+        this.replicaType = src.getReplicaType();
+        this.crc = src.getCrc();
+        this.dbStructCrc = src.getDbStructCrc();
+    }
+
     @Override
     public String toString() {
         return "{\"wsId\": " + wsId + ", \"age\": " + age + ", \"replicaType\": " + replicaType + ", \"crc\": \"" + crc + "\", \"dbStructCrc\": \"" + dbStructCrc + "\", \"dtFrom\": \"" + dtFrom + "\", \"dtTo\": \"" + dtTo + "\"}";

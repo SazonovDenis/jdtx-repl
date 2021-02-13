@@ -3,10 +3,13 @@ package jdtx.repl.main.api.que;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
-import jdtx.repl.main.api.JdxDbUtils;
+import jandcode.utils.error.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.replica.*;
+import org.apache.commons.logging.*;
 
+
+// todo Рефакторинг JdxCommon vs JdxQueOut000 vs JdxQueOut001
 public class JdxQueOut001 extends JdxQue implements IJdxQue {
 
     //
@@ -14,8 +17,12 @@ public class JdxQueOut001 extends JdxQue implements IJdxQue {
 
     //
     public JdxQueOut001(Db db, long wsId) {
-        super(db, "out001", true);
+        super(db, UtQue.QUE_OUT001, true);
         this.wsId = wsId;
+    }
+
+    public JdxQueOut001(Db db, String queName, boolean queForEachWsAtSrv) {
+        super(db, queName, queForEachWsAtSrv);
     }
 
 
@@ -26,7 +33,7 @@ public class JdxQueOut001 extends JdxQue implements IJdxQue {
     @Override
     public void setDataRoot(String dataRoot) {
         String sWsId = UtString.padLeft(String.valueOf(wsId), 3, "0");
-        String que001_DirLocal = dataRoot + "srv/queOut001_ws_" + sWsId;
+        String que001_DirLocal = dataRoot + "srv/que_" + queName + "_ws_" + sWsId;
         super.setDataRoot(que001_DirLocal);
     }
 

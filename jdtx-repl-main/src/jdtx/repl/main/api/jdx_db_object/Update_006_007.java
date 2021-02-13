@@ -22,6 +22,7 @@ public class Update_006_007 implements ISqlScriptExecutor {
         for (IJdxTable table : struct.getTables()) {
             try {
                 objectManager.createAuditTableIndex(table);
+                log.info("createAuditTableIndex, table: " + table.getName());
             } catch (Exception e) {
                 if (JdxUtils.collectExceptionText(e).contains("Unknown columns in index")) {
                     log.warn("createAuditTableIndex, table: " + table.getName() + ", error: " + e.getMessage().replace("\n", " ").replace("~", ""));
@@ -29,7 +30,6 @@ public class Update_006_007 implements ISqlScriptExecutor {
                     throw e;
                 }
             }
-
         }
     }
 

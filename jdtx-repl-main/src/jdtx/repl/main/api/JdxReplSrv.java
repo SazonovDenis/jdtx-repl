@@ -3,6 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.utils.error.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
@@ -11,6 +12,7 @@ import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ut.*;
+import org.apache.commons.io.*;
 import org.apache.commons.logging.*;
 import org.apache.log4j.*;
 import org.json.simple.*;
@@ -25,7 +27,7 @@ import java.util.*;
 public class JdxReplSrv {
 
     // Общая очередь на сервере
-    IJdxQue commonQue;
+    IJdxQue queCommon;
 
     // Источник для чтения/отправки сообщений всех рабочих станций
     Map<Long, IMailer> mailerList;
@@ -46,7 +48,7 @@ public class JdxReplSrv {
         this.db = db;
 
         // Общая очередь на сервере
-        commonQue = new JdxQueCommon(db, UtQue.QUE_COMMON, UtQue.STATE_AT_SRV_FOR_EACH_WS);
+        queCommon = new JdxQueCommon(db, UtQue.QUE_COMMON, UtQue.STATE_AT_WS);
 
         // Почтовые курьеры для чтения/отправки сообщений, для каждой рабочей станции
         mailerList = new HashMap<>();
@@ -82,8 +84,8 @@ public class JdxReplSrv {
 
 
         // Общая очередь
-        String queCommon_DirLocal = dataRoot + "srv/queCommon/";
-        commonQue.setDataRoot(queCommon_DirLocal);
+        String queCommon_DirLocal = dataRoot + "srv/que_Common/";
+        queCommon.setDataRoot(queCommon_DirLocal);
 
 
         // Почтовые курьеры, отдельные для каждой станции
@@ -156,7 +158,7 @@ public class JdxReplSrv {
         // state_ws
         JdxDbUtils dbu = new JdxDbUtils(db, null);
         long id = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "state_ws");
-        sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws (id, ws_id, que_common_dispatch_done, que_out001_dispatch_done, que_in_age_done, enabled, mute_age) values (" + id + ", " + wsId + ", 0, 0, 0, 0, 0)";
+        sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws (id, ws_id, que_common_dispatch_done, que_in_age_done, enabled, mute_age) values (" + id + ", " + wsId + ", 0, 0, 0, 0)";
         db.execSql(sql);
 
 
@@ -234,13 +236,20 @@ public class JdxReplSrv {
         // рабочая станция должна будет получить самостоятельно через ее очередь queIn.
         // Поэтому можно взять у "серверной" рабочей станции номер обработанной ВХОДЯЩЕЙ очереди,
         // но пометить НА СЕРВЕРЕ этим возрастом номер ОТПРАВЛЕННЫХ реплик для этой станции.
-        stateManagerSrv.setQueCommonDispatchDone(wsId, wsSnapshotAge);
+        stateManagerSrv.setDispatchDoneQueCommon(wsId, wsSnapshotAge);
+        // Инициализируем нумерацию реплик в очереди queOut000 этой станции.
+        // Для красивой нумерации в queOut000.
+        JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
+        queOut000.setMaxNo(wsSnapshotAge);
+        // Инициализируем нумерацию отправки реплик из очереди queOut000 на этоу станцию.
+        IJdxStateManagerMail stateManagerMail = new JdxStateManagerSrvMail(db, wsId, UtQue.QUE_OUT000);
+        stateManagerMail.setMailSendDone(wsSnapshotAge);
     }
 
     private List<IJdxTable> makePublicationTables(IJdxDbStruct struct, IPublicationStorage publicationStorage) {
         List<IJdxTable> publicationTables = new ArrayList<>();
-        for (IJdxTable table: struct.getTables()){
-            if (publicationStorage.getPublicationRule(table.getName())!=null){
+        for (IJdxTable table : struct.getTables()) {
+            if (publicationStorage.getPublicationRule(table.getName()) != null) {
                 publicationTables.add(table);
             }
         }
@@ -265,34 +274,154 @@ public class JdxReplSrv {
         db.execSql(sql);
     }
 
+    /**
+     * Сервер: формирование общей очереди.
+     * Считывание очередей рабочих станций и формирование общей очереди.
+     */
     public void srvHandleCommonQue() throws Exception {
-        srvHandleCommonQue(mailerList, commonQue);
+        srvHandleCommonQueInternal(mailerList, queCommon);
     }
 
-    public void srvDispatchReplicasQue() throws Exception {
-        srvDispatchReplicasQue(commonQue, mailerList, null, true);
+    /**
+     * Сервер: тиражирование реплик из queCommon
+     * Распределение общей очереди по очередям рабочих станций: queCommon -> queOut000
+     */
+    public void srvReplicasDispatch() throws Exception {
+        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
+
+
+        // Все что у нас есть на раздачу
+        long commonQueMaxNo = queCommon.getMaxNo();
+
+        for (Map.Entry en : mailerList.entrySet()) {
+            long wsId = (long) en.getKey();
+
+            //
+            log.info("srvReplicasDispatch (queCommon -> queOut000), to.wsId: " + wsId);
+
+            // Исходящая очередь для станции wsId
+            JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
+            queOut000.setDataRoot(dataRoot);
+
+            //
+            long sendFrom = stateManager.getDispatchDoneQueCommon(wsId) + 1;
+            long sendTo = commonQueMaxNo;
+
+            long count = 0;
+            for (long no = sendFrom; no <= sendTo; no++) {
+                // Берем реплику из queCommon
+                IReplica replica = queCommon.get(no);
+
+                // Преобразовываем по фильтрам
+                IReplica replicaForWs = prepareReplicaForWs(replica, wsId);
+
+                // Физически переместим реплику
+                queOut000.push(replicaForWs);
+
+                // Отметим распределение очередного номера реплики.
+                stateManager.setDispatchDoneQueCommon(wsId, no);
+
+                //
+                count++;
+            }
+
+            //
+            if (sendFrom < sendTo) {
+                log.info("srvReplicasDispatch (queCommon -> QueOut000) done, wsId: " + wsId + ", queOut001.no: " + sendFrom + " .. " + sendTo + ", done count: " + count);
+            } else {
+                log.info("srvReplicasDispatch (queCommon -> QueOut000) done, wsId: " + wsId + ", queOut001.no: " + sendFrom + ", nothing done");
+            }
+
+        }
     }
 
-    public void srvDispatchReplicasMail() throws Exception {
-        srvDispatchReplicasMail(commonQue, mailerList, null, true);
+
+    /**
+     * Рассылка реплик в ящики каждой рабочей станции
+     */
+    public void srvReplicasSendMail() throws Exception {
+        for (Map.Entry en : mailerList.entrySet()) {
+            long wsId = (long) en.getKey();
+            IMailer mailer = (IMailer) en.getValue();
+
+            // Рассылаем
+            try {
+                // Рассылаем queOut000 (продукт обработки queCommon) на каждую станцию
+                IJdxStateManagerMail stateManagerMail = new JdxStateManagerSrvMail(db, wsId, UtQue.QUE_OUT000);
+                JdxQueOut001 queOut000 = new JdxQueOut000(db, wsId);
+                queOut000.setDataRoot(dataRoot);
+                UtMail.sendQueToMail(wsId, queOut000, mailer, "to", stateManagerMail);
+
+                // Рассылаем queOut001 на каждую станцию
+                JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
+                queOut001.setDataRoot(dataRoot);
+                //
+                stateManagerMail = new JdxStateManagerSrvMail(db, wsId, UtQue.QUE_OUT001);
+                UtMail.sendQueToMail(wsId, queOut001, mailer, "to001", stateManagerMail);
+
+                // Отметить состояние сервера, данные сервера (сервер отчитывается о себе для отслеживания активности сервера)
+                // todo: не переложить отметку ли в sendQueToMail?
+                Map info = getInfoSrv();
+                mailer.setData(info, "srv.info", null);
+
+            } catch (Exception e) {
+                // Ошибка для станции - пропускаем, идем дальше
+                log.error("Error in SrvDispatchReplicas, to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
+                log.error(Ut.getStackTrace(e));
+            }
+
+        }
     }
 
+    /**
+     * Преобразовываем реплику replica по фильтрам для рабочей станции wsId
+     * todo это тупо - вот так копировать и перекладывать файлы из папки в папку???
+     */
+    private IReplica prepareReplicaForWs(IReplica replica, long wsId) throws IOException {
+        File replicaFile = replica.getFile();
+
+        // Файл должен быть - иначе незачем делать put
+        if (replicaFile == null) {
+            throw new XError("Invalid replica.file == null");
+        }
+
+        // Пока - по тупому, БЕЗ фильтров
+        ReplicaFile replicaRes = new ReplicaFile();
+        //
+        replicaRes.getInfo().assign(replica.getInfo());
+        //
+        File actualFile = new File(dataRoot + "temp/" + MailerHttp.getFileName(replica.getInfo().getAge()));
+        FileUtils.copyFile(replicaFile, actualFile);
+        replicaRes.setFile(actualFile);
+
+        //
+        return replicaRes;
+    }
+
+    /**
+     * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано
+     */
+    @Deprecated
     public void srvHandleCommonQueFrom(String cfgFileName, String mailDir) throws Exception {
         // Готовим локальных курьеров (через папку)
         Map<Long, IMailer> mailerListLocal = new HashMap<>();
         fillMailerListLocal(mailerListLocal, cfgFileName, mailDir, 0);
 
         // Физически забираем данные
-        srvHandleCommonQue(mailerListLocal, commonQue);
+        srvHandleCommonQueInternal(mailerListLocal, queCommon);
     }
 
+    /**
+     * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано
+     */
+    @Deprecated
     public void srvDispatchReplicasToDir(String cfgFileName, String mailDir, SendRequiredInfo requiredInfo, long destinationWsId, boolean doMarkDone) throws Exception {
         // Готовим локальных курьеров (через папку)
         Map<Long, IMailer> mailerListLocal = new HashMap<>();
         fillMailerListLocal(mailerListLocal, cfgFileName, mailDir, destinationWsId);
 
         // Физически отправляем данные
-        srvDispatchReplicas(commonQue, mailerListLocal, requiredInfo, doMarkDone);
+        srvDispatchReplicas(queCommon, mailerListLocal, requiredInfo, doMarkDone);
     }
 
 
@@ -304,7 +433,7 @@ public class JdxReplSrv {
         IReplica replica = utRepl.createReplicaMute(destinationWsId);
 
         // ... в исходящую (общую) очередь реплик
-        commonQue.push(replica);
+        queCommon.push(replica);
     }
 
 
@@ -316,7 +445,7 @@ public class JdxReplSrv {
         IReplica replica = utRepl.createReplicaUnmute(destinationWsId);
 
         // ... в исходящую (общую) очередь реплик
-        commonQue.push(replica);
+        queCommon.push(replica);
     }
 
 
@@ -328,7 +457,7 @@ public class JdxReplSrv {
         IReplica replica = utRepl.createReplicaMute(0);
 
         // ... в исходящую (общую) очередь реплик
-        commonQue.push(replica);
+        queCommon.push(replica);
     }
 
 
@@ -340,7 +469,7 @@ public class JdxReplSrv {
         IReplica replica = utRepl.createReplicaAppUpdate(exeFileName);
 
         // Системная команда - в исходящую очередь реплик
-        commonQue.push(replica);
+        queCommon.push(replica);
     }
 
 
@@ -348,7 +477,7 @@ public class JdxReplSrv {
         log.info("srvDbStructFinish");
 
         // Системные команды в общую исходящую очередь реплик
-        srvDbStructFinishInternal(commonQue);
+        srvDbStructFinishInternal(queCommon);
     }
 
 
@@ -378,7 +507,7 @@ public class JdxReplSrv {
 
         //
         JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName);
-        srvSendCfgInternal(commonQue, cfg, cfgType, destinationWsId);
+        srvSendCfgInternal(queCommon, cfg, cfgType, destinationWsId);
     }
 
     private void srvSendCfgInternal(IJdxReplicaQue que, JSONObject cfg, String cfgType, long destinationWsId) throws Exception {
@@ -414,7 +543,7 @@ public class JdxReplSrv {
      * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
      * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
      */
-    private void srvHandleCommonQue(Map<Long, IMailer> mailerList, IJdxReplicaQue commonQue) throws Exception {
+    private void srvHandleCommonQueInternal(Map<Long, IMailer> mailerList, IJdxReplicaQue commonQue) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
         for (Map.Entry en : mailerList.entrySet()) {
             long wsId = (long) en.getKey();
@@ -454,6 +583,7 @@ public class JdxReplSrv {
                         // Отмечаем факт скачивания
                         stateManager.setWsQueInAgeDone(wsId, age);
 
+                        // todo: Почему для сервера - сразу ТУТ реагируем, а для станции - потом. И почему ТУТ не проверяется адресат????
                         // Реагируем на системные реплики-сообщения
                         if (replica.getInfo().getReplicaType() == JdxReplicaType.MUTE_DONE) {
                             JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
@@ -503,25 +633,17 @@ public class JdxReplSrv {
     }
 
     /**
-     * Сервер: распределение общей очереди по рабочим станциям
+     * Сервер: распределение очереди по рабочим станциям
+     *
+     * @deprecated Нужно только для репликации через папку - сейчас полностью сломано
      */
-    private void srvDispatchReplicasQue(IJdxReplicaQue commonQue, Map<Long, IMailer> mailerList, SendRequiredInfo requiredInfo, boolean doMarkDone) throws Exception {
-    }
-
-    /**
-     * Сервер: распределение общей очереди по рабочим станциям
-     */
-    private void srvDispatchReplicasMail(IJdxReplicaQue commonQue, Map<Long, IMailer> mailerList, SendRequiredInfo requiredInfo, boolean doMarkDone) throws Exception {
-    }
-
-    /**
-     * Сервер: распределение общей очереди по рабочим станциям
-     */
-    private void srvDispatchReplicas(IJdxQue commonQue, Map<Long, IMailer> mailerList, SendRequiredInfo requiredInfo, boolean doMarkDone) throws Exception {
+    @Deprecated
+    private void srvDispatchReplicas(IJdxQue que, Map<Long, IMailer> mailerList, SendRequiredInfo requiredInfo, boolean doMarkDone) throws Exception {
+/*
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
 
         // Все что у нас есть на раздачу
-        long commonQueMaxNo = commonQue.getMaxNo();
+        long commonQueMaxNo = que.getMaxNo();
 
         //
         for (Map.Entry en : mailerList.entrySet()) {
@@ -540,12 +662,12 @@ public class JdxReplSrv {
                 // ---
                 // queOut001 - очередь Que001
 
-                // Сначала проверим, надо ли отправить Snapshot
+                // Сначала проверим, надо ли отправить queOut001
                 JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
                 queOut001.setDataRoot(dataRoot);
 
                 //
-                sendFrom = stateManager.getQueOut001DispatchDone(wsId) + 1;
+                sendFrom = stateManager.getDispatchDoneQueOut001(wsId) + 1;
                 sendTo = queOut001.getMaxNoFromDir(); // todo: очень некрасиво - путаюися "физический" (getMaxNo) и "логический" (getMaxNoFromDir) возраст
 
                 // Берем реплику - snapshot
@@ -559,7 +681,7 @@ public class JdxReplSrv {
                     // Отметим отправку
                     if (doMarkDone) {
                         // Отметим отправку очередного номера реплики.
-                        stateManager.setQueOut001DispatchDone(wsId, no);
+                        stateManager.setDispatchDoneQueOut001(wsId, no);
                     }
 
                     //
@@ -594,7 +716,7 @@ public class JdxReplSrv {
                     sendTo = requiredInfoBox.requiredTo;
                 } else {
                     // Не просили - зададим сами (от последней отправленной до послейдней, что у нас есть на раздачу)
-                    sendFrom = stateManager.getQueCommonDispatchDone(wsId) + 1;
+                    sendFrom = stateManager.getDispatchDoneQueCommon(wsId) + 1;
                     sendTo = commonQueMaxNo;
                 }
 
@@ -602,7 +724,7 @@ public class JdxReplSrv {
                 count = 0;
                 for (long no = sendFrom; no <= sendTo; no++) {
                     // Берем реплику
-                    IReplica replica = commonQue.get(no);
+                    IReplica replica = que.get(no);
 
                     //
                     //log.debug("replica.age: " + replica.getInfo().getAge() + ", replica.wsId: " + replica.getInfo().getWsId());
@@ -612,7 +734,8 @@ public class JdxReplSrv {
 
                     // Отметим отправку очередного номера реплики.
                     if (doMarkDone) {
-                        stateManager.setQueCommonDispatchDone(wsId, no);
+                        stateManager.setMailSendDone(wsId, no);
+                        stateManager.setDispatchDoneQueCommon(wsId, no);
                     }
 
                     //
@@ -647,6 +770,7 @@ public class JdxReplSrv {
             }
 
         }
+*/
     }
 
     private Map getInfoSrv() {

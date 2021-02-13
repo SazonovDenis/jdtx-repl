@@ -2,8 +2,6 @@ ALTER TABLE Z_Z_state ADD que_in001_no_done INT DEFAULT 0 NOT NULL;
 
 ALTER TABLE Z_Z_state_ws ADD snapshot_age INT DEFAULT 0 NOT NULL;
 
-ALTER TABLE Z_Z_state_ws ADD que_out001_dispatch_done INT DEFAULT 0 NOT NULL;
-
 
 /*
 Очереди реплик - входящая на рабочей станции In001
