@@ -59,11 +59,11 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
         test_AllHttp_5();
 
         //
-        test_DumpTables();
+        test_DumpTables_1_2_5();
     }
 
     @Test
-    public void test_DumpTables() throws Exception {
+    public void test_DumpTables_1_2_5() throws Exception {
         test_DumpTables(db, db2, db5, struct, struct2, struct5);
     }
 

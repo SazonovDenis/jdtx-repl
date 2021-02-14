@@ -228,19 +228,21 @@ public class UtRepl {
                 log.info("  skip table: " + structTable.getName() + ", not found in publicationStorage");
                 continue;
             }
+            //
+            String publicationTableName = publicationRule.getTableName().toUpperCase();
 
             // Интервал id в таблице аудита, который покрывает возраст age
-            Map autitInfoTable = (Map) auditInfo.get(publicationRule.getTableName());
+            Map autitInfoTable = (Map) auditInfo.get(publicationTableName);
             if (autitInfoTable != null) {
                 long fromId = (long) autitInfoTable.get("z_id_from");
                 long toId = (long) autitInfoTable.get("z_id_to");
 
                 //
-                log.info("createReplicaFromAudit: " + publicationRule.getTableName() + ", age: " + age + ", z_id: [" + fromId + ".." + toId + "]");
+                log.info("createReplicaFromAudit: " + publicationTableName + ", age: " + age + ", z_id: [" + fromId + ".." + toId + "]");
 
                 //
                 String publicationFields = PublicationStorage.filedsToString(publicationRule.getFields());
-                utrr.readAuditData_ByInterval(publicationRule.getTableName(), publicationFields, fromId, toId, writerXml);
+                utrr.readAuditData_ByInterval(publicationTableName, publicationFields, fromId, toId, writerXml);
             }
         }
 
