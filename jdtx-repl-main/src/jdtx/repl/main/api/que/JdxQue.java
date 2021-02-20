@@ -79,7 +79,7 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
         // Отмечаем в БД
         db.startTran();
         try {
-            String sql = "insert into " + JdxUtils.sys_table_prefix + "que_" + queName + " (id, ws_id, age, replica_type) values (:id, :ws_id, :age, :replica_type)";
+            String sql = "insert into " + JdxUtils.SYS_TABLE_PREFIX + "que_" + queName + " (id, ws_id, age, replica_type) values (:id, :ws_id, :age, :replica_type)";
             db.execSql(sql, UtCnv.toMap(
                     "id", queNo,
                     "ws_id", replica.getInfo().getWsId(),
@@ -102,13 +102,13 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
     }
 
     public long getMaxNo() throws Exception {
-        String sql = "select * from " + JdxUtils.sys_table_prefix + "state" + wsPrefixForTableNames;
+        String sql = "select * from " + JdxUtils.SYS_TABLE_PREFIX + "state" + wsPrefixForTableNames;
         DataRecord rec = db.loadSql(sql).getCurRec();
         return rec.getValueLong("que_" + queName + "_no");
     }
 
     public void setMaxNo(long queNo) throws Exception {
-        String sql = "update " + JdxUtils.sys_table_prefix + "state" + wsPrefixForTableNames + " set que_" + queName + "_no = " + queNo;
+        String sql = "update " + JdxUtils.SYS_TABLE_PREFIX + "state" + wsPrefixForTableNames + " set que_" + queName + "_no = " + queNo;
         db.execSql(sql);
     }
 
@@ -118,7 +118,7 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
      */
 
     DataRecord loadReplicaRec(long no) throws Exception {
-        String sql = "select * from " + JdxUtils.sys_table_prefix + "que_" + queName + " where id = " + no;
+        String sql = "select * from " + JdxUtils.SYS_TABLE_PREFIX + "que_" + queName + " where id = " + no;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("id") == 0) {
             throw new XError("Replica not found, no: " + no);
@@ -137,7 +137,7 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
      * @return Последний возраст реплики в очереди, созданный рабочей станцией wsId
      */
     long getMaxAgeForWs(long wsId) throws Exception {
-        String sql = "select max(age) as maxAge, count(*) as cnt from " + JdxUtils.sys_table_prefix + "que_" + queName + " where ws_id = " + wsId;
+        String sql = "select max(age) as maxAge, count(*) as cnt from " + JdxUtils.SYS_TABLE_PREFIX + "que_" + queName + " where ws_id = " + wsId;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("cnt") == 0) {
             return -1;

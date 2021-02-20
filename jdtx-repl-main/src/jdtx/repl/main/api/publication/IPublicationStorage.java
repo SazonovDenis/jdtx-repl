@@ -8,7 +8,10 @@ import java.util.*;
 
 public interface IPublicationStorage {
 
-    void loadRules(JSONObject cfg, IJdxDbStruct baseStruct) throws Exception;
+    /**
+     * Заполняет правила публикации с учетом наличия таблиц в структуре structActual
+     */
+    void loadRules(JSONObject cfg, IJdxDbStruct structActual) throws Exception;
 
     Collection <IPublicationRule> getPublicationRules();
 

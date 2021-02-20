@@ -19,13 +19,13 @@ public class JdxStateManagerMail implements IJdxStateManagerMail {
      * @return Возраст реплики, до которого отправлена собственная почта рабочей станции
      */
     public long getMailSendDone() throws Exception {
-        String sql = "select * from " + JdxUtils.sys_table_prefix + "state";
+        String sql = "select * from " + JdxUtils.SYS_TABLE_PREFIX + "state";
         DataRecord rec = db.loadSql(sql).getCurRec();
         return rec.getValueLong("mail_send_done");
     }
 
     public void setMailSendDone(long sendDone) throws Exception {
-        String sql = "update " + JdxUtils.sys_table_prefix + "state set mail_send_done = " + sendDone;
+        String sql = "update " + JdxUtils.SYS_TABLE_PREFIX + "state set mail_send_done = " + sendDone;
         db.execSql(sql);
     }
 

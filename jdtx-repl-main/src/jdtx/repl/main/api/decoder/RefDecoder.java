@@ -46,7 +46,7 @@ public class RefDecoder implements IRefDecoder {
         wsToSlotList = new HashMap<>();
 
         // Загрузим все слоты
-        DataStore st = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "decode");
+        DataStore st = db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "decode");
         for (DataRecord rec : st) {
             // Берем слоты для таблицы
             String tableName = rec.getValueString("table_name").toUpperCase();
@@ -254,13 +254,13 @@ public class RefDecoder implements IRefDecoder {
                 "ws_slot", ws_slot_no,
                 "own_slot", own_slot_no
         );
-        String sql = "insert into " + JdxUtils.sys_table_prefix + "decode (table_name, ws_id, ws_slot, own_slot) values (:table_name, :ws_id, :ws_slot, :own_slot)";
+        String sql = "insert into " + JdxUtils.SYS_TABLE_PREFIX + "decode (table_name, ws_id, ws_slot, own_slot) values (:table_name, :ws_id, :ws_slot, :own_slot)";
         db.execSql(sql, params);
     }
 
 
     private long calcNextOwnSlotNo(String tableName) throws Exception {
-        DataRecord rec = db.loadSql("select max(own_slot) as own_slot_max, count(*) as cnt from " + JdxUtils.sys_table_prefix + "decode where table_name = '" + tableName + "'").getCurRec();
+        DataRecord rec = db.loadSql("select max(own_slot) as own_slot_max, count(*) as cnt from " + JdxUtils.SYS_TABLE_PREFIX + "decode where table_name = '" + tableName + "'").getCurRec();
         long own_slot_max;
         if (rec.getValueLong("cnt") == 0) {
             own_slot_max = SLOT_START_NUMBER;

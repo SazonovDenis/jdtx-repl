@@ -12,6 +12,7 @@ import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ut.*;
+import org.apache.commons.io.*;
 import org.apache.commons.logging.*;
 import org.apache.log4j.*;
 import org.json.simple.*;
@@ -28,8 +29,11 @@ public class JdxReplSrv {
     // Общая очередь на сервере
     IJdxQue queCommon;
 
-    // Источник для чтения/отправки сообщений всех рабочих станций
+    // Почтовые курьеры для чтения/отправки сообщений (для каждой рабочей станции)
     Map<Long, IMailer> mailerList;
+
+    // Правила публикации (для каждой рабочей станции)
+    Map<Long, IPublicationStorage> publicationsInList;
 
     //
     Db db;
@@ -49,12 +53,16 @@ public class JdxReplSrv {
         // Общая очередь на сервере
         queCommon = new JdxQueCommon(db, UtQue.QUE_COMMON, UtQue.STATE_AT_WS);
 
-        // Почтовые курьеры для чтения/отправки сообщений, для каждой рабочей станции
+        // Почтовые курьеры для чтения/отправки сообщений (для каждой рабочей станции)
         mailerList = new HashMap<>();
+
+        // Правила публикации (для каждой рабочей станции)
+        publicationsInList = new HashMap<>();
     }
 
-    public IMailer getMailer() {
-        long wsId = 1; // Ошибки сервера кладем в ящик рабьочей станции №1
+    public IMailer getSelfMailer() {
+        // Ошибки сервера кладем в ящик рабочей станции №1
+        long wsId = 1;
         return mailerList.get(wsId);
     }
 
@@ -82,15 +90,21 @@ public class JdxReplSrv {
         JSONObject cfgPublications = utCfgMarker.getSelfCfg(UtCfgType.PUBLICATIONS);
 
 
+        // Чтение структуры БД
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(db);
+        IJdxDbStruct structActual = reader.readDbStruct();
+
+
         // Общая очередь
         String queCommon_DirLocal = dataRoot + "srv/que_Common/";
         queCommon.setDataRoot(queCommon_DirLocal);
 
 
         // Почтовые курьеры, отдельные для каждой станции
-        DataStore st = loadWsList(0);
-        for (DataRecord rec : st) {
-            long wsId = rec.getValueLong("id");
+        DataStore wsSt = loadWsList(0);
+        for (DataRecord wsRec : wsSt) {
+            long wsId = wsRec.getValueLong("id");
 
             // Рабочие каталоги мейлера
             String sWsId = UtString.padLeft(String.valueOf(wsId), 3, "0");
@@ -98,7 +112,7 @@ public class JdxReplSrv {
 
             // Конфиг для мейлера
             JSONObject cfgMailer = new JSONObject();
-            String guid = rec.getValueString("guid");
+            String guid = wsRec.getValueString("guid");
             String url = (String) cfgWs.get("url");
             cfgMailer.put("guid", guid);
             cfgMailer.put("url", url);
@@ -107,25 +121,24 @@ public class JdxReplSrv {
             // Мейлер
             IMailer mailer = new MailerHttp();
             mailer.init(cfgMailer);
-
             //
             mailerList.put(wsId, mailer);
+
+
+            // Правила входящих реплик для рабочей станции ("in", используем при подготовке реплик)
+            JSONObject cfgPublicationsWs = UtCfgMarker.getCfgFromDataRecord(wsRec, UtCfgType.PUBLICATIONS);
+            IPublicationStorage publicationsWsIn = UtRepl.extractPublicationRules(cfgPublicationsWs, structActual, "in");
+            publicationsInList.put(wsId, publicationsWsIn);
         }
 
 
-        // Чтение структуры БД
-        IJdxDbStructReader reader = new JdxDbStructReader();
-        reader.setDb(db);
-        IJdxDbStruct structActual = reader.readDbStruct();
-
+        // Фильтрация структуры: убирание того, чего нет в публикациях publicationIn и publicationOut
 
         // Правила публикаций
-        IPublicationStorage publicationIn = new PublicationStorage();
-        IPublicationStorage publicationOut = new PublicationStorage();
-        UtRepl.fillPublications(cfgPublications, structActual, publicationIn, publicationOut);
+        IPublicationStorage publicationIn = UtRepl.extractPublicationRules(cfgPublications, structActual, "in");
+        IPublicationStorage publicationOut = UtRepl.extractPublicationRules(cfgPublications, structActual, "out");
 
-
-        // Фильтрация структуры: убирание того, чего нет в публикациях publicationIn и publicationOut
+        // Фильтрация структуры
         struct = UtRepl.getStructCommon(structActual, publicationIn, publicationOut);
 
 
@@ -151,13 +164,13 @@ public class JdxReplSrv {
                 "name", wsName,
                 "guid", wsGuid
         );
-        String sql = "insert into " + JdxUtils.sys_table_prefix + "workstation_list (id, name, guid) values (:id, :name, :guid)";
+        String sql = "insert into " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list (id, name, guid) values (:id, :name, :guid)";
         db.execSql(sql, params);
 
         // state_ws
         JdxDbUtils dbu = new JdxDbUtils(db, null);
-        long id = dbu.getNextGenerator(JdxUtils.sys_gen_prefix + "state_ws");
-        sql = "insert into " + JdxUtils.sys_table_prefix + "state_ws (id, ws_id, que_common_dispatch_done, que_in_age_done, enabled, mute_age) values (" + id + ", " + wsId + ", 0, 0, 0, 0)";
+        long id = dbu.getNextGenerator(JdxUtils.SYS_GEN_PREFIX + "state_ws");
+        sql = "insert into " + JdxUtils.SYS_TABLE_PREFIX + "state_ws (id, ws_id, que_common_dispatch_done, que_in_age_done, enabled, mute_age) values (" + id + ", " + wsId + ", 0, 0, 0, 0)";
         db.execSql(sql);
 
 
@@ -236,10 +249,12 @@ public class JdxReplSrv {
         // Поэтому можно взять у "серверной" рабочей станции номер обработанной ВХОДЯЩЕЙ очереди,
         // но пометить НА СЕРВЕРЕ этим возрастом номер ОТПРАВЛЕННЫХ реплик для этой станции.
         stateManagerSrv.setDispatchDoneQueCommon(wsId, wsSnapshotAge);
+
         // Инициализируем нумерацию реплик в очереди queOut000 этой станции.
         // Для красивой нумерации в queOut000.
         JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
         queOut000.setMaxNo(wsSnapshotAge);
+
         // Инициализируем нумерацию отправки реплик из очереди queOut000 на этоу станцию.
         IJdxStateManagerMail stateManagerMail = new JdxStateManagerSrvMail(db, wsId, UtQue.QUE_OUT000);
         stateManagerMail.setMailSendDone(wsSnapshotAge);
@@ -258,18 +273,18 @@ public class JdxReplSrv {
     public void enableWorkstation(long wsId) throws Exception {
         log.info("enable workstation, wsId: " + wsId);
         //
-        String sql = "update " + JdxUtils.sys_table_prefix + "state_ws set enabled = 1 where id = " + wsId;
+        String sql = "update " + JdxUtils.SYS_TABLE_PREFIX + "state_ws set enabled = 1 where id = " + wsId;
         db.execSql(sql);
-        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 1";
+        sql = "update " + JdxUtils.SYS_TABLE_PREFIX + "state set enabled = 1";
         db.execSql(sql);
     }
 
     public void disableWorkstation(long wsId) throws Exception {
         log.info("disable workstation, wsId: " + wsId);
         //
-        String sql = "update " + JdxUtils.sys_table_prefix + "state_ws set enabled = 0 where id = " + wsId;
+        String sql = "update " + JdxUtils.SYS_TABLE_PREFIX + "state_ws set enabled = 0 where id = " + wsId;
         db.execSql(sql);
-        sql = "update " + JdxUtils.sys_table_prefix + "state set enabled = 0";
+        sql = "update " + JdxUtils.SYS_TABLE_PREFIX + "state set enabled = 0";
         db.execSql(sql);
     }
 
@@ -373,65 +388,72 @@ public class JdxReplSrv {
     }
 
     /**
-     * Преобразовываем реплику replica по фильтрам для рабочей станции wsId
-     * todo это тупо - вот так копировать и перекладывать файлы из папки в папку???
+     * Преобразовываем реплику replicaSrc по фильтрам для рабочей станции wsIdDestination
      */
-    private IReplica prepareReplicaForWs(IReplica replica, long wsIdDestination) throws Exception {
-        File replicaFile = replica.getFile();
+    private IReplica prepareReplicaForWs(IReplica replicaSrc, long wsIdDestination) throws Exception {
+        File replicaFile = replicaSrc.getFile();
 
         // Файл должен быть - иначе незачем делать put
         if (replicaFile == null) {
-            throw new XError("Invalid replica.file == null");
+            throw new XError("Invalid replicaSrc.file == null");
         }
 
-        // Пока - по тупому, БЕЗ фильтров
+        // 
         ReplicaFile replicaRes = new ReplicaFile();
 
         //
-        replicaRes.getInfo().assign(replica.getInfo());
-
+        IReplicaInfo replicaInfo = replicaSrc.getInfo();
 
         //
-        InputStream inputStream = null;
-        try {
-            // Распакуем XML-файл из Zip-архива
-            inputStream = UtRepl.getReplicaInputStream(replica);
+        replicaRes.getInfo().assign(replicaInfo);
 
-            JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
-
-            // Стартуем формирование файла реплики
-            UtReplicaWriter replicaWriter = new UtReplicaWriter();
-            replicaWriter.replicaFileStart(replica);
-
-            // Начинаем писать файл с данными
-            JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument(replica);
-
-            // Правила публикаций - todo: ГДЕ БЕРЕМ ДЛЯ WsDest?????
-            IPublicationStorage publicationOut = new PublicationStorage();
+        //
+        if (replicaInfo.getReplicaType() == JdxReplicaType.SNAPSHOT || replicaInfo.getReplicaType() == JdxReplicaType.IDE) {
 
             //
-            copyDataWithFilter(publicationOut, replicaReader, xmlWriter);
+            InputStream inputStream = null;
+            try {
+                // Распакуем XML-файл из Zip-архива
+                inputStream = UtRepl.getReplicaInputStream(replicaSrc);
 
-            // Заканчиваем формирование файла реплики
-            replicaWriter.replicaFileClose();
+                JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
 
-        } finally {
-            // Закроем читателя Zip-файла
-            if (inputStream != null) {
-                inputStream.close();
+                // Стартуем формирование файла реплики
+                UtReplicaWriter replicaWriter = new UtReplicaWriter(replicaRes);
+                replicaWriter.replicaFileStart();
+
+                // Начинаем писать файл с данными
+                JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
+
+                // Правила публикаций для wsIdDestination
+                IPublicationStorage publicationOut = publicationsInList.get(wsIdDestination);
+
+                // Копируем данные из реплики
+                copyDataWithFilter(replicaReader, xmlWriter, publicationOut);
+
+                // Заканчиваем формирование файла реплики
+                replicaWriter.replicaFileClose();
+
+            } finally {
+                // Закроем читателя Zip-файла
+                if (inputStream != null) {
+                    inputStream.close();
+                }
             }
+        } else {
+            // Тупое копирование файла
+            File replicaResFile = UtReplicaWriter.createTempFileReplica(replicaRes);
+            FileUtils.copyFile(replicaFile, replicaResFile);
+            replicaRes.setFile(replicaResFile);
         }
 
-        //File actualFile = new File(dataRoot + "temp/" + MailerHttp.getFileName(replica.getInfo().getAge()));
-        //FileUtils.copyFile(replicaFile, actualFile);
-        //replicaRes.setFile(actualFile);
 
         //
         return replicaRes;
     }
 
     // ^с отдельный тест на copyDataWithFilter
-    private void copyDataWithFilter(IPublicationStorage publicationOut, JdxReplicaReaderXml dataReader, JdxReplicaWriterXml dataWriter) throws Exception {
+    private void copyDataWithFilter(JdxReplicaReaderXml dataReader, JdxReplicaWriterXml dataWriter, IPublicationStorage publicationOut) throws Exception {
         String tableName = dataReader.nextTable();
 
         // Перебираем таблицы
@@ -439,43 +461,48 @@ public class JdxReplSrv {
 
             IPublicationRule publicationTable = publicationOut.getPublicationRule(tableName);
 
-            //
-            dataWriter.startTable(tableName);
+            if (publicationTable == null) {
+                // Пропускаем
+                log.info("  skip, not found in publicationOut, table: " + tableName);
+            } else {
+                dataWriter.startTable(tableName);
 
-            // Перебираем записи
-            long count = 0;
-            Map recValues = dataReader.nextRec();
-            while (recValues != null) {
-                if (useRecord(recValues, publicationTable)) {
+                // Перебираем записи
+                long count = 0;
+                Map recValues = dataReader.nextRec();
+                while (recValues != null) {
+                    if (useRecord(recValues, publicationTable)) {
 
-                    dataWriter.appendRec();
+                        dataWriter.appendRec();
 
-                    // Тип операции
-                    int oprType = (int) recValues.get(JdxUtils.field_opr_type);
-                    dataWriter.setOprType(oprType);
+                        // Тип операции
+                        int oprType = JdxUtils.intValueOf(recValues.get(JdxUtils.XML_FIELD_OPR_TYPE));
+                        dataWriter.setOprType(oprType);
 
-                    // Поля
-                    for (IJdxField publicationField : publicationTable.getFields()) {
-                        String publicationFieldName = publicationField.getName();
-                        dataWriter.setRecValue(publicationFieldName, recValues.get(publicationFieldName));
+                        // Поля
+                        for (IJdxField publicationField : publicationTable.getFields()) {
+                            String publicationFieldName = publicationField.getName();
+                            dataWriter.setRecValue(publicationFieldName, recValues.get(publicationFieldName));
+                        }
+                    }
+
+                    //
+                    recValues = dataReader.nextRec();
+
+                    //
+                    count++;
+                    if (count % 200 == 0) {
+                        log.info("  table: " + tableName + ", " + count);
                     }
                 }
 
                 //
-                recValues = dataReader.nextRec();
+                log.info("  done: " + tableName + ", total: " + count);
 
                 //
-                count++;
-                if (count % 200 == 0) {
-                    log.info("  table: " + tableName + ", " + count);
-                }
+                dataWriter.flush();
             }
 
-            //
-            log.info("  done: " + tableName + ", total: " + count);
-
-            //
-            dataWriter.flush();
 
             //
             tableName = dataReader.nextTable();
@@ -905,14 +932,14 @@ public class JdxReplSrv {
         String sql;
         if (wsId != 0) {
             // Указана конкретная станция-получатель - выгружаем только ее, остальные пропускаем
-            sql = "select * from " + JdxUtils.sys_table_prefix + "workstation_list where id = " + wsId;
+            sql = "select * from " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list where id = " + wsId;
         } else {
             // Берем только активные
-            sql = "select " + JdxUtils.sys_table_prefix + "workstation_list.* " +
-                    "from " + JdxUtils.sys_table_prefix + "workstation_list " +
-                    "join " + JdxUtils.sys_table_prefix + "state_ws on " +
-                    "(" + JdxUtils.sys_table_prefix + "workstation_list.id = " + JdxUtils.sys_table_prefix + "state_ws.ws_id) " +
-                    "where " + JdxUtils.sys_table_prefix + "state_ws.enabled = 1";
+            sql = "select " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list.* " +
+                    "from " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list " +
+                    "join " + JdxUtils.SYS_TABLE_PREFIX + "state_ws on " +
+                    "(" + JdxUtils.SYS_TABLE_PREFIX + "workstation_list.id = " + JdxUtils.SYS_TABLE_PREFIX + "state_ws.ws_id) " +
+                    "where " + JdxUtils.SYS_TABLE_PREFIX + "state_ws.enabled = 1";
         }
 
         //

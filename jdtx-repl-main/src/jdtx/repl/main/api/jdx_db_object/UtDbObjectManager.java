@@ -35,7 +35,7 @@ public class UtDbObjectManager {
     public void checkReplDb() throws Exception {
         try {
             // Читаем код нашей станции
-            DataRecord rec = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation").getCurRec();
+            DataRecord rec = db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "workstation").getCurRec();
             // Проверяем код нашей станции
             if (rec.getValueLong("ws_id") == 0) {
                 throw new XError("Invalid workstation.ws_id == 0");
@@ -56,13 +56,13 @@ public class UtDbObjectManager {
 
         // --- Читаем версию БД
         try {
-            DataRecord rec = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "verdb").getCurRec();
+            DataRecord rec = db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "verdb").getCurRec();
             ver = rec.getValueInt("ver");
             ver_step = rec.getValueInt("ver_step");
         } catch (Exception e) {
             if (JdxUtils.errorIs_TableNotExists(e)) {
                 // Создаем таблицу verdb
-                log.info("Создаем таблицу " + JdxUtils.sys_table_prefix + "verdb");
+                log.info("Создаем таблицу " + JdxUtils.SYS_TABLE_PREFIX + "verdb");
                 //
                 String sql = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/UtDbObjectManager.verdb.sql");
                 execScript(sql, db);
@@ -107,13 +107,13 @@ public class UtDbObjectManager {
                         }
                         //
                         ver_step_i = ver_step_i + 1;
-                        db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step_i);
+                        db.execSql("update " + JdxUtils.SYS_TABLE_PREFIX + "verdb set ver = " + ver_i + ", ver_step = " + ver_step_i);
                     }
 
                     //
                     ver_i = ver_i + 1;
                     ver_step = 0;
-                    db.execSql("update " + JdxUtils.sys_table_prefix + "verdb set ver = " + ver_i + ", ver_step = " + ver_step);
+                    db.execSql("update " + JdxUtils.SYS_TABLE_PREFIX + "verdb set ver = " + ver_i + ", ver_step = " + ver_step);
 
                     //
                     log.info("Смена версии до: " + ver_i + "." + ver_step + " - ok");
@@ -131,7 +131,7 @@ public class UtDbObjectManager {
         }
 
         //
-        lockFlag = db.openSql("select * from " + JdxUtils.sys_table_prefix + "verdb for update with lock");
+        lockFlag = db.openSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "verdb for update with lock");
 
         //
         log.info("Database locked: " + db.getDbSource().getDatabase());
@@ -162,7 +162,7 @@ public class UtDbObjectManager {
         checkReplVerDb();
 
         // Метка с guid БД и номером wsId
-        sql = "update " + JdxUtils.sys_table_prefix + "workstation set ws_id = " + wsId + ", guid = '" + guid + "'";
+        sql = "update " + JdxUtils.SYS_TABLE_PREFIX + "workstation set ws_id = " + wsId + ", guid = '" + guid + "'";
         db.execSql(sql);
     }
 
@@ -255,10 +255,10 @@ public class UtDbObjectManager {
             pkFieldDataType = pkFieldDataType + "(" + table.getPrimaryKey().get(0).getSize() + ")";
         }
         String sql = "create table \n" +
-                JdxUtils.audit_table_prefix + tableName + "(\n" +
-                JdxUtils.audit_table_prefix + "id integer not null,\n" +
-                JdxUtils.audit_table_prefix + "opr_type integer not null,\n" +
-                JdxUtils.audit_table_prefix + "opr_dttm timestamp not null,\n" +
+                JdxUtils.AUDIT_TABLE_PREFIX + tableName + "(\n" +
+                JdxUtils.AUDIT_TABLE_PREFIX + "id integer not null,\n" +
+                JdxUtils.SQL_FIELD_OPR_TYPE + " integer not null,\n" +
+                JdxUtils.AUDIT_TABLE_PREFIX + "opr_dttm timestamp not null,\n" +
                 pkFieldName + " " + pkFieldDataType + " not null\n" +
                 ")";
         try {
@@ -273,10 +273,10 @@ public class UtDbObjectManager {
 
         // генератор Id для новой таблицы
         try {
-            sql = "create generator " + JdxUtils.audit_gen_prefix + tableName;
+            sql = "create generator " + JdxUtils.AUDIT_GEN_PREFIX + tableName;
             db.execSql(sql);
             //
-            sql = "set generator " + JdxUtils.audit_gen_prefix + tableName + " to 0";
+            sql = "set generator " + JdxUtils.AUDIT_GEN_PREFIX + tableName + " to 0";
             db.execSql(sql);
         } catch (Exception e) {
             if (JdxUtils.errorIs_GeneratorAlreadyExists(e)) {
@@ -292,7 +292,7 @@ public class UtDbObjectManager {
 
     void createAuditTableIndex(IJdxTable table) throws Exception {
         try {
-            String sql = "CREATE UNIQUE INDEX " + JdxUtils.prefix + table.getName() + "_idx ON " + JdxUtils.prefix + table.getName() + " (Z_ID)";
+            String sql = "CREATE UNIQUE INDEX " + JdxUtils.PREFIX + table.getName() + "_idx ON " + JdxUtils.PREFIX + table.getName() + " (Z_ID)";
             db.execSql(sql);
         } catch (Exception e) {
             if (JdxUtils.errorIs_GeneratorAlreadyExists(e)) {
@@ -321,18 +321,18 @@ public class UtDbObjectManager {
             }
         }
 
-        String sql = "create table " + JdxUtils.audit_table_prefix + tableName + "(" +
-                JdxUtils.audit_table_prefix + "id integer not null, " +
-                JdxUtils.audit_table_prefix + "opr_type integer not null, " +
+        String sql = "create table " + JdxUtils.AUDIT_TABLE_PREFIX + tableName + "(" +
+                JdxUtils.AUDIT_TABLE_PREFIX + "id integer not null, " +
+                JdxUtils.SQL_FIELD_OPR_TYPE + " integer not null, " +
                 fieldsStr +
                 ")";
 
         db.execSql(sql);
 
         // генератор Id для новой таблицы
-        sql = "create generator " + JdxUtils.audit_gen_prefix + tableName;
+        sql = "create generator " + JdxUtils.AUDIT_GEN_PREFIX + tableName;
         db.execSql(sql);
-        sql = "set generator " + JdxUtils.audit_gen_prefix + tableName + " to 0";
+        sql = "set generator " + JdxUtils.AUDIT_GEN_PREFIX + tableName + " to 0";
         db.execSql(sql);
     }
 
@@ -340,18 +340,18 @@ public class UtDbObjectManager {
         String sql;
         String tableName = table.getName();
         String pkFieldName = table.getPrimaryKey().get(0).getName();
-        sql = "create trigger " + JdxUtils.trig_pref + tableName + "_" + upd_mode.toString().substring(0, 1) + " for " + tableName + " after " + upd_mode.toString() + " \n" +
+        sql = "create trigger " + JdxUtils.TRIGER_PREFIX + tableName + "_" + upd_mode.toString().substring(0, 1) + " for " + tableName + " after " + upd_mode.toString() + " \n" +
                 "as\n" +
                 "declare variable trigger_flag_ integer;\n" +
                 "declare variable opr_dttm_ timestamp;\n" +
                 "begin\n" +
-                "  select trigger_flag from " + JdxUtils.sys_table_prefix + "flag_tab where id=1 into :trigger_flag_;\n" +
+                "  select trigger_flag from " + JdxUtils.SYS_TABLE_PREFIX + "flag_tab where id=1 into :trigger_flag_;\n" +
                 "  select current_timestamp from rdb$database into :opr_dttm_;\n" +
                 "  if (trigger_flag_<>0) then\n" +
                 "  begin\n" +
-                "    insert into " + JdxUtils.audit_table_prefix + tableName + " (" + JdxUtils.audit_table_prefix + "id, " + JdxUtils.audit_table_prefix + "opr_type, " + JdxUtils.audit_table_prefix + "opr_dttm, " + pkFieldName + ") ";
+                "    insert into " + JdxUtils.AUDIT_TABLE_PREFIX + tableName + " (" + JdxUtils.AUDIT_TABLE_PREFIX + "id, " + JdxUtils.SQL_FIELD_OPR_TYPE + ", " + JdxUtils.AUDIT_TABLE_PREFIX + "opr_dttm, " + pkFieldName + ") ";
         // значения
-        sql = sql + "values (GEN_ID(" + JdxUtils.audit_gen_prefix + tableName + ", 1), " + (upd_mode.ordinal() + 1) + ", :opr_dttm_, ";
+        sql = sql + "values (GEN_ID(" + JdxUtils.AUDIT_GEN_PREFIX + tableName + ", 1), " + (upd_mode.ordinal() + 1) + ", :opr_dttm_, ";
         //
         String contVar = "NEW.";
         if (upd_mode.toString().equals("DELETE")) {
@@ -368,21 +368,21 @@ public class UtDbObjectManager {
         String tableName = table.getName();
         String sql;
         int fieldCount = table.getFields().size();
-        sql = "create trigger " + JdxUtils.trig_pref + tableName + "_" + upd_mode.toString().substring(0, 1) + " for " + tableName + " after " + upd_mode.toString() + " \n" +
+        sql = "create trigger " + JdxUtils.TRIGER_PREFIX + tableName + "_" + upd_mode.toString().substring(0, 1) + " for " + tableName + " after " + upd_mode.toString() + " \n" +
                 "as\n" +
                 "declare variable trigger_flag_ integer;\n" +
                 "begin\n" +
-                "  select trigger_flag from " + JdxUtils.sys_table_prefix + "flag_tab where id=1 into :trigger_flag_;\n" +
+                "  select trigger_flag from " + JdxUtils.SYS_TABLE_PREFIX + "flag_tab where id=1 into :trigger_flag_;\n" +
                 "  if (trigger_flag_<>0) then\n" +
                 "  begin\n" +
-                "    insert into " + JdxUtils.audit_table_prefix + tableName + " (" + JdxUtils.audit_table_prefix + "id, " + JdxUtils.audit_table_prefix + "opr_type, ";
+                "    insert into " + JdxUtils.AUDIT_TABLE_PREFIX + tableName + " (" + JdxUtils.AUDIT_TABLE_PREFIX + "id, " + JdxUtils.SQL_FIELD_OPR_TYPE + ", ";
         // перечисление полей для вставки в них значений
         for (int i = 0; i < fieldCount - 1; i++) {
             sql = sql + table.getFields().get(i).getName() + ", ";
         }
         sql = sql + table.getFields().get(fieldCount - 1).getName() + ") ";
         // сами значения
-        sql = sql + "values (GEN_ID(" + JdxUtils.audit_gen_prefix + tableName + ", 1), " + (upd_mode.ordinal() + 1) + ", ";
+        sql = sql + "values (GEN_ID(" + JdxUtils.AUDIT_GEN_PREFIX + tableName + ", 1), " + (upd_mode.ordinal() + 1) + ", ";
         String contVar = "NEW.";
         if (upd_mode.toString().equals("DELETE")) {
             contVar = "OLD.";
@@ -405,7 +405,7 @@ public class UtDbObjectManager {
 
         try {
             // удаляем триггеры
-            sql = "drop trigger " + JdxUtils.trig_pref + tableName + "_I";
+            sql = "drop trigger " + JdxUtils.TRIGER_PREFIX + tableName + "_I";
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
@@ -417,7 +417,7 @@ public class UtDbObjectManager {
         }
 
         try {
-            sql = "drop trigger " + JdxUtils.trig_pref + tableName + "_U";
+            sql = "drop trigger " + JdxUtils.TRIGER_PREFIX + tableName + "_U";
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
@@ -429,7 +429,7 @@ public class UtDbObjectManager {
         }
 
         try {
-            sql = "drop trigger " + JdxUtils.trig_pref + tableName + "_D";
+            sql = "drop trigger " + JdxUtils.TRIGER_PREFIX + tableName + "_D";
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
@@ -442,7 +442,7 @@ public class UtDbObjectManager {
 
         try {
             // удаляем саму таблицу журнала изменений
-            sql = "drop table " + JdxUtils.audit_table_prefix + tableName;
+            sql = "drop table " + JdxUtils.AUDIT_TABLE_PREFIX + tableName;
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
@@ -455,7 +455,7 @@ public class UtDbObjectManager {
 
         try {
             // удаляем генератор для таблицы журнала изменений
-            sql = "drop generator " + JdxUtils.audit_gen_prefix + tableName;
+            sql = "drop generator " + JdxUtils.AUDIT_GEN_PREFIX + tableName;
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
@@ -485,7 +485,7 @@ public class UtDbObjectManager {
         // удаляем генераторы
         for (String name : sys_names) {
             try {
-                String query = "drop generator " + JdxUtils.sys_gen_prefix + name;
+                String query = "drop generator " + JdxUtils.SYS_GEN_PREFIX + name;
                 db.execSql(query);
             } catch (Exception e) {
                 // если удаляемый объект не будет найден, программа продолжит работу
@@ -500,7 +500,7 @@ public class UtDbObjectManager {
         // удаляем таблицу
         for (String name : sys_names) {
             try {
-                String query = "drop table " + JdxUtils.sys_table_prefix + name;
+                String query = "drop table " + JdxUtils.SYS_TABLE_PREFIX + name;
                 db.execSql(query);
             } catch (Exception e) {
                 // если удаляемый объект не будет найден, программа продолжит работу

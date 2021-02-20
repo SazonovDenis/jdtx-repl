@@ -39,7 +39,7 @@ public class RefDecoder_Test extends DbmTestCase {
 
     @Test
     public void test_1() throws Exception {
-        dbm.getDb().execSql("delete from " + JdxUtils.sys_table_prefix + "decode");
+        dbm.getDb().execSql("delete from " + JdxUtils.SYS_TABLE_PREFIX + "decode");
 
         //
         long wsId = 1;

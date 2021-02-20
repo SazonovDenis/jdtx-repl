@@ -17,12 +17,12 @@ public class DbAuditTriggersManager {
     }
 
     public void setTriggersOff() throws Exception {
-        db.execSql("update " + JdxUtils.sys_table_prefix + "flag_tab set trigger_flag=0 where id=1");
+        db.execSql("update " + JdxUtils.SYS_TABLE_PREFIX + "flag_tab set trigger_flag=0 where id=1");
         this.triggersIsOn = false;
     }
 
     public void setTriggersOn() throws Exception {
-        db.execSql("update " + JdxUtils.sys_table_prefix + "flag_tab set trigger_flag=1 where id=1");
+        db.execSql("update " + JdxUtils.SYS_TABLE_PREFIX + "flag_tab set trigger_flag=1 where id=1");
         this.triggersIsOn = true;
     }
 

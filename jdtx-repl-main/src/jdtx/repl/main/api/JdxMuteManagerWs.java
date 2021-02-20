@@ -25,19 +25,19 @@ public class JdxMuteManagerWs {
     public void muteWorkstation() throws Exception {
         log.info("mute workstation");
         //
-        String sql = "update " + JdxUtils.sys_table_prefix + "state set mute = " + STATE_MUTE;
+        String sql = "update " + JdxUtils.SYS_TABLE_PREFIX + "state set mute = " + STATE_MUTE;
         db.execSql(sql);
     }
 
     public void unmuteWorkstation() throws Exception {
         log.info("unmute workstation");
         //
-        String sql = "update " + JdxUtils.sys_table_prefix + "state set mute = " + STATE_MUTE_OFF;
+        String sql = "update " + JdxUtils.SYS_TABLE_PREFIX + "state set mute = " + STATE_MUTE_OFF;
         db.execSql(sql);
     }
 
     public boolean isMute() throws Exception {
-        String sql = "select * from " + JdxUtils.sys_table_prefix + "state";
+        String sql = "select * from " + JdxUtils.SYS_TABLE_PREFIX + "state";
         DataRecord rec = db.loadSql(sql).getCurRec();
         return rec.getValueLong("mute") == STATE_MUTE;
     }

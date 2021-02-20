@@ -15,8 +15,9 @@ public class PublicationStorage implements IPublicationStorage {
     //
     private Collection<IPublicationRule> publicationRules = new ArrayList<>();
 
+
     @Override
-    public void loadRules(JSONObject cfg, IJdxDbStruct baseStruct) throws Exception {
+    public void loadRules(JSONObject cfg, IJdxDbStruct structActual) throws Exception {
         publicationRules.clear();
 
         for (Object key : cfg.keySet()) {
@@ -24,7 +25,7 @@ public class PublicationStorage implements IPublicationStorage {
             String publicationTableName = (String) key;
 
             //
-            IJdxTable structTable = baseStruct.getTable(publicationTableName);
+            IJdxTable structTable = structActual.getTable(publicationTableName);
             if (structTable == null) {
                 // Правило для таблицы, которой нет в структуре
                 log.warn("Not found table in struct, table: " + publicationTableName);
@@ -50,10 +51,12 @@ public class PublicationStorage implements IPublicationStorage {
         }
     }
 
+
     @Override
     public Collection<IPublicationRule> getPublicationRules() {
         return publicationRules;
     }
+
 
     @Override
     public IPublicationRule getPublicationRule(String tableName) {

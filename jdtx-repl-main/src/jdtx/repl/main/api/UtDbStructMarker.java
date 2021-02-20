@@ -38,7 +38,7 @@ public class UtDbStructMarker {
     }
 
     private IJdxDbStruct getDbStructInternal(String structName) throws Exception {
-        DataStore st = db.loadSql("select " + structName + " from " + JdxUtils.sys_table_prefix + "workstation");
+        DataStore st = db.loadSql("select " + structName + " from " + JdxUtils.SYS_TABLE_PREFIX + "workstation");
 
         //
         byte[] structBytes = (byte[]) st.getCurRec().getValue(structName);
@@ -57,7 +57,7 @@ public class UtDbStructMarker {
     private void setDbStructInternal(IJdxDbStruct struct, String structCode) throws Exception {
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
         byte[] bytes = struct_rw.getBytes(struct);
-        db.execSql("update " + JdxUtils.sys_table_prefix + "workstation set " + structCode + " = :struct", UtCnv.toMap("struct", bytes));
+        db.execSql("update " + JdxUtils.SYS_TABLE_PREFIX + "workstation set " + structCode + " = :struct", UtCnv.toMap("struct", bytes));
         //
         log.info("setDbStruct: " + structCode);
     }

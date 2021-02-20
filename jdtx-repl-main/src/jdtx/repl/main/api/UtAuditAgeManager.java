@@ -26,7 +26,7 @@ public class UtAuditAgeManager {
      * Узнать возраст рабочей станции
      */
     public long getAuditAge() throws Exception {
-        return db.loadSql("select max(age) as maxAge from " + JdxUtils.sys_table_prefix + "age").getCurRec().getValueLong("maxAge");
+        return db.loadSql("select max(age) as maxAge from " + JdxUtils.SYS_TABLE_PREFIX + "age").getCurRec().getValueLong("maxAge");
     }
 
     /**
@@ -125,14 +125,14 @@ public class UtAuditAgeManager {
         for (IJdxTable table : struct.getTables()) {
             if (!UtRepl.tableSkipRepl(table)) {
                 String tableName = table.getName();
-                long maxId = db.loadSql("select max(" + JdxUtils.prefix + "id) as maxId from " + JdxUtils.audit_table_prefix + tableName).getCurRec().getValueLong("maxId");
+                long maxId = db.loadSql("select max(" + JdxUtils.PREFIX + "id) as maxId from " + JdxUtils.AUDIT_TABLE_PREFIX + tableName).getCurRec().getValueLong("maxId");
                 maxIdsCurr.put(tableName, maxId);
             }
         }
     }
 
     private void fillMaxIdsFixed(long auditAgeFixed, Map maxIdsFixed) throws Exception {
-        DataStore st = db.loadSql("select table_name, " + JdxUtils.prefix + "id as maxId from " + JdxUtils.sys_table_prefix + "age where age = " + auditAgeFixed);
+        DataStore st = db.loadSql("select table_name, " + JdxUtils.PREFIX + "id as maxId from " + JdxUtils.SYS_TABLE_PREFIX + "age where age = " + auditAgeFixed);
         for (DataRecord rec : st) {
             String tableName = rec.getValueString("table_name");
             long maxId = rec.getValueLong("maxId");
@@ -142,7 +142,7 @@ public class UtAuditAgeManager {
 
     private void fillAgeTable(long auditAgeActual, Map maxIdsActual) throws Exception {
         DateTime dt = new DateTime();
-        String sqlIns = "insert into " + JdxUtils.sys_table_prefix + "age(age, table_name, " + JdxUtils.prefix + "id, dt) values (:age, :table_name, :maxId, :dt)";
+        String sqlIns = "insert into " + JdxUtils.SYS_TABLE_PREFIX + "age(age, table_name, " + JdxUtils.PREFIX + "id, dt) values (:age, :table_name, :maxId, :dt)";
 
         // У каждой таблицы зафиксируем состояние журналов для возраста auditAgeActual
         for (IJdxTable table : struct.getTables()) {

@@ -18,10 +18,31 @@ public class UtCfgMarker {
     }
 
     JSONObject getSelfCfg(String cfgName) throws Exception {
-        DataStore st = db.loadSql("select " + cfgName + " from " + JdxUtils.sys_table_prefix + "workstation");
+        DataStore st = db.loadSql("select " + cfgName + " from " + JdxUtils.SYS_TABLE_PREFIX + "workstation");
 
         //
-        byte[] cfgBytes = (byte[]) st.getCurRec().getValue(cfgName);
+        JSONObject cfg = getCfgFromDataRecord(st.getCurRec(), cfgName);
+
+        //
+        return cfg;
+    }
+
+    void setSelfCfg(JSONObject cfg, String cfgName) throws Exception {
+        UtCfgType.validateCfgCode(cfgName);
+        //
+        String cfgStr = UtJson.toString(cfg);
+        db.execSql("update " + JdxUtils.SYS_TABLE_PREFIX + "workstation set " + cfgName + " = :cfg", UtCnv.toMap("cfg", cfgStr));
+    }
+
+    void setWsCfg(JSONObject cfg, String cfgName, long wsId) throws Exception {
+        UtCfgType.validateCfgCode(cfgName);
+        //
+        String cfgStr = UtJson.toString(cfg);
+        db.execSql("update " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list set " + cfgName + " = :cfg where id = :id", UtCnv.toMap("cfg", cfgStr, "id", wsId));
+    }
+
+    public static JSONObject getCfgFromDataRecord(DataRecord rec, String cfgName){
+        byte[] cfgBytes = (byte[]) rec.getValue(cfgName);
         if (cfgBytes.length == 0) {
             return null;
         }
@@ -32,20 +53,6 @@ public class UtCfgMarker {
 
         //
         return cfg;
-    }
-
-    void setSelfCfg(JSONObject cfg, String cfgName) throws Exception {
-        UtCfgType.validateCfgCode(cfgName);
-        //
-        String cfgStr = UtJson.toString(cfg);
-        db.execSql("update " + JdxUtils.sys_table_prefix + "workstation set " + cfgName + " = :cfg", UtCnv.toMap("cfg", cfgStr));
-    }
-
-    void setWsCfg(JSONObject cfg, String cfgName, long wsId) throws Exception {
-        UtCfgType.validateCfgCode(cfgName);
-        //
-        String cfgStr = UtJson.toString(cfg);
-        db.execSql("update " + JdxUtils.sys_table_prefix + "workstation_list set " + cfgName + " = :cfg where id = :id", UtCnv.toMap("cfg", cfgStr, "id", wsId));
     }
 
 }

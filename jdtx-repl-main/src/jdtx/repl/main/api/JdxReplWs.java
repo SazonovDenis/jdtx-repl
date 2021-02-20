@@ -113,7 +113,7 @@ public class JdxReplWs {
         IJdxDbStruct structActual = structReader.readDbStruct();
 
         // Читаем код нашей станции
-        DataRecord rec = db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation").getCurRec();
+        DataRecord rec = db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "workstation").getCurRec();
         // Проверяем код нашей станции
         if (rec.getValueLong("ws_id") == 0) {
             throw new XError("Invalid workstation.ws_id == 0");
@@ -166,9 +166,8 @@ public class JdxReplWs {
         }
 
         // Правила публикаций
-        this.publicationIn = new PublicationStorage();
-        this.publicationOut = new PublicationStorage();
-        UtRepl.fillPublications(cfgPublications, structActual, this.publicationIn, this.publicationOut);
+        this.publicationIn = UtRepl.extractPublicationRules(cfgPublications, structActual, "in");
+        this.publicationOut = UtRepl.extractPublicationRules(cfgPublications, structActual, "out");
 
 
         // Фильтрация структуры: убирание того, чего нет в публикациях publicationIn и publicationOut
@@ -1097,8 +1096,8 @@ public class JdxReplWs {
         replica.getInfo().setAge(age);
 
         // Стартуем формирование файла реплики
-        UtReplicaWriter replicaWriter = new UtReplicaWriter();
-        replicaWriter.replicaFileStart(replica);
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
         // Заканчиваем формирование файла реплики.
         // Заканчиваем cразу-же, т.к. для реплики этого типа не нужно содержимое
         replicaWriter.replicaFileClose();

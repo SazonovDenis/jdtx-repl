@@ -185,7 +185,7 @@ public class UtAuditApplyer {
 
                     // Выполняем INS/UPD/DEL
                     String publicationFields = PublicationStorage.filedsToString(publicationTable.getFields());
-                    int oprType = Integer.valueOf((String) recValues.get("Z_OPR"));
+                    int oprType = JdxUtils.intValueOf(recValues.get(JdxUtils.XML_FIELD_OPR_TYPE));
                     if (oprType == JdxOprType.OPR_INS) {
                         try {
                             insertOrUpdate(dbu, table.getName(), recParams, publicationFields);

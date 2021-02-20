@@ -23,8 +23,8 @@ public class ReplicaWriter_Test extends UtilsTestCase {
 
 
         // Стартуем формирование файла реплики
-        UtReplicaWriter replicaWriter = new UtReplicaWriter();
-        replicaWriter.replicaFileStart(replica);
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
 
 
         // Начинаем писать просто файл test_1.txt
@@ -35,7 +35,7 @@ public class ReplicaWriter_Test extends UtilsTestCase {
 
 
         // Начинаем писать xml-файл с данными реплики
-        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument(replica);
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
         //
         xmlWriter.startTable("ABC");
         xmlWriter.appendRec();

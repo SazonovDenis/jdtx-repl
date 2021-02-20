@@ -12,19 +12,21 @@ import java.util.*;
 public class JdxUtils {
 
 
-    public static final String prefix = "Z_";
+    public static final String PREFIX = "Z_";
 
-    public static final String audit_table_prefix = prefix;
+    public static final String AUDIT_TABLE_PREFIX = PREFIX;
 
-    public static final String sys_table_prefix = prefix + "Z_";
+    public static final String SYS_TABLE_PREFIX = PREFIX + "Z_";
 
-    public static final String audit_gen_prefix = prefix + "G_";
+    public static final String AUDIT_GEN_PREFIX = PREFIX + "G_";
 
-    public static final String sys_gen_prefix = sys_table_prefix + "G_";
+    public static final String SYS_GEN_PREFIX = SYS_TABLE_PREFIX + "G_";
 
-    public static final String trig_pref = prefix + "T_";
+    public static final String TRIGER_PREFIX = PREFIX + "T_";
 
-    public static final String field_opr_type = prefix + "opr_type";
+    public static final String XML_FIELD_OPR_TYPE = PREFIX + "OPR";
+
+    public static final String SQL_FIELD_OPR_TYPE = PREFIX + "opr_type";
 
 
     /**
@@ -350,18 +352,32 @@ public class JdxUtils {
         }
     }
 
-    public static Long longValueOf(Object idValue) {
-        Long id;
-        if (idValue == null) {
-            id = null;
-        } else if (idValue instanceof Long) {
-            id = (Long) idValue;
-        } else if (idValue instanceof Integer) {
-            id = Long.valueOf((Integer) idValue);
+    public static Long longValueOf(Object value) {
+        Long valueLong;
+        if (value == null) {
+            valueLong = null;
+        } else if (value instanceof Long) {
+            valueLong = (Long) value;
+        } else if (value instanceof Integer) {
+            valueLong = Long.valueOf((Integer) value);
         } else {
-            id = Long.valueOf(idValue.toString());
+            valueLong = Long.valueOf(value.toString());
         }
-        return id;
+        return valueLong;
+    }
+
+    public static Integer intValueOf(Object value) {
+        Integer valueInteger;
+        if (value == null) {
+            valueInteger = null;
+        } else if (value instanceof Integer) {
+            valueInteger = (Integer) value;
+        } else if (value instanceof Long) {
+            valueInteger = Integer.valueOf(value.toString());
+        } else {
+            valueInteger = Integer.valueOf(value.toString());
+        }
+        return valueInteger;
     }
 
 }

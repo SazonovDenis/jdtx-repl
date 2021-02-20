@@ -29,7 +29,7 @@ public class JdxStateManagerSrv {
     public void setWsQueInAgeDone(long wsId, long queInAgeDone) throws Exception {
         loadRecStateWs(wsId);
         //
-        String sqlUpd = "update " + JdxUtils.sys_table_prefix + "state_ws set que_in_age_done = " + queInAgeDone + " where ws_id = " + wsId;
+        String sqlUpd = "update " + JdxUtils.SYS_TABLE_PREFIX + "state_ws set que_in_age_done = " + queInAgeDone + " where ws_id = " + wsId;
         db.execSql(sqlUpd);
     }
 
@@ -47,7 +47,7 @@ public class JdxStateManagerSrv {
     public void setDispatchDoneQueCommon(long wsId, long queCommonNoDone) throws Exception {
         loadRecStateWs(wsId);
         //
-        String sqlUpd = "update " + JdxUtils.sys_table_prefix + "state_ws set que_common_dispatch_done = " + queCommonNoDone + " where ws_id = " + wsId;
+        String sqlUpd = "update " + JdxUtils.SYS_TABLE_PREFIX + "state_ws set que_common_dispatch_done = " + queCommonNoDone + " where ws_id = " + wsId;
         db.execSql(sqlUpd);
     }
 
@@ -85,7 +85,7 @@ public class JdxStateManagerSrv {
     public void setMailSendDone(long wsId, String queName, long queNoDone) throws Exception {
         loadRecStateWs(wsId);
         //
-        String sqlUpd = "update " + JdxUtils.sys_table_prefix + "state_ws set que_" + queName + "_send_done = " + queNoDone + " where ws_id = " + wsId;
+        String sqlUpd = "update " + JdxUtils.SYS_TABLE_PREFIX + "state_ws set que_" + queName + "_send_done = " + queNoDone + " where ws_id = " + wsId;
         db.execSql(sqlUpd);
     }
 
@@ -103,7 +103,7 @@ public class JdxStateManagerSrv {
     public void setSnapshotAge(long wsId, long snapshotAge) throws Exception {
         loadRecStateWs(wsId);
         //
-        String sqlUpd = "update " + JdxUtils.sys_table_prefix + "state_ws set snapshot_age = " + snapshotAge + " where ws_id = " + wsId;
+        String sqlUpd = "update " + JdxUtils.SYS_TABLE_PREFIX + "state_ws set snapshot_age = " + snapshotAge + " where ws_id = " + wsId;
         db.execSql(sqlUpd);
     }
 
@@ -112,10 +112,10 @@ public class JdxStateManagerSrv {
      *
      */
     private DataRecord loadRecStateWs(long wsId) throws Exception {
-        String sql = "select * from " + JdxUtils.sys_table_prefix + "state_ws where ws_id = " + wsId;
+        String sql = "select * from " + JdxUtils.SYS_TABLE_PREFIX + "state_ws where ws_id = " + wsId;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("ws_id") == 0) {
-            throw new XError("Не найдена запись для ws_id [" + wsId + "] в " + JdxUtils.sys_table_prefix + "state_ws");
+            throw new XError("Не найдена запись для ws_id [" + wsId + "] в " + JdxUtils.SYS_TABLE_PREFIX + "state_ws");
         }
         return rec;
     }

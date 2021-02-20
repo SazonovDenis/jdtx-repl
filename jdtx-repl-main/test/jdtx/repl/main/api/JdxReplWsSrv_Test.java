@@ -186,7 +186,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         */
 
         // ---
-        UtData.outTable(db.loadSql("select id, name, guid from " + JdxUtils.sys_table_prefix + "workstation_list"));
+        UtData.outTable(db.loadSql("select id, name, guid from " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list"));
     }
 
     /**
@@ -269,8 +269,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         srv.disableWorkstation(3);
         srv.enableWorkstation(4);
         //
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "state"));
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list"));
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "state"));
 
         // Активируем рабочие станции
         srv.enableWorkstation(1);
@@ -278,14 +278,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         srv.enableWorkstation(3);
         srv.enableWorkstation(4);
         //
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "state"));
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list"));
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "state"));
 
         //
         srv.disableWorkstation(4);
         //
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "workstation_list"));
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.sys_table_prefix + "state"));
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list"));
+        UtData.outTable(db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "state"));
     }
 
     @Test

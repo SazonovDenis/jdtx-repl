@@ -152,11 +152,11 @@ public class UtRepl {
         replica.getInfo().setReplicaType(JdxReplicaType.IDE);
 
         // Стартуем формирование файла реплики
-        UtReplicaWriter replicaWriter = new UtReplicaWriter();
-        replicaWriter.replicaFileStart(replica);
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
 
         // Начинаем писать файл с данными
-        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument(replica);
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
 
         // Забираем аудит по порядку сортировки таблиц в struct
         for (IJdxTable structTable : struct.getTables()) {
@@ -205,11 +205,11 @@ public class UtRepl {
         replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
 
         // Стартуем формирование файла реплики
-        UtReplicaWriter replicaWriter = new UtReplicaWriter();
-        replicaWriter.replicaFileStart(replica);
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
 
         // Начинаем писать файл с данными
-        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument(replica);
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
         UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, forbidNotOwnId);
@@ -230,11 +230,11 @@ public class UtRepl {
         replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
 
         // Стартуем формирование файла реплики
-        UtReplicaWriter replicaWriter = new UtReplicaWriter();
-        replicaWriter.replicaFileStart(replica);
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
 
         // Начинаем писать файл с данными
-        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument(replica);
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
         UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, false);
@@ -253,8 +253,8 @@ public class UtRepl {
         replica.getInfo().setReplicaType(JdxReplicaType.SET_DB_STRUCT);
 
         // Стартуем формирование файла реплики
-        UtReplicaWriter replicaWriter = new UtReplicaWriter();
-        replicaWriter.replicaFileStart(replica);
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
 
         // Открываем запись файла с описанием текущей структуры БД
         OutputStream zipOutputStream = replicaWriter.newFileOpen("dat.xml");
@@ -275,8 +275,8 @@ public class UtRepl {
         replica.getInfo().setReplicaType(JdxReplicaType.MUTE);
 
         // Стартуем формирование файла реплики
-        UtReplicaWriter replicaWriter = new UtReplicaWriter();
-        replicaWriter.replicaFileStart(replica);
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
 
         // Открываем запись файла с информацией о получателе
         OutputStream zipOutputStream = replicaWriter.newFileOpen("info.json");
@@ -300,8 +300,8 @@ public class UtRepl {
         replica.getInfo().setReplicaType(JdxReplicaType.UNMUTE);
 
         // Стартуем формирование файла реплики
-        UtReplicaWriter replicaWriter = new UtReplicaWriter();
-        replicaWriter.replicaFileStart(replica);
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
 
         // Открываем запись файла с информацией о получателе
         OutputStream zipOutputStream = replicaWriter.newFileOpen("info.json");
@@ -325,8 +325,8 @@ public class UtRepl {
         replica.getInfo().setReplicaType(JdxReplicaType.SET_QUE_IN_NO);
 
         // Стартуем формирование файла реплики
-        UtReplicaWriter replicaWriter = new UtReplicaWriter();
-        replicaWriter.replicaFileStart(replica);
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
 
         // Открываем запись файла с информацией о получателе
         OutputStream zipOutputStream = replicaWriter.newFileOpen("info.json");
@@ -355,8 +355,8 @@ public class UtRepl {
 
 
         // Стартуем формирование файла реплики
-        UtReplicaWriter replicaWriter = new UtReplicaWriter();
-        replicaWriter.replicaFileStart(replica);
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
 
         // Открываем запись файла с версией
         OutputStream zipOutputStream = replicaWriter.newFileOpen("version");
@@ -388,8 +388,8 @@ public class UtRepl {
 
 
         // Стартуем формирование файла реплики
-        UtReplicaWriter replicaWriter = new UtReplicaWriter();
-        replicaWriter.replicaFileStart(replica);
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
 
         // Открываем запись файла с информацией о конфиге
         OutputStream zipOutputStream = replicaWriter.newFileOpen("cfg.info.json");
@@ -456,11 +456,11 @@ public class UtRepl {
         replicaOut.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
 
         // Стартуем формирование файла реплики
-        UtReplicaWriter replicaWriter = new UtReplicaWriter();
-        replicaWriter.replicaFileStart(replicaOut);
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replicaOut);
+        replicaWriter.replicaFileStart();
 
         // Начинаем писать файл с данными
-        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument(replicaOut);
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
 
         //
         xmlWriter.startTable(findTableName);
@@ -541,7 +541,7 @@ public class UtRepl {
 
                                 //
                                 boolean doSkipRec = false;
-                                int oprType = Integer.valueOf((String) recValues.get("Z_OPR"));
+                                int oprType = JdxUtils.intValueOf(recValues.get(JdxUtils.XML_FIELD_OPR_TYPE));
                                 if (oprType == JdxOprType.OPR_DEL && skipOprDel) {
                                     doSkipRec = true;
                                     log.info("  record OPR_DEL, skipped");
@@ -701,13 +701,31 @@ public class UtRepl {
         return structCommonSorted;
     }
 
-    static void fillPublications(JSONObject cfgDbPublications, IJdxDbStruct structActual, IPublicationStorage publicationIn, IPublicationStorage publicationOut) throws Exception {
-        if (cfgDbPublications != null) {
-            String cfgPublicationIn = (String) cfgDbPublications.get("in");
-            String cfgPublicationOut = (String) cfgDbPublications.get("out");
+    /**
+     * Из json-объекта cfgPublications создает правила публикации по имени publicationName (обычно "in" или "out")
+     */
+    static IPublicationStorage extractPublicationRules(JSONObject cfgPublications, IJdxDbStruct structActual, String publicationName) throws Exception {
+        IPublicationStorage publicationRules = new PublicationStorage();
+        //
+        if (cfgPublications != null) {
+            String publicationRuleName = (String) cfgPublications.get(publicationName);
+            JSONObject cfgPublicationRule = (JSONObject) cfgPublications.get(publicationRuleName);
+            publicationRules.loadRules(cfgPublicationRule, structActual);
+        }
+        //
+        return publicationRules;
+    }
 
-            JSONObject cfgDbPublicationIn = (JSONObject) cfgDbPublications.get(cfgPublicationIn);
-            JSONObject cfgDbPublicationOut = (JSONObject) cfgDbPublications.get(cfgPublicationOut);
+    /**
+     * Заполняет правила публикации publicationIn и publicationOut с учетом наличия таблиц в структуре structActual
+     */
+    static void fillPublications____(JSONObject cfgDbPublications, IJdxDbStruct structActual, IPublicationStorage publicationIn, IPublicationStorage publicationOut) throws Exception {
+        if (cfgDbPublications != null) {
+            String publicationInName = (String) cfgDbPublications.get("in");
+            String publicationOutName = (String) cfgDbPublications.get("out");
+
+            JSONObject cfgDbPublicationIn = (JSONObject) cfgDbPublications.get(publicationInName);
+            JSONObject cfgDbPublicationOut = (JSONObject) cfgDbPublications.get(publicationOutName);
 
             // Правила публикаций: publicationIn
             publicationIn.loadRules(cfgDbPublicationIn, structActual);

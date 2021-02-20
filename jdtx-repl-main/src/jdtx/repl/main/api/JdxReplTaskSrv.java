@@ -59,7 +59,7 @@ public class JdxReplTaskSrv extends JdxReplTaskCustom {
 
 
         //
-        IMailer mailer = srv.getMailer();
+        IMailer mailer = srv.getSelfMailer();
         logInfo("Отправка ошибок");
         sendErrors(mailer, "srv.errors");
 

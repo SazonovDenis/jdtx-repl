@@ -33,7 +33,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
         ResultSet rs = metaData.getTables(null, null, "%", types);
         try {
             while (rs.next()) {
-                if (skipReplObj && rs.getString("TABLE_NAME").toLowerCase().startsWith(JdxUtils.audit_table_prefix.toLowerCase())) {
+                if (skipReplObj && rs.getString("TABLE_NAME").toLowerCase().startsWith(JdxUtils.AUDIT_TABLE_PREFIX.toLowerCase())) {
                     continue;
                 }
 
