@@ -54,7 +54,7 @@ public class UtAuditSelector {
                     dataWriter.appendRec();
 
                     // Тип операции
-                    int oprType = (int) dataTableAudit.getValue(JdxUtils.prefix + "opr_type");
+                    int oprType = (int) dataTableAudit.getValue(JdxUtils.field_opr_type);
                     dataWriter.setOprType(oprType);
 
                     // Тело записи (с перекодировкой ссылок)
@@ -82,6 +82,7 @@ public class UtAuditSelector {
         }
     }
 
+    // todo: все-таки задействовать когда нибудь, когда все устаканится. Дергать по команде с сервера, когда все реплики получены и обработаны
     public void __clearAuditData(long ageFrom, long ageTo) throws Exception {
         String query;
         db.startTran();
@@ -165,6 +166,9 @@ public class UtAuditSelector {
     /**
      * Извлекает мин и макс z_id аудита для каждой таблицы,
      * а также общий период возникновения изменений в таблице.
+     * Используем publicationStorage чтобы
+     * - сэкономить на запросах - не делать запросов к таблицам, которые не в publicationStorage,
+     * - а также чтобы избежать ошибок, делая запросы к таблицам, для которых не создан аудит (но которые есть в структуре).
      */
     public Map loadAutitIntervals(IPublicationStorage publicationStorage, long age) throws Exception {
         Map auditInfo = new HashMap<>();

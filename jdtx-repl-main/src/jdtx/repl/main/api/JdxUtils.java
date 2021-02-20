@@ -24,6 +24,8 @@ public class JdxUtils {
 
     public static final String trig_pref = prefix + "T_";
 
+    public static final String field_opr_type = prefix + "opr_type";
+
 
     /**
      * Сортирует список таблиц с учетом foreign key и по алфавиту.
