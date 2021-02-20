@@ -1096,9 +1096,12 @@ public class JdxReplWs {
         replica.getInfo().setWsId(wsId);
         replica.getInfo().setAge(age);
 
-        //
-        utRepl.createOutputXML(replica);
-        utRepl.closeOutputXML();
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter();
+        replicaWriter.replicaFileStart(replica);
+        // Заканчиваем формирование файла реплики.
+        // Заканчиваем cразу-же, т.к. для реплики этого типа не нужно содержимое
+        replicaWriter.replicaFileClose();
 
         //
         db.startTran();
@@ -1191,7 +1194,7 @@ public class JdxReplWs {
 
             // Информация о реплике с почтового сервера
             ReplicaInfo info = mailer.getReplicaInfo(boxName, no);
-                         
+
             // Нужно ли скачивать эту реплику с сервера?
             IReplica replica;
             if (info.getWsId() == wsId && info.getReplicaType() == JdxReplicaType.SNAPSHOT) {

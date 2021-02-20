@@ -4,7 +4,6 @@ import jandcode.utils.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
-import jdtx.repl.main.api.struct.*;
 import org.json.simple.*;
 import org.junit.*;
 
@@ -12,6 +11,7 @@ import java.io.*;
 import java.util.*;
 
 /**
+ *
  */
 public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
 
@@ -85,19 +85,22 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
 
         // Готовим writer
         OutputStream ost = new FileOutputStream("../_test-data/~tmp_csv.xml");
-        JdxReplicaWriterXml wr = new JdxReplicaWriterXml(ost);
-        wr.startDocument();
+        JdxReplicaWriterXml writerXml = new JdxReplicaWriterXml(ost);
+        //
+        writerXml.startDocument();
 
         // Забираем реплики
         UtAuditSelector utrr = new UtAuditSelector(db2, struct2, wsId);
         //
-        utrr.readAuditData_ByInterval("lic", "id,nameF,nameI,nameO", 0, 10000, wr);
-        utrr.readAuditData_ByInterval("usr", "id,name,userName", 0, 10000, wr);
-        utrr.readAuditData_ByInterval("region", "id,parent,name", 0, 10000, wr);
-        utrr.readAuditData_ByInterval("ulz", "id,region,name", 0, 10000, wr);
+        utrr.readAuditData_ByInterval("lic", "id,nameF,nameI,nameO", 0, 10000, writerXml);
+        utrr.readAuditData_ByInterval("usr", "id,name,userName", 0, 10000, writerXml);
+        utrr.readAuditData_ByInterval("region", "id,parent,name", 0, 10000, writerXml);
+        utrr.readAuditData_ByInterval("ulz", "id,region,name", 0, 10000, writerXml);
 
         // Закрываем writer
-        wr.closeDocument();
+        writerXml.closeDocument();
+        //
+        writerXml.close();
     }
 
     @Test
@@ -111,7 +114,8 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
 
         // Фиксируем возраст
         long selfAuditAge;
-        selfAuditAge = utRepl.getAuditAge();
+        UtAuditAgeManager ut = new UtAuditAgeManager(db2, struct2);
+        selfAuditAge = ut.getAuditAge();
         System.out.println("curr audit age: " + selfAuditAge);
 
         // Загружаем правила публикации
@@ -126,7 +130,7 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
         System.out.println(replica.getFile().getAbsolutePath());
 
         // Фиксируем возраст
-        selfAuditAge = utRepl.getAuditAge();
+        selfAuditAge = ut.getAuditAge();
         System.out.println("new audit age: " + selfAuditAge);
     }
 

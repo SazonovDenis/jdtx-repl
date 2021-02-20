@@ -15,6 +15,7 @@ public class JdxReplicaWriterXml {
     XMLStreamWriter writer;
 
     // Статусы писателя
+    boolean currentElement_root = false;
     boolean currentElement_replica = false;
     boolean currentElement_table = false;
     boolean currentElement_rec = false;
@@ -28,25 +29,38 @@ public class JdxReplicaWriterXml {
     public void startDocument() throws XMLStreamException {
         writer.writeStartDocument();
         writer.writeStartElement("root");
+        currentElement_root = true;
     }
 
     public void closeDocument() throws Exception {
+        // Закрываем каждый уровень
         // <replica>
         if (currentElement_replica) {
             writer.writeEndElement();
+            //
+            currentElement_replica = false;
         }
         // <rec>
         if (currentElement_rec) {
             writer.writeEndElement();
+            //
+            currentElement_rec = false;
         }
         // <table>
         if (currentElement_table) {
             writer.writeEndElement();
+            //
+            currentElement_table = false;
         }
-        // <root>
-        writer.writeEndElement();
-        //
-        writer.writeEndDocument();
+        // Закрываем документ
+        if (currentElement_root) {
+            // <root>
+            writer.writeEndElement();
+            //
+            writer.writeEndDocument();
+            //
+            currentElement_root = false;
+        }
     }
 
     public void appendRec() throws XMLStreamException {
@@ -126,7 +140,7 @@ public class JdxReplicaWriterXml {
         }
     }
 
-    public void writeReplicaHeader(IReplica replica) throws XMLStreamException {
+    void writeReplicaHeader(IReplica replica) throws XMLStreamException {
         // <table>
         if (currentElement_table) {
             throw new XMLStreamException("Already started currentElement_table");

@@ -12,7 +12,6 @@ import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ut.*;
-import org.apache.commons.io.*;
 import org.apache.commons.logging.*;
 import org.apache.log4j.*;
 import org.json.simple.*;
@@ -377,7 +376,7 @@ public class JdxReplSrv {
      * Преобразовываем реплику replica по фильтрам для рабочей станции wsId
      * todo это тупо - вот так копировать и перекладывать файлы из папки в папку???
      */
-    private IReplica prepareReplicaForWs(IReplica replica, long wsId) throws IOException {
+    private IReplica prepareReplicaForWs(IReplica replica, long wsIdDestination) throws Exception {
         File replicaFile = replica.getFile();
 
         // Файл должен быть - иначе незачем делать put
@@ -387,15 +386,104 @@ public class JdxReplSrv {
 
         // Пока - по тупому, БЕЗ фильтров
         ReplicaFile replicaRes = new ReplicaFile();
+
         //
         replicaRes.getInfo().assign(replica.getInfo());
+
+
         //
-        File actualFile = new File(dataRoot + "temp/" + MailerHttp.getFileName(replica.getInfo().getAge()));
-        FileUtils.copyFile(replicaFile, actualFile);
-        replicaRes.setFile(actualFile);
+        InputStream inputStream = null;
+        try {
+            // Распакуем XML-файл из Zip-архива
+            inputStream = UtRepl.getReplicaInputStream(replica);
+
+            JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
+
+            // Стартуем формирование файла реплики
+            UtReplicaWriter replicaWriter = new UtReplicaWriter();
+            replicaWriter.replicaFileStart(replica);
+
+            // Начинаем писать файл с данными
+            JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument(replica);
+
+            // Правила публикаций - todo: ГДЕ БЕРЕМ ДЛЯ WsDest?????
+            IPublicationStorage publicationOut = new PublicationStorage();
+
+            //
+            copyDataWithFilter(publicationOut, replicaReader, xmlWriter);
+
+            // Заканчиваем формирование файла реплики
+            replicaWriter.replicaFileClose();
+
+        } finally {
+            // Закроем читателя Zip-файла
+            if (inputStream != null) {
+                inputStream.close();
+            }
+        }
+
+        //File actualFile = new File(dataRoot + "temp/" + MailerHttp.getFileName(replica.getInfo().getAge()));
+        //FileUtils.copyFile(replicaFile, actualFile);
+        //replicaRes.setFile(actualFile);
 
         //
         return replicaRes;
+    }
+
+    // ^с отдельный тест на copyDataWithFilter
+    private void copyDataWithFilter(IPublicationStorage publicationOut, JdxReplicaReaderXml dataReader, JdxReplicaWriterXml dataWriter) throws Exception {
+        String tableName = dataReader.nextTable();
+
+        // Перебираем таблицы
+        while (tableName != null) {
+
+            IPublicationRule publicationTable = publicationOut.getPublicationRule(tableName);
+
+            //
+            dataWriter.startTable(tableName);
+
+            // Перебираем записи
+            long count = 0;
+            Map recValues = dataReader.nextRec();
+            while (recValues != null) {
+                if (useRecord(recValues, publicationTable)) {
+
+                    dataWriter.appendRec();
+
+                    // Тип операции
+                    int oprType = (int) recValues.get(JdxUtils.field_opr_type);
+                    dataWriter.setOprType(oprType);
+
+                    // Поля
+                    for (IJdxField publicationField : publicationTable.getFields()) {
+                        String publicationFieldName = publicationField.getName();
+                        dataWriter.setRecValue(publicationFieldName, recValues.get(publicationFieldName));
+                    }
+                }
+
+                //
+                recValues = dataReader.nextRec();
+
+                //
+                count++;
+                if (count % 200 == 0) {
+                    log.info("  table: " + tableName + ", " + count);
+                }
+            }
+
+            //
+            log.info("  done: " + tableName + ", total: " + count);
+
+            //
+            dataWriter.flush();
+
+            //
+            tableName = dataReader.nextTable();
+        }
+    }
+
+    private boolean useRecord(Map recValues, IPublicationRule publicationTable) {
+        return true;
     }
 
     /**

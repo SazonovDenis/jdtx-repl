@@ -24,7 +24,7 @@ import java.util.*;
 import java.util.zip.*;
 
 /**
- * Утилитный класс репликатора.
+ * Утилитный класс.
  * todo: Куча всего в одном месте. Зачем он вообще нужен в таком виде - неясно.
  * todo: А еще - есть контекст outputStream - ваще УЖОССС!!!
  */
@@ -33,14 +33,10 @@ public class UtRepl {
     private Db db;
     private IJdxDbStruct struct;
 
-    protected static Log log = LogFactory.getLog("jdtx.Ut");
+    //
+    protected static Log log = LogFactory.getLog("jdtx.UtRepl");
 
     //
-    private OutputStream outputStream = null;
-    private ZipOutputStream zipOutputStream = null;
-    private JdxReplicaWriterXml writerXml = null;
-
-
     public UtRepl(Db db, IJdxDbStruct struct) {
         this.db = db;
         this.struct = struct;
@@ -107,6 +103,8 @@ public class UtRepl {
         decodeManager.dropRefDecodeObject();
     }
 
+    // todo: в принципе - не нужен, юзается только в jdtx.repl.main.ext.Jdx_Ext.repl_info, уберем при рефакторинге мониторинга
+    @Deprecated
     public DataStore getInfoSrv() throws Exception {
         DataStore st = db.loadSql(UtReplSql.sql_srv);
         return st;
@@ -132,64 +130,6 @@ public class UtRepl {
 
 
     /**
-     * Узнать возраст рабочей станции
-     */
-    public long getAuditAge() throws Exception {
-        UtAuditAgeManager ut = new UtAuditAgeManager(db, struct);
-        return ut.getAuditAge();
-    }
-
-    // Добавляет файл внутри формируемого Zip-архива
-    void addFileToOutput(String fileName) throws Exception {
-        ZipEntry zipEntry = new ZipEntry(fileName);
-        zipOutputStream.putNextEntry(zipEntry);
-    }
-
-    void createOutputZipFile(IReplica replica) throws Exception {
-        // Файл
-        String fileNameTemplate = UtString.padLeft(String.valueOf(replica.getInfo().getWsId()), 3, '0') + "-" + UtString.padLeft(String.valueOf(replica.getInfo().getAge()), 9, '0');
-        File outFile = File.createTempFile("~jdx-" + fileNameTemplate + "-", ".zip");
-        outputStream = new FileOutputStream(outFile);
-        //
-        replica.setFile(outFile);
-
-        // Формируем Zip-архив
-        zipOutputStream = new ZipOutputStream(outputStream);
-
-        // Файл "dat.info" внутри Zip-архива (заголовок с информацией о реплике, сериализация IReplicaInfo)
-        ZipEntry zipEntryHead = new ZipEntry("dat.info");
-        zipOutputStream.putNextEntry(zipEntryHead);
-        String json = replica.getInfo().toString();
-        zipOutputStream.write(json.getBytes("utf-8"));
-        zipOutputStream.closeEntry();
-    }
-
-    void createOutputXML(IReplica replica) throws Exception {
-        createOutputZipFile(replica);
-
-        // Файл "dat.xml" (данные) внутри Zip-архива
-        addFileToOutput("dat.xml");
-
-        // Писатель для XML-файла
-        writerXml = new JdxReplicaWriterXml(zipOutputStream);
-    }
-
-    void closeOutputXML() throws Exception {
-        // Заканчиваем запись в XML-файл
-        if (writerXml != null) {
-            writerXml.close();
-        }
-
-        // Заканчиваем запись в в zip-архив
-        zipOutputStream.closeEntry();
-        zipOutputStream.finish();
-        zipOutputStream.close();
-
-        // Закрываем файл
-        outputStream.close();
-    }
-
-    /**
      * Собрать аудит и подготовить реплику по правилам публикации publicationStorage
      * от для возраста age.
      */
@@ -211,15 +151,12 @@ public class UtRepl {
         replica.getInfo().setDtTo((DateTime) auditInfo.get("z_opr_dttm_to"));
         replica.getInfo().setReplicaType(JdxReplicaType.IDE);
 
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter();
+        replicaWriter.replicaFileStart(replica);
 
-        // Стартуем запись реплики
-        createOutputXML(replica);
-
-
-        // Пишем заголовок
-        writerXml.startDocument();
-        writerXml.writeReplicaHeader(replica);
-
+        // Начинаем писать файл с данными
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument(replica);
 
         // Забираем аудит по порядку сортировки таблиц в struct
         for (IJdxTable structTable : struct.getTables()) {
@@ -242,14 +179,12 @@ public class UtRepl {
 
                 //
                 String publicationFields = PublicationStorage.filedsToString(publicationRule.getFields());
-                utrr.readAuditData_ByInterval(publicationTableName, publicationFields, fromId, toId, writerXml);
+                utrr.readAuditData_ByInterval(publicationTableName, publicationFields, fromId, toId, xmlWriter);
             }
         }
 
-        //
-        writerXml.closeDocument();
-        closeOutputXML();
-
+        // Заканчиваем формирование файла реплики
+        replicaWriter.replicaFileClose();
 
         //
         return replica;
@@ -269,23 +204,19 @@ public class UtRepl {
         replica.getInfo().setAge(age);
         replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
 
-        // Открываем запись
-        createOutputXML(replica);
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter();
+        replicaWriter.replicaFileStart(replica);
 
-
-        // Пишем
-        writerXml.startDocument();
-        writerXml.writeReplicaHeader(replica);
+        // Начинаем писать файл с данными
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument(replica);
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
         UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, forbidNotOwnId);
-        dataSelector.readAllRecords(publicationRule, writerXml);
+        dataSelector.readAllRecords(publicationRule, xmlWriter);
 
-
-        // Заканчиваем запись
-        writerXml.closeDocument();
-        closeOutputXML();
-
+        // Заканчиваем формирование файла реплики
+        replicaWriter.replicaFileClose();
 
         //
         return replica;
@@ -298,24 +229,20 @@ public class UtRepl {
         replica.getInfo().setAge(age);
         replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
 
-        // Открываем запись
-        createOutputXML(replica);
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter();
+        replicaWriter.replicaFileStart(replica);
 
-
-        // Пишем
-        writerXml.startDocument();
-        writerXml.writeReplicaHeader(replica);
+        // Начинаем писать файл с данными
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument(replica);
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
         UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, false);
         String publicationFields = PublicationStorage.filedsToString(publicationTable.getFields());
-        dataSelector.readRecordsByIdList(publicationTable.getName(), idList, publicationFields, writerXml);
+        dataSelector.readRecordsByIdList(publicationTable.getName(), idList, publicationFields, xmlWriter);
 
-
-        // Заканчиваем запись
-        writerXml.closeDocument();
-        closeOutputXML();
-
+        // Заканчиваем формирование файла реплики
+        replicaWriter.replicaFileClose();
 
         //
         return replica;
@@ -325,15 +252,19 @@ public class UtRepl {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SET_DB_STRUCT);
 
-        // Открываем запись
-        createOutputXML(replica);
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter();
+        replicaWriter.replicaFileStart(replica);
 
-        // Файл с описанием текущей структуры БД
+        // Открываем запись файла с описанием текущей структуры БД
+        OutputStream zipOutputStream = replicaWriter.newFileOpen("dat.xml");
+
+        // Пишем файл с описанием структуры
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
         zipOutputStream.write(struct_rw.getBytes(struct));
 
-        // Заканчиваем запись
-        closeOutputXML();
+        // Заканчиваем формирование файла реплики
+        replicaWriter.replicaFileClose();
 
         //
         return replica;
@@ -343,22 +274,22 @@ public class UtRepl {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.MUTE);
 
-        // Начинаем запись
-        // В этой реплике - информация о получателе
-        createOutputZipFile(replica);
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter();
+        replicaWriter.replicaFileStart(replica);
+
+        // Открываем запись файла с информацией о получателе
+        OutputStream zipOutputStream = replicaWriter.newFileOpen("info.json");
 
         // Информация о получателе
         JSONObject cfgInfo = new JSONObject();
         cfgInfo.put("destinationWsId", destinationWsId);
-
-        // Открываем запись файла с информацией о получателе
-        addFileToOutput("info.json");
         String version = UtJson.toString(cfgInfo);
         StringInputStream versionStream = new StringInputStream(version);
         UtFile.copyStream(versionStream, zipOutputStream);
 
-        // Заканчиваем запись
-        closeOutputXML();
+        // Заканчиваем формирование файла реплики
+        replicaWriter.replicaFileClose();
 
         //
         return replica;
@@ -368,22 +299,22 @@ public class UtRepl {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.UNMUTE);
 
-        // Начинаем запись
-        // В этой реплике - информация о получателе
-        createOutputZipFile(replica);
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter();
+        replicaWriter.replicaFileStart(replica);
+
+        // Открываем запись файла с информацией о получателе
+        OutputStream zipOutputStream = replicaWriter.newFileOpen("info.json");
 
         // Информация о получателе
         JSONObject cfgInfo = new JSONObject();
         cfgInfo.put("destinationWsId", destinationWsId);
-
-        // Открываем запись файла с информацией о получателе
-        addFileToOutput("info.json");
         String version = UtJson.toString(cfgInfo);
         StringInputStream versionStream = new StringInputStream(version);
         UtFile.copyStream(versionStream, zipOutputStream);
 
-        // Заканчиваем запись
-        closeOutputXML();
+        // Заканчиваем формирование файла реплики
+        replicaWriter.replicaFileClose();
 
         //
         return replica;
@@ -393,23 +324,23 @@ public class UtRepl {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SET_QUE_IN_NO);
 
-        // Начинаем запись
-        // В этой реплике - информация о получателе
-        createOutputZipFile(replica);
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter();
+        replicaWriter.replicaFileStart(replica);
+
+        // Открываем запись файла с информацией о получателе
+        OutputStream zipOutputStream = replicaWriter.newFileOpen("info.json");
 
         // Информация о получателе
         JSONObject cfgInfo = new JSONObject();
         cfgInfo.put("destinationWsId", destinationWsId);
         cfgInfo.put("queInNo", queInNo);
-
-        // Открываем запись файла с информацией о получателе
-        addFileToOutput("info.json");
         String version = UtJson.toString(cfgInfo);
         StringInputStream versionStream = new StringInputStream(version);
         UtFile.copyStream(versionStream, zipOutputStream);
 
-        // Заканчиваем запись
-        closeOutputXML();
+        // Заканчиваем формирование файла реплики
+        replicaWriter.replicaFileClose();
 
         //
         return replica;
@@ -423,28 +354,29 @@ public class UtRepl {
         File exeFile = new File(exeFileName);
 
 
-        // Начинаем запись
-        // В этой реплике - версия приложения и бинарник для обновления (для запуска)
-        createOutputZipFile(replica);
-
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter();
+        replicaWriter.replicaFileStart(replica);
 
         // Открываем запись файла с версией
-        addFileToOutput("version");
+        OutputStream zipOutputStream = replicaWriter.newFileOpen("version");
+
+        //
         String version = parseExeVersion(exeFile.getName());
         StringInputStream versionStream = new StringInputStream(version);
         UtFile.copyStream(versionStream, zipOutputStream);
 
 
         // Открываем запись файла - бинарника для обновления
-        addFileToOutput(exeFile.getName());
+        zipOutputStream = replicaWriter.newFileOpen(exeFile.getName());
 
         // Пишем содержимое exe
         InputStream exeFileStream = new FileInputStream(exeFile);
         UtFile.copyStream(exeFileStream, zipOutputStream);
 
 
-        // Заканчиваем запись
-        closeOutputXML();
+        // Заканчиваем формирование файла реплики
+        replicaWriter.replicaFileClose();
 
         //
         return replica;
@@ -455,25 +387,24 @@ public class UtRepl {
         replica.getInfo().setReplicaType(JdxReplicaType.SET_CFG);
 
 
-        // Начинаем запись
-        // В этой реплике - информация о конфиге и сам конфиг
-        createOutputZipFile(replica);
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter();
+        replicaWriter.replicaFileStart(replica);
 
+        // Открываем запись файла с информацией о конфиге
+        OutputStream zipOutputStream = replicaWriter.newFileOpen("cfg.info.json");
 
         // Информация о конфиге
         JSONObject cfgInfo = new JSONObject();
         cfgInfo.put("destinationWsId", destinationWsId);
         cfgInfo.put("cfgType", cfgType);
-
-        // Открываем запись файла с информацией о конфиге
-        addFileToOutput("cfg.info.json");
         String version = UtJson.toString(cfgInfo);
         StringInputStream versionStream = new StringInputStream(version);
         UtFile.copyStream(versionStream, zipOutputStream);
 
 
         // Открываем запись файла - сам конфиг
-        addFileToOutput("cfg.json");
+        zipOutputStream = replicaWriter.newFileOpen("cfg.json");
 
         // Пишем содержимое конфига
         String cfgStr = UtJson.toString(cfg);
@@ -481,8 +412,8 @@ public class UtRepl {
         UtFile.copyStream(cfgStrStream, zipOutputStream);
 
 
-        // Заканчиваем запись
-        closeOutputXML();
+        // Заканчиваем формирование файла реплики
+        replicaWriter.replicaFileClose();
 
         //
         return replica;
@@ -524,15 +455,15 @@ public class UtRepl {
         IReplica replicaOut = new ReplicaFile();
         replicaOut.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
 
-        // Стартуем запись реплики
-        createOutputXML(replicaOut);
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter();
+        replicaWriter.replicaFileStart(replicaOut);
 
-        // Пишем заголовок
-        writerXml.startDocument();
-        writerXml.writeReplicaHeader(replicaOut);
+        // Начинаем писать файл с данными
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument(replicaOut);
+
         //
-        writerXml.startTable(findTableName);
-
+        xmlWriter.startTable(findTableName);
 
         //
         int countFile = 0;
@@ -625,10 +556,10 @@ public class UtRepl {
                                     replicaData.add(recValues);
 
                                     // Сохраняем запись
-                                    writerXml.appendRec();
+                                    xmlWriter.appendRec();
 
                                     //
-                                    writerXml.setOprType(oprType);
+                                    xmlWriter.setOprType(oprType);
 
                                     // Запись значения с проверкой/перекодировкой ссылок
                                     for (IJdxField field : table.getFields()) {
@@ -643,10 +574,10 @@ public class UtRepl {
                                             if (fieldValueRef.ws_id == -1 && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
                                                 fieldValueRef.ws_id = replica.getInfo().getWsId();
                                             }
-                                            writerXml.setRecValue(fieldName, fieldValueRef.toString());
+                                            xmlWriter.setRecValue(fieldName, fieldValueRef.toString());
                                         } else {
                                             // Это просто значение
-                                            writerXml.setRecValue(fieldName, fieldValue);
+                                            xmlWriter.setRecValue(fieldName, fieldValue);
                                         }
                                     }
                                 }
@@ -688,9 +619,8 @@ public class UtRepl {
         }
 
 
-        //
-        writerXml.closeDocument();
-        closeOutputXML();
+        // Заканчиваем формирование файла реплики
+        replicaWriter.replicaFileClose();
 
 
         // Данные по реплике - в файл
