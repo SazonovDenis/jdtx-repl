@@ -154,7 +154,10 @@ public class UtAuditApplyer {
                         // Поле - дата/время?
                         if (getDataType(field.getDbDatatype()) == DataType.DATETIME) {
                             String valueStr = (String) recValues.get(publicationFieldName);
-                            DateTime value = new DateTime(valueStr);
+                            DateTime value = null;
+                            if (valueStr != null && valueStr.length() != 0) {
+                                value = new DateTime(valueStr);
+                            }
                             recParams.put(publicationFieldName, value);
                             continue;
                         }
