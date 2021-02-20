@@ -144,12 +144,12 @@ public class UtRepl {
 
         //
         IReplica replica = new ReplicaFile();
+        replica.getInfo().setReplicaType(JdxReplicaType.IDE);
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
         replica.getInfo().setWsId(wsId);
         replica.getInfo().setAge(age);
         replica.getInfo().setDtFrom((DateTime) auditInfo.get("z_opr_dttm_from"));
         replica.getInfo().setDtTo((DateTime) auditInfo.get("z_opr_dttm_to"));
-        replica.getInfo().setReplicaType(JdxReplicaType.IDE);
 
         // Стартуем формирование файла реплики
         UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
@@ -199,10 +199,10 @@ public class UtRepl {
      */
     public IReplica createReplicaTableSnapshot(long wsId, IPublicationRule publicationRule, long age, boolean forbidNotOwnId) throws Exception {
         IReplica replica = new ReplicaFile();
+        replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
         replica.getInfo().setWsId(wsId);
         replica.getInfo().setAge(age);
-        replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
 
         // Стартуем формирование файла реплики
         UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
@@ -224,10 +224,10 @@ public class UtRepl {
 
     public IReplica createReplicaTableByIdList(long wsId, IJdxTable publicationTable, long age, Collection<Long> idList) throws Exception {
         IReplica replica = new ReplicaFile();
+        replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
         replica.getInfo().setWsId(wsId);
         replica.getInfo().setAge(age);
-        replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
 
         // Стартуем формирование файла реплики
         UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
@@ -251,6 +251,7 @@ public class UtRepl {
     public IReplica createReplicaSetDbStruct() throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SET_DB_STRUCT);
+        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
 
         // Стартуем формирование файла реплики
         UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
@@ -273,6 +274,7 @@ public class UtRepl {
     public IReplica createReplicaMute(long destinationWsId) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.MUTE);
+        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
 
         // Стартуем формирование файла реплики
         UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
@@ -298,6 +300,7 @@ public class UtRepl {
     public IReplica createReplicaUnmute(long destinationWsId) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.UNMUTE);
+        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
 
         // Стартуем формирование файла реплики
         UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
@@ -323,6 +326,7 @@ public class UtRepl {
     public IReplica createReplicaQueInNo(long destinationWsId, long queInNo) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SET_QUE_IN_NO);
+        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
 
         // Стартуем формирование файла реплики
         UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
@@ -349,6 +353,7 @@ public class UtRepl {
     public IReplica createReplicaAppUpdate(String exeFileName) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.UPDATE_APP);
+        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
 
         //
         File exeFile = new File(exeFileName);
@@ -385,6 +390,7 @@ public class UtRepl {
     public IReplica createReplicaSetCfg(JSONObject cfg, String cfgType, long destinationWsId) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SET_CFG);
+        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
 
 
         // Стартуем формирование файла реплики
@@ -454,6 +460,7 @@ public class UtRepl {
         //
         IReplica replicaOut = new ReplicaFile();
         replicaOut.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
+        replicaOut.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
 
         // Стартуем формирование файла реплики
         UtReplicaWriter replicaWriter = new UtReplicaWriter(replicaOut);

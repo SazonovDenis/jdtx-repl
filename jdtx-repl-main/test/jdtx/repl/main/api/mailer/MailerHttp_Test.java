@@ -229,10 +229,10 @@ public class MailerHttp_Test extends AppTestCase {
         // ---
         // Создаем реплику (из мусора - ее содержимое неважно)
         IReplica replica = new ReplicaFile();
+        replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
         replica.getInfo().setDbStructCrc("00000000000000000000");
         replica.getInfo().setWsId(1);
         replica.getInfo().setAge(999);
-        replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
         replica.setFile(srcFile);
 
 

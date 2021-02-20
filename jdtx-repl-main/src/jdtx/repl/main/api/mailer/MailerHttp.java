@@ -234,12 +234,12 @@ public class MailerHttp implements IMailer {
 
         // Завершение закачки
         ReplicaInfo info = new ReplicaInfo();
+        info.setReplicaType(replica.getInfo().getReplicaType());
         info.setDbStructCrc(replica.getInfo().getDbStructCrc());
         info.setWsId(replica.getInfo().getWsId());
         info.setAge(replica.getInfo().getAge());
         info.setDtFrom(replica.getInfo().getDtFrom());
         info.setDtTo(replica.getInfo().getDtTo());
-        info.setReplicaType(replica.getInfo().getReplicaType());
         info.setCrc(JdxUtils.getMd5File(replica.getFile()));
 
         //

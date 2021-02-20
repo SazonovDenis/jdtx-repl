@@ -127,9 +127,9 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
     }
 
     private void recToReplicaInfo(DataRecord rec, IReplicaInfo info) {
+        info.setReplicaType(rec.getValueInt("replica_type"));
         info.setAge(rec.getValueLong("age"));
         info.setWsId(rec.getValueLong("ws_id"));
-        info.setReplicaType(rec.getValueInt("replica_type"));
     }
 
 

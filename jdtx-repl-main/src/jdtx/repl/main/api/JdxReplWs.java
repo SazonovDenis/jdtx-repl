@@ -1092,6 +1092,7 @@ public class JdxReplWs {
         //
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(replicaType);
+        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
         replica.getInfo().setWsId(wsId);
         replica.getInfo().setAge(age);
 
@@ -1200,11 +1201,12 @@ public class JdxReplWs {
                 // Свои собственные установочные реплики (snapshot таблиц) можно не скачивать
                 // (и в дальнейшем не применять)
                 log.info("Found self snapshot replica, no: " + no + ", replica.age: " + info.getAge());
-                // Имитируем реплику просто чтобы положить в очередь. Никто не заменить, что она пустая, т.к. она НЕ нужна
+                // Имитируем реплику просто чтобы положить в очередь. Никто не заметит, что она пустая, т.к. она НЕ нужна
                 replica = new ReplicaFile();
+                replica.getInfo().setReplicaType(info.getReplicaType());
+                replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
                 replica.getInfo().setWsId(info.getWsId());
                 replica.getInfo().setAge(info.getAge());
-                replica.getInfo().setReplicaType(info.getReplicaType());
             } else {
                 // Физически забираем данные реплики с сервера
                 replica = mailer.receive(boxName, no);

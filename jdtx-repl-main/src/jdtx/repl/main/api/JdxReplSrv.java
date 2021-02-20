@@ -303,7 +303,6 @@ public class JdxReplSrv {
     public void srvReplicasDispatch() throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
 
-
         // Все что у нас есть на раздачу
         long commonQueMaxNo = queCommon.getMaxNo();
 
@@ -325,6 +324,9 @@ public class JdxReplSrv {
             for (long no = sendFrom; no <= sendTo; no++) {
                 // Берем реплику из queCommon
                 IReplica replica = queCommon.get(no);
+
+                // Читаем заголовок
+                JdxReplicaReaderXml.readReplicaInfo(replica);
 
                 // Преобразовываем по фильтрам
                 IReplica replicaForWs = prepareReplicaForWs(replica, wsId);

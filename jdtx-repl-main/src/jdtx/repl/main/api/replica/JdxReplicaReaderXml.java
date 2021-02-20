@@ -110,12 +110,12 @@ public class JdxReplicaReaderXml {
         }
 
         //
+        replica.getInfo().setReplicaType(info.getReplicaType());
         replica.getInfo().setDbStructCrc(info.getDbStructCrc());
         replica.getInfo().setWsId(info.getWsId());
         replica.getInfo().setAge(info.getAge());
         replica.getInfo().setDtFrom(info.getDtFrom());
         replica.getInfo().setDtTo(info.getDtTo());
-        replica.getInfo().setReplicaType(info.getReplicaType());
     }
 
     private IReplicaInfo readReplicaHeader() throws XMLStreamException {
@@ -126,9 +126,9 @@ public class JdxReplicaReaderXml {
             int event = reader.next();
             if (event == XMLStreamConstants.START_ELEMENT) {
                 if (reader.getLocalName().compareToIgnoreCase("replica") == 0) {
+                    replicaInfo.setReplicaType(Integer.valueOf(reader.getAttributeValue(null, "REPLICA_TYPE")));
                     replicaInfo.setWsId(Long.valueOf(reader.getAttributeValue(null, "WS_ID")));
                     replicaInfo.setAge(Long.valueOf(reader.getAttributeValue(null, "AGE")));
-                    replicaInfo.setReplicaType(Integer.valueOf(reader.getAttributeValue(null, "REPLICA_TYPE")));
                     break;
                 }
             }
