@@ -174,6 +174,7 @@ public class UtDbObjectManager {
                 "age", "flag_tab", "state", "state_ws", "workstation_list", "workstation",
                 "que_in", "que_out", "que_common",
                 "que_in001", "que_out001",
+                "que_out000",
                 "verdb"
         };
         dropSysTables(jdx_sys_tables, db);
