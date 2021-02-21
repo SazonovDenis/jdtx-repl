@@ -44,6 +44,9 @@ repl_create = cm("Инициализация базы как рабочей ст
 repl_add_ws = cm("Добавляет рабочую станцию на сервер",
         "ws": [value: 0, help: "Код рабочей станции"],
         "name": [value: null, help: "Название рабочей станции"],
+        "guid": [value: null, help: "guid рабочей станции"],
+        "cfg_publications": [value: null, help: "cfg-файл для publications рабочей станции"],
+        "cfg_decode": [value: null, help: "cfg-файл для decode рабочей станции"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_add_ws(args)
