@@ -7,6 +7,7 @@ import jandcode.utils.error.*;
 import jandcode.utils.io.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.decoder.*;
+import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.publication.*;
@@ -397,17 +398,23 @@ public class JdxReplWs {
             long queOutMaxAge = queOut.getMaxNo();
 
             // Создаем реплики
-            List<IReplica> rl = SnapshotForTables(tablesNew, queOutMaxAge, true);
+            List<IReplica> replicasSnapshot = SnapshotForTables(tablesNew, queOutMaxAge, true);
+
+            // Фильтр
+            IReplicaFilter filter = new ReplicaFilter();
 
             // Помещаем реплики в очередь
             int i = 0;
-            for (IReplica replicaSnapshot : rl) {
+            for (IReplica replicaSnapshot : replicasSnapshot) {
                 // Искусственно увеличиваем возраст (установочная реплика сдвигает возраст БД на 1)
                 long age = utRepl.incAuditAge();
                 log.info("createReplicaTableSnapshot, tableName: " + tablesNew.get(i).getName() + ", new age: " + age);
 
+                // Преобразовываем по фильтрам
+                IReplica replicaForWs = filter.prepareReplicaForWs(replicaSnapshot, publicationOut);
+
                 // Помещаем реплику в очередь
-                queOut.push(replicaSnapshot);
+                queOut.push(replicaForWs);
 
                 //
                 stateManager.setAuditAgeDone(age);

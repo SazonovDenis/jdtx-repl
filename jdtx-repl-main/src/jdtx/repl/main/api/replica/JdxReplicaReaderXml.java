@@ -55,13 +55,13 @@ public class JdxReplicaReaderXml {
         return null;
     }
 
-    public Map nextRec() throws XMLStreamException {
+    public Map<String, Object> nextRec() throws XMLStreamException {
         while (reader.hasNext()) {
             int event = reader.next();
             if (event == XMLStreamConstants.START_ELEMENT) {
                 if (reader.getLocalName().compareToIgnoreCase("rec") == 0) {
                     // Значения полей
-                    Map values = new HashMap<>();
+                    Map<String, Object> values = new HashMap<>();
                     for (int i = 0; i < reader.getAttributeCount(); i++) {
                         String fieldName = reader.getAttributeLocalName(i);
                         String fieldValue = reader.getAttributeValue(i);

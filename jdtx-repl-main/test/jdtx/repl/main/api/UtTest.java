@@ -5,10 +5,12 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.test.*;
 import jdtx.repl.main.api.struct.*;
+import org.joda.time.*;
 
 import java.util.*;
 
 /**
+ *
  */
 public class UtTest extends UtilsTestCase {
 
@@ -122,7 +124,7 @@ public class UtTest extends UtilsTestCase {
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
 
 
-        // ---
+        // --- region
         long id0 = dbu.getNextGenerator("g_region");
         Map params = UtCnv.toMap(
                 "id", id0,
@@ -160,21 +162,21 @@ public class UtTest extends UtilsTestCase {
         }
 
 
-        // ---
-        long id1 = dbu.getNextGenerator("g_ulz");
+        // --- Ulz
+        long id_Ulz = dbu.getNextGenerator("g_ulz");
         dbu.insertRec("ulz", UtCnv.toMap(
-                "id", id1,
+                "id", id_Ulz,
                 "region", id0,
                 "ulzTip", 2,
                 "name", "Name-ins-ws:" + ws_id + "-" + rnd.nextInt()
         ));
 
 
-        // ---
-        long id2 = dbu.getNextGenerator("g_lic");
+        // --- Lic
+        long id_Lic = dbu.getNextGenerator("g_lic");
         dbu.insertRec("lic", UtCnv.toMap(
-                "lic", id2,
-                "ulz", id1,
+                //"lic", id_Lic,
+                "ulz", id_Ulz,
                 "NameF", "Name-F-ins-ws:" + ws_id + "-" + rnd.nextInt(),
                 "NameI", "Name-I-ins-ws:" + ws_id + "-" + rnd.nextInt(),
                 "NameO", "NameO-ins-ws:" + ws_id + "-" + rnd.nextInt()
@@ -183,17 +185,18 @@ public class UtTest extends UtilsTestCase {
 
         //
         if (rnd.nextInt(5) == 0) {
-            long id_del = db.loadSql("select min(Lic.id) id from Lic left join pawnchit on (Lic.id = PawnChit.Lic) where Lic.id <> 0 and PawnChit.id is null").getCurRec().getValueLong("id");
-            if (id_del > 0) {
-                dbu.deleteRec("lic", id_del);
+            long id_Lic_del = db.loadSql("select min(Lic.id) id from Lic left join pawnchit on (Lic.id = PawnChit.Lic) where Lic.id <> 0 and PawnChit.id is null").getCurRec().getValueLong("id");
+            if (id_Lic_del > 0) {
+                dbu.deleteRec("lic", id_Lic_del);
             }
         }
         if (rnd.nextInt(5) == 0) {
-            long id_del = db.loadSql("select max(Lic.id) id from Lic left join pawnchit on (Lic.id = PawnChit.Lic) where Lic.id <> 0 and PawnChit.id is null").getCurRec().getValueLong("id");
-            if (id_del > 0) {
-                dbu.deleteRec("lic", id_del);
+            long id_Lic_del = db.loadSql("select max(Lic.id) id from Lic left join pawnchit on (Lic.id = PawnChit.Lic) where Lic.id <> 0 and PawnChit.id is null").getCurRec().getValueLong("id");
+            if (id_Lic_del > 0) {
+                dbu.deleteRec("lic", id_Lic_del);
             }
         }
+
 
         //
         long id01 = db.loadSql("select min(id) id from lic where id > 0").getCurRec().getValueLong("id");
@@ -214,7 +217,7 @@ public class UtTest extends UtilsTestCase {
                     "NameF", "NameF-upd-ws:" + ws_id + "-" + rnd.nextInt(),
                     "NameI", "NameI-upd-ws:" + ws_id + "-" + rnd.nextInt(),
                     "NameO", "NameO-upd-ws:" + ws_id + "-" + rnd.nextInt(),
-                    "Ulz", id1
+                    "Ulz", id_Ulz
             ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,dom,kv,tel,info");
         }
 
@@ -225,6 +228,30 @@ public class UtTest extends UtilsTestCase {
                 "NameI", "NameI-upd-com-ws:" + ws_id + "-" + rnd.nextInt()
         ));
 
+
+        // --- CommentText
+        //long id_CommentText = dbu.getNextGenerator("g_CommentText");
+        long id_Usr = db.loadSql("select max(Usr.id) id from Usr where Usr.id <> 0").getCurRec().getValueLong("id");
+        long id_Lic_CommentText = db.loadSql("select max(Lic.id) id from Lic left join pawnchit on (Lic.id = PawnChit.Lic) where Lic.id <> 0 and PawnChit.id is null").getCurRec().getValueLong("id");
+        long id_PawnChit = db.loadSql("select max(PawnChit.id) id from PawnChit where PawnChit.id <> 0").getCurRec().getValueLong("id");
+        dbu.insertRec("CommentText", UtCnv.toMap(
+                "Lic", id_Lic_CommentText,
+                "PawnChit", 0,
+                "CommentTip", 1 + rnd.nextInt(3),
+                "CommentUsr", id_Usr,
+                "CommentDt", new DateTime(),
+                "CommentText", "CommentText-Lic-ins-ws:" + ws_id + "-" + rnd.nextInt()
+        ), "lic,pawnChit,CommentTip,CommentUsr,CommentDt,CommentText", null);
+        if (id_PawnChit != 0) {
+            dbu.insertRec("CommentText", UtCnv.toMap(
+                    "Lic", 0,
+                    "PawnChit", id_PawnChit,
+                    "CommentTip", 1 + rnd.nextInt(3),
+                    "CommentUsr", id_Usr,
+                    "CommentDt", new DateTime(),
+                    "CommentText", "CommentText-PawnChit-ins-ws:" + ws_id + "-" + rnd.nextInt()
+            ), "lic,pawnChit,CommentTip,CommentUsr,CommentDt,CommentText", null);
+        }
 
         // ---
         // Апдейт таблиц TEST_TABLE_**

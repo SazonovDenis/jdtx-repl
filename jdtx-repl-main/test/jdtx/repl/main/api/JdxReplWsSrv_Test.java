@@ -42,8 +42,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         cfg_json_ws = "test/etalon/ws.json";
         cfg_json_decode = "test/etalon/decode_strategy.json";
-        //cfg_json_publication_srv = "test/etalon/publication_full_152.json";
-        //cfg_json_publication_ws = "test/etalon/publication_full_152.json";
         cfg_json_publication_srv = "test/etalon/publication_full_152_srv.json";
         cfg_json_publication_ws = "test/etalon/publication_full_152_ws.json";
         //cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
@@ -61,7 +59,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_AllHttp();
 
         //
-        test_DumpTables(db, db2, db3, struct, struct2, struct3);
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
     @Test
@@ -299,13 +297,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         sync_http();
 
         //
-        test_DumpTables(db, db2, db3, struct, struct2, struct3);
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
     @Test
     public void test_AllHttp_DumpTables() throws Exception {
         test_AllHttp();
-        test_DumpTables(db, db2, db3, struct, struct2, struct3);
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
     @Test
@@ -337,7 +335,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         syncLocal();
 
         //
-        test_DumpTables(db, db2, db3, struct, struct2, struct3);
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
 
@@ -419,15 +417,25 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_DumpTables() throws Exception {
-        test_DumpTables(db, db2, db3, struct, struct2, struct3);
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
+    }
+
+    @Test
+    public void test_DumpTables_Lic_CommentText() throws Exception {
+        do_DumpTables_Lic_CommentText(db, db2, db3, struct, struct2, struct3);
+    }
+
+    @Test
+    public void test_DumpTables_Lic_CommentText_2_3_5() throws Exception {
+        do_DumpTables_Lic_CommentText(db2, db3, db5, struct2, struct3, struct5);
     }
 
     @Test
     public void test_DumpTables_2_3_5() throws Exception {
-        test_DumpTables(db2, db3, db5, struct2, struct3, struct5);
+        do_DumpTables(db2, db3, db5, struct2, struct3, struct5);
     }
 
-    void test_DumpTables(Db db1, Db db2, Db db3, IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct struct3) throws Exception {
+    void do_DumpTables(Db db1, Db db2, Db db3, IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct struct3) throws Exception {
         UtTest utt1 = new UtTest(db1);
         utt1.dumpTable("lic", "../_test-data/csv/ws1-lic.csv", "nameF");
         utt1.dumpTable("ulz", "../_test-data/csv/ws1-ulz.csv", "name");
@@ -438,7 +446,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         utt3.dumpTable("lic", "../_test-data/csv/ws3-lic.csv", "nameF");
         utt3.dumpTable("ulz", "../_test-data/csv/ws3-ulz.csv", "name");
 
-        //
+        // Lic
         String sql = "select Lic.nameF, Lic.nameI, Lic.nameO, Region.name as RegionName, RegionTip.name as RegionTip, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) left join RegionTip on (Region.RegionTip = RegionTip.id) order by Lic.NameF";
         DataStore st1 = db1.loadSql(sql);
         OutTableSaver svr1 = new OutTableSaver(st1);
@@ -450,7 +458,19 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         OutTableSaver svr3 = new OutTableSaver(st3);
         //svr3.save().toFile("../_test-data/csv/ws3-all.csv");
 
-        // dumpTables Region*
+        // CommentText
+        String sql_commentText = "select (case when CommentText.Lic=0 then 0 else 1 end) as Lic, (case when CommentText.PawnChit=0 then 0 else 1 end) PawnChit, CommentText.CommentText, CommentTip.Name as CommentTipName\n" +
+                "from CommentText, CommentTip\n" +
+                "where CommentText.id <> 0 and CommentText.CommentTip = CommentTip.id\n" +
+                "order by CommentTip.Name, CommentText.CommentText\n";
+        DataStore st1_ct = db1.loadSql(sql_commentText);
+        OutTableSaver svr1_ct = new OutTableSaver(st1_ct);
+        DataStore st2_ct = db2.loadSql(sql_commentText);
+        OutTableSaver svr2_ct = new OutTableSaver(st2_ct);
+        DataStore st3_ct = db3.loadSql(sql_commentText);
+        OutTableSaver svr3_ct = new OutTableSaver(st3_ct);
+
+        // Region*
         String regionTestFields = "";
         for (IJdxField f : struct1.getTable("region").getFields()) {
             if (f.getName().startsWith("TEST_FIELD_")) {
@@ -500,6 +520,68 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         DataStore st2_bt = db2.loadSql(sql_bt);
         OutTableSaver svr2_bt = new OutTableSaver(st2_bt);
         DataStore st3_bt = db3.loadSql(sql_bt);
+        OutTableSaver svr3_bt = new OutTableSaver(st3_bt);
+
+
+        //
+        String struct_t_XXX1 = dump_table_new_created(db1, struct1);
+        String struct_t_XXX2 = dump_table_new_created(db2, struct2);
+        String struct_t_XXX3 = dump_table_new_created(db3, struct3);
+
+        //
+        UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_ct.save().toString() + "\n\n" + svr1_r.save().toString() + "\n\n" + struct_t_XXX1 + "\n\n" + svr1_bt.save().toString(), new File("../_test-data/csv/ws1-all.csv"));
+        UtFile.saveString(svr2.save().toString() + "\n\n" + svr2_ct.save().toString() + "\n\n" + svr2_r.save().toString() + "\n\n" + struct_t_XXX2 + "\n\n" + svr2_bt.save().toString(), new File("../_test-data/csv/ws2-all.csv"));
+        UtFile.saveString(svr3.save().toString() + "\n\n" + svr3_ct.save().toString() + "\n\n" + svr3_r.save().toString() + "\n\n" + struct_t_XXX3 + "\n\n" + svr3_bt.save().toString(), new File("../_test-data/csv/ws3-all.csv"));
+
+        //
+        startCmpDb();
+    }
+
+    void do_DumpTables_Lic_CommentText(Db db1, Db db2, Db db3, IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct struct3) throws Exception {
+        UtTest utt1 = new UtTest(db1);
+        utt1.dumpTable("lic", "../_test-data/csv/ws1-lic.csv", "nameF");
+        utt1.dumpTable("ulz", "../_test-data/csv/ws1-ulz.csv", "name");
+        UtTest utt2 = new UtTest(db2);
+        utt2.dumpTable("lic", "../_test-data/csv/ws2-lic.csv", "nameF");
+        utt2.dumpTable("ulz", "../_test-data/csv/ws2-ulz.csv", "name");
+        UtTest utt3 = new UtTest(db3);
+        utt3.dumpTable("lic", "../_test-data/csv/ws3-lic.csv", "nameF");
+        utt3.dumpTable("ulz", "../_test-data/csv/ws3-ulz.csv", "name");
+
+        //
+        String sql = "select Lic.nameF, Lic.nameI, Lic.nameO, Region.name as RegionName, RegionTip.name as RegionTip, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) left join RegionTip on (Region.RegionTip = RegionTip.id) order by Lic.NameF";
+        DataStore st1 = db1.loadSql(sql);
+        OutTableSaver svr1 = new OutTableSaver(st1);
+        //svr1.save().toFile("../_test-data/csv/ws1-all.csv");
+        DataStore st2 = db2.loadSql(sql);
+        OutTableSaver svr2 = new OutTableSaver(st2);
+        //svr2.save().toFile("../_test-data/csv/ws2-all.csv");
+        DataStore st3 = db3.loadSql(sql);
+        OutTableSaver svr3 = new OutTableSaver(st3);
+        //svr3.save().toFile("../_test-data/csv/ws3-all.csv");
+
+        // CommentText
+        String sql_commentText = "select (case when CommentText.Lic=0 then 0 else 1 end) as Lic, (case when CommentText.PawnChit=0 then 0 else 1 end) PawnChit, CommentText.CommentText, CommentTip.Name as CommentTipName\n" +
+                "from CommentText, CommentTip\n" +
+                "where CommentText.id <> 0 and CommentText.CommentTip = CommentTip.id\n" +
+                "order by CommentTip.Name, CommentText.CommentText\n";
+        DataStore st1_r = db1.loadSql(sql_commentText);
+        OutTableSaver svr1_r = new OutTableSaver(st1_r);
+        DataStore st2_r = db2.loadSql(sql_commentText);
+        OutTableSaver svr2_r = new OutTableSaver(st2_r);
+        DataStore st3_r = db3.loadSql(sql_commentText);
+        OutTableSaver svr3_r = new OutTableSaver(st3_r);
+
+        // CommentTip
+        String sql_CommentTip = "select CommentTip.id, CommentTip.Name as CommentTipName\n" +
+                "from CommentTip\n" +
+                "where id <> 0\n" +
+                "order by CommentTip.Name\n";
+        DataStore st1_bt = db1.loadSql(sql_CommentTip);
+        OutTableSaver svr1_bt = new OutTableSaver(st1_bt);
+        DataStore st2_bt = db2.loadSql(sql_CommentTip);
+        OutTableSaver svr2_bt = new OutTableSaver(st2_bt);
+        DataStore st3_bt = db3.loadSql(sql_CommentTip);
         OutTableSaver svr3_bt = new OutTableSaver(st3_bt);
 
 

@@ -5,6 +5,12 @@
     "appupdate": {
       "fields": "*"
     },
+    "commenttext": {
+      "fields": "*"
+    },
+    "commenttip": {
+      "fields": "*"
+    },
     "lic": {
       "fields": "*"
     },

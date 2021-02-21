@@ -3,8 +3,8 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
-import jandcode.utils.error.*;
 import jandcode.web.*;
+import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.publication.*;
@@ -12,7 +12,6 @@ import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ut.*;
-import org.apache.commons.io.*;
 import org.apache.commons.logging.*;
 import org.apache.log4j.*;
 import org.json.simple.*;
@@ -228,11 +227,31 @@ public class JdxReplSrv {
         // Возраст snapshot рабочей станции.
         long wsSnapshotAge = queInNoDone;
 
-        // Помещаем snapshot-реплику в очередь queOut001
+
+        // ---
+        // Обрабатываем snapshot-реплики
+
+        // Преобразователь по фильтрам
+        IReplicaFilter filter = new ReplicaFilter();
+
+        // Правила публикаций (фильтры) для wsId. В качестве фильтров на отправку берем ВХОДЯЩЕЕ правило рабочей станций.
+        IPublicationStorage publicationRuleWsIn = UtRepl.extractPublicationRules(cfgPublications, struct, "in");
+        //IPublicationStorage publicationRuleWsIn = publicationsInList.get(wsId);
+
+        // Параметры под эти правила
+        filter.getParams().put("wsDestination", String.valueOf(wsId));
+
+        // Помещаем snapshot-реплики в очередь queOut001
         for (IReplica replica : snapshotReplicas) {
-            queOut001.push(replica);
+            // Преобразовываем по правилам публикаций (фильтрам)
+            IReplica replicaForWs = filter.prepareReplicaForWs(replica, publicationRuleWsIn);
+
+            // В очередь queOut001
+            queOut001.push(replicaForWs);
         }
 
+
+        // ---
         // Сообщим рабочей станции ее начальный возраст ВХОДЯЩЕЙ очереди
         UtRepl utRepl = new UtRepl(db, struct);
         IReplica replica = utRepl.createReplicaQueInNo(wsId, wsSnapshotAge);
@@ -316,6 +335,15 @@ public class JdxReplSrv {
             JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
             queOut000.setDataRoot(dataRoot);
 
+            // Преобразователь по фильтрам
+            IReplicaFilter filter = new ReplicaFilter();
+
+            // Правила публикаций (фильтры) для wsId. В качестве фильтров на отправку берем ВХОДЯЩИЕ правила рабочих станций.
+            IPublicationStorage publicationRule = publicationsInList.get(wsId);
+
+            // Параметры под эти правила
+            filter.getParams().put("wsDestination", String.valueOf(wsId));
+
             //
             long sendFrom = stateManager.getDispatchDoneQueCommon(wsId) + 1;
             long sendTo = commonQueMaxNo;
@@ -328,10 +356,10 @@ public class JdxReplSrv {
                 // Читаем заголовок
                 JdxReplicaReaderXml.readReplicaInfo(replica);
 
-                // Преобразовываем по фильтрам
-                IReplica replicaForWs = prepareReplicaForWs(replica, wsId);
+                // Преобразовываем по правилам публикаций (фильтрам)
+                IReplica replicaForWs = filter.prepareReplicaForWs(replica, publicationRule);
 
-                // Физически переместим реплику
+                // Положим реплику в очередь (физически переместим)
                 queOut000.push(replicaForWs);
 
                 // Отметим распределение очередного номера реплики.
@@ -389,131 +417,6 @@ public class JdxReplSrv {
         }
     }
 
-    /**
-     * Преобразовываем реплику replicaSrc по фильтрам для рабочей станции wsIdDestination
-     */
-    private IReplica prepareReplicaForWs(IReplica replicaSrc, long wsIdDestination) throws Exception {
-        File replicaFile = replicaSrc.getFile();
-
-        // Файл должен быть - иначе незачем делать put
-        if (replicaFile == null) {
-            throw new XError("Invalid replicaSrc.file == null");
-        }
-
-        // 
-        ReplicaFile replicaRes = new ReplicaFile();
-
-        //
-        IReplicaInfo replicaInfo = replicaSrc.getInfo();
-
-        //
-        replicaRes.getInfo().assign(replicaInfo);
-
-        //
-        if (replicaInfo.getReplicaType() == JdxReplicaType.SNAPSHOT || replicaInfo.getReplicaType() == JdxReplicaType.IDE) {
-
-            //
-            InputStream inputStream = null;
-            try {
-                // Распакуем XML-файл из Zip-архива
-                inputStream = UtRepl.getReplicaInputStream(replicaSrc);
-
-                JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
-
-                // Стартуем формирование файла реплики
-                UtReplicaWriter replicaWriter = new UtReplicaWriter(replicaRes);
-                replicaWriter.replicaFileStart();
-
-                // Начинаем писать файл с данными
-                JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
-
-                // Правила публикаций для wsIdDestination
-                IPublicationStorage publicationOut = publicationsInList.get(wsIdDestination);
-
-                // Копируем данные из реплики
-                copyDataWithFilter(replicaReader, xmlWriter, publicationOut);
-
-                // Заканчиваем формирование файла реплики
-                replicaWriter.replicaFileClose();
-
-            } finally {
-                // Закроем читателя Zip-файла
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            }
-        } else {
-            // Тупое копирование файла
-            File replicaResFile = UtReplicaWriter.createTempFileReplica(replicaRes);
-            FileUtils.copyFile(replicaFile, replicaResFile);
-            replicaRes.setFile(replicaResFile);
-        }
-
-
-        //
-        return replicaRes;
-    }
-
-    // ^с отдельный тест на copyDataWithFilter
-    private void copyDataWithFilter(JdxReplicaReaderXml dataReader, JdxReplicaWriterXml dataWriter, IPublicationStorage publicationOut) throws Exception {
-        String tableName = dataReader.nextTable();
-
-        // Перебираем таблицы
-        while (tableName != null) {
-
-            IPublicationRule publicationTable = publicationOut.getPublicationRule(tableName);
-
-            if (publicationTable == null) {
-                // Пропускаем
-                log.info("  skip, not found in publicationOut, table: " + tableName);
-            } else {
-                dataWriter.startTable(tableName);
-
-                // Перебираем записи
-                long count = 0;
-                Map recValues = dataReader.nextRec();
-                while (recValues != null) {
-                    if (useRecord(recValues, publicationTable)) {
-
-                        dataWriter.appendRec();
-
-                        // Тип операции
-                        int oprType = JdxUtils.intValueOf(recValues.get(JdxUtils.XML_FIELD_OPR_TYPE));
-                        dataWriter.setOprType(oprType);
-
-                        // Поля
-                        for (IJdxField publicationField : publicationTable.getFields()) {
-                            String publicationFieldName = publicationField.getName();
-                            dataWriter.setRecValue(publicationFieldName, recValues.get(publicationFieldName));
-                        }
-                    }
-
-                    //
-                    recValues = dataReader.nextRec();
-
-                    //
-                    count++;
-                    if (count % 200 == 0) {
-                        log.info("  table: " + tableName + ", " + count);
-                    }
-                }
-
-                //
-                log.info("  done: " + tableName + ", total: " + count);
-
-                //
-                dataWriter.flush();
-            }
-
-
-            //
-            tableName = dataReader.nextTable();
-        }
-    }
-
-    private boolean useRecord(Map recValues, IPublicationRule publicationTable) {
-        return true;
-    }
 
     /**
      * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано

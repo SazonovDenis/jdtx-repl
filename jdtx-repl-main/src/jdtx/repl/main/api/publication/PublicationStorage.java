@@ -48,6 +48,9 @@ public class PublicationStorage implements IPublicationStorage {
 
             // IPublicationRule.setAuthorWs
             publicationRule.setAuthorWs((String) publicationRuleJson.getOrDefault("authorWs", null));
+
+            // IPublicationRule.setFilterExpression
+            publicationRule.setFilterExpression((String) publicationRuleJson.getOrDefault("filter", null));
         }
     }
 
@@ -75,12 +78,18 @@ public class PublicationStorage implements IPublicationStorage {
         //
         // JdxDbUtils.ID_FIELD пусть будет всегда спереди (необязательно, но... во-первых это красиво!)
         res.add(JdxDbUtils.ID_FIELD);
-        if (publicationFields.compareToIgnoreCase("*") == 0) {
+        if (publicationFields.contains("*")) {
+            publicationFields = publicationFields.toUpperCase();
             for (IJdxField fieldStruct : table.getFields()) {
-                if (fieldStruct.getName().equalsIgnoreCase(JdxDbUtils.ID_FIELD)) {
+                String fieldName = fieldStruct.getName().toUpperCase();
+                //
+                if (fieldName.equalsIgnoreCase(JdxDbUtils.ID_FIELD)) {
                     continue;
                 }
-                res.add(fieldStruct.getName());
+                //
+                if (!publicationFields.contains("-" + fieldName)) {
+                    res.add(fieldName);
+                }
             }
         } else {
             String[] publicationFieldsArr = publicationFields.split(",");
@@ -88,6 +97,7 @@ public class PublicationStorage implements IPublicationStorage {
                 if (publicationField.equalsIgnoreCase(JdxDbUtils.ID_FIELD)) {
                     continue;
                 }
+                //
                 res.add(publicationField);
             }
         }

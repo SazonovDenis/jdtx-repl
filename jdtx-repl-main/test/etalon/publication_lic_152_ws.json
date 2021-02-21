@@ -5,6 +5,17 @@
     "appupdate": {
       "fields": "*"
     },
+    "commenttext": {
+      "fields": "*,-CommentUsr",
+      "fields_": "сервер на станцию будет отправлять  примечания без поля CommentUsr, т.е. таблица Usr на станцию не уходит",
+      "filter": "PARAM_wsAuthor_id = PARAM_wsDestination || PARAM_wsAuthor_id = 1 || PawnChit = 0",
+      "filter_": "сервер на станцию будет отправлять примечания только к залогодателю"
+    },
+    "commenttip": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_id = PARAM_wsDestination || PARAM_wsAuthor_id = 1",
+      "filter_": "сервер на станцию будет отправлять изменения в ее записях или свои собственные"
+    },
     "lic": {
       "fields": "*"
     },

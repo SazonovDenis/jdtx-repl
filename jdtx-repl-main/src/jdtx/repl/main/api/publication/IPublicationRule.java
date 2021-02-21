@@ -22,4 +22,8 @@ public interface IPublicationRule {
 
     void setAuthorWs(String authorWs);
 
+    String getFilterExpression();
+
+    void setFilterExpression(String filterExpression);
+
 }

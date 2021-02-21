@@ -118,7 +118,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ===
-        test_DumpTables(db, db2, db3, struct, struct2, struct3);
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
     /**
@@ -256,7 +256,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ===
-        test_DumpTables(db, db2, db3, struct, struct2, struct3);
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
 
@@ -353,7 +353,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ===
-        test_DumpTables(db, db2, db3, struct, struct2, struct3);
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
 
@@ -556,7 +556,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ===
-        test_DumpTables(db, db2, db3, struct, struct2, struct3);
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
     private void assertEqualsStruct_Actual_Allowed_Fixed_ws(Db db) throws Exception {
@@ -696,9 +696,9 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         assertNotSame(auditAge1, auditAge2);
     }
 
-    public void test_DumpTables(Db db, Db db2, Db db3, IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct struct3) throws Exception {
+    public void do_DumpTables(Db db, Db db2, Db db3, IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct struct3) throws Exception {
         reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
-        super.test_DumpTables(db, db2, db3, struct1, struct2, struct3);
+        super.do_DumpTables(db, db2, db3, struct1, struct2, struct3);
     }
 
     //todo проверить, что лишний аудит не создается
