@@ -5,9 +5,9 @@ import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 
-public class Update_006_007 implements ISqlScriptExecutor {
+public class Update_005_006 implements ISqlScriptExecutor {
 
-    protected static Log log = LogFactory.getLog("jdtx.Update_006_007");
+    protected static Log log = LogFactory.getLog("jdtx.Update_005_006");
 
     @Override
     public void exec(Db db) throws Exception {

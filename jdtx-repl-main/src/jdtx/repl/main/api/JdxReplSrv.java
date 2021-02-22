@@ -259,7 +259,7 @@ public class JdxReplSrv {
 
         // Отмечаем возраст snapshot рабочей станции.
         JdxStateManagerSrv stateManagerSrv = new JdxStateManagerSrv(db);
-        stateManagerSrv.setSnapshotAge(wsId, wsSnapshotAge);
+        //stateManagerSrv.setSnapshotAge(wsId, wsSnapshotAge);
 
         // Инициализируем возраст отправленных реплик для рабочей станции.
         // Для рабочей станции ее ВХОДЯЩАЯ очередь - это отражение ИСХОДЯЩЕЙ очереди сервера.
@@ -316,8 +316,8 @@ public class JdxReplSrv {
     }
 
     /**
-     * Сервер: тиражирование реплик из queCommon
-     * Распределение общей очереди по очередям рабочих станций: queCommon -> queOut000
+     * Сервер: тиражирование реплик из common.
+     * Распределение общей очереди по очередям рабочих станций: common -> out000
      */
     public void srvReplicasDispatch() throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
@@ -329,7 +329,7 @@ public class JdxReplSrv {
             long wsId = (long) en.getKey();
 
             //
-            log.info("srvReplicasDispatch (queCommon -> queOut000), to.wsId: " + wsId);
+            log.info("srvReplicasDispatch (common -> out000), to.wsId: " + wsId);
 
             // Исходящая очередь для станции wsId
             JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
@@ -371,9 +371,9 @@ public class JdxReplSrv {
 
             //
             if (sendFrom < sendTo) {
-                log.info("srvReplicasDispatch (queCommon -> QueOut000) done, wsId: " + wsId + ", queOut001.no: " + sendFrom + " .. " + sendTo + ", done count: " + count);
+                log.info("srvReplicasDispatch (common -> out000) done, wsId: " + wsId + ", out001.no: " + sendFrom + " .. " + sendTo + ", done count: " + count);
             } else {
-                log.info("srvReplicasDispatch (queCommon -> QueOut000) done, wsId: " + wsId + ", queOut001.no: " + sendFrom + ", nothing done");
+                log.info("srvReplicasDispatch (common -> out000) done, wsId: " + wsId + ", out001.no: " + sendFrom + ", nothing done");
             }
 
         }
@@ -390,7 +390,7 @@ public class JdxReplSrv {
 
             // Рассылаем
             try {
-                // Рассылаем queOut000 (продукт обработки queCommon) на каждую станцию
+                // Рассылаем очередь out000 (продукт обработки очереди common -> out000) на каждую станцию
                 IJdxStateManagerMail stateManagerMail = new JdxStateManagerSrvMail(db, wsId, UtQue.QUE_OUT000);
                 JdxQueOut001 queOut000 = new JdxQueOut000(db, wsId);
                 queOut000.setDataRoot(dataRoot);

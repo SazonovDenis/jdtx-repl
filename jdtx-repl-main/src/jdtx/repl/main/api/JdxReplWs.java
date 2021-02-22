@@ -1163,7 +1163,7 @@ public class JdxReplWs {
 
     // Физически забираем данные
     public void receive() throws Exception {
-        // --- queIn001
+        // --- Ящик to001 в очередь queIn001
         // Узнаем сколько получено у нас
         long selfReceivedNo1 = queIn001.getMaxNo();
 
@@ -1174,7 +1174,7 @@ public class JdxReplWs {
         selfReceivedNo1 = selfReceivedNo1 + 1;
         receiveInternal(mailer, "to001", selfReceivedNo1, srvAvailableNo1, queIn001);
 
-        // --- queIn
+        // --- Ящик to в очередь queIn
         // Узнаем сколько получено у нас
         long selfReceivedNo = queIn.getMaxNo();
 

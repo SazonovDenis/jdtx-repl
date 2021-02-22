@@ -10,14 +10,31 @@ INSERT INTO Z_Z_flag_tab (id, trigger_flag) VALUES (1, 1);
 
 
 /*
-Собственное состояния (для рабочей станции) -
+Таблица для хранения возраста таблиц
+*/
+CREATE TABLE Z_Z_age (
+  age        INT         NOT NULL,
+  table_name VARCHAR(50) NOT NULL,
+  Z_id       INT         NOT NULL,
+  dt         TIMESTAMP   NOT NULL
+);
+
+CREATE UNIQUE INDEX Z_Z_age_idx ON Z_Z_age (age, table_name);
+
+
+/*
+Собственное состояния (для рабочей станции или сервера) -
 для хранения возраста: созданных реплик, примененных реплик и т.п.
 */
 CREATE TABLE Z_Z_state (
   id                     INTEGER NOT NULL,
+  que_out_no             INT     DEFAULT 0 NOT NULL,
+  que_in_no              INT     DEFAULT 0 NOT NULL,
+  que_in001_no           INT     DEFAULT 0 NOT NULL,
   que_out_age_done       INT     NOT NULL,
-  que_in001_no_done      INT     DEFAULT 0 NOT NULL,
   que_in_no_done         INT     NOT NULL,
+  que_in001_no_done      INT     DEFAULT 0 NOT NULL,
+  que_common_no          INT     DEFAULT 0 NOT NULL,
   mail_send_done         INT     NOT NULL,
   enabled                INT     NOT NULL,
   mute                   INT     NOT NULL
@@ -33,8 +50,11 @@ INSERT INTO Z_Z_state (id, que_out_age_done, que_in001_no_done, que_in_no_done, 
 CREATE TABLE Z_Z_state_ws (
   id                       INTEGER NOT NULL,
   ws_id                    INT     NOT NULL,
-  snapshot_age             INT     DEFAULT 0 NOT NULL,  /* Возраст входящей очереди, обработанной на момент создания snapshot-а для рабочей станции */
   que_common_dispatch_done INT     NOT NULL,
+  que_out000_no            INT     DEFAULT 0 NOT NULL,
+  que_out000_send_done     INT     DEFAULT 0 NOT NULL,
+  que_out001_no            INT     DEFAULT 0 NOT NULL,
+  que_out001_send_done     INT     DEFAULT 0 NOT NULL,
   que_in_age_done          INT     NOT NULL,            /* Возраст реплики, до которого обработана входящая очередь от рабочей станции */
   enabled                  INT     NOT NULL,
   mute_age                 INT     NOT NULL
@@ -83,7 +103,7 @@ CREATE UNIQUE INDEX Z_Z_workstation_list_idx2 ON Z_Z_workstation_list (guid);
 
 
 /*
-Очереди реплик - входящая
+Очереди реплик - входящая на рабочей станции in
 */
 CREATE TABLE Z_Z_que_in (
   id           INTEGER NOT NULL,
@@ -100,7 +120,7 @@ SET generator Z_Z_G_que_in TO 0;
 
 
 /*
-Очереди реплик - входящая на рабочей станции In001
+Очереди реплик - входящая на рабочей станции in001
 */
 CREATE TABLE Z_Z_que_in001 (
   id           INTEGER NOT NULL,
@@ -117,7 +137,7 @@ SET generator Z_Z_G_que_in001 TO 0;
 
 
 /*
-Очереди реплик - исходящая от сервера Out001
+Очереди реплик - исходящая от сервера out001
 */
 CREATE TABLE Z_Z_que_out001 (
   id                  INTEGER NOT NULL,
@@ -138,7 +158,28 @@ SET generator Z_Z_G_que_out001 TO 0;
 
 
 /*
-Очереди реплик - исходящая
+Очереди реплик - исходящая от сервера out000 (продукт обработки общей очереди common -> out000 для каждой станции)
+*/
+CREATE TABLE Z_Z_que_out000 (
+  id                  INTEGER NOT NULL,
+  destination_ws_id   INT     NOT NULL,  /* Станция - получатель */
+  destination_no      INT     NOT NULL,  /* Номер для получателя, монотонно растет */
+  ws_id               INT     NOT NULL,
+  age                 INT     NOT NULL,
+  replica_type        INT     NOT NULL
+);
+
+ALTER TABLE Z_Z_que_out000 ADD CONSTRAINT pk_Z_Z_que_out000 PRIMARY KEY (id);
+
+CREATE UNIQUE INDEX Z_Z_que_out000_idx ON Z_Z_que_out000 (destination_ws_id, destination_no);
+
+CREATE generator Z_Z_G_que_out000;
+
+SET generator Z_Z_G_que_out000 TO 0;
+
+
+/*
+Очереди реплик - исходящая (рабочая станция)
 */
 CREATE TABLE Z_Z_que_out (
   id           INTEGER NOT NULL,
@@ -155,7 +196,7 @@ SET generator Z_Z_G_que_out TO 0;
 
 
 /*
-Очереди реплик - общая (для сервера)
+Очереди реплик - общая (на сервере)
 */
 CREATE TABLE Z_Z_que_common (
   id           INTEGER NOT NULL,
@@ -170,18 +211,6 @@ CREATE generator Z_Z_G_que_common;
 
 SET generator Z_Z_G_que_common TO 0;
 
-
-/*
-Таблица для хранения возраста таблиц
-*/
-CREATE TABLE Z_Z_age (
-  age        INT         NOT NULL,
-  table_name VARCHAR(50) NOT NULL,
-  Z_id       INT         NOT NULL,
-  dt         TIMESTAMP   NOT NULL
-);
-
-CREATE UNIQUE INDEX Z_Z_age_idx ON Z_Z_age (age, table_name);
 
 
 /*

@@ -69,7 +69,7 @@
     <service name="jdtx.repl.main.api.jdx_db_object.SqlScriptExecutorService"
              class="jdtx.repl.main.api.jdx_db_object.SqlScriptExecutorService">
 
-        <item name="Update_006_007" class="jdtx.repl.main.api.jdx_db_object.Update_006_007"/>
+        <item name="Update_005_006" class="jdtx.repl.main.api.jdx_db_object.Update_005_006"/>
 
     </service>
 
