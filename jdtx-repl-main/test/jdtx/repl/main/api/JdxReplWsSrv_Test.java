@@ -463,10 +463,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         //svr3.save().toFile("../_test-data/csv/ws3-all.csv");
 
         // CommentText
-        String sql_commentText = "select (case when CommentText.Lic=0 then 0 else 1 end) as Lic, (case when CommentText.PawnChit=0 then 0 else 1 end) PawnChit, CommentText.CommentText, CommentTip.Name as CommentTipName\n" +
+        String sql_commentText = "select " +
+                "(case when CommentText.Lic=0 then 0 else 1 end) as Lic, (case when CommentText.PawnChit=0 then null else 1 end) PawnChit, " +
+                "CommentText.CommentText, " +
+//                "(case when CommentText.CommentUsr=0 then null else 1 end) CommentUsr, " +
+                "CommentText.CommentDt, CommentTip.Name as CommentTipName\n" +
                 "from CommentText, CommentTip\n" +
                 "where CommentText.id <> 0 and CommentText.CommentTip = CommentTip.id\n" +
-                "order by CommentTip.Name, CommentText.CommentText\n";
+                "order by CommentText.CommentText\n";  //CommentTip.Name, 
         DataStore st1_ct = db1.loadSql(sql_commentText);
         OutTableSaver svr1_ct = new OutTableSaver(st1_ct);
         DataStore st2_ct = db2.loadSql(sql_commentText);
