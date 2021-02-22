@@ -92,11 +92,6 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
         sync_http_5();
     }
 
-    private void test_ws5_makeChange() throws Exception {
-        UtTest utTest = new UtTest(db5);
-        utTest.makeChange(struct5, 5);
-    }
-
     @Test
     public void sync_http_5() throws Exception {
         test_ws1_doReplSession();

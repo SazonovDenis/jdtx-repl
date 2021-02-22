@@ -436,6 +436,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     void do_DumpTables(Db db1, Db db2, Db db3, IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct struct3) throws Exception {
+        String db1name = UtFile.removeExt(UtFile.filename(db1.getDbSource().getDatabase()));
+        String db2name = UtFile.removeExt(UtFile.filename(db2.getDbSource().getDatabase()));
+        String db3name = UtFile.removeExt(UtFile.filename(db3.getDbSource().getDatabase()));
+
         UtTest utt1 = new UtTest(db1);
         utt1.dumpTable("lic", "../_test-data/csv/ws1-lic.csv", "nameF");
         utt1.dumpTable("ulz", "../_test-data/csv/ws1-ulz.csv", "name");
@@ -529,15 +533,23 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         String struct_t_XXX3 = dump_table_new_created(db3, struct3);
 
         //
-        UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_ct.save().toString() + "\n\n" + svr1_r.save().toString() + "\n\n" + struct_t_XXX1 + "\n\n" + svr1_bt.save().toString(), new File("../_test-data/csv/ws1-all.csv"));
-        UtFile.saveString(svr2.save().toString() + "\n\n" + svr2_ct.save().toString() + "\n\n" + svr2_r.save().toString() + "\n\n" + struct_t_XXX2 + "\n\n" + svr2_bt.save().toString(), new File("../_test-data/csv/ws2-all.csv"));
-        UtFile.saveString(svr3.save().toString() + "\n\n" + svr3_ct.save().toString() + "\n\n" + svr3_r.save().toString() + "\n\n" + struct_t_XXX3 + "\n\n" + svr3_bt.save().toString(), new File("../_test-data/csv/ws3-all.csv"));
+        String fileName1 = "../_test-data/csv/" + db1name + "-all.csv";
+        String fileName2 = "../_test-data/csv/" + db2name + "-all.csv";
+        String fileName3 = "../_test-data/csv/" + db3name + "-all.csv";
+        UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_ct.save().toString() + "\n\n" + svr1_r.save().toString() + "\n\n" + struct_t_XXX1 + "\n\n" + svr1_bt.save().toString(), new File(fileName1));
+        UtFile.saveString(svr2.save().toString() + "\n\n" + svr2_ct.save().toString() + "\n\n" + svr2_r.save().toString() + "\n\n" + struct_t_XXX2 + "\n\n" + svr2_bt.save().toString(), new File(fileName2));
+        UtFile.saveString(svr3.save().toString() + "\n\n" + svr3_ct.save().toString() + "\n\n" + svr3_r.save().toString() + "\n\n" + struct_t_XXX3 + "\n\n" + svr3_bt.save().toString(), new File(fileName3));
 
         //
-        startCmpDb();
+        startCmpDb(fileName1, fileName2, fileName3);
     }
 
     void do_DumpTables_Lic_CommentText(Db db1, Db db2, Db db3, IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct struct3) throws Exception {
+        String db1name = UtFile.removeExt(UtFile.filename(db1.getDbSource().getDatabase()));
+        String db2name = UtFile.removeExt(UtFile.filename(db2.getDbSource().getDatabase()));
+        String db3name = UtFile.removeExt(UtFile.filename(db3.getDbSource().getDatabase()));
+
+        //
         UtTest utt1 = new UtTest(db1);
         utt1.dumpTable("lic", "../_test-data/csv/ws1-lic.csv", "nameF");
         utt1.dumpTable("ulz", "../_test-data/csv/ws1-ulz.csv", "name");
@@ -591,18 +603,24 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         String struct_t_XXX3 = dump_table_new_created(db3, struct3);
 
         //
-        UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_r.save().toString() + "\n\n" + struct_t_XXX1 + "\n\n" + svr1_bt.save().toString(), new File("../_test-data/csv/ws1-all.csv"));
-        UtFile.saveString(svr2.save().toString() + "\n\n" + svr2_r.save().toString() + "\n\n" + struct_t_XXX2 + "\n\n" + svr2_bt.save().toString(), new File("../_test-data/csv/ws2-all.csv"));
-        UtFile.saveString(svr3.save().toString() + "\n\n" + svr3_r.save().toString() + "\n\n" + struct_t_XXX3 + "\n\n" + svr3_bt.save().toString(), new File("../_test-data/csv/ws3-all.csv"));
+        String fileName1 = "../_test-data/csv/" + db1name + "-all.csv";
+        String fileName2 = "../_test-data/csv/" + db2name + "-all.csv";
+        String fileName3 = "../_test-data/csv/" + db3name + "-all.csv";
+        UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_r.save().toString() + "\n\n" + struct_t_XXX1 + "\n\n" + svr1_bt.save().toString(), new File(fileName1));
+        UtFile.saveString(svr2.save().toString() + "\n\n" + svr2_r.save().toString() + "\n\n" + struct_t_XXX2 + "\n\n" + svr2_bt.save().toString(), new File(fileName2));
+        UtFile.saveString(svr3.save().toString() + "\n\n" + svr3_r.save().toString() + "\n\n" + struct_t_XXX3 + "\n\n" + svr3_bt.save().toString(), new File(fileName3));
+
 
         //
-        startCmpDb();
+        startCmpDb(fileName1, fileName2, fileName3);
     }
 
-    @Test
-    public void startCmpDb() throws Exception {
-        ProcessBuilder processBuilder = new ProcessBuilder("cmd", "/C", "cmp_db.bat");
-        processBuilder.directory(new File(UtRun.getAppDir()).getParentFile());
+    void startCmpDb(String fileName1, String fileName2, String fileName3) throws Exception {
+        String batContent = "diff " + new File(fileName1).getAbsolutePath() + " " + new File(fileName2).getAbsolutePath() + " " + new File(fileName3).getAbsolutePath();
+        File batFile = new File("temp/cmp_db.bat");
+        UtFile.saveString(batContent, batFile);
+        ProcessBuilder processBuilder = new ProcessBuilder("cmd", "/C", batFile.getAbsolutePath());
+        processBuilder.directory(batFile.getParentFile());
         Process process = processBuilder.start();
         process.waitFor();
     }
@@ -658,6 +676,11 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         utTest.makeChange(struct3, 3);
     }
 
+    @Test
+    public void test_ws5_makeChange() throws Exception {
+        UtTest utTest = new UtTest(db5);
+        utTest.makeChange(struct5, 5);
+    }
 
     @Test
     public void test_ws1_getInfoWs() throws Exception {
