@@ -10,7 +10,7 @@ import org.junit.*;
  */
 public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
-    String cfg_publications = "test/etalon/publication_full_152.struct.json";
+    String cfg_publications = "test/etalon/publication_struct_152.json";
 
     @Override
     public void setUp() throws Exception {

@@ -35,7 +35,7 @@ public class UtAuditApplyer {
     /**
      * Применить данные из dataReader на рабочей станции selfWsId
      */
-    public void applyReplica(JdxReplicaReaderXml dataReader, IPublicationStorage publication, boolean forceApply_ignorePublicationRules, long selfWsId, long portionMax) throws Exception {
+    public void applyReplica(JdxReplicaReaderXml dataReader, IPublicationStorage publicationRules, boolean forceApply_ignorePublicationRules, long selfWsId, long portionMax) throws Exception {
         log.info("applyReplica, self.WsId: " + selfWsId + ", replica.WsId: " + dataReader.getWsId() + ", replica.age: " + dataReader.getAge());
 
         //
@@ -84,16 +84,15 @@ public class UtAuditApplyer {
                 String idFieldName = table.getPrimaryKey().get(0).getName();
 
                 // Поиск таблицы и ее полей в публикации (поля берем именно из правил публикаций)
-                IPublicationRule publicationTable;
+                IPublicationRule publicationRuleTable;
                 if (forceApply_ignorePublicationRules) {
-                    // Таблицу и ее поля берем из структуры
-                    publicationTable = new PublicationRule(struct.getTable(tableName));
-                    //publicationTable = struct.getTable(tableName);
+                    // Таблицу и ее поля берем из актуальной структуры БД
+                    publicationRuleTable = new PublicationRule(struct.getTable(tableName));
                     log.info("  force apply table: " + tableName + ", ignore publication rules");
                 } else {
                     // Таблицу и ее поля берем именно из правил публикаций
-                    publicationTable = publication.getPublicationRule(tableName);
-                    if (publicationTable == null) {
+                    publicationRuleTable = publicationRules.getPublicationRule(tableName);
+                    if (publicationRuleTable == null) {
                         log.info("  skip table: " + tableName + ", not found in publication");
 
                         //
@@ -103,17 +102,6 @@ public class UtAuditApplyer {
                         continue;
                     }
                 }
-/*
-                String publicationFields = null;
-                for (int i = 0; i < publicationRules.size(); i++) {
-                    JSONObject publicationTable = (JSONObject) publicationRules.get(i);
-                    String publicationTableName = (String) publicationTable.get("table");
-                    if (table.getName().compareToIgnoreCase(publicationTableName) == 0) {
-                        publicationFields = Publication.prepareFiledsString(table, (String) publicationTable.get("fields"));
-                        break;
-                    }
-                }
-*/
 
                 // Перебираем записи
                 countPortion = 0;
@@ -139,7 +127,7 @@ public class UtAuditApplyer {
 
                     // Подготовка recParams - значений полей для записи в БД
                     Map recParams = new HashMap();
-                    for (IJdxField publicationField : publicationTable.getFields()) {
+                    for (IJdxField publicationField : publicationRuleTable.getFields()) {
                         String publicationFieldName = publicationField.getName();
                         IJdxField field = table.getField(publicationFieldName);
 
@@ -187,7 +175,14 @@ public class UtAuditApplyer {
                     }
 
                     // Выполняем INS/UPD/DEL
-                    String publicationFields = PublicationStorage.filedsToString(publicationTable.getFields());
+                    String publicationFields = PublicationStorage.filedsToString(publicationRuleTable.getFields());
+                    // Очень важно взять поля для обновления (publicationFields) именно из правил публикации,
+                    // а не все что есть в физической  таблице, т.к. именно по этим правилам готовилась реплика на сервере,
+                    // при этом может импользоваться НЕ ПОЛНЫЙ набор полей. (Неполный набр полей используется, например,
+                    // если на филиалы НЕ отправляются данные из справочников, на которые ссылается рассматриваемая таблица,
+                    // например: примечания, сделанные пользователем, примечания отправляем, а ССЫЛКИ на пользователей придется пропустить),
+                    // Из-за этого пропуска полей, при получении на рабочей станции СВОЕЙ реплики и попытке обновить ВСЕ поля,
+                    // пропущенные поля станут null. На ДРУГИХ филиалах это не страшно, а на НАШЕЙ - данные затрутся.
                     int oprType = JdxUtils.intValueOf(recValues.get(JdxUtils.XML_FIELD_OPR_TYPE));
                     if (oprType == JdxOprType.OPR_INS) {
                         try {
