@@ -9,7 +9,6 @@ import jandcode.utils.*
 import jandcode.utils.error.*
 import jandcode.utils.variant.*
 import jdtx.repl.main.api.rec_merge.*
-import jdtx.repl.main.api.relocator.*
 import jdtx.repl.main.api.struct.*
 
 /**
@@ -87,7 +86,7 @@ class Merge_Ext extends ProjectExt {
             Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(table, fieldNames)
 
             // Тупо превращаем дубликаты в задачи на слияние
-            Collection<RecMergeTask> mergeTasks = utRecMerge.prepareRemoveDuplicatesTaskAsIs(table, duplicates)
+            Collection<RecMergePlan> mergeTasks = utRecMerge.prepareRemoveDuplicatesTaskAsIs(table, duplicates)
 
             // Сериализация
             UtRecMergeReader reader = new UtRecMergeReader()
@@ -127,14 +126,14 @@ class Merge_Ext extends ProjectExt {
 
             // Читаем задачу на слияние
             UtRecMergeReader reader = new UtRecMergeReader()
-            Collection<RecMergeTask> mergeTasks = reader.readTasks(file)
+            Collection<RecMergePlan> mergeTasks = reader.readTasks(file)
 
             // Печатаем задачу на слияние
             UtRecMerge.printTasks(mergeTasks)
 
             // Исполняем задачу на слияние
             UtRecMerge utRecMerge = new UtRecMerge(db, struct)
-            MergeResultTableMap mergeResults = utRecMerge.execMergeTask(mergeTasks, delete)
+            MergeResultTableMap mergeResults = utRecMerge.execMergePlan(mergeTasks, delete)
 
             // Сохраняем результат выполнения задачи
             reader = new UtRecMergeReader()

@@ -10,8 +10,8 @@ import java.util.*;
 
 public class UtRecMergeReader {
 
-    public Collection<RecMergeTask> readTasks(String fileName) throws Exception {
-        Collection<RecMergeTask> mergeTasks = new ArrayList<>();
+    public Collection<RecMergePlan> readTasks(String fileName) throws Exception {
+        Collection<RecMergePlan> mergeTasks = new ArrayList<>();
 
         InputStream inputStream = new FileInputStream(fileName);
         Reader reader = new InputStreamReader(inputStream);
@@ -21,7 +21,7 @@ public class UtRecMergeReader {
         //
         for (Object k : jsonPoints) {
             JSONObject taskJson = (JSONObject) k;
-            RecMergeTask task = new RecMergeTask();
+            RecMergePlan task = new RecMergePlan();
             task.tableName = taskJson.get("tableName").toString();
             task.recordEtalon = new HashMap((Map) taskJson.get("recordEtalon"));
             task.recordsDelete = new ArrayList<>((Collection<Long>) taskJson.get("recordsDelete"));
@@ -32,9 +32,9 @@ public class UtRecMergeReader {
         return mergeTasks;
     }
 
-    public void writeTasks(Collection<RecMergeTask> mergeTasks, String fileName) throws Exception {
+    public void writeTasks(Collection<RecMergePlan> mergeTasks, String fileName) throws Exception {
         JSONArray json = new JSONArray();
-        for (RecMergeTask task : mergeTasks) {
+        for (RecMergePlan task : mergeTasks) {
             JSONObject taskJson = new JSONObject();
             taskJson.put("tableName", task.tableName);
             taskJson.put("recordEtalon", task.recordEtalon);

@@ -19,18 +19,18 @@ public interface IUtRecMerge {
     Collection<RecDuplicate> findTableDuplicates(String tableName, String[] fieldNames) throws Exception;
 
     /**
-     * Выполнить задачи на слияние
+     * Выполнить планы (задачи) на слияние
      *
-     * @param tasks Список задач на слияние
-     * @return Для каждой RecMergeTask.tableName возвращает,
-     * что пришлось сделать с каждой из зависимых от RecMergeTask.tableName таблиц, чтобы выполнить каждую task.
+     * @param plans Список планов (задач) слияния.
+     * @return Для каждой таблицы (RecMergePlan.tableName) возвращает,
+     * что пришлось сделать с каждой из зависимых от RecMergePlan.tableName таблиц, чтобы выполнить каждый план из plans.
      */
-    MergeResultTableMap execMergeTask(Collection<RecMergeTask> tasks, boolean doDelete) throws Exception;
+    MergeResultTableMap execMergePlan(Collection<RecMergePlan> plans, boolean doDelete) throws Exception;
 
     /**
      * Откатить слияние
      * @param taskResults результат выполнения задач на слияние (затронутые записи)
      */
-    void revertExecTask(MergeResultTableMap taskResults);
+    void revertExecMergePlan(MergeResultTableMap taskResults);
 
 }

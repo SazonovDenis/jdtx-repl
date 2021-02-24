@@ -9,7 +9,7 @@ import jdtx.repl.main.api.struct.*;
 
 import java.util.*;
 
-import static jdtx.repl.main.api.JdxUtils.longValueOf;
+import static jdtx.repl.main.api.JdxUtils.*;
 
 /**
  * Утилиты по слиянию записей
@@ -141,33 +141,28 @@ public class UtRecMerge implements IUtRecMerge {
     }
 
     @Override
-    public MergeResultTableMap execMergeTask(Collection<RecMergeTask> mergeTasks, boolean doDelete) throws Exception {
+    public MergeResultTableMap execMergePlan(Collection<RecMergePlan> plans, boolean doDelete) throws Exception {
         MergeResultTableMap result = new MergeResultTableMap();
 
         //
-        for (RecMergeTask mergeTask : mergeTasks) {
+        for (RecMergePlan mergePlan : plans) {
             db.startTran();
             try {
                 //
-                MergeResultTable taskResultForTable = result.addForTable(mergeTask.tableName);
+                MergeResultTable taskResultForTable = result.addForTable(mergePlan.tableName);
 
-                //
-                String pkField = struct.getTable(mergeTask.tableName).getPrimaryKey().get(0).getName();
-                long etalonRecId = longValueOf(mergeTask.recordEtalon.get(pkField));
+                // INS - Создаем эталонную запись
+                String pkField = struct.getTable(mergePlan.tableName).getPrimaryKey().get(0).getName();
+                mergePlan.recordEtalon.put(pkField, null);
+                long etalonRecId = dbu.insertRec(mergePlan.tableName, mergePlan.recordEtalon);
 
                 // UPD - Перебиваем ссылки у зависимых таблиц
-                recordsRelocateRefs(mergeTask.tableName, etalonRecId, mergeTask.recordsDelete, taskResultForTable);
-
+                recordsRelocateRefs(mergePlan.tableName, etalonRecId, mergePlan.recordsDelete, taskResultForTable);
 
                 // DEL - Удаляем лишние (теперь уже) записи
                 if (doDelete) {
-                    recordsDelete(mergeTask.tableName, mergeTask.recordsDelete, taskResultForTable);
+                    recordsDelete(mergePlan.tableName, mergePlan.recordsDelete, taskResultForTable);
                 }
-
-
-                // UPD для эталонной записи
-                // todo UPD эталонной записи
-
 
                 //
                 db.commit();
@@ -327,8 +322,9 @@ public class UtRecMerge implements IUtRecMerge {
 
 
     @Override
-    public void revertExecTask(MergeResultTableMap taskResults) {
+    public void revertExecMergePlan(MergeResultTableMap taskResults) {
         // todo: реализовать
+        throw new XError("Not implemented");
     }
 
     /**
@@ -354,27 +350,27 @@ public class UtRecMerge implements IUtRecMerge {
     }
 
     /**
-     * Превращение ВСЕХ дублей в задание на удаление в "лоб".
-     * В живых оставляем первую запись, остальные - планируем удалить.
+     * Превращение ВСЕХ дублей в план на удаление в "лоб".
+     * За образец берем первую запись (на ее основе делаем новую запись), все записи - планируем удалить.
      */
-    public Collection<RecMergeTask> prepareRemoveDuplicatesTaskAsIs(String tableName, Collection<RecDuplicate> duplicates) throws Exception {
+    public Collection<RecMergePlan> prepareRemoveDuplicatesTaskAsIs(String tableName, Collection<RecDuplicate> duplicates) throws Exception {
 
 
         //todo:^с обязательно: стартегия слияния частично заполенных полей в разных экземплярах (например у человека в одной записи есть телефон, а в другой - номер дома) - чтобы в качестве кандидата получалась "объединанная" по полям запись
         //todo:task.recordEtalon - пополняется полями из всех экземпляров.
-        //todo:Проработать "антагонистичные" поля! - Иногда 1) не все поля могут быть заполнены одновременно или 2) они заполняются в связи с друг с другом (см. "Группы связных полей")
+        //todo:Проработать "антагонистичные" поля! - Иногда 1) не все поля могут быть заполнены одновременно или 2) они заполняются в связи с друг с другом (см. "Группы связных полей" в своей докуметашке)
         // потом сделать -> todo UPD эталонной записи
 
         String pkField = struct.getTable(tableName).getPrimaryKey().get(0).getName();
         //
-        Collection<RecMergeTask> res = new ArrayList<>();
+        Collection<RecMergePlan> res = new ArrayList<>();
         //
         for (RecDuplicate duplicate : duplicates) {
-            RecMergeTask task = new RecMergeTask();
+            RecMergePlan task = new RecMergePlan();
             //
             task.tableName = tableName;
             task.recordEtalon = duplicate.records.get(0).getValues();
-            for (int i = 1; i < duplicate.records.size(); i++) {
+            for (int i = 0; i < duplicate.records.size(); i++) {
                 task.recordsDelete.add(duplicate.records.get(i).getValueLong(pkField));
             }
             //
@@ -406,10 +402,10 @@ public class UtRecMerge implements IUtRecMerge {
         return false;
     }
 
-    public static void printTasks(Collection<RecMergeTask> mergeTasks) {
+    public static void printTasks(Collection<RecMergePlan> mergeTasks) {
         System.out.println("MergeTasks count: " + mergeTasks.size());
         System.out.println();
-        for (RecMergeTask mergeTask : mergeTasks) {
+        for (RecMergePlan mergeTask : mergeTasks) {
             System.out.println("Table: " + mergeTask.tableName);
             System.out.println("Etalon: " + mergeTask.recordEtalon);
             System.out.println("Delete: " + mergeTask.recordsDelete);

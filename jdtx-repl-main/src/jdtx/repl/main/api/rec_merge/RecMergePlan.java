@@ -3,10 +3,10 @@ package jdtx.repl.main.api.rec_merge;
 import java.util.*;
 
 /**
- * Задача на слияние дубликатов в таблице tableName.
+ * План (задача) на слияние дубликатов в таблице tableName.
  * Имеет список удаляемых записей и одну эталонную запись, которую оставляем.
  */
-public class RecMergeTask {
+public class RecMergePlan {
 
     /**
      * Таблица, для которой делаем merge
@@ -14,7 +14,7 @@ public class RecMergeTask {
     String tableName;
 
     /**
-     * Запись (эталонная), корторая остается в таблице tableName взамен удаленных, теперь все будут ссылатся на нее
+     * Запись (эталонная), корторая появится в таблице tableName взамен удаленных, теперь все будут ссылатся на нее
      */
     Map recordEtalon;
 
@@ -26,7 +26,7 @@ public class RecMergeTask {
     /**
      *
      */
-    public RecMergeTask() {
+    public RecMergePlan() {
         recordsDelete = new ArrayList<>();
     }
 
