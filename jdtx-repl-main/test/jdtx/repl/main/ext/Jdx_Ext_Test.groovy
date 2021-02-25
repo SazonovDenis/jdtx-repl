@@ -1,7 +1,6 @@
 package jdtx.repl.main.ext
 
 import jandcode.dbm.*
-import jandcode.dbm.data.*
 import jandcode.dbm.db.*
 import jandcode.jc.*
 import jandcode.jc.test.*
@@ -117,24 +116,29 @@ class Jdx_Ext_Test extends JcTestCase {
 
     @Test
     void repl_record_merge_file() {
-        //TestExtJc jc = createExt(TestExtJc.class);
-        ProjectScript project = jc.loadProject("one/project.jc");
-        Merge_Ext ext = (Merge_Ext) project.createExt("jdtx.repl.main.ext.Merge_Ext");
+        ProjectScript project = jc.loadProject("ws2/project.jc")
+        //ProjectScript project = jc.loadProject("one/project.jc")
+        Merge_Ext ext = (Merge_Ext) project.createExt("jdtx.repl.main.ext.Merge_Ext")
 
         //
         IVariantMap args = new VariantMap();
         //args.put("table", "LicDocTip");
         //args.put("file", "temp/_LicDocTip.task");
         //args.put("fields", "Name,ShortName");
-        args.put("table", "LicDocVid");
-        args.put("file", "temp/_LicDocVid.task");
-        args.put("fields", "Name");
+        args.put("table", "LicDocTip");
+        args.put("file", "temp/_LicDocTip.task")
+        args.put("fields", "Name")
+        args.put("cfg_group", "test/etalon/field_groups.json")
 
         //
         ext.rec_merge_find(args);
 
         //
-        ext.rec_merge_exec(args);
+        args.put("delete", true)
+        ext.rec_merge_exec(args)
+
+        //
+        ext.rec_merge_find(args);
     }
 
 

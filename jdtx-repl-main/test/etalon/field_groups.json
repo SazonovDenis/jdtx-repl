@@ -1,0 +1,11 @@
+{
+  "Lic": [
+    "LicDocTip,DocNo,DocSer,LicDocVid,DocDt,DocDt,DocDtEnd",
+    "NameF,NameI,NameO",
+    "Region,Ulz,Dom,Kv",
+    "RegionReg,UlzReg,DomReg,KvReg"
+  ],
+  "CommentText": [
+    "Lic,PawnChit,PawnChitSubject"
+  ]
+}
