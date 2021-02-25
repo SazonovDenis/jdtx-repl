@@ -8,8 +8,10 @@ import jandcode.jc.*
 import jandcode.utils.*
 import jandcode.utils.error.*
 import jandcode.utils.variant.*
+import jandcode.web.*
 import jdtx.repl.main.api.rec_merge.*
 import jdtx.repl.main.api.struct.*
+import org.json.simple.*
 
 /**
  * Обертка для вызовов утилиты jc с командной строки
@@ -56,6 +58,7 @@ class Merge_Ext extends ProjectExt {
         String table = args.getValueString("table")
         String fields = args.getValueString("fields")
         String file = args.getValueString("file")
+        String fileCfgGroup = args.getValueString("cfg_group")
         if (table == null || table.length() == 0) {
             throw new XError("Не указана [table] - имя таблицы")
         }
@@ -81,19 +84,25 @@ class Merge_Ext extends ProjectExt {
             //
             String[] fieldNames = fields.split(",")
 
-            // Ищем дубликаты
+            //
             UtRecMerge utRecMerge = new UtRecMerge(db, struct)
+            if (fileCfgGroup != null) {
+                JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString(fileCfgGroup))
+                utRecMerge.groupsStrategyStorage.loadStrategy(cfg, struct)
+            }
+
+            // Ищем дубликаты
             Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(table, fieldNames)
 
             // Тупо превращаем дубликаты в задачи на слияние
-            Collection<RecMergePlan> mergeTasks = utRecMerge.prepareRemoveDuplicatesTaskAsIs(table, duplicates)
+            Collection<RecMergePlan> mergeTasks = utRecMerge.prepareMergePlan(table, duplicates)
 
             // Сериализация
             UtRecMergeReader reader = new UtRecMergeReader()
             reader.writeTasks(mergeTasks, file)
 
             // Печатаем задачи
-            UtRecMerge.printTasks(mergeTasks)
+            UtRecMergePrint.printTasks(mergeTasks)
 
         } finally {
             db.disconnect()
@@ -129,7 +138,7 @@ class Merge_Ext extends ProjectExt {
             Collection<RecMergePlan> mergeTasks = reader.readTasks(file)
 
             // Печатаем задачу на слияние
-            UtRecMerge.printTasks(mergeTasks)
+            UtRecMergePrint.printTasks(mergeTasks)
 
             // Исполняем задачу на слияние
             UtRecMerge utRecMerge = new UtRecMerge(db, struct)
@@ -175,7 +184,7 @@ class Merge_Ext extends ProjectExt {
             System.out.println("Record sour:")
             UtData.outTable(relocateCheckResult.recordsDeleted)
             System.out.println("Records updated for tables, referenced to " + "Lic" + ":")
-            UtRecMerge.printRecordsUpdated(relocateCheckResult.recordsUpdated)
+            UtRecMergePrint.printRecordsUpdated(relocateCheckResult.recordsUpdated)
 
         } finally {
             db.disconnect()

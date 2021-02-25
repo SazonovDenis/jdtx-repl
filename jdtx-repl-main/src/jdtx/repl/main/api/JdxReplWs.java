@@ -403,6 +403,10 @@ public class JdxReplWs {
             // Фильтр
             IReplicaFilter filter = new ReplicaFilter();
 
+            // Параметры: получатель реплики (для правил публикации)
+            // При выгрузке Snapshot на станцции получатель, строго говоря, не определен.
+            // filter.getFilterParams().put("wsDestination", String.valueOf(wsId));
+
             // Помещаем реплики в очередь
             int i = 0;
             for (IReplica replicaSnapshot : replicasSnapshot) {
@@ -439,6 +443,54 @@ public class JdxReplWs {
         //
         return true;
     }
+
+
+    private void createSnapsotIntoQueOut(String tableName) throws Exception {
+        //
+        UtRepl utRepl = new UtRepl(db, struct);
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+
+        // Нумеруем реплики
+        long queOutMaxAge = queOut.getMaxNo();
+
+        // Список из одной таблицы
+        List<IJdxTable> tablesNew = new ArrayList<>();
+        tablesNew.add(struct.getTable(tableName));
+
+        // Создаем реплику
+        List<IReplica> replicasSnapshot = SnapshotForTables(tablesNew, queOutMaxAge, true);
+
+        // Фильтр
+        IReplicaFilter filter = new ReplicaFilter();
+
+        // Параметры: получатель реплики (для правил публикации)
+        // При выгрузке Snapshot на станцции получатель, строго говоря, не определен.
+        // filter.getFilterParams().put("wsDestination", String.valueOf(wsId));
+
+        // Помещаем реплики в очередь
+        int i = 0;
+        for (IReplica replicaSnapshot : replicasSnapshot) {
+            // Искусственно увеличиваем возраст (установочная реплика сдвигает возраст БД на 1)
+            long age = utRepl.incAuditAge();
+            //todo: дублирование кода, см log.info("createReplicaTableSnapshot, tableName: " + tablesNew.get(i).getName() + ", new age: " + age);
+            log.info("createReplicaTableSnapshot, tableName: " + tablesNew.get(i).getName() + ", new age: " + age);
+
+            // Преобразовываем по фильтрам
+            IReplica replicaForWs = filter.prepareReplicaForWs(replicaSnapshot, publicationOut);
+
+            // Помещаем реплику в очередь
+            queOut.push(replicaForWs);
+
+            //
+            stateManager.setAuditAgeDone(age);
+
+            //
+            i = i + 1;
+        }
+
+
+    }
+
 
     List<IReplica> SnapshotForTables(List<IJdxTable> tables, long queOutAge, boolean forbidNotOwnId) throws Exception {
         List<IReplica> replicaList = new ArrayList<>();
@@ -729,7 +781,7 @@ public class JdxReplWs {
 
                 // Версия
                 String appVersionAllowed;
-                InputStream stream = UtRepl.createInputStream(replica, "version");
+                InputStream stream = JdxReplicaReaderXml.createInputStream(replica, "version");
                 try {
                     File versionFile = File.createTempFile("~JadatexSync", ".version");
                     UtFile.copyStream(stream, versionFile);
@@ -742,7 +794,7 @@ public class JdxReplWs {
                 // Распаковываем бинарник
                 // TODO Обработать ситуацию, когда антивирус съел бинарник.
                 // Надо научиться при отсутствии бинарника снова искать последнюю реплику и распаковывать бинарник непосредственно перед запуском
-                InputStream replicaStream = UtRepl.createInputStream(replica, ".exe");
+                InputStream replicaStream = JdxReplicaReaderXml.createInputStream(replica, ".exe");
                 try {
                     UtFile.mkdirs("install");
                     File exeFile = new File("install/JadatexSync-update-" + appVersionAllowed + ".exe");
@@ -777,7 +829,7 @@ public class JdxReplWs {
 
                 // Узнаем получателя
                 JSONObject info;
-                InputStream infoStream = UtRepl.createInputStream(replica, "info.json");
+                InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
                 try {
                     String cfgStr = loadStringFromSream(infoStream);
                     info = (JSONObject) UtJson.toObject(cfgStr);
@@ -808,7 +860,7 @@ public class JdxReplWs {
 
                 // Узнаем получателя
                 JSONObject info;
-                InputStream infoStream = UtRepl.createInputStream(replica, "info.json");
+                InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
                 try {
                     String cfgStr = loadStringFromSream(infoStream);
                     info = (JSONObject) UtJson.toObject(cfgStr);
@@ -836,7 +888,7 @@ public class JdxReplWs {
 
                 // Узнаем получателя
                 JSONObject info;
-                InputStream infoStream = UtRepl.createInputStream(replica, "info.json");
+                InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
                 try {
                     String cfgStr = loadStringFromSream(infoStream);
                     info = (JSONObject) UtJson.toObject(cfgStr);
@@ -865,11 +917,39 @@ public class JdxReplWs {
                 break;
             }
 
+            case JdxReplicaType.SEND_SNAPSHOT: {
+                // Реакция на команду - SEND_SNAPSHOT
+
+                // Узнаем получателя
+                JSONObject info;
+                InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
+                try {
+                    String cfgStr = loadStringFromSream(infoStream);
+                    info = (JSONObject) UtJson.toObject(cfgStr);
+                } finally {
+                    infoStream.close();
+                }
+                long destinationWsId = longValueOf(info.get("destinationWsId"));
+                String tableName = (String)  info.get("tableName");
+
+                // Реакция на команду, если получатель - именно наша
+                if (destinationWsId == wsId) {
+                    // Создаем снимок таблицы и кладем его в очередь queOut
+                    createSnapsotIntoQueOut(tableName) ;
+
+                    // Выкладывание реплики "snapshot отправлен"
+                    reportReplica(JdxReplicaType.SEND_SNAPSHOT_DONE);
+                }
+
+                //
+                break;
+            }
+
             case JdxReplicaType.SET_DB_STRUCT: {
                 // Реакция на команду - задать "разрешенную" структуру БД
 
                 // В этой реплике - новая "разрешенная" структура
-                InputStream stream = UtRepl.getReplicaInputStream(replica);
+                InputStream stream = JdxReplicaReaderXml.createInputStreamData(replica);
                 try {
                     JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
                     IJdxDbStruct struct = struct_rw.read(stream);
@@ -909,7 +989,7 @@ public class JdxReplWs {
 
                 // В этой реплике - данные о новой конфигурации
                 JSONObject cfgInfo;
-                InputStream cfgInfoStream = UtRepl.createInputStream(replica, "cfg.info.json");
+                InputStream cfgInfoStream = JdxReplicaReaderXml.createInputStream(replica, "cfg.info.json");
                 try {
                     String cfgInfoStr = loadStringFromSream(cfgInfoStream);
                     cfgInfo = (JSONObject) UtJson.toObject(cfgInfoStr);
@@ -918,14 +998,14 @@ public class JdxReplWs {
                 }
 
                 // Данные о новой конфигурации
-                String cfgType = (String) cfgInfo.get("cfgType");
                 long destinationWsId = longValueOf(cfgInfo.get("destinationWsId"));
+                String cfgType = (String) cfgInfo.get("cfgType");
 
                 // Пришла конфигурация для нашей станции (или всем станциям)?
                 if (destinationWsId == 0 || destinationWsId == wsId) {
                     // В этой реплике - новая конфигурация
                     JSONObject cfg;
-                    InputStream cfgStream = UtRepl.createInputStream(replica, "cfg.json");
+                    InputStream cfgStream = JdxReplicaReaderXml.createInputStream(replica, "cfg.json");
                     try {
                         String cfgStr = loadStringFromSream(cfgStream);
                         cfg = (JSONObject) UtJson.toObject(cfgStr);
@@ -1012,7 +1092,7 @@ public class JdxReplWs {
                 InputStream inputStream = null;
                 try {
                     // Распакуем XML-файл из Zip-архива
-                    inputStream = UtRepl.getReplicaInputStream(replica);
+                    inputStream = JdxReplicaReaderXml.createInputStreamData(replica);
 
                     //
                     JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
@@ -1048,6 +1128,7 @@ public class JdxReplWs {
         //
         return useResult;
     }
+
 
     /**
      * Применяем входящие реплики из очереди

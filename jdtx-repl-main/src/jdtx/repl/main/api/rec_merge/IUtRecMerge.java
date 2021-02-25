@@ -19,6 +19,13 @@ public interface IUtRecMerge {
     Collection<RecDuplicate> findTableDuplicates(String tableName, String[] fieldNames) throws Exception;
 
     /**
+     * Для найденных дубликатов duplicates предложить план слияния записей.
+     *
+     * @return План на слияние дубликатов
+     */
+    Collection<RecMergePlan> prepareMergePlan(String tableName, Collection<RecDuplicate> duplicates) throws Exception;
+
+    /**
      * Выполнить планы (задачи) на слияние
      *
      * @param plans Список планов (задач) слияния.
@@ -29,6 +36,7 @@ public interface IUtRecMerge {
 
     /**
      * Откатить слияние
+     *
      * @param taskResults результат выполнения задач на слияние (затронутые записи)
      */
     void revertExecMergePlan(MergeResultTableMap taskResults);

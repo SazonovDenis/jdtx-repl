@@ -50,7 +50,7 @@ public class UtRecMerge_Relocate_Test extends DbmTestCase {
         System.out.println("Record relocated:");
         UtData.outTable(relocateCheckResult.recordsDeleted);
         System.out.println("Records updated for tables, referenced to " + "Lic" + ":");
-        UtRecMerge.printRecordsUpdated(relocateCheckResult.recordsUpdated);
+        UtRecMergePrint.printRecordsUpdated(relocateCheckResult.recordsUpdated);
 
         //
         idSour = 200001357;
@@ -60,7 +60,7 @@ public class UtRecMerge_Relocate_Test extends DbmTestCase {
             System.out.println("Record deleted:");
             UtData.outTable(relocateCheckResult.recordsDeleted);
             System.out.println("Records updated for tables, referenced to " + "Lic" + ":");
-            UtRecMerge.printRecordsUpdated(relocateCheckResult.recordsUpdated);
+            UtRecMergePrint.printRecordsUpdated(relocateCheckResult.recordsUpdated);
         } catch (Exception e) {
             if (e.getMessage().compareToIgnoreCase("No result in sqlrec") != 0) {
                 throw e;

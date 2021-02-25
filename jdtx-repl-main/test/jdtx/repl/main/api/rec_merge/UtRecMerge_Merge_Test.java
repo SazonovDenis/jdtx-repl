@@ -21,10 +21,12 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
     IJdxDbStruct struct;
 
     //String tableName = "Ulz";
-    //String tableName = "LicDocTip";
-    String tableName = "LicDocVid";
+    String tableName = "LicDocTip";
+    //String tableName = "LicDocVid";
     //String tableName = "Lic";
-    String namesStr = "Name";
+    //
+    //String namesStr = "Name";
+    String namesStr = "Name,ShortName";
     //String namesStr = "RNN";
 
     //
@@ -135,18 +137,18 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         assertEquals("Найдены дубликаты", true, duplicates.size() > 0);
 
         // Тупо превращаем дубликаты в задачу на слияние
-        Collection<RecMergePlan> mergeTasks = utRecMerge.prepareRemoveDuplicatesTaskAsIs(tableName, duplicates);
+        Collection<RecMergePlan> mergeTasks = utRecMerge.prepareMergePlan(tableName, duplicates);
         //
         assertEquals("Есть задание на слияние", true, mergeTasks.size() > 0);
 
         // Печатаем задачу на слияние
-        UtRecMerge.printTasks(mergeTasks);
+        UtRecMergePrint.printTasks(mergeTasks);
 
         // Исполняем задачу на слияние
         MergeResultTableMap mergeResults = utRecMerge.execMergePlan(mergeTasks, UtRecMerge.DO_DELETE);
 
         // Печатаем результат выполнения задачи
-        UtRecMerge.printMergeResults(mergeResults);
+        UtRecMergePrint.printMergeResults(mergeResults);
 
         // Сохраняем результат выполнения задачи
         UtRecMergeReader reader = new UtRecMergeReader();
@@ -174,7 +176,7 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(tableName, fieldNames);
 
         // Тупо превращаем дубликаты в задачи на слияние
-        Collection<RecMergePlan> mergeTasks = utRecMerge.prepareRemoveDuplicatesTaskAsIs(tableName, duplicates);
+        Collection<RecMergePlan> mergeTasks = utRecMerge.prepareMergePlan(tableName, duplicates);
 
         // Сериализация задач
         UtRecMergeReader reader = new UtRecMergeReader();
@@ -186,7 +188,7 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         assertEquals("Есть задание на слияние", true, mergeTasks.size() > 0);
 
         // Печатаем задачи, что прочитали
-        UtRecMerge.printTasks(mergeTasksFile);
+        UtRecMergePrint.printTasks(mergeTasksFile);
     }
 
     @Test
@@ -201,14 +203,14 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         assertEquals("Есть задание на слияние", true, mergeTasks.size() > 0);
 
         // Печатаем задачу на слияние
-        UtRecMerge.printTasks(mergeTasks);
+        UtRecMergePrint.printTasks(mergeTasks);
 
         // Исполняем задачу на слияние
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
         MergeResultTableMap mergeResults = utRecMerge.execMergePlan(mergeTasks, UtRecMerge.DO_DELETE);
 
         // Печатаем результат выполнения задачи
-        UtRecMerge.printMergeResults(mergeResults);
+        UtRecMergePrint.printMergeResults(mergeResults);
 
         // Сохраняем результат выполнения задачи
         reader = new UtRecMergeReader();
@@ -233,14 +235,14 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         Collection<RecMergePlan> mergeTasks = reader.readTasks("temp/task.json");
 
         // Печатаем задачу на слияние
-        UtRecMerge.printTasks(mergeTasks);
+        UtRecMergePrint.printTasks(mergeTasks);
 
         // Исполняем задачу на слияние
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
         MergeResultTableMap mergeResults = utRecMerge.execMergePlan(mergeTasks, UtRecMerge.DO_DELETE);
 
         // Печатаем результат выполнения задачи
-        UtRecMerge.printMergeResults(mergeResults);
+        UtRecMergePrint.printMergeResults(mergeResults);
 
         // Сохраняем результат выполнения задачи
         reader = new UtRecMergeReader();

@@ -29,7 +29,7 @@ public class UtAuditApplyer_Test extends ReplDatabaseStruct_Test {
         replica.setFile(new File(zipFileName));
 
         // Распакуем XML-файл из Zip-архива
-        InputStream inputStream = UtRepl.getReplicaInputStream(replica);
+        InputStream inputStream = JdxReplicaReaderXml.createInputStreamData(replica);
 
         //
         JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);

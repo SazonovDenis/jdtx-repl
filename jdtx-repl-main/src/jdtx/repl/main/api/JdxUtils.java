@@ -185,13 +185,16 @@ public class JdxUtils {
                 replica.getInfo().getReplicaType() == JdxReplicaType.UPDATE_APP_DONE ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SET_CFG ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SET_CFG_DONE ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.SET_QUE_IN_NO
+                replica.getInfo().getReplicaType() == JdxReplicaType.SET_QUE_IN_NO ||
+                replica.getInfo().getReplicaType() == JdxReplicaType.SEND_SNAPSHOT ||
+                replica.getInfo().getReplicaType() == JdxReplicaType.SEND_SNAPSHOT_DONE
+
         ) {
             // Для системных команд мы не делаем других проверок
             return;
         }
 
-        // Проверки: правильность возраста реплики
+        // Проверки: правильность возраста данных в реплике
         if (replica.getInfo().getAge() <= -1) {
             throw new XError("invalid replica.age");
         }

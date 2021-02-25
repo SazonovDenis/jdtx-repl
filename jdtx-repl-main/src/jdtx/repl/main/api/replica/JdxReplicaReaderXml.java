@@ -1,13 +1,14 @@
 package jdtx.repl.main.api.replica;
 
 import groovy.json.*;
-import jdtx.repl.main.api.*;
+import jandcode.utils.error.*;
 import org.json.simple.*;
 import org.json.simple.parser.*;
 
 import javax.xml.stream.*;
 import java.io.*;
 import java.util.*;
+import java.util.zip.*;
 
 /**
  * todo: Читатель (JdxReplicaReader) создается из файла, а писатель - почему-то из потока
@@ -100,7 +101,7 @@ public class JdxReplicaReaderXml {
     public static void readReplicaInfo(IReplica replica) throws Exception {
         ReplicaInfo info;
         try (
-                InputStream zipInputStream = UtRepl.createInputStream(replica, ".info")
+                InputStream zipInputStream = createInputStream(replica, ".info")
         ) {
             JSONObject jsonObject;
             Reader reader = new InputStreamReader(zipInputStream);
@@ -117,6 +118,29 @@ public class JdxReplicaReaderXml {
         replica.getInfo().setDtFrom(info.getDtFrom());
         replica.getInfo().setDtTo(info.getDtTo());
     }
+
+    public static InputStream createInputStreamData(IReplica replica) throws IOException {
+        return createInputStream(replica, ".xml");
+    }
+
+    public static InputStream createInputStream(IReplica replica, String dataFileMask) throws IOException {
+        InputStream inputStream = null;
+        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(replica.getFile()));
+        ZipEntry entry;
+        while ((entry = zipInputStream.getNextEntry()) != null) {
+            String name = entry.getName();
+            if (name.endsWith(dataFileMask)) {
+                inputStream = zipInputStream;
+                break;
+            }
+        }
+        if (inputStream == null) {
+            throw new XError("Not found [" + dataFileMask + "] in replica: " + replica.getFile());
+        }
+
+        return inputStream;
+    }
+
 
     private IReplicaInfo readReplicaHeader() throws XMLStreamException {
         IReplicaInfo replicaInfo = new ReplicaInfo();

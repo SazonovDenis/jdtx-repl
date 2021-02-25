@@ -17,15 +17,15 @@ import java.util.*;
 public class ReplicaFilter implements IReplicaFilter {
 
     //
-    Map<String, String> params = new HashMap<>();
+    Map<String, String> filterParams = new HashMap<>();
 
     //
     protected static Log log = LogFactory.getLog("jdtx.ReplicaFilter");
 
 
     @Override
-    public Map<String, String> getParams() {
-        return params;
+    public Map<String, String> getFilterParams() {
+        return filterParams;
     }
 
     @Override
@@ -47,13 +47,16 @@ public class ReplicaFilter implements IReplicaFilter {
         replicaRes.getInfo().assign(replicaInfo);
 
         //
+        getFilterParams().put("wsAuthor", String.valueOf(replicaInfo.getWsId()));
+
+        //
         if (replicaInfo.getReplicaType() == JdxReplicaType.SNAPSHOT || replicaInfo.getReplicaType() == JdxReplicaType.IDE) {
 
             //
             InputStream inputStream = null;
             try {
                 // Распакуем XML-файл из Zip-архива
-                inputStream = UtRepl.getReplicaInputStream(replicaSrc);
+                inputStream = JdxReplicaReaderXml.createInputStreamData(replicaSrc);
 
                 JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
 
@@ -65,7 +68,7 @@ public class ReplicaFilter implements IReplicaFilter {
                 JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
 
                 // Копируем данные из реплики
-                copyDataWithFilter(replicaReader, xmlWriter, publicationRules, params);
+                copyDataWithFilter(replicaReader, xmlWriter, publicationRules, getFilterParams());
 
                 // Заканчиваем формирование файла реплики
                 replicaWriter.replicaFileClose();
@@ -89,7 +92,7 @@ public class ReplicaFilter implements IReplicaFilter {
     }
 
     // ^с отдельный тест на copyDataWithFilter
-    private void copyDataWithFilter(JdxReplicaReaderXml dataReader, JdxReplicaWriterXml dataWriter, IPublicationStorage publicationRule, Map<String, String> params) throws Exception {
+    private void copyDataWithFilter(JdxReplicaReaderXml dataReader, JdxReplicaWriterXml dataWriter, IPublicationStorage publicationRule, Map<String, String> filterParams) throws Exception {
         String tableName = dataReader.nextTable();
 
         // Перебираем таблицы
@@ -115,11 +118,11 @@ public class ReplicaFilter implements IReplicaFilter {
                 //Function func_getWsAuthor = new Func_getWsAuthor("getWsAuthor", 2);
                 //filterExpression.addFunction(func_getWsAuthor);
 
-                // tableName -> evalExpression.params
+                // tableName -> filterExpression.filterParams
                 filterExpression.setVariable("PARAM_tableName", tableName);
 
-                // params -> evalExpression.params
-                mapToExpressionParams(params, filterExpression);
+                // filterParams -> filterExpression.filterParams
+                mapToExpressionParams(filterParams, filterExpression);
 
                 // Перебираем записи
                 long count = 0;
@@ -132,7 +135,7 @@ public class ReplicaFilter implements IReplicaFilter {
                     int oprType = JdxUtils.intValueOf(recValues.get(JdxUtils.XML_FIELD_OPR_TYPE));
                     filterExpression.setVariable("PARAM_oprType", new BigDecimal(oprType));
 
-                    // recValues -> evalExpression.params
+                    // recValues -> filterExpression.filterParams
                     recordToExpressionParams(recValues, publicationRuleTable, filterExpression);
 
                     //
@@ -180,12 +183,12 @@ public class ReplicaFilter implements IReplicaFilter {
         }
     }
 
-    private void mapToExpressionParams(Map<String, String> params, Expression evalExpression) {
-        // Map values -> evalExpression.params
+    private void mapToExpressionParams(Map<String, String> params, Expression expression) {
+        // Map values -> expression.params
         for (Map.Entry<String, String> entry : params.entrySet()) {
             String fieldName = entry.getKey();
             String fieldValue = entry.getValue();
-            evalExpression.setVariable("PARAM_" + fieldName, new BigDecimal(fieldValue));
+            expression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValue));
         }
     }
 
@@ -208,9 +211,8 @@ public class ReplicaFilter implements IReplicaFilter {
 */
 
 
-
-    private void recordToExpressionParams(Map<String, Object> recValues, IPublicationRule publicationRule, Expression evalExpression) {
-        // recValues -> evalExpression.params
+    private void recordToExpressionParams(Map<String, Object> recValues, IPublicationRule publicationRule, Expression expression) {
+        // recValues -> expression.params
         for (IJdxField field : publicationRule.getFields()) {
             String fieldName = field.getName();
             Object fieldValue = recValues.get(fieldName);
@@ -221,16 +223,16 @@ public class ReplicaFilter implements IReplicaFilter {
                 if (field.isPrimaryKey() || refTable != null) {
                     // Ссылка
                     JdxRef ref = JdxRef.parse((String) fieldValue);
-                    evalExpression.setVariable("PARAM_wsAuthor_" + fieldName, new BigDecimal(ref.ws_id));
-                    evalExpression.setVariable(fieldName, new BigDecimal(ref.id));
+                    expression.setVariable("PARAM_wsAuthor_" + fieldName, new BigDecimal(ref.ws_id));
+                    expression.setVariable(fieldName, new BigDecimal(ref.id));
                 } else if (fieldValue instanceof Long || fieldValue instanceof Integer) {
                     // Целочисленное поле
-                    evalExpression.setVariable(fieldName, new BigDecimal(fieldValue.toString()));
+                    expression.setVariable(fieldName, new BigDecimal(fieldValue.toString()));
                 } else {
                     // Прочие поля
                     String fieldValueStr = fieldValue.toString();
                     if (fieldValueStr.length() > 0) {
-                        // evalExpression.setVariable(fieldName, fieldValueStr); todo: com.udojava.evalex.Expression.isNumber ошибается для дат в строке
+                        // expression.setVariable(fieldName, fieldValueStr); todo: com.udojava.evalex.Expression.isNumber ошибается для дат в строке
                     }
                 }
             }

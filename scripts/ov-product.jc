@@ -120,6 +120,15 @@ repl_app_update = cm("Послать сигнал на обновление ПО
 
 
 //
+repl_request_snapshot = cm("Запрашивает shapshot таблицы с рабочей станции",
+        "ws": [value: null, help: "Код рабочей станции"],
+        "table": [value: null, help: "Имя таблицы"],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_request_snapshot(args)
+}
+
+//
 repl_ws_mute = cm("Перевести станцию в состояние MUTE",
         "ws": [value: null, help: "Код рабочей станции"]) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")

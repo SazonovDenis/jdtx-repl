@@ -9,10 +9,8 @@ import jdtx.repl.main.api.struct.*;
 
 import java.util.*;
 
-import static jdtx.repl.main.api.JdxUtils.*;
-
 /**
- * Утилиты по слиянию записей
+ * Утилиты по слиянию записей (исполнитель)
  */
 public class UtRecMerge implements IUtRecMerge {
 
@@ -22,24 +20,14 @@ public class UtRecMerge implements IUtRecMerge {
     Db db;
     JdxDbUtils dbu;
     IJdxDbStruct struct;
+    public GroupsStrategyStorage groupsStrategyStorage;
 
+    //
     public UtRecMerge(Db db, IJdxDbStruct struct) {
         this.db = db;
         this.struct = struct;
         this.dbu = new JdxDbUtils(db, struct);
-    }
-
-    public static void printRecordsUpdated(RecordsUpdatedMap recordsUpdatedMap) {
-        for (String key : recordsUpdatedMap.keySet()) {
-            RecordsUpdated recordsUpdated = recordsUpdatedMap.get(key);
-            System.out.println("ref: " + recordsUpdated.refTableName + "." + recordsUpdated.refFieldName);
-            if (recordsUpdated.recordsUpdated == null || recordsUpdated.recordsUpdated.size() == 0) {
-                System.out.println("Ref records updated: empty");
-            } else {
-                UtData.outTable(recordsUpdated.recordsUpdated);
-            }
-            System.out.println();
-        }
+        this.groupsStrategyStorage = new GroupsStrategyStorage();
     }
 
     @Override
@@ -112,7 +100,7 @@ public class UtRecMerge implements IUtRecMerge {
                 params.put(name, value);
             }
 
-            // Не ищем дубли по пустым полям
+            // Не ищем дубли для записи, если пусты те её поля, по которым надо искать (поля, перечисленные в fieldNames)
             if (valueWasEmpty) {
                 continue;
             }
@@ -327,6 +315,82 @@ public class UtRecMerge implements IUtRecMerge {
         throw new XError("Not implemented");
     }
 
+
+    @Override
+    public Collection<RecMergePlan> prepareMergePlan(String tableName, Collection<RecDuplicate> duplicates) throws Exception {
+        return prepareRemoveDuplicatesTaskAsIs(tableName, duplicates);
+    }
+
+    /**
+     * Превращение ВСЕХ дублей в план на удаление в "лоб".
+     * За образец берем первую запись (на ее основе делаем новую запись), все записи - планируем удалить.
+     */
+    private Collection<RecMergePlan> prepareRemoveDuplicatesTaskAsIs(String tableName, Collection<RecDuplicate> duplicates) throws Exception {
+        IJdxTable table = struct.getTable(tableName);
+        String pkField = table.getPrimaryKey().get(0).getName();
+        //
+        Collection<RecMergePlan> res = new ArrayList<>();
+        //
+        for (RecDuplicate duplicate : duplicates) {
+            RecMergePlan task = new RecMergePlan();
+            //
+            task.tableName = tableName;
+            task.recordEtalon = duplicate.records.get(0).getValues();
+            //
+            GroupStrategy tableGroups = groupsStrategyStorage.getForTable(tableName);
+            //
+            for (int i = 0; i < duplicate.records.size(); i++) {
+                task.recordsDelete.add(duplicate.records.get(i).getValueLong(pkField));
+                // Запись task.recordEtalon - пополняется полями из всех записей
+                assignNotEmptyFields(duplicate.records.get(i).getValues(), task.recordEtalon, tableGroups);
+            }
+            //
+            res.add(task);
+        }
+        //
+        return res;
+    }
+
+    /**
+     * Запись recordRes - пополняется полями из записи record.
+     * <p>
+     * Реализация стартегии слияния частично заполенных полей в разных экземплярах.
+     * Например у человека в одной записи есть телефон, а в другой - номер дома,
+     * тогда в качестве кандидата получалась "объединанная" по полям запись.
+     * <p>
+     * Проработатны "антагонистичные" поля! - Иногда либо
+     * 1) не все поля могут быть заполнены одновременно либо
+     * 2) они заполняются в связи с друг с другом (см. "Группы связных полей" в своей докуметашке)
+     * Иметь в виду, что при наличии "антагонистичных" полей усложняется выбор записи:
+     * если у записи А есть "дата документа", а у записи Б есть и "дата документа" и "номер документа",
+     * то нужно предпочесть ПАРУ полей из записи Б
+     */
+    void assignNotEmptyFields(Map<String, Object> record, Map<String, Object> recordRes, GroupStrategy groupStrategy) {
+        for (String fieldNameForGroup : record.keySet()) {
+            Collection<String> fieldsGroup = groupStrategy.getForField(fieldNameForGroup);
+
+            // Ишем какая запись полнее заполнена для группы полй fieldsGroup
+            int recordEtalonFilledCount = 0;
+            int recordFilledCount = 0;
+            for (String fieldName : fieldsGroup) {
+                if (!valueIsEmpty(recordRes.get(fieldName))) {
+                    recordEtalonFilledCount = recordEtalonFilledCount + 1;
+                }
+                if (!valueIsEmpty(record.get(fieldName))) {
+                    recordFilledCount = recordFilledCount + 1;
+                }
+            }
+
+            // Если запись record полнее заполнена, то заполняем поля в recordRes
+            if (recordFilledCount > recordEtalonFilledCount) {
+                for (String fieldName : fieldsGroup) {
+                    recordRes.put(fieldName, record.get(fieldName));
+                }
+
+            }
+        }
+    }
+
     /**
      * @return Список таблиц, которые имеют ссылки на таблицу tableName
      */
@@ -345,37 +409,6 @@ public class UtRecMerge implements IUtRecMerge {
             }
         }
 
-        //
-        return res;
-    }
-
-    /**
-     * Превращение ВСЕХ дублей в план на удаление в "лоб".
-     * За образец берем первую запись (на ее основе делаем новую запись), все записи - планируем удалить.
-     */
-    public Collection<RecMergePlan> prepareRemoveDuplicatesTaskAsIs(String tableName, Collection<RecDuplicate> duplicates) throws Exception {
-
-
-        //todo:^с обязательно: стартегия слияния частично заполенных полей в разных экземплярах (например у человека в одной записи есть телефон, а в другой - номер дома) - чтобы в качестве кандидата получалась "объединанная" по полям запись
-        //todo:task.recordEtalon - пополняется полями из всех экземпляров.
-        //todo:Проработать "антагонистичные" поля! - Иногда 1) не все поля могут быть заполнены одновременно или 2) они заполняются в связи с друг с другом (см. "Группы связных полей" в своей докуметашке)
-        // потом сделать -> todo UPD эталонной записи
-
-        String pkField = struct.getTable(tableName).getPrimaryKey().get(0).getName();
-        //
-        Collection<RecMergePlan> res = new ArrayList<>();
-        //
-        for (RecDuplicate duplicate : duplicates) {
-            RecMergePlan task = new RecMergePlan();
-            //
-            task.tableName = tableName;
-            task.recordEtalon = duplicate.records.get(0).getValues();
-            for (int i = 0; i < duplicate.records.size(); i++) {
-                task.recordsDelete.add(duplicate.records.get(i).getValueLong(pkField));
-            }
-            //
-            res.add(task);
-        }
         //
         return res;
     }
@@ -402,36 +435,5 @@ public class UtRecMerge implements IUtRecMerge {
         return false;
     }
 
-    public static void printTasks(Collection<RecMergePlan> mergeTasks) {
-        System.out.println("MergeTasks count: " + mergeTasks.size());
-        System.out.println();
-        for (RecMergePlan mergeTask : mergeTasks) {
-            System.out.println("Table: " + mergeTask.tableName);
-            System.out.println("Etalon: " + mergeTask.recordEtalon);
-            System.out.println("Delete: " + mergeTask.recordsDelete);
-            System.out.println();
-        }
-    }
-
-    public static void printMergeResults(MergeResultTableMap mergeResults) {
-        System.out.println("MergeResults:");
-        System.out.println();
-        for (String taskTableName : mergeResults.keySet()) {
-            System.out.println("TableName: " + taskTableName);
-            System.out.println();
-
-            MergeResultTable mergeResultTable = mergeResults.get(taskTableName);
-
-            System.out.println("Records updated for tables, referenced to " + taskTableName + ":");
-            printRecordsUpdated(mergeResultTable.recordsUpdated);
-
-            System.out.println("Records deleted from " + taskTableName + ":");
-            if (mergeResultTable.recordsDeleted == null || mergeResultTable.recordsDeleted.size() == 0) {
-                System.out.println("Records deleted: empty");
-            } else {
-                UtData.outTable(mergeResultTable.recordsDeleted);
-            }
-        }
-    }
 
 }

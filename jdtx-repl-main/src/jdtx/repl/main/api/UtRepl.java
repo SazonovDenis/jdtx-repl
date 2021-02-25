@@ -21,12 +21,10 @@ import org.json.simple.*;
 
 import java.io.*;
 import java.util.*;
-import java.util.zip.*;
 
 /**
  * Утилитный класс.
- * todo: Куча всего в одном месте. Зачем он вообще нужен в таком виде - неясно.
- * todo: А еще - есть контекст outputStream - ваще УЖОССС!!!
+ * todo: Куча всего в одном месте. Это плохо
  */
 public class UtRepl {
 
@@ -286,8 +284,8 @@ public class UtRepl {
         // Информация о получателе
         JSONObject cfgInfo = new JSONObject();
         cfgInfo.put("destinationWsId", destinationWsId);
-        String version = UtJson.toString(cfgInfo);
-        StringInputStream versionStream = new StringInputStream(version);
+        String cfgInfoStr = UtJson.toString(cfgInfo);
+        StringInputStream versionStream = new StringInputStream(cfgInfoStr);
         UtFile.copyStream(versionStream, zipOutputStream);
 
         // Заканчиваем формирование файла реплики
@@ -312,8 +310,8 @@ public class UtRepl {
         // Информация о получателе
         JSONObject cfgInfo = new JSONObject();
         cfgInfo.put("destinationWsId", destinationWsId);
-        String version = UtJson.toString(cfgInfo);
-        StringInputStream versionStream = new StringInputStream(version);
+        String cfgInfoStr = UtJson.toString(cfgInfo);
+        StringInputStream versionStream = new StringInputStream(cfgInfoStr);
         UtFile.copyStream(versionStream, zipOutputStream);
 
         // Заканчиваем формирование файла реплики
@@ -323,7 +321,7 @@ public class UtRepl {
         return replica;
     }
 
-    public IReplica createReplicaQueInNo(long destinationWsId, long queInNo) throws Exception {
+    public IReplica createReplicaSetQueInNo(long destinationWsId, long queInNo) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SET_QUE_IN_NO);
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
@@ -339,8 +337,8 @@ public class UtRepl {
         JSONObject cfgInfo = new JSONObject();
         cfgInfo.put("destinationWsId", destinationWsId);
         cfgInfo.put("queInNo", queInNo);
-        String version = UtJson.toString(cfgInfo);
-        StringInputStream versionStream = new StringInputStream(version);
+        String cfgInfoStr = UtJson.toString(cfgInfo);
+        StringInputStream versionStream = new StringInputStream(cfgInfoStr);
         UtFile.copyStream(versionStream, zipOutputStream);
 
         // Заканчиваем формирование файла реплики
@@ -404,8 +402,8 @@ public class UtRepl {
         JSONObject cfgInfo = new JSONObject();
         cfgInfo.put("destinationWsId", destinationWsId);
         cfgInfo.put("cfgType", cfgType);
-        String version = UtJson.toString(cfgInfo);
-        StringInputStream versionStream = new StringInputStream(version);
+        String cfgInfoStr = UtJson.toString(cfgInfo);
+        StringInputStream versionStream = new StringInputStream(cfgInfoStr);
         UtFile.copyStream(versionStream, zipOutputStream);
 
 
@@ -417,6 +415,33 @@ public class UtRepl {
         StringInputStream cfgStrStream = new StringInputStream(cfgStr);
         UtFile.copyStream(cfgStrStream, zipOutputStream);
 
+
+        // Заканчиваем формирование файла реплики
+        replicaWriter.replicaFileClose();
+
+        //
+        return replica;
+    }
+
+    public IReplica createReplicaWsSendSnapshot(long destinationWsId, String tableName) throws Exception {
+        IReplica replica = new ReplicaFile();
+        replica.getInfo().setReplicaType(JdxReplicaType.SEND_SNAPSHOT);
+        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
+
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
+
+        // Открываем запись файла с информацией о получателе
+        OutputStream zipOutputStream = replicaWriter.newFileOpen("info.json");
+
+        // Информация о получателе
+        JSONObject cfgInfo = new JSONObject();
+        cfgInfo.put("destinationWsId", destinationWsId);
+        cfgInfo.put("tableName", tableName);
+        String cfgInfoStr = UtJson.toString(cfgInfo);
+        StringInputStream versionStream = new StringInputStream(cfgInfoStr);
+        UtFile.copyStream(versionStream, zipOutputStream);
 
         // Заканчиваем формирование файла реплики
         replicaWriter.replicaFileClose();
@@ -495,7 +520,7 @@ public class UtRepl {
                 InputStream inputStream = null;
                 try {
                     // Распакуем XML-файл из Zip-архива
-                    inputStream = UtRepl.getReplicaInputStream(replica);
+                    inputStream = JdxReplicaReaderXml.createInputStreamData(replica);
 
                     //
                     JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
@@ -651,28 +676,6 @@ public class UtRepl {
         return exeFileName.split("-|\\.")[1];
     }
 
-    public static InputStream getReplicaInputStream(IReplica replica) throws IOException {
-        return createInputStream(replica, ".xml");
-    }
-
-    public static InputStream createInputStream(IReplica replica, String dataFileMask) throws IOException {
-        InputStream inputStream = null;
-        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(replica.getFile()));
-        ZipEntry entry;
-        while ((entry = zipInputStream.getNextEntry()) != null) {
-            String name = entry.getName();
-            if (name.endsWith(dataFileMask)) {
-                inputStream = zipInputStream;
-                break;
-            }
-        }
-        if (inputStream == null) {
-            throw new XError("Not found [" + dataFileMask + "] in replica: " + replica.getFile());
-        }
-
-        return inputStream;
-    }
-
     public static String getVersion() {
         VersionInfo vi = new VersionInfo("jdtx.repl.main");
         String version = vi.getVersion();
@@ -721,25 +724,6 @@ public class UtRepl {
         }
         //
         return publicationRules;
-    }
-
-    /**
-     * Заполняет правила публикации publicationIn и publicationOut с учетом наличия таблиц в структуре structActual
-     */
-    static void fillPublications____(JSONObject cfgDbPublications, IJdxDbStruct structActual, IPublicationStorage publicationIn, IPublicationStorage publicationOut) throws Exception {
-        if (cfgDbPublications != null) {
-            String publicationInName = (String) cfgDbPublications.get("in");
-            String publicationOutName = (String) cfgDbPublications.get("out");
-
-            JSONObject cfgDbPublicationIn = (JSONObject) cfgDbPublications.get(publicationInName);
-            JSONObject cfgDbPublicationOut = (JSONObject) cfgDbPublications.get(publicationOutName);
-
-            // Правила публикаций: publicationIn
-            publicationIn.loadRules(cfgDbPublicationIn, structActual);
-
-            // Правила публикаций: publicationOut
-            publicationOut.loadRules(cfgDbPublicationOut, structActual);
-        }
     }
 
 

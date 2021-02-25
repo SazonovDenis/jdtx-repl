@@ -680,31 +680,6 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
-/*
-    void repl_set_quein(IVariantMap args) {
-        Long no = args.getValueLong("no")
-        if (no == null || no == 0) {
-            throw new XError("Не указан [no] - номер реплики")
-        }
-
-        // БД
-        Db db = app.service(ModelService.class).model.getDb()
-        db.connect()
-
-        //
-        try {
-            // Задаем номер реплики, до которого обработана (применена) входящая очередь
-            JdxStateManagerWs stateManager = new JdxStateManagerWs(db)
-            System.out.println("queInNoDone before: " + stateManager.getQueInNoDone())
-            stateManager.setQueInNoDone(no)
-            System.out.println("queInNoDone after: " + stateManager.getQueInNoDone())
-
-        } finally {
-            db.disconnect()
-        }
-    }
-*/
-
 
     void repl_app_version(IVariantMap args) {
         System.out.println("app_version: " + UtRepl.getVersion())
@@ -730,6 +705,34 @@ class Jdx_Ext extends ProjectExt {
 
             //
             srv.srvAppUpdate(exeFileName)
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
+    void repl_request_snapshot(IVariantMap args) {
+        long destinationWsId = args.getValueLong("ws")
+        String tableName = args.getValueString("table")
+        if (destinationWsId == 0L) {
+            throw new XError("Не указан [ws] - код рабочей станции")
+        }
+        if (exeFileName == null || exeFileName.length() == 0) {
+            throw new XError("Не указана [table] - таблица в БД")
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        try {
+            //
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init()
+
+            //
+            srv.srvRequestSnapshot(destinationWsId, tableName)
 
         } finally {
             db.disconnect()

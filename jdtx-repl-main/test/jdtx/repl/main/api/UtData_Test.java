@@ -49,7 +49,7 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
         sw.stop();
 
         // Читатель реплики
-        InputStream inputStream = UtRepl.getReplicaInputStream(replicaSnapshot);
+        InputStream inputStream = JdxReplicaReaderXml.createInputStreamData(replicaSnapshot);
         JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
 
         // Правила публикации
@@ -155,7 +155,7 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
         // Откроем Zip-файл реплики
         IReplica replica = new ReplicaFile();
         replica.setFile(new File(replicaSnapshot.getFile().getAbsolutePath()));
-        InputStream inputStream = UtRepl.getReplicaInputStream(replica);
+        InputStream inputStream = JdxReplicaReaderXml.createInputStreamData(replica);
 
         // Читаем заголовки
         JdxReplicaReaderXml reader = new JdxReplicaReaderXml(inputStream);

@@ -238,8 +238,8 @@ public class JdxReplSrv {
         IPublicationStorage publicationRuleWsIn = UtRepl.extractPublicationRules(cfgPublications, struct, "in");
         //IPublicationStorage publicationRuleWsIn = publicationsInList.get(wsId);
 
-        // Параметры под эти правила
-        filter.getParams().put("wsDestination", String.valueOf(wsId));
+        // Параметры: получатель реплики (для правил публикации)
+        filter.getFilterParams().put("wsDestination", String.valueOf(wsId));
 
         // Помещаем snapshot-реплики в очередь queOut001
         for (IReplica replica : snapshotReplicas) {
@@ -254,7 +254,7 @@ public class JdxReplSrv {
         // ---
         // Сообщим рабочей станции ее начальный возраст ВХОДЯЩЕЙ очереди
         UtRepl utRepl = new UtRepl(db, struct);
-        IReplica replica = utRepl.createReplicaQueInNo(wsId, wsSnapshotAge);
+        IReplica replica = utRepl.createReplicaSetQueInNo(wsId, wsSnapshotAge);
         queOut001.push(replica);
 
         // Отмечаем возраст snapshot рабочей станции.
@@ -341,8 +341,8 @@ public class JdxReplSrv {
             // Правила публикаций (фильтры) для wsId. В качестве фильтров на отправку берем ВХОДЯЩИЕ правила рабочих станций.
             IPublicationStorage publicationRule = publicationsInList.get(wsId);
 
-            // Параметры под эти правила
-            filter.getParams().put("wsDestination", String.valueOf(wsId));
+            // Параметры: получатель реплики (для правил публикации)
+            filter.getFilterParams().put("wsDestination", String.valueOf(wsId));
 
             //
             long sendFrom = stateManager.getDispatchDoneQueCommon(wsId) + 1;
@@ -469,18 +469,6 @@ public class JdxReplSrv {
     }
 
 
-    public void srvDbStructStart() throws Exception {
-        log.info("srvDbStructStart");
-
-        // Системная команда "MUTE"...
-        UtRepl utRepl = new UtRepl(db, struct);
-        IReplica replica = utRepl.createReplicaMute(0);
-
-        // ... в исходящую (общую) очередь реплик
-        queCommon.push(replica);
-    }
-
-
     public void srvAppUpdate(String exeFileName) throws Exception {
         log.info("srvAppUpdate, exeFileName: " + exeFileName);
 
@@ -489,6 +477,29 @@ public class JdxReplSrv {
         IReplica replica = utRepl.createReplicaAppUpdate(exeFileName);
 
         // Системная команда - в исходящую очередь реплик
+        queCommon.push(replica);
+    }
+
+    public void srvRequestSnapshot(long wsId, String tableName) throws Exception {
+        log.info("srvRequestSnapshot, wsId: " + wsId + ", table: " + tableName);
+
+        //
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.createReplicaWsSendSnapshot(wsId, tableName);
+
+        // Системная команда - в исходящую очередь реплик
+        queCommon.push(replica);
+    }
+
+
+    public void srvDbStructStart() throws Exception {
+        log.info("srvDbStructStart");
+
+        // Системная команда "MUTE"...
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.createReplicaMute(0);
+
+        // ... в исходящую (общую) очередь реплик
         queCommon.push(replica);
     }
 

@@ -11,7 +11,7 @@ public interface IReplicaFilter {
      * Параметры.
      * Произвольные, состав зависит от потребностей вычисления выражений в фильрах.
      */
-    Map<String, String> getParams();
+    Map<String, String> getFilterParams();
 
     /**
      * Преобразовываем реплику replicaSrc для рабочей станции по правилам (фильтрам) publicationRules
