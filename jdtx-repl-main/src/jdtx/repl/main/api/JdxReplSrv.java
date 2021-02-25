@@ -244,7 +244,7 @@ public class JdxReplSrv {
         // Помещаем snapshot-реплики в очередь queOut001
         for (IReplica replica : snapshotReplicas) {
             // Преобразовываем по правилам публикаций (фильтрам)
-            IReplica replicaForWs = filter.prepareReplicaForWs(replica, publicationRuleWsIn);
+            IReplica replicaForWs = filter.convertReplicaForWs(replica, publicationRuleWsIn);
 
             // В очередь queOut001
             queOut001.push(replicaForWs);
@@ -357,7 +357,7 @@ public class JdxReplSrv {
                 JdxReplicaReaderXml.readReplicaInfo(replica);
 
                 // Преобразовываем по правилам публикаций (фильтрам)
-                IReplica replicaForWs = filter.prepareReplicaForWs(replica, publicationRule);
+                IReplica replicaForWs = filter.convertReplicaForWs(replica, publicationRule);
 
                 // Положим реплику в очередь (физически переместим)
                 queOut000.push(replicaForWs);

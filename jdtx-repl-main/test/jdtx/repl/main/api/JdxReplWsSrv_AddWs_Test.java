@@ -75,6 +75,11 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
     }
 
     @Test
+    public void test_DumpTables_1_2_3() throws Exception {
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
+    }
+
+    @Test
     public void test_AllHttp_5() throws Exception {
         test_ws1_makeChange_Unimportant();
         test_ws2_makeChange();

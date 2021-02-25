@@ -383,50 +383,14 @@ public class JdxReplWs {
         }
 
 
-        // Делаем выгрузку snapshot, обязательно в ОТДЕЛЬНОЙ транзакции.
+        // Делаем выгрузку snapshot, обязательно в ОТДЕЛЬНОЙ транзакции (отдельной от изменения структуры).
         // В некоторых СУБД (напр. Firebird) изменение структуры происходит ВНУТРИ транзакций,
         // тогда получится, что пока делается snapshot, аудит не работает.
         // Таким образом данные, вводимые во время подготовки аудита и snapshot-та, не попадут ни в аудит, ни в snapshot,
         // т.к. таблица аудита ЕЩЕ не видна другим транзакциям, а данные, продолжающие поступать в snapshot, УЖЕ не видны нашей транзакции.
         db.startTran();
         try {
-            //
-            UtRepl utRepl = new UtRepl(db, struct);
-            JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-
-            // Нумеруем реплики
-            long queOutMaxAge = queOut.getMaxNo();
-
-            // Создаем реплики
-            List<IReplica> replicasSnapshot = SnapshotForTables(tablesNew, queOutMaxAge, true);
-
-            // Фильтр
-            IReplicaFilter filter = new ReplicaFilter();
-
-            // Параметры: получатель реплики (для правил публикации)
-            // При выгрузке Snapshot на станцции получатель, строго говоря, не определен.
-            // filter.getFilterParams().put("wsDestination", String.valueOf(wsId));
-
-            // Помещаем реплики в очередь
-            int i = 0;
-            for (IReplica replicaSnapshot : replicasSnapshot) {
-                // Искусственно увеличиваем возраст (установочная реплика сдвигает возраст БД на 1)
-                long age = utRepl.incAuditAge();
-                log.info("createReplicaTableSnapshot, tableName: " + tablesNew.get(i).getName() + ", new age: " + age);
-
-                // Преобразовываем по фильтрам
-                IReplica replicaForWs = filter.prepareReplicaForWs(replicaSnapshot, publicationOut);
-
-                // Помещаем реплику в очередь
-                queOut.push(replicaForWs);
-
-                //
-                stateManager.setAuditAgeDone(age);
-
-                //
-                i = i + 1;
-            }
-
+            createSnapsotIntoQueOut(tablesNew);
 
             //
             db.commit();
@@ -445,17 +409,14 @@ public class JdxReplWs {
     }
 
 
-    private void createSnapsotIntoQueOut(String tableName) throws Exception {
+    // Создаем Snapsot для таблиц tablesNew и помещаем его в очередь на отправку queOut
+    private void createSnapsotIntoQueOut(List<IJdxTable> tablesNew) throws Exception {
         //
         UtRepl utRepl = new UtRepl(db, struct);
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
         // Нумеруем реплики
         long queOutMaxAge = queOut.getMaxNo();
-
-        // Список из одной таблицы
-        List<IJdxTable> tablesNew = new ArrayList<>();
-        tablesNew.add(struct.getTable(tableName));
 
         // Создаем реплику
         List<IReplica> replicasSnapshot = SnapshotForTables(tablesNew, queOutMaxAge, true);
@@ -472,11 +433,10 @@ public class JdxReplWs {
         for (IReplica replicaSnapshot : replicasSnapshot) {
             // Искусственно увеличиваем возраст (установочная реплика сдвигает возраст БД на 1)
             long age = utRepl.incAuditAge();
-            //todo: дублирование кода, см log.info("createReplicaTableSnapshot, tableName: " + tablesNew.get(i).getName() + ", new age: " + age);
             log.info("createReplicaTableSnapshot, tableName: " + tablesNew.get(i).getName() + ", new age: " + age);
 
             // Преобразовываем по фильтрам
-            IReplica replicaForWs = filter.prepareReplicaForWs(replicaSnapshot, publicationOut);
+            IReplica replicaForWs = filter.convertReplicaForWs(replicaSnapshot, publicationOut);
 
             // Помещаем реплику в очередь
             queOut.push(replicaForWs);
@@ -487,8 +447,6 @@ public class JdxReplWs {
             //
             i = i + 1;
         }
-
-
     }
 
 
@@ -930,12 +888,16 @@ public class JdxReplWs {
                     infoStream.close();
                 }
                 long destinationWsId = longValueOf(info.get("destinationWsId"));
-                String tableName = (String)  info.get("tableName");
+                String tableName = (String) info.get("tableName");
 
                 // Реакция на команду, если получатель - именно наша
                 if (destinationWsId == wsId) {
                     // Создаем снимок таблицы и кладем его в очередь queOut
-                    createSnapsotIntoQueOut(tableName) ;
+                    // Список из одной таблицы
+                    List<IJdxTable> tablesNew = new ArrayList<>();
+                    tablesNew.add(struct.getTable(tableName));
+                    //
+                    createSnapsotIntoQueOut(tablesNew);
 
                     // Выкладывание реплики "snapshot отправлен"
                     reportReplica(JdxReplicaType.SEND_SNAPSHOT_DONE);

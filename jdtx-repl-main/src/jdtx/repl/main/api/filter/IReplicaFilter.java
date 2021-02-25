@@ -16,6 +16,6 @@ public interface IReplicaFilter {
     /**
      * Преобразовываем реплику replicaSrc для рабочей станции по правилам (фильтрам) publicationRules
      */
-    IReplica prepareReplicaForWs(IReplica replicaSrc, IPublicationStorage publicationRules) throws Exception;
+    IReplica convertReplicaForWs(IReplica replicaSrc, IPublicationStorage publicationRules) throws Exception;
 
 }

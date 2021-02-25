@@ -416,7 +416,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_DumpTables() throws Exception {
+    public void test_DumpTables_1_2_3() throws Exception {
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
@@ -454,13 +454,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         // CommentText
         String sql_commentText = "select " +
-                "(case when CommentText.Lic=0 then 0 else 1 end) as Lic, (case when CommentText.PawnChit=0 then null else 1 end) PawnChit, " +
+                "(case when CommentText.Lic=0 then 0 else 1 end) as Lic, (case when CommentText.PawnChit=0 then 0 else 1 end) PawnChit, " +
                 "CommentText.CommentText, " +
                 "(case when CommentText.CommentUsr=0 then null else 1 end) CommentUsr, " +
                 "CommentText.CommentDt, CommentTip.Name as CommentTipName\n" +
                 "from CommentText, CommentTip\n" +
                 "where CommentText.id <> 0 and CommentText.CommentTip = CommentTip.id\n" +
-                "order by CommentText.CommentText\n";  //CommentTip.Name, 
+                "order by 2, CommentText.CommentDt, CommentText.CommentText\n";  //CommentTip.Name,
         DataStore st1_ct = db1.loadSql(sql_commentText);
         OutTableSaver svr1_ct = new OutTableSaver(st1_ct);
         DataStore st2_ct = db2.loadSql(sql_commentText);

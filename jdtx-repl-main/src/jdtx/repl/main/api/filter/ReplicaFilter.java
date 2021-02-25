@@ -29,7 +29,7 @@ public class ReplicaFilter implements IReplicaFilter {
     }
 
     @Override
-    public IReplica prepareReplicaForWs(IReplica replicaSrc, IPublicationStorage publicationRules) throws Exception {
+    public IReplica convertReplicaForWs(IReplica replicaSrc, IPublicationStorage publicationRules) throws Exception {
         File replicaFile = replicaSrc.getFile();
 
         // Файл должен быть - иначе незачем делать
@@ -91,7 +91,7 @@ public class ReplicaFilter implements IReplicaFilter {
         return replicaRes;
     }
 
-    // ^с отдельный тест на copyDataWithFilter
+    // todo отдельный тест на copyDataWithFilter
     private void copyDataWithFilter(JdxReplicaReaderXml dataReader, JdxReplicaWriterXml dataWriter, IPublicationStorage publicationRule, Map<String, String> filterParams) throws Exception {
         String tableName = dataReader.nextTable();
 
@@ -114,9 +114,6 @@ public class ReplicaFilter implements IReplicaFilter {
                 } else {
                     filterExpression = new Expression(filterExpressionStr);
                 }
-                //
-                //Function func_getWsAuthor = new Func_getWsAuthor("getWsAuthor", 2);
-                //filterExpression.addFunction(func_getWsAuthor);
 
                 // tableName -> filterExpression.filterParams
                 filterExpression.setVariable("PARAM_tableName", tableName);
@@ -188,28 +185,9 @@ public class ReplicaFilter implements IReplicaFilter {
         for (Map.Entry<String, String> entry : params.entrySet()) {
             String fieldName = entry.getKey();
             String fieldValue = entry.getValue();
-            expression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValue));
+            expression.setVariable("PARAM_" + fieldName, new BigDecimal(fieldValue));
         }
     }
-
-/*
-    private class Func_getWsAuthor extends AbstractFunction {
-
-        protected Func_getWsAuthor(String name, int numParams) {
-            super(name, numParams);
-        }
-
-        @Override
-        public BigDecimal eval(List<BigDecimal> parameters) {
-            long id = JdxUtils.longValueOf(parameters.get(0).toString());
-            String tableName = parameters.get(1).toString();
-            System.out.printf(tableName + ":" + id);
-            return BigDecimal.ONE;
-        }
-
-    }
-*/
-
 
     private void recordToExpressionParams(Map<String, Object> recValues, IPublicationRule publicationRule, Expression expression) {
         // recValues -> expression.params
@@ -224,10 +202,10 @@ public class ReplicaFilter implements IReplicaFilter {
                     // Ссылка
                     JdxRef ref = JdxRef.parse((String) fieldValue);
                     expression.setVariable("PARAM_wsAuthor_" + fieldName, new BigDecimal(ref.ws_id));
-                    expression.setVariable(fieldName, new BigDecimal(ref.id));
+                    expression.setVariable("RECORD_" + fieldName, new BigDecimal(ref.id));
                 } else if (fieldValue instanceof Long || fieldValue instanceof Integer) {
                     // Целочисленное поле
-                    expression.setVariable(fieldName, new BigDecimal(fieldValue.toString()));
+                    expression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValue.toString()));
                 } else {
                     // Прочие поля
                     String fieldValueStr = fieldValue.toString();
