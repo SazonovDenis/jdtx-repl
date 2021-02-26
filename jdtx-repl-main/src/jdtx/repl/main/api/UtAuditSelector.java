@@ -50,16 +50,25 @@ public class UtAuditSelector {
                 //
                 long n = 0;
                 while (!dataTableAudit.eof()) {
-                    // record
-                    dataWriter.appendRec();
+                    // Пропуск аудита по изменению УЖЕ УДАЛЕННЫХ записей. Если такие команды оставить,
+                    // то рабочая станция при ОТМЕНЕ УДАЛЕНИЯ не сможет выложить в очередь корректную реплику
+                    // на "обратную вставку" - эта запись будет с пустыми полями как раз из-за того,
+                    // что запрос аудита по изменению уже удаленных записей возвращает все поля null
+                    // (что неудивительно, т.к. идет left join аудита и физической таблицы).
+                    int z_skip = (int) dataTableAudit.getValue("z_skip");
 
-                    // Тип операции
-                    int oprType = (int) dataTableAudit.getValue(JdxUtils.SQL_FIELD_OPR_TYPE);
-                    dataWriter.setOprType(oprType);
+                    // Не пропущенная запись
+                    if (z_skip == 0) {
+                        // record
+                        dataWriter.appendRec();
 
-                    // Тело записи (с перекодировкой ссылок)
-                    utDataWriter.dataBinderRec_To_DataWriter_WithRefDecode(dataTableAudit, dataWriter);
+                        // Тип операции
+                        int oprType = (int) dataTableAudit.getValue(JdxUtils.SQL_FIELD_OPR_TYPE);
+                        dataWriter.setOprType(oprType);
 
+                        // Тело записи (с перекодировкой ссылок)
+                        utDataWriter.dataBinderRec_To_DataWriter_WithRefDecode(dataTableAudit, dataWriter);
+                    }
 
                     //
                     dataTableAudit.next();
@@ -126,7 +135,7 @@ public class UtAuditSelector {
 
     protected String getSql_full(IJdxTable tableFrom, String tableFields, long fromId, long toId) {
         return "select " +
-                JdxUtils.SQL_FIELD_OPR_TYPE+ ", " + tableFields +
+                JdxUtils.SQL_FIELD_OPR_TYPE + ", " + tableFields +
                 " from " + JdxUtils.AUDIT_TABLE_PREFIX + tableFrom.getName() +
                 " where " + JdxUtils.PREFIX + "id >= " + fromId + " and " + JdxUtils.PREFIX + "id <= " + toId +
                 " order by " + JdxUtils.PREFIX + "id";
@@ -155,6 +164,7 @@ public class UtAuditSelector {
                 JdxUtils.SQL_FIELD_OPR_TYPE + ", " +
                 JdxUtils.PREFIX + "opr_dttm, " +
                 JdxUtils.AUDIT_TABLE_PREFIX + tableFrom.getName() + "." + idFieldName + ", " +
+                "(case when " + JdxUtils.SQL_FIELD_OPR_TYPE + " = " + JdxOprType.OPR_UPD + " and " + tableFrom.getName() + "." + idFieldName + " is null then 1 else 0 end) z_skip, " +
                 tableFieldsAlias +
                 " from " + JdxUtils.AUDIT_TABLE_PREFIX + tableFrom.getName() +
                 " left join " + tableFrom.getName() + " on (" + JdxUtils.AUDIT_TABLE_PREFIX + tableFrom.getName() + "." + idFieldName + " = " + tableFrom.getName() + "." + idFieldName + ")" +
