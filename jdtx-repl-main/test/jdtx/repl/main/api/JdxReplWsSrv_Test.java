@@ -52,8 +52,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void prepareEtalon_TestAll() throws Exception {
         // Первичная инициализация
         allSetUp();
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         // Прогон тестов
         test_AllHttp();
@@ -294,7 +294,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         utTest3.make_InsDel_1(struct3, 3);
 
         //
-        sync_http();
+        sync_http_1_2_3();
 
         //
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
@@ -319,10 +319,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         utTest2.make_InsDel_1(struct2, 2);
 
         //
-        sync_http();
-        sync_http();
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
     }
 
     @Test
@@ -340,7 +340,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void sync_http() throws Exception {
+    public void sync_http_1_2_3() throws Exception {
         test_ws1_doReplSession();
         test_ws2_doReplSession();
         test_ws3_doReplSession();
@@ -461,12 +461,21 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 "from CommentText, CommentTip\n" +
                 "where CommentText.id <> 0 and CommentText.CommentTip = CommentTip.id\n" +
                 "order by 2, CommentText.CommentDt, CommentText.CommentText\n";  //CommentTip.Name,
-        DataStore st1_ct = db1.loadSql(sql_commentText);
-        OutTableSaver svr1_ct = new OutTableSaver(st1_ct);
-        DataStore st2_ct = db2.loadSql(sql_commentText);
-        OutTableSaver svr2_ct = new OutTableSaver(st2_ct);
-        DataStore st3_ct = db3.loadSql(sql_commentText);
-        OutTableSaver svr3_ct = new OutTableSaver(st3_ct);
+        DataStore st1_ctx = db1.loadSql(sql_commentText);
+        OutTableSaver svr1_ctx = new OutTableSaver(st1_ctx);
+        DataStore st2_ctx = db2.loadSql(sql_commentText);
+        OutTableSaver svr2_ctx = new OutTableSaver(st2_ctx);
+        DataStore st3_ctx = db3.loadSql(sql_commentText);
+        OutTableSaver svr3_ctx = new OutTableSaver(st3_ctx);
+
+        // CommentText
+        String sql_commentTip = "select * from CommentTip order by Name";
+        DataStore st1_ctt = db1.loadSql(sql_commentTip);
+        OutTableSaver svr1_ctt = new OutTableSaver(st1_ctt);
+        DataStore st2_ctt = db2.loadSql(sql_commentTip);
+        OutTableSaver svr2_ctt = new OutTableSaver(st2_ctt);
+        DataStore st3_ctt = db3.loadSql(sql_commentTip);
+        OutTableSaver svr3_ctt = new OutTableSaver(st3_ctt);
 
         // Region*
         String regionTestFields = "";
@@ -530,9 +539,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         String fileName1 = "../_test-data/csv/" + db1name + "-all.csv";
         String fileName2 = "../_test-data/csv/" + db2name + "-all.csv";
         String fileName3 = "../_test-data/csv/" + db3name + "-all.csv";
-        UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_ct.save().toString() + "\n\n" + svr1_r.save().toString() + "\n\n" + struct_t_XXX1 + "\n\n" + svr1_bt.save().toString(), new File(fileName1));
-        UtFile.saveString(svr2.save().toString() + "\n\n" + svr2_ct.save().toString() + "\n\n" + svr2_r.save().toString() + "\n\n" + struct_t_XXX2 + "\n\n" + svr2_bt.save().toString(), new File(fileName2));
-        UtFile.saveString(svr3.save().toString() + "\n\n" + svr3_ct.save().toString() + "\n\n" + svr3_r.save().toString() + "\n\n" + struct_t_XXX3 + "\n\n" + svr3_bt.save().toString(), new File(fileName3));
+        UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_ctx.save().toString() + "\n\n" + svr1_ctt.save().toString() + "\n\n" + svr1_r.save().toString() + "\n\n" + struct_t_XXX1 + "\n\n" + svr1_bt.save().toString(), new File(fileName1));
+        UtFile.saveString(svr2.save().toString() + "\n\n" + svr2_ctx.save().toString() + "\n\n" + svr2_ctt.save().toString() + "\n\n" + svr2_r.save().toString() + "\n\n" + struct_t_XXX2 + "\n\n" + svr2_bt.save().toString(), new File(fileName2));
+        UtFile.saveString(svr3.save().toString() + "\n\n" + svr3_ctx.save().toString() + "\n\n" + svr3_ctt.save().toString() + "\n\n" + svr3_r.save().toString() + "\n\n" + struct_t_XXX3 + "\n\n" + svr3_bt.save().toString(), new File(fileName3));
 
         //
         startCmpDb(fileName1, fileName2, fileName3);

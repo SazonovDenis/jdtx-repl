@@ -118,6 +118,36 @@ public class UtTest extends UtilsTestCase {
         );
     }
 
+    public void makeChange_CommentTip(IJdxDbStruct struct, long ws_id) throws Exception {
+        Random rnd = new Random();
+        rnd.setSeed(getDbSeed());
+        JdxDbUtils dbu = new JdxDbUtils(db, struct);
+
+        // --- commentTip
+        long id_commentTip = dbu.getNextGenerator("g_commentTip");
+        Map params = UtCnv.toMap(
+                "Id", id_commentTip,
+                "Deleted", 0,
+                "Name", "Tip-ins-ws:" + ws_id + "-" + rnd.nextInt()
+        );
+        //
+        dbu.insertRec("commentTip", params);
+
+        // --- commentText
+        long id_commentText = dbu.getNextGenerator("g_commentText");
+        params = UtCnv.toMap(
+                "id", id_commentText,
+                "CommentTip", id_commentTip,
+                "CommentDt", new DateTime(),
+                "CommentUsr", dbu.loadSqlRec("select max(id) id from Usr", null).getValueLong("id"),
+                "PawnChit", 0,
+                "PawnChitSubject", 0,
+                "Lic", dbu.loadSqlRec("select max(id) id from Lic", null).getValueLong("id"),
+                "CommentText", "Text-Lic-ins-ws:" + ws_id + "-" + rnd.nextInt()
+        );
+        dbu.insertRec("commentText", params);
+    }
+
     public void makeChange(IJdxDbStruct struct, long ws_id) throws Exception {
         Random rnd = new Random();
         rnd.setSeed(getDbSeed());
@@ -417,7 +447,7 @@ public class UtTest extends UtilsTestCase {
         //UtRepl utRepl = new UtRepl(db, struct);
         Random rnd = new Random();
         rnd.setSeed(getDbSeed());
-
+        //^c проверить фильтр "берем все с сервера или свое" commenttip, добавляем на филиалах каждый свой commentTip, потом добавляем commentText, а потом на сервере делаем merge
         // Фиксация возраста
         //long age;
         //age = utRepl.markAuditAge();

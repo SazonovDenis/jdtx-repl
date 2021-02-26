@@ -7,8 +7,8 @@ public class ReplAppUpdate_test extends JdxReplWsSrv_Test {
     @Test
     public void test_init_AppUpdate() throws Exception {
         allSetUp();
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
         //
         test_AppUpdate();
     }

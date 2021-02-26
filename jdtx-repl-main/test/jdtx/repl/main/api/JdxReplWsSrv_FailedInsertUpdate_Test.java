@@ -40,8 +40,8 @@ public class JdxReplWsSrv_FailedInsertUpdate_Test extends JdxReplWsSrv_Test {
 
         // ---
         // Окончательная синхронизация
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         // Станции синхронизированы
         System.out.println("Станции синхронизированы");
@@ -58,10 +58,10 @@ public class JdxReplWsSrv_FailedInsertUpdate_Test extends JdxReplWsSrv_Test {
         select("temp/0.txt");
         System.out.println();
         //
-        sync_http();
-        sync_http();
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         // Состояние полной синхронности
         System.out.println("Состояние полной синхронности");
@@ -94,10 +94,10 @@ public class JdxReplWsSrv_FailedInsertUpdate_Test extends JdxReplWsSrv_Test {
         System.out.println();
 
         //
-        sync_http();
-        sync_http();
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         // Станциям не удалось синхронизироваться
         System.out.println("Станциям не удалось синхронизироваться");
@@ -178,8 +178,8 @@ public class JdxReplWsSrv_FailedInsertUpdate_Test extends JdxReplWsSrv_Test {
 
     @Test
     public void test_sync_select() throws Exception {
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         //
         select(null);

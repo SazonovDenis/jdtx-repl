@@ -25,8 +25,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     @Test
     public void test_Mute_Unmute() throws Exception {
         allSetUp();
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         //
         JdxReplWs ws;
@@ -73,8 +73,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         test_srvDbStructStart();
 
         // Цикл синхронизации
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
 
         // ===
@@ -100,8 +100,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         test_ws3_makeChange();
 
         // Цикл синхронизации
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
 
         // ===
@@ -269,8 +269,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     @Test
     public void test_No_HandleSelfAudit() throws Exception {
         allSetUp();
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         //
         JdxReplWs ws;
@@ -364,9 +364,9 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     public void test_allSetUp_ModifyDbStruct() throws Exception {
         allSetUp();
         //
-        sync_http();
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
         //
         test_modifyDbStruct();
     }
@@ -379,9 +379,9 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     public void test_allSetUp_modifyDbStruct_triple() throws Exception {
         allSetUp();
         //
-        sync_http();
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
         //
         test_modifyDbStruct();
         test_modifyDbStruct();
@@ -437,8 +437,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         test_srvDbStructStart();
 
         // Цикл синхронизации
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
 
         // ===
@@ -464,8 +464,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         test_ws3_makeChange();
 
         // Цикл синхронизации
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
 
         // ===
@@ -499,9 +499,9 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         test_ws3_makeChange();
 
         // Цикл синхронизации
-        sync_http();
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
         UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
@@ -544,9 +544,9 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         assert_handleSelfAudit_true(db3);
 
         // Цикл синхронизации
-        sync_http();
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
 
         // ===

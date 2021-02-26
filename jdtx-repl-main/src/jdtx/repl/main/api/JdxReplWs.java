@@ -252,10 +252,12 @@ public class JdxReplWs {
         String refTableName = refTable.getName();
         String refTableFieldName = foreignKey.getTableField().getName();
         //
-        log.error("Foreign key: " + thisTableName + "." + thisTableRefFieldName + " -> " + refTableName + "." + refTableFieldName);
+        String refTableId = (String) e.recValues.get(thisTableRefFieldName);
 
         //
-        String refTableId = (String) e.recValues.get(thisTableRefFieldName);
+        log.error("Searching foreign key: " + thisTableName + "." + thisTableRefFieldName + " -> " + refTableName + "." + refTableFieldName + ", foreign key: " + refTableId);
+
+        //
         File outReplicaFile = new File(dataRoot + "temp/" + refTableName + "_" + refTableId.replace(":", "_") + ".zip");
         // Если в одной реплике много ошибочных записей, то искать можно только один раз,
         // иначе на каждую ссылку будет выполнятся поиск, что затянет выкидыванмие ошибки

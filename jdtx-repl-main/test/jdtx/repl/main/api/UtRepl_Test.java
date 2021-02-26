@@ -21,8 +21,8 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         srv.init();
 
         // Цикл синхронизации
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
 
         // ===
@@ -37,8 +37,8 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         srv.srvSetWsMute(2);
 
         // Цикл синхронизации
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
         UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
@@ -51,8 +51,8 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         srv.srvSetWsMute(0);
 
         // Цикл синхронизации
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         // Проверяем, что все станции MUTE
         UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
@@ -65,8 +65,8 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         srv.srvSetWsUnmute(3);
 
         // Цикл синхронизации
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
         UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
@@ -79,8 +79,8 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         srv.srvSetWsUnmute(0);
 
         // Цикл синхронизации
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         // Проверяем, что все станции UNMUTE
         UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
@@ -101,9 +101,9 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         srv.srvSetWsUnmute(0);
 
         // Первичный цикл синхронизации
-        sync_http();
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
 
         // ===
@@ -206,8 +206,8 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         srv.srvSetWsUnmute(0);
 
         // Цикл синхронизации
-        sync_http();
-        sync_http();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         // Проверяем, что все станции UNMUTE
         UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
