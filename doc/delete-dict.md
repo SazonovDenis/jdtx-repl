@@ -41,3 +41,27 @@
   Можно задать условие, по достижении которого всеми станциями будет произведено удаление по первому или второму сценарию.
   Условием может быть, например «Table1.Deleted=1» для удаляемой записи.
 
+
+#### Замечания по применению реплик
+
+
+<replica REPLICA_TYPE="10" DT_TO="2021-02-26T20:46:23.000+06:00" DT_FROM="2021-02-26T20:37:12.000+06:00" AGE="20" WS_ID="1"/>
+
+  <table name="COMMENTTIP">
+    <rec DELETED="0" NAME="Tip-ins-all" ID="1:1003" Z_OPR="1"/>
+    <rec DELETED="0" NAME="" ID="1:1001" Z_OPR="3"/>
+    <rec DELETED="0" NAME="" ID="1:1002" Z_OPR="3"/>
+    <rec DELETED="0" NAME="" ID="2:1001" Z_OPR="3"/>
+    <rec DELETED="0" NAME="" ID="3:1001" Z_OPR="3"/>
+    <rec DELETED="0" NAME="" ID="5:1001" Z_OPR="3"/>
+  </table>
+
+
+  <table name="COMMENTTEXT">
+    <rec ID="1:1001" Z_OPR="2" COMMENTTEXT="Text-Lic-ins-ws:1--472614502" COMMENTTIP="1:1003" COMMENTDT="2021-02-26T20:35:55.656" PAWNCHITSUBJECT="1:0" PAWNCHIT="1:0" LIC="5:1002"/>
+    <rec ID="2:1007" Z_OPR="2" COMMENTTEXT="Text-Lic-ins-ws:2--665490272" COMMENTTIP="1:1003" COMMENTDT="2021-02-26T20:35:55.753" PAWNCHITSUBJECT="1:0" PAWNCHIT="1:0" LIC="5:1002"/>
+    <rec ID="3:1004" Z_OPR="2" COMMENTTEXT="Text-Lic-ins-ws:3--506816344" COMMENTTIP="1:1003" COMMENTDT="2021-02-26T20:35:55.782" PAWNCHITSUBJECT="1:0" PAWNCHIT="1:0" LIC="5:1002"/>
+    <rec ID="5:1002" Z_OPR="2" COMMENTTEXT="Text-Lic-ins-ws:5-460560354" COMMENTTIP="1:1003" COMMENTDT="2021-02-26T20:35:55.823" PAWNCHITSUBJECT="1:0" PAWNCHIT="1:0" LIC="3:1006"/>
+  </table>
+
+Обратите внимание, что надо бы так: в COMMENTTIP сначала добавляется запись, потом апдейтим COMMENTTEXT, а потом возвращаемся к COMMENTTIP и удаляем из нее.
