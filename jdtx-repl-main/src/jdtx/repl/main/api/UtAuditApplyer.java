@@ -250,13 +250,15 @@ public class UtAuditApplyer {
 
 
                 // Обратка от удалений, которые не удалось выполнить - создаем реплики на вставку,
-                // чтобы те, куто уже удалил - раскаялись и вернули все назад.
+                // чтобы те, кто уже удалил - раскаялись и вернули все назад, по данныим из наших реплик.
                 if (failedDeleteId.size() != 0) {
                     log.info("  table: " + tableName + ", fail to delete: " + failedDeleteId.size());
 
                     // todo: этот метод В КОНТЕКТСЕ ТРАНЗАКЦИИ возится с какими то файлами и проч... - нежелательно
                     // todo: комит тут внутри, а контекст с этим методом createTableReplicaByIdList() - снаружи
                     jdxReplWs.createTableReplicaByIdList(tableName, failedDeleteId);
+                    //
+                    failedDeleteId.clear();
                 }
 
 
