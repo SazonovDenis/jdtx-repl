@@ -45,9 +45,6 @@ public class PublicationStorage implements IPublicationStorage {
                 publicationRule.getFields().add(publicationField);
             }
 
-            // IPublicationRule.setAuthorWs
-            publicationRule.setAuthorWs((String) publicationRuleJson.getOrDefault("authorWs", null));
-
             // IPublicationRule.setFilterExpression
             publicationRule.setFilterExpression((String) publicationRuleJson.getOrDefault("filter", null));
         }

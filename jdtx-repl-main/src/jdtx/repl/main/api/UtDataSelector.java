@@ -124,9 +124,6 @@ public class UtDataSelector {
         String tableFields = JdxUtils.fieldsToString(publicationRule.getFields(), tableFrom.getName() + ".");
         //
         String condWhere = "";
-        if (publicationRule.getAuthorWs() != null) {
-            condWhere = "where z_z_decode.ws_id in (" + publicationRule.getAuthorWs() + ")\n";
-        }
 
         // Таблица древовидная (имеет ссылки на саму себя)?
         for (IJdxForeignKey fk : tableFrom.getForeignKeys()) {

@@ -18,10 +18,6 @@ public interface IPublicationRule {
 
     Collection<IJdxField> getFields();
 
-    String getAuthorWs();
-
-    void setAuthorWs(String authorWs);
-
     String getFilterExpression();
 
     void setFilterExpression(String filterExpression);

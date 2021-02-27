@@ -8,7 +8,6 @@ public class PublicationRule implements IPublicationRule {
 
     private String tableName;
     private Collection<IJdxField> fields = new ArrayList<>();
-    private String authorWs = null;
     private String filterExpression = null;
 
     public PublicationRule() {
@@ -33,16 +32,6 @@ public class PublicationRule implements IPublicationRule {
     @Override
     public Collection<IJdxField> getFields() {
         return fields;
-    }
-
-    @Override
-    public String getAuthorWs() {
-        return authorWs;
-    }
-
-    @Override
-    public void setAuthorWs(String authorWs) {
-        this.authorWs = authorWs;
     }
 
     @Override

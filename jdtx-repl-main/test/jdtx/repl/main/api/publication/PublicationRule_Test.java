@@ -23,24 +23,28 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_LoadRules() throws Exception {
+    public void test_LoadRules_1() throws Exception {
+        System.out.println("Publication: pub.json/out");
         JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub.json"));
-        //
-        String publicationName = (String) cfg.get("out");
-        JSONObject cfgPublicationOut = (JSONObject) cfg.get(publicationName);
-        //
-        IPublicationStorage publication = new PublicationStorage();
-        publication.loadRules(cfgPublicationOut, struct);
-
-        //
-        Collection<IPublicationRule> t = publication.getPublicationRules();
-        for (IPublicationRule rule : t) {
-            System.out.println("table = " + rule.getTableName());
-            System.out.println("fields = " + rule.getFields());
-            System.out.println("authorWs = " + rule.getAuthorWs());
-        }
+        IPublicationStorage publicationOut = PublicationStorage.extractPublicationRules(cfg, struct, "out");
+        printPublicationRules(publicationOut.getPublicationRules());
     }
 
+    @Test
+    public void test_LoadRules_2() throws Exception {
+        System.out.println("Publication: publication_lic.json/out");
+        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/jdtx/repl/main/api/publication/publication_lic.json"));
+        IPublicationStorage publicationOut = PublicationStorage.extractPublicationRules(cfg, struct, "out");
+        printPublicationRules(publicationOut.getPublicationRules());
+    }
+
+    private void printPublicationRules(Collection<IPublicationRule> rules) {
+        for (IPublicationRule rule : rules) {
+            System.out.println("table: " + rule.getTableName());
+            System.out.println("  fields: " + JdxUtils.fieldsToString(rule.getFields()));
+            System.out.println("  filter: " + rule.getFilterExpression());
+        }
+    }
 
     @Test
     public void test_PublicationValidFk() throws Exception {

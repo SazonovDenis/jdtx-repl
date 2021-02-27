@@ -6,7 +6,8 @@
       "fields": "*"
     },
     "commenttext": {
-      "fields": "*,-CommentUsr"
+      "fields": "*,-CommentUsr",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || RECORD_PawnChit = 0"
     },
     "commenttip": {
       "fields": "id,name,deleted"
