@@ -9,6 +9,9 @@ import java.io.*;
 import java.security.*;
 import java.util.*;
 
+/**
+ * Утилиты (разные, не обязательно связанные именно с репликацией)
+ */
 public class JdxUtils {
 
 
@@ -382,5 +385,36 @@ public class JdxUtils {
         }
         return valueInteger;
     }
+
+    /**
+     * Набор полей в строку с разделителями.
+     * Работает аналогично  String.join()
+     */
+    public static String fieldsToString(Collection<IJdxField> fields) {
+        return fieldsToString(fields, null);
+    }
+
+    /**
+     * Набор полей в строку с разделителями, но перед каждым полем добавляется префикс.
+     * Работает аналогично  String.join()
+     */
+    public static String fieldsToString(Collection<IJdxField> fields, String fieldPrefix) {
+        StringBuilder sb = new StringBuilder();
+
+        //
+        for (IJdxField f : fields) {
+            if (sb.length() != 0) {
+                sb.append(",");
+            }
+            if (fieldPrefix != null) {
+                sb.append(fieldPrefix);
+            }
+            sb.append(f.getName());
+        }
+
+        //
+        return sb.toString();
+    }
+
 
 }

@@ -205,7 +205,7 @@ public class UtAuditApplyer {
                     }
 
                     // Выполняем INS/UPD/DEL
-                    String publicationFields = PublicationStorage.filedsToString(publicationRuleTable.getFields());
+                    String publicationFields = JdxUtils.fieldsToString(publicationRuleTable.getFields());
                     // Очень важно взять поля для обновления (publicationFields) именно из правил публикации,
                     // а не все что есть в физической  таблице, т.к. именно по этим правилам готовилась реплика на сервере,
                     // при этом может импользоваться НЕ ПОЛНЫЙ набор полей. (Неполный набр полей используется, например,

@@ -176,7 +176,7 @@ public class UtRepl {
                 log.info("createReplicaFromAudit: " + publicationTableName + ", age: " + age + ", z_id: [" + fromId + ".." + toId + "]");
 
                 //
-                String publicationFields = PublicationStorage.filedsToString(publicationRule.getFields());
+                String publicationFields = JdxUtils.fieldsToString(publicationRule.getFields());
                 utrr.readAuditData_ByInterval(publicationTableName, publicationFields, fromId, toId, xmlWriter);
             }
         }
@@ -236,7 +236,7 @@ public class UtRepl {
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
         UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, false);
-        String publicationFields = PublicationStorage.filedsToString(publicationTable.getFields());
+        String publicationFields = JdxUtils.fieldsToString(publicationTable.getFields());
         dataSelector.readRecordsByIdList(publicationTable.getName(), idList, publicationFields, xmlWriter);
 
         // Заканчиваем формирование файла реплики

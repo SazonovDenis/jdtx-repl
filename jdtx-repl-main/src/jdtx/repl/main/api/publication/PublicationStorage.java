@@ -40,7 +40,7 @@ public class PublicationStorage implements IPublicationStorage {
             publicationRule.setTableName(publicationTableName);
 
             // IPublicationRule.setFields
-            List<String> publicationFields = expandPublicationFields(structTable, (String) publicationRuleJson.get("fields"));
+            List<String> publicationFields = UtPublicationRule.expandPublicationFields(structTable, (String) publicationRuleJson.get("fields"));
             for (String publicationFieldName : publicationFields) {
                 IJdxField publicationField = structTable.getField(publicationFieldName).cloneField();
                 publicationRule.getFields().add(publicationField);

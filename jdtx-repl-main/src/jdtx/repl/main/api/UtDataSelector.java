@@ -42,7 +42,7 @@ public class UtDataSelector {
         //
         try {
             String tableName = publicationRule.getTableName();
-            String tableFields = PublicationStorage.filedsToString(publicationRule.getFields());
+            String tableFields = JdxUtils.fieldsToString(publicationRule.getFields());
             flushDataToWriter(rsTableLog, tableName, tableFields, dataWriter);
         } finally {
             rsTableLog.close();
@@ -121,7 +121,7 @@ public class UtDataSelector {
         String tableName = publicationRule.getTableName();
         IJdxTable tableFrom = struct.getTable(tableName);
         //
-        String tableFields = PublicationStorage.filedsToString(publicationRule.getFields(), tableFrom.getName() + ".");
+        String tableFields = JdxUtils.fieldsToString(publicationRule.getFields(), tableFrom.getName() + ".");
         //
         String condWhere = "";
         if (publicationRule.getAuthorWs() != null) {
