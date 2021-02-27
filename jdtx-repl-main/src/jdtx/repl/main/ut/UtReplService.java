@@ -8,24 +8,24 @@ import java.io.*;
 import java.util.*;
 
 /**
+ *
  */
 public class UtReplService {
 
     //
     private static Log log = LogFactory.getLog("jdtx.Service");
 
-    public static long processList() throws Exception {
-        long processId = -1;
-        Map<String, String> processInfo = new HashMap<>();
+    public static Collection<ProcessInfo> processList() throws Exception {
+        Collection<ProcessInfo> res = new ArrayList<>();
 
         //
-        List<String> res = new ArrayList<>();
-        int exitCode = UtRun.run(res, "wmic", "process", "list", "/format:csv");
+        List<String> resRun = new ArrayList<>();
+        int exitCode = UtRun.run(resRun, "wmic", "process", "list", "/format:csv");
 
         //
         if (exitCode == 0) {
             String[] processHeaders = null;
-            for (String processLine : res) {
+            for (String processLine : resRun) {
                 if (processLine.length() > 0 && processHeaders == null) {
                     processHeaders = processLine.split(",");
                 }
@@ -33,27 +33,17 @@ public class UtReplService {
                 //
                 if (processLine.length() > 0 && processLine.contains("java.exe")) {
                     if (processLine.contains("label:jdtx.repl.main.task")) {
-                        String[] processLineEls = processLine.split(",");
-                        for (int i = 0; i < processLineEls.length; i++) {
-                            processInfo.put(processHeaders[i], processLineEls[i]);
-                        }
-                        processId = Long.valueOf(processInfo.get("ProcessId"));
-                        log.info("ProcessId: " + processInfo.get("ProcessId") + ", " + processInfo.get("ExecutablePath"));
+                        ProcessInfo processInfo = new ProcessInfo(processLine, processHeaders);
+                        res.add(processInfo);
                     }
                 }
             }
         } else {
-            UtRun.printRes(exitCode, res);
-        }
-
-
-        //
-        if (processId == -1) {
-            log.info("No running process found");
+            UtRun.printRes(exitCode, resRun);
         }
 
         //
-        return processId;
+        return res;
     }
 
     public static void serviceList() throws Exception {
@@ -123,20 +113,48 @@ public class UtReplService {
         }
 
         //
-        processList();
+        Collection<ProcessInfo> processList = UtReplService.processList();
+        ProcessInfo.printList(processList);
     }
 
 
-    public static void stop() throws Exception {
-        log.info("Process stopping");
+    public static void stop(boolean stopAll) throws Exception {
+        String workDir = UtFile.getWorkdir().getAbsolutePath();
 
         //
-        long processId = processList();
-        if (processId == -1) {
+        Collection<ProcessInfo> processList = processList();
+        if (processList.size() == 0) {
+            System.out.println("No process running");
             return;
         }
 
         //
+        if (stopAll) {
+            System.out.println("Process stop all");
+        } else {
+            System.out.println("Process stop at: " + UtRun.getAppDir());
+        }
+
+        //
+        for (ProcessInfo processInfo : processList) {
+            String executablePath = processInfo.getProcessPath();
+            if (stopAll || executablePath.compareToIgnoreCase(workDir) == 0) {
+                long processId = processInfo.getProcessId();
+                ProcessInfo.printInfo(processInfo);
+                if (stopByProcessId(processId)) {
+                    System.out.println("  Stopped, " + processId);
+                } else {
+                    System.out.println("  NOT stopped, " + processId);
+                }
+            } else {
+                ProcessInfo.printInfo(processInfo);
+                System.out.println("  Skipped, " + processInfo.getProcessId());
+            }
+        }
+    }
+
+
+    static boolean stopByProcessId(long processId) throws Exception {
         List<String> res = new ArrayList<>();
         int exitCode = UtRun.run(res, "wmic", "process", "where", "\"processid=" + processId + "\"", "call", "terminate");
 
@@ -145,7 +163,7 @@ public class UtReplService {
             for (String outLine : res) {
                 if (outLine.length() > 0 && outLine.contains("ReturnValue")) {
                     if (outLine.contains("ReturnValue = 0;")) {
-                        log.info("Process terminated, ProcessId: " + processId);
+                        return true;
                     } else {
                         log.info(">> " + outLine);
                     }
@@ -154,8 +172,9 @@ public class UtReplService {
         } else {
             UtRun.printRes(exitCode, res);
         }
-    }
 
+        return false;
+    }
 
     public static void install(JdxReplWs ws) throws Exception {
         log.info("Service install");

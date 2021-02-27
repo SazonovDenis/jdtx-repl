@@ -6,6 +6,8 @@ import jandcode.dbm.db.*;
 import jdtx.repl.main.api.*;
 import org.junit.*;
 
+import java.util.*;
+
 public class UtReplService_Test extends AppTestCase {
 
 
@@ -50,12 +52,21 @@ public class UtReplService_Test extends AppTestCase {
 
     @Test
     public void test_processList() throws Exception {
-        UtReplService.processList();
+        logOn();
+        Collection<ProcessInfo> processList = UtReplService.processList();
+        ProcessInfo.printList(processList);
     }
 
     @Test
-    public void test_stop() throws Exception {
-        UtReplService.stop();
+    public void test_stop_all() throws Exception {
+        logOn();
+        UtReplService.stop(true);
+    }
+
+    @Test
+    public void test_stop_one() throws Exception {
+        logOn();
+        UtReplService.stop(false);
     }
 
 }

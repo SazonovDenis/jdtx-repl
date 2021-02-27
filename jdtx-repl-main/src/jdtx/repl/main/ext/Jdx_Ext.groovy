@@ -772,11 +772,12 @@ class Jdx_Ext extends ProjectExt {
     }
 
     void repl_service_state(IVariantMap args) {
-        UtReplService.processList()
+        Collection<ProcessInfo> processList = UtReplService.processList()
+        ProcessInfo.printList(processList)
     }
 
     void repl_service_stop(IVariantMap args) {
-        UtReplService.stop()
+        UtReplService.stop(args.containsKey("all"))
     }
 
     void repl_service_install(IVariantMap args) {
