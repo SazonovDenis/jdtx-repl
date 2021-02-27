@@ -52,65 +52,95 @@ public class UtAuditApplyer {
         IRefDecoder decoder = new RefDecoder(db, selfWsId);
 
         //
-        List<Long> failedDeleteId = new ArrayList<>();
-
-        //
         db.startTran();
         try {
+            // На время применения аудита нужно выключать триггера
             triggersManager.setTriggersOff();
 
+
+            // Тут копим задания на DELETE для всей реплики, их выполняем вторым проходом.
+            // Если пытаться выполнить реплики все сразу, то возможна нежелательная ситуация:
+            // Например, при слиянии значений в справочнике CommentTip появятся реплики:
+            // CommentTip:
+            //  - вставить запись 5
+            //  - удалить записи 1, 2, 3, 4
+            // CommentText:
+            //  - заменить ссылку CommentTip с 1 на 5
+            //  - заменить ссылку CommentTip с 2 на 5
+            //  - заменить ссылку CommentTip с 3 на 5
+            //  - удалить запись со ссылкой CommentTip раной 4
             //
-            String tableName = dataReader.nextTable();
-            String tableNamePrior = "";
+            // Этот поток реплик, хотя является в конечном итоге правильным, тем не менее, не может быть обработан без ошибок,
+            // т.к из за ссылочной целостности его нужно выполнять в такой последовательности:
+            // CommentTip:
+            //  - вставить запись 4
+            // CommentText:
+            //  - заменить ссылку CommentTip с 1 на 5
+            //  - заменить ссылку CommentTip с 2 на 5
+            //  - заменить ссылку CommentTip с 3 на 5
+            //  - удалить запись со ссылкой CommentTip раной 4
+            // CommentTip:
+            //  - удалить записи 1, 2, 3, 4
+            Map<String, Collection<Long>> delayedDeleteTask = new HashMap<>();
+
+            //
+            String readerTableName = dataReader.nextTable();
+            String readerTableNamePrior = "";
             long countPortion = 0;
             long count = 0;
-            while (tableName != null) {
-                //log.debug("  table: " + tableName);
-
-                // Поиск таблицы tableName в структуре, только в одну сторону (из-за зависимостей)
+            while (readerTableName != null) {
+                // Поиск таблицы readerTableName в структуре, только в одну сторону (из-за зависимостей)
                 int n = -1;
                 for (int i = tIdx; i < tables.size(); i++) {
-                    if (tables.get(i).getName().compareToIgnoreCase(tableName) == 0) {
+                    if (tables.get(i).getName().compareToIgnoreCase(readerTableName) == 0) {
                         n = i;
                         break;
                     }
                 }
                 if (n == -1) {
-                    throw new XError("table [" + tableName + "] found in replica data, but not found in dbstruct");
+                    throw new XError("table [" + readerTableName + "] found in replica data, but not found in dbstruct");
                 }
                 //
                 tIdx = n;
                 IJdxTable table = tables.get(n);
                 String idFieldName = table.getPrimaryKey().get(0).getName();
+                String tableName = table.getName();
 
                 // Поиск таблицы и ее полей в публикации (поля берем именно из правил публикаций)
                 IPublicationRule publicationRuleTable;
                 if (forceApply_ignorePublicationRules) {
                     // Таблицу и ее поля берем из актуальной структуры БД
-                    publicationRuleTable = new PublicationRule(struct.getTable(tableName));
-                    log.info("  force apply table: " + tableName + ", ignore publication rules");
+                    publicationRuleTable = new PublicationRule(struct.getTable(readerTableName));
+                    log.info("  force apply table: " + readerTableName + ", ignore publication rules");
                 } else {
                     // Таблицу и ее поля берем именно из правил публикаций
-                    publicationRuleTable = publicationRules.getPublicationRule(tableName);
+                    publicationRuleTable = publicationRules.getPublicationRule(readerTableName);
                     if (publicationRuleTable == null) {
-                        log.info("  skip table: " + tableName + ", not found in publication");
+                        log.info("  skip table: " + readerTableName + ", not found in publication");
 
                         //
-                        tableName = dataReader.nextTable();
+                        readerTableName = dataReader.nextTable();
 
                         //
                         continue;
                     }
                 }
 
+                // Тут копим задания на DELETE для таблицы, их выполняем вторым проходом.
+                Collection<Long> delayedDeleteList = delayedDeleteTask.get(tableName);
+                if (delayedDeleteList == null) {
+                    delayedDeleteList = new ArrayList<>();
+                    delayedDeleteTask.put(tableName, delayedDeleteList);
+                }
+
                 // Перебираем записи
                 countPortion = 0;
-                if (tableName.compareToIgnoreCase(tableNamePrior) == 0) {
-                    log.info("next portion: " + tableName);
+                if (readerTableName.compareToIgnoreCase(readerTableNamePrior) == 0) {
+                    log.info("next portion: " + readerTableName);
                 } else {
                     count = 0;
                 }
-                tableNamePrior = tableName;
+                readerTableNamePrior = readerTableName;
 
                 Map recValues = dataReader.nextRec();
                 while (recValues != null) {
@@ -121,7 +151,7 @@ public class UtAuditApplyer {
                         db.commit();
                         db.startTran();
                         //
-                        log.info("  table: " + tableName + ", " + count + ", commit/startTran");
+                        log.info("  table: " + readerTableName + ", " + count + ", commit/startTran");
                     }
                     countPortion++;
 
@@ -156,7 +186,7 @@ public class UtAuditApplyer {
                             // Ссылка
                             String refTableName;
                             if (field.isPrimaryKey()) {
-                                refTableName = table.getName();
+                                refTableName = tableName;
                             } else {
                                 refTableName = refTable.getName();
                             }
@@ -186,7 +216,7 @@ public class UtAuditApplyer {
                     int oprType = JdxUtils.intValueOf(recValues.get(JdxUtils.XML_FIELD_OPR_TYPE));
                     if (oprType == JdxOprType.OPR_INS) {
                         try {
-                            insertOrUpdate(dbu, table.getName(), recParams, publicationFields);
+                            insertOrUpdate(dbu, tableName, recParams, publicationFields);
                         } catch (Exception e) {
                             if (JdxUtils.errorIs_ForeignKeyViolation(e)) {
                                 log.error("recParams: " + recParams);
@@ -203,7 +233,7 @@ public class UtAuditApplyer {
 
                     } else if (oprType == JdxOprType.OPR_UPD) {
                         try {
-                            dbu.updateRec(table.getName(), recParams, publicationFields, null);
+                            dbu.updateRec(tableName, recParams, publicationFields, null);
                         } catch (Exception e) {
                             if (JdxUtils.errorIs_ForeignKeyViolation(e)) {
                                 log.error("recParams: " + recParams);
@@ -218,20 +248,8 @@ public class UtAuditApplyer {
                             }
                         }
                     } else if (oprType == JdxOprType.OPR_DEL) {
-                        try {
-                            dbu.deleteRec(table.getName(), (Long) recParams.get(idFieldName));
-                        } catch (Exception e) {
-                            if (JdxUtils.errorIs_ForeignKeyViolation(e)) {
-                                // Пропустим реплику, выдадим в исходящую очередь наш вариант удаляемой записи
-                                // todo: этот метод В КОНТЕКТСЕ ТРАНЗАКЦИИ возится с какими то файлами и проч... - нежелательно
-                                failedDeleteId.add((Long) recParams.get(idFieldName));
-                            } else {
-                                log.error("recParams: " + recParams);
-                                log.error("recValues: " + recValues);
-                                //
-                                throw (e);
-                            }
-                        }
+                        // Отложим удаление на второй проход
+                        delayedDeleteList.add((Long) recParams.get(idFieldName));
                     }
 
                     //
@@ -240,34 +258,83 @@ public class UtAuditApplyer {
                     //
                     count++;
                     if (count % 200 == 0) {
-                        log.info("  table: " + tableName + ", " + count);
+                        log.info("  table: " + readerTableName + ", " + count);
                     }
                 }
 
 
                 //
-                log.info("  done: " + tableName + ", total: " + count);
-
-
-                // Обратка от удалений, которые не удалось выполнить - создаем реплики на вставку,
-                // чтобы те, кто уже удалил - раскаялись и вернули все назад, по данныим из наших реплик.
-                if (failedDeleteId.size() != 0) {
-                    log.info("  table: " + tableName + ", fail to delete: " + failedDeleteId.size());
-
-                    // todo: этот метод В КОНТЕКТСЕ ТРАНЗАКЦИИ возится с какими то файлами и проч... - нежелательно
-                    // todo: комит тут внутри, а контекст с этим методом createTableReplicaByIdList() - снаружи
-                    jdxReplWs.createTableReplicaByIdList(tableName, failedDeleteId);
-                    //
-                    failedDeleteId.clear();
-                }
+                log.info("  done: " + readerTableName + ", total: " + count);
 
 
                 //
-                tableName = dataReader.nextTable();
+                readerTableName = dataReader.nextTable();
             }
 
 
-            //
+            // Ворой проход - выполнение удаления отложенных
+            //log.info("applyReplica, delayed delete");
+            for (int i = tables.size() - 1; i >= 0; i--) {
+                IJdxTable table = tables.get(i);
+                String tableName = table.getName();
+
+                //
+                Collection<Long> delayedDeleteList = delayedDeleteTask.get(tableName);
+                if (delayedDeleteList == null) {
+                    continue;
+                }
+                if (delayedDeleteList.size() == 0) {
+                    continue;
+                }
+
+                //
+                List<Long> failedDeleteList = new ArrayList<>();
+                count = 0;
+                for (Long recId : delayedDeleteList) {
+                    try {
+                        dbu.deleteRec(tableName, recId);
+                        count = count + 1;
+                    } catch (Exception e) {
+                        if (JdxUtils.errorIs_ForeignKeyViolation(e)) {
+                            // Пропустим реплику, а ниже - выдадим в исходящую очередь наш вариант удаляемой записи
+                            log.info("  table: " + tableName + ", fail to delete: " + failedDeleteList.size());
+                            failedDeleteList.add(recId);
+                        } else {
+                            log.error("table: " + tableName + ", table.id: " + recId);
+                            //
+                            throw (e);
+                        }
+                    }
+
+                    //
+                    count++;
+                    if (count % 200 == 0) {
+                        log.info("  table delete: " + tableName + ", " + count);
+                    }
+
+                }
+
+                //
+                log.info("  done delete: " + tableName + ", total: " + count);
+
+                // Обратка от удалений, которые не удалось выполнить - создаем реплики на вставку (выдадим в исходящую очередь наш вариант удаляемой записи),
+                // чтобы те, кто уже удалил - раскаялись и вернули все назад, по данныим из наших реплик.
+                // todo: этот метод В КОНТЕКТСЕ ТРАНЗАКЦИИ возится с какими то файлами и проч... - нежелательно
+                // todo: комит тут внутри, а контекст с этим методом createTableReplicaByIdList() - снаружи
+                if (failedDeleteList.size() != 0) {
+                    log.info("  failed delete: " + tableName + ", count: " + failedDeleteList.size());
+                    //
+                    jdxReplWs.createTableReplicaByIdList(tableName, failedDeleteList);
+                    //
+                    log.info("  failed delete: " + tableName + ", done");
+                    //
+                    failedDeleteList.clear();
+                }
+
+            }
+
+
+            // После применения аудита можно снова включать триггера
             triggersManager.setTriggersOn();
 
 
