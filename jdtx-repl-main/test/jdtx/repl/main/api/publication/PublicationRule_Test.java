@@ -17,7 +17,7 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
 
     @Override
     public void setUp() throws Exception {
-        rootDir = "../../ext/srv/";
+        rootDir = "../../ext/";
 
         super.setUp();
     }
