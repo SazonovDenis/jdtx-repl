@@ -30,6 +30,7 @@ public class DbPrepareEtalon_Test extends AppTestCase {
     public Jdx_Ext extWs3;
     public Jdx_Ext extWs5;
 
+    protected String rootDir = "../ext/srv/";
 
     @Override
     public void setUp() throws Exception {
@@ -38,10 +39,10 @@ public class DbPrepareEtalon_Test extends AppTestCase {
 
         // Утилиты Jdx_Ext
         TestExtJc jc = createExt(TestExtJc.class);
-        ProjectScript p1 = jc.loadProject("../ext/srv/project.jc");
-        ProjectScript p2 = jc.loadProject("../ext/ws2/project.jc");
-        ProjectScript p3 = jc.loadProject("../ext/ws3/project.jc");
-        ProjectScript p5 = jc.loadProject("../ext/ws5/project.jc");
+        ProjectScript p1 = jc.loadProject(rootDir + "project.jc");
+        ProjectScript p2 = jc.loadProject(rootDir + "project.jc");
+        ProjectScript p3 = jc.loadProject(rootDir + "project.jc");
+        ProjectScript p5 = jc.loadProject(rootDir + "project.jc");
         //
         extSrv = (Jdx_Ext) p1.createExt("jdtx.repl.main.ext.Jdx_Ext");
         extWs2 = (Jdx_Ext) p2.createExt("jdtx.repl.main.ext.Jdx_Ext");
@@ -102,7 +103,6 @@ public class DbPrepareEtalon_Test extends AppTestCase {
         db3.disconnectForce();
         db5.disconnectForce();
     }
-
 
 
     /**

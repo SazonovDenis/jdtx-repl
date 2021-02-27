@@ -167,8 +167,8 @@ public class JdxReplWs {
         }
 
         // Правила публикаций
-        this.publicationIn = UtRepl.extractPublicationRules(cfgPublications, structActual, "in");
-        this.publicationOut = UtRepl.extractPublicationRules(cfgPublications, structActual, "out");
+        this.publicationIn = PublicationStorage.extractPublicationRules(cfgPublications, structActual, "in");
+        this.publicationOut = PublicationStorage.extractPublicationRules(cfgPublications, structActual, "out");
 
 
         // Фильтрация структуры: убирание того, чего нет в публикациях publicationIn и publicationOut

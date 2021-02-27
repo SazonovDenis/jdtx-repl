@@ -23,7 +23,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Утилитный класс.
+ * Утилиты (связанные именно с репликацией).
  * todo: Куча всего в одном месте. Это плохо
  */
 public class UtRepl {
@@ -709,21 +709,6 @@ public class UtRepl {
 
         //
         return structCommonSorted;
-    }
-
-    /**
-     * Из json-объекта cfgPublications создает правила публикации по имени publicationName (обычно "in" или "out")
-     */
-    static IPublicationStorage extractPublicationRules(JSONObject cfgPublications, IJdxDbStruct structActual, String publicationName) throws Exception {
-        IPublicationStorage publicationRules = new PublicationStorage();
-        //
-        if (cfgPublications != null) {
-            String publicationRuleName = (String) cfgPublications.get(publicationName);
-            JSONObject cfgPublicationRule = (JSONObject) cfgPublications.get(publicationRuleName);
-            publicationRules.loadRules(cfgPublicationRule, structActual);
-        }
-        //
-        return publicationRules;
     }
 
 

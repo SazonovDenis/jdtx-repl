@@ -1,6 +1,5 @@
 package jdtx.repl.main.api.publication;
 
-import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
@@ -17,7 +16,7 @@ public class PublicationStorage implements IPublicationStorage {
 
 
     @Override
-    public void loadRules(JSONObject cfg, IJdxDbStruct structActual) throws Exception {
+    public void loadRules(JSONObject cfg, IJdxDbStruct struct) throws Exception {
         publicationRules.clear();
 
         for (Object key : cfg.keySet()) {
@@ -25,7 +24,7 @@ public class PublicationStorage implements IPublicationStorage {
             String publicationTableName = (String) key;
 
             //
-            IJdxTable structTable = structActual.getTable(publicationTableName);
+            IJdxTable structTable = struct.getTable(publicationTableName);
             if (structTable == null) {
                 // Правило для таблицы, которой нет в структуре
                 log.warn("Not found table in struct, table: " + publicationTableName);
@@ -52,6 +51,9 @@ public class PublicationStorage implements IPublicationStorage {
             // IPublicationRule.setFilterExpression
             publicationRule.setFilterExpression((String) publicationRuleJson.getOrDefault("filter", null));
         }
+
+        //
+        UtPublicationRule.checkValidRef(this, struct);
     }
 
 
@@ -71,60 +73,19 @@ public class PublicationStorage implements IPublicationStorage {
         return null;
     }
 
-
-    private List<String> expandPublicationFields(IJdxTable table, String publicationFields) {
-        List<String> res = new ArrayList<>();
-
+    /**
+     * Из json-объекта cfgPublications создает правила публикации по имени publicationName (обычно "in" или "out")
+     */
+    public static IPublicationStorage extractPublicationRules(JSONObject cfgPublications, IJdxDbStruct structActual, String publicationName) throws Exception {
+        IPublicationStorage publicationRules = new PublicationStorage();
         //
-        // JdxDbUtils.ID_FIELD пусть будет всегда спереди (необязательно, но... во-первых это красиво!)
-        res.add(JdxDbUtils.ID_FIELD);
-        if (publicationFields.contains("*")) {
-            publicationFields = publicationFields.toUpperCase();
-            for (IJdxField fieldStruct : table.getFields()) {
-                String fieldName = fieldStruct.getName().toUpperCase();
-                //
-                if (fieldName.equalsIgnoreCase(JdxDbUtils.ID_FIELD)) {
-                    continue;
-                }
-                //
-                if (!publicationFields.contains("-" + fieldName)) {
-                    res.add(fieldName);
-                }
-            }
-        } else {
-            String[] publicationFieldsArr = publicationFields.split(",");
-            for (String publicationField : publicationFieldsArr) {
-                if (publicationField.equalsIgnoreCase(JdxDbUtils.ID_FIELD)) {
-                    continue;
-                }
-                //
-                res.add(publicationField);
-            }
+        if (cfgPublications != null) {
+            String publicationRuleName = (String) cfgPublications.get(publicationName);
+            JSONObject cfgPublicationRule = (JSONObject) cfgPublications.get(publicationRuleName);
+            publicationRules.loadRules(cfgPublicationRule, structActual);
         }
-
         //
-        return res;
-    }
-
-    // todo: переместить отсюда куда-нибудь в утилиты
-    public static String filedsToString(Collection<IJdxField> fields) {
-        return filedsToString(fields, "");
-    }
-
-    public static String filedsToString(Collection<IJdxField> fields, String fieldPrefix) {
-        StringBuilder sb = new StringBuilder();
-
-        //
-        for (IJdxField f : fields) {
-            if (sb.length() != 0) {
-                sb.append(",");
-            }
-            sb.append(fieldPrefix);
-            sb.append(f.getName());
-        }
-
-        //
-        return sb.toString();
+        return publicationRules;
     }
 
 

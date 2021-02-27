@@ -17,21 +17,6 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    public void test_LoadRules() throws Exception {
-        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub.json"));
-        IPublicationStorage publication = new PublicationStorage();
-        publication.loadRules(cfg, struct);
-
-        Collection<IPublicationRule> t = publication.getPublicationRules();
-        for (IPublicationRule o : t) {
-            System.out.println("table = " + o.getTableName());
-            System.out.println("fields = " + o.getFields());
-            System.out.println("authorWs = " + o.getAuthorWs());
-        }
-    }
-
-
-    @Test
     public void test_loadAutitIntervals_0() throws Exception {
         logOn();
 

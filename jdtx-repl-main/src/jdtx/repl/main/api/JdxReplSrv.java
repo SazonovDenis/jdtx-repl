@@ -126,7 +126,7 @@ public class JdxReplSrv {
 
             // Правила входящих реплик для рабочей станции ("in", используем при подготовке реплик)
             JSONObject cfgPublicationsWs = UtCfgMarker.getCfgFromDataRecord(wsRec, UtCfgType.PUBLICATIONS);
-            IPublicationStorage publicationsWsIn = UtRepl.extractPublicationRules(cfgPublicationsWs, structActual, "in");
+            IPublicationStorage publicationsWsIn = PublicationStorage.extractPublicationRules(cfgPublicationsWs, structActual, "in");
             publicationsInList.put(wsId, publicationsWsIn);
         }
 
@@ -134,8 +134,8 @@ public class JdxReplSrv {
         // Фильтрация структуры: убирание того, чего нет в публикациях publicationIn и publicationOut
 
         // Правила публикаций
-        IPublicationStorage publicationIn = UtRepl.extractPublicationRules(cfgPublications, structActual, "in");
-        IPublicationStorage publicationOut = UtRepl.extractPublicationRules(cfgPublications, structActual, "out");
+        IPublicationStorage publicationIn = PublicationStorage.extractPublicationRules(cfgPublications, structActual, "in");
+        IPublicationStorage publicationOut = PublicationStorage.extractPublicationRules(cfgPublications, structActual, "out");
 
         // Фильтрация структуры
         struct = UtRepl.getStructCommon(structActual, publicationIn, publicationOut);
@@ -235,7 +235,7 @@ public class JdxReplSrv {
         IReplicaFilter filter = new ReplicaFilter();
 
         // Правила публикаций (фильтры) для wsId. В качестве фильтров на отправку берем ВХОДЯЩЕЕ правило рабочей станций.
-        IPublicationStorage publicationRuleWsIn = UtRepl.extractPublicationRules(cfgPublications, struct, "in");
+        IPublicationStorage publicationRuleWsIn = PublicationStorage.extractPublicationRules(cfgPublications, struct, "in");
         //IPublicationStorage publicationRuleWsIn = publicationsInList.get(wsId);
 
         // Параметры: получатель реплики (для правил публикации)
