@@ -458,7 +458,7 @@ public class JdxReplWs {
         log.info("handleSelfAudit, wsId: " + wsId);
 
         //
-        UtAuditSelector utRepl = new UtAuditSelector(db, struct, wsId);
+        UtAuditSelector auditSelector = new UtAuditSelector(db, struct, wsId);
         DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
 
         // Если в стостоянии "я замолчал", то молчим
@@ -526,7 +526,7 @@ public class JdxReplWs {
 
             //
             for (long age = auditAgeFrom + 1; age <= auditAgeTo; age++) {
-                IReplica replica = utRepl.createReplicaFromAudit(publicationOut, age);
+                IReplica replica = auditSelector.createReplicaFromAudit(publicationOut, age);
 
                 // Пополнение исходящей очереди реплик
                 queOut.push(replica);
@@ -566,8 +566,8 @@ public class JdxReplWs {
 
 
         // Формируем реплику заново
-        UtAuditSelector utRepl = new UtAuditSelector(db, struct, wsId);
-        IReplica replicaRecreated = utRepl.createReplicaFromAudit(publicationOut, age);
+        UtAuditSelector auditSelector = new UtAuditSelector(db, struct, wsId);
+        IReplica replicaRecreated = auditSelector.createReplicaFromAudit(publicationOut, age);
 
         // Копируем реплику на место старой
         IReplica replicaOriginal = queOut.get(age);
