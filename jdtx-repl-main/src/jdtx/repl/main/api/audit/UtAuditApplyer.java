@@ -53,7 +53,14 @@ public class UtAuditApplyer {
                 applyReplicaReader(replicaReader, publicationIn, forceApply_ignorePublicationRules, commitPortionMax);
             } catch (Exception e) {
                 if (e instanceof JdxForeignKeyViolationException) {
-                    jdxReplWs.handleFailedInsertUpdateRef((JdxForeignKeyViolationException) e);
+                    File replicaRepairFile = jdxReplWs.handleFailedInsertUpdateRef((JdxForeignKeyViolationException) e);
+                    if (false) {
+                        log.error("==================================");
+                        log.error("==================================");
+                        log.error("==================================");
+                        log.error("Восстанавливаем записи из реплики: " + replicaRepairFile.getAbsolutePath());
+                        jdxReplWs.useReplicaFile(replicaRepairFile);
+                    }
                 }
                 throw (e);
             }
@@ -253,6 +260,7 @@ public class UtAuditApplyer {
                             insertOrUpdate(dbu, tableName, recParams, publicationFields);
                         } catch (Exception e) {
                             if (UtJdx.errorIs_ForeignKeyViolation(e)) {
+                                log.error(e.getMessage());
                                 log.error("recParams: " + recParams);
                                 log.error("recValues: " + recValues);
                                 //
@@ -270,6 +278,7 @@ public class UtAuditApplyer {
                             dbu.updateRec(tableName, recParams, publicationFields, null);
                         } catch (Exception e) {
                             if (UtJdx.errorIs_ForeignKeyViolation(e)) {
+                                log.error(e.getMessage());
                                 log.error("recParams: " + recParams);
                                 log.error("recValues: " + recValues);
                                 //

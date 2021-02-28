@@ -1389,8 +1389,9 @@ public class JdxReplWs {
     /**
      * Обработаем аварийную ситуацию - поищем недостающие записи (на которые мы ссылаемся) у себя в каталоге для входящих реплик
      * и выложим их в виде реплики (готовом виде для применения)
+     * @return
      */
-    public void handleFailedInsertUpdateRef(JdxForeignKeyViolationException e) throws Exception {
+    public File handleFailedInsertUpdateRef(JdxForeignKeyViolationException e) throws Exception {
         IJdxTable thisTable = UtJdx.get_ForeignKeyViolation_tableInfo(e, struct);
         IJdxForeignKey foreignKey = UtJdx.get_ForeignKeyViolation_refInfo(e, struct);
         IJdxField refField = foreignKey.getField();
@@ -1413,7 +1414,7 @@ public class JdxReplWs {
         // иначе на каждую ссылку будет выполнятся поиск, что затянет выкидыванмие ошибки
         if (outReplicaFile.exists()) {
             log.error("Файл с репликой - результатами поиска уже есть: " + outReplicaFile.getAbsolutePath());
-            return;
+            return outReplicaFile;
         }
 
         // Собираем все операции с записью в одну реплику
@@ -1425,6 +1426,9 @@ public class JdxReplWs {
 
         //
         log.error("Файл с репликой - результатами поиска сформирован: " + outReplicaFile.getAbsolutePath());
+
+        //
+        return outReplicaFile;
     }
 
     /**
