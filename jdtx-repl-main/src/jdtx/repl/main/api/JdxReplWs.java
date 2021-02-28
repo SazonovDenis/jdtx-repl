@@ -354,7 +354,7 @@ public class JdxReplWs {
         // т.к. таблица аудита ЕЩЕ не видна другим транзакциям, а данные, продолжающие поступать в snapshot, УЖЕ не видны нашей транзакции.
         db.startTran();
         try {
-            createSnapsotIntoQueOut(tablesNew);
+            createSnapsotIntoQueOut(tablesNew, true);
 
             //
             db.commit();
@@ -374,7 +374,7 @@ public class JdxReplWs {
 
 
     // Создаем Snapsot для таблиц tablesNew и помещаем его в очередь на отправку queOut
-    private void createSnapsotIntoQueOut(List<IJdxTable> tablesNew) throws Exception {
+    private void createSnapsotIntoQueOut(List<IJdxTable> tablesNew, boolean forbidNotOwnId) throws Exception {
         //
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
@@ -382,7 +382,7 @@ public class JdxReplWs {
         long queOutMaxAge = queOut.getMaxNo();
 
         // Создаем реплику
-        List<IReplica> replicasSnapshot = SnapshotForTables(tablesNew, queOutMaxAge, true);
+        List<IReplica> replicasSnapshot = SnapshotForTables(tablesNew, queOutMaxAge, forbidNotOwnId);
 
         // Фильтр
         IReplicaFilter filter = new ReplicaFilter();
@@ -846,12 +846,11 @@ public class JdxReplWs {
 
                 // Реакция на команду, если получатель - именно наша
                 if (destinationWsId == wsId) {
-                    // Создаем снимок таблицы и кладем его в очередь queOut
                     // Список из одной таблицы
                     List<IJdxTable> tablesNew = new ArrayList<>();
                     tablesNew.add(struct.getTable(tableName));
-                    //
-                    createSnapsotIntoQueOut(tablesNew);
+                    // Создаем снимок таблицы и кладем его в очередь queOut (разрешаем отсылать чужие записи)
+                    createSnapsotIntoQueOut(tablesNew, false);
 
                     // Выкладывание реплики "snapshot отправлен"
                     reportReplica(JdxReplicaType.SEND_SNAPSHOT_DONE);
