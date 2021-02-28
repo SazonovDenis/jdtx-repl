@@ -3,7 +3,6 @@ package jdtx.repl.main.api.publication;
 import jandcode.utils.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.*;
-import org.apache.commons.logging.*;
 import org.json.simple.*;
 import org.junit.*;
 
@@ -18,7 +17,6 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
     @Override
     public void setUp() throws Exception {
         rootDir = "../../ext/";
-
         super.setUp();
     }
 
@@ -41,7 +39,7 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
     private void printPublicationRules(Collection<IPublicationRule> rules) {
         for (IPublicationRule rule : rules) {
             System.out.println("table: " + rule.getTableName());
-            System.out.println("  fields: " + JdxUtils.fieldsToString(rule.getFields()));
+            System.out.println("  fields: " + UtJdx.fieldsToString(rule.getFields()));
             System.out.println("  filter: " + rule.getFilterExpression());
         }
     }

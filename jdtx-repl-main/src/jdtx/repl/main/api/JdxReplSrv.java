@@ -7,10 +7,12 @@ import jandcode.web.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
+import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.util.*;
 import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
 import org.apache.log4j.*;
@@ -84,9 +86,9 @@ public class JdxReplSrv {
         ut.checkReplDb();
 
         // Чтение своей конфигурации
-        UtCfgMarker utCfgMarker = new UtCfgMarker(db);
-        JSONObject cfgWs = utCfgMarker.getSelfCfg(UtCfgType.WS);
-        JSONObject cfgPublications = utCfgMarker.getSelfCfg(UtCfgType.PUBLICATIONS);
+        CfgManager cfgManager = new CfgManager(db);
+        JSONObject cfgWs = cfgManager.getSelfCfg(CfgType.WS);
+        JSONObject cfgPublications = cfgManager.getSelfCfg(CfgType.PUBLICATIONS);
 
 
         // Чтение структуры БД
@@ -125,7 +127,7 @@ public class JdxReplSrv {
 
 
             // Правила входящих реплик для рабочей станции ("in", используем при подготовке реплик)
-            JSONObject cfgPublicationsWs = UtCfgMarker.getCfgFromDataRecord(wsRec, UtCfgType.PUBLICATIONS);
+            JSONObject cfgPublicationsWs = CfgManager.getCfgFromDataRecord(wsRec, CfgType.PUBLICATIONS);
             IPublicationStorage publicationsWsIn = PublicationStorage.extractPublicationRules(cfgPublicationsWs, structActual, "in");
             publicationsInList.put(wsId, publicationsWsIn);
         }
@@ -163,13 +165,13 @@ public class JdxReplSrv {
                 "name", wsName,
                 "guid", wsGuid
         );
-        String sql = "insert into " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list (id, name, guid) values (:id, :name, :guid)";
+        String sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "workstation_list (id, name, guid) values (:id, :name, :guid)";
         db.execSql(sql, params);
 
         // state_ws
         JdxDbUtils dbu = new JdxDbUtils(db, null);
-        long id = dbu.getNextGenerator(JdxUtils.SYS_GEN_PREFIX + "state_ws");
-        sql = "insert into " + JdxUtils.SYS_TABLE_PREFIX + "state_ws (id, ws_id, que_common_dispatch_done, que_in_age_done, enabled, mute_age) values (" + id + ", " + wsId + ", 0, 0, 0, 0)";
+        long id = dbu.getNextGenerator(UtJdx.SYS_GEN_PREFIX + "state_ws");
+        sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "state_ws (id, ws_id, que_common_dispatch_done, que_in_age_done, enabled, mute_age) values (" + id + ", " + wsId + ", 0, 0, 0, 0)";
         db.execSql(sql);
 
 
@@ -182,10 +184,10 @@ public class JdxReplSrv {
         // ---
         // Отправим системные команды для станции в ее очередь queOut001
         JSONObject cfgPublications = UtRepl.loadAndValidateCfgFile(cfgPublicationsFileName);
-        srvSendCfgInternal(queOut001, cfgPublications, UtCfgType.PUBLICATIONS, wsId);
+        srvSendCfgInternal(queOut001, cfgPublications, CfgType.PUBLICATIONS, wsId);
         //
         JSONObject cfgDecode = UtRepl.loadAndValidateCfgFile(cfgDecodeFileName);
-        srvSendCfgInternal(queOut001, cfgDecode, UtCfgType.DECODE, wsId);
+        srvSendCfgInternal(queOut001, cfgDecode, CfgType.DECODE, wsId);
         //
         srvDbStructFinishInternal(queOut001);
 
@@ -213,7 +215,7 @@ public class JdxReplSrv {
 
             // Создаем реплики
             snapshotReplicas = ws.SnapshotForTables(publicationOutTables, 0, false);
-
+//                                  :с реакция на запрос реплик - с ошибкой (а почему при + станции нет ощибок)
             //
             db.commit();
 
@@ -292,18 +294,18 @@ public class JdxReplSrv {
     public void enableWorkstation(long wsId) throws Exception {
         log.info("enable workstation, wsId: " + wsId);
         //
-        String sql = "update " + JdxUtils.SYS_TABLE_PREFIX + "state_ws set enabled = 1 where id = " + wsId;
+        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "state_ws set enabled = 1 where id = " + wsId;
         db.execSql(sql);
-        sql = "update " + JdxUtils.SYS_TABLE_PREFIX + "state set enabled = 1";
+        sql = "update " + UtJdx.SYS_TABLE_PREFIX + "state set enabled = 1";
         db.execSql(sql);
     }
 
     public void disableWorkstation(long wsId) throws Exception {
         log.info("disable workstation, wsId: " + wsId);
         //
-        String sql = "update " + JdxUtils.SYS_TABLE_PREFIX + "state_ws set enabled = 0 where id = " + wsId;
+        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "state_ws set enabled = 0 where id = " + wsId;
         db.execSql(sql);
-        sql = "update " + JdxUtils.SYS_TABLE_PREFIX + "state set enabled = 0";
+        sql = "update " + UtJdx.SYS_TABLE_PREFIX + "state set enabled = 0";
         db.execSql(sql);
     }
 
@@ -546,8 +548,8 @@ public class JdxReplSrv {
         db.startTran();
         try {
             // Обновляем конфиг в таблицах для рабочих станций (workstation_list)
-            UtCfgMarker utCfgMarker = new UtCfgMarker(db);
-            utCfgMarker.setWsCfg(cfg, cfgType, destinationWsId);
+            CfgManager cfgManager = new CfgManager(db);
+            cfgManager.setWsCfg(cfg, cfgType, destinationWsId);
 
             // Системная команда ...
             UtRepl utRepl = new UtRepl(db, struct);
@@ -600,7 +602,7 @@ public class JdxReplSrv {
                     IReplica replica = mailer.receive("from", age);
 
                     // Проверяем целостность скачанного
-                    JdxUtils.checkReplicaCrc(replica, info);
+                    UtJdx.checkReplicaCrc(replica, info);
 
                     // Читаем заголовок
                     JdxReplicaReaderXml.readReplicaInfo(replica);
@@ -848,14 +850,14 @@ public class JdxReplSrv {
         String sql;
         if (wsId != 0) {
             // Указана конкретная станция-получатель - выгружаем только ее, остальные пропускаем
-            sql = "select * from " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list where id = " + wsId;
+            sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "workstation_list where id = " + wsId;
         } else {
             // Берем только активные
-            sql = "select " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list.* " +
-                    "from " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list " +
-                    "join " + JdxUtils.SYS_TABLE_PREFIX + "state_ws on " +
-                    "(" + JdxUtils.SYS_TABLE_PREFIX + "workstation_list.id = " + JdxUtils.SYS_TABLE_PREFIX + "state_ws.ws_id) " +
-                    "where " + JdxUtils.SYS_TABLE_PREFIX + "state_ws.enabled = 1";
+            sql = "select " + UtJdx.SYS_TABLE_PREFIX + "workstation_list.* " +
+                    "from " + UtJdx.SYS_TABLE_PREFIX + "workstation_list " +
+                    "join " + UtJdx.SYS_TABLE_PREFIX + "state_ws on " +
+                    "(" + UtJdx.SYS_TABLE_PREFIX + "workstation_list.id = " + UtJdx.SYS_TABLE_PREFIX + "state_ws.ws_id) " +
+                    "where " + UtJdx.SYS_TABLE_PREFIX + "state_ws.enabled = 1";
         }
 
         //

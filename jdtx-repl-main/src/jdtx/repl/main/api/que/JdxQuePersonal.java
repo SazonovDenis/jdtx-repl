@@ -70,7 +70,7 @@ public class JdxQuePersonal extends JdxQue implements IJdxQue {
      * @return Последний возраст реплики в очереди для нашей рабочей станции
      */
     private long getMaxAge() throws Exception {
-        String sql = "select max(age) as maxAge, count(*) as cnt from " + JdxUtils.SYS_TABLE_PREFIX + "que_" + queName;
+        String sql = "select max(age) as maxAge, count(*) as cnt from " + UtJdx.SYS_TABLE_PREFIX + "que_" + queName;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("cnt") == 0) {
             return 0;

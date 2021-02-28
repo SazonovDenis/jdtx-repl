@@ -7,24 +7,25 @@ import jandcode.utils.error.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.jdx_db_object.*;
+import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.util.*;
 import jdtx.repl.main.ut.*;
 import org.apache.commons.io.*;
 import org.apache.commons.io.comparator.*;
 import org.apache.commons.io.filefilter.*;
 import org.apache.commons.logging.*;
 import org.apache.tools.ant.filters.*;
-import org.joda.time.*;
 import org.json.simple.*;
 
 import java.io.*;
 import java.util.*;
 
 /**
- * Утилиты (связанные именно с репликацией).
- * todo: Куча всего в одном месте. Это плохо
+ * Утилиты (связанные именно с репликацией) верхнего уровня, готовые команды.
+ * todo: Куча всего в одном месте, и еще куча лишнего. Это плохо
  */
 public class UtRepl {
 
@@ -61,15 +62,15 @@ public class UtRepl {
         decodeManager.createRefDecodeObject();
 
         //
-        UtDbStructMarker utDbStructMarker = new UtDbStructMarker(db);
+        DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
 
         // Для начала "разрешенная" структура будет пустая
         IJdxDbStruct structAllowed = new JdxDbStruct();
-        utDbStructMarker.setDbStructAllowed(structAllowed);
+        databaseStructManager.setDbStructAllowed(structAllowed);
 
         // Для начала "фиксированная" структура будет пустая
         IJdxDbStruct structFixed = new JdxDbStruct();
-        utDbStructMarker.setDbStructFixed(structFixed);
+        databaseStructManager.setDbStructFixed(structFixed);
     }
 
 
@@ -107,87 +108,6 @@ public class UtRepl {
         DataStore st = db.loadSql(UtReplSql.sql_srv);
         return st;
     }
-
-    /**
-     * Искусственно увеличить возраст рабочей станции
-     */
-    public long incAuditAge() throws Exception {
-        UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
-        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-
-        // Проверяем, что весь свой аудит мы уже выложили в очередь
-        long auditAgeDone = stateManager.getAuditAgeDone();
-        long auditAgeActual = auditAgeManager.getAuditAge();
-        if (auditAgeActual != auditAgeDone) {
-            throw new XError("invalid auditAgeActual <> auditAgeDone, auditAgeDone: " + auditAgeDone + ", auditAgeActual: " + auditAgeActual);
-        }
-
-        //
-        return auditAgeManager.incAuditAge();
-    }
-
-
-    /**
-     * Собрать аудит и подготовить реплику по правилам публикации publicationStorage
-     * от для возраста age.
-     */
-    public IReplica createReplicaFromAudit(long wsId, IPublicationStorage publicationStorage, long age) throws Exception {
-        log.info("createReplicaFromAudit, wsId: " + wsId + ", age: " + age);
-
-        //
-        UtAuditSelector utrr = new UtAuditSelector(db, struct, wsId);
-
-        // Для выборки из аудита - узнаем интервалы id в таблицах аудита
-        Map auditInfo = utrr.loadAutitIntervals(publicationStorage, age);
-
-        //
-        IReplica replica = new ReplicaFile();
-        replica.getInfo().setReplicaType(JdxReplicaType.IDE);
-        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
-        replica.getInfo().setWsId(wsId);
-        replica.getInfo().setAge(age);
-        replica.getInfo().setDtFrom((DateTime) auditInfo.get("z_opr_dttm_from"));
-        replica.getInfo().setDtTo((DateTime) auditInfo.get("z_opr_dttm_to"));
-
-        // Стартуем формирование файла реплики
-        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
-        replicaWriter.replicaFileStart();
-
-        // Начинаем писать файл с данными
-        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
-
-        // Забираем аудит по порядку сортировки таблиц в struct
-        for (IJdxTable structTable : struct.getTables()) {
-            IPublicationRule publicationRule = publicationStorage.getPublicationRule(structTable.getName());
-            if (publicationRule == null) {
-                log.info("  skip table: " + structTable.getName() + ", not found in publicationStorage");
-                continue;
-            }
-            //
-            String publicationTableName = publicationRule.getTableName().toUpperCase();
-
-            // Интервал id в таблице аудита, который покрывает возраст age
-            Map autitInfoTable = (Map) auditInfo.get(publicationTableName);
-            if (autitInfoTable != null) {
-                long fromId = (long) autitInfoTable.get("z_id_from");
-                long toId = (long) autitInfoTable.get("z_id_to");
-
-                //
-                log.info("createReplicaFromAudit: " + publicationTableName + ", age: " + age + ", z_id: [" + fromId + ".." + toId + "]");
-
-                //
-                String publicationFields = JdxUtils.fieldsToString(publicationRule.getFields());
-                utrr.readAuditData_ByInterval(publicationTableName, publicationFields, fromId, toId, xmlWriter);
-            }
-        }
-
-        // Заканчиваем формирование файла реплики
-        replicaWriter.replicaFileClose();
-
-        //
-        return replica;
-    }
-
 
     /**
      * Реплика на вставку всех существующих записей в этой БД.
@@ -236,7 +156,7 @@ public class UtRepl {
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
         UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, false);
-        String publicationFields = JdxUtils.fieldsToString(publicationTable.getFields());
+        String publicationFields = UtJdx.fieldsToString(publicationTable.getFields());
         dataSelector.readRecordsByIdList(publicationTable.getName(), idList, publicationFields, xmlWriter);
 
         // Заканчиваем формирование файла реплики
@@ -576,7 +496,7 @@ public class UtRepl {
 
                                 //
                                 boolean doSkipRec = false;
-                                int oprType = JdxUtils.intValueOf(recValues.get(JdxUtils.XML_FIELD_OPR_TYPE));
+                                int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
                                 if (oprType == JdxOprType.OPR_DEL && skipOprDel) {
                                     doSkipRec = true;
                                     log.info("  record OPR_DEL, skipped");
@@ -708,7 +628,7 @@ public class UtRepl {
 
         // Обеспечиваем порядок сортировки таблиц с учетом foreign key
         IJdxDbStruct structCommonSorted = new JdxDbStruct();
-        structCommonSorted.getTables().addAll(JdxUtils.sortTablesByReference(structCommon.getTables()));
+        structCommonSorted.getTables().addAll(UtJdx.sortTablesByReference(structCommon.getTables()));
 
         //
         return structCommonSorted;

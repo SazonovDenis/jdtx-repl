@@ -8,6 +8,12 @@ import org.junit.*;
 public class JdxDbStruct_XmlRW_Test extends ReplDatabaseStruct_Test {
 
 
+    @Override
+    public void setUp() throws Exception {
+        rootDir = "../../ext/";
+        super.setUp();
+    }
+
     @Test
     public void test_XmlRW() throws Exception {
         // структура подключенной БД - в файл

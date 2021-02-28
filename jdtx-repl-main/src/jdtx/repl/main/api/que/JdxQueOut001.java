@@ -5,6 +5,7 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.replica.*;
+import jdtx.repl.main.api.util.*;
 
 
 // todo Рефакторинг JdxCommon vs JdxQueOut000 vs JdxQueOut001
@@ -57,9 +58,9 @@ public class JdxQueOut001 extends JdxQue implements IJdxQue {
         db.startTran();
         try {
             JdxDbUtils dbu = new JdxDbUtils(db, null);
-            long id = dbu.getNextGenerator(JdxUtils.SYS_GEN_PREFIX + "que_" + queName);
+            long id = dbu.getNextGenerator(UtJdx.SYS_GEN_PREFIX + "que_" + queName);
             //
-            String sql = "insert into " + JdxUtils.SYS_TABLE_PREFIX + "que_" + queName + " (id, destination_ws_id, destination_no, ws_id, age, replica_type) values (:id, :destination_ws_id, :destination_no, :ws_id, :age, :replica_type)";
+            String sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "que_" + queName + " (id, destination_ws_id, destination_no, ws_id, age, replica_type) values (:id, :destination_ws_id, :destination_no, :ws_id, :age, :replica_type)";
             db.execSql(sql, UtCnv.toMap(
                     "id", id,
                     "destination_ws_id", wsId,
@@ -84,13 +85,13 @@ public class JdxQueOut001 extends JdxQue implements IJdxQue {
     }
 
     public long getMaxNo() throws Exception {
-        String sql = "select * from " + JdxUtils.SYS_TABLE_PREFIX + "state_ws" + " where ws_id = " + wsId;
+        String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "state_ws" + " where ws_id = " + wsId;
         DataRecord rec = db.loadSql(sql).getCurRec();
         return rec.getValueLong("que_" + queName + "_no");
     }
 
     public void setMaxNo(long queNo) throws Exception {
-        String sql = "update " + JdxUtils.SYS_TABLE_PREFIX + "state_ws" + " set que_" + queName + "_no = " + queNo + " where ws_id = " + wsId;
+        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "state_ws" + " set que_" + queName + "_no = " + queNo + " where ws_id = " + wsId;
         db.execSql(sql);
     }
 

@@ -76,8 +76,10 @@
 
     <service name="jdtx.repl.main.api.decoder.JdxRefDecoderService"
              class="jdtx.repl.main.api.decoder.JdxRefDecoderService_PS">
-
     </service>
 
+    <service name="jdtx.repl.main.api.database_info.DatabaseInfoReaderService"
+             class="jdtx.repl.main.api.database_info.DatabaseInfoReaderSrvice_PS">
+    </service>
 
 </root>

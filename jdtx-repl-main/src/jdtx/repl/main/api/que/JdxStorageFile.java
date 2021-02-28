@@ -48,7 +48,7 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
     @Override
     public void put(IReplica replica, long no) throws Exception {
         // Проверки: правильность полей реплики
-        JdxUtils.validateReplicaFields(replica);
+        UtJdx.validateReplicaFields(replica);
 
         // Переносим файл на постоянное место
         String actualFileName = getFileName(no);

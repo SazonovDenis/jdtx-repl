@@ -33,7 +33,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
         ResultSet rs = metaData.getTables(null, null, "%", types);
         try {
             while (rs.next()) {
-                if (skipReplObj && rs.getString("TABLE_NAME").toLowerCase().startsWith(JdxUtils.AUDIT_TABLE_PREFIX.toLowerCase())) {
+                if (skipReplObj && rs.getString("TABLE_NAME").toLowerCase().startsWith(UtJdx.AUDIT_TABLE_PREFIX.toLowerCase())) {
                     continue;
                 }
 
@@ -112,7 +112,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
         }
 
         // Сортируем таблицы по зависимостям
-        List<IJdxTable> structTablesSorted = JdxUtils.sortTablesByReference(structTables);
+        List<IJdxTable> structTablesSorted = UtJdx.sortTablesByReference(structTables);
 
 
         // Создаем и возвращаем экземпляр класса JdxDbStruct

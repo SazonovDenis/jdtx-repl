@@ -96,7 +96,7 @@ public class MailerHttp_Test extends AppTestCase {
 
         // Информацмия о реплике с почтового сервера
         ReplicaInfo info = mailer.getReplicaInfo("from", 1);
-        System.out.println("receive.replica.md5: " + JdxUtils.getMd5File(replica2.getFile()));
+        System.out.println("receive.replica.md5: " + UtJdx.getMd5File(replica2.getFile()));
         System.out.println("mailer.info.crc:     " + info.getCrc());
     }
 
@@ -145,7 +145,7 @@ public class MailerHttp_Test extends AppTestCase {
 
         // Информацмия о реплике с почтового сервера
         ReplicaInfo info = mailer.getReplicaInfo("from", 1);
-        System.out.println("receive.replica.md5: " + JdxUtils.getMd5File(replica2.getFile()));
+        System.out.println("receive.replica.md5: " + UtJdx.getMd5File(replica2.getFile()));
         System.out.println("mailer.info.crc:     " + info.getCrc());
     }
 
@@ -195,8 +195,8 @@ public class MailerHttp_Test extends AppTestCase {
 
         // Информацмия о реплике с почтового сервера
         ReplicaInfo info = mailer.getReplicaInfo("from", 100);
-        System.out.println("send.replica.md5:    " + JdxUtils.getMd5File(fileReplica));
-        System.out.println("receive.replica.md5: " + JdxUtils.getMd5File(replica2.getFile()));
+        System.out.println("send.replica.md5:    " + UtJdx.getMd5File(fileReplica));
+        System.out.println("receive.replica.md5: " + UtJdx.getMd5File(replica2.getFile()));
         System.out.println("mailer.info.crc:     " + info.getCrc());
     }
 
@@ -258,7 +258,7 @@ public class MailerHttp_Test extends AppTestCase {
 
         //
         assertEquals("Размер исходного и конечного файла не совпадает", srcFile.length(), replicaReceive.getFile().length());
-        assertEquals("Контрольная сумма исходного и конечного файла не совпадает", JdxUtils.getMd5File(srcFile), JdxUtils.getMd5File(replicaReceive.getFile()));
+        assertEquals("Контрольная сумма исходного и конечного файла не совпадает", UtJdx.getMd5File(srcFile), UtJdx.getMd5File(replicaReceive.getFile()));
     }
 
 

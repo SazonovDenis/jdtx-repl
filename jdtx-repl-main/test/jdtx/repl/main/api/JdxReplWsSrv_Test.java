@@ -6,6 +6,7 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.variant.*;
 import jdtx.repl.main.api.mailer.*;
+import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ut.*;
 import org.apache.commons.io.*;
@@ -62,6 +63,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
+
     @Test
     public void allSetUp() throws Exception {
         doDisconnectAllForce();
@@ -101,7 +103,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         // Начальный конфиг сервера: напрямую задаем структуру публикаций (команда repl_set_cfg)
         args.clear();
         args.put("file", cfg_json_publication_srv);
-        args.put("cfg", UtCfgType.PUBLICATIONS);
+        args.put("cfg", CfgType.PUBLICATIONS);
         extSrv.repl_set_cfg(args);
 
         // Добавляем рабочие станции
@@ -184,7 +186,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         */
 
         // ---
-        UtData.outTable(db.loadSql("select id, name, guid from " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list"));
+        UtData.outTable(db.loadSql("select id, name, guid from " + UtJdx.SYS_TABLE_PREFIX + "workstation_list"));
     }
 
     /**
@@ -267,8 +269,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         srv.disableWorkstation(3);
         srv.enableWorkstation(4);
         //
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list"));
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "state"));
+        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "workstation_list"));
+        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "state"));
 
         // Активируем рабочие станции
         srv.enableWorkstation(1);
@@ -276,14 +278,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         srv.enableWorkstation(3);
         srv.enableWorkstation(4);
         //
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list"));
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "state"));
+        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "workstation_list"));
+        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "state"));
 
         //
         srv.disableWorkstation(4);
         //
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "workstation_list"));
-        UtData.outTable(db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "state"));
+        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "workstation_list"));
+        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "state"));
     }
 
     @Test

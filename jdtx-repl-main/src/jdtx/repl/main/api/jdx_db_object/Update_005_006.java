@@ -24,7 +24,7 @@ public class Update_005_006 implements ISqlScriptExecutor {
                 objectManager.createAuditTableIndex(table);
                 log.info("createAuditTableIndex, table: " + table.getName());
             } catch (Exception e) {
-                if (JdxUtils.collectExceptionText(e).contains("Unknown columns in index")) {
+                if (UtJdx.collectExceptionText(e).contains("Unknown columns in index")) {
                     log.warn("createAuditTableIndex, table: " + table.getName() + ", error: " + e.getMessage().replace("\n", " ").replace("~", ""));
                 } else {
                     throw e;

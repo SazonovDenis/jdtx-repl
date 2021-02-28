@@ -129,7 +129,7 @@ public class ReplicaFilter implements IReplicaFilter {
                 Map<String, Object> recValues = dataReader.nextRec();
                 //
                 while (recValues != null) {
-                    int oprType = JdxUtils.intValueOf(recValues.get(JdxUtils.XML_FIELD_OPR_TYPE));
+                    int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
                     filterExpression.setVariable("PARAM_oprType", new BigDecimal(oprType));
 
                     // recValues -> filterExpression.filterParams

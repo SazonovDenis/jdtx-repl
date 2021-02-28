@@ -4,8 +4,8 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.dbm.test.*;
 import jandcode.utils.*;
-import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.util.*;
 import org.junit.*;
 
 import java.io.*;

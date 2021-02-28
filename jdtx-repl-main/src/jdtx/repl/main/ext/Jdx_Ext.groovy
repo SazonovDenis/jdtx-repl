@@ -11,6 +11,8 @@ import jandcode.utils.error.*
 import jandcode.utils.variant.*
 import jdtx.repl.main.api.*
 import jdtx.repl.main.api.mailer.*
+import jdtx.repl.main.api.manager.CfgManager
+import jdtx.repl.main.api.manager.CfgType
 import jdtx.repl.main.api.replica.*
 import jdtx.repl.main.api.struct.*
 import jdtx.repl.main.ut.*
@@ -154,8 +156,8 @@ class Jdx_Ext extends ProjectExt {
 
             // Начальный конфиг Ws
             JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName)
-            UtCfgMarker utCfg = new UtCfgMarker(db)
-            utCfg.setSelfCfg(cfg, UtCfgType.WS)
+            CfgManager utCfg = new CfgManager(db)
+            utCfg.setSelfCfg(cfg, CfgType.WS)
 
             // Создаем окружение для рабочей станции
             JdxReplWs ws = new JdxReplWs(db)
@@ -672,7 +674,7 @@ class Jdx_Ext extends ProjectExt {
         try {
             // Обновляем конфиг в своей таблице
             JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName)
-            UtCfgMarker utCfg = new UtCfgMarker(db)
+            CfgManager utCfg = new CfgManager(db)
             utCfg.setSelfCfg(cfg, cfgType)
 
         } finally {

@@ -1,4 +1,4 @@
-<%@ page import="jdtx.repl.main.api.UtCfgType" %>
+<%@ page import="jdtx.repl.main.api.manager.CfgType" %>
 @echo off
 
 

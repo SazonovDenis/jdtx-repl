@@ -48,7 +48,7 @@ public class JdxQueOut000 extends JdxQueOut001 {
      * @return Последний возраст реплики в очереди, созданный рабочей станцией wsId, предназначенный для отправки на destinationWsId
      */
     long getMaxAgeForWs(long wsId) throws Exception {
-        String sqlFromWhere = "from " + JdxUtils.SYS_TABLE_PREFIX + "que_" + queName + " where destination_ws_id = " + this.wsId;
+        String sqlFromWhere = "from " + UtJdx.SYS_TABLE_PREFIX + "que_" + queName + " where destination_ws_id = " + this.wsId;
         //
         String sql = "select max(age) as maxAge, count(*) as cnt " + sqlFromWhere + " and ws_id = " + wsId;
         DataRecord rec = db.loadSql(sql).getCurRec();
@@ -61,7 +61,7 @@ public class JdxQueOut000 extends JdxQueOut001 {
 
 
     DataRecord loadReplicaRec(long no) throws Exception {
-        String sqlFromWhere = "from " + JdxUtils.SYS_TABLE_PREFIX + "que_" + queName + " where destination_ws_id = " + this.wsId;
+        String sqlFromWhere = "from " + UtJdx.SYS_TABLE_PREFIX + "que_" + queName + " where destination_ws_id = " + this.wsId;
         //
         String sql = "select * " + sqlFromWhere + " and destination_no = " + no;
         DataRecord rec = db.loadSql(sql).getCurRec();

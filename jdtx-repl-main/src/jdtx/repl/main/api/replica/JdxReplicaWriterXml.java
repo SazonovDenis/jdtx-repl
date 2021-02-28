@@ -2,6 +2,7 @@ package jdtx.repl.main.api.replica;
 
 import jandcode.utils.*;
 import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.util.*;
 import org.joda.time.*;
 
 import javax.xml.stream.*;
@@ -116,7 +117,7 @@ public class JdxReplicaWriterXml {
             throw new XMLStreamException("Not started currentElement_rec");
         }
         //
-        writer.writeAttribute(JdxUtils.XML_FIELD_OPR_TYPE, String.valueOf(oprType));
+        writer.writeAttribute(UtJdx.XML_FIELD_OPR_TYPE, String.valueOf(oprType));
     }
 
     public void setRecValue(String name, Object value) throws XMLStreamException {

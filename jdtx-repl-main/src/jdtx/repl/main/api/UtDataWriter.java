@@ -1,11 +1,12 @@
 package jdtx.repl.main.api;
 
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.data_binder.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 
-import static jdtx.repl.main.api.JdxUtils.longValueOf;
+import static jdtx.repl.main.api.UtJdx.longValueOf;
 
 public class UtDataWriter {
 
@@ -24,10 +25,10 @@ public class UtDataWriter {
     }
 
 
-    public void dataBinderRec_To_DataWriter_WithRefDecode(IJdxDataBinder rsTableLog, JdxReplicaWriterXml dataWriter) throws Exception {
+    public void dataBinderRec_To_DataWriter_WithRefDecode(IJdxDataBinder dataIn, JdxReplicaWriterXml dataWriter) throws Exception {
         for (String fieldName : tableFromFields) {
             IJdxField field = table.getField(fieldName);
-            Object fieldValue = rsTableLog.getValue(fieldName);
+            Object fieldValue = dataIn.getValue(fieldName);
 
             // Защита от дурака (для snapshot): в snapshot недопустимы чужие id
             if (forbidNotOwnId) {

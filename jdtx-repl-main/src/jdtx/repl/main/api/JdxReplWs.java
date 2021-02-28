@@ -6,14 +6,18 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.utils.io.*;
 import jandcode.web.*;
+import jdtx.repl.main.api.audit.*;
+import jdtx.repl.main.api.database_info.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
+import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.util.*;
 import org.apache.commons.io.*;
 import org.apache.commons.logging.*;
 import org.apache.log4j.*;
@@ -23,7 +27,7 @@ import java.io.*;
 import java.sql.*;
 import java.util.*;
 
-import static jdtx.repl.main.api.JdxUtils.*;
+import static jdtx.repl.main.api.UtJdx.*;
 
 
 /**
@@ -64,7 +68,7 @@ public class JdxReplWs {
     private IMailer mailer;
 
     //
-    String dataRoot;
+    protected String dataRoot;
 
     //
     private static Log log = LogFactory.getLog("jdtx.Workstation");
@@ -114,7 +118,7 @@ public class JdxReplWs {
         IJdxDbStruct structActual = structReader.readDbStruct();
 
         // Читаем код нашей станции
-        DataRecord rec = db.loadSql("select * from " + JdxUtils.SYS_TABLE_PREFIX + "workstation").getCurRec();
+        DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "workstation").getCurRec();
         // Проверяем код нашей станции
         if (rec.getValueLong("ws_id") == 0) {
             throw new XError("Invalid workstation.ws_id == 0");
@@ -125,10 +129,10 @@ public class JdxReplWs {
         this.wsGuid = rec.getValueString("guid");
 
         // Чтение конфигурации
-        UtCfgMarker utCfgMarker = new UtCfgMarker(db);
-        JSONObject cfgWs = utCfgMarker.getSelfCfg(UtCfgType.WS);
-        JSONObject cfgPublications = utCfgMarker.getSelfCfg(UtCfgType.PUBLICATIONS);
-        JSONObject cfgDecode = utCfgMarker.getSelfCfg(UtCfgType.DECODE);
+        CfgManager cfgManager = new CfgManager(db);
+        JSONObject cfgWs = cfgManager.getSelfCfg(CfgType.WS);
+        JSONObject cfgPublications = cfgManager.getSelfCfg(CfgType.PUBLICATIONS);
+        JSONObject cfgDecode = cfgManager.getSelfCfg(CfgType.DECODE);
 
         // Рабочие каталоги
         String sWsId = UtString.padLeft(String.valueOf(wsId), 3, "0");
@@ -176,13 +180,14 @@ public class JdxReplWs {
 
 
         //
-        UtDbStructMarker utDbStructMarker = new UtDbStructMarker(db);
-        structAllowed = utDbStructMarker.getDbStructAllowed();
-        structFixed = utDbStructMarker.getDbStructFixed();
+        DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
+        structAllowed = databaseStructManager.getDbStructAllowed();
+        structFixed = databaseStructManager.getDbStructFixed();
 
         //
-        UtDbStructInfo utDbStructInfo = new UtDbStructInfo(db, struct);
-        databaseInfo = utDbStructInfo.getDatabaseInfo();
+        DatabaseInfoReaderService svc = db.getApp().service(DatabaseInfoReaderService.class);
+        IDatabaseInfoReader databaseInfoReader = svc.createDatabaseInfoReader(db, struct);
+        databaseInfo = databaseInfoReader.readDatabaseVersion();
 
         // Чтобы были
         UtFile.mkdirs(dataRoot + "temp");
@@ -203,8 +208,6 @@ public class JdxReplWs {
 
         //
         IJdxTable table = struct.getTable(tableName);
-
-        //
         UtRepl utRepl = new UtRepl(db, struct);
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
@@ -212,7 +215,7 @@ public class JdxReplWs {
         db.startTran();
         try {
             // Искусственно увеличиваем возраст (реплика сдвигает возраст БД на 1)
-            long age = utRepl.incAuditAge();
+            long age = incAuditAge();
             log.info("createReplicaTableByIdList, tableName: " + tableName + ", new age: " + age);
 
             // Создаем реплику
@@ -237,47 +240,6 @@ public class JdxReplWs {
 
 
     /**
-     * Обработаем аварийную ситуацию - поищем недостающие записи (на которые мы ссылаемся) у себя в каталоге для входящих реплик
-     * и выложим их в виде реплики (готовом виде для применения)
-     */
-    public void handleFailedInsertUpdateRef(JdxForeignKeyViolationException e) throws Exception {
-        IJdxTable thisTable = JdxUtils.get_ForeignKeyViolation_tableInfo(e, struct);
-        IJdxForeignKey foreignKey = JdxUtils.get_ForeignKeyViolation_refInfo(e, struct);
-        IJdxField refField = foreignKey.getField();
-        IJdxTable refTable = refField.getRefTable();
-        //
-        String thisTableName = thisTable.getName();
-        String thisTableRefFieldName = refField.getName();
-        //
-        String refTableName = refTable.getName();
-        String refTableFieldName = foreignKey.getTableField().getName();
-        //
-        String refTableId = (String) e.recValues.get(thisTableRefFieldName);
-
-        //
-        log.error("Searching foreign key: " + thisTableName + "." + thisTableRefFieldName + " -> " + refTableName + "." + refTableFieldName + ", foreign key: " + refTableId);
-
-        //
-        File outReplicaFile = new File(dataRoot + "temp/" + refTableName + "_" + refTableId.replace(":", "_") + ".zip");
-        // Если в одной реплике много ошибочных записей, то искать можно только один раз,
-        // иначе на каждую ссылку будет выполнятся поиск, что затянет выкидыванмие ошибки
-        if (outReplicaFile.exists()) {
-            log.error("Файл с репликой - результатами поиска уже есть: " + outReplicaFile.getAbsolutePath());
-            return;
-        }
-
-        // Собираем все операции с записью в одну реплику
-        String dirName = queIn.getBaseDir();
-        UtRepl utRepl = new UtRepl(db, struct);
-        IReplica replica = utRepl.findRecordInReplicas(refTableName, refTableId, dirName, wsId, true);
-        // Копируем файл реплики
-        FileUtils.copyFile(replica.getFile(), outReplicaFile);
-
-        //
-        log.error("Файл с репликой - результатами поиска сформирован: " + outReplicaFile.getAbsolutePath());
-    }
-
-    /**
      * Выполнение фиксации структуры:
      * - дополнение аудита
      * - "реальная" структура запоминается как "зафиксированная"
@@ -289,9 +251,9 @@ public class JdxReplWs {
 
         // Читаем структуры
         IJdxDbStruct structActual = struct;
-        UtDbStructMarker utDbStructMarker = new UtDbStructMarker(db);
-        IJdxDbStruct structFixed = utDbStructMarker.getDbStructFixed();
-        IJdxDbStruct structAllowed = utDbStructMarker.getDbStructAllowed();
+        DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
+        IJdxDbStruct structFixed = databaseStructManager.getDbStructFixed();
+        IJdxDbStruct structAllowed = databaseStructManager.getDbStructAllowed();
 
         // Сравниваем
         IJdxDbStruct structDiffCommon = new JdxDbStruct();
@@ -336,7 +298,7 @@ public class JdxReplWs {
         log.info("dbStructApplyFixed, start");
 
         // Обеспечиваем порядок сортировки таблиц с учетом foreign key (при применении структуры будем делать snapsot, там важен порядок)
-        List<IJdxTable> tablesNew = JdxUtils.sortTablesByReference(structDiffNew.getTables());
+        List<IJdxTable> tablesNew = UtJdx.sortTablesByReference(structDiffNew.getTables());
 
 
         // Подгоняем структуру аудита под реальную структуру
@@ -414,7 +376,6 @@ public class JdxReplWs {
     // Создаем Snapsot для таблиц tablesNew и помещаем его в очередь на отправку queOut
     private void createSnapsotIntoQueOut(List<IJdxTable> tablesNew) throws Exception {
         //
-        UtRepl utRepl = new UtRepl(db, struct);
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
         // Нумеруем реплики
@@ -434,7 +395,7 @@ public class JdxReplWs {
         int i = 0;
         for (IReplica replicaSnapshot : replicasSnapshot) {
             // Искусственно увеличиваем возраст (установочная реплика сдвигает возраст БД на 1)
-            long age = utRepl.incAuditAge();
+            long age = incAuditAge();
             log.info("createReplicaTableSnapshot, tableName: " + tablesNew.get(i).getName() + ", new age: " + age);
 
             // Преобразовываем по фильтрам
@@ -497,8 +458,8 @@ public class JdxReplWs {
         log.info("handleSelfAudit, wsId: " + wsId);
 
         //
-        UtRepl utRepl = new UtRepl(db, struct);
-        UtDbStructMarker utDbStructMarker = new UtDbStructMarker(db);
+        UtAuditSelector utRepl = new UtAuditSelector(db, struct, wsId);
+        DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
 
         // Если в стостоянии "я замолчал", то молчим
         JdxMuteManagerWs utmm = new JdxMuteManagerWs(db);
@@ -508,8 +469,8 @@ public class JdxReplWs {
         }
 
         // Проверяем совпадение структур
-        IJdxDbStruct structAllowed = utDbStructMarker.getDbStructAllowed();
-        IJdxDbStruct structFixed = utDbStructMarker.getDbStructFixed();
+        IJdxDbStruct structAllowed = databaseStructManager.getDbStructAllowed();
+        IJdxDbStruct structFixed = databaseStructManager.getDbStructFixed();
 
         // Проверяем совпадает ли реальная структура БД с разрешенной структурой
         if (struct.getTables().size() == 0 || !UtDbComparer.dbStructIsEqual(struct, structAllowed)) {
@@ -565,7 +526,7 @@ public class JdxReplWs {
 
             //
             for (long age = auditAgeFrom + 1; age <= auditAgeTo; age++) {
-                IReplica replica = utRepl.createReplicaFromAudit(wsId, publicationOut, age);
+                IReplica replica = utRepl.createReplicaFromAudit(publicationOut, age);
 
                 // Пополнение исходящей очереди реплик
                 queOut.push(replica);
@@ -594,14 +555,6 @@ public class JdxReplWs {
 
     }
 
-/*
-    public IReplica createReplicaAge(long age) throws Exception {
-        UtRepl utRepl = new UtRepl(db, struct);
-        IReplica replica = utRepl.createReplicaFromAudit(wsId, publicationOut, age);
-        return replica;
-    }
-*/
-
     public IReplica recreateQueOutReplicaAge(long age) throws Exception {
         log.info("recreateQueOutReplica, age: " + age);
 
@@ -613,8 +566,8 @@ public class JdxReplWs {
 
 
         // Формируем реплику заново
-        UtRepl utRepl = new UtRepl(db, struct);
-        IReplica replicaRecreated = utRepl.createReplicaFromAudit(wsId, publicationOut, age);
+        UtAuditSelector utRepl = new UtAuditSelector(db, struct, wsId);
+        IReplica replicaRecreated = utRepl.createReplicaFromAudit(publicationOut, age);
 
         // Копируем реплику на место старой
         IReplica replicaOriginal = queOut.get(age);
@@ -719,10 +672,9 @@ public class JdxReplWs {
         }
 
         // Инструменты
-        UtAuditApplyer auditApplyer = new UtAuditApplyer(db, struct);
         JdxMuteManagerWs muteManager = new JdxMuteManagerWs(db);
-        UtDbStructMarker utDbStructMarker = new UtDbStructMarker(db);
-        UtAppVersion_DbRW appVersionManager = new UtAppVersion_DbRW(db);
+        DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
+        AppVersionManager appVersionManager = new AppVersionManager(db);
 
         // Совпадает ли реальная структура БД с разрешенной структурой
         boolean isEqualStruct_Actual_Allowed = true;
@@ -918,7 +870,7 @@ public class JdxReplWs {
                     JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
                     IJdxDbStruct struct = struct_rw.read(stream);
                     // Запоминаем "разрешенную" структуру БД
-                    utDbStructMarker.setDbStructAllowed(struct);
+                    databaseStructManager.setDbStructAllowed(struct);
                 } finally {
                     stream.close();
                 }
@@ -934,14 +886,14 @@ public class JdxReplWs {
                 }
 
                 // Запоминаем текущую структуру БД как "фиксированную" структуру
-                utDbStructMarker.setDbStructFixed(struct);
+                databaseStructManager.setDbStructFixed(struct);
 
                 // Выкладывание реплики "структура принята"
                 reportReplica(JdxReplicaType.SET_DB_STRUCT_DONE);
 
                 // Перечитывание собственной structAllowed, structFixed
-                structAllowed = utDbStructMarker.getDbStructAllowed();
-                structFixed = utDbStructMarker.getDbStructFixed();
+                structAllowed = databaseStructManager.getDbStructAllowed();
+                structFixed = databaseStructManager.getDbStructFixed();
 
                 //
                 break;
@@ -978,8 +930,8 @@ public class JdxReplWs {
                     }
 
                     // Обновляем конфиг в своей таблице
-                    UtCfgMarker utCfgMarker = new UtCfgMarker(db);
-                    utCfgMarker.setSelfCfg(cfg, cfgType);
+                    CfgManager cfgManager = new CfgManager(db);
+                    cfgManager.setSelfCfg(cfg, cfgType);
 
                     // Выкладывание реплики "конфигурация принята"
                     reportReplica(JdxReplicaType.SET_CFG_DONE);
@@ -1052,37 +1004,17 @@ public class JdxReplWs {
                     // Свои применяем принудительно, даже если они отфильтруются правилами публикации
                     forceApply_ignorePublicationRules = true;
                 }
-                //
-                InputStream inputStream = null;
-                try {
-                    // Распакуем XML-файл из Zip-архива
-                    inputStream = JdxReplicaReaderXml.createInputStreamData(replica);
 
-                    //
-                    JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
-
-                    // Для реплики типа SNAPSHOT - не слишком огромные порции коммитов
-                    long commitPortionMax = 0;
-                    if (replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
-                        commitPortionMax = MAX_COMMIT_RECS;
-                    }
-
-                    //
-                    try {
-                        auditApplyer.jdxReplWs = this;
-                        auditApplyer.applyReplica(replicaReader, publicationIn, forceApply_ignorePublicationRules, wsId, commitPortionMax);
-                    } catch (Exception e) {
-                        if (e instanceof JdxForeignKeyViolationException) {
-                            handleFailedInsertUpdateRef((JdxForeignKeyViolationException) e);
-                        }
-                        throw (e);
-                    }
-                } finally {
-                    // Закроем читателя Zip-файла
-                    if (inputStream != null) {
-                        inputStream.close();
-                    }
+                // Для реплики типа SNAPSHOT - не слишком огромные порции коммитов
+                long commitPortionMax = 0;
+                if (replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
+                    commitPortionMax = MAX_COMMIT_RECS;
                 }
+
+                //
+                UtAuditApplyer auditApplyer = new UtAuditApplyer(db, struct, wsId);
+                auditApplyer.jdxReplWs = this;
+                auditApplyer.applyReplica(replica, publicationIn, forceApply_ignorePublicationRules, commitPortionMax);
 
                 //
                 break;
@@ -1130,7 +1062,6 @@ public class JdxReplWs {
      */
     public void reportReplica(int replicaType) throws Exception {
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-        UtRepl utRepl = new UtRepl(db, struct);
 
         // Весь свой аудит предварительно выкладываем в очередь.
         // Это делается потому, что queOut.push() следит за монотонным увеличением возраста,
@@ -1138,7 +1069,7 @@ public class JdxReplWs {
         handleSelfAudit();
 
         // Искусственно увеличиваем возраст (системная реплика сдвигает возраст БД на 1)
-        long age = utRepl.incAuditAge();
+        long age = incAuditAge();
         log.info("reportReplica, replicaType: " + replicaType + ", new age: " + age);
 
         //
@@ -1171,6 +1102,27 @@ public class JdxReplWs {
             throw e;
         }
     }
+
+
+    /**
+     * Искусственно увеличить возраст рабочей станции
+     */
+    private long incAuditAge() throws Exception {
+        UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+
+        // Проверяем, что весь свой аудит мы уже выложили в очередь
+        long auditAgeDone = stateManager.getAuditAgeDone();
+        long auditAgeActual = auditAgeManager.getAuditAge();
+        if (auditAgeActual != auditAgeDone) {
+            throw new XError("invalid auditAgeActual <> auditAgeDone, auditAgeDone: " + auditAgeDone + ", auditAgeActual: " + auditAgeActual);
+        }
+
+        //
+        return auditAgeManager.incAuditAge();
+    }
+
+
 
     /**
      * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано
@@ -1264,7 +1216,7 @@ public class JdxReplWs {
                 replica = mailer.receive(boxName, no);
 
                 // Проверяем целостность скачанного
-                JdxUtils.checkReplicaCrc(replica, info);
+                UtJdx.checkReplicaCrc(replica, info);
 
                 // Читаем заголовок
                 JdxReplicaReaderXml.readReplicaInfo(replica);
@@ -1433,6 +1385,47 @@ public class JdxReplWs {
         return info;
     }
 
+
+    /**
+     * Обработаем аварийную ситуацию - поищем недостающие записи (на которые мы ссылаемся) у себя в каталоге для входящих реплик
+     * и выложим их в виде реплики (готовом виде для применения)
+     */
+    public void handleFailedInsertUpdateRef(JdxForeignKeyViolationException e) throws Exception {
+        IJdxTable thisTable = UtJdx.get_ForeignKeyViolation_tableInfo(e, struct);
+        IJdxForeignKey foreignKey = UtJdx.get_ForeignKeyViolation_refInfo(e, struct);
+        IJdxField refField = foreignKey.getField();
+        IJdxTable refTable = refField.getRefTable();
+        //
+        String thisTableName = thisTable.getName();
+        String thisTableRefFieldName = refField.getName();
+        //
+        String refTableName = refTable.getName();
+        String refTableFieldName = foreignKey.getTableField().getName();
+        //
+        String refTableId = (String) e.recValues.get(thisTableRefFieldName);
+
+        //
+        log.error("Searching foreign key: " + thisTableName + "." + thisTableRefFieldName + " -> " + refTableName + "." + refTableFieldName + ", foreign key: " + refTableId);
+
+        //
+        File outReplicaFile = new File(dataRoot + "temp/" + refTableName + "_" + refTableId.replace(":", "_") + ".zip");
+        // Если в одной реплике много ошибочных записей, то искать можно только один раз,
+        // иначе на каждую ссылку будет выполнятся поиск, что затянет выкидыванмие ошибки
+        if (outReplicaFile.exists()) {
+            log.error("Файл с репликой - результатами поиска уже есть: " + outReplicaFile.getAbsolutePath());
+            return;
+        }
+
+        // Собираем все операции с записью в одну реплику
+        String dirName = queIn.getBaseDir();
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.findRecordInReplicas(refTableName, refTableId, dirName, wsId, true);
+        // Копируем файл реплики
+        FileUtils.copyFile(replica.getFile(), outReplicaFile);
+
+        //
+        log.error("Файл с репликой - результатами поиска сформирован: " + outReplicaFile.getAbsolutePath());
+    }
 
     /**
      * Выявить ситуацию "станцию восстановили из бэкапа" и починить ее

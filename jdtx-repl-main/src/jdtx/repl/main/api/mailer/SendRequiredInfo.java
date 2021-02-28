@@ -2,7 +2,7 @@ package jdtx.repl.main.api.mailer;
 
 import org.json.simple.*;
 
-import static jdtx.repl.main.api.JdxUtils.longValueOf;
+import static jdtx.repl.main.api.UtJdx.longValueOf;
 
 public class SendRequiredInfo {
 

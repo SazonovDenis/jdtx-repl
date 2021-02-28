@@ -5,6 +5,7 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.test.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.util.*;
 import org.joda.time.*;
 
 import java.util.*;
@@ -72,7 +73,7 @@ public class UtTest extends UtilsTestCase {
         try {
             db.execSql(sql);
         } catch (Exception e) {
-            if (!JdxUtils.errorIs_TableNotExists(e)) {
+            if (!UtJdx.errorIs_TableNotExists(e)) {
                 throw e;
             }
         }
@@ -205,7 +206,7 @@ public class UtTest extends UtilsTestCase {
         // --- Lic
         long id_Lic = dbu.getNextGenerator("g_lic");
         dbu.insertRec("lic", UtCnv.toMap(
-                //"lic", id_Lic,
+                "id", id_Lic,
                 "ulz", id_Ulz,
                 "NameF", "Name-F-ins-ws:" + ws_id + "-" + rnd.nextInt(),
                 "NameI", "Name-I-ins-ws:" + ws_id + "-" + rnd.nextInt(),
@@ -253,7 +254,7 @@ public class UtTest extends UtilsTestCase {
 
         // ---
         // Апдейт общей записи Lic
-        dbu.db.execSql("update Lic set NameI = :NameI where Dom = :Dom", UtCnv.toMap(
+        db.execSql("update Lic set NameI = :NameI where Dom = :Dom", UtCnv.toMap(
                 "Dom", "12",
                 "NameI", "NameI-upd-com-ws:" + ws_id + "-" + rnd.nextInt()
         ));
@@ -295,7 +296,7 @@ public class UtTest extends UtilsTestCase {
                 }
                 if (id > 0) {
                     // Поле name
-                    dbu.db.execSql("update " + table.getName() + " set name = :name where id = :id", UtCnv.toMap(
+                    db.execSql("update " + table.getName() + " set name = :name where id = :id", UtCnv.toMap(
                             "id", id,
                             "name", "upd-ws:" + ws_id + "-" + rnd.nextInt()
                     ));
@@ -303,7 +304,7 @@ public class UtTest extends UtilsTestCase {
                     for (IJdxField field : table.getFields()) {
                         String fieldName = field.getName();
                         if (fieldName.startsWith("TEST_FIELD_")) {
-                            dbu.db.execSql("update " + table.getName() + " set " + fieldName + " = :" + fieldName + " where id = :id", UtCnv.toMap(
+                            db.execSql("update " + table.getName() + " set " + fieldName + " = :" + fieldName + " where id = :id", UtCnv.toMap(
                                     "id", id,
                                     fieldName, "upd-ws:" + ws_id + "-" + rnd.nextInt()
                             ));

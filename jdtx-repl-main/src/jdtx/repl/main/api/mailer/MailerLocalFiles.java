@@ -81,7 +81,7 @@ public class MailerLocalFiles implements IMailer {
         log.info("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", remoteDir: " + remoteDir + "/" + box);
 
         // Проверки: правильность полей реплики
-        JdxUtils.validateReplicaFields(replica);
+        UtJdx.validateReplicaFields(replica);
 
         //
         UtFile.mkdirs(remoteDir + box);
@@ -101,7 +101,7 @@ public class MailerLocalFiles implements IMailer {
 
         String remoteFileName = getFileName(no);
         File remoteFile = new File(remoteDir + box + "/" + remoteFileName);
-        info.setCrc(JdxUtils.getMd5File(remoteFile));
+        info.setCrc(UtJdx.getMd5File(remoteFile));
 
         return info;
     }

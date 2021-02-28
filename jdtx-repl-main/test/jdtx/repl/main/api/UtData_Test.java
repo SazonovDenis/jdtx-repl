@@ -4,6 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.utils.*;
 import jandcode.utils.test.*;
 import jandcode.web.*;
+import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
@@ -69,9 +70,9 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
         RefDecodeStrategy.instance.init(cfgDbDecode);
 
         // Применятель
-        UtAuditApplyer auditApplyer = new UtAuditApplyer(db, struct);
         long wsId = 1;
-        auditApplyer.applyReplica(replicaReader, publication, false, wsId, 0);
+        UtAuditApplyer auditApplyer = new UtAuditApplyer(db, struct, wsId);
+        auditApplyer.applyReplicaReader(replicaReader, publication, false, 0);
         //
         sw.stop();
 

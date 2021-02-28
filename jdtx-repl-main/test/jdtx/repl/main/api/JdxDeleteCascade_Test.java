@@ -2,6 +2,7 @@ package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
 import jandcode.utils.*;
+import jdtx.repl.main.api.util.*;
 import org.junit.*;
 
 import java.util.*;
@@ -129,10 +130,10 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
         // ---
         // ws2: Удаление чужих записей (ws3:regionTip)
-        dbu2.db.execSql("delete from regionTip where Name = :Name'", UtCnv.toMap("Name", ws3_regionTip_Name));
+        db2.execSql("delete from regionTip where Name = :Name'", UtCnv.toMap("Name", ws3_regionTip_Name));
 
         // ws3: Удаление чужих записей (ws2:regionTip)
-        dbu3.db.execSql("delete from regionTip where Name = :Name'", UtCnv.toMap("Name", ws2_regionTip_Name));
+        db3.execSql("delete from regionTip where Name = :Name'", UtCnv.toMap("Name", ws2_regionTip_Name));
 
 
         // ---
@@ -165,8 +166,8 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
         // ---
         // ws2: Удале СВОИХ записей (ws2:regionTip)
-        dbu2.db.execSql("delete from region where regionTip = :regionTip'", UtCnv.toMap("regionTip", ws2_regionTip_id));
-        dbu2.db.execSql("delete from regionTip where id = :id'", UtCnv.toMap("id", ws2_regionTip_id));
+        db2.execSql("delete from region where regionTip = :regionTip'", UtCnv.toMap("regionTip", ws2_regionTip_id));
+        db2.execSql("delete from regionTip where id = :id'", UtCnv.toMap("id", ws2_regionTip_id));
 
         //
         assertEquals(17, get_regionTip_cnt(dbuSrv));
@@ -215,21 +216,16 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         String sql = "select * from RegionTip where RegionTip.id <> 0 order by RegionTip.id";
 
         //
-        JdxDbUtils dbu1 = new JdxDbUtils(db, struct);
-        JdxDbUtils dbu2 = new JdxDbUtils(db2, struct2);
-        JdxDbUtils dbu3 = new JdxDbUtils(db3, struct3);
-
-        //
         System.out.println("srv");
-        UtData.outTable(dbu1.db.loadSql(sql));
+        UtData.outTable(db.loadSql(sql));
         System.out.println("ws2");
-        UtData.outTable(dbu2.db.loadSql(sql));
+        UtData.outTable(db2.loadSql(sql));
         System.out.println("ws3");
-        UtData.outTable(dbu3.db.loadSql(sql));
+        UtData.outTable(db3.loadSql(sql));
     }
 
     private long get_regionTip_cnt(JdxDbUtils dbu) throws Exception {
-        return dbu.db.loadSql("select count(*) cnt from regionTip where id <> 0").getCurRec().getValueLong("cnt");
+        return db.loadSql("select count(*) cnt from regionTip where id <> 0").getCurRec().getValueLong("cnt");
     }
 
 

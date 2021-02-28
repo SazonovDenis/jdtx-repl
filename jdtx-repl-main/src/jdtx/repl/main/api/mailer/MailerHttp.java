@@ -22,7 +22,7 @@ import org.json.simple.parser.*;
 import java.io.*;
 import java.util.*;
 
-import static jdtx.repl.main.api.JdxUtils.*;
+import static jdtx.repl.main.api.UtJdx.*;
 
 /**
  */
@@ -139,7 +139,7 @@ public class MailerHttp implements IMailer {
         log.info("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", box: " + box + ", remoteUrl: " + remoteUrl);
 
         // Проверки: правильность полей реплики
-        JdxUtils.validateReplicaFields(replica);
+        UtJdx.validateReplicaFields(replica);
 
         // Проверки: не отправляли ли ранее такую реплику?
         // Защита от ситуации "восстановление БД из бэкапа"
@@ -189,7 +189,7 @@ public class MailerHttp implements IMailer {
             byte[] buff = readFilePart(replica.getFile(), sentBytes, HTTP_FILE_MAX_SIZE);
             ByteArrayBody byteBody = new ByteArrayBody(buff, "file");
             //
-            String partCrc = JdxUtils.getMd5Buffer(buff);
+            String partCrc = UtJdx.getMd5Buffer(buff);
             //
             StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
             StringBody stringBody_box = new StringBody(box, ContentType.MULTIPART_FORM_DATA);
@@ -240,7 +240,7 @@ public class MailerHttp implements IMailer {
         info.setAge(replica.getInfo().getAge());
         info.setDtFrom(replica.getInfo().getDtFrom());
         info.setDtTo(replica.getInfo().getDtTo());
-        info.setCrc(JdxUtils.getMd5File(replica.getFile()));
+        info.setCrc(UtJdx.getMd5File(replica.getFile()));
 
         //
         sendCommit_internal(box, no, info, filePart, totalBytes);

@@ -1,7 +1,7 @@
 package jdtx.repl.main.api.publication;
 
-import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
 import java.util.*;

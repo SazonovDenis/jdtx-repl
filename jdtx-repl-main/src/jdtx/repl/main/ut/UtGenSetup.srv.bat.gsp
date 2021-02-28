@@ -1,4 +1,4 @@
-<%@ page import="jdtx.repl.main.api.UtCfgType" %>
+<%@ page import="jdtx.repl.main.api.manager.CfgType" %>
 @echo off
 
 
@@ -19,7 +19,7 @@ call jc repl-create -ws:${args.ws_list[0].ws_no} -guid:${args.repl_guid}-${args.
 rem сервер
 
 rem напрямую задаем структуру публикаций
-call jc repl-set-cfg -cfg:${UtCfgType.PUBLICATIONS} -file:"cfg/publication_lic_173_srv.json"
+call jc repl-set-cfg -cfg:${CfgType.PUBLICATIONS} -file:"cfg/publication_lic_173_srv.json"
 
 
 
@@ -43,10 +43,10 @@ call jc repl-mail-check -create:true
 
 
 rem сразу рассылаем настройки для всех станций
-call jc repl-send-cfg -cfg:${UtCfgType.DECODE} -file:"cfg/decode_strategy_173.json"
-call jc repl-send-cfg -cfg:${UtCfgType.PUBLICATIONS} -file:"cfg/publication_lic_173_ws.json"
+call jc repl-send-cfg -cfg:${CfgType.DECODE} -file:"cfg/decode_strategy_173.json"
+call jc repl-send-cfg -cfg:${CfgType.PUBLICATIONS} -file:"cfg/publication_lic_173_ws.json"
 rem рассылаем особую настройку для сервера
-call jc repl-send-cfg -cfg:${UtCfgType.PUBLICATIONS} -file:"cfg/publication_lic_173_srv.json" -ws:1
+call jc repl-send-cfg -cfg:${CfgType.PUBLICATIONS} -file:"cfg/publication_lic_173_srv.json" -ws:1
 
 
 

@@ -1,6 +1,7 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.db.*;
+import jdtx.repl.main.api.data_binder.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
@@ -9,6 +10,9 @@ import org.apache.commons.logging.*;
 
 import java.util.*;
 
+/**
+ * Извлекатель всех данных из таблицы
+ */
 public class UtDataSelector {
 
     private Db db;
@@ -33,7 +37,8 @@ public class UtDataSelector {
     }
 
     /**
-     * Если в таблице есть ссылка на самого себя, процедура обязана обеспечить правильную последовательность записей.
+     * Извлекатет все данные по правилу publicationRule (из таблицы).
+     * Если в таблице есть ссылка на саму себя (полк типа ParentId), процедура обязана обеспечить правильную последовательность записей.
      */
     public void readAllRecords(IPublicationRule publicationRule, JdxReplicaWriterXml dataWriter) throws Exception {
         // DbQuery, содержащие все данные из таблицы tableName
@@ -42,7 +47,7 @@ public class UtDataSelector {
         //
         try {
             String tableName = publicationRule.getTableName();
-            String tableFields = JdxUtils.fieldsToString(publicationRule.getFields());
+            String tableFields = UtJdx.fieldsToString(publicationRule.getFields());
             flushDataToWriter(rsTableLog, tableName, tableFields, dataWriter);
         } finally {
             rsTableLog.close();
@@ -106,7 +111,7 @@ public class UtDataSelector {
         dataWriter.flush();
     }
 
-    protected IJdxDataBinder selectAllRecords(IPublicationRule publicationRule) throws Exception {
+    IJdxDataBinder selectAllRecords(IPublicationRule publicationRule) throws Exception {
         //
         String sql = getSqlAllRecords(publicationRule);
 
@@ -117,11 +122,11 @@ public class UtDataSelector {
         return new JdxDataBinder_DbQuery(query);
     }
 
-    protected String getSqlAllRecords(IPublicationRule publicationRule) {
+    String getSqlAllRecords(IPublicationRule publicationRule) {
         String tableName = publicationRule.getTableName();
         IJdxTable tableFrom = struct.getTable(tableName);
         //
-        String tableFields = JdxUtils.fieldsToString(publicationRule.getFields(), tableFrom.getName() + ".");
+        String tableFields = UtJdx.fieldsToString(publicationRule.getFields(), tableFrom.getName() + ".");
         //
         String condWhere = "";
 
@@ -155,7 +160,7 @@ public class UtDataSelector {
         }
 
         // Порядок следования записей важен даже при получении snapshot,
-        // т.к. важно обеспечить правильный порядок вставки, например: триггер учитывает данные новой и ПРЕДЫДУЩЕЙ записи (см. например calc_SubjectOpr)
+        // т.к. важно обеспечить правильный порядок вставки, например: триггер учитывает данные новой и ПРЕДЫДУЩЕЙ записи (см. например в PS: calc_SubjectOpr)
         return "select\n" +
                 "  z_z_decode.own_slot,\n" +
                 "  z_z_decode.ws_slot,\n" +
@@ -168,24 +173,6 @@ public class UtDataSelector {
                 condWhere +
                 "order by\n" +
                 "  " + tableFrom.getPrimaryKey().get(0).getName();
-
-        //return "select " + tableFields + " from " + tableFrom.getName() + " where " + conditions + " order by " + tableFrom.getPrimaryKey().get(0).getName();
-
-    /*
-фильтр по автору
-select
-  z_z_decode.own_slot,
-  z_z_decode.ws_slot,
-  z_z_decode.ws_id,
-  (lic.id - z_z_decode.own_slot * 1000000) as id_ws,
-  lic.*
-from
-  lic
-  left join z_z_decode on (z_z_decode.table_name = 'LIC' and z_z_decode.own_slot = (lic.id / 1000000))
-order by
-  rnn
-
-     */
     }
 
 
