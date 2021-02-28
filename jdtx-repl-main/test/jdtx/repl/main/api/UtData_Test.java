@@ -55,11 +55,7 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
 
         // Правила публикации
         JSONObject cfgPublication = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full_166.json"));
-        String publicationName = (String) cfgPublication.get("in");
-        JSONObject cfgPublicationIn = (JSONObject) cfgPublication.get(publicationName);
-        //
-        IPublicationStorage publication = new PublicationStorage();
-        publication.loadRules(cfgPublicationIn, struct);
+        IPublicationStorage publicationIn = PublicationStorage.extractPublicationRules(cfgPublication, struct, "in");
 
         // Применяем реплику на ws1
         sw.start("Применяем реплику");
@@ -72,7 +68,7 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
         // Применятель
         long wsId = 1;
         UtAuditApplyer auditApplyer = new UtAuditApplyer(db, struct, wsId);
-        auditApplyer.applyReplicaReader(replicaReader, publication, false, 0);
+        auditApplyer.applyReplicaReader(replicaReader, publicationIn, false, 0);
         //
         sw.stop();
 
@@ -137,16 +133,12 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
 
         // Правила публикации
         JSONObject cfgPublication = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full_166.json"));
-        String publicationName = (String) cfgPublication.get("out");
-        JSONObject cfgPublicationOut = (JSONObject) cfgPublication.get(publicationName);
-        //
-        IPublicationStorage publicationStorage = new PublicationStorage();
-        publicationStorage.loadRules(cfgPublicationOut, struct2);
+        IPublicationStorage publicationOut = PublicationStorage.extractPublicationRules(cfgPublication, struct2, "out");
 
         // Забираем установочную реплику
         long wsId = 2;
         UtRepl utRepl = new UtRepl(db2, struct2);
-        IReplica replica = utRepl.createReplicaTableSnapshot(wsId, publicationStorage.getPublicationRule(tableName), 1, true);
+        IReplica replica = utRepl.createReplicaTableSnapshot(wsId, publicationOut.getPublicationRule(tableName), 1, true);
 
         //
         return replica;

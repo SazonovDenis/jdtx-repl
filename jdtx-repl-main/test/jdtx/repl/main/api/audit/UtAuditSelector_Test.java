@@ -34,8 +34,7 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
 
         // Загружаем правила публикации
         JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full_152.json"));
-        IPublicationStorage publication = new PublicationStorage();
-        publication.loadRules(cfg, struct);
+        IPublicationStorage publication = PublicationStorage.extractPublicationRules(cfg, struct, "in");
 
         //
         long age;
@@ -111,12 +110,11 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
 
         // Загружаем правила публикации
         JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub.json"));
-        IPublicationStorage publication = new PublicationStorage();
-        publication.loadRules(cfg, struct);
+        IPublicationStorage publication = PublicationStorage.extractPublicationRules(cfg, struct2, "in");
 
         // Формируем реплики
-        UtAuditSelector utRepl = new UtAuditSelector(db2, struct2, wsId);
-        IReplica replica = utRepl.createReplicaFromAudit(publication, selfAuditAge);
+        UtAuditSelector auditSelector = new UtAuditSelector(db2, struct2, wsId);
+        IReplica replica = auditSelector.createReplicaFromAudit(publication, selfAuditAge);
 
         //
         System.out.println(replica.getFile().getAbsolutePath());

@@ -52,14 +52,13 @@ public class AuditTest_Test extends AppTestCase {
 
         // Загружаем правила публикации
         JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full_152.json"));
-        IPublicationStorage publication = new PublicationStorage();
-        publication.loadRules(cfg, db_test_struct);
+        IPublicationStorage publication = PublicationStorage.extractPublicationRules(cfg, db_test_struct, "in");
 
         // Формируем реплики
         long wsId = 2;
         long wsAuditAge = 140;
-        UtAuditSelector utRepl = new UtAuditSelector(db_test, db_test_struct, wsId);
-        IReplica replica = utRepl.createReplicaFromAudit(publication, wsAuditAge);
+        UtAuditSelector auditSelector = new UtAuditSelector(db_test, db_test_struct, wsId);
+        IReplica replica = auditSelector.createReplicaFromAudit(publication, wsAuditAge);
         // Переносим файл на постоянное место
         File actualFile = new File("../_test-data/~tmp_csv-" + wsAuditAge + ".zip");
         FileUtils.moveFile(replica.getFile(), actualFile);
@@ -70,14 +69,13 @@ public class AuditTest_Test extends AppTestCase {
     public void test_132_145() throws Exception {
         // Загружаем правила публикации
         JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full_152.json"));
-        IPublicationStorage publication = new PublicationStorage();
-        publication.loadRules(cfg, db_test_struct);
+        IPublicationStorage publication = PublicationStorage.extractPublicationRules(cfg, db_test_struct, "in");
 
         // Формируем реплики
         long wsId = 2;
         long wsAuditAge = 139;
-        UtAuditSelector utRepl = new UtAuditSelector(db_test, db_test_struct, wsId);
-        IReplica replica = utRepl.createReplicaFromAudit(publication, wsAuditAge);
+        UtAuditSelector auditSelector = new UtAuditSelector(db_test, db_test_struct, wsId);
+        IReplica replica = auditSelector.createReplicaFromAudit(publication, wsAuditAge);
         // Переносим файл на постоянное место
         File actualFile = new File("../_test-data/~tmp_csv-" + wsAuditAge + ".zip");
         FileUtils.moveFile(replica.getFile(), actualFile);
@@ -85,21 +83,21 @@ public class AuditTest_Test extends AppTestCase {
 
         //
         wsAuditAge = 140;
-        replica = utRepl.createReplicaFromAudit(publication, wsAuditAge);
+        replica = auditSelector.createReplicaFromAudit(publication, wsAuditAge);
         actualFile = new File("../_test-data/~tmp_csv-" + wsAuditAge + ".zip");
         FileUtils.moveFile(replica.getFile(), actualFile);
         System.out.println(actualFile.getAbsolutePath());
 
         //
         wsAuditAge = 141;
-        replica = utRepl.createReplicaFromAudit(publication, wsAuditAge);
+        replica = auditSelector.createReplicaFromAudit(publication, wsAuditAge);
         actualFile = new File("../_test-data/~tmp_csv-" + wsAuditAge + ".zip");
         FileUtils.moveFile(replica.getFile(), actualFile);
         System.out.println(actualFile.getAbsolutePath());
 
         //
         wsAuditAge = 145;
-        replica = utRepl.createReplicaFromAudit(publication, wsAuditAge);
+        replica = auditSelector.createReplicaFromAudit(publication, wsAuditAge);
         actualFile = new File("../_test-data/~tmp_csv-" + wsAuditAge + ".zip");
         FileUtils.moveFile(replica.getFile(), actualFile);
         System.out.println(actualFile.getAbsolutePath());
