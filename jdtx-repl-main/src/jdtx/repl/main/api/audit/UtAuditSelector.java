@@ -58,7 +58,7 @@ public class UtAuditSelector {
         replicaWriter.replicaFileStart();
 
         // Начинаем писать файл с данными
-        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument(); //<--- вот тут
 
         // Забираем аудит по порядку сортировки таблиц в struct
         for (IJdxTable structTable : struct.getTables()) {
@@ -226,7 +226,7 @@ public class UtAuditSelector {
                 UtJdx.SQL_FIELD_OPR_TYPE + ", " +
                 UtJdx.PREFIX + "opr_dttm, " +
                 UtJdx.AUDIT_TABLE_PREFIX + tableFrom.getName() + "." + idFieldName + ", " +
-                "(case when " + UtJdx.SQL_FIELD_OPR_TYPE + " = " + JdxOprType.OPR_UPD + " and " + tableFrom.getName() + "." + idFieldName + " is null then 1 else 0 end) z_skip, " +
+                "(case when " + UtJdx.SQL_FIELD_OPR_TYPE + " in (" + JdxOprType.OPR_INS + "," + JdxOprType.OPR_UPD + ") and " + tableFrom.getName() + "." + idFieldName + " is null then 1 else 0 end) z_skip, " +
                 tableFieldsAlias +
                 " from " + UtJdx.AUDIT_TABLE_PREFIX + tableFrom.getName() +
                 " left join " + tableFrom.getName() + " on (" + UtJdx.AUDIT_TABLE_PREFIX + tableFrom.getName() + "." + idFieldName + " = " + tableFrom.getName() + "." + idFieldName + ")" +
