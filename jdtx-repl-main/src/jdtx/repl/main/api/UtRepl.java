@@ -428,6 +428,9 @@ public class UtRepl {
         replica.getInfo().setReplicaType(JdxReplicaType.SEND_SNAPSHOT);
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
 
+        // Чтобы не возится с регистром
+        IJdxTable table = struct.getTable(tableName);
+
         // Стартуем формирование файла реплики
         UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
         replicaWriter.replicaFileStart();
@@ -438,7 +441,7 @@ public class UtRepl {
         // Информация о получателе
         JSONObject cfgInfo = new JSONObject();
         cfgInfo.put("destinationWsId", destinationWsId);
-        cfgInfo.put("tableName", tableName);
+        cfgInfo.put("tableName", table.getName());
         String cfgInfoStr = UtJson.toString(cfgInfo);
         StringInputStream versionStream = new StringInputStream(cfgInfoStr);
         UtFile.copyStream(versionStream, zipOutputStream);

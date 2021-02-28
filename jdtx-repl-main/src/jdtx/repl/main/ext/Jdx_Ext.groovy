@@ -717,7 +717,7 @@ class Jdx_Ext extends ProjectExt {
         if (destinationWsId == 0L) {
             throw new XError("Не указан [ws] - код рабочей станции")
         }
-        if (exeFileName == null || exeFileName.length() == 0) {
+        if (tableName == null || tableName.length() == 0) {
             throw new XError("Не указана [table] - таблица в БД")
         }
 
