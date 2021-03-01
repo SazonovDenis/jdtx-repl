@@ -51,9 +51,6 @@ public class UtJdx {
         List<IJdxTable> restLst = new ArrayList<IJdxTable>();
         restLst.addAll(lst);
 
-        //
-        JdxTableComparator tableComparator = new JdxTableComparator();
-
         // В первую итерацию в sortLst помещаем таблицы, не ссылающиеся на другие таблицы
         List<IJdxTable> curLst = new ArrayList<IJdxTable>();
         int i = 0;
@@ -67,6 +64,9 @@ public class UtJdx {
                 i++;
             }
         }
+
+        //
+        JdxTableComparator tableComparator = new JdxTableComparator();
 
         // Отсортируем по алфавиту первую итерацию
         curLst.sort(tableComparator);
@@ -348,14 +348,6 @@ public class UtJdx {
             replica.getFile().delete();
             // Ошибка
             throw new XError("receive.replica.md5 <> info.crc, file: " + replica.getFile());
-        }
-    }
-
-    private static class JdxTableComparator implements Comparator {
-        public int compare(Object o1, Object o2) {
-            IJdxTable table1 = (IJdxTable) o1;
-            IJdxTable table2 = (IJdxTable) o2;
-            return table1.getName().compareToIgnoreCase(table2.getName());
         }
     }
 
