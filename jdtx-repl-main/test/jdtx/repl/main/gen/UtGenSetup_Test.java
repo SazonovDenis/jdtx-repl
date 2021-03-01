@@ -1,6 +1,7 @@
-package jdtx.repl.main.ut;
+package jdtx.repl.main.gen;
 
 import jandcode.app.test.*;
+import jdtx.repl.main.gen.*;
 import org.junit.*;
 
 /**
@@ -12,7 +13,7 @@ public class UtGenSetup_Test extends AppTestCase {
         UtGenSetup utGenSetup = new UtGenSetup();
         utGenSetup.app = app.getApp();
 
-        String fileName = "res:jdtx/repl/main/ut/UtGenSetup.ws_list.txt";
+        String fileName = "res:jdtx/repl/main/gen/UtGenSetup.ws_list.txt";
         utGenSetup.gen(fileName, "temp/");
     }
 

@@ -1,9 +1,10 @@
-package jdtx.repl.main.ut;
+package jdtx.repl.main.gen;
 
 import jandcode.app.*;
 import jandcode.jc.*;
 import jandcode.utils.*;
 import jandcode.web.*;
+import jdtx.repl.main.ut.*;
 
 import java.io.*;
 import java.util.*;
@@ -13,7 +14,7 @@ import java.util.*;
  */
 public class UtGenSetup extends ProjectExt {
 
-    App app;
+    public App app;
 
     public void gen(String inFileName, String outDirName) throws Exception {
         RandomString rnd = new RandomString();
@@ -56,7 +57,7 @@ public class UtGenSetup extends ProjectExt {
         // Файл: setup.srv.bat
         // Настройка сервера
         OutBuilder b = new OutBuilder(app);
-        b.outTml("res:jdtx/repl/main/ut/UtGenSetup.srv.bat.gsp", args_srv, null);
+        b.outTml("res:jdtx/repl/main/gen/UtGenSetup.srv.bat.gsp", args_srv, null);
         UtFile.saveString(b.toString(), new File(outDirName + "setup." + name_main + ".srv.bat"), "cp866");
 
 
@@ -71,14 +72,14 @@ public class UtGenSetup extends ProjectExt {
             args_ws.put("ws_no", ws.get("ws_no"));
             // Файл
             b = new OutBuilder(app);
-            b.outTml("res:jdtx/repl/main/ut/UtGenSetup.ws.bat.gsp", args_ws, null);
+            b.outTml("res:jdtx/repl/main/gen/UtGenSetup.ws.bat.gsp", args_ws, null);
             UtFile.saveString(b.toString(), new File(outDirName + "setup." + name_main + ".ws" + ws.get("ws_no") + ".bat"), "cp866");
         }
 
         // Файл: ws_list.json
         // Список рабочих станций
         b = new OutBuilder(app);
-        b.outTml("res:jdtx/repl/main/ut/UtGenSetup.ws_list.json.gsp", args_srv, null);
+        b.outTml("res:jdtx/repl/main/gen/UtGenSetup.ws_list.json.gsp", args_srv, null);
         UtFile.saveString(b.toString(), new File(outDirName + "ws_list.json"), "utf-8");
     }
 }

@@ -11,11 +11,11 @@ import jandcode.utils.error.*
 import jandcode.utils.variant.*
 import jdtx.repl.main.api.*
 import jdtx.repl.main.api.mailer.*
-import jdtx.repl.main.api.manager.CfgManager
-import jdtx.repl.main.api.manager.CfgType
+import jdtx.repl.main.api.manager.*
 import jdtx.repl.main.api.replica.*
 import jdtx.repl.main.api.struct.*
-import jdtx.repl.main.ut.*
+import jdtx.repl.main.gen.*
+import jdtx.repl.main.service.*
 import org.apache.commons.io.*
 import org.json.simple.*
 
@@ -766,7 +766,8 @@ class Jdx_Ext extends ProjectExt {
     }
 
     void repl_service_list(IVariantMap args) {
-        UtReplService.serviceList()
+        Collection<ServiceInfo> taskList = UtReplService.serviceList();
+        ServiceInfo.printList(taskList);
     }
 
     void repl_service_start(IVariantMap args) {
@@ -796,7 +797,8 @@ class Jdx_Ext extends ProjectExt {
             // Выполнение команды
             try {
                 UtReplService.install(ws)
-                UtReplService.serviceList()
+                Collection<ServiceInfo> taskList = UtReplService.serviceList();
+                ServiceInfo.printList(taskList);
             } catch (Exception e) {
                 e.printStackTrace()
                 throw e
@@ -810,29 +812,36 @@ class Jdx_Ext extends ProjectExt {
     }
 
     void repl_service_remove(IVariantMap args) {
-        Db db = null
-        try {
-            // БД
-            db = app.service(ModelService.class).model.getDb()
-            db.connect()
-
-            // Рабочая станция
-            JdxReplWs ws = new JdxReplWs(db)
-            ws.init()
-
-            // Выполнение команды
+        if (args.containsKey("all")) {
+            // Удаляем все задачи
+            UtReplService.removeAll()
+        } else {
+            // Удаляем для текущей станции
+            Db db = null
             try {
-                UtReplService.stop()
-                UtReplService.remove(ws)
-                UtReplService.serviceList()
-            } catch (Exception e) {
-                e.printStackTrace()
-                throw e
-            }
+                // БД
+                db = app.service(ModelService.class).model.getDb()
+                db.connect()
 
-        } finally {
-            if (db != null && db.connected) {
-                db.disconnect()
+                // Рабочая станция
+                JdxReplWs ws = new JdxReplWs(db)
+                ws.init()
+
+                // Выполнение команды
+                try {
+                    UtReplService.stop(false)
+                    UtReplService.remove(ws)
+                    Collection<ServiceInfo> taskList = UtReplService.serviceList();
+                    ServiceInfo.printList(taskList);
+                } catch (Exception e) {
+                    e.printStackTrace()
+                    throw e
+                }
+
+            } finally {
+                if (db != null && db.connected) {
+                    db.disconnect()
+                }
             }
         }
     }

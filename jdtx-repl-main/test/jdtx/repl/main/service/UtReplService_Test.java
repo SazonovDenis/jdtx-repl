@@ -1,4 +1,4 @@
-package jdtx.repl.main.ut;
+package jdtx.repl.main.service;
 
 import jandcode.app.test.*;
 import jandcode.dbm.*;
@@ -11,10 +11,17 @@ import java.util.*;
 public class UtReplService_Test extends AppTestCase {
 
 
+    // ---
+    // Службы ServiceInfo
+    // ---
+
     @Test
-    public void test_serviceList() throws Exception {
+    public void test_ServiceListPrint() throws Exception {
         logOn();
-        UtReplService.serviceList();
+
+        //
+        List<ServiceInfo> serviceList = UtReplService.serviceList();
+        ServiceInfo.printList(serviceList);
     }
 
     @Test
@@ -29,6 +36,9 @@ public class UtReplService_Test extends AppTestCase {
 
         //
         UtReplService.install(ws);
+
+        //
+        test_ServiceListPrint();
     }
 
     @Test
@@ -43,30 +53,59 @@ public class UtReplService_Test extends AppTestCase {
 
         //
         UtReplService.remove(ws);
+
+        //
+        test_ServiceListPrint();
     }
 
     @Test
-    public void test_start() throws Exception {
-        UtReplService.start();
+    public void test_removeAll() throws Exception {
+        logOn();
+
+        //
+        UtReplService.removeAll();
+
+        //
+        test_ServiceListPrint();
     }
+
+
+    // ---
+    // Процессы (ProcessInfo)
+    // ---
 
     @Test
     public void test_processList() throws Exception {
         logOn();
+
+        //
         Collection<ProcessInfo> processList = UtReplService.processList();
         ProcessInfo.printList(processList);
     }
 
     @Test
-    public void test_stop_all() throws Exception {
+    public void test_start() throws Exception {
         logOn();
-        UtReplService.stop(true);
+
+        //
+        UtReplService.start();
     }
 
     @Test
     public void test_stop_one() throws Exception {
         logOn();
+
+        //
         UtReplService.stop(false);
     }
+
+    @Test
+    public void test_stop_all() throws Exception {
+        logOn();
+
+        //
+        UtReplService.stop(true);
+    }
+
 
 }

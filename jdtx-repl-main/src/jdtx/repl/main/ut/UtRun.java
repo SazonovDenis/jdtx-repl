@@ -52,13 +52,13 @@ public class UtRun {
     }
 
 
-    static void printRes(long exitCode, List<String> res) {
+    public static void printRes(long exitCode, List<String> res) {
         log.info("run exit code: " + exitCode);
         printRes(res);
     }
 
 
-    static void printRes(List<String> res) {
+    public static void printRes(List<String> res) {
         log.info("run out lines:");
         for (String outLine : res) {
             log.info(">> " + outLine);
