@@ -59,5 +59,33 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
         //UtPublicationRule.checkValidRef(publicationIn, struct);
     }
 
+    @Test
+    public void test_PublicationValidFk1() throws Exception {
+        System.out.println("Database: " + db.getDbSource().getDatabase());
+
+        //
+        String jsonFileName = "../install/cfg/publication_lic_194_ws.json";
+        test_PublicationRule(jsonFileName);
+
+        //
+        jsonFileName = "../install/cfg/publication_lic_194_srv.json";
+        test_PublicationRule(jsonFileName);
+    }
+
+    void test_PublicationRule(String jsonFileName) throws Exception {
+        System.out.println("Json file: " + jsonFileName);
+        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString(jsonFileName));
+
+        //
+        System.out.println("Publication: in");
+        IPublicationStorage publicationIn = PublicationStorage.extractPublicationRules(cfg, struct, "in");
+        //UtPublicationRule.checkValidRef(publicationIn, struct);
+
+        //
+        System.out.println("Publication: out");
+        IPublicationStorage publicationOut = PublicationStorage.extractPublicationRules(cfg, struct, "out");
+        //UtPublicationRule.checkValidRef(publicationOut, struct);
+    }
+
 
 }

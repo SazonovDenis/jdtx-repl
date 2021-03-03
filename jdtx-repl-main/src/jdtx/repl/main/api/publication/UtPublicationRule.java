@@ -70,15 +70,22 @@ public class UtPublicationRule {
             IJdxTable table = struct.getTable(rule.getTableName());
             for (IJdxForeignKey fieldFk : table.getForeignKeys()) {
                 IJdxTable tableRef = fieldFk.getTable();
+                String refTableName = tableRef.getName();
                 String refFieldName = fieldFk.getField().getName();
                 //
                 boolean refTableNotFoundInRules = false;
-                if (tableRef != null) {
-                    IPublicationRule ruleTable = publication.getPublicationRule(tableRef.getName());
-                    if (ruleTable == null) {
-                        refTableNotFoundInRules = true;
+                boolean refTableFilteredInRules = false;
+                IPublicationRule refTableRule = publication.getPublicationRule(refTableName);
+                if (refTableRule == null) {
+                    refTableNotFoundInRules = true;
+                } else {
+                    String ruleFilter = rule.getFilterExpression();
+                    String refTableRuleFilter = refTableRule.getFilterExpression();
+                    if (refTableRuleFilter != null && !refTableRuleFilter.equals(ruleFilter)) {
+                        refTableFilteredInRules = true;
                     }
                 }
+
 
                 //
                 boolean refFieldFoundInRuleFields = false;
@@ -90,11 +97,21 @@ public class UtPublicationRule {
 
                 if (refTableNotFoundInRules) {
                     if (refFieldFoundInRuleFields) {
-                        log.error("Not found reference in rule: " + table.getName() + "." + refFieldName + " -> " + tableRef.getName());
+                        log.error("Not found reference in rule: " + table.getName() + "." + refFieldName + " -> " + refTableName);
                     } else {
-                        log.info("Masked reference in rule: " + table.getName() + "." + refFieldName + " -> " + tableRef.getName());
+                        log.info("Masked reference in rule: " + table.getName() + "." + refFieldName + " -> " + refTableName);
                     }
+                } else if (refTableFilteredInRules) {
+                    log.warn("Reference filtered in rule: " + table.getName() + "." + refFieldName + " -> " + refTableName);
                 }
+            }
+        }
+
+        // Таблицы из структуры, которые игнорируем
+        for (IJdxTable table : struct.getTables()) {
+            IPublicationRule rule = publication.getPublicationRule(table.getName());
+            if (rule == null) {
+                log.info("Rule not found for table: " + table.getName());
             }
         }
     }
