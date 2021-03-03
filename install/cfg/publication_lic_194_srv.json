@@ -1,0 +1,503 @@
+{
+  "in": "full",
+  "out": "filtered_full",
+  "filtered_full": {
+    "appupdate": {
+      "fields": "*"
+    },
+    "commenttext": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || RECORD_PawnChit = 0",
+      "filter_": "сервер на станцию будет отправлять:",
+      "filter_": "изменения в собственных записях станции (PARAM_wsAuthor_ID = PARAM_wsDestination) или ",
+      "filter_": "изменения, сделанные самой станцией, т.е. её собственные реплики (PARAM_wsAuthor = PARAM_wsDestination) или",
+      "filter_": "примечания только к залогодателю (RECORD_PawnChit = 0)"
+    },
+    "commenttip": {
+      "fields": "*"
+    },
+    "lic": {
+      "fields": "*"
+    },
+    "licdat": {
+      "fields": "*"
+    },
+    "licdoctip": {
+      "fields": "*"
+    },
+    "licdocvid": {
+      "fields": "*"
+    },
+    "region": {
+      "fields": "*"
+    },
+    "regiontip": {
+      "fields": "*"
+    },
+    "ulz": {
+      "fields": "*"
+    },
+    "ulztip": {
+      "fields": "*"
+    },
+    "billingvarhist": {
+      "fields": "*"
+    },
+    "billingvarvalues": {
+      "fields": "*"
+    },
+    "bondtip": {
+      "fields": "*"
+    },
+    "cashencash": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "cashencashreason": {
+      "fields": "*"
+    },
+    "cashlog": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "cashordergen": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "cashsumm": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "categoryhist": {
+      "fields": "*"
+    },
+    "categoryprice": {
+      "fields": "*"
+    },
+    "categorysubjectval": {
+      "fields": "*"
+    },
+    "datatip": {
+      "fields": "*"
+    },
+    "dayoff": {
+      "fields": "*"
+    },
+    "dbinfo": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "dictlist": {
+      "fields": "*"
+    },
+    "dictlistval": {
+      "fields": "*"
+    },
+    "filedat": {
+      "fields": "*"
+    },
+    "inventory": {
+      "fields": "*"
+    },
+    "inventorybond": {
+      "fields": "*"
+    },
+    "inventorycash": {
+      "fields": "*"
+    },
+    "inventorychecksubject": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "inventoryextrasubject": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "inventorymissingsubject": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "inventoryusr": {
+      "fields": "*"
+    },
+    "measure": {
+      "fields": "*"
+    },
+    "nch": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "nchopl": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "nchtip": {
+      "fields": "*"
+    },
+    "operday": {
+      "fields": "*"
+    },
+    "operdayusr": {
+      "fields": "*"
+    },
+    "opr": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "oprtip": {
+      "fields": "*"
+    },
+    "pawnchit": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "pawnchitdat": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "pawnchitdatstruct": {
+      "fields": "*"
+    },
+    "pawnchitdatstructvalues": {
+      "fields": "*"
+    },
+    "pawnchitopr": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "pawnchitstatustip": {
+      "fields": "*"
+    },
+    "pawnchitsubject": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "pawnchitsubjectexhibit": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "pawnchitsubjectsell": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "pawnchitsubjectstatustip": {
+      "fields": "*"
+    },
+    "pawnchitsubjecttosale": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "pawnreceipt": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "reportvar": {
+      "fields": "*"
+    },
+    "smsinfo": {
+      "fields": "*"
+    },
+    "smsjournal": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "smstemplate": {
+      "fields": "*"
+    },
+    "stornopr": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "subjectencash": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "subjectencashreason": {
+      "fields": "*"
+    },
+    "subjecttip": {
+      "fields": "*"
+    },
+    "subjecttippropert": {
+      "fields": "*"
+    },
+    "tariffplan": {
+      "fields": "*"
+    },
+    "tariffplanbillingvar": {
+      "fields": "*"
+    },
+    "tariffplanpercstavka": {
+      "fields": "*"
+    },
+    "tariffplanref": {
+      "fields": "*"
+    },
+    "tariffplanver": {
+      "fields": "*"
+    },
+    "usr": {
+      "fields": "*"
+    },
+    "usrgrp": {
+      "fields": "*"
+    },
+    "usrlog": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "usroprtip": {
+      "fields": "*"
+    },
+    "usrotdel": {
+      "fields": "*"
+    },
+    "valpawnchitsubject": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
+    "valsubjecttip": {
+      "fields": "*"
+    },
+    "vartip": {
+      "fields": "*"
+    },
+    "ws_list": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    }
+  },
+  "full": {
+    "billingvarhist": {
+      "fields": "*"
+    },
+    "billingvarvalues": {
+      "fields": "*"
+    },
+    "bondtip": {
+      "fields": "*"
+    },
+    "cashencash": {
+      "fields": "*"
+    },
+    "cashencashreason": {
+      "fields": "*"
+    },
+    "cashlog": {
+      "fields": "*"
+    },
+    "cashordergen": {
+      "fields": "*"
+    },
+    "cashsumm": {
+      "fields": "*"
+    },
+    "categoryhist": {
+      "fields": "*"
+    },
+    "categoryprice": {
+      "fields": "*"
+    },
+    "categorysubjectval": {
+      "fields": "*"
+    },
+    "commenttext": {
+      "fields": "*"
+    },
+    "commenttip": {
+      "fields": "*"
+    },
+    "datatip": {
+      "fields": "*"
+    },
+    "dayoff": {
+      "fields": "*"
+    },
+    "dbinfo": {
+      "fields": "*"
+    },
+    "dictlist": {
+      "fields": "*"
+    },
+    "dictlistval": {
+      "fields": "*"
+    },
+    "filedat": {
+      "fields": "*"
+    },
+    "inventory": {
+      "fields": "*"
+    },
+    "inventorybond": {
+      "fields": "*"
+    },
+    "inventorycash": {
+      "fields": "*"
+    },
+    "inventorychecksubject": {
+      "fields": "*"
+    },
+    "inventoryextrasubject": {
+      "fields": "*"
+    },
+    "inventorymissingsubject": {
+      "fields": "*"
+    },
+    "inventoryusr": {
+      "fields": "*"
+    },
+    "lic": {
+      "fields": "*"
+    },
+    "licdat": {
+      "fields": "*"
+    },
+    "licdoctip": {
+      "fields": "*"
+    },
+    "licdocvid": {
+      "fields": "*"
+    },
+    "measure": {
+      "fields": "*"
+    },
+    "nch": {
+      "fields": "*"
+    },
+    "nchopl": {
+      "fields": "*"
+    },
+    "nchtip": {
+      "fields": "*"
+    },
+    "operday": {
+      "fields": "*"
+    },
+    "operdayusr": {
+      "fields": "*"
+    },
+    "opr": {
+      "fields": "*"
+    },
+    "oprtip": {
+      "fields": "*"
+    },
+    "pawnchit": {
+      "fields": "*"
+    },
+    "pawnchitdat": {
+      "fields": "*"
+    },
+    "pawnchitdatstruct": {
+      "fields": "*"
+    },
+    "pawnchitdatstructvalues": {
+      "fields": "*"
+    },
+    "pawnchitopr": {
+      "fields": "*"
+    },
+    "pawnchitstatustip": {
+      "fields": "*"
+    },
+    "pawnchitsubject": {
+      "fields": "*"
+    },
+    "pawnchitsubjectexhibit": {
+      "fields": "*"
+    },
+    "pawnchitsubjectsell": {
+      "fields": "*"
+    },
+    "pawnchitsubjectstatustip": {
+      "fields": "*"
+    },
+    "pawnchitsubjecttosale": {
+      "fields": "*"
+    },
+    "pawnreceipt": {
+      "fields": "*"
+    },
+    "region": {
+      "fields": "*"
+    },
+    "regiontip": {
+      "fields": "*"
+    },
+    "reportvar": {
+      "fields": "*"
+    },
+    "smsinfo": {
+      "fields": "*"
+    },
+    "smsjournal": {
+      "fields": "*"
+    },
+    "smstemplate": {
+      "fields": "*"
+    },
+    "stornopr": {
+      "fields": "*"
+    },
+    "subjectencash": {
+      "fields": "*"
+    },
+    "subjectencashreason": {
+      "fields": "*"
+    },
+    "subjecttip": {
+      "fields": "*"
+    },
+    "subjecttippropert": {
+      "fields": "*"
+    },
+    "tariffplan": {
+      "fields": "*"
+    },
+    "tariffplanbillingvar": {
+      "fields": "*"
+    },
+    "tariffplanpercstavka": {
+      "fields": "*"
+    },
+    "tariffplanref": {
+      "fields": "*"
+    },
+    "tariffplanver": {
+      "fields": "*"
+    },
+    "ulz": {
+      "fields": "*"
+    },
+    "ulztip": {
+      "fields": "*"
+    },
+    "usr": {
+      "fields": "*"
+    },
+    "usrgrp": {
+      "fields": "*"
+    },
+    "usrlog": {
+      "fields": "*"
+    },
+    "usroprtip": {
+      "fields": "*"
+    },
+    "usrotdel": {
+      "fields": "*"
+    },
+    "valpawnchitsubject": {
+      "fields": "*"
+    },
+    "valsubjecttip": {
+      "fields": "*"
+    },
+    "vartip": {
+      "fields": "*"
+    },
+    "ws_list": {
+      "fields": "*"
+    }
+  }
+}
