@@ -1,8 +1,7 @@
 package jdtx.repl.main.api.mailer;
 
+import jdtx.repl.main.api.*;
 import org.json.simple.*;
-
-import static jdtx.repl.main.api.UtJdx.longValueOf;
 
 public class SendRequiredInfo {
 
@@ -16,8 +15,8 @@ public class SendRequiredInfo {
 
     public SendRequiredInfo(JSONObject required) {
         super();
-        requiredFrom = longValueOf(required.getOrDefault("requiredFrom", -1));
-        requiredTo = longValueOf(required.getOrDefault("requiredTo", -1));
+        requiredFrom = UtJdx.longValueOf(required.getOrDefault("requiredFrom", -1));
+        requiredTo = UtJdx.longValueOf(required.getOrDefault("requiredTo", -1));
         recreate = Boolean.valueOf(String.valueOf(required.getOrDefault("recreate", false)));
     }
 

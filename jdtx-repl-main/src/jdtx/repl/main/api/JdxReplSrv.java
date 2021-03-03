@@ -133,7 +133,7 @@ public class JdxReplSrv {
         }
 
 
-        // Фильтрация структуры: убирание того, чего нет в публикациях publicationIn и publicationOut
+        // Фильтрация структуры: убирание того, чего нет ни в одном из правил публикаций publicationIn и publicationOut
 
         // Правила публикаций
         IPublicationStorage publicationIn = PublicationStorage.extractPublicationRules(cfgPublications, structActual, "in");
@@ -236,7 +236,9 @@ public class JdxReplSrv {
         // Преобразователь по фильтрам
         IReplicaFilter filter = new ReplicaFilter();
 
-        // Правила публикаций (фильтры) для wsId. В качестве фильтров на отправку берем ВХОДЯЩЕЕ правило рабочей станций.
+        // Правила публикаций (фильтры) для wsId.
+        // В качестве фильтров на ОТПРАВКУ от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
+        // todo почему ТУТ ТАК? А не publicationsInList.get(wsId) ???????????
         IPublicationStorage publicationRuleWsIn = PublicationStorage.extractPublicationRules(cfgPublications, struct, "in");
         //IPublicationStorage publicationRuleWsIn = publicationsInList.get(wsId);
 
@@ -340,7 +342,8 @@ public class JdxReplSrv {
             // Преобразователь по фильтрам
             IReplicaFilter filter = new ReplicaFilter();
 
-            // Правила публикаций (фильтры) для wsId. В качестве фильтров на отправку берем ВХОДЯЩИЕ правила рабочих станций.
+            // Правила публикаций (фильтры) для wsId.
+            // В качестве фильтров на ОТПРАВКУ от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
             IPublicationStorage publicationRule = publicationsInList.get(wsId);
 
             // Параметры: получатель реплики (для правил публикации)

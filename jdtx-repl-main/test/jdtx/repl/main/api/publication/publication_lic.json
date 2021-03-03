@@ -12,6 +12,10 @@
     "commenttip": {
       "fields": "id,name,deleted"
     },
+    "TariffPlanBillingVar": {
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+    },
     "lic": {
       "fields": "*"
     },

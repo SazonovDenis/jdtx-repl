@@ -6,7 +6,6 @@ import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 
-import static jdtx.repl.main.api.UtJdx.longValueOf;
 
 public class UtDataWriter {
 
@@ -34,7 +33,7 @@ public class UtDataWriter {
             if (forbidNotOwnId) {
                 if (field.isPrimaryKey()) {
                     String refTableName = table.getName();
-                    long own_id = longValueOf(fieldValue);
+                    long own_id = UtJdx.longValueOf(fieldValue);
                     if (!decoder.is_own_id(refTableName, own_id)) {
                         throw new XError("Not own id found, tableName: " + refTableName + ", id: " + own_id);
                     }
@@ -52,7 +51,7 @@ public class UtDataWriter {
                     refTableName = refTable.getName();
                 }
                 // Перекодировка ссылки
-                JdxRef ref = decoder.get_ref(refTableName, longValueOf(fieldValue));
+                JdxRef ref = decoder.get_ref(refTableName, UtJdx.longValueOf(fieldValue));
                 dataWriter.setRecValue(fieldName, ref.toString());
             } else {
                 // Это просто значение

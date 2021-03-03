@@ -175,7 +175,7 @@ public class JdxReplWs {
         this.publicationOut = PublicationStorage.extractPublicationRules(cfgPublications, structActual, "out");
 
 
-        // Фильтрация структуры: убирание того, чего нет в публикациях publicationIn и publicationOut
+        // Фильтрация структуры: убирание того, чего нет ни в одном из правил публикаций publicationIn и publicationOut
         struct = UtRepl.getStructCommon(structActual, this.publicationIn, this.publicationOut);
 
 

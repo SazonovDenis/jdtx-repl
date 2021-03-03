@@ -4,12 +4,12 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 
 import java.sql.*;
 import java.util.*;
 
-import static jdtx.repl.main.api.UtJdx.longValueOf;
 
 /**
  * Манипуляции с базой - CRUD
@@ -319,7 +319,7 @@ public class JdxDbUtils {
     public long insertRec(String tableName, Map params, String includeFields, String excludeFields) throws Exception {
         Map p = new HashMapNoCase();
         p.putAll(params);
-        Long id = longValueOf(p.get(ID_FIELD));
+        Long id = UtJdx.longValueOf(p.get(ID_FIELD));
         if (id == null) {
             id = getTableNextId(tableName);
             p.put(ID_FIELD, id);

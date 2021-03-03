@@ -1,7 +1,6 @@
 {
   "in": "full",
   "out": "some",
-
   "some": {
     "appupdate": {
       "fields": "*"
@@ -31,7 +30,6 @@
       "fields": "*"
     }
   },
-
   "full": {
     "appupdate": {
       "fields": "*"
@@ -195,6 +193,15 @@
     "reportvar": {
       "fields": "*"
     },
+    "smsinfo": {
+      "fields": "*"
+    },
+    "smsjournal": {
+      "fields": "*"
+    },
+    "smstemplate": {
+      "fields": "*"
+    },
     "stornopr": {
       "fields": "*"
     },
@@ -208,15 +215,6 @@
       "fields": "*"
     },
     "subjecttippropert": {
-      "fields": "*"
-    },
-    "smsjournal": {
-      "fields": "*"
-    },
-    "smsinfo": {
-      "fields": "*"
-    },
-    "smstemplate": {
       "fields": "*"
     },
     "tariffplan": {
