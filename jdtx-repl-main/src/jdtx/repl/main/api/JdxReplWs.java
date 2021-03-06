@@ -171,8 +171,8 @@ public class JdxReplWs {
         }
 
         // Правила публикаций
-        this.publicationIn = PublicationStorage.extractPublicationRules(cfgPublications, structActual, "in");
-        this.publicationOut = PublicationStorage.extractPublicationRules(cfgPublications, structActual, "out");
+        this.publicationIn = PublicationStorage.loadRules(cfgPublications, structActual, "in");
+        this.publicationOut = PublicationStorage.loadRules(cfgPublications, structActual, "out");
 
 
         // Фильтрация структуры: убирание того, чего нет ни в одном из правил публикаций publicationIn и publicationOut
@@ -744,7 +744,7 @@ public class JdxReplWs {
                 InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
                 try {
                     String cfgStr = loadStringFromSream(infoStream);
-                    info = (JSONObject) UtJson.toObject(cfgStr);
+                    info = UtRepl.loadAndValidateJsonStr(cfgStr);
                 } finally {
                     infoStream.close();
                 }
@@ -775,7 +775,7 @@ public class JdxReplWs {
                 InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
                 try {
                     String cfgStr = loadStringFromSream(infoStream);
-                    info = (JSONObject) UtJson.toObject(cfgStr);
+                    info = UtRepl.loadAndValidateJsonStr(cfgStr);
                 } finally {
                     infoStream.close();
                 }
@@ -803,7 +803,7 @@ public class JdxReplWs {
                 InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
                 try {
                     String cfgStr = loadStringFromSream(infoStream);
-                    info = (JSONObject) UtJson.toObject(cfgStr);
+                    info = UtRepl.loadAndValidateJsonStr(cfgStr);
                 } finally {
                     infoStream.close();
                 }
@@ -837,7 +837,7 @@ public class JdxReplWs {
                 InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
                 try {
                     String cfgStr = loadStringFromSream(infoStream);
-                    info = (JSONObject) UtJson.toObject(cfgStr);
+                    info = UtRepl.loadAndValidateJsonStr(cfgStr);
                 } finally {
                     infoStream.close();
                 }
@@ -907,7 +907,7 @@ public class JdxReplWs {
                 InputStream cfgInfoStream = JdxReplicaReaderXml.createInputStream(replica, "cfg.info.json");
                 try {
                     String cfgInfoStr = loadStringFromSream(cfgInfoStream);
-                    cfgInfo = (JSONObject) UtJson.toObject(cfgInfoStr);
+                    cfgInfo = UtRepl.loadAndValidateJsonStr(cfgInfoStr);
                 } finally {
                     cfgInfoStream.close();
                 }
@@ -923,7 +923,7 @@ public class JdxReplWs {
                     InputStream cfgStream = JdxReplicaReaderXml.createInputStream(replica, "cfg.json");
                     try {
                         String cfgStr = loadStringFromSream(cfgStream);
-                        cfg = (JSONObject) UtJson.toObject(cfgStr);
+                        cfg = UtRepl.loadAndValidateJsonStr(cfgStr);
                     } finally {
                         cfgStream.close();
                     }
@@ -1135,7 +1135,7 @@ public class JdxReplWs {
         String guidPath = guid.replace("-", "/");
 
         //
-        JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
+        JSONObject cfgData = UtRepl.loadAndValidateJsonFile(cfgFileName));
 
         // Конфиг для мейлера
         JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
@@ -1257,7 +1257,7 @@ public class JdxReplWs {
     @Deprecated
     public void sendToDir(String cfgFileName, String mailDir, long age_from, long age_to, boolean doMarkDone) throws Exception {
         // Готовим локальный мейлер
-        JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
+        JSONObject cfgData = UtRepl.loadAndValidateJsonFile(cfgFileName);
         //
         mailDir = UtFile.unnormPath(mailDir) + "/";
         String guid = getWsGuid();

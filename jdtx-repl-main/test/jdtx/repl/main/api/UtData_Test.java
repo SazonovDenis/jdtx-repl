@@ -54,14 +54,14 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
         JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
 
         // Правила публикации
-        JSONObject cfgPublication = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full_166.json"));
-        IPublicationStorage publicationIn = PublicationStorage.extractPublicationRules(cfgPublication, struct, "in");
+        JSONObject cfgPublication = UtRepl.loadAndValidateJsonFile("test/etalon/publication_full_166.json");
+        IPublicationStorage publicationIn = PublicationStorage.loadRules(cfgPublication, struct, "in");
 
         // Применяем реплику на ws1
         sw.start("Применяем реплику");
 
         // Стратегии перекодировки каждой таблицы
-        JSONObject cfgDbDecode = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/decode_strategy.json"));
+        JSONObject cfgDbDecode = UtRepl.loadAndValidateJsonFile("test/etalon/decode_strategy.json");
         RefDecodeStrategy.instance = new RefDecodeStrategy();
         RefDecodeStrategy.instance.init(cfgDbDecode);
 
@@ -132,8 +132,8 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
     public IReplica createReplicaTableSnapshot_ws2(String tableName) throws Exception {
 
         // Правила публикации
-        JSONObject cfgPublication = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full_166.json"));
-        IPublicationStorage publicationOut = PublicationStorage.extractPublicationRules(cfgPublication, struct2, "out");
+        JSONObject cfgPublication = UtRepl.loadAndValidateJsonFile("test/etalon/publication_full_166.json");
+        IPublicationStorage publicationOut = PublicationStorage.loadRules(cfgPublication, struct2, "out");
 
         // Забираем установочную реплику
         long wsId = 2;

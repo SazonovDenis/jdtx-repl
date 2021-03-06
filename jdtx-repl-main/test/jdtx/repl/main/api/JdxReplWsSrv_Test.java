@@ -291,9 +291,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_region_http() throws Exception {
         UtTest utTest2 = new UtTest(db2);
-        utTest2.make_InsDel(struct2, 2);
+        utTest2.make_Region_InsDel_0(struct2, 2);
         UtTest utTest3 = new UtTest(db3);
-        utTest3.make_InsDel_1(struct3, 3);
+        utTest3.make_Region_InsDel_1(struct3, 3);
 
         //
         sync_http_1_2_3();
@@ -317,8 +317,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws3_makeChange();
         //
         UtTest utTest2 = new UtTest(db2);
-        utTest2.make_InsDel(struct2, 2);
-        utTest2.make_InsDel_1(struct2, 2);
+        utTest2.make_Region_InsDel_0(struct2, 2);
+        utTest2.make_Region_InsDel_1(struct2, 2);
 
         //
         sync_http_1_2_3();

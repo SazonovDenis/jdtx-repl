@@ -484,7 +484,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Завершаем (на сервере) смену версии БД
 
         // На сервере напрямую задаем структуру публикаций (команда repl_set_cfg)
-        JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfg_publications);
+        JSONObject cfg = UtRepl.loadAndValidateJsonFile(cfg_publications);
         CfgManager cfgManager = new CfgManager(db);
         cfgManager.setSelfCfg(cfg, CfgType.PUBLICATIONS);
 
@@ -610,7 +610,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     @Test
     public void test_auditAfterInsDel() throws Exception {
         UtTest utTest = new UtTest(db2);
-        utTest.make_InsDel(struct2, 2);
+        utTest.make_Region_InsDel_0(struct2, 2);
 
         // Формирование аудита
         JdxReplWs ws = new JdxReplWs(db2);

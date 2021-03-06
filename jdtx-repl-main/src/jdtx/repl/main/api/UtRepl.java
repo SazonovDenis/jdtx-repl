@@ -606,9 +606,21 @@ public class UtRepl {
         return version;
     }
 
-    public static JSONObject loadAndValidateCfgFile(String cfgFileName) throws Exception {
-        String appCfg = UtFile.loadString(cfgFileName);
-        JSONObject cfgData = (JSONObject) UtJson.toObject(appCfg);
+    public static JSONObject loadAndValidateJsonFile(String cfgFileName) throws Exception {
+        String cfgText = UtFile.loadString(cfgFileName);
+        return loadAndValidateJsonStr(cfgText);
+    }
+
+    public static JSONObject loadAndValidateJsonStr(String cfgText) throws Exception {
+        if (cfgText.length() == 0) {
+            throw new XError("cfgText.length() == 0");
+        }
+        //
+        JSONObject cfgData = (JSONObject) UtJson.toObject(cfgText);
+        if (cfgData == null) {
+            throw new XError("cfgData == null");
+        }
+        //
         return cfgData;
     }
 

@@ -3,7 +3,7 @@ package jdtx.repl.main.api.rec_merge;
 import jandcode.dbm.db.*;
 import jandcode.dbm.test.*;
 import jandcode.utils.*;
-import jandcode.web.*;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 import org.json.simple.*;
 import org.junit.*;
@@ -42,7 +42,7 @@ public class GroupStrategy_Test extends DbmTestCase {
         Map<String, Object> recordRes = new HashMap<>();
         GroupsStrategyStorage groupsStrategyStorage = new GroupsStrategyStorage();
 
-        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/field_groups.json"));
+        JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/field_groups.json");
         groupsStrategyStorage.loadStrategy(cfg, struct);
         //
         GroupStrategy tableGroups = groupsStrategyStorage.getForTable("LIC");

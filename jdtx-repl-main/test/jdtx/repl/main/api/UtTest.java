@@ -366,13 +366,13 @@ public class UtTest extends UtilsTestCase {
      * Цикл вставки и удаления влияющей записи:
      * Вставка A1
      * Фиксация возраста
-     * Вставка B1 со ссылкой на тольтко что вставленную А1
+     * Вставка B1 со ссылкой на тольтко что вставленную А1 (B.А -> А1)
      * Фиксация возраста
-     * Обновление B1 - замена ссылки с только что вставленной на уже существующую А0
+     * Обновление B1 - замена ссылки с только что вставленной на уже существующую А0  (B.А -> А0)
      * Фиксация возраста
      * Удаление только что вставленной A1
      */
-    void make_InsDel(IJdxDbStruct struct, long ws_id) throws Exception {
+    void make_Region_InsDel_0(IJdxDbStruct struct, long ws_id) throws Exception {
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
         //UtRepl utRepl = new UtRepl(db, struct);
         Random rnd = new Random();
@@ -443,7 +443,7 @@ public class UtTest extends UtilsTestCase {
      * Обновление B1 - замена ссылки с A0 на только что вставленную А1
      * Фиксация возраста
      */
-    void make_InsDel_1(IJdxDbStruct struct, long ws_id) throws Exception {
+    void make_Region_InsDel_1(IJdxDbStruct struct, long ws_id) throws Exception {
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
         //UtRepl utRepl = new UtRepl(db, struct);
         Random rnd = new Random();

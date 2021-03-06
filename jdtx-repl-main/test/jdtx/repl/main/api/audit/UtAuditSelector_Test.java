@@ -33,8 +33,8 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
         UtAuditSelector utrr = new UtAuditSelector(db2, struct2, wsId);
 
         // Загружаем правила публикации
-        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full_152.json"));
-        IPublicationStorage publication = PublicationStorage.extractPublicationRules(cfg, struct, "in");
+        JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/publication_full_152.json");
+        IPublicationStorage publication = PublicationStorage.loadRules(cfg, struct, "in");
 
         //
         long age;
@@ -109,8 +109,8 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
         System.out.println("curr audit age: " + selfAuditAge);
 
         // Загружаем правила публикации
-        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub.json"));
-        IPublicationStorage publication = PublicationStorage.extractPublicationRules(cfg, struct2, "in");
+        JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/pub.json");
+        IPublicationStorage publication = PublicationStorage.loadRules(cfg, struct2, "in");
 
         // Формируем реплики
         UtAuditSelector auditSelector = new UtAuditSelector(db2, struct2, wsId);

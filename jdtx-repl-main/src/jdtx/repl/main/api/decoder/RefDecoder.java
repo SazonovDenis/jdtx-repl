@@ -13,13 +13,16 @@ import java.util.*;
  * Перекодировщик ссылок.
  * Работает на допущении, что до определенного id - записи принадлежат этой рабочей станции,
  * а выше некоторого id - это места для перекодированных записей с других станций.
- * Чужие id занимают диапазоны по слотам, по мере поступления записей.
+ * Чужие id подвергаются перекодировке и занимают диапазоны по слотам, по мере поступления записей.
+ * <p>
+ * todo: Есть вариант обезопасить изменение политики диапазанов: в таблице decode сохранить также и реальные значения id_min id_max для диапазонов, а не только номера диапазонов
  */
 public class RefDecoder implements IRefDecoder {
 
     // Своими записи считаются значения id в диапазоне от 0 до 100 000 000
     public static long SLOT_SIZE = 1000000;
     static long SLOT_START_NUMBER = 100;  //todo: политика назначения диапазонов
+
 
     Db db = null;
     long self_ws_id = -1;
@@ -181,7 +184,7 @@ public class RefDecoder implements IRefDecoder {
 
 
     public static long get_max_own_id() {
-        return SLOT_SIZE * SLOT_START_NUMBER-1;
+        return SLOT_SIZE * SLOT_START_NUMBER - 1;
     }
 
     /**
@@ -195,7 +198,7 @@ public class RefDecoder implements IRefDecoder {
 
         // Не заданы стратегии перекодировки для каждой таблицы
         if (RefDecodeStrategy.instance == null) {
-            return true;
+            throw new XError("RefDecodeStrategy.instance == null");
         }
 
         // Стратегии перекодировки заданы

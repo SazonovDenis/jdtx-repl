@@ -9,6 +9,7 @@ import jandcode.utils.*
 import jandcode.utils.error.*
 import jandcode.utils.variant.*
 import jandcode.web.*
+import jdtx.repl.main.api.UtRepl
 import jdtx.repl.main.api.rec_merge.*
 import jdtx.repl.main.api.struct.*
 import org.json.simple.*
@@ -87,7 +88,7 @@ class Merge_Ext extends ProjectExt {
             //
             UtRecMerge utRecMerge = new UtRecMerge(db, struct)
             if (fileCfgGroup != null) {
-                JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString(fileCfgGroup))
+                JSONObject cfg = UtRepl.loadAndValidateJsonFile(fileCfgGroup)
                 utRecMerge.groupsStrategyStorage.loadStrategy(cfg, struct)
             }
 

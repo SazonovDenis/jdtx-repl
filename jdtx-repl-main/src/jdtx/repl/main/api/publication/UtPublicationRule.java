@@ -3,6 +3,7 @@ package jdtx.repl.main.api.publication;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
+import org.json.simple.*;
 
 import java.util.*;
 
@@ -18,7 +19,8 @@ public class UtPublicationRule {
         // JdxDbUtils.ID_FIELD пусть будет всегда спереди (необязательно, но... во-первых это красиво!)
         res.add(JdxDbUtils.ID_FIELD);
         if (publicationFields.contains("*")) {
-            publicationFields = publicationFields.toUpperCase() + ","; // Добавляем "," чтобы корректно работало publicationFields.contains(....
+            // Вариант "Все, кроме...", например "*,-CommentUsr"
+            publicationFields = publicationFields.toUpperCase() + ","; // Добавляем "," чтобы корректно работало publicationFields.contains("-" + fieldName + ",")
             for (IJdxField fieldStruct : table.getFields()) {
                 String fieldName = fieldStruct.getName().toUpperCase();
                 //
@@ -42,6 +44,7 @@ public class UtPublicationRule {
                 }
             }
         } else {
+            // Вариант "Перечислены нужные поля через запятую"
             String[] publicationFieldsArr = publicationFields.split(",");
             for (String publicationField : publicationFieldsArr) {
                 if (publicationField.equalsIgnoreCase(JdxDbUtils.ID_FIELD)) {
@@ -62,9 +65,18 @@ public class UtPublicationRule {
     }
 
     /**
-     * Проверка: если в правиле упомянута таблица, то все таблицы, НА КОТОРЫЕ она ссылается - тоже должны быть упомянуты
+     * Проверки
      */
-    public static void checkValidRef(IPublicationStorage publication, IJdxDbStruct struct) {
+    public static void checkValid(JSONObject cfgPublicationRules, IPublicationStorage publication, IJdxDbStruct struct) {
+        // Проверка: Правило для таблицы в cfgPublicationRules, которой нет в структуре
+        for (Object key : cfgPublicationRules.keySet()) {
+            String tableName = (String) key;
+            if (struct.getTable(tableName) == null) {
+                log.warn("Not found table in struct, table: " + tableName);
+            }
+        }
+
+        // Проверка: если в правиле упомянута таблица, то все таблицы, НА КОТОРЫЕ она ссылается - тоже должны быть упомянуты
         Collection<IPublicationRule> rules = publication.getPublicationRules();
         for (IPublicationRule rule : rules) {
             IJdxTable table = struct.getTable(rule.getTableName());
@@ -107,7 +119,7 @@ public class UtPublicationRule {
             }
         }
 
-        // Таблицы из структуры, которые игнорируем
+        // Проверка: Таблицы из структуры, которые игнорируем
         for (IJdxTable table : struct.getTables()) {
             IPublicationRule rule = publication.getPublicationRule(table.getName());
             if (rule == null) {

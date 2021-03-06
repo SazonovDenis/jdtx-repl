@@ -128,7 +128,7 @@ public class JdxReplSrv {
 
             // Правила входящих реплик для рабочей станции ("in", используем при подготовке реплик)
             JSONObject cfgPublicationsWs = CfgManager.getCfgFromDataRecord(wsRec, CfgType.PUBLICATIONS);
-            IPublicationStorage publicationsWsIn = PublicationStorage.extractPublicationRules(cfgPublicationsWs, structActual, "in");
+            IPublicationStorage publicationsWsIn = PublicationStorage.loadRules(cfgPublicationsWs, structActual, "in");
             publicationsInList.put(wsId, publicationsWsIn);
         }
 
@@ -136,8 +136,8 @@ public class JdxReplSrv {
         // Фильтрация структуры: убирание того, чего нет ни в одном из правил публикаций publicationIn и publicationOut
 
         // Правила публикаций
-        IPublicationStorage publicationIn = PublicationStorage.extractPublicationRules(cfgPublications, structActual, "in");
-        IPublicationStorage publicationOut = PublicationStorage.extractPublicationRules(cfgPublications, structActual, "out");
+        IPublicationStorage publicationIn = PublicationStorage.loadRules(cfgPublications, structActual, "in");
+        IPublicationStorage publicationOut = PublicationStorage.loadRules(cfgPublications, structActual, "out");
 
         // Фильтрация структуры
         struct = UtRepl.getStructCommon(structActual, publicationIn, publicationOut);
@@ -180,13 +180,13 @@ public class JdxReplSrv {
         JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
         queOut001.setDataRoot(dataRoot);
 
-        //Очереди и правила их нумерации, в частности out001
+        // Очереди и правила их нумерации, в частности out001
         // ---
         // Отправим системные команды для станции в ее очередь queOut001
-        JSONObject cfgPublications = UtRepl.loadAndValidateCfgFile(cfgPublicationsFileName);
+        JSONObject cfgPublications = UtRepl.loadAndValidateJsonFile(cfgPublicationsFileName);
         srvSendCfgInternal(queOut001, cfgPublications, CfgType.PUBLICATIONS, wsId);
         //
-        JSONObject cfgDecode = UtRepl.loadAndValidateCfgFile(cfgDecodeFileName);
+        JSONObject cfgDecode = UtRepl.loadAndValidateJsonFile(cfgDecodeFileName);
         srvSendCfgInternal(queOut001, cfgDecode, CfgType.DECODE, wsId);
         //
         srvDbStructFinishInternal(queOut001);
@@ -239,7 +239,7 @@ public class JdxReplSrv {
         // Правила публикаций (фильтры) для wsId.
         // В качестве фильтров на ОТПРАВКУ от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
         // todo почему ТУТ ТАК? А не publicationsInList.get(wsId) ???????????
-        IPublicationStorage publicationRuleWsIn = PublicationStorage.extractPublicationRules(cfgPublications, struct, "in");
+        IPublicationStorage publicationRuleWsIn = PublicationStorage.loadRules(cfgPublications, struct, "in");
         //IPublicationStorage publicationRuleWsIn = publicationsInList.get(wsId);
 
         // Параметры: получатель реплики (для правил публикации)
@@ -542,7 +542,7 @@ public class JdxReplSrv {
         log.info("srvSendCfg, cfgFileName: " + new File(cfgFileName).getAbsolutePath() + ", cfgType: " + cfgType + ", destination wsId: " + destinationWsId);
 
         //
-        JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName);
+        JSONObject cfg = UtRepl.loadAndValidateJsonFile(cfgFileName);
         srvSendCfgInternal(queCommon, cfg, cfgType, destinationWsId);
     }
 
@@ -822,7 +822,7 @@ public class JdxReplSrv {
         mailDir = UtFile.unnormPath(mailDir) + "/";
 
         //
-        JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString(cfgFileName));
+        JSONObject cfgData = UtRepl.loadAndValidateJsonFile(cfgFileName);
 
         // Список активных рабочих станций
         DataStore st = loadWsList(destinationWsId);

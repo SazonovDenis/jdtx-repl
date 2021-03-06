@@ -5,7 +5,7 @@ import jandcode.dbm.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.web.*;
-import jdtx.repl.main.api.audit.*;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
@@ -51,8 +51,8 @@ public class AuditTest_Test extends AppTestCase {
         logOn();
 
         // Загружаем правила публикации
-        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full_152.json"));
-        IPublicationStorage publication = PublicationStorage.extractPublicationRules(cfg, db_test_struct, "in");
+        JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/publication_full_152.json");
+        IPublicationStorage publication = PublicationStorage.loadRules(cfg, db_test_struct, "in");
 
         // Формируем реплики
         long wsId = 2;
@@ -68,8 +68,8 @@ public class AuditTest_Test extends AppTestCase {
     @Test
     public void test_132_145() throws Exception {
         // Загружаем правила публикации
-        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/publication_full_152.json"));
-        IPublicationStorage publication = PublicationStorage.extractPublicationRules(cfg, db_test_struct, "in");
+        JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/publication_full_152.json");
+        IPublicationStorage publication = PublicationStorage.loadRules(cfg, db_test_struct, "in");
 
         // Формируем реплики
         long wsId = 2;

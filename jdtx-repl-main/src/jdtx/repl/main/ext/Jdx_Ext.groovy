@@ -155,7 +155,7 @@ class Jdx_Ext extends ProjectExt {
             utRepl.createReplication(wsId, guid)
 
             // Начальный конфиг Ws
-            JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName)
+            JSONObject cfg = UtRepl.loadAndValidateJsonFile(cfgFileName)
             CfgManager utCfg = new CfgManager(db)
             utCfg.setSelfCfg(cfg, CfgType.WS)
 
@@ -673,7 +673,7 @@ class Jdx_Ext extends ProjectExt {
         //
         try {
             // Обновляем конфиг в своей таблице
-            JSONObject cfg = UtRepl.loadAndValidateCfgFile(cfgFileName)
+            JSONObject cfg = UtRepl.loadAndValidateJsonFile(cfgFileName)
             CfgManager utCfg = new CfgManager(db)
             utCfg.setSelfCfg(cfg, cfgType)
 

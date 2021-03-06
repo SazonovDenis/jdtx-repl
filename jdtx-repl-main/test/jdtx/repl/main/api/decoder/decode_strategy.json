@@ -1,0 +1,38 @@
+{
+  "BondTip": {
+    "strategy": "NO_DECODE"
+  },
+  "CommentTip": {
+    "strategy": "DECODE_ID",
+    "decode_from_id": 1000
+  },
+  "DataTip": {
+    "strategy": "NO_DECODE"
+  },
+  "NchTip": {
+    "strategy": "NO_DECODE"
+  },
+  "OprTip": {
+    "strategy": "NO_DECODE"
+  },
+  "PawnChitStatusTip": {
+    "strategy": "NO_DECODE"
+  },
+  "PawnChitSubjectStatusTip": {
+    "strategy": "NO_DECODE"
+  },
+  "UsrOprTip": {
+    "strategy": "NO_DECODE"
+  },
+  "VarTip": {
+    "strategy": "NO_DECODE"
+  },
+  "UsrGrp": {
+    "strategy": "DECODE_ID",
+    "decode_from_id": 3
+  },
+  "UsrGrp_No_Table": {
+    "strategy": "NO_DECODE",
+    "decode_from_id": 1
+  }
+}

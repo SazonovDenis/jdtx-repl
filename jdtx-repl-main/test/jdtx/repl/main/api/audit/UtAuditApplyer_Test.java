@@ -26,7 +26,7 @@ public class UtAuditApplyer_Test extends ReplDatabaseStruct_Test {
         //String zipFileName = "D:/t/000007590.zip";
         String zipFileName = "../_test-data/000000001.zip";
         // Загружаем правила публикации
-        JSONObject cfg = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/pub.json"));
+        JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/pub.json");
         JSONObject cfgIn = (JSONObject) cfg.get("full");
         IPublicationStorage publication = new PublicationStorage();
         publication.loadRules(cfgIn, struct2);

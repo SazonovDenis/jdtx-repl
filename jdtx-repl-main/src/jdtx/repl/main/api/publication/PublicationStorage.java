@@ -23,11 +23,9 @@ public class PublicationStorage implements IPublicationStorage {
             JSONObject publicationRuleJson = (JSONObject) cfg.get(key);
             String publicationTableName = (String) key;
 
-            //
+            // Правило для таблицы, которой нет в структуре
             IJdxTable structTable = struct.getTable(publicationTableName);
             if (structTable == null) {
-                // Правило для таблицы, которой нет в структуре
-                log.warn("Not found table in struct, table: " + publicationTableName);
                 continue;
             }
 
@@ -48,9 +46,6 @@ public class PublicationStorage implements IPublicationStorage {
             // IPublicationRule.setFilterExpression
             publicationRule.setFilterExpression((String) publicationRuleJson.getOrDefault("filter", null));
         }
-
-        //
-        UtPublicationRule.checkValidRef(this, struct);
     }
 
 
@@ -73,16 +68,24 @@ public class PublicationStorage implements IPublicationStorage {
     /**
      * Из json-объекта cfgPublications создает правила публикации по имени publicationName (обычно "in" или "out")
      */
-    public static IPublicationStorage extractPublicationRules(JSONObject cfgPublications, IJdxDbStruct structActual, String publicationName) throws Exception {
+    public static IPublicationStorage loadRules(JSONObject cfgPublications, IJdxDbStruct structActual, String publicationName) throws Exception {
         IPublicationStorage publicationRules = new PublicationStorage();
         //
-        if (cfgPublications != null) {
-            String publicationRuleName = (String) cfgPublications.get(publicationName);
-            JSONObject cfgPublicationRule = (JSONObject) cfgPublications.get(publicationRuleName);
-            publicationRules.loadRules(cfgPublicationRule, structActual);
+        JSONObject cfgPublicationRules = extractRulesByName(cfgPublications, publicationName);
+        if (cfgPublicationRules != null) {
+            publicationRules.loadRules(cfgPublicationRules, structActual);
         }
         //
         return publicationRules;
+    }
+
+    public static JSONObject extractRulesByName(JSONObject cfgPublications, String publicationName) {
+        if (cfgPublications != null) {
+            String publicationRuleName = (String) cfgPublications.get(publicationName);
+            return (JSONObject) cfgPublications.get(publicationRuleName);
+        } else {
+            return null;
+        }
     }
 
 

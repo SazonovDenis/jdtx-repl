@@ -34,7 +34,7 @@ public class MailerHttp_Test extends AppTestCase {
 
         long wsId = 2;
 
-        JSONObject cfgData = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/mail_http_ws.json"));
+        JSONObject cfgData = UtRepl.loadAndValidateJsonFile("test/etalon/mail_http_ws.json");
         String url = (String) cfgData.get("url");
 
         JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
@@ -64,7 +64,7 @@ public class MailerHttp_Test extends AppTestCase {
         // Проверяем mailer.send
 
         // Готовим mailer
-        JSONObject wsCfgData = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/mail_http_ws.json"));
+        JSONObject wsCfgData = UtRepl.loadAndValidateJsonFile("test/etalon/mail_http_ws.json");
         String url = (String) wsCfgData.get("url");
         String guid = "b5781df573ca6ee6.x-21ba238dfc945002";
         JSONObject cfgWs = (JSONObject) wsCfgData.get(String.valueOf(wsId));
@@ -114,7 +114,7 @@ public class MailerHttp_Test extends AppTestCase {
         // Проверяем mailer.send
 
         // Готовим mailer
-        JSONObject wsCfgData = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/mail_http_ws.json"));
+        JSONObject wsCfgData = UtRepl.loadAndValidateJsonFile("test/etalon/mail_http_ws.json");
         String url = (String) wsCfgData.get("url");
         String guid = "b5781df573ca6ee6.x-21ba238dfc945002";
         JSONObject cfgMailer = (JSONObject) wsCfgData.get(String.valueOf(wsId));
@@ -160,7 +160,7 @@ public class MailerHttp_Test extends AppTestCase {
         // Проверяем mailer.send
 
         // Готовим mailer
-        JSONObject wsCfgData = (JSONObject) UtJson.toObject(UtFile.loadString("test/etalon/mail_http_ws.json"));
+        JSONObject wsCfgData = UtRepl.loadAndValidateJsonFile("test/etalon/mail_http_ws.json");
         String url = (String) wsCfgData.get("url");
         //String guid = "b5781df573ca6ee6.x-21ba238dfc945002";
         url = "http://jadatex.ru/repl/";

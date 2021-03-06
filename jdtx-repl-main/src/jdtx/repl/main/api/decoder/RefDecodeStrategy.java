@@ -6,6 +6,7 @@ import org.json.simple.*;
 import java.util.*;
 
 /**
+ * todo: какая то путаница в ролях RefDecoder и RefDecodeStrategy, кроме того, RefDecoder имеет прявязку к PS, а через фабрику кастомизируется именно JdxRefDecoderService
  */
 public class RefDecodeStrategy {
 
@@ -44,11 +45,20 @@ public class RefDecodeStrategy {
         }
     }
 
-    // todo: Это поведение для PS. Возможно есть более сложное поведение, тогда это должно быть перекрыто в кастомных обработчиках
+
+    /**
+     * @param tableName Имя таблицы
+     * @param ws_id     Рабочая станция
+     * @param db_id     Значение id
+     * @return Нужно ли перекодировать id
+     * <p>
+     * todo: Это поведение для PS. Возможно есть более сложное поведение, тогда это должно быть перекрыто в кастомных обработчиках
+     */
     protected boolean needDecode(String tableName, long ws_id, long db_id) {
+        tableName = tableName.toUpperCase();
         RefDecodeStrategyItem tableDecodeStrategy = tablesDecodeStrategy.get(tableName);
 
-        // Для PS: id находится в нерегулируемом диапазоне.
+        // todo: ТОЛЬКО Для PS: id находится в нерегулируемом диапазоне.
         if (db_id <= 0) {
             return false;
         }

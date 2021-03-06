@@ -89,8 +89,8 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
         test_ws5_makeChange();
         //
         UtTest utTest2 = new UtTest(db2);
-        utTest2.make_InsDel(struct2, 2);
-        utTest2.make_InsDel_1(struct2, 2);
+        utTest2.make_Region_InsDel_0(struct2, 2);
+        utTest2.make_Region_InsDel_1(struct2, 2);
 
         //
         sync_http_1_2_3_5();

@@ -42,7 +42,7 @@ public class CfgManager {
         db.execSql("update " + UtJdx.SYS_TABLE_PREFIX + "workstation_list set " + cfgName + " = :cfg where id = :id", UtCnv.toMap("cfg", cfgStr, "id", wsId));
     }
 
-    public static JSONObject getCfgFromDataRecord(DataRecord rec, String cfgName){
+    public static JSONObject getCfgFromDataRecord(DataRecord rec, String cfgName) throws Exception {
         byte[] cfgBytes = (byte[]) rec.getValue(cfgName);
         if (cfgBytes.length == 0) {
             return null;
@@ -50,7 +50,7 @@ public class CfgManager {
 
         //
         String cfgStr = new String(cfgBytes);
-        JSONObject cfg = (JSONObject) UtJson.toObject(cfgStr);
+        JSONObject cfg = UtRepl.loadAndValidateJsonStr(cfgStr);
 
         //
         return cfg;
