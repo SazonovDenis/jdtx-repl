@@ -116,6 +116,7 @@ public class UtReplService {
 
     public static void stop(boolean stopAll) throws Exception {
         String workDir = UtFile.getWorkdir().getAbsolutePath();
+        workDir = new File(new File(workDir).getParent()).getParent();
 
         //
         Collection<ProcessInfo> processList = processList();
@@ -134,6 +135,7 @@ public class UtReplService {
         //
         for (ProcessInfo processInfo : processList) {
             String executablePath = processInfo.getProcessPath();
+            executablePath = new File(new File(executablePath).getParent()).getParent();
             if (stopAll || executablePath.compareToIgnoreCase(workDir) == 0) {
                 long processId = processInfo.getProcessId();
                 ProcessInfo.printInfo(processInfo);
