@@ -1,10 +1,12 @@
 <%@ page import="jdtx.repl.main.api.manager.CfgType" %>
 @echo off
 
+call jc -csc
+
 
 
 rem удаление старого - служба
-call jc repl-service-remove -csc
+call jc repl-service-remove -all
 
 rem удаление старого - данные
 rmdir /Q /S %cd%\web\WEB-INF\data
