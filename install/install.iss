@@ -43,7 +43,7 @@ DisableReadyPage=true
 DisableStartupPrompt=true
 UninstallRestartComputer=false
 DisableProgramGroupPage=true
-;DisableDirPage=true
+DisableDirPage=false
 DisableFinishedPage=true
 AlwaysShowComponentsList=true
 
