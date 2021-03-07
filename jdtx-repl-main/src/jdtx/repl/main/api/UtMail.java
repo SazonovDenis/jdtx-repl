@@ -13,16 +13,11 @@ public class UtMail {
     protected static Log log = LogFactory.getLog("jdtx.UtMail");
 
 
-
     /**
      * Передача очереди que в ящик mailer
      */
     static void sendQueToMail(long wsId, IJdxQue que, IMailer mailer, String box, IJdxStateManagerMail stateManager) throws Exception {
         log.info("sendMail, wsId: " + wsId + ", box: " + box);
-
-        //
-        //JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
-
 
         //
         long sendFrom;

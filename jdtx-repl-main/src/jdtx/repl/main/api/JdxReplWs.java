@@ -1301,51 +1301,6 @@ public class JdxReplWs {
         UtMail.sendQueToMail(wsId, queOut, mailer, "from", stateManager);
     }
 
-    void sendInternal__(IMailer mailer, long age_from, long age_to, boolean doMarkDone) throws Exception {
-        log.info("send, self.wsId: " + wsId);
-
-        //
-        JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
-
-        //
-        long count = 0;
-        for (long age = age_from; age <= age_to; age++) {
-            log.info("send, sending.age: " + age);
-
-            // Берем реплику
-            IReplica replica = queOut.get(age);
-
-            // Читаем ее getReplicaInfo (нужна для проверки возраста при отправке)
-            //JdxReplicaReaderXml.readReplicaInfo(replica);
-
-            // Физически отправляем реплику
-            mailer.send(replica, "from", age);
-
-            // Отмечаем факт отправки
-            if (doMarkDone) {
-                stateManager.setMailSendDone(age);
-            }
-
-            //
-            count++;
-        }
-
-
-        // Отметить попытку записи (для отслеживания активности станции, когда нет данных для реальной передачи)
-        mailer.setData(null, "ping.write", "from");
-        // Отметить состояние рабочей станции (станция отчитывается о себе для отслеживания активности станции)
-        Map info = getInfoWs();
-        mailer.setData(info, "ws.info", null);
-
-
-        //
-        if (age_from <= age_to) {
-            log.info("send, self.wsId: " + wsId + ", send.age: " + age_from + " .. " + age_to + ", done count: " + count);
-        } else {
-            log.info("send, self.wsId: " + wsId + ", send.age: " + age_from + ", nothing to send");
-        }
-    }
-
 
     public Map getInfoWs() throws Exception {
         Map info = new HashMap<>();
