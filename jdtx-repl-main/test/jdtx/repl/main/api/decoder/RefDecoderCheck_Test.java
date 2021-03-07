@@ -20,6 +20,16 @@ public class RefDecoderCheck_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_checkValid() throws Exception {
         String jsonFileName = "test/jdtx/repl/main/api/decoder/decode_strategy.json";
+        checkValid(jsonFileName);
+    }
+
+    @Test
+    public void test_checkValid_install() throws Exception {
+        String jsonFileName = "../install/cfg/decode_strategy_194.json";
+        checkValid(jsonFileName);
+    }
+
+    void checkValid(String jsonFileName) throws Exception {
         JSONObject cfgDecode = UtRepl.loadAndValidateJsonFile(jsonFileName);
         RefDecodeStrategy strategy = new RefDecodeStrategy();
         strategy.init(cfgDecode);
