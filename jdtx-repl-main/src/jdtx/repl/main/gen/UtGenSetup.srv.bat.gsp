@@ -27,7 +27,11 @@ call jc repl-set-cfg -cfg:${CfgType.PUBLICATIONS} -file:"cfg/publication_lic_194
 
 rem добавляем рабочие станции
 <% for (int i = 0; i < args.ws_list.size; i++) { %>
+<% if (args.ws_list[i].ws_no==1)  { %>
+call jc repl-add-ws -ws:${args.ws_list[i].ws_no} -guid:${args.repl_guid}-${args.ws_list[i].ws_guid} -cfg_publications:"cfg/publication_lic_194_srv.json" -cfg_decode:"cfg/decode_strategy_194.json" -name:"${args.ws_list[i].ws_name}"
+<% } else  { %>
 call jc repl-add-ws -ws:${args.ws_list[i].ws_no} -guid:${args.repl_guid}-${args.ws_list[i].ws_guid} -cfg_publications:"cfg/publication_lic_194_ws.json" -cfg_decode:"cfg/decode_strategy_194.json" -name:"${args.ws_list[i].ws_name}"
+<% } %>
 <% } %>
 
 
