@@ -6,7 +6,9 @@ import org.json.simple.*;
 import java.util.*;
 
 /**
- * todo: какая то путаница в ролях RefDecoder и RefDecodeStrategy, кроме того, RefDecoder имеет прявязку к PS, а через фабрику кастомизируется именно JdxRefDecoderService
+ * todo: путаница в ролях RefDecoder и RefDecodeStrategy,
+ * todo: кроме того, RefDecoder имеет прявязку к PS, а через фабрику кастомизируется именно JdxRefDecoderService
+ * todo: кроме того! по коду куча вызовов "new RefDecoder()" - а зачем тогда фабрика????
  */
 public class RefDecodeStrategy {
 
