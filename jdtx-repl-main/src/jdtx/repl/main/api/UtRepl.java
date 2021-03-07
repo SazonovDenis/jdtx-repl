@@ -102,6 +102,39 @@ public class UtRepl {
         decodeManager.dropRefDecodeObject();
     }
 
+
+    public void checkNotOwnId() throws Exception {
+        log.info("Check not own id");
+        boolean foundNotOwnId = false;
+
+        //
+        long n = 0;
+        for (IJdxTable table : struct.getTables()) {
+            n++;
+            //
+            String tableName = table.getName();
+            if (table.getPrimaryKey().size() > 0) {
+                // log.info("  checkNotOwnId " + n + "/" + struct.getTables().size() + " " + table.getName());
+                String pkFieldName = table.getPrimaryKey().get(0).getName();
+                //
+                long maxId = db.loadSql("select max(" + pkFieldName + ") max_id from " + tableName).getCurRec().getValueLong("max_id");
+                //
+                if (maxId > RefDecoder.get_max_own_id()) {
+                    log.error("Check not own id, not own id found, table: " + tableName + ", " + pkFieldName + ": " + maxId);
+                    foundNotOwnId = true;
+                }
+            } else {
+                log.info("Check not own id, skipped table: " + tableName);
+            }
+        }
+
+        //
+        log.info("Check not own id, done");
+        if (foundNotOwnId) {
+            throw new XError("Not own id found");
+        }
+    }
+
     // todo: в принципе - не нужен, юзается только в jdtx.repl.main.ext.Jdx_Ext.repl_info, уберем при рефакторинге мониторинга
     @Deprecated
     public DataStore getInfoSrv() throws Exception {

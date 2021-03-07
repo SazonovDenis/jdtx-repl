@@ -151,6 +151,7 @@ class Jdx_Ext extends ProjectExt {
 
             // Создаем базовые объекты
             UtRepl utRepl = new UtRepl(db, struct)
+            utRepl.checkNotOwnId(wsId)
             utRepl.dropReplication()
             utRepl.createReplication(wsId, guid)
 

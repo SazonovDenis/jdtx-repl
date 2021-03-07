@@ -1,7 +1,10 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
+import jandcode.dbm.db.*;
+import jandcode.utils.*;
 import jdtx.repl.main.api.replica.*;
+import jdtx.repl.main.api.util.*;
 import org.apache.commons.io.*;
 import org.junit.*;
 
@@ -329,6 +332,36 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         }
 
         System.out.println("Реплику этого типа невозможно пересоздать");
+    }
+
+    @Test
+    public void test_checkNotOwnId() throws Exception {
+        System.out.println("---");
+        UtRepl utRepl = new UtRepl(db2, struct2);
+        utRepl.checkNotOwnId();
+        System.out.println();
+
+/*
+        //
+        System.out.println("---");
+        utRepl.dropReplication();
+        utRepl.checkNotOwnId();
+        System.out.println();
+
+        //
+        System.out.println("---");
+        utRepl.createReplication(2, "qazwsxedc");
+        utRepl.checkNotOwnId();
+        System.out.println();
+*/
+
+        //
+        System.out.println("---");
+        JdxDbUtils dbu = new JdxDbUtils(db2, struct2);
+        dbu.insertRec("CommentTip", UtCnv.toMap("id", 1000000000L, "Name", "qazwsx", "CommentMode", 0, "Deleted", 0));
+        //
+        utRepl.checkNotOwnId();
+        System.out.println();
     }
 
 
