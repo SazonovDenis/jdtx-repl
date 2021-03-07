@@ -452,19 +452,24 @@
       "fields": "*"
     },
     "tariffplan": {
-      "fields": "*"
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "tariffplanbillingvar": {
-      "fields": "*"
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "tariffplanpercstavka": {
-      "fields": "*"
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "tariffplanref": {
-      "fields": "*"
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "tariffplanver": {
-      "fields": "*"
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "ulz": {
       "fields": "*"
