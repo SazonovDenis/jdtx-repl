@@ -52,7 +52,10 @@ public class UtMail {
         for (long no = sendFrom; no <= sendTo; no++) {
             IReplica replica = que.get(no);
 
-            // Физически отправим реплику
+            // Читаем заголовок
+            JdxReplicaReaderXml.readReplicaInfo(replica);
+
+            // Физически отправим  реплику
             mailer.send(replica, box, no);
 
             // Отметим отправку
