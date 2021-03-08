@@ -954,14 +954,16 @@ public class JdxReplWs {
                     struct_rw.toFile(structAllowed, dataRoot + "temp/5.dbStruct.allowed.xml");
                     struct_rw.toFile(structFixed, dataRoot + "temp/5.dbStruct.fixed.xml");
                     // Генерим ошибку
+                    throw new XError("handleQueIn, structActual <> structAllowed");
+/*
                     log.error("====================================================================");
                     log.error("====================================================================");
                     log.error("====================================================================");
-                    //throw new XError("handleQueIn, structActual <> structAllowed");
                     log.error("handleQueIn, structActual <> structAllowed");
                     log.error("====================================================================");
                     log.error("====================================================================");
                     log.error("====================================================================");
+*/
                 }
 
                 // Свои собственные snapshot-реплики точно можно не применять
@@ -981,6 +983,7 @@ public class JdxReplWs {
                     struct_rw.toFile(structAllowed, dataRoot + "temp/6.dbStruct.allowed.xml");
                     struct_rw.toFile(structFixed, dataRoot + "temp/6.dbStruct.fixed.xml");
                     //
+/*
                     log.error("====================================================================");
                     log.error("====================================================================");
                     log.error("====================================================================");
@@ -988,7 +991,8 @@ public class JdxReplWs {
                     log.error("====================================================================");
                     log.error("====================================================================");
                     log.error("====================================================================");
-                    //throw new XError("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
+*/
+                    throw new XError("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
                 }
 
                 // todo: Проверим протокол репликатора, с помощью которого была подготовлена реплика
