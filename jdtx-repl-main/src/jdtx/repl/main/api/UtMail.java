@@ -30,12 +30,18 @@ public class UtMail {
         //
         if (requiredInfo.requiredFrom != -1) {
             // Попросили повторную отправку
-            log.warn("Repeat send required, from: " + requiredInfo.requiredFrom + ", to: " + requiredInfo.requiredTo + ", recreate: " + requiredInfo.recreate);
             sendFrom = requiredInfo.requiredFrom;
-            sendTo = requiredInfo.requiredTo;
+            if (requiredInfo.requiredTo != -1) {
+                sendTo = requiredInfo.requiredTo;
+                log.warn("Repeat send required, from: " + requiredInfo.requiredFrom + ", to: " + requiredInfo.requiredTo + ", recreate: " + requiredInfo.recreate);
+            } else {
+                // Зададим сами (до последней, что у нас есть на раздачу)
+                sendTo = que.getMaxNo();
+                log.warn("Repeat send required, from: " + requiredInfo.requiredFrom + ", recreate: " + requiredInfo.recreate);
+            }
             doMarkDone = false;
         } else {
-            // Не просили - зададим сами (от последней отправленной до послейдней, что у нас есть на раздачу)
+            // Не просили - зададим сами (от последней отправленной до последней, что у нас есть на раздачу)
             sendFrom = stateManager.getMailSendDone() + 1;
             sendTo = que.getMaxNo();
             doMarkDone = true;
