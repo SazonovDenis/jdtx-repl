@@ -299,7 +299,7 @@ public class UtAuditApplyer {
                     recValues = dataReader.nextRec();
 
                     //
-                    count++;
+                    count = count + 1;
                     if (count % 200 == 0) {
                         log.info("  table: " + readerTableName + ", " + count);
                     }
@@ -316,7 +316,7 @@ public class UtAuditApplyer {
 
 
             // Ворой проход - выполнение удаления отложенных
-            //log.info("applyReplica, delayed delete");
+            // log.info("applyReplica, delayed delete");
             for (int i = tables.size() - 1; i >= 0; i--) {
                 IJdxTable table = tables.get(i);
                 String tableName = table.getName();
@@ -350,7 +350,7 @@ public class UtAuditApplyer {
                     }
 
                     //
-                    count++;
+                    count = count + 1;
                     if (count % 200 == 0) {
                         log.info("  table delete: " + tableName + ", " + count);
                     }
