@@ -149,7 +149,7 @@ public class ReplicaFilter implements IReplicaFilter {
                             dataWriter.setRecValue(publicationFieldName, recValues.get(publicationFieldName));
                         }
                     } else {
-                        log.info("  Record was skipped: " + recValues);
+                        log.debug("  Record was skipped: " + recValues);
                         countSkipped++;
                     }
 
