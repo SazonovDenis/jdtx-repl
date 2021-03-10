@@ -103,6 +103,8 @@ Source: install\sample.ws._app.rt;                DestDir: {app}\web\WEB-INF;   
 Source: install\sample._db-ini.rt;                DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _db-ini.rt
 Source: install\sample.log.properties;            DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: log.properties
 
+Source: install\543.bat;                          DestDir: {app}\web\WEB-INF;     Flags: ignoreversion;
+
 
 
 [Run]
@@ -152,15 +154,73 @@ Name: ServerComponent; Description: Серверная конфигурация; Types: ServerInstall
 const
   SetupMutexName = 'Jadatex.Sync';
 
+
+function CheckSetupDir(): boolean;
+var
+  s, s_head, s_tail, setupFileName, setupFileNameBat, setupDirValid, setupParamStr: string;
+  i: integer;
+  resultCode: integer;
+begin
+  Result := False;
+
+  //
+  for i:=1 to ParamCount() do
+  begin
+    s:=ParamStr(i);
+    s_head:=Copy(s, 1, 5);
+    s_tail:=Copy(s, Length(s)-3, 4);
+
+    //MsgBox('s_head: ' + s_head, mbError, MB_OK);
+    //MsgBox('s_tail: ' + s_tail, mbError, MB_OK);
+
+    if (s_head='/DIR=') and (s_tail='\web') then
+    begin
+      // Вытащим обновлялку из дистрибутива
+      ExtractTemporaryFile('543.bat');
+      setupFileNameBat:=ExpandConstant('{tmp}\543.bat');
+      //
+      setupDirValid:=Copy(s, 6, Length(s)-3-5); //setupDirValid:='C:\Users\Public\Documents\Jadatex.Sync';
+      //
+      setupFileName:=ExpandConstant('{srcexe}');
+      //
+      setupParamStr:=setupFileName+' /SILENT /repl-service-install /DIR="' + setupDirValid + '"';
+      //
+      if ShellExec('', setupFileNameBat, setupParamStr, '', SW_SHOW, ewWaitUntilTerminated, resultCode) then
+      begin
+        //MsgBox('Exec Ok, setupFileName: ' + setupFileNameBat + ', params: ' + setupParamStr + ', resultCode: ' + intToStr(resultCode), mbError, MB_OK);
+      end
+      else
+      begin
+        //MsgBox('Exec error, setupFileName: ' + setupFileNameBat + ', params: ' + setupParamStr + ', resultCode: ' + intToStr(resultCode), mbError, MB_OK);
+      end;
+
+      //
+      exit;
+    end;
+  end;
+
+  //
+  Result := True;
+end;
+
+
 function InitializeSetup(): Boolean;
 begin
+  // Криво написанное авто обновление 543
+  if (not CheckSetupDir()) then
+  begin
+    Result := False;
+    exit;
+  end;
+
+  
   Result := True;
   if CheckForMutexes(SetupMutexName) then
   begin
     Log('Mutex exists, setup is running already, silently aborting');
     if (not WizardSilent) then
     begin
-      MsgBox('Установка '+ExpandConstant('{#AppName}')+' уже запущена, дождитесь её завершения.', mbError, MB_OK)
+      MsgBox('Установка '+ExpandConstant('{#AppName}')+' уже запущена, дождитесь её завершения.', mbError, MB_OK);
     end;
     Result := False;
   end
