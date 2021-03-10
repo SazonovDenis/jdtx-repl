@@ -226,6 +226,29 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
     }
 
     @Test
+    public void test_execMergeTask_FromFile_tmp() throws Exception {
+        // Читаем задачу на слияние
+        UtRecMergeReader reader = new UtRecMergeReader();
+        Collection<RecMergePlan> mergeTasks = reader.readTasks("D:/t/EsilMk/_Lic_Full.task");
+        //
+        assertEquals("Есть задание на слияние", true, mergeTasks.size() > 0);
+
+        // Печатаем задачу на слияние
+        UtRecMergePrint.printTasks(mergeTasks);
+
+        // Исполняем задачу на слияние
+        UtRecMerge utRecMerge = new UtRecMerge(db, struct);
+        MergeResultTableMap mergeResults = utRecMerge.execMergePlan(mergeTasks, UtRecMerge.DO_DELETE);
+
+        // Печатаем результат выполнения задачи
+        UtRecMergePrint.printMergeResults(mergeResults);
+
+        // Сохраняем результат выполнения задачи
+        reader = new UtRecMergeReader();
+        reader.writeMergeResilts(mergeResults, "temp/_Lic_Full.result.json");
+    }
+
+    @Test
     public void test_execRevertExecTask() throws Exception {
         // Формируем задачу на слияние
         test_makeMergeTask_ToFile();

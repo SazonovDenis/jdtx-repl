@@ -411,7 +411,7 @@ public class UtAuditApplyer {
         }
     }
 
-    private int getDataType(String dbDatatypeName) {
+    public static int getDataType(String dbDatatypeName) {
         switch (dbDatatypeName) {
             case "SMALLINT":
                 return DataType.INT;

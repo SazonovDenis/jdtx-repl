@@ -4,8 +4,11 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.audit.*;
+import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
+import org.joda.time.*;
 
 import java.util.*;
 
@@ -140,9 +143,12 @@ public class UtRecMerge implements IUtRecMerge {
                 MergeResultTable taskResultForTable = result.addForTable(mergePlan.tableName);
 
                 // INS - Создаем эталонную запись
+                Map params = prepareParams(mergePlan.recordEtalon, struct.getTable(mergePlan.tableName));
+                //
                 String pkField = struct.getTable(mergePlan.tableName).getPrimaryKey().get(0).getName();
-                mergePlan.recordEtalon.put(pkField, null);
-                long etalonRecId = dbu.insertRec(mergePlan.tableName, mergePlan.recordEtalon);
+                params.put(pkField, null);
+                //
+                long etalonRecId = dbu.insertRec(mergePlan.tableName, params);
 
                 // UPD - Перебиваем ссылки у зависимых таблиц
                 recordsRelocateRefs(mergePlan.tableName, etalonRecId, mergePlan.recordsDelete, taskResultForTable);
@@ -165,6 +171,41 @@ public class UtRecMerge implements IUtRecMerge {
         return result;
     }
 
+    // Подготовка recParams - значений полей для записи в БД
+    Map prepareParams(Map recValues, IJdxTable table){
+        Map recParams = new HashMap();
+
+        //
+        for (IJdxField publicationField : table.getFields()) {
+            String publicationFieldName = publicationField.getName();
+            IJdxField field = table.getField(publicationFieldName);
+
+            // Поле - BLOB?
+            if (UtAuditApplyer.getDataType(field.getDbDatatype()) == DataType.BLOB) {
+                String blobBase64 = (String) recValues.get(publicationFieldName);
+                byte[] blob = UtString.decodeBase64(blobBase64);
+                recParams.put(publicationFieldName, blob);
+                continue;
+            }
+
+            // Поле - дата/время?
+            if (UtAuditApplyer.getDataType(field.getDbDatatype()) == DataType.DATETIME) {
+                String valueStr = (String) recValues.get(publicationFieldName);
+                DateTime value = null;
+                if (valueStr != null && valueStr.length() != 0) {
+                    value = new DateTime(valueStr);
+                }
+                recParams.put(publicationFieldName, value);
+                continue;
+            }
+
+            // Просто поле, без изменений
+            recParams.put(publicationFieldName, recValues.get(publicationFieldName));
+        }
+
+        //
+        return recParams;
+    }
 
     /**
      * Перемещатель id записей
