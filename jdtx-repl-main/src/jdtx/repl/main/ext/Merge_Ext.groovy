@@ -8,8 +8,7 @@ import jandcode.jc.*
 import jandcode.utils.*
 import jandcode.utils.error.*
 import jandcode.utils.variant.*
-import jandcode.web.*
-import jdtx.repl.main.api.UtRepl
+import jdtx.repl.main.api.*
 import jdtx.repl.main.api.rec_merge.*
 import jdtx.repl.main.api.struct.*
 import org.json.simple.*
@@ -60,13 +59,13 @@ class Merge_Ext extends ProjectExt {
         String fields = args.getValueString("fields")
         String file = args.getValueString("file")
         String fileCfgGroup = args.getValueString("cfg_group")
-        if (table == null || table.length() == 0) {
+        if (UtString.empty(table)) {
             throw new XError("Не указана [table] - имя таблицы")
         }
-        if (fields == null || fields.length() == 0) {
+        if (UtString.empty(fields)) {
             throw new XError("Не указаны [fields] - поля для поиска")
         }
-        if (file == null || file.length() == 0) {
+        if (UtString.empty(file)) {
             throw new XError("Не указан [file] - файл с результатом поиска в виде задач на слияние")
         }
 
@@ -87,7 +86,7 @@ class Merge_Ext extends ProjectExt {
 
             //
             UtRecMerge utRecMerge = new UtRecMerge(db, struct)
-            if (fileCfgGroup != null) {
+            if (!UtString.empty(fileCfgGroup)) {
                 JSONObject cfg = UtRepl.loadAndValidateJsonFile(fileCfgGroup)
                 utRecMerge.groupsStrategyStorage.loadStrategy(cfg, struct)
             }

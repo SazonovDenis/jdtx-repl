@@ -96,6 +96,7 @@ Source: install\cfg\ws.json;                      DestDir: {app}\web\WEB-INF\cfg
 Source: install\cfg\decode_strategy_194.json;     DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
 Source: install\cfg\publication_lic_194_srv.json; DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
 Source: install\cfg\publication_lic_194_ws.json;  DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
+Source: install\cfg\field_groups_194.json;        DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
 
 Source: install\sample.srv._app.rt;               DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _app.rt; Components: ServerComponent
 Source: install\sample.ws._app.rt;                DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _app.rt; Components: ClientComponent
