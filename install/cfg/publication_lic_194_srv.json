@@ -135,10 +135,12 @@
       "fields": "*"
     },
     "operday": {
-      "fields": "*"
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "operdayusr": {
-      "fields": "*"
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "opr": {
       "fields": "*",
