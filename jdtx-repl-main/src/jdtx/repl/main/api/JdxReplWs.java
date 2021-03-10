@@ -195,7 +195,8 @@ public class JdxReplWs {
 
     // Проверка версии приложения, обновление при необходимости
     void checkAppUpdate() throws Exception {
-        UtAppUpdate ut = new UtAppUpdate(db, dataRoot);
+        String appRoot = new File(db.getApp().getRt().getChild("app").getValueString("appRoot")).getCanonicalPath();
+        UtAppUpdate ut = new UtAppUpdate(db, appRoot);
         ut.checkAppUpdate(true);
     }
 

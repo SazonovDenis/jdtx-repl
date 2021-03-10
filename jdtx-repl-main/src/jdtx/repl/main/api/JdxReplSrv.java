@@ -149,7 +149,8 @@ public class JdxReplSrv {
 
     // Проверка версии приложения, ошибка при несовпадении
     void checkAppUpdate() throws Exception {
-        UtAppUpdate ut = new UtAppUpdate(db, dataRoot);
+        String appRoot = new File(db.getApp().getRt().getChild("app").getValueString("appRoot")).getCanonicalPath();
+        UtAppUpdate ut = new UtAppUpdate(db, appRoot);
         ut.checkAppUpdate(false);
     }
 

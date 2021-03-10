@@ -13,13 +13,13 @@ import java.util.*;
 public class UtAppUpdate {
 
     private Db db;
-    private String dataRoot;
+    private String appRoot;
 
     protected static Log log = LogFactory.getLog("jdtx.UtAppUpdate");
 
-    public UtAppUpdate(Db db, String dataRoot) {
+    public UtAppUpdate(Db db, String appRoot) {
         this.db = db;
-        this.dataRoot = dataRoot;
+        this.appRoot = appRoot;
     }
 
     public void checkAppUpdate(boolean doExecUpdate) throws Exception {
@@ -49,7 +49,7 @@ public class UtAppUpdate {
 
     void doAppUpdate(String appVersionAllowed) throws Exception {
         File exeFile = new File("install/JadatexSync-update-" + appVersionAllowed + ".exe");
-        File appDirFile = new File(dataRoot).getParentFile().getParentFile();
+        File appDirFile = new File(appRoot).getParentFile().getParentFile();
         log.info("start app update, exeFile: " + exeFile + ", appDir: " + appDirFile);
 
         // Запуск обновления
