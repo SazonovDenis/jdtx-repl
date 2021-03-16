@@ -24,10 +24,9 @@ public class UtRecMergePrint {
         System.out.println("MergeTasks count: " + mergeTasks.size());
         System.out.println();
         for (RecMergePlan mergeTask : mergeTasks) {
-            System.out.println("Table: " + mergeTask.tableName);
-            System.out.println("Etalon: " + mergeTask.recordEtalon);
+            System.out.println(mergeTask.tableName + ": " + mergeTask.recordEtalon);
             System.out.println("Delete: " + mergeTask.recordsDelete);
-            System.out.println();
+            //System.out.println();
         }
     }
 

@@ -116,6 +116,7 @@ class Merge_Ext extends ProjectExt {
     void rec_merge_exec(IVariantMap args) {
         String file = args.getValueString("file")
         boolean delete = args.getValueBoolean("delete", false)
+        boolean print = args.getValueBoolean("print", false)
         if (file == null || file.length() == 0) {
             throw new XError("Не указан [file] - файл с задачами на слияние")
         }
@@ -138,7 +139,9 @@ class Merge_Ext extends ProjectExt {
             Collection<RecMergePlan> mergeTasks = reader.readTasks(file)
 
             // Печатаем задачу на слияние
-            UtRecMergePrint.printTasks(mergeTasks)
+            if (print) {
+                UtRecMergePrint.printTasks(mergeTasks)
+            }
 
             // Исполняем задачу на слияние
             UtRecMerge utRecMerge = new UtRecMerge(db, struct)

@@ -17,6 +17,7 @@ public class UtRecMergeReader {
         Reader reader = new InputStreamReader(inputStream);
         JSONParser parser = new JSONParser();
         JSONArray jsonPoints = (JSONArray) parser.parse(reader);
+        reader.close();
 
         //
         for (Object k : jsonPoints) {
@@ -28,7 +29,7 @@ public class UtRecMergeReader {
             mergeTasks.add(task);
         }
 
-
+        //
         return mergeTasks;
     }
 
