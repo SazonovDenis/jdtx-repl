@@ -206,6 +206,11 @@ repl_repair_backup = cm("Исправить репликацию после во
     ext.repl_repair_backup(args)
 }
 
+//
+repl_replica_use = cm("Применить реплику из файла") {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_replica_use(args)
+}
 
 //
 rec_relocate = cm("Перемещение pk записи") {
