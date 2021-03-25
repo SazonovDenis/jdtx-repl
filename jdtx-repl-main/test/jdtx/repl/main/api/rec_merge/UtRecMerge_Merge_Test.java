@@ -227,9 +227,29 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
 
     @Test
     public void test_execMergeTask_FromFile_tmp() throws Exception {
-        // Читаем задачу на слияние
+        String tableName = "SubjectTip";
+        String namesStr = "Name,Parent";
+        String[] fieldNames = namesStr.split(",");
+
+        // Печатаем текущие дубликаты
+        UtData.outTable(db.loadSql("select id, " + namesStr + " from " + tableName + " order by " + namesStr + ", id"));
+
+        //
+        UtRecMerge utRecMerge = new UtRecMerge(db, struct);
+
+        // Ищем дубликаты
+        Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(tableName, fieldNames);
+
+        // Тупо превращаем дубликаты в задачи на слияние
+        Collection<RecMergePlan> mergeTasks = utRecMerge.prepareMergePlan(tableName, duplicates);
+
+        // Сериализация задач
         UtRecMergeReader reader = new UtRecMergeReader();
-        Collection<RecMergePlan> mergeTasks = reader.readTasks("D:/t/EsilMk/_Lic_Full.task");
+        reader.writeTasks(mergeTasks, "temp/_" + tableName + ".task");
+
+
+        // Читаем задачу на слияние
+        mergeTasks = reader.readTasks("temp/_" + tableName + ".task");
         //
         assertEquals("Есть задание на слияние", true, mergeTasks.size() > 0);
 
@@ -237,7 +257,10 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         UtRecMergePrint.printTasks(mergeTasks);
 
         // Исполняем задачу на слияние
-        UtRecMerge utRecMerge = new UtRecMerge(db, struct);
+        System.out.println("Исполняем задачу на слияние");
+        //utRecMerge.execMergePlan(mergeTasks, UtRecMerge.UPDATE_ONLY);
+        //UtData.outTable(db.loadSql("select id, " + namesStr + " from " + tableName + " order by " + namesStr + ", id"));
+        //
         MergeResultTableMap mergeResults = utRecMerge.execMergePlan(mergeTasks, UtRecMerge.DO_DELETE);
 
         // Печатаем результат выполнения задачи
@@ -245,7 +268,59 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
 
         // Сохраняем результат выполнения задачи
         reader = new UtRecMergeReader();
-        reader.writeMergeResilts(mergeResults, "temp/_Lic_Full.result.json");
+        reader.writeMergeResilts(mergeResults, "temp/_" + tableName + ".result.json");
+
+        // Печатаем теперь дубликаты
+        UtData.outTable(db.loadSql("select id, " + namesStr + " from " + tableName + " order by " + namesStr + ", id"));
+    }
+
+    @Test
+    public void test_findTableDuplicates_XXX() throws Exception {
+        // todo: плохо работает поиск дубликатов в иерархичных таблицах:
+        // в эталонных записях на ПОДЧИНЕННОМ уровне ссылки на РОДИТЕЛЯ остаются на удаляемые записи,
+        // Например
+        //  Казахстан.id = 1
+        //  Казахстан.id = 2
+        //  Астана.parent = 2
+        //  Астана.parent = 2
+        // План удаления
+        // Оставляем:
+        //  Казахстан.id = 1
+        // Удаляем
+        //  Казахстан.id = 2
+        // Оставляем:
+        //  Астана.parent = 2
+        // Удаляем:
+        //  Астана.parent = 2
+        String tableName = "Region";
+        String[] fieldNames = "RegionTip,Parent,Name".split(",");
+
+        // Ищем дубликаты
+        UtRecMerge utRecMerge = new UtRecMerge(db, struct);
+        Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(tableName, fieldNames);
+
+        // Тупо превращаем дубликаты в задачи на слияние
+        Collection<RecMergePlan> mergeTasks = utRecMerge.prepareMergePlan(tableName, duplicates);
+
+        // Сериализация задач
+        UtRecMergeReader reader = new UtRecMergeReader();
+        reader.writeTasks(mergeTasks, "D:/t/_Region_1.task.json");
+    }
+
+    @Test
+    public void test_execMergeTask_XXX() throws Exception {
+        // Читаем задачу на слияние
+        UtRecMergeReader reader = new UtRecMergeReader();
+        Collection<RecMergePlan> mergeTasks = reader.readTasks("D:/t/_Region.task");
+
+        // Исполняем задачу на слияние
+        System.out.println("Исполняем задачу на слияние");
+        //
+        UtRecMerge utRecMerge = new UtRecMerge(db, struct);
+        MergeResultTableMap mergeResults = utRecMerge.execMergePlan(mergeTasks, UtRecMerge.DO_DELETE);
+
+        // Печатаем результат выполнения задачи
+        UtRecMergePrint.printMergeResults(mergeResults);
     }
 
     @Test
