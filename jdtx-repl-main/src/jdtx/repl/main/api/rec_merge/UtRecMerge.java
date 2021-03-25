@@ -5,7 +5,6 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.audit.*;
-import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.joda.time.*;
@@ -172,7 +171,7 @@ public class UtRecMerge implements IUtRecMerge {
     }
 
     // Подготовка recParams - значений полей для записи в БД
-    Map prepareParams(Map recValues, IJdxTable table){
+    Map prepareParams(Map recValues, IJdxTable table) {
         Map recParams = new HashMap();
 
         //
@@ -265,17 +264,24 @@ public class UtRecMerge implements IUtRecMerge {
         relocateCheckResult.recordsDeleted = db.loadSql(sql, UtCnv.toMap(pkField, idSour));
 
         // Проверяем все ссылки tableName.idSour на tableName.idDest
-        Map<String, IJdxForeignKey> refsToTable = getRefsToTable(tableName);
+        Map<String, Collection<IJdxForeignKey>> refsToTable = getRefsToTable(tableName);
         for (String refTableName : refsToTable.keySet()) {
-            IJdxForeignKey fk = refsToTable.get(refTableName);
-            String fkRefFieldName = fk.getField().getName();
-            //
-            String sqlSelect = "select * from " + refTableName + " where " + fkRefFieldName + " = :" + fkRefFieldName + "_SOUR";
-            Map paramsSelect = UtCnv.toMap(fkRefFieldName + "_SOUR", idSour);
-            DataStore refData = db.loadSql(sqlSelect, paramsSelect);
-            //
-            RecordsUpdated recordsUpdated = relocateCheckResult.recordsUpdated.getOrAddForTable(refTableName, fkRefFieldName);
-            recordsUpdated.recordsUpdated = refData;
+            Collection<IJdxForeignKey> fkList = refsToTable.get(refTableName);
+            for (IJdxForeignKey fk : fkList) {
+                String refFieldName = fk.getField().getName();
+                //
+                String sqlSelect = "select * from " + refTableName + " where " + refFieldName + " = :" + refFieldName + "_SOUR";
+                Map paramsSelect = UtCnv.toMap(refFieldName + "_SOUR", idSour);
+                DataStore refData = db.loadSql(sqlSelect, paramsSelect);
+                // Селектим как есть сейчас
+                RecordsUpdated recordsUpdateInfo = relocateCheckResult.recordsUpdated.getOrAddForTable(refTableName, refFieldName);
+                // Отчитаемся
+                if (recordsUpdateInfo.recordsUpdated == null) {
+                    recordsUpdateInfo.recordsUpdated = refData;
+                } else {
+                    UtData.copyStore(refData, recordsUpdateInfo.recordsUpdated);
+                }
+            }
         }
 
         //
@@ -286,41 +292,42 @@ public class UtRecMerge implements IUtRecMerge {
     // UPD - Перебиваем ссылки у зависимых таблиц tableName с записей recordsDelete на запись etalonRecId
     public void recordsRelocateRefs(String tableName, long etalonRecId, Collection<Long> recordsDelete, MergeResultTable taskResultForTable) throws Exception {
         // Собираем зависимости
-        Map<String, IJdxForeignKey> refsToTable = getRefsToTable(tableName);
+        Map<String, Collection<IJdxForeignKey>> refsToTable = getRefsToTable(tableName);
 
         // Обрабатываем зависимости
         for (String refTableName : refsToTable.keySet()) {
-            IJdxForeignKey fk = refsToTable.get(refTableName);
-            String fkRefFieldName = fk.getField().getName();
+            Collection<IJdxForeignKey> fkList = refsToTable.get(refTableName);
+            for (IJdxForeignKey fk : fkList) {
+                String refFieldName = fk.getField().getName();
 
-            //
-            RecordsUpdated taskRecResult = taskResultForTable.recordsUpdated.getOrAddForTable(refTableName, fkRefFieldName);
+                //
+                RecordsUpdated taskRecResult = taskResultForTable.recordsUpdated.getOrAddForTable(refTableName, refFieldName);
 
-            //
-            String sqlUpdate = "update " + refTableName + " set " + fkRefFieldName + " = :" + fkRefFieldName + "_NEW" + " where " + fkRefFieldName + " = :" + fkRefFieldName + "_OLD";
-            String sqlSelect = "select * from " + refTableName + " where " + fkRefFieldName + " = :" + fkRefFieldName + "_OLD";
+                //
+                String sqlUpdate = "update " + refTableName + " set " + refFieldName + " = :" + refFieldName + "_NEW" + " where " + refFieldName + " = :" + refFieldName + "_OLD";
+                String sqlSelect = "select * from " + refTableName + " where " + refFieldName + " = :" + refFieldName + "_OLD";
 
-            //
-            for (long deleteRecId : recordsDelete) {
-                Map params = UtCnv.toMap(
-                        fkRefFieldName + "_OLD", deleteRecId,
-                        fkRefFieldName + "_NEW", etalonRecId
-                );
+                //
+                for (long deleteRecId : recordsDelete) {
+                    Map params = UtCnv.toMap(
+                            refFieldName + "_OLD", deleteRecId,
+                            refFieldName + "_NEW", etalonRecId
+                    );
 
-                // Селектим как есть сейчас
-                DataStore stUpdated = db.loadSql(sqlSelect, params);
+                    // Селектим как есть сейчас
+                    DataStore stUpdated = db.loadSql(sqlSelect, params);
 
-                // Апдейтим
-                db.execSql(sqlUpdate, params);
+                    // Апдейтим
+                    db.execSql(sqlUpdate, params);
 
-                // Отчитаемся
-                if (taskRecResult.recordsUpdated == null) {
-                    taskRecResult.recordsUpdated = stUpdated;
-                } else {
-                    UtData.copyStore(stUpdated, taskRecResult.recordsUpdated);
+                    // Отчитаемся
+                    if (taskRecResult.recordsUpdated == null) {
+                        taskRecResult.recordsUpdated = stUpdated;
+                    } else {
+                        UtData.copyStore(stUpdated, taskRecResult.recordsUpdated);
+                    }
                 }
             }
-
         }
     }
 
@@ -336,12 +343,12 @@ public class UtRecMerge implements IUtRecMerge {
             Map params = UtCnv.toMap(pkField, deleteRecId);
 
             // Селектим как есть сейчас
-            DataStore st = db.loadSql(sqlSelect, params);
-            //
+            DataStore refData = db.loadSql(sqlSelect, params);
+            // Отчитаемся
             if (taskResultForTable.recordsDeleted == null) {
-                taskResultForTable.recordsDeleted = st;
+                taskResultForTable.recordsDeleted = refData;
             } else {
-                UtData.copyStore(st, taskResultForTable.recordsDeleted);
+                UtData.copyStore(refData, taskResultForTable.recordsDeleted);
             }
 
             // Удаляем
@@ -433,20 +440,26 @@ public class UtRecMerge implements IUtRecMerge {
     }
 
     /**
-     * @return Список таблиц, которые имеют ссылки на таблицу tableName
+     * Учитывает, что ссылок ИЗ таблицы на другую таблицу бывает более одной.
+     *
+     * @return Список ссылок из всех таблиц, которыессылаются на таблицу tableName
      */
-    private Map<String, IJdxForeignKey> getRefsToTable(String tableName) {
-        Map<String, IJdxForeignKey> res = new HashMap<>();
+    private Map<String, Collection<IJdxForeignKey>> getRefsToTable(String tableName) {
+        Map<String, Collection<IJdxForeignKey>> res = new HashMap<>();
 
         //
         IJdxTable table = struct.getTable(tableName);
 
         //
         for (IJdxTable refTable : struct.getTables()) {
+            Collection<IJdxForeignKey> tableFkList = new ArrayList<>();
             for (IJdxForeignKey refTableFk : refTable.getForeignKeys()) {
                 if (refTableFk.getTable().getName().equals(table.getName())) {
-                    res.put(refTable.getName(), refTableFk);
+                    tableFkList.add(refTableFk);
                 }
+            }
+            if (tableFkList.size() != 0) {
+                res.put(refTable.getName(), tableFkList);
             }
         }
 
