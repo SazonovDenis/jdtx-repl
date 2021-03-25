@@ -54,7 +54,9 @@ public class UtAuditApplyer {
             } catch (Exception e) {
                 if (e instanceof JdxForeignKeyViolationException) {
                     File replicaRepairFile = jdxReplWs.handleFailedInsertUpdateRef((JdxForeignKeyViolationException) e);
-                    if (false) {
+                    // todo крайне криво - лишние зависимости от конфига появились, транзакция???
+                    boolean autoUseRepairReplica = db.getApp().getRt().getChild("app").getValueBoolean("autoUseRepairReplica");
+                    if (autoUseRepairReplica) {
                         log.error("==================================");
                         log.error("==================================");
                         log.error("==================================");
