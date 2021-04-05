@@ -38,18 +38,16 @@ public class UtAppUpdate {
             } else {
                 if (doExecUpdate) {
                     // Есть более новая версия - будем обновлять
-                    execAppUpdate(appVersionActual, appVersionAllowed);
+                    execAppUpdate(appVersionAllowed);
                 } else {
-                    if (appVersionActual.compareToIgnoreCase("DEV") != 0) {
-                        // Установлена старая версия - надо обновлять до новой, а пока не работаем
-                        throw new XError("appVersionAllowed != appVersionActual, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
-                    }
+                    // Установлена старая версия - надо обновлять до новой, а пока не работаем
+                    throw new XError("appVersionAllowed != appVersionActual, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
                 }
             }
         }
     }
 
-    void execAppUpdate(String appVersionActual, String appVersionAllowed) throws Exception {
+    void execAppUpdate(String appVersionAllowed) throws Exception {
         File exeFile = new File("install/JadatexSync-update-" + appVersionAllowed + ".exe");
         File appDirFile = new File(appRoot).getParentFile().getParentFile();
         log.info("start app update, exeFile: " + exeFile + ", appDir: " + appDirFile);
@@ -66,9 +64,7 @@ public class UtAppUpdate {
             }
 
             //
-            if (appVersionActual.compareToIgnoreCase("DEV") != 0) {
-                throw new XError("Failed to update application, appVersionAllowed: " + appVersionAllowed);
-            }
+            throw new XError("Failed to update application, appVersionAllowed: " + appVersionAllowed);
         }
     }
 
