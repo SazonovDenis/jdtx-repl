@@ -1,16 +1,17 @@
 package jdtx.repl.main.api.jdx_db_object;
 
+import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
-import jandcode.utils.*;
 import jandcode.utils.error.*;
 import org.apache.commons.logging.*;
 
 public class Update_005_006_state implements ISqlScriptExecutor {
 
-    protected static Log log = LogFactory.getLog("jdtx.Update_006_007");
+    protected static Log log = LogFactory.getLog("jdtx.Update_005_006_state");
 
     @Override
     public void exec(Db db) throws Exception {
+        // Ранее была другая методика вычисления размера очереди
         DbUtils dbu = new DbUtils(db);
 
         //
@@ -41,15 +42,18 @@ public class Update_005_006_state implements ISqlScriptExecutor {
             }
 
             //
-            dbu.updateRec("Z_Z_state", UtCnv.toMap(
-                    "id", 1,
-                    //"que_out_no_que", que_out_no_que,
-                    "que_in_no_que", que_in_no_que,
-                    "que_common_no", que_common_no_que
-            ));
-        }  else {
+            db.execSql("update Z_Z_state set que_in_no = " + que_in_no_que);
+            db.execSql("update Z_Z_state set que_common_no = " + que_common_no_que);
+        } else {
             log.info("No difference");
         }
+
+
+        // Ранее que_common_dispatch_done совпадал с возрастом рассылки
+        DataStore ds = db.loadSql("select * from Z_Z_state_ws");
+        UtData.outTable(ds);
+        db.execSql("update Z_Z_state_ws set que_out000_send_done = que_common_dispatch_done");
+        log.info("update Z_Z_state_ws");
     }
 
 }

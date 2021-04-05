@@ -7,7 +7,7 @@ import org.apache.commons.logging.*;
 
 public class Update_005_006_index implements ISqlScriptExecutor {
 
-    protected static Log log = LogFactory.getLog("jdtx.Update_005_006");
+    protected static Log log = LogFactory.getLog("jdtx.Update_005_006_index");
 
     @Override
     public void exec(Db db) throws Exception {
