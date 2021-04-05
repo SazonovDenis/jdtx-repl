@@ -293,6 +293,15 @@ public class UtJdx {
         }
     }
 
+    public static boolean errorIs_IndexAlreadyExists(Exception e) {
+        String errText = collectExceptionText(e);
+        if (errText.contains("attempt to store duplicate value (visible to active transactions) in unique index")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     /**
      * По тексту ошибки возвращает таблицу, в которой содержится неправильная ссылка
      *

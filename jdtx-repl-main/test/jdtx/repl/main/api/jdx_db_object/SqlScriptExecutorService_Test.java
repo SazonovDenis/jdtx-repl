@@ -8,10 +8,10 @@ public class SqlScriptExecutorService_Test extends AppTestCase {
     @Test
     public void testSvc() {
         SqlScriptExecutorService svc = app.service(SqlScriptExecutorService.class);
-        ISqlScriptExecutor o1 = svc.createByName("Update_005_006");
-        System.out.println("Script: " + o1);
-        ISqlScriptExecutor o2 = svc.createByName("Update_None");
-        System.out.println("Script: " + o2);
+        ISqlScriptExecutor script_1 = svc.createByName("Update_005_006");
+        System.out.println("Script: " + script_1);
+        ISqlScriptExecutor script_2 = svc.createByName("Update_None");
+        System.out.println("Script: " + script_2);
     }
 
 }
