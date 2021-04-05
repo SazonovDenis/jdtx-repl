@@ -197,6 +197,10 @@ public class JdxReplWs {
     void checkAppUpdate() throws Exception {
         String appRoot = new File(db.getApp().getRt().getChild("app").getValueString("appRoot")).getCanonicalPath();
         UtAppUpdate ut = new UtAppUpdate(db, appRoot);
+        // Рабочая станция вседа обновляет приложение,
+        // сервер - просто ждет пока приложение обновится.
+        // Это разделение для того, чтобы на серверной базе
+        // сервер и рабчая станция одновременно не кинулись обновлять.
         ut.checkAppUpdate(true);
     }
 
