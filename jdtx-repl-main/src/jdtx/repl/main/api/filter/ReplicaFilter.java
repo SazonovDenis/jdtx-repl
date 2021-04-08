@@ -113,6 +113,9 @@ public class ReplicaFilter implements IReplicaFilter {
                     filterExpression = new Expression("true");
                 } else {
                     filterExpression = new Expression(filterExpressionStr);
+                    //
+                    log.debug("Table: " + tableName);
+                    log.debug("FilterExpression: " + filterExpressionStr);
                 }
 
                 // tableName -> filterExpression.filterParams
@@ -149,8 +152,9 @@ public class ReplicaFilter implements IReplicaFilter {
                             dataWriter.setRecValue(publicationFieldName, recValues.get(publicationFieldName));
                         }
                     } else {
-                        log.debug("  Record was skipped: " + recValues);
                         countSkipped++;
+                        //
+                        log.debug("Record was skipped: " + recValues);
                     }
 
                     //
