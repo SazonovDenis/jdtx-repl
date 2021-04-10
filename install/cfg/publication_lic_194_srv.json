@@ -97,13 +97,16 @@
       "fields": "*"
     },
     "inventory": {
-      "fields": "*"
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "inventorybond": {
-      "fields": "*"
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "inventorycash": {
-      "fields": "*"
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "inventorychecksubject": {
       "fields": "*",
@@ -118,7 +121,8 @@
       "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "inventoryusr": {
-      "fields": "*"
+      "fields": "*",
+      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "measure": {
       "fields": "*"
