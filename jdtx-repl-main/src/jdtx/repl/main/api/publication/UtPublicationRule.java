@@ -81,8 +81,8 @@ public class UtPublicationRule {
         for (IPublicationRule rule : rules) {
             IJdxTable table = struct.getTable(rule.getTableName());
             for (IJdxForeignKey fieldFk : table.getForeignKeys()) {
-                IJdxTable tableRef = fieldFk.getTable();
-                String refTableName = tableRef.getName();
+                IJdxTable refTable = fieldFk.getTable();
+                String refTableName = refTable.getName();
                 String refFieldName = fieldFk.getField().getName();
                 //
                 boolean refTableNotFoundInRules = false;
@@ -119,7 +119,7 @@ public class UtPublicationRule {
             }
         }
 
-        // Проверка: Таблицы из структуры, которые игнорируем
+        // Проверка: Таблицы из структуры, которые не упомянуты в правилах
         for (IJdxTable table : struct.getTables()) {
             IPublicationRule rule = publication.getPublicationRule(table.getName());
             if (rule == null) {
