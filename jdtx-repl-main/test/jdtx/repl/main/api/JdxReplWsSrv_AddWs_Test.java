@@ -77,7 +77,7 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
     public void requestTableSnapshot() throws Exception {
         IVariantMap args = new VariantMap();
         args.put("ws", 3);
-        args.put("table", "Lic");
+        args.put("tables", "Lic,LicDocTip");
         extSrv.repl_request_snapshot(args);
     }
 

@@ -3,7 +3,6 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
-import jandcode.web.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
@@ -490,15 +489,32 @@ public class JdxReplSrv {
         queCommon.push(replica);
     }
 
-    public void srvRequestSnapshot(long wsId, String tableName) throws Exception {
-        log.info("srvRequestSnapshot, wsId: " + wsId + ", table: " + tableName);
+    public void srvRequestSnapshot(long wsId, String tableNames) throws Exception {
+        log.info("srvRequestSnapshot, wsId: " + wsId + ", tables: " + tableNames);
+
+        // Разложим в список
+        String[] tableNamesArr = tableNames.split(",");
+        List<IJdxTable> tableList = new ArrayList<>();
+        for (String tableName : tableNamesArr) {
+            IJdxTable table = struct.getTable(tableName);
+            tableList.add(table);
+        }
+
+        // Сортируем список, чтобы несколько snapsot-реплик не сломали ссылки
+        List<IJdxTable> tableListSorted = UtJdx.sortTablesByReference(tableList);
 
         //
         UtRepl utRepl = new UtRepl(db, struct);
-        IReplica replica = utRepl.createReplicaWsSendSnapshot(wsId, tableName);
+        for (IJdxTable table : tableListSorted) {
+            log.info("srvRequestSnapshot, table: " + table.getName());
 
-        // Системная команда - в исходящую очередь реплик
-        queCommon.push(replica);
+            // Реплика-запрос snapshot
+            IReplica replica = utRepl.createReplicaWsSendSnapshot(wsId, table.getName());
+
+            // Реплика-запрос snapshot - в исходящую очередь реплик
+            queCommon.push(replica);
+        }
+
     }
 
 

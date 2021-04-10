@@ -742,12 +742,12 @@ class Jdx_Ext extends ProjectExt {
 
     void repl_request_snapshot(IVariantMap args) {
         long destinationWsId = args.getValueLong("ws")
-        String tableName = args.getValueString("table")
+        String tableNames = args.getValueString("tables")
         if (destinationWsId == 0L) {
             throw new XError("Не указан [ws] - код рабочей станции")
         }
-        if (tableName == null || tableName.length() == 0) {
-            throw new XError("Не указана [table] - таблица в БД")
+        if (tableNames == null || tableNames.length() == 0) {
+            throw new XError("Не указана [tables] - таблицы в БД")
         }
 
         // БД
@@ -761,7 +761,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvRequestSnapshot(destinationWsId, tableName)
+            srv.srvRequestSnapshot(destinationWsId, tableNames)
 
         } finally {
             db.disconnect()
