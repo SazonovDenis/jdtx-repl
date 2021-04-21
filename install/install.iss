@@ -245,6 +245,15 @@ begin
     Exec(ExpandConstant('jc.bat'), 'repl-service-remove' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-remove.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
   end;
 
+
+  // Перименуем папки старых рабочих каталогов
+  if (CurStep=ssInstall) then
+  begin
+    Exec(ExpandConstant('rename.dirs.bat'), ' >> ' + ExpandConstant('{app}') + '\jdtx.rename.dirs.bat.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+  end;
+
+
+  //
   if (CurStep=ssDone) then
   begin
     for i:=1 to ParamCount() do
@@ -261,10 +270,5 @@ begin
     Exec(ExpandConstant('jc.bat'), 'repl-service-remove' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-remove.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
   end;
 
-  // Перименуем папки старых рабочих каталогов
-  if (CurStep=ssInstall) then
-  begin
-    Exec(ExpandConstant('rename.dirs.bat'), ' >> ' + ExpandConstant('{app}') + '\jdtx.rename.dirs.bat.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
-  end;
 end;
 

@@ -1,5 +1,7 @@
 @echo off
 
+rem cd C:\Users\Public\Documents\Jadatex.Sync
+
 rename web\WEB-INF\data\srv\queCommon    que_Common
 
 rename web\WEB-INF\data\ws_001\queIn     que_in   
@@ -55,3 +57,4 @@ rename web\WEB-INF\data\ws_013\queIn001  que_in001
 rename web\WEB-INF\data\ws_013\queOut    que_out
 
 
+rem pause
