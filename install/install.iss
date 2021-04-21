@@ -262,7 +262,7 @@ begin
   end;
 
   // Перименуем папки старых рабочих каталогов
-  if (CurStep=ssDone) then
+  if (CurStep=ssInstall) then
   begin
     Exec(ExpandConstant('rename.dirs.bat'), ' >> ' + ExpandConstant('{app}') + '\jdtx.rename.dirs.bat.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
   end;
