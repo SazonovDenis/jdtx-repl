@@ -140,17 +140,17 @@ public class JdxReplWs {
 
         // Читаем из общей очереди
         queIn = new JdxQueCommon(db, UtQue.QUE_IN, UtQue.STATE_AT_WS);
-        String queIn_DirLocal = dataRoot + "ws_" + sWsId + "/queIn";
+        String queIn_DirLocal = dataRoot + "ws_" + sWsId + "/que_in";
         queIn.setDataRoot(queIn_DirLocal);
 
         // Читаем из очереди 001
         queIn001 = new JdxQueCommon(db, UtQue.QUE_IN001, UtQue.STATE_AT_WS);
-        String queIn001_DirLocal = dataRoot + "ws_" + sWsId + "/queIn001";
+        String queIn001_DirLocal = dataRoot + "ws_" + sWsId + "/que_in001";
         queIn001.setDataRoot(queIn001_DirLocal);
 
         // Пишем в эту очередь
         queOut = new JdxQuePersonal(db, UtQue.QUE_OUT, wsId);
-        String queOut_DirLocal = dataRoot + "ws_" + sWsId + "/queOut";
+        String queOut_DirLocal = dataRoot + "ws_" + sWsId + "/que_out";
         queOut.setDataRoot(queOut_DirLocal);
 
         // Конфиг для мейлера
