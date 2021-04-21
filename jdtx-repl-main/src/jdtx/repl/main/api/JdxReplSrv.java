@@ -97,7 +97,7 @@ public class JdxReplSrv {
 
 
         // Общая очередь
-        String queCommon_DirLocal = dataRoot + "srv/que_Common/";
+        String queCommon_DirLocal = dataRoot + "srv/que_common/";
         queCommon.setDataRoot(queCommon_DirLocal);
 
 
