@@ -28,13 +28,12 @@ CREATE UNIQUE INDEX Z_Z_age_idx ON Z_Z_age (age, table_name);
 */
 CREATE TABLE Z_Z_state (
   id                     INTEGER NOT NULL,
-  que_out_no             INT     DEFAULT 0 NOT NULL,
   que_in_no              INT     DEFAULT 0 NOT NULL,
   que_in001_no           INT     DEFAULT 0 NOT NULL,
   que_out_age_done       INT     NOT NULL,
   que_in_no_done         INT     NOT NULL,
   que_in001_no_done      INT     DEFAULT 0 NOT NULL,
-  que_common_no          INT     DEFAULT 0 NOT NULL,
+  que_common_no          INT     DEFAULT 0 NOT NULL, /* Серверное поле, на рабочей станции не используется. Поле que_common_no_done не нужно, т.к. очередь queCommon раскидывается на queOut000, а состояние этого процесса хранится в Z_Z_STATE_WS */
   mail_send_done         INT     NOT NULL,
   enabled                INT     NOT NULL,
   mute                   INT     NOT NULL
@@ -50,7 +49,7 @@ INSERT INTO Z_Z_state (id, que_out_age_done, que_in001_no_done, que_in_no_done, 
 CREATE TABLE Z_Z_state_ws (
   id                       INTEGER NOT NULL,
   ws_id                    INT     NOT NULL,
-  que_common_dispatch_done INT     NOT NULL,
+  que_common_dispatch_done INT     NOT NULL,            /* Возраст реплики, до которого реплики из queCommon разложены в queOut000 для рабочей станции */
   que_out000_no            INT     DEFAULT 0 NOT NULL,
   que_out000_send_done     INT     DEFAULT 0 NOT NULL,
   que_out001_no            INT     DEFAULT 0 NOT NULL,

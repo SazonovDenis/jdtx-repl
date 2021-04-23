@@ -1,5 +1,3 @@
-ALTER TABLE Z_Z_state add que_out_no                INT DEFAULT 0 NOT NULL;
-
 ALTER TABLE Z_Z_state add que_in_no                 INT DEFAULT 0 NOT NULL;
 
 ALTER TABLE Z_Z_state add que_in001_no              INT DEFAULT 0 NOT NULL;
