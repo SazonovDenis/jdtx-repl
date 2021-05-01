@@ -368,11 +368,21 @@ public class JdxReplSrv {
                 // Преобразовываем по правилам публикаций (фильтрам)
                 IReplica replicaForWs = filter.convertReplicaForWs(replica, publicationRule);
 
-                // Положим реплику в очередь (физически переместим)
-                queOut000.push(replicaForWs);
+                //
+                db.startTran();
+                try {
+                    // Положим реплику в очередь (физически переместим)
+                    queOut000.push(replicaForWs);
 
-                // Отметим распределение очередного номера реплики.
-                stateManager.setDispatchDoneQueCommon(wsId, no);
+                    // Отметим распределение очередного номера реплики.
+                    stateManager.setDispatchDoneQueCommon(wsId, no);
+
+                    //
+                    db.commit();
+                } catch (Exception e) {
+                    db.rollback(e);
+                    throw e;
+                }
 
                 //
                 count++;
