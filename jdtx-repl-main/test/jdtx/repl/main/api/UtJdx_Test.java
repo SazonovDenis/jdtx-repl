@@ -10,6 +10,7 @@ import java.io.*;
 import java.util.*;
 
 /**
+ *
  */
 public class UtJdx_Test extends TestCase {
 
@@ -151,6 +152,16 @@ public class UtJdx_Test extends TestCase {
             IJdxTable table2 = list2.get(i);
             assertEquals(table1.getName(), table2.getName());
         }
+    }
+
+
+    @Test
+    public void test_longValueOf() throws Exception {
+        assertEquals(null, UtJdx.longValueOf(null));
+        assertEquals(null, UtJdx.longValueOf(""));
+        assertEquals(null, UtJdx.longValueOf("null"));
+        assertEquals(Long.valueOf(-1), UtJdx.longValueOf("-1"));
+        assertEquals(Long.valueOf(-1), UtJdx.longValueOf(-1));
     }
 
 

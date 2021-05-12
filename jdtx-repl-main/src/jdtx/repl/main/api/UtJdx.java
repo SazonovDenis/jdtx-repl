@@ -371,7 +371,14 @@ public class UtJdx {
         } else if (value instanceof Integer) {
             valueLong = Long.valueOf((Integer) value);
         } else {
-            valueLong = Long.valueOf(value.toString());
+            String valueString = value.toString();
+            if (valueString.length() == 0) {
+                valueLong = null;
+            } else if (valueString.compareToIgnoreCase("null") == 0) {
+                valueLong = null;
+            } else {
+                valueLong = Long.valueOf(valueString);
+            }
         }
         return valueLong;
     }
@@ -385,7 +392,14 @@ public class UtJdx {
         } else if (value instanceof Long) {
             valueInteger = Integer.valueOf(value.toString());
         } else {
-            valueInteger = Integer.valueOf(value.toString());
+            String valueString = value.toString();
+            if (valueString.length() == 0) {
+                valueInteger = null;
+            } else if (valueString.compareToIgnoreCase("null") == 0) {
+                valueInteger = null;
+            } else {
+                valueInteger = Integer.valueOf(valueString);
+            }
         }
         return valueInteger;
     }
