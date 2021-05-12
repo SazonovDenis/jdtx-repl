@@ -67,7 +67,7 @@ public class JdxReplSrv {
     }
 
     /**
-     * Сервер, настройка
+     * Сервер, запуск
      */
     public void init() throws Exception {
         MDC.put("serviceName", "srv");
@@ -141,10 +141,17 @@ public class JdxReplSrv {
         // Фильтрация структуры
         struct = UtRepl.getStructCommon(structActual, publicationIn, publicationOut);
 
-
         // Чтобы были
         UtFile.mkdirs(dataRoot + "temp");
     }
+
+    /**
+     * Сервер, инициализация окружения
+     */
+    public void initFirst() {
+        UtFile.mkdirs(queCommon.getBaseDir());
+    }
+
 
     // Проверка версии приложения, ошибка при несовпадении
     void checkAppUpdate() throws Exception {
@@ -183,6 +190,8 @@ public class JdxReplSrv {
         // Инициализационная очередь queOut001
         JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
         queOut001.setDataRoot(dataRoot);
+        //
+        UtFile.mkdirs(queOut001.getBaseDir());
 
         // Очереди и правила их нумерации, в частности out001
         // ---

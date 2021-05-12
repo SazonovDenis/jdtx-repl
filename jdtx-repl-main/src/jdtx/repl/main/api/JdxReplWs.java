@@ -5,7 +5,6 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.utils.io.*;
-import jandcode.web.*;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.database_info.*;
 import jdtx.repl.main.api.decoder.*;
@@ -95,7 +94,7 @@ public class JdxReplWs {
     }
 
     /**
-     * Рабочая станция, настройка
+     * Рабочая станция, запуск
      */
     public void init() throws Exception {
         MDC.put("serviceName", "ws");
@@ -191,6 +190,15 @@ public class JdxReplWs {
 
         // Чтобы были
         UtFile.mkdirs(dataRoot + "temp");
+    }
+
+    /**
+     * Рабочая станция, инициализация окружения
+     */
+    public void initFirst() {
+        UtFile.mkdirs(queIn001.getBaseDir());
+        UtFile.mkdirs(queIn.getBaseDir());
+        UtFile.mkdirs(queOut.getBaseDir());
     }
 
     // Проверка версии приложения, обновление при необходимости
@@ -1132,7 +1140,6 @@ public class JdxReplWs {
     }
 
 
-
     /**
      * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано
      */
@@ -1353,6 +1360,7 @@ public class JdxReplWs {
     /**
      * Обработаем аварийную ситуацию - поищем недостающие записи (на которые мы ссылаемся) у себя в каталоге для входящих реплик
      * и выложим их в виде реплики (готовом виде для применения)
+     *
      * @return
      */
     public File handleFailedInsertUpdateRef(JdxForeignKeyViolationException e) throws Exception {

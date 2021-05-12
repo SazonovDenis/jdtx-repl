@@ -1,7 +1,6 @@
 package jdtx.repl.main.ext
 
 import jandcode.app.*
-import jandcode.bgtasks.*
 import jandcode.dbm.*
 import jandcode.dbm.data.*
 import jandcode.dbm.db.*
@@ -163,7 +162,14 @@ class Jdx_Ext extends ProjectExt {
             // Создаем окружение для рабочей станции
             JdxReplWs ws = new JdxReplWs(db)
             ws.init()
+            ws.initFirst()
 
+            // Создаем окружение для сервера
+            if (wsId == 1) {
+                JdxReplSrv srv = new JdxReplSrv(db)
+                srv.init()
+                srv.initFirst()
+            }
         } finally {
             db.disconnect()
         }

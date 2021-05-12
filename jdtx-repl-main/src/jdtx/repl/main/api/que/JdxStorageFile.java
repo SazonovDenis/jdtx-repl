@@ -36,8 +36,6 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
         }
         //
         this.baseDir = UtFile.unnormPath(dataRoot) + "/";
-        //
-        UtFile.mkdirs(this.baseDir);
     }
 
 
@@ -90,8 +88,14 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
      */
 
     public long getMaxNoFromDir() {
-        String inFileMask = "*.zip";
         File dir = new File(baseDir);
+
+        if (!dir.exists()) {
+            throw new XError("Dir not exists: " + dir.getAbsolutePath());
+        }
+
+        //
+        String inFileMask = "*.zip";
         File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
 
         //
@@ -113,6 +117,6 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
     private String getFileName(long no) {
         return UtString.padLeft(String.valueOf(no), 9, '0') + ".zip";
     }
-    
+
 
 }
