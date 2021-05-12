@@ -15,9 +15,9 @@ public class SendRequiredInfo {
 
     public SendRequiredInfo(JSONObject required) {
         super();
-        requiredFrom = UtJdx.longValueOf(required.getOrDefault("requiredFrom", -1));
-        requiredTo = UtJdx.longValueOf(required.getOrDefault("requiredTo", -1));
-        recreate = Boolean.valueOf(String.valueOf(required.getOrDefault("recreate", false)));
+        requiredFrom = UtJdx.longValueOf(required.get("requiredFrom"), -1L);
+        requiredTo = UtJdx.longValueOf(required.get("requiredTo"), -1L);
+        recreate = UtJdx.booleanValueOf(required.get("recreate"), false);
     }
 
 }

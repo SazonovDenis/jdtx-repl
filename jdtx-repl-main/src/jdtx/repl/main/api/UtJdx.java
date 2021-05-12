@@ -363,9 +363,17 @@ public class UtJdx {
     }
 
     public static Long longValueOf(Object value) {
+        return longValueOf(value, null);
+    }
+
+    public static Integer intValueOf(Object value) {
+        return intValueOf(value, null);
+    }
+
+    public static Long longValueOf(Object value, Long valueIfNull) {
         Long valueLong;
         if (value == null) {
-            valueLong = null;
+            valueLong = valueIfNull;
         } else if (value instanceof Long) {
             valueLong = (Long) value;
         } else if (value instanceof Integer) {
@@ -373,9 +381,9 @@ public class UtJdx {
         } else {
             String valueString = value.toString();
             if (valueString.length() == 0) {
-                valueLong = null;
+                valueLong = valueIfNull;
             } else if (valueString.compareToIgnoreCase("null") == 0) {
-                valueLong = null;
+                valueLong = valueIfNull;
             } else {
                 valueLong = Long.valueOf(valueString);
             }
@@ -383,10 +391,10 @@ public class UtJdx {
         return valueLong;
     }
 
-    public static Integer intValueOf(Object value) {
+    public static Integer intValueOf(Object value, Integer valueIfNull) {
         Integer valueInteger;
         if (value == null) {
-            valueInteger = null;
+            valueInteger = valueIfNull;
         } else if (value instanceof Integer) {
             valueInteger = (Integer) value;
         } else if (value instanceof Long) {
@@ -394,14 +402,33 @@ public class UtJdx {
         } else {
             String valueString = value.toString();
             if (valueString.length() == 0) {
-                valueInteger = null;
+                valueInteger = valueIfNull;
             } else if (valueString.compareToIgnoreCase("null") == 0) {
-                valueInteger = null;
+                valueInteger = valueIfNull;
             } else {
                 valueInteger = Integer.valueOf(valueString);
             }
         }
         return valueInteger;
+    }
+
+    public static Boolean booleanValueOf(Object value, boolean valueIfNull) {
+        Boolean valueBoolean;
+        if (value == null) {
+            valueBoolean = valueIfNull;
+        } else if (value instanceof Boolean) {
+            valueBoolean = (Boolean) value;
+        } else {
+            String valueString = value.toString();
+            if (valueString.length() == 0) {
+                valueBoolean = valueIfNull;
+            } else if (valueString.compareToIgnoreCase("null") == 0) {
+                valueBoolean = valueIfNull;
+            } else {
+                valueBoolean = Boolean.valueOf(valueString);
+            }
+        }
+        return valueBoolean;
     }
 
     /**

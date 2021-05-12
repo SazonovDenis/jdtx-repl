@@ -162,6 +162,12 @@ public class UtJdx_Test extends TestCase {
         assertEquals(null, UtJdx.longValueOf("null"));
         assertEquals(Long.valueOf(-1), UtJdx.longValueOf("-1"));
         assertEquals(Long.valueOf(-1), UtJdx.longValueOf(-1));
+
+        assertEquals(Long.valueOf(200), UtJdx.longValueOf(null, 200L));
+        assertEquals(Long.valueOf(200), UtJdx.longValueOf("", 200L));
+        assertEquals(Long.valueOf(200), UtJdx.longValueOf("null", 200L));
+        assertEquals(Long.valueOf(-1), UtJdx.longValueOf("-1", 200L));
+        assertEquals(Long.valueOf(-1), UtJdx.longValueOf(-1, 200L));
     }
 
 
