@@ -103,8 +103,8 @@ Source: install\sample.ws._app.rt;                DestDir: {app}\web\WEB-INF;   
 Source: install\sample._db-ini.rt;                DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _db-ini.rt
 Source: install\sample.log.properties;            DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: log.properties
 
-Source: install\543.bat;                          DestDir: {app}\web\WEB-INF;     Flags: ignoreversion;
-Source: install\rename.dirs.bat;                  DestDir: {app};                 Flags: ignoreversion;
+Source: install\543.bat;                          DestDir: {app}\web\WEB-INF;     Flags: ignoreversion deleteafterinstall;
+Source: install\rename.dirs.bat;                  DestDir: {app};                 Flags: ignoreversion deleteafterinstall;
 
 
 
@@ -247,9 +247,11 @@ begin
 
 
   // Перименуем папки старых рабочих каталогов
-  if (CurStep=ssInstall) then
+  if (CurStep=ssDone) then
   begin
+    //MsgBox('run: ' + ExpandConstant('rename.dirs.bat'), mbError, MB_OK);
     Exec(ExpandConstant('rename.dirs.bat'), ' >> ' + ExpandConstant('{app}') + '\jdtx.rename.dirs.bat.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+    //MsgBox('run: ' + ExpandConstant('rename.dirs.bat') + ', params: ' + ExpandConstant('{app}'), mbError, MB_OK);
   end;
 
 

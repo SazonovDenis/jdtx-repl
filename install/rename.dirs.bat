@@ -2,6 +2,9 @@
 
 rem cd C:\Users\Public\Documents\Jadatex.Sync
 
+SETLOCAL DISABLEEXTENSIONS
+
+
 rename web\WEB-INF\data\srv\queCommon    que_Common
 
 rename web\WEB-INF\data\ws_001\queIn     que_in   
@@ -79,5 +82,7 @@ rename web\WEB-INF\data\ws_015\queIn001  que_in001
 rename web\WEB-INF\data\ws_015\queOut    que_out
 mkdir  web\WEB-INF\data\ws_015\que_in001
 
+
+SETLOCAL ENABLEEXTENSIONS
 
 rem pause
