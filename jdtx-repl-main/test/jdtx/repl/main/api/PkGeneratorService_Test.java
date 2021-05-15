@@ -9,7 +9,7 @@ public class PkGeneratorService_Test extends ReplDatabaseStruct_Test {
         PkGeneratorService svc = app.service(PkGeneratorService.class);
         System.out.println("svc: " + svc);
 
-        IPkGenerator generator = svc.createGenerator(db, struct);
+        IPkGenerator generator = svc.createGenerator(db2, struct2);
         System.out.println("generator: " + generator);
         
         System.out.println("Lic.generator.name: " + generator.getGeneratorName("Lic"));

@@ -490,4 +490,40 @@ public class UtRecMerge implements IUtRecMerge {
     }
 
 
+    public Map<String, Collection<Long>> findUsages(String tableName, int maxPkValue) throws Exception {
+        Map<String, Collection<Long>> res = new HashMap<>();
+
+        // Собираем зависимости
+        Map<String, Collection<IJdxForeignKey>> refsToTable = getRefsToTable(tableName);
+
+        // Обрабатываем зависимости
+        for (String refTableName : refsToTable.keySet()) {
+            Collection<IJdxForeignKey> fkList = refsToTable.get(refTableName);
+            for (IJdxForeignKey fk : fkList) {
+                String refFieldName = fk.getField().getName();
+                String pkField = struct.getTable(refTableName).getPrimaryKey().get(0).getName();
+
+                // Селектим записи, подлежащие переносу
+                String sqlSelect = "select " + refFieldName + " from " + refTableName + " where " + refFieldName + " >= " + maxPkValue + " group by " + refFieldName;
+                //
+                DataStore st = db.loadSql(sqlSelect);
+
+                // Копим
+                Collection<Long> ids = res.get(refTableName);
+                //
+                if (ids == null) {
+                    ids = new ArrayList<>();
+                    res.put(refFieldName, ids);
+                }
+                //
+                ids.addAll(UtData.uniqueValues(st, pkField));
+
+            }
+        }
+
+        //
+        return res;
+    }
+
+
 }

@@ -213,7 +213,20 @@ repl_replica_use = cm("Применить реплику из файла") {
 }
 
 //
-rec_relocate = cm("Перемещение pk записи") {
+rec_relocate = cm("Перемещение pk записи",
+    "table": [value: null, help: "Имя таблицы"],
+    "sour": [value: null, help: "Исходный pk"],
+    "dest": [value: null, help: "Конечный pk"],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
+    ext.rec_relocate(args)
+}
+
+rec_relocate_all = cm("Перемещение pk записей, больше определенного id",
+    "tables": [value: null, help: "Имена таблиц, через запятую"],
+    "sour": [value: null, help: "Исходный pk, выше которго нужно значение"],
+    "dest": [value: null, help: "Конечный pk"],
+) {
     def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
     ext.rec_relocate(args)
 }

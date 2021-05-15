@@ -7,9 +7,12 @@ import jandcode.dbm.test.*;
 import jandcode.jc.*;
 import jandcode.jc.test.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ext.*;
 import org.junit.*;
+
+import java.util.*;
 
 public class UtRecMerge_Relocate_Test extends DbmTestCase {
 
@@ -190,5 +193,29 @@ public class UtRecMerge_Relocate_Test extends DbmTestCase {
         UtData.outTable(ds);
     }
 
+
+    @Test
+    public void test_relocate_all() throws Exception {
+        UtRecMerge relocator = new UtRecMerge(db, struct);
+
+        String tableName = "Lic";
+
+        // Находим использование таблицы tableName
+        Map<String, Collection<Long>> usges = relocator.findUsages(tableName, 100000000);
+
+
+        PkGeneratorService svc = db.getApp().service(PkGeneratorService.class);
+        IPkGenerator generator = svc.createGenerator(db, struct);
+        generator.getMaxPk(tableName);
+
+        // Переносим ссылки на tableName
+        for (String refTableName : usges.keySet()) {
+            long idDest = db.openSql("select max() from " + refTableName).getValueLong("maxId");
+            Collection<Long> ids = usges.get(refTableName);
+            for (Long idSour : ids) {
+                relocator.relocateId(refTableName, idSour, idDest);
+            }
+        }
+    }
 
 }
