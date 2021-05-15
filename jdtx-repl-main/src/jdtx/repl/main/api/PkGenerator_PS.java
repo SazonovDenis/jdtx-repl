@@ -5,17 +5,18 @@ import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.struct.*;
 
 /**
- * Реализация UtGenerators для PawnShop и RefDecoder с перекодировкой ссылок.
+ * Реализация PkGenerators для PawnShop и RefDecoder с учетом перекодировкой ссылок.
  * Грязно и по месту.
  */
-public class UtGenerators_PS extends UtGenerators {
+public class PkGenerator_PS extends PkGenerator implements IPkGenerator {
 
-    public UtGenerators_PS(Db db, IJdxDbStruct struct) {
+    public PkGenerator_PS(Db db, IJdxDbStruct struct) {
         super(db, struct);
     }
 
     @Override
-    long getMaxPk(IJdxTable table) throws Exception {
+    public long getMaxPk(String tableName) throws Exception {
+        IJdxTable table = struct.getTable(tableName);
         String idFieldName = table.getPrimaryKey().get(0).getName();
         String sql = "select max(" + idFieldName + ") as maxId from " + table.getName() + " where " + idFieldName + " <= " + RefDecoder.get_max_own_id();
         long maxId = db.loadSql(sql).getCurRec().getValueLong("maxId");
@@ -23,18 +24,18 @@ public class UtGenerators_PS extends UtGenerators {
     }
 
     @Override
-    String getGeneratorName(String tableName) {
+    public String getGeneratorName(String tableName) {
         return "g_" + tableName;
     }
 
     @Override
-    long getValue(String generatorName) throws Exception {
+    public long getValue(String generatorName) throws Exception {
         long valueCurr = db.loadSql("select gen_id(" + generatorName + ", 0) as valueCurr from dual").getCurRec().getValueLong("valueCurr");
         return valueCurr;
     }
 
     @Override
-    void setValue(String generatorName, long value) throws Exception {
+    public void setValue(String generatorName, long value) throws Exception {
         db.execSql("set generator " + generatorName + " to " + value + "");
     }
 

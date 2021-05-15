@@ -4,14 +4,14 @@ import jandcode.dbm.db.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 
-public class UtGenerators {
+public abstract class PkGenerator implements IPkGenerator {
 
     Db db;
     IJdxDbStruct struct;
 
     protected static Log log = LogFactory.getLog("jdtx.UtGenerators");
 
-    public UtGenerators(Db db, IJdxDbStruct struct) {
+    public PkGenerator(Db db, IJdxDbStruct struct) {
         this.db = db;
         this.struct = struct;
     }
@@ -22,31 +22,15 @@ public class UtGenerators {
         }
     }
 
-    void repairGenerator(IJdxTable table) throws Exception {
-        long valueMaxId = getMaxPk(table);
+    @Override
+    public void repairGenerator(IJdxTable table) throws Exception {
+        long valueMaxId = getMaxPk(table.getName());
         String generatorName = getGeneratorName(table.getName());
         long valueGen = getValue(generatorName);
         if (valueMaxId > valueGen) {
             log.info("repairGenerator: " + generatorName + ", set " + valueGen + " to " + valueMaxId);
             setValue(generatorName, valueMaxId);
         }
-
-    }
-
-    long getMaxPk(IJdxTable table) throws Exception {
-        return 0;
-    }
-
-    String getGeneratorName(String tableName) {
-        return null;
-    }
-
-    long getValue(String generatorName) throws Exception {
-        return 0;
-    }
-
-    void setValue(String generatorName, long value) throws Exception {
-
     }
 
 }

@@ -1565,8 +1565,8 @@ public class JdxReplWs {
         // После применения собственных реплик генераторы находятся в устаревшем сосоянии.
         // ---
 
-        UtGenerators utGenerators = new UtGenerators_PS(db, struct);
-        utGenerators.repairGenerators();
+        PkGenerator pkGenerator = new PkGenerator_PS(db, struct);
+        pkGenerator.repairGenerators();
 
 
         // ---
