@@ -223,12 +223,11 @@ rec_relocate = cm("Перемещение pk записи",
 }
 
 rec_relocate_all = cm("Перемещение pk записей, больше определенного id",
-    "tables": [value: null, help: "Имена таблиц, через запятую"],
-    "sour": [value: null, help: "Исходный pk, выше которго нужно значение"],
-    "dest": [value: null, help: "Конечный pk"],
+    "table": [value: null, help: "Имя таблицы"],
+    "sour": [value: null, help: "Значение pk, выше которого нужно перемещать запись"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
-    ext.rec_relocate(args)
+    ext.rec_relocate_all(args)
 }
 
 //

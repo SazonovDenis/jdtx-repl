@@ -240,6 +240,36 @@ class Merge_Ext extends ProjectExt {
         }
     }
 
+    void rec_relocate_all(IVariantMap args) {
+        String tableName = args.getValueString("table")
+        long idSour = args.getValueLong("sour")
+        if (tableName == null || tableName.length() == 0) {
+            throw new XError("Не указана [table] - имя таблицы")
+        }
+        if (idSour == 0) {
+            throw new XError("Не указан [sour] - значение pk, выше которого нужно перемещать запись")
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+        //
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
+
+        //
+        try {
+            IJdxDbStructReader structReader = new JdxDbStructReader()
+            structReader.setDb(db)
+            IJdxDbStruct struct = structReader.readDbStruct()
+
+            //
+            UtRecMerge relocator = new UtRecMerge(db, struct)
+            relocator.relocateAllId(tableName, idSour)
+        } finally {
+            db.disconnect()
+        }
+    }
+
 
 }
 

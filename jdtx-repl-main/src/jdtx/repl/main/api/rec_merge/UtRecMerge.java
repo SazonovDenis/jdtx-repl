@@ -4,6 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
@@ -490,7 +491,7 @@ public class UtRecMerge implements IUtRecMerge {
     }
 
 
-    public Map<String, Collection<Long>> findUsages(String tableName, int maxPkValue) throws Exception {
+    public Map<String, Collection<Long>> findUsages(String tableName, long maxPkValue) throws Exception {
         Map<String, Collection<Long>> res = new HashMap<>();
 
         // Собираем зависимости
@@ -499,24 +500,22 @@ public class UtRecMerge implements IUtRecMerge {
         // Обрабатываем зависимости
         for (String refTableName : refsToTable.keySet()) {
             Collection<IJdxForeignKey> fkList = refsToTable.get(refTableName);
+
+            // Копим тут
+            Collection<Long> ids = new ArrayList<>();
+            res.put(refTableName, ids);
+
+            //
             for (IJdxForeignKey fk : fkList) {
                 String refFieldName = fk.getField().getName();
-                String pkField = struct.getTable(refTableName).getPrimaryKey().get(0).getName();
+                //String pkField = struct.getTable(refTableName).getPrimaryKey().get(0).getName();
 
                 // Селектим записи, подлежащие переносу
                 String sqlSelect = "select " + refFieldName + " from " + refTableName + " where " + refFieldName + " >= " + maxPkValue + " group by " + refFieldName;
-                //
                 DataStore st = db.loadSql(sqlSelect);
 
-                // Копим
-                Collection<Long> ids = res.get(refTableName);
                 //
-                if (ids == null) {
-                    ids = new ArrayList<>();
-                    res.put(refFieldName, ids);
-                }
-                //
-                ids.addAll(UtData.uniqueValues(st, pkField));
+                ids.addAll(UtData.uniqueValues(st, refFieldName));
 
             }
         }
@@ -525,5 +524,38 @@ public class UtRecMerge implements IUtRecMerge {
         return res;
     }
 
+
+    public void relocateAllId(String tableName, long maxPkValue) throws Exception {
+        //
+        System.out.println("References for table: " + tableName);
+
+        //
+        PkGeneratorService svc = db.getApp().service(PkGeneratorService.class);
+        IPkGenerator generator = svc.createGenerator(db, struct);
+
+        // Находим использование таблицы tableName (ссылки на нее)
+        Map<String, Collection<Long>> usges = findUsages(tableName, maxPkValue);
+
+        // Переносим ссылки на tableName
+        for (String refTableName : usges.keySet()) {
+            Collection<Long> ids = usges.get(refTableName);
+
+            //
+            System.out.println(refTableName + " -> " + tableName + ", count: " + ids.size());
+
+            //
+            long idDest = generator.getValue(generator.getGeneratorName(tableName));
+            for (Object idSourObj : ids) {
+                idDest = idDest + 1;
+                generator.setValue(generator.getGeneratorName(tableName), idDest);
+                //
+                long idSour = UtJdx.longValueOf(idSourObj);
+                //
+                System.out.println("  " + tableName + "." + idSour + " -> " + idDest);
+                //
+                relocateId(tableName, idSour, idDest);
+            }
+        }
+    }
 
 }
