@@ -1,8 +1,9 @@
 rem @echo off
 
-set cfg_path=%~dp0
+rem set cfg_path=%~dp0
+set cfg_path=C:\Users\Public\Documents\Jadatex.Sync\web\WEB-INF\cfg\
 
-cd ..
+rem cd ..
 
 @echo -------------------------
 @echo %cfg_path%
@@ -45,13 +46,6 @@ call jc repl_send_cfg -cfg:cfg_publications -file:%cfg_path%publication_lic_194_
 call jc repl_send_cfg -cfg:cfg_publications -file:%cfg_path%publication_lic_194_ws.json -ws:13
 
 
-rem Завершение изменения структуры
-pause Wait finish
-call jc repl-dbstruct-finish
-
-pause Done finish
-
-
 rem Запрос snapshot
 call jc repl-request-snapshot -ws:1  -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
 call jc repl-request-snapshot -ws:2  -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
@@ -67,4 +61,11 @@ call jc repl-request-snapshot -ws:11 -tables:"CommentText,CommentTip,Usr,UsrGrp,
 call jc repl-request-snapshot -ws:12 -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
 call jc repl-request-snapshot -ws:13 -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
 
-pause Done snapshot
+
+rem Завершение изменения структуры
+pause Wait finish
+call jc repl-dbstruct-finish
+
+pause Done finish
+
+
