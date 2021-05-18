@@ -413,6 +413,9 @@ public class JdxReplWs {
             long age = incAuditAge();
             log.info("createReplicaTableSnapshot, tableName: " + tablesNew.get(i).getName() + ", new age: " + age);
 
+            // Параметры (для правил публикации): автор реплики
+            filter.getFilterParams().put("wsAuthor", String.valueOf(replicaSnapshot.getInfo().getWsId()));
+
             // Преобразовываем по фильтрам
             IReplica replicaForWs = filter.convertReplicaForWs(replicaSnapshot, publicationOut);
 

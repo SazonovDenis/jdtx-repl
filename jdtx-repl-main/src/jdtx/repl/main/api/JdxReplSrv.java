@@ -250,13 +250,16 @@ public class JdxReplSrv {
         IReplicaFilter filter = new ReplicaFilter();
 
         // Правила публикаций (фильтры) для wsId.
-        // В качестве фильтров на ОТПРАВКУ от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
-        // todo почему ТУТ ТАК? А не publicationsInList.get(wsId) ???????????
-        IPublicationStorage publicationRuleWsIn = PublicationStorage.loadRules(cfgPublications, struct, "in");
-        //IPublicationStorage publicationRuleWsIn = publicationsInList.get(wsId);
+        // В качестве фильтров на ОТПРАВКУ snapshot от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
+        // Не берем сейчас publicationsInList.get(wsId), т.к. новой станции еще в этом списке нет
+        IPublicationStorage publicationRuleWsIn = PublicationStorage.loadRules(cfgPublicationsWs, struct, "in");
+        publicationsInList.put(wsId, publicationRuleWsIn);
 
-        // Параметры: получатель реплики (для правил публикации)
+
+        // Параметры (для правил публикации): получатель реплики
         filter.getFilterParams().put("wsDestination", String.valueOf(wsId));
+        // Параметры (для правил публикации): автор реплики - делаем заведомо не существующее значение
+        filter.getFilterParams().put("wsAuthor", String.valueOf(-1));
 
         // Помещаем snapshot-реплики в очередь queOut001
         for (IReplica replica : snapshotReplicas) {
@@ -373,6 +376,9 @@ public class JdxReplSrv {
 
                 // Читаем заголовок
                 JdxReplicaReaderXml.readReplicaInfo(replica);
+
+                // Параметры (для правил публикации): автор реплики
+                filter.getFilterParams().put("wsAuthor", String.valueOf(replica.getInfo().getWsId()));
 
                 // Преобразовываем по правилам публикаций (фильтрам)
                 IReplica replicaForWs = filter.convertReplicaForWs(replica, publicationRule);

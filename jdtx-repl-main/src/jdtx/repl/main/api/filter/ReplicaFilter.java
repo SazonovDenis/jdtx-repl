@@ -47,9 +47,6 @@ public class ReplicaFilter implements IReplicaFilter {
         replicaRes.getInfo().assign(replicaInfo);
 
         //
-        getFilterParams().put("wsAuthor", String.valueOf(replicaInfo.getWsId()));
-
-        //
         if (replicaInfo.getReplicaType() == JdxReplicaType.SNAPSHOT || replicaInfo.getReplicaType() == JdxReplicaType.IDE) {
 
             //
