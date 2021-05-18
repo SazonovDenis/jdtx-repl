@@ -205,8 +205,8 @@ public class ReplicaFilter implements IReplicaFilter {
                 if (field.isPrimaryKey() || refTable != null) {
                     // Ссылка
                     JdxRef ref = JdxRef.parse((String) fieldValue);
-                    expression.setVariable("PARAM_wsAuthor_" + fieldName, new BigDecimal(ref.ws_id));
-                    expression.setVariable("RECORD_" + fieldName, new BigDecimal(ref.id));
+                    expression.setVariable("RECORD_OWNER_" + fieldName, new BigDecimal(ref.ws_id));
+                    expression.setVariable("RECORD_" + fieldName, new BigDecimal(ref.value));
                 } else if (fieldValue instanceof Long || fieldValue instanceof Integer) {
                     // Целочисленное поле
                     expression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValue.toString()));

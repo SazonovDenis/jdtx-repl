@@ -7,9 +7,9 @@
     },
     "commenttext": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || RECORD_PawnChit = 0",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || RECORD_PawnChit = 0",
       "filter_": "сервер на станцию будет отправлять:",
-      "filter_": "изменения в собственных записях станции (PARAM_wsAuthor_ID = PARAM_wsDestination) или ",
+      "filter_": "изменения в собственных записях станции (RECORD_OWNER_ID = PARAM_wsDestination) или ",
       "filter_": "изменения, сделанные самой станцией, т.е. её собственные реплики (PARAM_wsAuthor = PARAM_wsDestination) или",
       "filter_": "примечания только к залогодателю (RECORD_PawnChit = 0)"
     },
@@ -51,22 +51,22 @@
     },
     "cashencash": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "cashencashreason": {
       "fields": "*"
     },
     "cashlog": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "cashordergen": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "cashsumm": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "categoryhist": {
       "fields": "*"
@@ -85,7 +85,7 @@
     },
     "dbinfo": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "dictlist": {
       "fields": "*"
@@ -98,68 +98,68 @@
     },
     "inventory": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "inventorybond": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "inventorycash": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "inventorychecksubject": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "inventoryextrasubject": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "inventorymissingsubject": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "inventoryusr": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "measure": {
       "fields": "*"
     },
     "nch": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "nchopl": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "nchtip": {
       "fields": "*"
     },
     "operday": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "operdayusr": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "opr": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "oprtip": {
       "fields": "*"
     },
     "pawnchit": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "pawnchitdat": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "pawnchitdatstruct": {
       "fields": "*"
@@ -169,33 +169,33 @@
     },
     "pawnchitopr": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "pawnchitstatustip": {
       "fields": "*"
     },
     "pawnchitsubject": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "pawnchitsubjectexhibit": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "pawnchitsubjectsell": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "pawnchitsubjectstatustip": {
       "fields": "*"
     },
     "pawnchitsubjecttosale": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "pawnreceipt": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "reportvar": {
       "fields": "*"
@@ -205,18 +205,18 @@
     },
     "smsjournal": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "smstemplate": {
       "fields": "*"
     },
     "stornopr": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "subjectencash": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "subjectencashreason": {
       "fields": "*"
@@ -229,23 +229,23 @@
     },
     "tariffplan": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "tariffplanbillingvar": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "tariffplanpercstavka": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "tariffplanref": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "tariffplanver": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "usr": {
       "fields": "*"
@@ -255,7 +255,7 @@
     },
     "usrlog": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "usroprtip": {
       "fields": "*"
@@ -265,7 +265,7 @@
     },
     "valpawnchitsubject": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "valsubjecttip": {
       "fields": "*"
@@ -275,7 +275,7 @@
     },
     "ws_list": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     }
   },
   "full": {

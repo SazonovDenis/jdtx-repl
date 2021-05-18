@@ -7,14 +7,14 @@
     },
     "commenttext": {
       "fields": "*,-CommentUsr",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || RECORD_PawnChit = 0"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || RECORD_PawnChit = 0"
     },
     "commenttip": {
       "fields": "id,name,deleted"
     },
     "TariffPlanBillingVar": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     },
     "lic": {
       "fields": "*"

@@ -8,19 +8,19 @@
     "commenttext": {
       "fields": "*,-CommentUsr",
       "fields_": "сервер на станцию будет отправлять  примечания без поля CommentUsr, т.к. таблица Usr (на которое ссылается CommentUsr) на станцию не уходит",
-      "filter_": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || RECORD_PawnChit = 0",
+      "filter_": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || RECORD_PawnChit = 0",
       "filter_": "сервер на станцию будет отправлять:",
-      "filter_": "изменения в собственных записях станции (PARAM_wsAuthor_ID = PARAM_wsDestination) или ",
+      "filter_": "изменения в собственных записях станции (RECORD_OWNER_ID = PARAM_wsDestination) или ",
       "filter_": "изменения, сделанные самой станцией, т.е. её собственные реплики (PARAM_wsAuthor = PARAM_wsDestination) или",
       "filter_": "примечания только к залогодателю (RECORD_PawnChit = 0)",
       "valid": "COMMENTTEXT.PAWNCHIT -> PAWNCHIT,COMMENTTEXT.PAWNCHITSUBJECT -> PAWNCHITSUBJECT"
     },
     "commenttip": {
       "fields": "*",
-      "filter": "PARAM_wsAuthor_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1",
       "filter_": "сервер на станцию будет отправлять:",
-      "filter_": "изменения в собственных записях станции (PARAM_wsAuthor_ID = PARAM_wsDestination) или ",
+      "filter_": "изменения в собственных записях станции (RECORD_OWNER_ID = PARAM_wsDestination) или ",
       "filter_": "изменения, сделанные самой станцией, т.е. её собственные реплики (PARAM_wsAuthor = PARAM_wsDestination) или",
       "filter_": "изменения, сделанные на сервере (PARAM_wsAuthor = 1)"
     },
