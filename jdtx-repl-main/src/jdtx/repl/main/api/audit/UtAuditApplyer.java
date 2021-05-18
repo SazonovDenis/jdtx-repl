@@ -238,7 +238,7 @@ public class UtAuditApplyer {
                                 ref.ws_id = dataReader.getWsId();
                             }
                             // Перекодировка ссылки
-                            long ref_own = decoder.get_id_own(refTableName, ref.ws_id, ref.id);
+                            long ref_own = decoder.get_id_own(refTableName, ref.ws_id, ref.value);
                             recParams.put(publicationFieldName, ref_own);
                             continue;
                         }

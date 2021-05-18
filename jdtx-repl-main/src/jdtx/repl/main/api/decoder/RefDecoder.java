@@ -98,13 +98,13 @@ public class RefDecoder implements IRefDecoder {
         // Это наша id?
         if (is_own_id(tableName, own_id)) {
             ref.ws_id = this.self_ws_id;
-            ref.id = own_id;
+            ref.value = own_id;
             return ref;
         }
         // Не надо перекодировать?
         if (!needDecode(tableName, -1, own_id)) {
             ref.ws_id = this.self_ws_id;
-            ref.id = own_id;
+            ref.value = own_id;
             return ref;
         }
 
@@ -126,7 +126,7 @@ public class RefDecoder implements IRefDecoder {
 
         //
         ref.ws_id = sl.ws_id;
-        ref.id = id;
+        ref.value = id;
         return ref;
     }
 
