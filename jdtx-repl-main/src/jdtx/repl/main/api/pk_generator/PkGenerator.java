@@ -1,4 +1,4 @@
-package jdtx.repl.main.api;
+package jdtx.repl.main.api.pk_generator;
 
 import jandcode.dbm.db.*;
 import jdtx.repl.main.api.struct.*;

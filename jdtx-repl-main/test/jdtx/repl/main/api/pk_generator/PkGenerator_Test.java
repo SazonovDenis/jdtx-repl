@@ -1,10 +1,17 @@
-package jdtx.repl.main.api;
+package jdtx.repl.main.api.pk_generator;
 
+import jdtx.repl.main.api.*;
 import org.junit.*;
 
 /**
  */
 public class PkGenerator_Test extends ReplDatabaseStruct_Test {
+
+    @Override
+    public void setUp() throws Exception {
+        rootDir = "../../ext/";
+        super.setUp();
+    }
 
     @Test
     public void test_compare() throws Exception {
