@@ -127,8 +127,8 @@ public class JdxReplSrv {
 
             // Правила входящих реплик для рабочей станции ("in", используем при подготовке реплик)
             JSONObject cfgPublicationsWs = CfgManager.getCfgFromDataRecord(wsRec, CfgType.PUBLICATIONS);
-            IPublicationStorage publicationsWsIn = PublicationStorage.loadRules(cfgPublicationsWs, structActual, "in");
-            publicationsInList.put(wsId, publicationsWsIn);
+            IPublicationStorage publicationRuleWsIn = PublicationStorage.loadRules(cfgPublicationsWs, structActual, "in");
+            publicationsInList.put(wsId, publicationRuleWsIn);
         }
 
 
@@ -196,8 +196,8 @@ public class JdxReplSrv {
         // Очереди и правила их нумерации, в частности out001
         // ---
         // Отправим системные команды для станции в ее очередь queOut001
-        JSONObject cfgPublications = UtRepl.loadAndValidateJsonFile(cfgPublicationsFileName);
-        srvSendCfgInternal(queOut001, cfgPublications, CfgType.PUBLICATIONS, wsId);
+        JSONObject cfgPublicationsWs = UtRepl.loadAndValidateJsonFile(cfgPublicationsFileName);
+        srvSendCfgInternal(queOut001, cfgPublicationsWs, CfgType.PUBLICATIONS, wsId);
         //
         JSONObject cfgDecode = UtRepl.loadAndValidateJsonFile(cfgDecodeFileName);
         srvSendCfgInternal(queOut001, cfgDecode, CfgType.DECODE, wsId);
@@ -212,7 +212,7 @@ public class JdxReplSrv {
         JdxStateManagerWs stateManagerWs = new JdxStateManagerWs(db);
         long queInNoDone = stateManagerWs.getQueNoDone("in");
 
-        // Единственное место, где на сервере без экземпляра рабочей станции - не обойтись
+        // Единственное место, где на сервере без экземпляра СЕРВЕРНОЙ рабочей станции - не обойтись
         JdxReplWs ws = new JdxReplWs(db);
         ws.init();
 
@@ -226,9 +226,9 @@ public class JdxReplSrv {
             // (при применении snapsot важен порядок)
             List<IJdxTable> publicationOutTables = makePublicationTables(ws.struct, ws.publicationOut);
 
-            // Создаем реплики
+            // Создаем реплики для snapshot (пока без фильтрации)
             snapshotReplicas = ws.SnapshotForTables(publicationOutTables, 0, false);
-//                                  :с реакция на запрос реплик - с ошибкой (а почему при + станции нет ощибок)
+
             //
             db.commit();
 
@@ -362,7 +362,7 @@ public class JdxReplSrv {
             // В качестве фильтров на ОТПРАВКУ от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
             IPublicationStorage publicationRule = publicationsInList.get(wsId);
 
-            // Параметры: получатель реплики (для правил публикации)
+            // Параметры (для правил публикации): получатель реплики (для правил публикации)
             filter.getFilterParams().put("wsDestination", String.valueOf(wsId));
 
             //

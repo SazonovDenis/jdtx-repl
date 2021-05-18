@@ -402,7 +402,7 @@ public class JdxReplWs {
         IReplicaFilter filter = new ReplicaFilter();
 
         // Параметры: получатель реплики (для правил публикации)
-        // При выгрузке Snapshot на станцции получатель, строго говоря, не определен, но чтобы не было ошибок
+        // При выгрузке Snapshot с рабочей станцции получатель, строго говоря, не определен, но чтобы не было ошибок
         // при вычислении выражений, будем считать значение PARAM_wsDestination равным своей рабочей станции.
         filter.getFilterParams().put("wsDestination", String.valueOf(wsId));
 
