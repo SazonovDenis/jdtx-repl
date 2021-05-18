@@ -83,8 +83,8 @@
              class="jdtx.repl.main.api.database_info.DatabaseInfoReaderSrvice_PS">
     </service>
 
-    <service name="jdtx.repl.main.api.PkGeneratorService"
-             class="jdtx.repl.main.api.PkGeneratorService_PS">
+    <service name="jdtx.repl.main.api.pk_generator.PkGeneratorService"
+             class="jdtx.repl.main.api.pk_generator.PkGeneratorService_PS">
     </service>
 
 </root>
