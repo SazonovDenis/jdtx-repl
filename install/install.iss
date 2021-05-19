@@ -186,7 +186,7 @@ begin
       //
       setupParamStr:=setupFileName+' /SILENT /repl-service-install /DIR="' + setupDirValid + '"';
       //
-      if ShellExec('', setupFileNameBat, setupParamStr, '', SW_SHOW, ewWaitUntilTerminated, resultCode) then
+      if ShellExec('', setupFileNameBat, setupParamStr, '', SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode) then
       begin
         //MsgBox('Exec Ok, setupFileName: ' + setupFileNameBat + ', params: ' + setupParamStr + ', resultCode: ' + intToStr(resultCode), mbError, MB_OK);
       end
@@ -240,9 +240,9 @@ var
 begin
   if (CurStep=ssInstall) then
   begin
-    Exec(ExpandConstant('jc.bat'), 'repl-service-stop' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-stop.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
-    Exec(ExpandConstant('jc.bat'), 'repl-service-stop' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-stop.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
-    Exec(ExpandConstant('jc.bat'), 'repl-service-remove' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-remove.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+    Exec(ExpandConstant('jc.bat'), 'repl-service-stop' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-stop.log', ExpandConstant('{app}'), SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode);
+    Exec(ExpandConstant('jc.bat'), 'repl-service-stop' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-stop.log', ExpandConstant('{app}'), SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode);
+    Exec(ExpandConstant('jc.bat'), 'repl-service-remove' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-remove.log', ExpandConstant('{app}'), SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode);
   end;
 
 
@@ -250,7 +250,7 @@ begin
   if (CurStep=ssDone) then
   begin
     //MsgBox('run: ' + ExpandConstant('rename.dirs.bat'), mbError, MB_OK);
-    Exec(ExpandConstant('rename.dirs.bat'), ' >> ' + ExpandConstant('{app}') + '\jdtx.rename.dirs.bat.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+    Exec(ExpandConstant('rename.dirs.bat'), ' >> ' + ExpandConstant('{app}') + '\jdtx.rename.dirs.bat.log', ExpandConstant('{app}'), SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode);
     //MsgBox('run: ' + ExpandConstant('rename.dirs.bat') + ', params: ' + ExpandConstant('{app}'), mbError, MB_OK);
   end;
 
@@ -262,14 +262,14 @@ begin
     begin
       if Lowercase(ParamStr(i)) = '/repl-service-install' then
       begin
-        Exec(ExpandConstant('jc.bat'), 'repl-service-install' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-install.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
-        Exec(ExpandConstant('jc.bat'), 'repl-service-start' + ' >> '+ ExpandConstant('{app}') + '\jdtx.repl-service-start.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+        Exec(ExpandConstant('jc.bat'), 'repl-service-install' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-install.log', ExpandConstant('{app}'), SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode);
+        Exec(ExpandConstant('jc.bat'), 'repl-service-start' + ' >> '+ ExpandConstant('{app}') + '\jdtx.repl-service-start.log', ExpandConstant('{app}'), SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode);
         exit;
       end;
     end;
 
     //MsgBox('repl-service-remove', mbInformation, MB_OK);
-    Exec(ExpandConstant('jc.bat'), 'repl-service-remove' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-remove.log', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, resultCode);
+    Exec(ExpandConstant('jc.bat'), 'repl-service-remove' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-remove.log', ExpandConstant('{app}'), SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode);
   end;
 
 end;
