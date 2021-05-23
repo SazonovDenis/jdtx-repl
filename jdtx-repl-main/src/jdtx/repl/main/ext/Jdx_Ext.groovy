@@ -9,13 +9,13 @@ import jandcode.utils.*
 import jandcode.utils.error.*
 import jandcode.utils.variant.*
 import jdtx.repl.main.api.*
+import jdtx.repl.main.api.decoder.*
 import jdtx.repl.main.api.mailer.*
 import jdtx.repl.main.api.manager.*
 import jdtx.repl.main.api.replica.*
 import jdtx.repl.main.api.struct.*
 import jdtx.repl.main.gen.*
 import jdtx.repl.main.service.*
-import org.apache.commons.io.*
 import org.json.simple.*
 
 /**
@@ -269,12 +269,9 @@ class Jdx_Ext extends ProjectExt {
             throw new XError("Не указан [dir] - каталог для поиска")
         }
         String tableName = recordId.split(":")[0]
-        String tableId = recordId.substring(tableName.length() + 1)
-        if (outFileName == null || outFileName.length() == 0) {
-            outFileName = tableName + "_" + tableId.replace(":", "_") + ".zip"
-        }
-        String outReplicaInfoFile = outFileName.replace(".zip", ".json")
+        String recordIdStr = recordId.substring(tableName.length() + 1)
 
+        //
         Db db = null
         try {
             // БД
@@ -287,16 +284,27 @@ class Jdx_Ext extends ProjectExt {
 
             // Выполнение команды
             try {
+                // Преобразуем ссылку в пару ws:id
+                if (!recordIdStr.contains(":")) {
+                    // Передали просто id - превратим ее в "каноническую" форму (пару ws:id)
+                    long tableId = Long.parseLong(recordIdStr)
+                    IRefDecoder decoder = new RefDecoder(db, ws.wsId)
+                    JdxRef tableIdRef = decoder.get_ref(tableName, tableId)
+                    recordIdStr = tableIdRef.toString()
+                    println("В таблице: " + tableName + " ищем: " + recordIdStr)
+                }
+
+                // Имя файла-результата
+                if (outFileName == null || outFileName.length() == 0) {
+                    outFileName = tableName + "_" + recordIdStr.replace(":", "_") + ".zip";
+                }
+
                 // Ищем запись и формируем реплику на вставку
                 UtRepl utRepl = new UtRepl(db, ws.struct)
-                IReplica replica = utRepl.findRecordInReplicas(tableName, tableId, dirName, ws.wsId, skipOprDel, outReplicaInfoFile)
-
-                // Копируем реплику для анализа
-                File outReplicaFile = new File(outFileName)
-                FileUtils.copyFile(replica.getFile(), outReplicaFile)
+                IReplica replica = utRepl.findRecordInReplicas(tableName, recordIdStr, dirName, skipOprDel, outFileName)
 
                 //
-                System.out.println("Файл с репликой - результатами поиска сформирован: " + outReplicaFile.getAbsolutePath())
+                System.out.println("Файл с репликой - результатами поиска сформирован: " + replica.file.getAbsolutePath())
             } catch (Exception e) {
                 e.printStackTrace()
                 throw e

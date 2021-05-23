@@ -409,34 +409,47 @@ public class UtRepl {
     /**
      * Ищем запись в истории реплик, собираем все операции с этой записью в одну реплику.
      * Метод применяется при восстановлении асинхронно удаленных записей.
+     *
+     * @param tableName        Таблица, чью запись ищем, например "ABN"
+     * @param recordIdStr      Полный id записи, например "10:12345"
+     * @param replicasDirsName Каталог с репликами для поиска, например "d:/temp/"
+     * @param skipOprDel       Пропускать реплики на удаление записи
+     * @param outFileName      Файл для реплики-результата, например "d:/temp/ABN_10_12345.zip"
+     * @return Реплика со всеми операциями, найденными для запрошенной записи
      */
-    public IReplica findRecordInReplicas(String findTableName, String findRecordIdStr, String replicasDirName, long wsId, boolean skipOprDel, String outReplicaInfoFile) throws Exception {
+    public IReplica findRecordInReplicas(String tableName, String recordIdStr, String replicasDirsName, boolean skipOprDel, String outFileName) throws Exception {
         String inFileMask = "*.zip";
 
-        // Список файлов, ищем в них
-        File dir = new File(replicasDirName);
-        File[] files = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
         //
-        if (files == null) {
-            return null;
+        String outFileNameInfo;
+        if (outFileName.endsWith(".zip")) {
+            outFileNameInfo = outFileName.replace(".zip", ".json");
+        } else {
+            outFileNameInfo = outFileName + ".json";
         }
-        //
-        Arrays.sort(files, new NameFileComparator());
+
+        // Список файлов-реплик в каталогах replicasDirsName, ищем в них
+        List<File> files = new ArrayList<>();
+        String[] replicasDirsNameArr = replicasDirsName.split(",");
+        for (String replicasDirName : replicasDirsNameArr) {
+            File dir = new File(replicasDirName);
+            File[] filesInDir = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
+            if (filesInDir == null) {
+                throw new XError("Каталог недоступен: " + dir.getCanonicalPath());
+            }
+            log.info(dir.getCanonicalPath() + ", files: " + filesInDir.length);
+            files.addAll(Arrays.asList(filesInDir));
+        }
+        // Отсортируем, чтобы команды в результате появлялись в том порядке, как поступали в очередь реплик
+        files.sort(new NameFileComparator());
 
 
-        // Тут сохраним данные по всем репликам
+        // Тут копим info-данные по найденным репликам
         JSONArray replicaInfoList = new JSONArray();
 
 
         //
-        JdxRef findRecordId;
-        if (findRecordIdStr.contains(":")) {
-            findRecordId = JdxRef.parse(findRecordIdStr);
-        } else {
-            IRefDecoder decoder = new RefDecoder(db, wsId);
-            findRecordId = decoder.get_ref(findTableName, Long.parseLong(findRecordIdStr));
-            log.info("findRecordId: " + findRecordId);
-        }
+        JdxRef findRecordId = JdxRef.parse(recordIdStr);
 
         //
         IReplica replicaOut = new ReplicaFile();
@@ -451,15 +464,31 @@ public class UtRepl {
         JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
 
         //
-        xmlWriter.startTable(findTableName);
+        xmlWriter.startTable(tableName);
+
+
+        //
+        IJdxTable table = null;
+        List<IJdxTable> tables = struct.getTables();
+        for (IJdxTable t : tables) {
+            if (t.getName().compareToIgnoreCase(tableName) == 0) {
+                table = t;
+                break;
+            }
+        }
+        if (table == null) {
+            throw new XError("Таблица не найдена в структуре: " + tableName);
+        }
+        String idFieldName = table.getPrimaryKey().get(0).getName();
+
 
         //
         int countFile = 0;
-        while (countFile < files.length) {
-            File file = files[countFile];
+        while (countFile < files.size()) {
+            File file = files.get(countFile);
 
             countFile++;
-            log.info(countFile + "/" + files.length + ", file: " + file.getName());
+            log.debug(countFile + "/" + files.size() + ", file: " + file.getName());
 
             //
             try {
@@ -468,7 +497,7 @@ public class UtRepl {
                 JdxReplicaReaderXml.readReplicaInfo(replica);
 
                 if (replica.getInfo().getReplicaType() != JdxReplicaType.IDE && replica.getInfo().getReplicaType() != JdxReplicaType.SNAPSHOT) {
-                    log.info("  skip, replicaType: " + replica.getInfo().getReplicaType());
+                    log.debug("  skip, replicaType: " + replica.getInfo().getReplicaType());
                     continue;
                 }
 
@@ -480,20 +509,6 @@ public class UtRepl {
 
                     //
                     JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
-
-                    //
-                    IJdxTable table = null;
-                    List<IJdxTable> tables = struct.getTables();
-                    for (IJdxTable t : tables) {
-                        if (t.getName().compareToIgnoreCase(findTableName) == 0) {
-                            table = t;
-                            break;
-                        }
-                    }
-                    if (table == null) {
-                        throw new XError("Таблица не найдена в структуре: " + findTableName);
-                    }
-                    String idFieldName = table.getPrimaryKey().get(0).getName();
 
 
                     // Тут сохраним данные по реплике
@@ -508,11 +523,11 @@ public class UtRepl {
                     replicaInfo.put("data", replicaData);
 
                     //
-                    String tableName = replicaReader.nextTable();
-                    while (tableName != null) {
+                    String readerTableName = replicaReader.nextTable();
+                    while (readerTableName != null) {
                         //
-                        if (tableName.compareToIgnoreCase(findTableName) == 0) {
-                            log.info("  table: " + tableName + ", wsId: " + replica.getInfo().getWsId());
+                        if (readerTableName.compareToIgnoreCase(tableName) == 0) {
+                            log.info("file: " + file.getName() + ", wsId: " + replica.getInfo().getWsId());
 
                             //
                             long countRec = 0;
@@ -538,6 +553,7 @@ public class UtRepl {
                                 // Нашли id?
                                 if (!doSkipRec && idValueRef.equals(findRecordId)) {
                                     log.info("  record found");
+                                    log.debug("  " + recValues);
 
                                     // В реплике нашлась запись - сохраним данные по реплике
                                     recordsFoundInReplica = true;
@@ -559,10 +575,10 @@ public class UtRepl {
                                             // Это значение - ссылка
                                             JdxRef fieldValueRef = JdxRef.parse((String) fieldValue);
                                             // Дополнение ссылки
-                                            if (fieldValueRef.ws_id == -1 && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
+                                            if (fieldValueRef != null && fieldValueRef.ws_id == -1 && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
                                                 fieldValueRef.ws_id = replica.getInfo().getWsId();
                                             }
-                                            xmlWriter.setRecValue(fieldName, fieldValueRef.toString());
+                                            xmlWriter.setRecValue(fieldName, String.valueOf(fieldValueRef));
                                         } else {
                                             // Это просто значение
                                             xmlWriter.setRecValue(fieldName, fieldValue);
@@ -573,7 +589,7 @@ public class UtRepl {
                                 //
                                 countRec++;
                                 if (countRec % 200 == 0) {
-                                    log.info("  table: " + tableName + ", " + countRec);
+                                    log.debug("  table: " + readerTableName + ", " + countRec);
                                 }
 
                                 //
@@ -582,7 +598,7 @@ public class UtRepl {
                         }
 
                         //
-                        tableName = replicaReader.nextTable();
+                        readerTableName = replicaReader.nextTable();
                     }
 
 
@@ -601,7 +617,7 @@ public class UtRepl {
 
             } catch (Exception e) {
                 log.error(Ut.getExceptionMessage(e));
-                //e.printStackTrace();
+                e.printStackTrace();
             }
 
         }
@@ -611,18 +627,17 @@ public class UtRepl {
         replicaWriter.replicaFileClose();
 
 
-        // Данные по реплике - в файл
-        if (outReplicaInfoFile != null) {
-            UtFile.saveString(UtJson.toString(replicaInfoList), new File(outReplicaInfoFile));
-        }
+        // Копируем реплику в файл, куда просили
+        File outReplicaFile = new File(outFileName);
+        FileUtils.copyFile(replicaOut.getFile(), outReplicaFile);
+        replicaOut.setFile(outReplicaFile);
+
+        // Данные по реплике - в info-файл
+        UtFile.saveString(UtJson.toString(replicaInfoList), new File(outFileNameInfo));
 
 
         //
         return replicaOut;
-    }
-
-    public IReplica findRecordInReplicas(String findTableName, String findRecordIdStr, String replicasDirName, long wsId, boolean skipOprDel) throws Exception {
-        return findRecordInReplicas(findTableName, findRecordIdStr, replicasDirName, wsId, skipOprDel, null);
     }
 
 

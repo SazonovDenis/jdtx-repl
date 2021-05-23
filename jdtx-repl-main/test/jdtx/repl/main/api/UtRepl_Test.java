@@ -1,8 +1,8 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
-import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.io.*;
@@ -221,17 +221,16 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
     @Test
     public void test_findRecordInReplicas() throws Exception {
         UtRepl utRepl = new UtRepl(db, struct);
-        long wsId = 1;
-        String dirName = "D:/t/Anet/queOut.2.ws_003";
+        String dirName = "D:/t/012/que_in_012";
 
-        IReplica replica = utRepl.findRecordInReplicas("lic", "11:1418", dirName, wsId, false);
+        IReplica replica = utRepl.findRecordInReplicas("lic", "12:1418", dirName, false, "temp/LIC_12_1418.zip");
         if (replica == null) {
             System.out.println("Not found");
         } else {
             System.out.println("Found, file: " + replica.getFile().getAbsolutePath());
         }
 
-        IReplica replica2 = utRepl.findRecordInReplicas("lic", "1418", dirName, wsId, false);
+        IReplica replica2 = utRepl.findRecordInReplicas("lic", "1418", dirName, false, "temp/LIC_1418.zip");
         if (replica2 == null) {
             System.out.println("Not found");
         } else {
@@ -242,10 +241,14 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
     @Test
     public void test_findRecordInReplicasWs3() throws Exception {
         UtRepl utRepl = new UtRepl(db3, struct3);
-        long wsId = 3;
-        String dirName = "D:/t/Anet/queOut.2.ws_003";
+        String dirName = "D:/t/012/que_in_012";
 
-        IReplica replica = utRepl.findRecordInReplicas("lic", "1138", dirName, wsId, false, "temp/lic_1138.json");
+        long tableId = 1138;
+        IRefDecoder decoder = new RefDecoder(db, 12);
+        JdxRef tableIdRef = decoder.get_ref("Lic", tableId);
+        String recordIdStr = tableIdRef.toString();
+
+        IReplica replica = utRepl.findRecordInReplicas("lic", recordIdStr, dirName, false, "temp/lic_1138.zip");
         if (replica == null) {
             System.out.println("Not found");
         } else {
@@ -256,8 +259,8 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
     @Test
     public void test_findRecordInReplicas_all() throws Exception {
         UtRepl utRepl = new UtRepl(null, struct);
-        long wsId = 1;
-        IReplica replica = utRepl.findRecordInReplicas("lic", "3:1001", "../_test-data/_test-data_ws2/ws_002/queIn", wsId, false);
+        String dirs="../_test-data/_test-data_ws2/ws_002/que_in,../_test-data/_test-data_ws2/ws_002/que_in001,../_test-data/_test-data_ws2/ws_002/que_out";
+        IReplica replica = utRepl.findRecordInReplicas("lic", "3:1001", dirs, false, "temp/LIC_3_1001.zip");
         if (replica == null) {
             System.out.println("Not found");
         } else {
