@@ -1396,7 +1396,8 @@ public class JdxReplWs {
         // Поиск проблемной записи выполняется в двух каталогах - in и in001
         String dirNameIn = queIn.getBaseDir();
         String dirNameIn001 = queIn001.getBaseDir();
-        String dirs = dirNameIn + "," + dirNameIn001;
+        String dirNameOut = queOut.getBaseDir();
+        String dirs = dirNameIn + "," + dirNameIn001 + "," + dirNameOut;
         // Собираем все операции с проблемной записью в одну реплику
         UtRepl utRepl = new UtRepl(db, struct);
         IReplica replica = utRepl.findRecordInReplicas(refTableName, refTableId, dirs, true, outReplicaFile.getAbsolutePath());
