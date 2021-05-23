@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 
-    <app autoUseRepairReplica="false"/>
-
     <service name="jandcode.bgtasks.BgTasksService">
 
         <!-- Сервер -->
@@ -18,6 +16,10 @@
                 />
 
     </service>
+
+    <!-- Конфиги 
+    <app autoUseRepairReplica="true"/>
+    -->
 
 </root>
     

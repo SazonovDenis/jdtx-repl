@@ -34,6 +34,10 @@
     </service>
 
 
+    <!-- Конфиги -->
+    <app autoUseRepairReplica="true"/>
+
+
     <!-- Настройки базы данных -->
     <x-include path="db-ini.rt"/>
 
