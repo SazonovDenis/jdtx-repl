@@ -1393,15 +1393,16 @@ public class JdxReplWs {
             return outReplicaFile;
         }
 
-        // Собираем все операции с записью в одну реплику
-        String dirName = queIn.getBaseDir();
+        // Поиск проблемной записи выполняется в двух каталогах - in и in001
+        String dirNameIn = queIn.getBaseDir();
+        String dirNameIn001 = queIn001.getBaseDir();
+        String dirs = dirNameIn + "," + dirNameIn001;
+        // Собираем все операции с проблемной записью в одну реплику
         UtRepl utRepl = new UtRepl(db, struct);
-        IReplica replica = utRepl.findRecordInReplicas(refTableName, refTableId, dirName, wsId, true);
-        // Копируем файл реплики
-        FileUtils.copyFile(replica.getFile(), outReplicaFile);
+        IReplica replica = utRepl.findRecordInReplicas(refTableName, refTableId, dirs, true, outReplicaFile.getAbsolutePath());
 
         //
-        log.error("Файл с репликой - результатами поиска сформирован: " + outReplicaFile.getAbsolutePath());
+        log.error("Файл с репликой - результатами поиска сформирован: " + replica.getFile().getAbsolutePath());
 
         //
         return outReplicaFile;
