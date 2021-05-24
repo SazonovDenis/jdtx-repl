@@ -1387,7 +1387,7 @@ public class JdxReplWs {
         //
         File outReplicaFile = new File(dataRoot + "temp/" + refTableName + "_" + refTableId.replace(":", "_") + ".zip");
         // Если в одной реплике много ошибочных записей, то искать можно только один раз,
-        // иначе на каждую ссылку будет выполнятся поиск, что затянет выкидыванмие ошибки
+        // иначе на каждую ссылку будет выполнятся поиск, что затянет выкидывание ошибки
         if (outReplicaFile.exists()) {
             log.error("Файл с репликой - результатами поиска уже есть: " + outReplicaFile.getAbsolutePath());
             return outReplicaFile;
