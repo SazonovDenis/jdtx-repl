@@ -1,9 +1,7 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
-import jandcode.utils.*;
 import jandcode.utils.test.*;
-import jandcode.web.*;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.publication.*;
@@ -55,7 +53,7 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
 
         // Правила публикации
         JSONObject cfgPublication = UtRepl.loadAndValidateJsonFile("test/etalon/publication_full_166.json");
-        IPublicationStorage publicationIn = PublicationStorage.loadRules(cfgPublication, struct, "in");
+        IPublicationRuleStorage publicationIn = PublicationRuleStorage.loadRules(cfgPublication, struct, "in");
 
         // Применяем реплику на ws1
         sw.start("Применяем реплику");
@@ -133,7 +131,7 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
 
         // Правила публикации
         JSONObject cfgPublication = UtRepl.loadAndValidateJsonFile("test/etalon/publication_full_166.json");
-        IPublicationStorage publicationOut = PublicationStorage.loadRules(cfgPublication, struct2, "out");
+        IPublicationRuleStorage publicationOut = PublicationRuleStorage.loadRules(cfgPublication, struct2, "out");
 
         // Забираем установочную реплику
         long wsId = 2;

@@ -47,8 +47,8 @@ public class JdxReplWs {
     private long MAX_COMMIT_RECS = 10000;
 
     // Правила публикации
-    protected IPublicationStorage publicationIn;
-    protected IPublicationStorage publicationOut;
+    protected IPublicationRuleStorage publicationIn;
+    protected IPublicationRuleStorage publicationOut;
 
     //
     protected IJdxQue queIn;
@@ -171,8 +171,8 @@ public class JdxReplWs {
         }
 
         // Правила публикаций
-        this.publicationIn = PublicationStorage.loadRules(cfgPublications, structActual, "in");
-        this.publicationOut = PublicationStorage.loadRules(cfgPublications, structActual, "out");
+        this.publicationIn = PublicationRuleStorage.loadRules(cfgPublications, structActual, "in");
+        this.publicationOut = PublicationRuleStorage.loadRules(cfgPublications, structActual, "out");
 
 
         // Фильтрация структуры: убирание того, чего нет ни в одном из правил публикаций publicationIn и publicationOut

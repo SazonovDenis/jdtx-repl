@@ -1,7 +1,5 @@
 package jdtx.repl.main.api.audit;
 
-import jandcode.utils.*;
-import jandcode.web.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
@@ -34,7 +32,7 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
 
         // Загружаем правила публикации
         JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/publication_full_152.json");
-        IPublicationStorage publication = PublicationStorage.loadRules(cfg, struct, "in");
+        IPublicationRuleStorage publication = PublicationRuleStorage.loadRules(cfg, struct, "in");
 
         //
         long age;
@@ -110,7 +108,7 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
 
         // Загружаем правила публикации
         JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/pub.json");
-        IPublicationStorage publication = PublicationStorage.loadRules(cfg, struct2, "in");
+        IPublicationRuleStorage publication = PublicationRuleStorage.loadRules(cfg, struct2, "in");
 
         // Формируем реплики
         UtAuditSelector auditSelector = new UtAuditSelector(db2, struct2, wsId);

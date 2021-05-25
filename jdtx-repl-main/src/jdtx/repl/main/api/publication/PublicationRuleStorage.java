@@ -6,7 +6,7 @@ import org.json.simple.*;
 
 import java.util.*;
 
-public class PublicationStorage implements IPublicationStorage {
+public class PublicationRuleStorage implements IPublicationRuleStorage {
 
     //
     protected static Log log = LogFactory.getLog("jdtx.PublicationStorage");
@@ -68,8 +68,8 @@ public class PublicationStorage implements IPublicationStorage {
     /**
      * Из json-объекта cfgPublications создает правила публикации по имени publicationName (обычно "in" или "out")
      */
-    public static IPublicationStorage loadRules(JSONObject cfgPublications, IJdxDbStruct structActual, String publicationName) throws Exception {
-        IPublicationStorage publicationRules = new PublicationStorage();
+    public static IPublicationRuleStorage loadRules(JSONObject cfgPublications, IJdxDbStruct structActual, String publicationName) throws Exception {
+        IPublicationRuleStorage publicationRules = new PublicationRuleStorage();
         //
         JSONObject cfgPublicationRules = extractRulesByName(cfgPublications, publicationName);
         if (cfgPublicationRules != null) {

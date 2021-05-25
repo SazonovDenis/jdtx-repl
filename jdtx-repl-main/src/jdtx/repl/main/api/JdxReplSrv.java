@@ -33,7 +33,7 @@ public class JdxReplSrv {
     Map<Long, IMailer> mailerList;
 
     // Правила публикации (для каждой рабочей станции)
-    Map<Long, IPublicationStorage> publicationsInList;
+    Map<Long, IPublicationRuleStorage> publicationsInList;
 
     //
     Db db;
@@ -127,7 +127,7 @@ public class JdxReplSrv {
 
             // Правила входящих реплик для рабочей станции ("in", используем при подготовке реплик)
             JSONObject cfgPublicationsWs = CfgManager.getCfgFromDataRecord(wsRec, CfgType.PUBLICATIONS);
-            IPublicationStorage publicationRuleWsIn = PublicationStorage.loadRules(cfgPublicationsWs, structActual, "in");
+            IPublicationRuleStorage publicationRuleWsIn = PublicationRuleStorage.loadRules(cfgPublicationsWs, structActual, "in");
             publicationsInList.put(wsId, publicationRuleWsIn);
         }
 
@@ -135,8 +135,8 @@ public class JdxReplSrv {
         // Фильтрация структуры: убирание того, чего нет ни в одном из правил публикаций publicationIn и publicationOut
 
         // Правила публикаций
-        IPublicationStorage publicationIn = PublicationStorage.loadRules(cfgPublications, structActual, "in");
-        IPublicationStorage publicationOut = PublicationStorage.loadRules(cfgPublications, structActual, "out");
+        IPublicationRuleStorage publicationIn = PublicationRuleStorage.loadRules(cfgPublications, structActual, "in");
+        IPublicationRuleStorage publicationOut = PublicationRuleStorage.loadRules(cfgPublications, structActual, "out");
 
         // Фильтрация структуры
         struct = UtRepl.getStructCommon(structActual, publicationIn, publicationOut);
@@ -252,7 +252,7 @@ public class JdxReplSrv {
         // Правила публикаций (фильтры) для wsId.
         // В качестве фильтров на ОТПРАВКУ snapshot от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
         // Не берем сейчас publicationsInList.get(wsId), т.к. новой станции еще в этом списке нет
-        IPublicationStorage publicationRuleWsIn = PublicationStorage.loadRules(cfgPublicationsWs, struct, "in");
+        IPublicationRuleStorage publicationRuleWsIn = PublicationRuleStorage.loadRules(cfgPublicationsWs, struct, "in");
         publicationsInList.put(wsId, publicationRuleWsIn);
 
 
@@ -299,7 +299,7 @@ public class JdxReplSrv {
         stateManagerMail.setMailSendDone(wsSnapshotAge);
     }
 
-    private List<IJdxTable> makePublicationTables(IJdxDbStruct struct, IPublicationStorage publicationStorage) {
+    private List<IJdxTable> makePublicationTables(IJdxDbStruct struct, IPublicationRuleStorage publicationStorage) {
         List<IJdxTable> publicationTables = new ArrayList<>();
         for (IJdxTable table : struct.getTables()) {
             if (publicationStorage.getPublicationRule(table.getName()) != null) {
@@ -360,7 +360,7 @@ public class JdxReplSrv {
 
             // Правила публикаций (фильтры) для wsId.
             // В качестве фильтров на ОТПРАВКУ от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
-            IPublicationStorage publicationRule = publicationsInList.get(wsId);
+            IPublicationRuleStorage publicationRule = publicationsInList.get(wsId);
 
             // Параметры (для правил публикации): получатель реплики (для правил публикации)
             filter.getFilterParams().put("wsDestination", String.valueOf(wsId));

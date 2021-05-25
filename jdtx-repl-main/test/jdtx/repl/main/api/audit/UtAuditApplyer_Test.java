@@ -1,8 +1,6 @@
 package jdtx.repl.main.api.audit;
 
 import jandcode.dbm.data.*;
-import jandcode.utils.*;
-import jandcode.web.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
@@ -28,7 +26,7 @@ public class UtAuditApplyer_Test extends ReplDatabaseStruct_Test {
         // Загружаем правила публикации
         JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/pub.json");
         JSONObject cfgIn = (JSONObject) cfg.get("full");
-        IPublicationStorage publication = new PublicationStorage();
+        IPublicationRuleStorage publication = new PublicationRuleStorage();
         publication.loadRules(cfgIn, struct2);
 
         // Реплики

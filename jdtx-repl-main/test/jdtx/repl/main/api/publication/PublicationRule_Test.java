@@ -1,7 +1,5 @@
 package jdtx.repl.main.api.publication;
 
-import jandcode.utils.*;
-import jandcode.web.*;
 import jdtx.repl.main.api.*;
 import org.json.simple.*;
 import org.junit.*;
@@ -24,7 +22,7 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
     public void test_LoadRules_1() throws Exception {
         System.out.println("Publication: pub.json/out");
         JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/pub.json");
-        IPublicationStorage publicationOut = PublicationStorage.loadRules(cfg, struct, "out");
+        IPublicationRuleStorage publicationOut = PublicationRuleStorage.loadRules(cfg, struct, "out");
         printPublicationRules(publicationOut.getPublicationRules());
     }
 
@@ -32,7 +30,7 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
     public void test_LoadRules_2() throws Exception {
         System.out.println("Publication: publication_lic.json/out");
         JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/jdtx/repl/main/api/publication/publication_lic.json");
-        IPublicationStorage publicationOut = PublicationStorage.loadRules(cfg, struct, "out");
+        IPublicationRuleStorage publicationOut = PublicationRuleStorage.loadRules(cfg, struct, "out");
         printPublicationRules(publicationOut.getPublicationRules());
     }
 
@@ -85,16 +83,16 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
 
         //
         System.out.println("Publication: in");
-        IPublicationStorage publicationIn = PublicationStorage.loadRules(cfg, struct, "in");
+        IPublicationRuleStorage publicationIn = PublicationRuleStorage.loadRules(cfg, struct, "in");
         //
-        JSONObject cfgPublicationRulesIn = PublicationStorage.extractRulesByName(cfg,  "in");
+        JSONObject cfgPublicationRulesIn = PublicationRuleStorage.extractRulesByName(cfg,  "in");
         UtPublicationRule.checkValid(cfgPublicationRulesIn, publicationIn, struct);
 
         //
         System.out.println("Publication: out");
-        IPublicationStorage publicationOut = PublicationStorage.loadRules(cfg, struct, "out");
+        IPublicationRuleStorage publicationOut = PublicationRuleStorage.loadRules(cfg, struct, "out");
         //
-        JSONObject cfgPublicationRulesOut = PublicationStorage.extractRulesByName(cfg,  "out");
+        JSONObject cfgPublicationRulesOut = PublicationRuleStorage.extractRulesByName(cfg,  "out");
         UtPublicationRule.checkValid(cfgPublicationRulesOut, publicationOut, struct);
     }
 

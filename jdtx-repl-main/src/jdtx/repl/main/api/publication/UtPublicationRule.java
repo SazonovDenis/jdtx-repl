@@ -67,7 +67,7 @@ public class UtPublicationRule {
     /**
      * Проверки
      */
-    public static void checkValid(JSONObject cfgPublicationRules, IPublicationStorage publication, IJdxDbStruct struct) {
+    public static void checkValid(JSONObject cfgPublicationRules, IPublicationRuleStorage publication, IJdxDbStruct struct) {
         // Проверка: Правило для таблицы в cfgPublicationRules, которой нет в структуре
         for (Object key : cfgPublicationRules.keySet()) {
             String tableName = (String) key;

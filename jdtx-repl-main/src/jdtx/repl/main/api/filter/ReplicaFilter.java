@@ -1,9 +1,7 @@
 package jdtx.repl.main.api.filter;
 
-import com.udojava.evalex.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.*;
-import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
@@ -11,7 +9,6 @@ import org.apache.commons.io.*;
 import org.apache.commons.logging.*;
 
 import java.io.*;
-import java.math.*;
 import java.util.*;
 
 public class ReplicaFilter implements IReplicaFilter {
@@ -29,7 +26,7 @@ public class ReplicaFilter implements IReplicaFilter {
     }
 
     @Override
-    public IReplica convertReplicaForWs(IReplica replicaSrc, IPublicationStorage publicationRules) throws Exception {
+    public IReplica convertReplicaForWs(IReplica replicaSrc, IPublicationRuleStorage publicationRules) throws Exception {
         File replicaFile = replicaSrc.getFile();
 
         // Файл должен быть - иначе незачем делать
@@ -89,37 +86,21 @@ public class ReplicaFilter implements IReplicaFilter {
     }
 
     // todo отдельный тест на copyDataWithFilter
-    private void copyDataWithFilter(JdxReplicaReaderXml dataReader, JdxReplicaWriterXml dataWriter, IPublicationStorage publicationRule, Map<String, String> filterParams) throws Exception {
+    private void copyDataWithFilter(JdxReplicaReaderXml dataReader, JdxReplicaWriterXml dataWriter, IPublicationRuleStorage publicationRules, Map<String, String> filterParams) throws Exception {
         String tableName = dataReader.nextTable();
 
         // Перебираем таблицы
         while (tableName != null) {
-
-            IPublicationRule publicationRuleTable = publicationRule.getPublicationRule(tableName);
+            IPublicationRule publicationRuleTable = publicationRules.getPublicationRule(tableName);
 
             if (publicationRuleTable == null) {
-                // Пропускаем
-                log.info("  skip, not found in publicationRule, table: " + tableName);
+                // Пропускаем таблицу
+                log.info("  skip, not found in publicationRules, table: " + tableName);
             } else {
                 dataWriter.startTable(tableName);
 
                 //
-                String filterExpressionStr = publicationRuleTable.getFilterExpression();
-                Expression filterExpression;
-                if (filterExpressionStr == null) {
-                    filterExpression = new Expression("true");
-                } else {
-                    filterExpression = new Expression(filterExpressionStr);
-                    //
-                    log.debug("Table: " + tableName);
-                    log.debug("FilterExpression: " + filterExpressionStr);
-                }
-
-                // tableName -> filterExpression.filterParams
-                filterExpression.setVariable("PARAM_tableName", tableName);
-
-                // filterParams -> filterExpression.filterParams
-                mapToExpressionParams(filterParams, filterExpression);
+                IRecordFilter recordFilter = new RecordFilter(publicationRuleTable, tableName, filterParams);
 
                 // Перебираем записи
                 long count = 0;
@@ -130,13 +111,9 @@ public class ReplicaFilter implements IReplicaFilter {
                 //
                 while (recValues != null) {
                     int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
-                    filterExpression.setVariable("PARAM_oprType", new BigDecimal(oprType));
-
-                    // recValues -> filterExpression.filterParams
-                    recordToExpressionParams(recValues, publicationRuleTable, filterExpression);
 
                     //
-                    if (filterExpression.eval().equals(BigDecimal.ONE)) {
+                    if (recordFilter.isMach(recValues)) {
                         //
                         dataWriter.appendRec();
 
@@ -178,43 +155,6 @@ public class ReplicaFilter implements IReplicaFilter {
 
             //
             tableName = dataReader.nextTable();
-        }
-    }
-
-    private void mapToExpressionParams(Map<String, String> params, Expression expression) {
-        // Map values -> expression.params
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            String fieldName = entry.getKey();
-            String fieldValue = entry.getValue();
-            expression.setVariable("PARAM_" + fieldName, new BigDecimal(fieldValue));
-        }
-    }
-
-    private void recordToExpressionParams(Map<String, Object> recValues, IPublicationRule publicationRule, Expression expression) {
-        // recValues -> expression.params
-        for (IJdxField field : publicationRule.getFields()) {
-            String fieldName = field.getName();
-            Object fieldValue = recValues.get(fieldName);
-
-            //
-            if (fieldValue != null) {
-                IJdxTable refTable = field.getRefTable();
-                if (field.isPrimaryKey() || refTable != null) {
-                    // Ссылка
-                    JdxRef ref = JdxRef.parse((String) fieldValue);
-                    expression.setVariable("RECORD_OWNER_" + fieldName, new BigDecimal(ref.ws_id));
-                    expression.setVariable("RECORD_" + fieldName, new BigDecimal(ref.value));
-                } else if (fieldValue instanceof Long || fieldValue instanceof Integer) {
-                    // Целочисленное поле
-                    expression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValue.toString()));
-                } else {
-                    // Прочие поля
-                    String fieldValueStr = fieldValue.toString();
-                    if (fieldValueStr.length() > 0) {
-                        // expression.setVariable(fieldName, fieldValueStr); todo: com.udojava.evalex.Expression.isNumber ошибается для дат в строке
-                    }
-                }
-            }
         }
     }
 

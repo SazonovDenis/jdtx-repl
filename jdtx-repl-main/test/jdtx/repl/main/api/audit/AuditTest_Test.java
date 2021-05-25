@@ -4,7 +4,6 @@ import jandcode.app.test.*;
 import jandcode.dbm.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
-import jandcode.web.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
@@ -52,7 +51,7 @@ public class AuditTest_Test extends AppTestCase {
 
         // Загружаем правила публикации
         JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/publication_full_152.json");
-        IPublicationStorage publication = PublicationStorage.loadRules(cfg, db_test_struct, "in");
+        IPublicationRuleStorage publication = PublicationRuleStorage.loadRules(cfg, db_test_struct, "in");
 
         // Формируем реплики
         long wsId = 2;
@@ -69,7 +68,7 @@ public class AuditTest_Test extends AppTestCase {
     public void test_132_145() throws Exception {
         // Загружаем правила публикации
         JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/publication_full_152.json");
-        IPublicationStorage publication = PublicationStorage.loadRules(cfg, db_test_struct, "in");
+        IPublicationRuleStorage publication = PublicationRuleStorage.loadRules(cfg, db_test_struct, "in");
 
         // Формируем реплики
         long wsId = 2;

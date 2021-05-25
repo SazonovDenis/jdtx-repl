@@ -6,7 +6,7 @@ import org.json.simple.*;
 import java.io.*;
 import java.util.*;
 
-public interface IPublicationStorage {
+public interface IPublicationRuleStorage {
 
     /**
      * Заполняет правила публикации с учетом наличия таблиц в структуре struct

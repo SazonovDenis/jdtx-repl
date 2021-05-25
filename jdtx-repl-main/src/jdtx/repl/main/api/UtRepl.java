@@ -676,7 +676,7 @@ public class UtRepl {
         return table.getPrimaryKey().size() == 0;
     }
 
-    static IJdxDbStruct getStructCommon(IJdxDbStruct structActual, IPublicationStorage publicationIn, IPublicationStorage publicationOut) throws Exception {
+    static IJdxDbStruct getStructCommon(IJdxDbStruct structActual, IPublicationRuleStorage publicationIn, IPublicationRuleStorage publicationOut) throws Exception {
         IJdxDbStruct structCommon = new JdxDbStruct();
         for (IJdxTable structTable : structActual.getTables()) {
             if (publicationIn.getPublicationRule(structTable.getName()) != null) {

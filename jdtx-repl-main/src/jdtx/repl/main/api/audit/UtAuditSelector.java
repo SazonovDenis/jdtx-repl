@@ -38,7 +38,7 @@ public class UtAuditSelector {
     /**
      * Собрать аудит и подготовить реплику по правилам публикации publicationStorage для возраста age.
      */
-    public IReplica createReplicaFromAudit(IPublicationStorage publicationStorage, long age) throws Exception {
+    public IReplica createReplicaFromAudit(IPublicationRuleStorage publicationStorage, long age) throws Exception {
         log.info("createReplicaFromAudit, wsId: " + wsId + ", age: " + age);
 
         // Для выборки из аудита - узнаем интервалы id в таблицах аудита
@@ -242,7 +242,7 @@ public class UtAuditSelector {
      * - сэкономить на запросах - не делать запросов к таблицам, которые не в publicationStorage,
      * - а также чтобы избежать ошибок, делая запросы к таблицам, для которых не создан аудит (но которые есть в структуре).
      */
-    Map loadAutitIntervals(IPublicationStorage publicationStorage, long age) throws Exception {
+    Map loadAutitIntervals(IPublicationRuleStorage publicationStorage, long age) throws Exception {
         Map auditInfo = new HashMap<>();
 
         DateTime dtFrom = null;

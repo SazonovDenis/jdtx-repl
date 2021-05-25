@@ -38,7 +38,7 @@ public class UtAuditApplyer {
         this.wsId = wsId;
     }
 
-    public void applyReplica(IReplica replica, IPublicationStorage publicationIn, boolean forceApply_ignorePublicationRules, long commitPortionMax) throws Exception {
+    public void applyReplica(IReplica replica, IPublicationRuleStorage publicationIn, boolean forceApply_ignorePublicationRules, long commitPortionMax) throws Exception {
         //
         InputStream inputStream = null;
         try {
@@ -78,7 +78,7 @@ public class UtAuditApplyer {
     /**
      * Применить данные из dataReader на рабочей станции selfWsId
      */
-    public void applyReplicaReader(JdxReplicaReaderXml dataReader, IPublicationStorage publicationRules, boolean forceApply_ignorePublicationRules, long portionMax) throws Exception {
+    public void applyReplicaReader(JdxReplicaReaderXml dataReader, IPublicationRuleStorage publicationRules, boolean forceApply_ignorePublicationRules, long portionMax) throws Exception {
         log.info("applyReplica, self.WsId: " + wsId + ", replica.WsId: " + dataReader.getWsId() + ", replica.age: " + dataReader.getAge());
 
         //
