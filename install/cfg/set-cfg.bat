@@ -50,28 +50,6 @@ call jc repl_send_cfg -cfg:cfg_publications -file:%cfg_path%publication_lic_194_
 call jc repl_send_cfg -cfg:cfg_publications -file:%cfg_path%publication_lic_194_ws.json -ws:15
 
 
-rem Запрос snapshot
-rem call jc repl-request-snapshot -ws:1  -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
-rem call jc repl-request-snapshot -ws:2  -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
-rem call jc repl-request-snapshot -ws:3  -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
-rem call jc repl-request-snapshot -ws:4  -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
-rem call jc repl-request-snapshot -ws:5  -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
-rem call jc repl-request-snapshot -ws:6  -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
-rem call jc repl-request-snapshot -ws:7  -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
-rem call jc repl-request-snapshot -ws:8  -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
-rem call jc repl-request-snapshot -ws:9  -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
-rem call jc repl-request-snapshot -ws:10 -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
-rem call jc repl-request-snapshot -ws:11 -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
-rem call jc repl-request-snapshot -ws:12 -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
-rem call jc repl-request-snapshot -ws:13 -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
-rem call jc repl-request-snapshot -ws:14 -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
-rem call jc repl-request-snapshot -ws:15 -tables:"CommentText,CommentTip,Usr,UsrGrp,UsrOtdel"
-
-
-rem Завершение изменения структуры
-pause Wait finish
-call jc repl-dbstruct-finish
-
-pause Done finish
+pause Done send cfg
 
 
