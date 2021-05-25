@@ -5,6 +5,7 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.decoder.*;
+import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
@@ -38,7 +39,7 @@ public class UtAuditApplyer {
         this.wsId = wsId;
     }
 
-    public void applyReplica(IReplica replica, IPublicationRuleStorage publicationIn, boolean forceApply_ignorePublicationRules, long commitPortionMax) throws Exception {
+    public void applyReplica(IReplica replica, IPublicationRuleStorage publicationIn, Map<String, String> filterParams, boolean forceApply_ignorePublicationRules, long commitPortionMax) throws Exception {
         //
         InputStream inputStream = null;
         try {
@@ -50,7 +51,7 @@ public class UtAuditApplyer {
 
             //
             try {
-                applyReplicaReader(replicaReader, publicationIn, forceApply_ignorePublicationRules, commitPortionMax);
+                applyReplicaReader(replicaReader, publicationIn, filterParams, forceApply_ignorePublicationRules, commitPortionMax);
             } catch (Exception e) {
                 if (e instanceof JdxForeignKeyViolationException) {
                     File replicaRepairFile = jdxReplWs.handleFailedInsertUpdateRef((JdxForeignKeyViolationException) e);
@@ -78,7 +79,7 @@ public class UtAuditApplyer {
     /**
      * Применить данные из dataReader на рабочей станции selfWsId
      */
-    public void applyReplicaReader(JdxReplicaReaderXml dataReader, IPublicationRuleStorage publicationRules, boolean forceApply_ignorePublicationRules, long portionMax) throws Exception {
+    public void applyReplicaReader(JdxReplicaReaderXml dataReader, IPublicationRuleStorage publicationRules, Map<String, String> filterParams, boolean forceApply_ignorePublicationRules, long portionMax) throws Exception {
         log.info("applyReplica, self.WsId: " + wsId + ", replica.WsId: " + dataReader.getWsId() + ", replica.age: " + dataReader.getAge());
 
         //
@@ -149,12 +150,18 @@ public class UtAuditApplyer {
                 String idFieldName = table.getPrimaryKey().get(0).getName();
                 String tableName = table.getName();
 
+                //
+                IRecordFilter recordFilter = null;
+
                 // Поиск таблицы и ее полей в публикации (поля берем именно из правил публикаций)
                 IPublicationRule publicationRuleTable;
                 if (forceApply_ignorePublicationRules) {
                     // Таблицу и ее поля берем из актуальной структуры БД
                     publicationRuleTable = new PublicationRule(struct.getTable(readerTableName));
                     log.info("  force apply table: " + readerTableName + ", ignore publication rules");
+
+                    //
+                    recordFilter = new RecordFilterTrue();
                 } else {
                     // Таблицу и ее поля берем именно из правил публикаций
                     publicationRuleTable = publicationRules.getPublicationRule(readerTableName);
@@ -167,6 +174,9 @@ public class UtAuditApplyer {
                         //
                         continue;
                     }
+
+                    //
+                    recordFilter = new RecordFilter(publicationRuleTable, tableName, filterParams);
                 }
 
                 // Тут копим задания на DELETE для таблицы, их выполняем вторым проходом.
@@ -185,116 +195,120 @@ public class UtAuditApplyer {
                 }
                 readerTableNamePrior = readerTableName;
 
-                Map recValues = dataReader.nextRec();
+                Map<String, Object> recValues = dataReader.nextRec();
                 while (recValues != null) {
-                    // Обеспечим не слишком огромные порции коммитов
-                    if (portionMax != 0 && countPortion >= portionMax) {
-                        countPortion = 0;
-                        //
-                        db.commit();
-                        db.startTran();
-                        //
-                        log.info("  table: " + readerTableName + ", " + count + ", commit/startTran");
-                    }
-                    countPortion++;
 
-                    // Подготовка recParams - значений полей для записи в БД
-                    Map recParams = new HashMap();
-                    for (IJdxField publicationField : publicationRuleTable.getFields()) {
-                        String publicationFieldName = publicationField.getName();
-                        IJdxField field = table.getField(publicationFieldName);
+                    if (recordFilter.isMach(recValues)) {
 
-                        // Поле - BLOB?
-                        if (getDataType(field.getDbDatatype()) == DataType.BLOB) {
-                            String blobBase64 = (String) recValues.get(publicationFieldName);
-                            byte[] blob = UtString.decodeBase64(blobBase64);
-                            recParams.put(publicationFieldName, blob);
-                            continue;
+                        // Обеспечим не слишком огромные порции коммитов
+                        if (portionMax != 0 && countPortion >= portionMax) {
+                            countPortion = 0;
+                            //
+                            db.commit();
+                            db.startTran();
+                            //
+                            log.info("  table: " + readerTableName + ", " + count + ", commit/startTran");
+                        }
+                        countPortion++;
+
+                        // Подготовка recParams - значений полей для записи в БД
+                        Map recParams = new HashMap();
+                        for (IJdxField publicationField : publicationRuleTable.getFields()) {
+                            String publicationFieldName = publicationField.getName();
+                            IJdxField field = table.getField(publicationFieldName);
+
+                            // Поле - BLOB?
+                            if (getDataType(field.getDbDatatype()) == DataType.BLOB) {
+                                String blobBase64 = (String) recValues.get(publicationFieldName);
+                                byte[] blob = UtString.decodeBase64(blobBase64);
+                                recParams.put(publicationFieldName, blob);
+                                continue;
+                            }
+
+                            // Поле - дата/время?
+                            if (getDataType(field.getDbDatatype()) == DataType.DATETIME) {
+                                String valueStr = (String) recValues.get(publicationFieldName);
+                                DateTime value = null;
+                                if (valueStr != null && valueStr.length() != 0) {
+                                    value = new DateTime(valueStr);
+                                }
+                                recParams.put(publicationFieldName, value);
+                                continue;
+                            }
+
+                            // Поле - ссылка?
+                            IJdxTable refTable = field.getRefTable();
+                            if (field.isPrimaryKey() || refTable != null) {
+                                // Ссылка
+                                String refTableName;
+                                if (field.isPrimaryKey()) {
+                                    refTableName = tableName;
+                                } else {
+                                    refTableName = refTable.getName();
+                                }
+                                JdxRef ref = JdxRef.parse((String) recValues.get(publicationFieldName));
+                                if (ref.ws_id == -1) {
+                                    ref.ws_id = dataReader.getWsId();
+                                }
+                                // Перекодировка ссылки
+                                long ref_own = decoder.get_id_own(refTableName, ref.ws_id, ref.value);
+                                recParams.put(publicationFieldName, ref_own);
+                                continue;
+                            }
+
+                            // Просто поле, без изменений
+                            recParams.put(publicationFieldName, recValues.get(publicationFieldName));
                         }
 
-                        // Поле - дата/время?
-                        if (getDataType(field.getDbDatatype()) == DataType.DATETIME) {
-                            String valueStr = (String) recValues.get(publicationFieldName);
-                            DateTime value = null;
-                            if (valueStr != null && valueStr.length() != 0) {
-                                value = new DateTime(valueStr);
+                        // Выполняем INS/UPD/DEL
+                        String publicationFields = UtJdx.fieldsToString(publicationRuleTable.getFields());
+                        // Очень важно взять поля для обновления (publicationFields) именно из правил публикации,
+                        // а не все что есть в физической  таблице, т.к. именно по этим правилам готовилась реплика на сервере,
+                        // при этом может импользоваться НЕ ПОЛНЫЙ набор полей. (Неполный набр полей используется, например,
+                        // если на филиалы НЕ отправляются данные из справочников, на которые ссылается рассматриваемая таблица,
+                        // например: примечания, сделанные пользователем, примечания отправляем, а ССЫЛКИ на пользователей придется пропустить),
+                        // Из-за этого пропуска полей, при получении на рабочей станции СВОЕЙ реплики и попытке обновить ВСЕ поля,
+                        // пропущенные поля станут null. На ДРУГИХ филиалах это не страшно, а на НАШЕЙ - данные затрутся.
+                        int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
+                        if (oprType == JdxOprType.OPR_INS) {
+                            try {
+                                insertOrUpdate(dbu, tableName, recParams, publicationFields);
+                            } catch (Exception e) {
+                                if (UtJdx.errorIs_ForeignKeyViolation(e)) {
+                                    log.error(e.getMessage());
+                                    log.error("recParams: " + recParams);
+                                    log.error("recValues: " + recValues);
+                                    //
+                                    JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
+                                    ee.recParams = recParams;
+                                    ee.recValues = recValues;
+                                    throw (ee);
+                                } else {
+                                    throw (e);
+                                }
                             }
-                            recParams.put(publicationFieldName, value);
-                            continue;
-                        }
 
-                        // Поле - ссылка?
-                        IJdxTable refTable = field.getRefTable();
-                        if (field.isPrimaryKey() || refTable != null) {
-                            // Ссылка
-                            String refTableName;
-                            if (field.isPrimaryKey()) {
-                                refTableName = tableName;
-                            } else {
-                                refTableName = refTable.getName();
+                        } else if (oprType == JdxOprType.OPR_UPD) {
+                            try {
+                                dbu.updateRec(tableName, recParams, publicationFields, null);
+                            } catch (Exception e) {
+                                if (UtJdx.errorIs_ForeignKeyViolation(e)) {
+                                    log.error(e.getMessage());
+                                    log.error("recParams: " + recParams);
+                                    log.error("recValues: " + recValues);
+                                    //
+                                    JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
+                                    ee.recParams = recParams;
+                                    ee.recValues = recValues;
+                                    throw (ee);
+                                } else {
+                                    throw (e);
+                                }
                             }
-                            JdxRef ref = JdxRef.parse((String) recValues.get(publicationFieldName));
-                            if (ref.ws_id == -1) {
-                                ref.ws_id = dataReader.getWsId();
-                            }
-                            // Перекодировка ссылки
-                            long ref_own = decoder.get_id_own(refTableName, ref.ws_id, ref.value);
-                            recParams.put(publicationFieldName, ref_own);
-                            continue;
+                        } else if (oprType == JdxOprType.OPR_DEL) {
+                            // Отложим удаление на второй проход
+                            delayedDeleteList.add((Long) recParams.get(idFieldName));
                         }
-
-                        // Просто поле, без изменений
-                        recParams.put(publicationFieldName, recValues.get(publicationFieldName));
-                    }
-
-                    // Выполняем INS/UPD/DEL
-                    String publicationFields = UtJdx.fieldsToString(publicationRuleTable.getFields());
-                    // Очень важно взять поля для обновления (publicationFields) именно из правил публикации,
-                    // а не все что есть в физической  таблице, т.к. именно по этим правилам готовилась реплика на сервере,
-                    // при этом может импользоваться НЕ ПОЛНЫЙ набор полей. (Неполный набр полей используется, например,
-                    // если на филиалы НЕ отправляются данные из справочников, на которые ссылается рассматриваемая таблица,
-                    // например: примечания, сделанные пользователем, примечания отправляем, а ССЫЛКИ на пользователей придется пропустить),
-                    // Из-за этого пропуска полей, при получении на рабочей станции СВОЕЙ реплики и попытке обновить ВСЕ поля,
-                    // пропущенные поля станут null. На ДРУГИХ филиалах это не страшно, а на НАШЕЙ - данные затрутся.
-                    int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
-                    if (oprType == JdxOprType.OPR_INS) {
-                        try {
-                            insertOrUpdate(dbu, tableName, recParams, publicationFields);
-                        } catch (Exception e) {
-                            if (UtJdx.errorIs_ForeignKeyViolation(e)) {
-                                log.error(e.getMessage());
-                                log.error("recParams: " + recParams);
-                                log.error("recValues: " + recValues);
-                                //
-                                JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
-                                ee.recParams = recParams;
-                                ee.recValues = recValues;
-                                throw (ee);
-                            } else {
-                                throw (e);
-                            }
-                        }
-
-                    } else if (oprType == JdxOprType.OPR_UPD) {
-                        try {
-                            dbu.updateRec(tableName, recParams, publicationFields, null);
-                        } catch (Exception e) {
-                            if (UtJdx.errorIs_ForeignKeyViolation(e)) {
-                                log.error(e.getMessage());
-                                log.error("recParams: " + recParams);
-                                log.error("recValues: " + recValues);
-                                //
-                                JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
-                                ee.recParams = recParams;
-                                ee.recValues = recValues;
-                                throw (ee);
-                            } else {
-                                throw (e);
-                            }
-                        }
-                    } else if (oprType == JdxOprType.OPR_DEL) {
-                        // Отложим удаление на второй проход
-                        delayedDeleteList.add((Long) recParams.get(idFieldName));
                     }
 
                     //

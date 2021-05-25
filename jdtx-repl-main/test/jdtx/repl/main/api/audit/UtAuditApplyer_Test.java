@@ -8,6 +8,7 @@ import org.json.simple.*;
 import org.junit.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  */
@@ -41,7 +42,7 @@ public class UtAuditApplyer_Test extends ReplDatabaseStruct_Test {
 
         // Применяем реплики
         UtAuditApplyer utaa = new UtAuditApplyer(db2, struct2, 2);
-        utaa.applyReplicaReader(replicaReader, publication, false, 0);
+        utaa.applyReplicaReader(replicaReader, publication, new HashMap<>(), false, 0);
     }
 
     @Test

@@ -1035,7 +1035,16 @@ public class JdxReplWs {
                 //
                 UtAuditApplyer auditApplyer = new UtAuditApplyer(db, struct, wsId);
                 auditApplyer.jdxReplWs = this;
-                auditApplyer.applyReplica(replica, publicationIn, forceApply_ignorePublicationRules, commitPortionMax);
+
+                // Параметры (для правил публикации)
+                Map<String, String> filterParams = new HashMap<>();
+                // Параметры (для правил публикации): автор реплики
+                filterParams.put("wsAuthor", String.valueOf(replica.getInfo().getWsId()));
+                // Параметры (для правил публикации): получатель реплики (для правил публикации)
+                filterParams.put("wsDestination", String.valueOf(wsId));
+
+                //
+                auditApplyer.applyReplica(replica, publicationIn, filterParams, forceApply_ignorePublicationRules, commitPortionMax);
 
                 //
                 break;
