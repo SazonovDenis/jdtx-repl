@@ -1,7 +1,7 @@
 {
-  "in": "full",
-  "out": "filtered_full",
-  "filtered_full": {
+  "in": "in_full",
+  "out": "out_filtered_full",
+  "out_filtered_full": {
     "appupdate": {
       "fields": "*"
     },
@@ -63,10 +63,6 @@
     "cashordergen": {
       "fields": "*",
       "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
-    },
-    "cashsumm": {
-      "fields": "*",
-      "filter": "false"
     },
     "categoryhist": {
       "fields": "*"
@@ -273,7 +269,7 @@
       "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
     }
   },
-  "full": {
+  "in_full": {
     "billingvarhist": {
       "fields": "*"
     },
