@@ -147,7 +147,8 @@ repl_ws_mute = cm("Перевести станцию в состояние MUTE"
 
 //
 repl_ws_unmute = cm("Вывести станцию из состояния MUTE",
-        "ws": [value: null, help: "Код рабочей станции"]) {
+        "ws": [value: null, help: "Код рабочей станции"]
+) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_ws_unmute(args)
 }
@@ -176,14 +177,21 @@ repl_dbstruct_finish = cm("Завершить смену структуры") {
 
 
 //
-repl_set_cfg = cm("repl_set_cfg") {
+repl_set_cfg = cm("Задать конфигурацию рабочей станции",
+        "file": [help: "cfg-файл"],
+        "cfg": [help: "Вид конфигурации"],
+) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_set_cfg(args)
 }
 
 
 //
-repl_send_cfg = cm("repl_send_cfg") {
+repl_send_cfg = cm("Отправить конфигурацию на рабочую станцию",
+        "file": [help: "cfg-файл"],
+        "cfg": [help: "Вид конфигурации"],
+        "ws": [help: "Рабочая станция-получатель"]
+) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_send_cfg(args)
 }
