@@ -1,7 +1,7 @@
 {
-  "in": "full",
-  "out": "lic_only",
-  "lic_only": {
+  "in": "in_full",
+  "out": "out_lic_only",
+  "out_lic_only": {
     "appupdate": {
       "fields": "*"
     },
@@ -36,9 +36,12 @@
     },
     "ulztip": {
       "fields": "*"
+    },
+    "usr": {
+      "fields": "*"
     }
   },
-  "full": {
+  "in_full": {
     "appupdate": {
       "fields": "*"
     },
