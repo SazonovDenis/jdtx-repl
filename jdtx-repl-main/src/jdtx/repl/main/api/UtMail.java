@@ -19,14 +19,17 @@ public class UtMail {
     static void sendQueToMail(long wsId, IJdxQue que, IMailer mailer, String box, IJdxStateManagerMail stateManager) throws Exception {
         log.info("sendMail, wsId: " + wsId + ", box: " + box);
 
-        //
-        long sendFrom;
-        long sendTo;
-        boolean doMarkDone;
-
         // Выясняем объем передачи: узнаем сами, сколько просит станция
         SendRequiredInfo requiredInfo = mailer.getSendRequired(box);
 
+        // Узнаем, сколько есть у нас
+        long queMaxNo = que.getMaxNo();
+        // Узнаем, какая последняя отправленная
+        long queLastSendNo = stateManager.getMailSendDone();
+
+        //
+        long sendFrom;
+        long sendTo;
         //
         if (requiredInfo.requiredFrom != -1) {
             // Попросили повторную отправку
@@ -36,15 +39,13 @@ public class UtMail {
                 log.warn("Repeat send required, from: " + requiredInfo.requiredFrom + ", to: " + requiredInfo.requiredTo + ", recreate: " + requiredInfo.recreate);
             } else {
                 // Зададим сами (до последней, что у нас есть на раздачу)
-                sendTo = que.getMaxNo();
+                sendTo = queMaxNo;
                 log.warn("Repeat send required, from: " + requiredInfo.requiredFrom + ", recreate: " + requiredInfo.recreate);
             }
-            doMarkDone = false;
         } else {
             // Не просили - зададим сами (от последней отправленной до последней, что у нас есть на раздачу)
-            sendFrom = stateManager.getMailSendDone() + 1;
-            sendTo = que.getMaxNo();
-            doMarkDone = true;
+            sendFrom = queLastSendNo + 1;
+            sendTo = queMaxNo;
         }
 
 
@@ -55,12 +56,11 @@ public class UtMail {
             // Читаем заголовок
             JdxReplicaReaderXml.readReplicaInfo(replica);
 
-            // Физически отправим  реплику
+            // Физически отправим реплику
             mailer.send(replica, box, no);
 
-            // Отметим отправку
-            if (doMarkDone) {
-                // Отметим отправку очередного номера реплики.
+            // Отметим отправку очередного номера реплики (если отметка двигается вперед)
+            if (no > queLastSendNo) {
                 stateManager.setMailSendDone(no);
             }
 
