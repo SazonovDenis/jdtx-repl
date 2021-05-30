@@ -122,7 +122,7 @@ repl_app_version = cm("Версия ПО") {
 
 //
 repl_app_update = cm("Послать сигнал на обновление ПО",
-        "-file": [help: "Файл для установки обновления"],
+        "file": [value: null, help: "Файл для установки обновления"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_app_update(args)
@@ -162,7 +162,7 @@ repl_dbstruct_start = cm("Начать смену структуры") {
 
 //
 repl_dbstruct_state = cm("Состояние mute у рабочих станций",
-        "wait": [help: "Ожидать состояния у всех станций mute = true"],
+        "wait": [value: null, help: "Ожидать состояния у всех станций mute = true"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_dbstruct_state(args)
@@ -178,19 +178,18 @@ repl_dbstruct_finish = cm("Завершить смену структуры") {
 
 //
 repl_set_cfg = cm("Задать конфигурацию рабочей станции",
-        "file": [help: "cfg-файл"],
-        "cfg": [help: "Вид конфигурации"],
+        "file": [value: null, help: "cfg-файл"],
+        "cfg": [value: null, help: "Вид конфигурации"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_set_cfg(args)
 }
 
-
 //
 repl_send_cfg = cm("Отправить конфигурацию на рабочую станцию",
-        "file": [help: "cfg-файл"],
-        "cfg": [help: "Вид конфигурации"],
-        "ws": [help: "Рабочая станция-получатель"]
+        "file": [value: null, help: "cfg-файл"],
+        "cfg": [value: null, help: "Вид конфигурации"],
+        "ws": [value: null, help: "Рабочая станция-получатель"]
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_send_cfg(args)
