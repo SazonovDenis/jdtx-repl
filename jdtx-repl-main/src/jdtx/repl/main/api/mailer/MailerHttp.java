@@ -248,7 +248,7 @@ public class MailerHttp implements IMailer {
 
 
     @Override
-    public ReplicaInfo getReplicaInfo(String box, long no) throws Exception {
+    public IReplicaInfo getReplicaInfo(String box, long no) throws Exception {
         JSONObject resInfo = getInfo_internal(box, no);
 
         //

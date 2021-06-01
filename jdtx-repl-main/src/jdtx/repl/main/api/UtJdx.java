@@ -352,7 +352,7 @@ public class UtJdx {
     /**
      * Проверяет целостность файцла в реплике по crc
      */
-    public static void checkReplicaCrc(IReplica replica, ReplicaInfo info) throws Exception {
+    public static void checkReplicaCrc(IReplica replica, IReplicaInfo info) throws Exception {
         String md5file = UtJdx.getMd5File(replica.getFile());
         if (!md5file.equals(info.getCrc())) {
             // Неправильно скачанный файл - удаляем, чтобы потом начать снова
