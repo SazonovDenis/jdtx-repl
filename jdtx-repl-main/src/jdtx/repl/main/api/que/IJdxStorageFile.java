@@ -1,7 +1,7 @@
 package jdtx.repl.main.api.que;
 
 /**
- * todo: Это только для реплик в файлах. А вообще может быть по-другому.
+ * Для реплик, хранимых в файлах.
  */
 public interface IJdxStorageFile {
 

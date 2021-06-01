@@ -1422,6 +1422,8 @@ public class JdxReplWs {
      * Выявить ситуацию "станцию восстановили из бэкапа" и починить ее
      */
     public void repairAfterBackupRestore(boolean doRepair) throws Exception {
+        JdxStorageFile queFile = new JdxStorageFile();
+
         // ---
         // Сколько входящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
         long noQueInDir = ((JdxStorageFile) queIn).getMaxNoFromDir();
@@ -1488,12 +1490,14 @@ public class JdxReplWs {
         // Берем входящие реплики, которые мы пропустили.
         // Кладем их в свою входящую очередь (потом они будут использованы штатным механизмом).
         // Запрос на сервер повторной отправки входящих реплик - НЕ НУЖНО - они у нас уже есть.
+        queFile.setDataRoot(queIn.getBaseDir());
         long count = 0;
         for (long no = noQueInMarked + 1; no <= noQueInDir; no++) {
             log.warn("Repair queIn, self.wsId: " + wsId + ", queIn.no: " + no + " (" + count + "/" + (noQueInDir - noQueInMarked) + ")");
 
             // Извлекаем входящую реплику из закромов
-            IReplica replica = queIn.get(no);
+            IReplica replica = queFile.get(no);
+            JdxReplicaReaderXml.readReplicaInfo(replica);
 
             // Пополнение (восстановление) входящей очереди
             queIn.push(replica);
@@ -1519,18 +1523,20 @@ public class JdxReplWs {
         // Чиним данные на основе собственного аудита
         // ---
 
-        // Применяем их у себя (это нужно).
-        // Восстанавливаем исходящую очередь (вообще-то уже не нужно).
+        // Применяем их у себя (это нужно - для случая восстановления из бакапа именно в ИСХОДЯЩИХ репликах содержатся самые последние данные).
+        // Восстанавливаем исходящую очередь (вообще-то уже не обязательно, т.к. ОТПРАВЛЕННЫЕ реплики больше не нужны, но просто для порядка).
+        queFile.setDataRoot(queOut.getBaseDir());
         count = 0;
         for (long age = ageQueOut + 1; age <= ageQueOutDir; age++) {
             log.warn("Repair queOut, self.wsId: " + wsId + ", queOut.age: " + age + " (" + count + "/" + (ageQueOutDir - ageQueOut) + ")");
 
             // Извлекаем свою реплику из закромов
-            IReplica replica = queOut.get(age);
+            IReplica replica = queFile.get(age);
+            JdxReplicaReaderXml.readReplicaInfo(replica);
 
             // Применяем реплику у себя.
             // Учтем, до которого возраста мы получили и применили НАШИ СОБСТВЕННЫЕ реплики
-            // из ВХОДЯЩЕЙ очереди QueIn и применим ТОЛЬКО не примененные
+            // из ВХОДЯЩЕЙ очереди QueIn и применим ТОЛЬКО НЕ примененные
             if (handleQueInUseResult.lastOwnAgeUsed > 0 && age > handleQueInUseResult.lastOwnAgeUsed) {
                 // Пробуем применить собственную реплику
                 ReplicaUseResult useResult = useReplica(replica, true);

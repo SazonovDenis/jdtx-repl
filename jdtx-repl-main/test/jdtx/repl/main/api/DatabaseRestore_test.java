@@ -10,7 +10,7 @@ import java.io.*;
 public class DatabaseRestore_test extends JdxReplWsSrv_Test {
 
     @Test
-    public void test_DatabaseRestore() throws Exception {
+    public void test_DatabaseRestore_step1() throws Exception {
         // Первичная инициализация
         allSetUp();
         sync_http_1_2_3();
@@ -33,7 +33,7 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
         }
 
         // Сохраним "бэкап" базы для ws2
-        testBackup(extWs2);
+        doBackup(extWs2);
 
 
         // Изменения в базах и синхронизация
@@ -60,10 +60,10 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
 
 
         // "Откат" базы
-        testRestore(extWs2);
+        doRestore(extWs2);
 
 
-        // Попытка синхронизации
+        // Попытка синхронизации (неудачная)
         sync_http_1_2_3();
         sync_http_1_2_3();
 
@@ -76,7 +76,7 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
         test_ws2_makeChange();
         test_ws3_makeChange();
 
-        // Синхронизация
+        // Попытка синхронизации (неудачная)
         sync_http_1_2_3();
         sync_http_1_2_3();
 
@@ -85,7 +85,7 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
     }
 
     @Test
-    public void test_repairAfterBackupRestore() throws Exception {
+    public void test_DatabaseRestore_step2() throws Exception {
         // Ремонт
         JdxReplWs ws = new JdxReplWs(db2);
         ws.init();
@@ -93,12 +93,13 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
 
         // Синхронизация
         sync_http_1_2_3();
+        sync_http_1_2_3();
 
         //
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
-    private void testRestore(Jdx_Ext extWs) throws Exception {
+    private void doRestore(Jdx_Ext extWs) throws Exception {
         doDisconnectAll();
         //
         Rt rt = extWs.getApp().getRt().getChild("db/default");
@@ -109,7 +110,7 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
         doConnectAll();
     }
 
-    private void testBackup(Jdx_Ext extWs) throws Exception {
+    private void doBackup(Jdx_Ext extWs) throws Exception {
         doDisconnectAll();
         //
         Rt rt = extWs.getApp().getRt().getChild("db/default");
