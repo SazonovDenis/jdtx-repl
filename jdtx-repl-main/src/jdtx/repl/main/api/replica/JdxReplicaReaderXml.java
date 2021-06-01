@@ -99,7 +99,7 @@ public class JdxReplicaReaderXml {
     }
 
     public static void readReplicaInfo(IReplica replica) throws Exception {
-        ReplicaInfo info;
+        ReplicaInfo info = new ReplicaInfo();
         try (
                 InputStream zipInputStream = createInputStream(replica, ".info")
         ) {
@@ -107,7 +107,7 @@ public class JdxReplicaReaderXml {
             Reader reader = new InputStreamReader(zipInputStream);
             JSONParser parser = new JSONParser();
             jsonObject = (JSONObject) parser.parse(reader);
-            info = ReplicaInfo.fromJSONObject(jsonObject);
+            info.fromJSONObject(jsonObject);
         }
 
         //

@@ -1,8 +1,10 @@
 package jdtx.repl.main.api.replica;
 
 import org.joda.time.*;
+import org.json.simple.*;
 
 /**
+ *
  */
 public interface IReplicaInfo {
 
@@ -29,14 +31,16 @@ public interface IReplicaInfo {
 
     void setReplicaType(int replicaType);
 
-    String getCrc();
-
-    void setCrc(String crc);
-
     String getDbStructCrc();
 
     void setDbStructCrc(String crc);
 
     void assign(IReplicaInfo info);
+
+    void fromJSONObject(JSONObject infoJson);
+
+    JSONObject toJSONObject();
+
+    String toJSONString();
 
 }

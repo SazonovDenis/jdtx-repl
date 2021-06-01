@@ -1,5 +1,6 @@
 package jdtx.repl.main.api.replica;
 
+import jdtx.repl.main.api.*;
 import org.joda.time.*;
 import org.json.simple.*;
 
@@ -9,13 +10,12 @@ import org.json.simple.*;
 public class ReplicaInfo implements IReplicaInfo {
 
 
-    private long wsId;
-    private long age;
-    private DateTime dtFrom;
-    private DateTime dtTo;
-    private int replicaType;
-    private String crc;
-    private String dbStructCrc;
+    long wsId;
+    long age;
+    DateTime dtFrom;
+    DateTime dtTo;
+    int replicaType;
+    String dbStructCrc;
 
     public long getWsId() {
         return wsId;
@@ -57,14 +57,6 @@ public class ReplicaInfo implements IReplicaInfo {
         this.replicaType = replicaType;
     }
 
-    public String getCrc() {
-        return crc;
-    }
-
-    public void setCrc(String crc) {
-        this.crc = crc;
-    }
-
     public String getDbStructCrc() {
         return dbStructCrc;
     }
@@ -79,35 +71,27 @@ public class ReplicaInfo implements IReplicaInfo {
         this.dtFrom = src.getDtFrom();
         this.dtTo = src.getDtTo();
         this.replicaType = src.getReplicaType();
-        this.crc = src.getCrc();
         this.dbStructCrc = src.getDbStructCrc();
     }
 
-    @Override
-    public String toString() {
-        return "{\"wsId\": " + wsId + ", \"age\": " + age + ", \"replicaType\": " + replicaType + ", \"crc\": \"" + crc + "\", \"dbStructCrc\": \"" + dbStructCrc + "\", \"dtFrom\": \"" + dtFrom + "\", \"dtTo\": \"" + dtTo + "\"}";
-    }
-
-    public static ReplicaInfo fromJSONObject(JSONObject res) {
-        ReplicaInfo info = new ReplicaInfo();
-        info.wsId = (long) res.get("wsId");
-        info.age = (long) res.get("age");
-        String dtFrom = (String) res.get("dtFrom");
+    public void fromJSONObject(JSONObject infoJson) {
+        this.wsId = (long) infoJson.get("wsId");
+        this.age = (long) infoJson.get("age");
+        String dtFrom = (String) infoJson.get("dtFrom");
         if (dtFrom != null && dtFrom.compareTo("null") != 0) {
-            info.dtFrom = new DateTime(dtFrom);
+            this.dtFrom = new DateTime(dtFrom);
         }
-        String dtTo = (String) res.get("dtTo");
+        String dtTo = (String) infoJson.get("dtTo");
         if (dtTo != null && dtTo.compareTo("null") != 0) {
-            info.dtTo = new DateTime(dtTo);
+            this.dtTo = new DateTime(dtTo);
         }
-        info.replicaType = Integer.valueOf(String.valueOf(res.get("replicaType")));  // так сложно - потому что в res.get("replicaType") оказывается Long
-        info.crc = (String) res.get("crc");
-        info.dbStructCrc = (String) res.get("dbStructCrc");
-        return info;
+        this.replicaType = UtJdx.intValueOf(infoJson.get("replicaType"));
+        this.dbStructCrc = (String) infoJson.get("dbStructCrc");
     }
 
     public JSONObject toJSONObject() {
         JSONObject res = new JSONObject();
+        //
         res.put("wsId", wsId);
         res.put("age", age);
         if (dtFrom != null) {
@@ -117,8 +101,12 @@ public class ReplicaInfo implements IReplicaInfo {
             res.put("dtTo", dtTo.toString());
         }
         res.put("replicaType", replicaType);
-        res.put("crc", crc);
+        //
         return res;
+    }
+
+    public String toJSONString() {
+        return "{\"wsId\": " + wsId + ", \"age\": " + age + ", \"replicaType\": " + replicaType + ", \"dbStructCrc\": \"" + dbStructCrc + "\", \"dtFrom\": \"" + dtFrom + "\", \"dtTo\": \"" + dtTo + "\"}";
     }
 
 }

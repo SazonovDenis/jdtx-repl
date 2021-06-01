@@ -1226,7 +1226,7 @@ public class JdxReplWs {
             log.info("receive, receiving.no: " + no);
 
             // Информация о реплике с почтового сервера
-            IReplicaInfo info = mailer.getReplicaInfo(boxName, no);
+            IReplicaFileInfo info = mailer.getReplicaInfo(boxName, no);
 
             // Нужно ли скачивать эту реплику с сервера?
             IReplica replica;

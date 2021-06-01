@@ -49,7 +49,7 @@ public interface IMailer {
      *
      * @return заголовок с возрастом реплики, её типом, размером, crc и т.п.
      */
-    IReplicaInfo getReplicaInfo(String box, long no) throws Exception;
+    IReplicaFileInfo getReplicaInfo(String box, long no) throws Exception;
 
     /**
      * Получение реплики (письма)

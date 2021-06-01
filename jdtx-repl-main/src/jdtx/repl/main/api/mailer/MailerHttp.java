@@ -233,7 +233,7 @@ public class MailerHttp implements IMailer {
 
 
         // Завершение закачки
-        ReplicaInfo info = new ReplicaInfo();
+        IReplicaFileInfo info = new ReplicaFileInfo();
         info.setReplicaType(replica.getInfo().getReplicaType());
         info.setDbStructCrc(replica.getInfo().getDbStructCrc());
         info.setWsId(replica.getInfo().getWsId());
@@ -248,14 +248,16 @@ public class MailerHttp implements IMailer {
 
 
     @Override
-    public IReplicaInfo getReplicaInfo(String box, long no) throws Exception {
+    public IReplicaFileInfo getReplicaInfo(String box, long no) throws Exception {
         JSONObject resInfo = getInfo_internal(box, no);
 
         //
         JSONObject file_info = (JSONObject) resInfo.get("file_info");
 
         //
-        return ReplicaInfo.fromJSONObject(file_info);
+        IReplicaFileInfo info = new ReplicaFileInfo();
+        info.fromJSONObject(file_info);
+        return info;
     }
 
 
@@ -445,7 +447,7 @@ public class MailerHttp implements IMailer {
     }
 
 
-    void sendCommit_internal(String box, long no, ReplicaInfo info, long partsCount, long totalBytes) throws Exception {
+    void sendCommit_internal(String box, long no, IReplicaFileInfo info, long partsCount, long totalBytes) throws Exception {
         HttpClient client = HttpClientBuilder.create().build();
 
         HttpPost post = createHttpPost("repl_send_commit");
