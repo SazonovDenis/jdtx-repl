@@ -398,6 +398,7 @@ public class UtJdx {
         } else if (value instanceof Integer) {
             valueInteger = (Integer) value;
         } else if (value instanceof Long) {
+            // В value может оказаться long, но на самом деле - не более чем int, например в ReplicaInfo.fromJSONObject, в infoJson.get("replicaType") оказывается Long
             valueInteger = Integer.valueOf(value.toString());
         } else {
             String valueString = value.toString();
