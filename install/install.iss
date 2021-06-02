@@ -87,7 +87,7 @@ Source: {#SourceDirJre}\*.*; DestDir: {app}\jre; Flags: ignoreversion recursesub
 
 
 Source: install\cm.bat;                           DestDir: {app};                 Flags: ignoreversion
-Source: install\jc-start.bat;                     DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
+Source: install\jc-start.bat;                     DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist
 Source: install\jc-start.vbs;                     DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
 Source: install\jc-stop.bat;                      DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
 Source: install\jc-stop.vbs;                      DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
