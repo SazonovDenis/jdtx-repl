@@ -21,7 +21,6 @@ import jdtx.repl.main.api.util.*;
 import org.apache.commons.io.*;
 import org.apache.commons.logging.*;
 import org.apache.log4j.*;
-import org.joda.time.*;
 import org.json.simple.*;
 
 import java.io.*;
@@ -1455,13 +1454,10 @@ public class JdxReplWs {
         JdxStateManagerMail stateManagerMail = new JdxStateManagerMail(db);
         long ageSendMarked = stateManagerMail.getMailSendDone();
 
-        // Есть ли отметка о начале ремонта
-        File lockFile = new File(dataRoot + "temp/repairBackup.lock");
-
 
         // Допускается, если в каталоге для QueIn меньше реплик, чем помечено в очереди QueIn (noQueInMarked >= noQueInDir)
         // Это бывает из-за того, что при получении собственных snapshot-реплик, мы ее не скачиваем (она нам не нужна)
-        if ((noQueInMarked == -1 || noQueInMarked >= noQueInDir) && ageQueOut == ageQueOutDir && ageQueOutMarked == ageQueOutDir && ageSendMarked >= ageSendDone && !lockFile.exists()) {
+        if ((noQueInMarked == -1 || noQueInMarked >= noQueInDir) && ageQueOut == ageQueOutDir && ageQueOutMarked == ageQueOutDir && ageSendMarked >= ageSendDone) {
             return;
         }
 
@@ -1474,7 +1470,6 @@ public class JdxReplWs {
         log.warn("  ageQueOutMarked: " + ageQueOutMarked);
         log.warn("  ageSendDone: " + ageSendDone);
         log.warn("  ageSendMarked: " + ageSendMarked);
-        log.warn("  lockFile: " + lockFile.exists());
 
         //
         if (!doRepair) {
@@ -1482,9 +1477,10 @@ public class JdxReplWs {
         }
 
         // ---
+        // Обнуляем отметку о пополнении исходящей очереди реплик.
         // После этой отметки ремонт считается НАЧАТЫМ, но НЕ ЗАВЕРШЕННЫМ.
         // ---
-        UtFile.saveString(String.valueOf(new DateTime()), lockFile);
+        stateManager.setAuditAgeDone(-1);
 
 
         // ---
@@ -1604,16 +1600,11 @@ public class JdxReplWs {
 
 
         // ---
-        stateManager.setAuditAgeDone(ageQueOutDir);
-
-
-        // ---
-        // Убираем отметку.
+        // Чиним отметку о пополнении исходящей очереди реплик.
         // После этой отметки ремонт считается завершенным.
         // ---
-        if (!lockFile.delete()) {
-            throw new XError("Can`t delete lock: " + lockFile);
-        }
+        stateManager.setAuditAgeDone(ageQueOutDir);
+
 
     }
 
