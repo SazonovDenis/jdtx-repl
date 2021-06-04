@@ -136,7 +136,7 @@ public class ReplicaFilter implements IReplicaFilter {
 
                     //
                     count++;
-                    if (count % 200 == 0) {
+                    if (count % 10000 == 0) {
                         log.info("  table: " + tableName + ", " + count);
                     }
                 }
