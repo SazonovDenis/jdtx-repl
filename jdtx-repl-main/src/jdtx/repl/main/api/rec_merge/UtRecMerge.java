@@ -9,6 +9,7 @@ import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.pk_generator.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
+import org.apache.commons.logging.*;
 import org.joda.time.*;
 
 import java.util.*;
@@ -21,10 +22,16 @@ public class UtRecMerge implements IUtRecMerge {
     public static final boolean DO_DELETE = true;
     public static final boolean UPDATE_ONLY = false;
 
+    int COMMIT_SIZE = 100;
+
+
     Db db;
     JdxDbUtils dbu;
     IJdxDbStruct struct;
     public GroupsStrategyStorage groupsStrategyStorage;
+
+    //
+    protected static Log log = LogFactory.getLog("jdtx.UtRecMerge");
 
     //
     public UtRecMerge(Db db, IJdxDbStruct struct) {
@@ -137,9 +144,16 @@ public class UtRecMerge implements IUtRecMerge {
         MergeResultTableMap result = new MergeResultTableMap();
 
         //
-        for (RecMergePlan mergePlan : plans) {
+        try {
+            int count = plans.size();
+            int done = 0;
+            int done_portion = 0;
+
+            //
             db.startTran();
-            try {
+
+            //
+            for (RecMergePlan mergePlan : plans) {
                 //
                 MergeResultTable taskResultForTable = result.addForTable(mergePlan.tableName);
 
@@ -159,13 +173,29 @@ public class UtRecMerge implements IUtRecMerge {
                     recordsDelete(mergePlan.tableName, mergePlan.recordsDelete, taskResultForTable);
                 }
 
+
                 //
-                db.commit();
-            } catch (Exception e) {
-                db.rollback();
-                throw e;
+                done = done + 1;
+
+                if (done % 10 == 0) {
+                    log.info("done: " + done + "/" + count);
+                }
+
+                // Порция commit
+                done_portion = done_portion + 1;
+                if (done_portion >= COMMIT_SIZE) {
+                    db.commit();
+                    db.startTran();
+                    //
+                    done_portion = 0;
+                }
             }
 
+            //
+            db.commit();
+        } catch (Exception e) {
+            db.rollback();
+            throw e;
         }
 
         //
