@@ -58,6 +58,8 @@ public class RefDecodeStrategy {
      */
     protected boolean needDecode(String tableName, long ws_id, long db_id) {
         tableName = tableName.toUpperCase();
+
+        //
         RefDecodeStrategyItem tableDecodeStrategy = tablesDecodeStrategy.get(tableName);
 
         // todo: ТОЛЬКО Для PS: id находится в нерегулируемом диапазоне.

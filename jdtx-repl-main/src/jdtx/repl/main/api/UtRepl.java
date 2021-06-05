@@ -416,6 +416,8 @@ public class UtRepl {
      * @param skipOprDel       Пропускать реплики на удаление записи
      * @param outFileName      Файл для реплики-результата, например "d:/temp/ABN_10_12345.zip"
      * @return Реплика со всеми операциями, найденными для запрошенной записи
+     * <p>
+     * todo - а как насчет ПОРЯДКА реплик? Получу ли я именно ПОСЛЕДНЮЮ версию записи??? СОбирать отдельно, сортировать по дате (аудита), а потом только писать во Writer
      */
     public IReplica findRecordInReplicas(String tableName, String recordIdStr, String replicasDirsName, boolean skipOprDel, String outFileName) throws Exception {
         String inFileMask = "*.zip";
@@ -519,6 +521,7 @@ public class UtRepl {
                     replicaInfo.put("replicaType", replica.getInfo().getReplicaType());
                     replicaInfo.put("dtFrom", replica.getInfo().getDtFrom());
                     replicaInfo.put("dtTo", replica.getInfo().getDtTo());
+                    replicaInfo.put("file", replica.getFile().getAbsolutePath());
                     JSONArray replicaData = new JSONArray();
                     replicaInfo.put("data", replicaData);
 

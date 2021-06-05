@@ -52,7 +52,8 @@ public class RefDecoder implements IRefDecoder {
         DataStore st = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "decode");
         for (DataRecord rec : st) {
             // Берем слоты для таблицы
-            String tableName = rec.getValueString("table_name").toUpperCase();
+            String tableName = rec.getValueString("table_name");
+            tableName = tableName.toUpperCase();
 
             // Создем слот
             RefDecoderSlot sl = new RefDecoderSlot();
@@ -93,6 +94,9 @@ public class RefDecoder implements IRefDecoder {
     }
 
     public JdxRef get_ref(String tableName, long own_id) throws Exception {
+        tableName = tableName.toUpperCase();
+
+        //
         JdxRef ref = new JdxRef();
 
         // Это наша id?
@@ -131,6 +135,9 @@ public class RefDecoder implements IRefDecoder {
     }
 
     public long get_id_own(String tableName, long ws_id, long id) throws Exception {
+        tableName = tableName.toUpperCase();
+
+        //
         if (ws_id <= 0) {
             throw new XError("invalid ws_id <= 0");
         }
