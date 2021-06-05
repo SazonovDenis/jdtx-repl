@@ -260,7 +260,7 @@ class Jdx_Ext extends ProjectExt {
         String recordId = args.getValueString("id")
         String dirName = args.getValueString("dir")
         String outFileName = args.getValueString("out")
-        boolean skipOprDel = args.getValueString("skipDel")
+        boolean skipOprDel = args.getValueBoolean("skipDel")
         //
         if (recordId == null || recordId.length() == 0) {
             throw new XError("Не указан [id] - id записи")
