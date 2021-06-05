@@ -69,6 +69,12 @@ class Merge_Ext extends ProjectExt {
             throw new XError("Не указан [file] - файл с результатом поиска в виде задач на слияние")
         }
 
+        // Не затирать существующий
+        File outFile = new File(file);
+        if (outFile.exists()) {
+            throw new XError("Файл уже существует: " + outFile.getCanonicalPath());
+        }
+
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -121,6 +127,12 @@ class Merge_Ext extends ProjectExt {
             throw new XError("Не указан [file] - файл с задачами на слияние")
         }
 
+        // Не затирать существующий
+        File outFile = new File(UtFile.removeExt(file) + ".result.json");
+        if (outFile.exists()) {
+            throw new XError("Файл уже существует: " + outFile.getCanonicalPath());
+        }
+
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -149,7 +161,7 @@ class Merge_Ext extends ProjectExt {
 
             // Сохраняем результат выполнения задачи
             reader = new UtRecMergeReader()
-            reader.writeMergeResilts(mergeResults, UtFile.removeExt(file) + ".result.json")
+            reader.writeMergeResilts(mergeResults, outFile.getAbsolutePath())
         } finally {
             db.disconnect()
         }
