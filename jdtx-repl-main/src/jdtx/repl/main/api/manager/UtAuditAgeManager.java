@@ -36,10 +36,11 @@ public class UtAuditAgeManager {
      * Полезно, если хочется в исходящую очередь положить реплику, которая не является аудитом
      */
     public long incAuditAge() throws Exception {
+        // Будущий возраст
+        long auditAgeNext;
+
         // Текущий возраст базы данных
         long auditAgeFixed = getAuditAge();
-        // Будущий возраст
-        long auditAgeNext = auditAgeFixed;
 
         //
         db.startTran();
@@ -49,7 +50,8 @@ public class UtAuditAgeManager {
             fillMaxIdsFixed(auditAgeFixed, maxIdsFixed);
 
             // Увеличиваем возраст БД
-            auditAgeNext = auditAgeNext + 1;
+            auditAgeNext = auditAgeFixed + 1;
+
             // Перезапоминаем состояниния журналов аудита у каждой таблицы для возраста auditAgeNext
             fillAgeTable(auditAgeNext, maxIdsFixed);
 
