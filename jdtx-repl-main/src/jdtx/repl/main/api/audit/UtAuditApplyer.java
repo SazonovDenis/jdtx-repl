@@ -316,7 +316,7 @@ public class UtAuditApplyer {
 
                     //
                     count = count + 1;
-                    if (count % 200 == 0) {
+                    if (count % 1000 == 0) {
                         log.info("  table: " + readerTableName + ", " + count);
                     }
                 }
