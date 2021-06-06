@@ -396,8 +396,17 @@ public class JdxReplWs {
         // Нумеруем реплики
         long queOutMaxAge = queOut.getMaxNo();
 
-        // Создаем реплику
-        List<IReplica> replicasSnapshot = SnapshotForTables(tablesNew, queOutMaxAge, forbidNotOwnId);
+        // Создаем snapshot-реплику
+        List<IReplica> replicasSnapshot;
+        db.startTran();
+        try {
+            replicasSnapshot = SnapshotForTables(tablesNew, queOutMaxAge, forbidNotOwnId);
+            //
+            db.commit();
+        } catch (Exception e) {
+            db.rollback(e);
+            throw e;
+        }
 
         // Фильтр
         IReplicaFilter filter = new ReplicaFilter();
@@ -410,21 +419,31 @@ public class JdxReplWs {
         // Помещаем реплики в очередь
         int i = 0;
         for (IReplica replicaSnapshot : replicasSnapshot) {
-            // Искусственно увеличиваем возраст (установочная реплика сдвигает возраст БД на 1)
-            long age = incAuditAge();
-            log.info("createReplicaTableSnapshot, tableName: " + tablesNew.get(i).getName() + ", new age: " + age);
-
-            // Параметры (для правил публикации): автор реплики
-            filter.getFilterParams().put("wsAuthor", String.valueOf(replicaSnapshot.getInfo().getWsId()));
-
-            // Преобразовываем по фильтрам
-            IReplica replicaForWs = filter.convertReplicaForWs(replicaSnapshot, publicationOut);
-
-            // Помещаем реплику в очередь
-            queOut.push(replicaForWs);
-
             //
-            stateManager.setAuditAgeDone(age);
+            db.startTran();
+            try {
+                // Искусственно увеличиваем возраст (установочная реплика сдвигает возраст БД на 1)
+                long age = incAuditAge();
+                log.info("createReplicaTableSnapshot, tableName: " + tablesNew.get(i).getName() + ", new age: " + age);
+
+                // Параметры (для правил публикации): автор реплики
+                filter.getFilterParams().put("wsAuthor", String.valueOf(replicaSnapshot.getInfo().getWsId()));
+
+                // Преобразовываем по фильтрам
+                IReplica replicaForWs = filter.convertReplicaForWs(replicaSnapshot, publicationOut);
+
+                // Помещаем реплику в очередь
+                queOut.push(replicaForWs);
+
+                //
+                stateManager.setAuditAgeDone(age);
+
+                //
+                db.commit();
+            } catch (Exception e) {
+                db.rollback(e);
+                throw e;
+            }
 
             //
             i = i + 1;
@@ -1304,7 +1323,7 @@ public class JdxReplWs {
 
 
         // Сколько своего аудита уже отправлено на сервер
-        JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
+        JdxMailStateManagerWs stateManager = new JdxMailStateManagerWs(db);
         long srvSendAge = stateManager.getMailSendDone();
 
         // Узнаем сколько есть у нас в очереди на отправку
@@ -1327,7 +1346,7 @@ public class JdxReplWs {
 
 
     public void send() throws Exception {
-        JdxStateManagerMail stateManager = new JdxStateManagerMail(db);
+        JdxMailStateManagerWs stateManager = new JdxMailStateManagerWs(db);
         UtMail.sendQueToMail(wsId, queOut, mailer, "from", stateManager);
     }
 
@@ -1338,7 +1357,7 @@ public class JdxReplWs {
         //
         UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-        JdxStateManagerMail stateMailManager = new JdxStateManagerMail(db);
+        JdxMailStateManagerWs stateMailManager = new JdxMailStateManagerWs(db);
         JdxMuteManagerWs utmm = new JdxMuteManagerWs(db);
 
         //
@@ -1440,19 +1459,13 @@ public class JdxReplWs {
         // Cколько исходящих реплик есть у нас "официально", т.е. в очереди реплик (в базе)
         long ageQueOut = queOut.getMaxNo();
 
-        // Cколько исходящих реплик отметили как выложенные в очередь
-        // При работе репликатора - совпадает с базой, но после запуска ПРОЦЕДУРЫ РЕМОНТА repairAfterBackupRestore - может отличаться.
-        // Является флагом, помогающим отследить НЕЗАВЕРШЕННОСТЬ РЕМОНТА.
-        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-        long ageQueOutMarked = stateManager.getAuditAgeDone();
-
 
         // ---
         // Сколько исходящих реплик фактически отправлено на сервер (спросим у почтового сервера)
         long ageSendDone = mailer.getSendDone("from");
 
         // Сколько исходящих реплик отмечено как отправленое на сервер
-        JdxStateManagerMail stateManagerMail = new JdxStateManagerMail(db);
+        JdxMailStateManagerWs stateManagerMail = new JdxMailStateManagerWs(db);
         long ageSendMarked = stateManagerMail.getMailSendDone();
 
         // Есть ли отметка о начале ремонта
@@ -1461,7 +1474,7 @@ public class JdxReplWs {
 
         // Допускается, если в каталоге для QueIn меньше реплик, чем помечено в очереди QueIn (noQueInMarked >= noQueInDir)
         // Это бывает из-за того, что при получении собственных snapshot-реплик, мы ее не скачиваем (она нам не нужна)
-        if ((noQueInMarked == -1 || noQueInMarked >= noQueInDir) && ageQueOut == ageQueOutDir && ageQueOutMarked == ageQueOutDir && ageSendMarked >= ageSendDone && !lockFile.exists()) {
+        if ((noQueInMarked == -1 || noQueInMarked >= noQueInDir) && ageQueOut == ageQueOutDir && ageSendMarked >= ageSendDone && !lockFile.exists()) {
             return;
         }
 
@@ -1471,7 +1484,6 @@ public class JdxReplWs {
         log.warn("  noQueInMarked: " + noQueInMarked);
         log.warn("  ageQueOutDir: " + ageQueOutDir);
         log.warn("  ageQueOut: " + ageQueOut);
-        log.warn("  ageQueOutMarked: " + ageQueOutMarked);
         log.warn("  ageSendDone: " + ageSendDone);
         log.warn("  ageSendMarked: " + ageSendMarked);
         log.warn("  lockFile: " + lockFile.exists());
@@ -1604,6 +1616,8 @@ public class JdxReplWs {
 
 
         // ---
+        // Cколько исходящих реплик отметили как выложенные в очередь
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         stateManager.setAuditAgeDone(ageQueOutDir);
 
 
