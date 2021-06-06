@@ -1,6 +1,6 @@
 package jdtx.repl.main.api.manager;
 
-public interface IJdxStateManagerMail {
+public interface IJdxMailStateManager {
 
     long getMailSendDone() throws Exception;
 

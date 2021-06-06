@@ -106,7 +106,7 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_StateManagerMailWs() throws Exception {
-        JdxStateManagerMail stateMailManager = new JdxStateManagerMail(db);
+        JdxMailStateManagerWs stateMailManager = new JdxMailStateManagerWs(db);
 
         //
         System.out.println("mailSendDone: " + stateMailManager.getMailSendDone());

@@ -2,14 +2,14 @@ package jdtx.repl.main.api.manager;
 
 import jandcode.dbm.db.*;
 
-public class JdxStateManagerSrvMail implements IJdxStateManagerMail {
+public class JdxMailStateManagerSrv implements IJdxMailStateManager {
 
     private Db db;
     private long wsId;
     private String queName;
     private JdxStateManagerSrv stateManagerSrv;
 
-    public JdxStateManagerSrvMail(Db db, long wsId, String queName) {
+    public JdxMailStateManagerSrv(Db db, long wsId, String queName) {
         this.db = db;
         this.wsId = wsId;
         this.queName = queName;

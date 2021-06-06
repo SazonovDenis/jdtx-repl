@@ -16,7 +16,7 @@ public class UtMail {
     /**
      * Передача очереди que в ящик mailer
      */
-    static void sendQueToMail(long wsId, IJdxQue que, IMailer mailer, String box, IJdxStateManagerMail stateManager) throws Exception {
+    static void sendQueToMail(long wsId, IJdxQue que, IMailer mailer, String box, IJdxMailStateManager stateManager) throws Exception {
         log.info("sendMail, wsId: " + wsId + ", box: " + box);
 
         // Выясняем объем передачи: узнаем сами, сколько просит станция

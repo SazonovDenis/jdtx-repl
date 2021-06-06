@@ -295,7 +295,7 @@ public class JdxReplSrv {
         queOut000.setMaxNo(wsSnapshotAge);
 
         // Инициализируем нумерацию отправки реплик из очереди queOut000 на этоу станцию.
-        IJdxStateManagerMail stateManagerMail = new JdxStateManagerSrvMail(db, wsId, UtQue.QUE_OUT000);
+        IJdxMailStateManager stateManagerMail = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT000);
         stateManagerMail.setMailSendDone(wsSnapshotAge);
     }
 
@@ -425,7 +425,7 @@ public class JdxReplSrv {
             // Рассылаем
             try {
                 // Рассылаем очередь out000 (продукт обработки очереди common -> out000) на каждую станцию
-                IJdxStateManagerMail stateManagerMail = new JdxStateManagerSrvMail(db, wsId, UtQue.QUE_OUT000);
+                IJdxMailStateManager stateManagerMail = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT000);
                 JdxQueOut001 queOut000 = new JdxQueOut000(db, wsId);
                 queOut000.setDataRoot(dataRoot);
                 UtMail.sendQueToMail(wsId, queOut000, mailer, "to", stateManagerMail);
@@ -434,7 +434,7 @@ public class JdxReplSrv {
                 JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
                 queOut001.setDataRoot(dataRoot);
                 //
-                stateManagerMail = new JdxStateManagerSrvMail(db, wsId, UtQue.QUE_OUT001);
+                stateManagerMail = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT001);
                 UtMail.sendQueToMail(wsId, queOut001, mailer, "to001", stateManagerMail);
 
                 // Отметить состояние сервера, данные сервера (сервер отчитывается о себе для отслеживания активности сервера)

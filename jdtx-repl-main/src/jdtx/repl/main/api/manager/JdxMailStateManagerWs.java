@@ -7,11 +7,11 @@ import jdtx.repl.main.api.*;
 /**
  * Состояние почты: отметка, насколько отправлена почта.
  */
-public class JdxStateManagerMail implements IJdxStateManagerMail {
+public class JdxMailStateManagerWs implements IJdxMailStateManager {
 
     private Db db;
 
-    public JdxStateManagerMail(Db db) {
+    public JdxMailStateManagerWs(Db db) {
         this.db = db;
     }
 
