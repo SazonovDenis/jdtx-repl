@@ -1423,13 +1423,13 @@ public class JdxReplWs {
         }
 
         // Поиск проблемной записи выполняется в двух каталогах - in и in001
-        String dirNameIn = queIn.getBaseDir();
-        String dirNameIn001 = queIn001.getBaseDir();
         String dirNameOut = queOut.getBaseDir();
+        String dirNameIn001 = queIn001.getBaseDir();
+        String dirNameIn = queIn.getBaseDir();
         String dirs = dirNameIn + "," + dirNameIn001 + "," + dirNameOut;
         // Собираем все операции с проблемной записью в одну реплику
         UtRepl utRepl = new UtRepl(db, struct);
-        IReplica replica = utRepl.findRecordInReplicas(refTableName, refTableId, dirs, true, outReplicaFile.getAbsolutePath());
+        IReplica replica = utRepl.findRecordInReplicas(refTableName, refTableId, dirs, true, true, outReplicaFile.getAbsolutePath());
 
         //
         log.error("Файл с репликой - результатами поиска сформирован: " + replica.getFile().getAbsolutePath());

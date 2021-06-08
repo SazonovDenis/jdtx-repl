@@ -223,19 +223,11 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         UtRepl utRepl = new UtRepl(db, struct);
         String dirName = "D:/t/012/que_in_012";
 
-        IReplica replica = utRepl.findRecordInReplicas("lic", "12:1418", dirName, false, "temp/LIC_12_1418.zip");
-        if (replica == null) {
-            System.out.println("Not found");
-        } else {
-            System.out.println("Found, file: " + replica.getFile().getAbsolutePath());
-        }
+        IReplica replica = utRepl.findRecordInReplicas("lic", "12:1418", dirName, false, false, "temp/LIC_12_1418.zip");
+        System.out.println("File: " + replica.getFile().getAbsolutePath());
 
-        IReplica replica2 = utRepl.findRecordInReplicas("lic", "1418", dirName, false, "temp/LIC_1418.zip");
-        if (replica2 == null) {
-            System.out.println("Not found");
-        } else {
-            System.out.println("Found, file: " + replica2.getFile().getAbsolutePath());
-        }
+        IReplica replica2 = utRepl.findRecordInReplicas("lic", "1418", dirName, false, false, "temp/LIC_1418.zip");
+        System.out.println("File: " + replica2.getFile().getAbsolutePath());
     }
 
     @Test
@@ -248,24 +240,21 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         JdxRef tableIdRef = decoder.get_ref("Lic", tableId);
         String recordIdStr = tableIdRef.toString();
 
-        IReplica replica = utRepl.findRecordInReplicas("lic", recordIdStr, dirName, false, "temp/lic_1138.zip");
-        if (replica == null) {
-            System.out.println("Not found");
-        } else {
-            System.out.println("Found, file: " + replica.getFile().getAbsolutePath());
-        }
+        IReplica replica = utRepl.findRecordInReplicas("lic", recordIdStr, dirName, false, false, "temp/lic_1138.zip");
+        System.out.println("File: " + replica.getFile().getAbsolutePath());
     }
 
     @Test
     public void test_findRecordInReplicas_all() throws Exception {
         UtRepl utRepl = new UtRepl(null, struct);
-        String dirs="../_test-data/_test-data_ws2/ws_002/que_in,../_test-data/_test-data_ws2/ws_002/que_in001,../_test-data/_test-data_ws2/ws_002/que_out";
-        IReplica replica = utRepl.findRecordInReplicas("lic", "3:1001", dirs, false, "temp/LIC_3_1001.zip");
-        if (replica == null) {
-            System.out.println("Not found");
-        } else {
-            System.out.println("Found, file: " + replica.getFile().getAbsolutePath());
-        }
+        String dirs = "../_test-data/_test-data_ws2/ws_002/que_in,../_test-data/_test-data_ws2/ws_002/que_in001,../_test-data/_test-data_ws2/ws_002/que_out";
+        //
+        IReplica replica2 = utRepl.findRecordInReplicas("lic", "2:1361", dirs, false, true, "temp/LIC_2_1361-last.zip");
+        System.out.println("File: " + replica2.getFile().getAbsolutePath());
+        System.out.println("");
+        //
+        IReplica replica0 = utRepl.findRecordInReplicas("lic", "2:1361", dirs, false, false, "temp/LIC_2_1361.zip");
+        System.out.println("File: " + replica0.getFile().getAbsolutePath());
     }
 
     @Test

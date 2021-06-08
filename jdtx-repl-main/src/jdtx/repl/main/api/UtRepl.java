@@ -414,12 +414,13 @@ public class UtRepl {
      * @param recordIdStr      Полный id записи, например "10:12345"
      * @param replicasDirsName Каталог с репликами для поиска, например "d:/temp/"
      * @param skipOprDel       Пропускать реплики на удаление записи
+     * @param findLastOne      Найти только один последжний вариант записи
      * @param outFileName      Файл для реплики-результата, например "d:/temp/ABN_10_12345.zip"
      * @return Реплика со всеми операциями, найденными для запрошенной записи
      * <p>
      * todo - а как насчет ПОРЯДКА реплик? Получу ли я именно ПОСЛЕДНЮЮ версию записи??? СОбирать отдельно, сортировать по дате (аудита), а потом только писать во Writer
      */
-    public IReplica findRecordInReplicas(String tableName, String recordIdStr, String replicasDirsName, boolean skipOprDel, String outFileName) throws Exception {
+    public IReplica findRecordInReplicas(String tableName, String recordIdStr, String replicasDirsName, boolean skipOprDel, boolean findLastOne, String outFileName) throws Exception {
         String inFileMask = "*.zip";
 
         //
@@ -434,17 +435,25 @@ public class UtRepl {
         List<File> files = new ArrayList<>();
         String[] replicasDirsNameArr = replicasDirsName.split(",");
         for (String replicasDirName : replicasDirsNameArr) {
+            // Файлы из каталога
             File dir = new File(replicasDirName);
-            File[] filesInDir = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
-            if (filesInDir == null) {
+            File[] filesInDir_arr = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
+            if (filesInDir_arr == null) {
                 throw new XError("Каталог недоступен: " + dir.getCanonicalPath());
             }
-            log.info(dir.getCanonicalPath() + ", files: " + filesInDir.length);
-            files.addAll(Arrays.asList(filesInDir));
-        }
-        // Отсортируем, чтобы команды в результате появлялись в том порядке, как поступали в очередь реплик
-        files.sort(new NameFileComparator());
+            log.info(dir.getCanonicalPath() + ", files: " + filesInDir_arr.length);
+            List<File> filesInDir = Arrays.asList(filesInDir_arr);
 
+            // Отсортируем, чтобы команды в результате появлялись в том порядке, как поступали в очередь реплик (или наоборот - смотря как прпросили)
+            if (findLastOne) {
+                filesInDir.sort(NameFileComparator.NAME_REVERSE);
+            } else {
+                filesInDir.sort(NameFileComparator.NAME_COMPARATOR);
+            }
+
+            // В список для поиска
+            files.addAll(filesInDir);
+        }
 
         // Тут копим info-данные по найденным репликам
         JSONArray replicaInfoList = new JSONArray();
@@ -545,48 +554,50 @@ public class UtRepl {
                                     idValueRef.ws_id = replica.getInfo().getWsId();
                                 }
 
-                                //
-                                boolean doSkipRec = false;
-                                int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
-                                if (oprType == JdxOprType.OPR_DEL && skipOprDel) {
-                                    doSkipRec = true;
-                                    log.info("  record OPR_DEL, skipped");
-                                }
-
                                 // Нашли id?
-                                if (!doSkipRec && idValueRef.equals(findRecordId)) {
-                                    log.info("  record found");
-                                    log.debug("  " + recValues);
+                                if (idValueRef.equals(findRecordId)) {
+                                    int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
+                                    if (oprType == JdxOprType.OPR_DEL && skipOprDel) {
+                                        log.info("  record.OprType == OPR_DEL, skipped");
+                                    } else {
+                                        log.info("  record found");
+                                        log.debug("  " + recValues);
 
-                                    // В реплике нашлась запись - сохраним данные по реплике
-                                    recordsFoundInReplica = true;
-                                    replicaData.add(recValues);
+                                        // В реплике нашлась запись - сохраним данные по реплике
+                                        recordsFoundInReplica = true;
+                                        replicaData.add(recValues);
 
-                                    // Сохраняем запись
-                                    xmlWriter.appendRec();
+                                        // Сохраняем запись
+                                        xmlWriter.appendRec();
 
-                                    //
-                                    xmlWriter.setOprType(oprType);
+                                        //
+                                        xmlWriter.setOprType(oprType);
 
-                                    // Запись значения с проверкой/перекодировкой ссылок
-                                    for (IJdxField field : table.getFields()) {
-                                        String fieldName = field.getName();
-                                        Object fieldValue = recValues.get(fieldName);
                                         // Запись значения с проверкой/перекодировкой ссылок
-                                        IJdxTable refTable = field.getRefTable();
-                                        if (field.isPrimaryKey() || refTable != null) {
-                                            // Это значение - ссылка
-                                            JdxRef fieldValueRef = JdxRef.parse((String) fieldValue);
-                                            // Дополнение ссылки
-                                            if (fieldValueRef != null && fieldValueRef.ws_id == -1 && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
-                                                fieldValueRef.ws_id = replica.getInfo().getWsId();
+                                        for (IJdxField field : table.getFields()) {
+                                            String fieldName = field.getName();
+                                            Object fieldValue = recValues.get(fieldName);
+                                            // Запись значения с проверкой/перекодировкой ссылок
+                                            IJdxTable refTable = field.getRefTable();
+                                            if (field.isPrimaryKey() || refTable != null) {
+                                                // Это значение - ссылка
+                                                JdxRef fieldValueRef = JdxRef.parse((String) fieldValue);
+                                                // Дополнение ссылки
+                                                if (fieldValueRef != null && fieldValueRef.ws_id == -1 && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
+                                                    fieldValueRef.ws_id = replica.getInfo().getWsId();
+                                                }
+                                                xmlWriter.setRecValue(fieldName, String.valueOf(fieldValueRef));
+                                            } else {
+                                                // Это просто значение
+                                                xmlWriter.setRecValue(fieldName, fieldValue);
                                             }
-                                            xmlWriter.setRecValue(fieldName, String.valueOf(fieldValueRef));
-                                        } else {
-                                            // Это просто значение
-                                            xmlWriter.setRecValue(fieldName, fieldValue);
                                         }
                                     }
+                                }
+
+                                // Одной хватит
+                                if (recordsFoundInReplica && findLastOne) {
+                                    break;
                                 }
 
                                 //
@@ -600,6 +611,11 @@ public class UtRepl {
                             }
                         }
 
+                        // Одной хватит
+                        if (recordsFoundInReplica && findLastOne) {
+                            break;
+                        }
+
                         //
                         readerTableName = replicaReader.nextTable();
                     }
@@ -610,6 +626,11 @@ public class UtRepl {
                         replicaInfoList.add(replicaInfo);
                     }
 
+
+                    // Одной хватит
+                    if (recordsFoundInReplica && findLastOne) {
+                        break;
+                    }
 
                 } finally {
                     // Закроем читателя Zip-файла
