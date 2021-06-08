@@ -422,7 +422,7 @@ public class UtRepl {
      */
     public IReplica findRecordInReplicas(String tableName, String recordIdStr, String replicasDirsName, boolean skipOprDel, boolean findLastOne, String outFileName) throws Exception {
         if (!skipOprDel && findLastOne) {
-            throw new XError("При поиске последненго варианта (findLastOne == true) нужно skipOprDel == true");
+            throw new XError("При поиске последннего варианта (findLastOne == true) нужно skipOprDel == true");
         }
 
         //
@@ -575,7 +575,7 @@ public class UtRepl {
                                         // Сохраняем запись
                                         xmlWriter.appendRec();
 
-                                        // Если ищем только одну запись - пусть она будет INS
+                                        // Если ищем только одну запись - пусть она попадет в реплику как INS
                                         if (findLastOne) {
                                             xmlWriter.setOprType(JdxOprType.OPR_INS);
                                         } else {
