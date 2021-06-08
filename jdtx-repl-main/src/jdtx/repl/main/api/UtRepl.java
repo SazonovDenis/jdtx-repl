@@ -421,6 +421,11 @@ public class UtRepl {
      * todo - а как насчет ПОРЯДКА реплик? Получу ли я именно ПОСЛЕДНЮЮ версию записи??? СОбирать отдельно, сортировать по дате (аудита), а потом только писать во Writer
      */
     public IReplica findRecordInReplicas(String tableName, String recordIdStr, String replicasDirsName, boolean skipOprDel, boolean findLastOne, String outFileName) throws Exception {
+        if (!skipOprDel && findLastOne) {
+            throw new XError("При поиске последненго варианта (findLastOne == true) нужно skipOprDel == true");
+        }
+
+        //
         String inFileMask = "*.zip";
 
         //
@@ -570,8 +575,12 @@ public class UtRepl {
                                         // Сохраняем запись
                                         xmlWriter.appendRec();
 
-                                        //
-                                        xmlWriter.setOprType(oprType);
+                                        // Если ищем только одну запись - пусть она будет INS
+                                        if (findLastOne) {
+                                            xmlWriter.setOprType(JdxOprType.OPR_INS);
+                                        } else {
+                                            xmlWriter.setOprType(oprType);
+                                        }
 
                                         // Запись значения с проверкой/перекодировкой ссылок
                                         for (IJdxField field : table.getFields()) {
@@ -595,7 +604,7 @@ public class UtRepl {
                                     }
                                 }
 
-                                // Одной хватит
+                                // Одной записи хватит
                                 if (recordsFoundInReplica && findLastOne) {
                                     break;
                                 }
@@ -611,7 +620,7 @@ public class UtRepl {
                             }
                         }
 
-                        // Одной хватит
+                        // Одной записи хватит
                         if (recordsFoundInReplica && findLastOne) {
                             break;
                         }
@@ -627,7 +636,7 @@ public class UtRepl {
                     }
 
 
-                    // Одной хватит
+                    // Одной записи хватит
                     if (recordsFoundInReplica && findLastOne) {
                         break;
                     }
