@@ -1493,10 +1493,13 @@ public class JdxReplWs {
             throw new XError("Detected restore from backup, repair needed");
         }
 
+
         // ---
         // После этой отметки ремонт считается НАЧАТЫМ, но НЕ ЗАВЕРШЕННЫМ.
         // ---
-        UtFile.saveString(String.valueOf(new DateTime()), lockFile);
+        if (!lockFile.exists()) {
+            UtFile.saveString(String.valueOf(new DateTime()), lockFile);
+        }
 
 
         // ---
