@@ -51,7 +51,7 @@ public class JdxReplSrv {
         this.db = db;
 
         // Общая очередь на сервере
-        queCommon = new JdxQueCommon(db, UtQue.QUE_COMMON, UtQue.STATE_AT_WS);
+        queCommon = new JdxQueCommon(db, UtQue.QUE_COMMON, UtQue.STATE_AT_SRV);
 
         // Почтовые курьеры для чтения/отправки сообщений (для каждой рабочей станции)
         mailerList = new HashMap<>();
@@ -170,19 +170,19 @@ public class JdxReplSrv {
         // ---
         // Создадим станцию
 
-        // workstation_list
+        // SRV_WORKSTATION_LIST
         Map params = UtCnv.toMap(
                 "id", wsId,
                 "name", wsName,
                 "guid", wsGuid
         );
-        String sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "workstation_list (id, name, guid) values (:id, :name, :guid)";
+        String sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST (id, name, guid) values (:id, :name, :guid)";
         db.execSql(sql, params);
 
-        // state_ws
+        // SRV_WORKSTATION_STATE
         JdxDbUtils dbu = new JdxDbUtils(db, null);
-        long id = dbu.getNextGenerator(UtJdx.SYS_GEN_PREFIX + "state_ws");
-        sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "state_ws (id, ws_id, que_common_dispatch_done, que_in_age_done, enabled, mute_age) values (" + id + ", " + wsId + ", 0, 0, 0, 0)";
+        long id = dbu.getNextGenerator(UtJdx.SYS_GEN_PREFIX + "SRV_WORKSTATION_STATE");
+        sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE (id, ws_id, que_common_dispatch_done, que_in_no_done, enabled, mute_age) values (" + id + ", " + wsId + ", 0, 0, 0, 0)";
         db.execSql(sql);
 
 
@@ -312,18 +312,14 @@ public class JdxReplSrv {
     public void enableWorkstation(long wsId) throws Exception {
         log.info("enable workstation, wsId: " + wsId);
         //
-        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "state_ws set enabled = 1 where id = " + wsId;
-        db.execSql(sql);
-        sql = "update " + UtJdx.SYS_TABLE_PREFIX + "state set enabled = 1";
+        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set enabled = 1 where id = " + wsId;
         db.execSql(sql);
     }
 
     public void disableWorkstation(long wsId) throws Exception {
         log.info("disable workstation, wsId: " + wsId);
         //
-        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "state_ws set enabled = 0 where id = " + wsId;
-        db.execSql(sql);
-        sql = "update " + UtJdx.SYS_TABLE_PREFIX + "state set enabled = 0";
+        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set enabled = 0 where id = " + wsId;
         db.execSql(sql);
     }
 
@@ -596,7 +592,7 @@ public class JdxReplSrv {
         //
         db.startTran();
         try {
-            // Обновляем конфиг в таблицах для рабочих станций (workstation_list)
+            // Обновляем конфиг в таблицах для рабочих станций (SRV_WORKSTATION_LIST)
             CfgManager cfgManager = new CfgManager(db);
             cfgManager.setWsCfg(cfg, cfgType, destinationWsId);
 
@@ -899,14 +895,14 @@ public class JdxReplSrv {
         String sql;
         if (wsId != 0) {
             // Указана конкретная станция-получатель - выгружаем только ее, остальные пропускаем
-            sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "workstation_list where id = " + wsId;
+            sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST where id = " + wsId;
         } else {
             // Берем только активные
-            sql = "select " + UtJdx.SYS_TABLE_PREFIX + "workstation_list.* " +
-                    "from " + UtJdx.SYS_TABLE_PREFIX + "workstation_list " +
-                    "join " + UtJdx.SYS_TABLE_PREFIX + "state_ws on " +
-                    "(" + UtJdx.SYS_TABLE_PREFIX + "workstation_list.id = " + UtJdx.SYS_TABLE_PREFIX + "state_ws.ws_id) " +
-                    "where " + UtJdx.SYS_TABLE_PREFIX + "state_ws.enabled = 1";
+            sql = "select " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST.* " +
+                    "from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST " +
+                    "join " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE on " +
+                    "(" + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST.id = " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE.ws_id) " +
+                    "where " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE.enabled = 1";
         }
 
         //

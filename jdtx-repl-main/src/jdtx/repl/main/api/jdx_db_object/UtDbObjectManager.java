@@ -13,21 +13,19 @@ import java.util.*;
 
 public class UtDbObjectManager {
 
-    int CURRENT_VER_DB = 6; // JadatexSync-544 - ver = 4
+    public static int CURRENT_VER_DB = 7; // JadatexSync-544 - ver = 4
 
     Db db;
 
-    protected static Log log = LogFactory.getLog("jdtx.DbObject");
-
     enum updMods {INSERT, UPDATE, DELETE}
-
 
     public UtDbObjectManager(Db db) {
         this.db = db;
     }
 
-
     DbQuery lockFlag = null;
+
+    static Log log = LogFactory.getLog("jdtx.DbObject");
 
     /**
      * Проверяем, что репликация инициализировалась
@@ -35,7 +33,7 @@ public class UtDbObjectManager {
     public void checkReplDb() throws Exception {
         try {
             // Читаем код нашей станции
-            DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "workstation").getCurRec();
+            DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO").getCurRec();
             // Проверяем код нашей станции
             if (rec.getValueLong("ws_id") == 0) {
                 throw new XError("Invalid workstation.ws_id == 0");
@@ -162,7 +160,7 @@ public class UtDbObjectManager {
         checkReplVerDb();
 
         // Метка с guid БД и номером wsId
-        sql = "update " + UtJdx.SYS_TABLE_PREFIX + "workstation set ws_id = " + wsId + ", guid = '" + guid + "'";
+        sql = "update " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO set ws_id = " + wsId + ", guid = '" + guid + "'";
         db.execSql(sql);
     }
 
@@ -170,8 +168,8 @@ public class UtDbObjectManager {
     public void dropAuditBase() throws Exception {
         // Удаляем системные таблицы и генераторы
         String[] jdx_sys_tables = new String[]{
-                "db_info", // старая, но тоже удаляем
-                "age", "flag_tab", "state", "state_ws", "workstation_list", "workstation",
+                "db_info", "workstation_list", "state", // старые, но тоже удаляем
+                "age", "flag_tab", "ws_info", "ws_state", "srv_state", "srv_workstation_state", "srv_workstation_list",
                 "que_in", "que_out", "que_common",
                 "que_in001", "que_out001",
                 "que_out000",

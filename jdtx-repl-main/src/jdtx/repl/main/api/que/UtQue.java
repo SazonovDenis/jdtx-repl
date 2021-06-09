@@ -46,7 +46,7 @@ public class UtQue {
 
 
     // Префикс для таблиц состояния: для каждой станции свой (на сервере)
-    public static final boolean STATE_AT_SRV_FOR_EACH_WS = true;
+    public static final boolean STATE_AT_SRV = true;
 
     // Префикс для таблиц состояния: один единственный (для текущей рабочей станции)
     public static final boolean STATE_AT_WS = false;

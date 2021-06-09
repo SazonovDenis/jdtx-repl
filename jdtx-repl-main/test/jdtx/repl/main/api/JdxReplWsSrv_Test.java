@@ -186,13 +186,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         */
 
         // ---
-        UtData.outTable(db.loadSql("select id, name, guid from " + UtJdx.SYS_TABLE_PREFIX + "workstation_list"));
+        UtData.outTable(db.loadSql("select id, name, guid from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST"));
     }
 
     /**
      * Стираем все каталоги с данными, почтой и т.п.
      */
-    private void clearAllTestData() {
+    void clearAllTestData() {
         UtFile.cleanDir("../_test-data/_test-data_srv");
         UtFile.cleanDir("../_test-data/_test-data_ws1");
         UtFile.cleanDir("../_test-data/_test-data_ws2");
@@ -269,8 +269,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         srv.disableWorkstation(3);
         srv.enableWorkstation(4);
         //
-        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "workstation_list"));
-        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "state"));
+        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST"));
+        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_STATE" + "," + UtJdx.SYS_TABLE_PREFIX + "WS_STATE"));
 
         // Активируем рабочие станции
         srv.enableWorkstation(1);
@@ -278,14 +278,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         srv.enableWorkstation(3);
         srv.enableWorkstation(4);
         //
-        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "workstation_list"));
-        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "state"));
+        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST"));
+        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_STATE" + "," + UtJdx.SYS_TABLE_PREFIX + "WS_STATE"));
 
         //
         srv.disableWorkstation(4);
         //
-        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "workstation_list"));
-        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "state"));
+        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST"));
+        UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_STATE" + "," + UtJdx.SYS_TABLE_PREFIX + "WS_STATE"));
     }
 
     @Test

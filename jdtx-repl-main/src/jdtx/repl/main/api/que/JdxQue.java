@@ -19,16 +19,16 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
 
     String queName;
 
-    String wsPrefixForTableNames;
+    String stateTableName;
 
     //
-    public JdxQue(Db db, String queName, boolean queForEachWsAtSrv) {
+    public JdxQue(Db db, String queName, boolean stateMode) {
         this.db = db;
         this.queName = UtQue.getTableSuffix(queName);
-        if (queForEachWsAtSrv) {
-            this.wsPrefixForTableNames = "_ws";
+        if (stateMode == UtQue.STATE_AT_SRV) {
+            this.stateTableName = UtJdx.SYS_TABLE_PREFIX + "SRV_STATE";
         } else {
-            this.wsPrefixForTableNames = "";
+            this.stateTableName = UtJdx.SYS_TABLE_PREFIX + "WS_STATE";
         }
     }
 
@@ -102,13 +102,13 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
     }
 
     public long getMaxNo() throws Exception {
-        String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "state" + wsPrefixForTableNames;
+        String sql = "select * from " + stateTableName;
         DataRecord rec = db.loadSql(sql).getCurRec();
         return rec.getValueLong("que_" + queName + "_no");
     }
 
     public void setMaxNo(long queNo) throws Exception {
-        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "state" + wsPrefixForTableNames + " set que_" + queName + "_no = " + queNo;
+        String sql = "update " + stateTableName + " set que_" + queName + "_no = " + queNo;
         db.execSql(sql);
     }
 

@@ -30,7 +30,7 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
         //
         IVariantMap args = new VariantMap();
 
-        // Инициализируем рабочую станцию (ws5)
+        // Инициализируем НОВУЮ рабочую станцию (ws5)
         args.clear();
         args.put("ws", 5);
         args.put("guid", "b5781df573ca6ee6.x-50d3d7a3c104ae05");

@@ -23,7 +23,7 @@ public class JdxQuePersonal extends JdxQue implements IJdxQue {
 
     //
     public JdxQuePersonal(Db db, String queName, long wsId) {
-        super(db, queName, false);
+        super(db, queName, UtQue.STATE_AT_WS);
         this.wsId = wsId;
     }
 

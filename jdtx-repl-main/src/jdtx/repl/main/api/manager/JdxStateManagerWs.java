@@ -20,9 +20,9 @@ public class JdxStateManagerWs {
      * @return Возраст аудита, до которого сформирована исходящая очередь
      */
     public long getAuditAgeDone() throws Exception {
-        String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "state";
+        String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_STATE";
         DataRecord rec = db.loadSql(sql).getCurRec();
-        return rec.getValueLong("que_out_age_done");
+        return rec.getValueLong("que_out_no_done");
     }
 
     /**
@@ -30,7 +30,7 @@ public class JdxStateManagerWs {
      * (заполняется при выкладывании реплики в исходящую очередь).
      */
     public void setAuditAgeDone(long queOutAgeDone) throws Exception {
-        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "state set que_out_age_done = " + queOutAgeDone;
+        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "WS_STATE set que_out_no_done = " + queOutAgeDone;
         db.execSql(sql);
     }
 
@@ -39,12 +39,12 @@ public class JdxStateManagerWs {
      * @return Номер реплики, до которого обработана (применена и т.п.) очередь (queIn, queIn001 и т.п.)
      */
     public void setQueNoDone(String queName, long queInNoDone) throws Exception {
-        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "state set que_" + queName + "_no_done = " + queInNoDone;
+        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "WS_STATE set que_" + queName + "_no_done = " + queInNoDone;
         db.execSql(sql);
     }
 
     public long getQueNoDone(String queName) throws Exception {
-        String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "state";
+        String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_STATE";
         DataRecord rec = db.loadSql(sql).getCurRec();
         return rec.getValueLong("que_" + queName + "_no_done");
     }

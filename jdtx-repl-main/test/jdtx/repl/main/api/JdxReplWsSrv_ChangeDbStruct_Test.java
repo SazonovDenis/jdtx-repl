@@ -58,8 +58,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Проверяем, что все станции пока работают
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(3, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        assertEquals(3, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
@@ -80,8 +80,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(0, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        assertEquals(0, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
@@ -114,8 +114,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(3, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        assertEquals(3, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
@@ -362,7 +362,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      * Инициализация и прогон полного цикла смены структуры БД
      */
     @Test
-    public void test_allSetUp_ModifyDbStruct() throws Exception {
+    public void test_ModifyDbStruct() throws Exception {
         allSetUp();
         //
         sync_http_1_2_3();
@@ -379,7 +379,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      * ТРИ РАЗА
      */
     @Test
-    public void test_allSetUp_modifyDbStruct_triple() throws Exception {
+    public void test_modifyDbStruct_triple() throws Exception {
         allSetUp();
         //
         sync_http_1_2_3();
@@ -426,8 +426,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Проверяем, что все станции пока работают
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(3, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        assertEquals(3, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
@@ -448,8 +448,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(0, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        assertEquals(0, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
@@ -509,10 +509,10 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         sync_http_1_2_3();
 
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
         // Только сервер изменил структуру и перестал молчать, а станции еще не смогли сделать SET_DB_STRUCT,
         // потому что у них реальная структура не совпадает с разрешенной (не хватает новых таблиц TEST_TABLE_*)
-        assertEquals(1, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        assertEquals(1, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
@@ -556,8 +556,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(3, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        assertEquals(3, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
@@ -576,18 +576,6 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structAllowed));
         assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structFixed));
     }
-
-
-/*
-    @Test
-    public void test_sync_changeDbStruct() throws Exception {
-        sync_http();
-        test_DumpTables();
-        modifyDbStruct_internal();
-        reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
-    }
-*/
-
 
     @Test
     public void test_ws1_changeDbStruct() throws Exception {
@@ -617,7 +605,6 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws.handleSelfAudit();
     }
 
-
     @Test
     public void test_srvDbStructStart() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
@@ -635,7 +622,6 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         //
         srv.srvDbStructFinish();
     }
-
 
     /**
      * Проверяем, что реплики формировать не удается

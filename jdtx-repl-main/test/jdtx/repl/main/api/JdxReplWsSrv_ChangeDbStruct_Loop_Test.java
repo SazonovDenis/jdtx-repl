@@ -21,7 +21,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Loop_Test extends JdxReplWsSrv_ChangeDb
             try {
                 // =======================================
                 // Проверяем, что никто не молчит
-                DataStore st = db.loadSql("select * from z_z_state_ws where enabled = 1");
+                DataStore st = db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1");
                 int muteCount = 0;
                 int noMuteCount = 0;
                 for (DataRecord rec : st) {
@@ -44,7 +44,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Loop_Test extends JdxReplWsSrv_ChangeDb
                 test_srvDbStructStart();
 
                 //
-                UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
+                UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
 
 
                 // =======================================
@@ -54,7 +54,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Loop_Test extends JdxReplWsSrv_ChangeDb
                     TimeUnit.SECONDS.sleep(waitInterval_SECONDS_short);
 
                     // Проверяем
-                    st = db.loadSql("select * from z_z_state_ws where enabled = 1");
+                    st = db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1");
                     muteCount = 0;
                     noMuteCount = 0;
                     for (DataRecord rec : st) {
@@ -97,7 +97,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Loop_Test extends JdxReplWsSrv_ChangeDb
                 test_srvDbStructFinish();
 
                 //
-                UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
+                UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
 
 
                 // =======================================
@@ -107,7 +107,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Loop_Test extends JdxReplWsSrv_ChangeDb
                     TimeUnit.SECONDS.sleep(waitInterval_SECONDS_short);
 
                     // Проверяем
-                    st = db.loadSql("select * from z_z_state_ws where enabled = 1");
+                    st = db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1");
                     muteCount = 0;
                     noMuteCount = 0;
                     for (DataRecord rec : st) {

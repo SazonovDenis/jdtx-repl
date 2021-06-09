@@ -19,12 +19,12 @@ public class AppVersionManager {
     }
 
     public String getAppVersionAllowed() throws Exception {
-        DataRecord rec = db.loadSql("select app_version_allowed from " + UtJdx.SYS_TABLE_PREFIX + "workstation").getCurRec();
+        DataRecord rec = db.loadSql("select app_version_allowed from " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO").getCurRec();
         return rec.getValueString("app_version_allowed");
     }
 
     public void setAppVersionAllowed(String version) throws Exception {
-        db.execSql("update " + UtJdx.SYS_TABLE_PREFIX + "workstation set app_version_allowed = :app_version_allowed", UtCnv.toMap("app_version_allowed", version));
+        db.execSql("update " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO set app_version_allowed = :app_version_allowed", UtCnv.toMap("app_version_allowed", version));
         log.info("setAppVersionAllowed: " + version);
     }
 

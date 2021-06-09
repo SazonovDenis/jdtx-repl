@@ -119,7 +119,7 @@ public class JdxReplWs {
         IJdxDbStruct structActual = structReader.readDbStruct();
 
         // Читаем код нашей станции
-        DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "workstation").getCurRec();
+        DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO").getCurRec();
         // Проверяем код нашей станции
         if (rec.getValueLong("ws_id") == 0) {
             throw new XError("Invalid workstation.ws_id == 0");

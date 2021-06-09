@@ -30,9 +30,9 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
         // ===
         // Проверяем, что все станции пока работают
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(3, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
-        assertEquals(0, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        assertEquals(3, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        assertEquals(0, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
@@ -44,9 +44,9 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         sync_http_1_2_3();
 
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(2, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
-        assertEquals(1, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        assertEquals(2, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        assertEquals(1, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
@@ -58,9 +58,9 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         sync_http_1_2_3();
 
         // Проверяем, что все станции MUTE
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(0, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
-        assertEquals(3, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        assertEquals(0, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        assertEquals(3, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
@@ -72,9 +72,9 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         sync_http_1_2_3();
 
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(1, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
-        assertEquals(2, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        assertEquals(1, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        assertEquals(2, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
@@ -86,9 +86,9 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         sync_http_1_2_3();
 
         // Проверяем, что все станции UNMUTE
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(3, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
-        assertEquals(0, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        assertEquals(3, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        assertEquals(0, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
     }
 
     /**
@@ -111,9 +111,9 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
         // ===
         // Проверяем, что все станции пока работают
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(3, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
-        assertEquals(0, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        assertEquals(3, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        assertEquals(0, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
@@ -125,9 +125,9 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         sync_http_1_2();
 
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(1, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
-        assertEquals(2, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        assertEquals(1, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        assertEquals(2, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
@@ -147,14 +147,14 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         sync_http_3();
 
         // Проверяем, что все станции MUTE
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(0, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
-        assertEquals(3, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        assertEquals(0, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        assertEquals(3, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
 
 
         // ===
         // Будем ждать этого возраста после повторной команды
-        long waitForMinAge = db.loadSql("select max(mute_age) max_age from z_z_state_ws where enabled = 1").getCurRec().getValueInt("max_age");
+        long waitForMinAge = db.loadSql("select max(mute_age) max_age from Z_Z_SRV_WORKSTATION_STATE where enabled = 1").getCurRec().getValueInt("max_age");
         System.out.println("Wait for min age: " + waitForMinAge);
 
 
@@ -171,12 +171,12 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
         // Еще не все
         System.out.println("Wait for min age: " + waitForMinAge);
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        long minMiteAge = db.loadSql("select min(mute_age) min_age from z_z_state_ws where enabled = 1").getCurRec().getValueInt("min_age");
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        long minMiteAge = db.loadSql("select min(mute_age) min_age from Z_Z_SRV_WORKSTATION_STATE where enabled = 1").getCurRec().getValueInt("min_age");
         assertEquals(false, minMiteAge >= waitForMinAge);
 
         // Еще не все, однако 1 уже все
-        long miteAge1 = db.loadSql("select mute_age from z_z_state_ws where ws_id = 1").getCurRec().getValueInt("mute_age");
+        long miteAge1 = db.loadSql("select mute_age from Z_Z_SRV_WORKSTATION_STATE where ws_id = 1").getCurRec().getValueInt("mute_age");
         assertEquals(true, miteAge1 >= waitForMinAge);
 
 
@@ -187,8 +187,8 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
         // Еще не все
         System.out.println("Wait for min age: " + waitForMinAge);
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        minMiteAge = db.loadSql("select min(mute_age) min_age from z_z_state_ws where enabled = 1").getCurRec().getValueInt("min_age");
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        minMiteAge = db.loadSql("select min(mute_age) min_age from Z_Z_SRV_WORKSTATION_STATE where enabled = 1").getCurRec().getValueInt("min_age");
         assertEquals(false, minMiteAge >= waitForMinAge);
 
 
@@ -199,8 +199,8 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
         // Теперь все
         System.out.println("Wait for min age: " + waitForMinAge);
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        minMiteAge = db.loadSql("select min(mute_age) min_age from z_z_state_ws where enabled = 1").getCurRec().getValueInt("min_age");
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        minMiteAge = db.loadSql("select min(mute_age) min_age from Z_Z_SRV_WORKSTATION_STATE where enabled = 1").getCurRec().getValueInt("min_age");
         assertEquals(true, minMiteAge >= waitForMinAge);
 
 
@@ -213,9 +213,9 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         sync_http_1_2_3();
 
         // Проверяем, что все станции UNMUTE
-        UtData.outTable(db.loadSql("select * from z_z_state_ws where enabled = 1"));
-        assertEquals(3, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
-        assertEquals(0, db.loadSql("select count(*) cnt from z_z_state_ws where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        assertEquals(3, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        assertEquals(0, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age <> 0").getCurRec().getValueInt("cnt"));
     }
 
     @Test

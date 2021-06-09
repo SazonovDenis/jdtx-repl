@@ -8,7 +8,7 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.util.*;
 
 
-// todo Рефакторинг JdxCommon vs JdxQueOut000 vs JdxQueOut001
+// todo Рефакторинг JdxCommon vs JdxQueOut000 vs JdxQueOut001 vs JdxQue
 public class JdxQueOut001 extends JdxQue implements IJdxQue {
 
     //
@@ -16,12 +16,12 @@ public class JdxQueOut001 extends JdxQue implements IJdxQue {
 
     //
     public JdxQueOut001(Db db, long wsId) {
-        super(db, UtQue.QUE_OUT001, true);
+        super(db, UtQue.QUE_OUT001, UtQue.STATE_AT_SRV);
         this.wsId = wsId;
     }
 
-    public JdxQueOut001(Db db, String queName, boolean queForEachWsAtSrv) {
-        super(db, queName, queForEachWsAtSrv);
+    public JdxQueOut001(Db db, String queName, boolean stateMode) {
+        super(db, queName, stateMode);
     }
 
 
@@ -85,13 +85,13 @@ public class JdxQueOut001 extends JdxQue implements IJdxQue {
     }
 
     public long getMaxNo() throws Exception {
-        String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "state_ws" + " where ws_id = " + wsId;
+        String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE" + " where ws_id = " + wsId;
         DataRecord rec = db.loadSql(sql).getCurRec();
         return rec.getValueLong("que_" + queName + "_no");
     }
 
     public void setMaxNo(long queNo) throws Exception {
-        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "state_ws" + " set que_" + queName + "_no = " + queNo + " where ws_id = " + wsId;
+        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE" + " set que_" + queName + "_no = " + queNo + " where ws_id = " + wsId;
         db.execSql(sql);
     }
 
