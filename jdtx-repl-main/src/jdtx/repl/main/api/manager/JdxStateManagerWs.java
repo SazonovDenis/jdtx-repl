@@ -36,7 +36,7 @@ public class JdxStateManagerWs {
 
 
     /**
-     * @return Номер реплики, до которого обработана (применена) очередь (queIn и queIn001)
+     * @return Номер реплики, до которого обработана (применена и т.п.) очередь (queIn, queIn001 и т.п.)
      */
     public void setQueNoDone(String queName, long queInNoDone) throws Exception {
         String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "state set que_" + queName + "_no_done = " + queInNoDone;

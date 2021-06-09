@@ -39,7 +39,7 @@ public class JdxQuePersonal extends JdxQue implements IJdxQue {
 
     @Override
     public void setMaxNo(long queNo) throws Exception {
-        // Для очереди невозможно (и не нужно) ставить номер - он определяется возрастом ранее помещенных в очередь реплик
+        // Для очереди Personal невозможно (и не нужно) ставить номер - он определяется возрастом ранее помещенных в очередь реплик
         // throw new XError("Unsupported method: jdtx.repl.main.api.que.JdxQuePersonalFile.setMaxNo");
     }
 

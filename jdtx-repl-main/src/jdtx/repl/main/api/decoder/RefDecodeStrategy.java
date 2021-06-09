@@ -77,7 +77,7 @@ public class RefDecodeStrategy {
             return false;
         }
 
-        // Стратегия "перекодировать" - проверяем диапазон
+        // Стратегия "перекодировать" - проверяем диапазон, начиная с которого надо перекодировать
         if (tableDecodeStrategy.strategy == DECODE_ID && db_id < tableDecodeStrategy.decode_from_id) {
             return false;
         }
