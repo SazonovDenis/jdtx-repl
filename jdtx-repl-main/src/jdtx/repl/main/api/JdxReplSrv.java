@@ -500,12 +500,25 @@ public class JdxReplSrv {
     public void srvAppUpdate(String exeFileName) throws Exception {
         log.info("srvAppUpdate, exeFileName: " + exeFileName);
 
-        //
         UtRepl utRepl = new UtRepl(db, struct);
-        IReplica replica = utRepl.createReplicaAppUpdate(exeFileName);
 
-        // Системная команда - в исходящую очередь реплик
-        queCommon.push(replica);
+        // Рассылка - в исходящую очередь реплик queOut001
+        for (Map.Entry en : mailerList.entrySet()) {
+            long wsId = (long) en.getKey();
+
+            // Инициализационная очередь queOut001
+            JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
+            queOut001.setDataRoot(dataRoot);
+
+            // Команда на обновление
+            IReplica replica = utRepl.createReplicaAppUpdate(exeFileName);
+
+            // Системная команда - в исходящую очередь реплик
+            queOut001.push(replica);
+
+            //
+            log.info("srvAppUpdate, to wd: " + wsId);
+        }
     }
 
     public void srvRequestSnapshot(long wsId, String tableNames) throws Exception {

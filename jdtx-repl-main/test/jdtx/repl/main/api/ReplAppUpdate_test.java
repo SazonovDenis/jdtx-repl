@@ -5,7 +5,7 @@ import org.junit.*;
 public class ReplAppUpdate_test extends JdxReplWsSrv_Test {
 
     @Test
-    public void test_init_AppUpdate() throws Exception {
+    public void test_Init_AppUpdate() throws Exception {
         allSetUp();
         sync_http_1_2_3();
         sync_http_1_2_3();
@@ -24,14 +24,18 @@ public class ReplAppUpdate_test extends JdxReplWsSrv_Test {
         srv.init();
 
         //
-        String exeFileName = "Z:/jdtx-repl/install/JadatexSync-542.exe";
+        String exeFileName = "Z:/jdtx-repl/install/JadatexSync-664.exe";
         srv.srvAppUpdate(exeFileName);
 
+        // ===
+        // Цикл синхронизации ws1
+        sync_ws1();
+        sync_ws1();
 
         // ===
-        // Цикл синхронизации
-        sync_ws1();
-        sync_ws1();
+        // Цикл общей синхронизации
+        sync_http_1_2_3();
+        sync_http_1_2_3();
     }
 
 
