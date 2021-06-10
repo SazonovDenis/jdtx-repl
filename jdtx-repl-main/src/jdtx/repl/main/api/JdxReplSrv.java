@@ -29,7 +29,7 @@ public class JdxReplSrv {
     // Общая очередь на сервере
     IJdxQue queCommon;
 
-    // Почтовые курьеры для чтения/отправки сообщений (для каждой рабочей станции)
+    // Почтовые ящики для чтения/отправки сообщений (для каждой рабочей станции)
     Map<Long, IMailer> mailerList;
 
     // Правила публикации (для каждой рабочей станции)
@@ -190,8 +190,6 @@ public class JdxReplSrv {
         // Инициализационная очередь queOut001
         JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
         queOut001.setDataRoot(dataRoot);
-        //
-        UtFile.mkdirs(queOut001.getBaseDir());
 
         // Очереди и правила их нумерации, в частности out001
         // ---

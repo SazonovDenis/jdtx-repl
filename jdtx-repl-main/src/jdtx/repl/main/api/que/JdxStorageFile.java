@@ -36,6 +36,8 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
         }
         //
         this.baseDir = UtFile.unnormPath(dataRoot) + "/";
+        //
+        UtFile.mkdirs(getBaseDir());
     }
 
 
