@@ -102,29 +102,8 @@ public class UtAuditApplyer {
             triggersManager.setTriggersOff();
 
 
-            // Тут копим задания на DELETE для всей реплики, их выполняем вторым проходом.
-            // Если пытаться выполнить реплики все сразу, то возможна нежелательная ситуация:
-            // Например, при слиянии значений в справочнике CommentTip появятся реплики:
-            // CommentTip:
-            //  - вставить запись 5
-            //  - удалить записи 1, 2, 3, 4
-            // CommentText:
-            //  - заменить ссылку CommentTip с 1 на 5
-            //  - заменить ссылку CommentTip с 2 на 5
-            //  - заменить ссылку CommentTip с 3 на 5
-            //  - удалить запись со ссылкой CommentTip раной 4
-            //
-            // Этот поток реплик, хотя является в конечном итоге правильным, тем не менее, не может быть обработан без ошибок,
-            // т.к из за ссылочной целостности его нужно выполнять в такой последовательности:
-            // CommentTip:
-            //  - вставить запись 4
-            // CommentText:
-            //  - заменить ссылку CommentTip с 1 на 5
-            //  - заменить ссылку CommentTip с 2 на 5
-            //  - заменить ссылку CommentTip с 3 на 5
-            //  - удалить запись со ссылкой CommentTip раной 4
-            // CommentTip:
-            //  - удалить записи 1, 2, 3, 4
+            // Тут копим задания на DELETE для всей реплики, их выполняем вторым проходом,
+            // см. подробности в UtAuditApplyer.md
             Map<String, Collection<Long>> delayedDeleteTask = new HashMap<>();
 
             //
@@ -179,11 +158,11 @@ public class UtAuditApplyer {
                     recordFilter = new RecordFilter(publicationRuleTable, tableName, filterParams);
                 }
 
-                // Тут копим задания на DELETE для таблицы, их выполняем вторым проходом.
-                Collection<Long> delayedDeleteList = delayedDeleteTask.get(tableName);
-                if (delayedDeleteList == null) {
-                    delayedDeleteList = new ArrayList<>();
-                    delayedDeleteTask.put(tableName, delayedDeleteList);
+                // Тут копим задания на DELETE для таблицы tableName, их выполняем вторым проходом.
+                Collection<Long> delayedDeleteTaskForTable = delayedDeleteTask.get(tableName);
+                if (delayedDeleteTaskForTable == null) {
+                    delayedDeleteTaskForTable = new ArrayList<>();
+                    delayedDeleteTask.put(tableName, delayedDeleteTaskForTable);
                 }
 
                 // Перебираем записи
@@ -270,8 +249,12 @@ public class UtAuditApplyer {
                         // Из-за этого пропуска полей, при получении на рабочей станции СВОЕЙ реплики и попытке обновить ВСЕ поля,
                         // пропущенные поля станут null. На ДРУГИХ филиалах это не страшно, а на НАШЕЙ - данные затрутся.
                         int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
+                        long recId = (Long) recParams.get(idFieldName);
                         if (oprType == JdxOprType.OPR_INS) {
                             try {
+                                // Отменим удаление на втором проходе
+                                delayedDeleteTaskForTable.remove(recId);
+                                //
                                 insertOrUpdate(dbu, tableName, recParams, publicationFields);
                             } catch (Exception e) {
                                 if (UtJdx.errorIs_ForeignKeyViolation(e)) {
@@ -307,7 +290,7 @@ public class UtAuditApplyer {
                             }
                         } else if (oprType == JdxOprType.OPR_DEL) {
                             // Отложим удаление на второй проход
-                            delayedDeleteList.add((Long) recParams.get(idFieldName));
+                            delayedDeleteTaskForTable.add(recId);
                         }
                     }
 
@@ -338,18 +321,18 @@ public class UtAuditApplyer {
                 String tableName = table.getName();
 
                 //
-                Collection<Long> delayedDeleteList = delayedDeleteTask.get(tableName);
-                if (delayedDeleteList == null) {
+                Collection<Long> delayedDeleteTaskForTable = delayedDeleteTask.get(tableName);
+                if (delayedDeleteTaskForTable == null) {
                     continue;
                 }
-                if (delayedDeleteList.size() == 0) {
+                if (delayedDeleteTaskForTable.size() == 0) {
                     continue;
                 }
 
                 //
                 List<Long> failedDeleteList = new ArrayList<>();
                 count = 0;
-                for (Long recId : delayedDeleteList) {
+                for (Long recId : delayedDeleteTaskForTable) {
                     try {
                         dbu.deleteRec(tableName, recId);
                         count = count + 1;
