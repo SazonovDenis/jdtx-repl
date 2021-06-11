@@ -49,8 +49,11 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         //cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
     }
 
+    /**
+     * Прогон базового сценария репликации
+     */
     @Test
-    public void prepareEtalon_TestAll() throws Exception {
+    public void test_allSetUp_TestAll() throws Exception {
         // Первичная инициализация
         allSetUp();
         sync_http_1_2_3();
@@ -63,6 +66,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
+
+    @Test
+    public void test_allSetUp_TestAll_filter() throws Exception {
+        cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
+        cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
+        cfg_json_decode = "../install/cfg/decode_strategy_194.json";
+        test_allSetUp_TestAll();
+    }
 
     @Test
     public void allSetUp() throws Exception {

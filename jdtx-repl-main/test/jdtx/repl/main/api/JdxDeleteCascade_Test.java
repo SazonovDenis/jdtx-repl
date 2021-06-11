@@ -18,8 +18,11 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
     }
 
 
+    /**
+     * Корректность удаления своих и чужих ссылок
+     */
     @Test
-    public void allSetUp_CascadeDel() throws Exception {
+    public void test_allSetUp_CascadeDel() throws Exception {
         JdxDbUtils dbuSrv = new JdxDbUtils(db, struct);
         JdxDbUtils dbu2 = new JdxDbUtils(db2, struct2);
         JdxDbUtils dbu3 = new JdxDbUtils(db3, struct3);
@@ -40,12 +43,15 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         assertEquals(15, get_regionTip_cnt(dbu3));
 
         //
-        test_CascadeDel();
+        doCascadeDel(15);
     }
-
 
     @Test
     public void test_CascadeDel() throws Exception {
+        doCascadeDel(16);
+    }
+
+    void doCascadeDel(long recordCount) throws Exception {
         JdxDbUtils dbuSrv = new JdxDbUtils(db, struct);
         JdxDbUtils dbu2 = new JdxDbUtils(db2, struct2);
         JdxDbUtils dbu3 = new JdxDbUtils(db3, struct3);
@@ -57,9 +63,9 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         printRegionTip();
 
         //
-        assertEquals(15, get_regionTip_cnt(dbuSrv));
-        assertEquals(15, get_regionTip_cnt(dbu2));
-        assertEquals(15, get_regionTip_cnt(dbu3));
+        assertEquals(recordCount, get_regionTip_cnt(dbuSrv));
+        assertEquals(recordCount, get_regionTip_cnt(dbu2));
+        assertEquals(recordCount, get_regionTip_cnt(dbu3));
 
 
         // ---
@@ -106,13 +112,19 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         ));
 
         //
-        assertEquals(15, get_regionTip_cnt(dbuSrv));
-        assertEquals(16, get_regionTip_cnt(dbu2));
-        assertEquals(16, get_regionTip_cnt(dbu3));
+        assertEquals(recordCount, get_regionTip_cnt(dbuSrv));
+        assertEquals(recordCount + 1, get_regionTip_cnt(dbu2));
+        assertEquals(recordCount + 1, get_regionTip_cnt(dbu3));
+
+        // ---
+        System.out.println("После вставки, до синхронизации");
+        //
+        printRegionTip();
 
 
         // ---
         // Синхронизация после вставки
+        sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();
 
@@ -123,9 +135,9 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         printRegionTip();
 
         //
-        assertEquals(17, get_regionTip_cnt(dbuSrv));
-        assertEquals(17, get_regionTip_cnt(dbu2));
-        assertEquals(17, get_regionTip_cnt(dbu3));
+        assertEquals(recordCount + 2, get_regionTip_cnt(dbuSrv));
+        assertEquals(recordCount + 2, get_regionTip_cnt(dbu2));
+        assertEquals(recordCount + 2, get_regionTip_cnt(dbu3));
 
 
         // ---
@@ -137,31 +149,32 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
 
         // ---
-        System.out.println("После удаления, до синхронизации");
+        System.out.println("После удаления чужих на ws2 и ws3, до синхронизации");
         //
         printRegionTip();
 
         //
-        assertEquals(17, get_regionTip_cnt(dbuSrv));
-        assertEquals(16, get_regionTip_cnt(dbu2));
-        assertEquals(16, get_regionTip_cnt(dbu3));
+        assertEquals(recordCount + 2, get_regionTip_cnt(dbuSrv));
+        assertEquals(recordCount + 1, get_regionTip_cnt(dbu2));
+        assertEquals(recordCount + 1, get_regionTip_cnt(dbu3));
 
 
         // ---
-        // Синхронизация после удаления
+        // Синхронизация после удаления чужих на ws2 и ws3
+        sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();
 
 
         // ---
-        System.out.println("После удаления, после синхронизации");
+        System.out.println("После удаления чужих на ws2 и ws3, после синхронизации");
         //
         printRegionTip();
 
         //
-        assertEquals(17, get_regionTip_cnt(dbuSrv));
-        assertEquals(17, get_regionTip_cnt(dbu2));
-        assertEquals(17, get_regionTip_cnt(dbu3));
+        assertEquals(recordCount + 2, get_regionTip_cnt(dbuSrv));
+        assertEquals(recordCount + 2, get_regionTip_cnt(dbu2));
+        assertEquals(recordCount + 2, get_regionTip_cnt(dbu3));
 
 
         // ---
@@ -170,32 +183,33 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         db2.execSql("delete from regionTip where id = :id'", UtCnv.toMap("id", ws2_regionTip_id));
 
         //
-        assertEquals(17, get_regionTip_cnt(dbuSrv));
-        assertEquals(16, get_regionTip_cnt(dbu2));
-        assertEquals(17, get_regionTip_cnt(dbu3));
+        assertEquals(recordCount + 2, get_regionTip_cnt(dbuSrv));
+        assertEquals(recordCount + 1, get_regionTip_cnt(dbu2));
+        assertEquals(recordCount + 2, get_regionTip_cnt(dbu3));
 
 
         // ---
-        System.out.println("После удаления своих, после синхронизации");
+        System.out.println("После удаления своих на ws2, до синхронизации");
         //
         printRegionTip();
 
 
         // ---
-        // Синхронизация после удаления
+        // Синхронизация после удаления своих на ws2
+        sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();
 
 
         // ---
-        System.out.println("После удаления своих, после синхронизации");
+        System.out.println("После удаления своих на ws2, после синхронизации");
         //
         printRegionTip();
 
         //
-        assertEquals(17, get_regionTip_cnt(dbuSrv));
-        assertEquals(17, get_regionTip_cnt(dbu2));
-        assertEquals(17, get_regionTip_cnt(dbu3));
+        assertEquals(recordCount + 1, get_regionTip_cnt(dbuSrv));
+        assertEquals(recordCount + 1, get_regionTip_cnt(dbu2));
+        assertEquals(recordCount + 1, get_regionTip_cnt(dbu3));
     }
 
     @Test
@@ -224,8 +238,8 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
         UtData.outTable(db3.loadSql(sql));
     }
 
-    private long get_regionTip_cnt(JdxDbUtils dbu) throws Exception {
-        return db.loadSql("select count(*) cnt from regionTip where id <> 0").getCurRec().getValueLong("cnt");
+    long get_regionTip_cnt(JdxDbUtils dbu) throws Exception {
+        return dbu.loadSqlRec("select count(*) cnt from regionTip where id <> 0", null).getValueLong("cnt");
     }
 
 
