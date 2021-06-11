@@ -16,6 +16,7 @@ import java.util.*;
 
 /**
  * Утилиты по слиянию записей (исполнитель)
+ * todo: doc/merge-dict.md, раздел "Физическое объединеие записей", сделать именно в виде ДОПОЛНЕННИЯ к набору IDE/CUD
  */
 public class UtRecMerge implements IUtRecMerge {
 
@@ -157,7 +158,9 @@ public class UtRecMerge implements IUtRecMerge {
                 //
                 MergeResultTable taskResultForTable = result.addForTable(mergePlan.tableName);
 
-                // INS - Создаем эталонную запись
+                // INS - Создаем эталонную запись.
+                // "Эталонная" запись должна быть именно ВСТАВЛЕНА, а не выбранной из уже существующих,
+                // т.к. на рабочей станции может НЕ ОКАЗАТЬСЯ той записи, которую назначили как "эталонная".
                 Map params = prepareParams(mergePlan.recordEtalon, struct.getTable(mergePlan.tableName));
                 //
                 String pkField = struct.getTable(mergePlan.tableName).getPrimaryKey().get(0).getName();
