@@ -164,6 +164,7 @@ public class JdxReplSrv {
         ut.checkAppUpdate(false);
     }
 
+    // todo: Создание workstation идет вне транзакции - это плохо
     public void addWorkstation(long wsId, String wsName, String wsGuid, String cfgPublicationsFileName, String cfgDecodeFileName) throws Exception {
         log.info("add workstation, wsId: " + wsId + ", name: " + wsName);
 
@@ -180,9 +181,7 @@ public class JdxReplSrv {
         db.execSql(sql, params);
 
         // SRV_WORKSTATION_STATE
-        JdxDbUtils dbu = new JdxDbUtils(db, null);
-        long id = dbu.getNextGenerator(UtJdx.SYS_GEN_PREFIX + "SRV_WORKSTATION_STATE");
-        sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE (id, ws_id, que_common_dispatch_done, que_in_no_done, enabled, mute_age) values (" + id + ", " + wsId + ", 0, 0, 0, 0)";
+        sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE (id, ws_id, que_common_dispatch_done, que_in_no_done, enabled, mute_age) values (" + wsId + ", " + wsId + ", 0, 0, 0, 0)";
         db.execSql(sql);
 
 
