@@ -10,6 +10,15 @@ public class AllTest_Test extends AppTestCase {
 
     @Test
     public void test_0() throws Exception {
+        JdxReplWsSrv_Test test5 = new JdxReplWsSrv_Test();
+        test5.setUp();
+        test5.test_allSetUp_TestAll();
+        //
+        test5 = new JdxReplWsSrv_Test();
+        test5.setUp();
+        test5.test_allSetUp_TestAll_filter();
+
+        //
         JdxDeleteCascade_Test test0 = new JdxDeleteCascade_Test();
         test0.setUp();
         test0.test_allSetUp_CascadeDel();
@@ -48,15 +57,6 @@ public class AllTest_Test extends AppTestCase {
         test4 = new JdxReplWsSrv_ChangeDbStruct_Test();
         test4.setUp();
         test4.test_ModifyDbStruct();
-
-        //
-        JdxReplWsSrv_Test test5 = new JdxReplWsSrv_Test();
-        test5.setUp();
-        test5.test_allSetUp_TestAll();
-        //
-        test5 = new JdxReplWsSrv_Test();
-        test5.setUp();
-        test5.test_allSetUp_TestAll_filter();
     }
 
 }
