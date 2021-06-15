@@ -61,8 +61,16 @@ public class UtAuditApplyer {
                         log.error("==================================");
                         log.error("==================================");
                         log.error("==================================");
-                        log.error("Восстанавливаем записи из реплики: " + replicaRepairFile.getAbsolutePath());
-                        jdxReplWs.useReplicaFile(replicaRepairFile);
+                        log.error("Восстанавливаем записи из временной реплики: " + replicaRepairFile.getAbsolutePath());
+                        ReplicaUseResult useResult = jdxReplWs.useReplicaFile(replicaRepairFile);
+                        if (!useResult.replicaUsed) {
+                            log.error("Временная реплика не использована: " + replicaRepairFile.getAbsolutePath());
+                        }
+                        if (replicaRepairFile.delete()) {
+                            log.error("Файл временной реплики удален");
+                        } else {
+                            log.error("Файл временной реплики не удалось удалить");
+                        }
                     }
                 }
                 throw (e);
@@ -360,7 +368,7 @@ public class UtAuditApplyer {
                 log.info("  done delete: " + tableName + ", total: " + count);
 
                 // Обратка от удалений, которые не удалось выполнить - создаем реплики на вставку (выдадим в исходящую очередь наш вариант удаляемой записи),
-                // чтобы те, кто уже удалил - раскаялись и вернули все назад, по данныим из наших реплик.
+                // чтобы те, кто уже удалил - раскаялись и вернули все назад, по данныим из НАШИХ реплик.
                 // todo: этот метод В КОНТЕКТСЕ ТРАНЗАКЦИИ возится с какими то файлами и проч... - нежелательно
                 // todo: комит тут внутри, а контекст с этим методом createTableReplicaByIdList() - снаружи
                 if (failedDeleteList.size() != 0) {

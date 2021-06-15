@@ -36,14 +36,6 @@ import static jdtx.repl.main.api.UtJdx.*;
  */
 public class JdxReplWs {
 
-
-    private class ReplicaUseResult {
-        boolean replicaUsed = true;
-        boolean doBreak = false;
-        // Возраст своих использованных реплик (важно при восстановлении после сбоев)
-        long lastOwnAgeUsed = -1;
-    }
-
     //
     private long MAX_COMMIT_RECS = 10000;
 
@@ -680,11 +672,11 @@ public class JdxReplWs {
         return handleQueUseResult;
     }
 
-    public void useReplicaFile(File f) throws Exception {
-        useReplicaFile(f, true);
+    public ReplicaUseResult useReplicaFile(File f) throws Exception {
+        return useReplicaFile(f, true);
     }
 
-    public void useReplicaFile(File f, boolean forceApplySelf) throws Exception {
+    public ReplicaUseResult useReplicaFile(File f, boolean forceApplySelf) throws Exception {
         log.info("useReplicaFile, file: " + f.getAbsolutePath());
 
         //
@@ -693,12 +685,15 @@ public class JdxReplWs {
         JdxReplicaReaderXml.readReplicaInfo(replica);
 
         // Пробуем применить реплику
-        JdxReplWs.ReplicaUseResult replicaUseResult = useReplica(replica, forceApplySelf);
+        ReplicaUseResult replicaUseResult = useReplica(replica, forceApplySelf);
 
         // Реплика использованна?
         if (!replicaUseResult.replicaUsed) {
             log.info("useReplicaFile, replica not used");
         }
+
+        //
+        return replicaUseResult;
     }
 
     private ReplicaUseResult useReplica(IReplica replica, boolean forceApplySelf) throws Exception {
@@ -992,15 +987,6 @@ public class JdxReplWs {
                     struct_rw.toFile(structFixed, dataRoot + "temp/5.dbStruct.fixed.xml");
                     // Генерим ошибку
                     throw new XError("handleQueIn, structActual <> structAllowed");
-/*
-                    log.error("====================================================================");
-                    log.error("====================================================================");
-                    log.error("====================================================================");
-                    log.error("handleQueIn, structActual <> structAllowed");
-                    log.error("====================================================================");
-                    log.error("====================================================================");
-                    log.error("====================================================================");
-*/
                 }
 
                 // Свои собственные snapshot-реплики точно можно не применять
@@ -1020,15 +1006,6 @@ public class JdxReplWs {
                     struct_rw.toFile(structAllowed, dataRoot + "temp/6.dbStruct.allowed.xml");
                     struct_rw.toFile(structFixed, dataRoot + "temp/6.dbStruct.fixed.xml");
                     //
-/*
-                    log.error("====================================================================");
-                    log.error("====================================================================");
-                    log.error("====================================================================");
-                    log.error("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
-                    log.error("====================================================================");
-                    log.error("====================================================================");
-                    log.error("====================================================================");
-*/
                     throw new XError("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
                 }
 
@@ -1418,7 +1395,7 @@ public class JdxReplWs {
         // Если в одной реплике много ошибочных записей, то искать можно только один раз,
         // иначе на каждую ссылку будет выполнятся поиск, что затянет выкидывание ошибки
         if (outReplicaFile.exists()) {
-            log.error("Файл с репликой - результатами поиска уже есть: " + outReplicaFile.getAbsolutePath());
+            log.error("Файл с временной репликой - результатами поиска уже есть: " + outReplicaFile.getAbsolutePath());
             return outReplicaFile;
         }
 
@@ -1432,7 +1409,7 @@ public class JdxReplWs {
         IReplica replica = utRepl.findRecordInReplicas(refTableName, refTableId, dirs, true, true, outReplicaFile.getAbsolutePath());
 
         //
-        log.error("Файл с репликой - результатами поиска сформирован: " + replica.getFile().getAbsolutePath());
+        log.error("Файл с временной репликой - результатами поиска сформирован: " + replica.getFile().getAbsolutePath());
 
         //
         return outReplicaFile;
