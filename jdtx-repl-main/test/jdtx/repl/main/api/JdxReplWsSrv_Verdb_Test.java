@@ -60,8 +60,9 @@ public class JdxReplWsSrv_Verdb_Test extends JdxReplWsSrv_Test {
     }
 
     /**
-     * Инициализайия в версии 6,
-     * а потом просто работа (чтобы можно было забрать в архив рабочий каталог)
+     * Инициализация в версии 6,
+     * а потом просто работа (чтобы можно было забрать в архив рабочий каталог).
+     * Не забыть откатить исходники до версии "Релиз 670" в репозитарии.
      */
     @Test
     public void test_Run_Ver6() throws Exception {
@@ -84,7 +85,7 @@ public class JdxReplWsSrv_Verdb_Test extends JdxReplWsSrv_Test {
         doDisconnectAllForce();
         clearAllTestData();
         // Рабочие каталоги
-        doUnzip("test/jdtx/repl/main/api/JdxReplWsSrv_Verdb_Test.06.zip", "../");
+        UtTest.doUnzipDir("test/jdtx/repl/main/api/JdxReplWsSrv_Verdb_Test.06.zip", "../");
         // Создаем ящики рабочих станций
         IVariantMap args = new VariantMap();
         args.put("create", true);
@@ -93,39 +94,5 @@ public class JdxReplWsSrv_Verdb_Test extends JdxReplWsSrv_Test {
         doConnectAll();
     }
 
-
-    void doUnzip(String zipFilePath, String destDir) throws IOException {
-        File dir = new File(destDir);
-        // create output directory if it doesn't exist
-        if (!dir.exists()) dir.mkdirs();
-        FileInputStream fis;
-        //buffer for read and write data to file
-        byte[] buffer = new byte[1024];
-        fis = new FileInputStream(zipFilePath);
-        ZipInputStream zis = new ZipInputStream(fis);
-        ZipEntry ze = zis.getNextEntry();
-        while (ze != null) {
-            if (!ze.isDirectory()) {
-                String fileName = ze.getName();
-                File newFile = new File(destDir + File.separator + fileName);
-                System.out.println("Unzipping to " + newFile.getAbsolutePath());
-                //create directories for sub directories in zip
-                new File(newFile.getParent()).mkdirs();
-                FileOutputStream fos = new FileOutputStream(newFile);
-                int len;
-                while ((len = zis.read(buffer)) > 0) {
-                    fos.write(buffer, 0, len);
-                }
-                fos.close();
-                //close this ZipEntry
-                zis.closeEntry();
-            }
-            ze = zis.getNextEntry();
-        }
-        //close last ZipEntry
-        zis.closeEntry();
-        zis.close();
-        fis.close();
-    }
 
 }
