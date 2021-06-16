@@ -217,6 +217,27 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
+    void repl_restore_ws(IVariantMap args) {
+        long wsId = args.getValueLong("ws")
+        if (wsId == 0L) {
+            throw new XError("Не указан [ws] - код рабочей станции")
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        try {
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init()
+            srv.restoreWorkstation(wsId)
+        } finally {
+            db.disconnect()
+        }
+    }
+
+
     void repl_ws_enable(IVariantMap args) {
         long wsId = args.getValueLong("ws")
         if (wsId == 0L) {

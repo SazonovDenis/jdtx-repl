@@ -164,7 +164,7 @@ public class JdxReplSrv {
         ut.checkAppUpdate(false);
     }
 
-    // todo: Создание workstation идет вне транзакции - это плохо
+    // todo: Создание workstation идет вне транзакции - это плохо, бывали случаи прерывания
     public void addWorkstation(long wsId, String wsName, String wsGuid, String cfgPublicationsFileName, String cfgDecodeFileName) throws Exception {
         log.info("add workstation, wsId: " + wsId + ", name: " + wsName);
 
@@ -294,6 +294,16 @@ public class JdxReplSrv {
         // Инициализируем нумерацию отправки реплик из очереди queOut000 на этоу станцию.
         IJdxMailStateManager stateManagerMail = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT000);
         stateManagerMail.setMailSendDone(wsSnapshotAge);
+    }
+
+    /**
+     * Восстановление рабочей станции при потере базы.
+     * Отправляется snapshot, инициализируется почтовый каталог.
+     *
+     * @param wsId код ранее существующей рабочей станции
+     */
+    public void restoreWorkstation(long wsId) throws Exception {
+        log.info("Restore workstation, wsId: " + wsId);
     }
 
     private List<IJdxTable> makePublicationTables(IJdxDbStruct struct, IPublicationRuleStorage publicationStorage) {

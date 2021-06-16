@@ -53,6 +53,14 @@ repl_add_ws = cm("Добавляет рабочую станцию на серв
 }
 
 //
+repl_restore_ws = cm("Восстанавливает рабочую станцию при потере базы",
+        "ws": [value: 0, help: "Код рабочей станции"]
+) {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_restore_ws(args)
+}
+
+//
 repl_ws_enable = cm("Активирует рабочую станцию",
         "ws": [value: 0, help: "Код рабочей станции"],
 ) {
