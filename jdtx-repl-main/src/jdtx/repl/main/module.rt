@@ -72,6 +72,7 @@
         <item name="Update_005_006_index" class="jdtx.repl.main.api.jdx_db_object.Update_005_006_index"/>
         <item name="Update_005_006_state" class="jdtx.repl.main.api.jdx_db_object.Update_005_006_state"/>
         <item name="Update_008_009_que_out_no" class="jdtx.repl.main.api.jdx_db_object.Update_008_009_que_out_no"/>
+        <item name="Update_009_010_age" class="jdtx.repl.main.api.jdx_db_object.Update_009_010_age"/>
 
     </service>
 

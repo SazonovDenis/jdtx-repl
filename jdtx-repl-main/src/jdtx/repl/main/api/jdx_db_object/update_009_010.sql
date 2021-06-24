@@ -1,0 +1,6 @@
+ALTER TABLE Z_Z_WS_STATE add age INT DEFAULT 0 NOT NULL
+;
+
+
+@Update_009_010_age
+;

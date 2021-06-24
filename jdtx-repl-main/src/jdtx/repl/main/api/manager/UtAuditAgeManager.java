@@ -22,48 +22,21 @@ public class UtAuditAgeManager {
         this.struct = struct;
     }
 
-
     /**
      * Узнать возраст рабочей станции
      */
     public long getAuditAge() throws Exception {
-        return db.loadSql("select max(age) as maxAge from " + UtJdx.SYS_TABLE_PREFIX + "age").getCurRec().getValueLong("maxAge");
+        String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_STATE";
+        DataRecord rec = db.loadSql(sql).getCurRec();
+        return rec.getValueLong("age");
     }
 
     /**
-     * Увеличить общий возраст рабочей станции,
-     * не затрагивая и не учитывая возраста аудита таблиц.
-     * Полезно, если хочется в исходящую очередь положить реплику, которая не является аудитом
+     * Задать возраст аудита рабочей станции
      */
-    public long incAuditAge() throws Exception {
-        // Будущий возраст
-        long auditAgeNext;
-
-        // Текущий возраст базы данных
-        long auditAgeFixed = getAuditAge();
-
-        //
-        db.startTran();
-        try {
-            // Скопируем предыдущий записанный возраст аудита для каждой таблицы (максимальный z_id из аудита)
-            Map maxIdsFixed = new HashMap<>();
-            fillMaxIdsFixed(auditAgeFixed, maxIdsFixed);
-
-            // Увеличиваем возраст БД
-            auditAgeNext = auditAgeFixed + 1;
-
-            // Перезапоминаем состояниния журналов аудита у каждой таблицы для возраста auditAgeNext
-            fillAgeTable(auditAgeNext, maxIdsFixed);
-
-            //
-            db.commit();
-        } catch (Exception e) {
-            db.rollback(e);
-            throw e;
-        }
-
-        // Возвращаем новый возраст базы
-        return auditAgeNext;
+    public void setAuditAge(long age) throws Exception {
+        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "WS_STATE set age = " + age;
+        db.execSql(sql);
     }
 
     /**
@@ -89,11 +62,11 @@ public class UtAuditAgeManager {
             fillMaxIdsCurr(maxIdsCurr);
 
             // Увеличился ли общий возраст БД ?
-            boolean wasChange = false;
+            boolean wasTableChanged = false;
             for (IJdxTable table : struct.getTables()) {
                 String tableName = table.getName();
-                long maxIdCurr = 0;
-                long maxIdFixed = 0;
+                long maxIdCurr = -1;
+                long maxIdFixed = -1;
                 if (maxIdsCurr.get(tableName) != null) {
                     maxIdCurr = (long) maxIdsCurr.get(tableName);
                 }
@@ -101,16 +74,18 @@ public class UtAuditAgeManager {
                     maxIdFixed = (long) maxIdsFixed.get(tableName);
                 }
                 if (maxIdCurr != maxIdFixed) {
-                    wasChange = true;
+                    wasTableChanged = true;
                     break;
                 }
             }
 
-            if (wasChange) {
+            if (wasTableChanged) {
                 // Увеличился возраст БД
                 auditAgeNext = auditAgeNext + 1;
                 // Запоминаем состояниния журналов аудита у каждой таблицы для возраста auditAgeNext
                 fillAgeTable(auditAgeNext, maxIdsCurr);
+                //
+                setAuditAge(auditAgeNext);
             }
 
             //
