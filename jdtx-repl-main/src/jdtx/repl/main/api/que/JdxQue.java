@@ -136,7 +136,7 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
     /**
      * @return Последний возраст реплики в очереди, созданный рабочей станцией wsId
      */
-    long getMaxAgeForWs(long wsId) throws Exception {
+    public long getMaxAgeForWs(long wsId) throws Exception {
         String sql = "select max(age) as maxAge, count(*) as cnt from " + UtJdx.SYS_TABLE_PREFIX + "que_" + queName + " where ws_id = " + wsId;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("cnt") == 0) {

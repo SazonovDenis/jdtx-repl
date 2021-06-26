@@ -15,6 +15,7 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
         allSetUp();
         sync_http_1_2_3();
         sync_http_1_2_3();
+        sync_http_1_2_3();
 
 
         // Изменения в базах

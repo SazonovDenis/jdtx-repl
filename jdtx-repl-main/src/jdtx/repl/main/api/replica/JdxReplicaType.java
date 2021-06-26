@@ -22,7 +22,10 @@ public class JdxReplicaType {
     public static final int SET_CFG = 60;
     public static final int SET_CFG_DONE = 61;
     //
-    public static final int SET_QUE_IN_NO = 72;
+    //public static final int SET_QUE_IN_NO = 72;
+    //public static final int SET_QUE_OUT_NO = 73;
+    public static final int SET_STATE = 75;
+    public static final int SET_STATE_DONE = 76;
     //
     public static final int SEND_SNAPSHOT = 80;
     public static final int SEND_SNAPSHOT_DONE = 81;

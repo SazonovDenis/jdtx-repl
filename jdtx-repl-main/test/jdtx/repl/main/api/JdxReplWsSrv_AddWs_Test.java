@@ -22,6 +22,7 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
         allSetUp();
         sync_http_1_2_3();
         sync_http_1_2_3();
+        sync_http_1_2_3();
 
         // Идет репликация (ws1, ws2, ws3)
         test_AllHttp();
@@ -57,6 +58,15 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
         args.clear();
         args.put("create", true);
         assertEquals("Ящики не созданы", true, extSrv.repl_mail_check(args));
+
+        // Синхронизация
+        sync_http_1_2_3_5();
+        sync_http_1_2_3_5();
+        sync_http_1_2_3_5();
+        sync_http_1_2_3_5();
+
+        //
+        test_DumpTables_1_2_5();
 
         // Идет репликация (ws1, ws2, ws3, ws5)
         System.out.println("=================================");

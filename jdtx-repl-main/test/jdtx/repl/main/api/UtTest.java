@@ -23,6 +23,17 @@ public class UtTest extends UtilsTestCase {
         this.db = db;
     }
 
+    class JdxRandom extends Random {
+        public String nextStr(int len) {
+
+            String res = new DateTime().toString("HHmmss.SSS");
+            res = res + "-" + Math.abs(nextInt());
+            res = UtString.padRight(res, len, "-").substring(0, len);
+
+            return res;
+        }
+    }
+
     public void dumpTable(String tableName, String outFileName, String sortBy) throws Exception {
         UtFile.mkdirs(outFileName.substring(0, outFileName.length() - UtFile.filename(outFileName).length()));
         //
@@ -97,16 +108,16 @@ public class UtTest extends UtilsTestCase {
         db.execSql(sql);
 
         // Немного повставляем записей
-        Random rnd = new Random();
+        JdxRandom rnd = new JdxRandom();
         rnd.setSeed(getDbSeed());
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
         //
         long id = dbu.getNextGenerator("g_" + tableName);
-        sql = "insert into " + tableName + " (id, name) values (" + id + ", '" + "new~" + rnd.nextInt() + "')";
+        sql = "insert into " + tableName + " (id, name) values (" + id + ", '" + "new~" + rnd.nextStr(14) + "')";
         db.execSql(sql);
         //
         id = dbu.getNextGenerator("g_" + tableName);
-        sql = "insert into " + tableName + " (id, name) values (" + id + ", '" + "new~" + rnd.nextInt() + "')";
+        sql = "insert into " + tableName + " (id, name) values (" + id + ", '" + "new~" + rnd.nextStr(14) + "')";
         db.execSql(sql);
     }
 
@@ -122,7 +133,7 @@ public class UtTest extends UtilsTestCase {
     }
 
     public void makeChange_CommentTip(IJdxDbStruct struct, long ws_id) throws Exception {
-        Random rnd = new Random();
+        JdxRandom rnd = new JdxRandom();
         rnd.setSeed(getDbSeed());
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
 
@@ -131,7 +142,7 @@ public class UtTest extends UtilsTestCase {
         Map params = UtCnv.toMap(
                 "Id", id_commentTip,
                 "Deleted", 0,
-                "Name", "Tip-ins-ws:" + ws_id + "-" + rnd.nextInt()
+                "Name", "Tip-ins-ws:" + ws_id + "-" + rnd.nextStr(14)
         );
         //
         dbu.insertRec("commentTip", params);
@@ -146,13 +157,13 @@ public class UtTest extends UtilsTestCase {
                 "PawnChit", 0,
                 "PawnChitSubject", 0,
                 "Lic", dbu.loadSqlRec("select max(id) id from Lic", null).getValueLong("id"),
-                "CommentText", "Text-Lic-ins-ws:" + ws_id + "-" + rnd.nextInt()
+                "CommentText", "LicInsWs:" + ws_id + "-" + rnd.nextStr(14)
         );
         dbu.insertRec("commentText", params);
     }
 
     public void makeChange(IJdxDbStruct struct, long ws_id) throws Exception {
-        Random rnd = new Random();
+        JdxRandom rnd = new JdxRandom();
         rnd.setSeed(getDbSeed());
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
 
@@ -163,14 +174,14 @@ public class UtTest extends UtilsTestCase {
                 "id", id0,
                 "regionTip", 1,
                 "parent", 0,
-                "name", "Name-ins-ws:" + ws_id + "-" + rnd.nextInt()
+                "name", "Ins-ws:" + ws_id + "-" + rnd.nextStr(14)
         );
         //
         String regionTestFields = "";
         for (IJdxField f : struct.getTable("region").getFields()) {
             if (f.getName().startsWith("TEST_FIELD_")) {
                 regionTestFields = regionTestFields + "Region." + f.getName() + ",";
-                params.put(f.getName(), f.getName() + "-ins-ws:" + ws_id + "-" + rnd.nextInt());
+                params.put(f.getName(), f.getName() + "-ins-ws:" + ws_id + "-" + rnd.nextStr(14));
             }
         }
         //
@@ -181,7 +192,7 @@ public class UtTest extends UtilsTestCase {
         long id5 = dbu.getNextGenerator("g_UsrLog");
         dbu.insertRec("UsrLog", UtCnv.toMap(
                 "id", id5,
-                "Info", "-ins-ws:" + ws_id + "-" + rnd.nextInt()
+                "Info", "-ins-ws:" + ws_id + "-" + rnd.nextStr(14)
         ), "Info");
         // диапазон "старых" значений
         long id5_01 = db.loadSql("select min(id) id from UsrLog where id > 0 and id < 2000").getCurRec().getValueLong("id");
@@ -190,7 +201,7 @@ public class UtTest extends UtilsTestCase {
             id5 = id5_01 + rnd.nextInt((int) (id5_02 - id5_01));
             dbu.updateRec("UsrLog", UtCnv.toMap(
                     "id", id5,
-                    "Info", "-upd-ws:" + ws_id + "-" + rnd.nextInt()
+                    "Info", "-updWs:" + ws_id + "-" + rnd.nextStr(14)
             ), "Info");
         }
 
@@ -201,7 +212,7 @@ public class UtTest extends UtilsTestCase {
                 "id", id_Ulz,
                 "region", id0,
                 "ulzTip", 2,
-                "name", "Name-ins-ws:" + ws_id + "-" + rnd.nextInt()
+                "name", "InsWs:" + ws_id + "-" + rnd.nextStr(14)
         ));
 
 
@@ -210,9 +221,9 @@ public class UtTest extends UtilsTestCase {
         dbu.insertRec("lic", UtCnv.toMap(
                 "id", id_Lic,
                 "ulz", id_Ulz,
-                "NameF", "Name-F-ins-ws:" + ws_id + "-" + rnd.nextInt(),
-                "NameI", "Name-I-ins-ws:" + ws_id + "-" + rnd.nextInt(),
-                "NameO", "NameO-ins-ws:" + ws_id + "-" + rnd.nextInt()
+                "NameF", "InsWs:" + ws_id + "-" + rnd.nextStr(14),
+                "NameI", "InsWs:" + ws_id + "-" + rnd.nextStr(14),
+                "NameO", "InsWs:" + ws_id + "-" + rnd.nextStr(14)
         ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,dom,kv,tel,info");
 
 
@@ -238,18 +249,18 @@ public class UtTest extends UtilsTestCase {
         if (id01 > 0) {
             dbu.updateRec("lic", UtCnv.toMap(
                     "id", id01,
-                    "NameF", "Name-F-upd-ws:" + ws_id + "-" + rnd.nextInt(),
-                    "NameI", "Name-I-upd-ws:" + ws_id + "-" + rnd.nextInt(),
-                    "NameO", "Name-O-upd-ws:" + ws_id + "-" + rnd.nextInt()
+                    "NameF", "UpdWs:" + ws_id + "-" + rnd.nextStr(14),
+                    "NameI", "UpdWs:" + ws_id + "-" + rnd.nextStr(14),
+                    "NameO", "UpdWs:" + ws_id + "-" + rnd.nextStr(14)
             ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,ulz,dom,kv,tel,info");
         }
 
         if (id02 > 0) {
             dbu.updateRec("lic", UtCnv.toMap(
                     "id", id02,
-                    "NameF", "NameF-upd-ws:" + ws_id + "-" + rnd.nextInt(),
-                    "NameI", "NameI-upd-ws:" + ws_id + "-" + rnd.nextInt(),
-                    "NameO", "NameO-upd-ws:" + ws_id + "-" + rnd.nextInt(),
+                    "NameF", "UpdWs:" + ws_id + "-" + rnd.nextStr(14),
+                    "NameI", "UpdWs:" + ws_id + "-" + rnd.nextStr(14),
+                    "NameO", "UpdWs:" + ws_id + "-" + rnd.nextStr(14),
                     "Ulz", id_Ulz
             ), null, "bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,dom,kv,tel,info");
         }
@@ -258,7 +269,7 @@ public class UtTest extends UtilsTestCase {
         // Апдейт общей записи Lic
         db.execSql("update Lic set NameI = :NameI where Dom = :Dom", UtCnv.toMap(
                 "Dom", "12",
-                "NameI", "NameI-upd-com-ws:" + ws_id + "-" + rnd.nextInt()
+                "NameI", "UpCWs:" + ws_id + "-" + rnd.nextStr(14)
         ));
 
 
@@ -273,7 +284,7 @@ public class UtTest extends UtilsTestCase {
                 "CommentTip", 1 + rnd.nextInt(3),
                 "CommentUsr", id_Usr,
                 "CommentDt", new DateTime(),
-                "CommentText", "CommentText-Lic-ins-ws:" + ws_id + "-" + rnd.nextInt()
+                "CommentText", "LicInsWs:" + ws_id + "-" + rnd.nextStr(14)
         ), "lic,pawnChit,CommentTip,CommentUsr,CommentDt,CommentText", null);
         if (id_PawnChit != 0) {
             dbu.insertRec("CommentText", UtCnv.toMap(
@@ -282,7 +293,7 @@ public class UtTest extends UtilsTestCase {
                     "CommentTip", 1 + rnd.nextInt(3),
                     "CommentUsr", id_Usr,
                     "CommentDt", new DateTime(),
-                    "CommentText", "CommentText-PawnChit-ins-ws:" + ws_id + "-" + rnd.nextInt()
+                    "CommentText", "PawInsWs:" + ws_id + "-" + rnd.nextStr(14)
             ), "lic,pawnChit,CommentTip,CommentUsr,CommentDt,CommentText", null);
         }
 
@@ -300,7 +311,7 @@ public class UtTest extends UtilsTestCase {
                     // Поле name
                     db.execSql("update " + table.getName() + " set name = :name where id = :id", UtCnv.toMap(
                             "id", id,
-                            "name", "upd-ws:" + ws_id + "-" + rnd.nextInt()
+                            "name", "upd-ws:" + ws_id + "-" + rnd.nextStr(14)
                     ));
                     // Поля TEST_FIELD_***
                     for (IJdxField field : table.getFields()) {
@@ -308,7 +319,7 @@ public class UtTest extends UtilsTestCase {
                         if (fieldName.startsWith("TEST_FIELD_")) {
                             db.execSql("update " + table.getName() + " set " + fieldName + " = :" + fieldName + " where id = :id", UtCnv.toMap(
                                     "id", id,
-                                    fieldName, "upd-ws:" + ws_id + "-" + rnd.nextInt()
+                                    fieldName, "upd-ws:" + ws_id + "-" + rnd.nextStr(14)
                             ));
                         }
                     }
@@ -377,7 +388,7 @@ public class UtTest extends UtilsTestCase {
     void make_Region_InsDel_0(IJdxDbStruct struct, long ws_id) throws Exception {
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
         //UtRepl utRepl = new UtRepl(db, struct);
-        Random rnd = new Random();
+        JdxRandom rnd = new JdxRandom();
         rnd.setSeed(getDbSeed());
 
         // Постоянная id для regionTip
@@ -394,8 +405,8 @@ public class UtTest extends UtilsTestCase {
         dbu.insertRec("regionTip", UtCnv.toMap(
                 "id", id0_regionTip,
                 "deleted", 0,
-                "name", "name-ws:" + ws_id + "-" + rnd.nextInt(),
-                "shortName", "sn-" + rnd.nextInt()
+                "name", "Ws:" + ws_id + "-" + rnd.nextStr(14),
+                "shortName", "sn-" + rnd.nextStr(10)
         ));
 
         // Фиксация возраста
@@ -408,7 +419,7 @@ public class UtTest extends UtilsTestCase {
                 "id", id1_region,
                 "regionTip", id0_regionTip,
                 "parent", 0,
-                "name", "name-ws:" + ws_id + "-" + rnd.nextInt()
+                "name", "Ws:" + ws_id + "-" + rnd.nextStr(14)
         ));
 
         // Фиксация возраста
@@ -420,7 +431,7 @@ public class UtTest extends UtilsTestCase {
                 "id", id1_region,
                 "regionTip", id1_regionTip,
                 "parent", 0,
-                "name", "name-ws:" + ws_id + "-" + rnd.nextInt()
+                "name", "Ws:" + ws_id + "-" + rnd.nextStr(14)
         ));
 
         // Фиксация возраста
@@ -448,7 +459,7 @@ public class UtTest extends UtilsTestCase {
     void make_Region_InsDel_1(IJdxDbStruct struct, long ws_id) throws Exception {
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
         //UtRepl utRepl = new UtRepl(db, struct);
-        Random rnd = new Random();
+        JdxRandom rnd = new JdxRandom();
         rnd.setSeed(getDbSeed());
         //^c проверить фильтр "берем все с сервера или свое" commenttip, добавляем на филиалах каждый свой commentTip, потом добавляем commentText, а потом на сервере делаем merge
         // Фиксация возраста
@@ -466,7 +477,7 @@ public class UtTest extends UtilsTestCase {
                 "id", id1_region,
                 "regionTip", id0_regionTip,
                 "parent", 0,
-                "name", "name-ws:" + ws_id + "-" + rnd.nextInt()
+                "name", "Ws:" + ws_id + "-" + rnd.nextStr(14)
         ));
 
         // Фиксация возраста
@@ -479,8 +490,8 @@ public class UtTest extends UtilsTestCase {
         dbu.insertRec("regionTip", UtCnv.toMap(
                 "id", id1_regionTip,
                 "deleted", 0,
-                "name", "name-ws:" + ws_id + "-" + rnd.nextInt(),
-                "shortName", "sn-" + rnd.nextInt()
+                "name", "Ws:" + ws_id + "-" + rnd.nextStr(14),
+                "shortName", "sn-" + rnd.nextStr(10)
         ));
 
         // Фиксация возраста
@@ -493,7 +504,7 @@ public class UtTest extends UtilsTestCase {
                 "id", id1_region,
                 "regionTip", id1_regionTip,
                 "parent", 0,
-                "name", "name-ws:" + ws_id + "-" + rnd.nextInt()
+                "name", "Ws:" + ws_id + "-" + rnd.nextStr(14)
         ));
 
         // Фиксация возраста

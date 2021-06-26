@@ -63,7 +63,6 @@ public class JdxReplWsSrv_FailedInsertUpdate_Test extends JdxReplWsSrv_Test {
         sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();
-        sync_http_1_2_3();
 
         // Состояние полной синхронности
         System.out.println("Состояние полной синхронности");

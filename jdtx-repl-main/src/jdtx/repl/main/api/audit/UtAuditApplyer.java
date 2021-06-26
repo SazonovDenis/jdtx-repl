@@ -374,7 +374,7 @@ public class UtAuditApplyer {
                 if (failedDeleteList.size() != 0) {
                     log.info("  failed delete: " + tableName + ", count: " + failedDeleteList.size());
                     //
-                    jdxReplWs.createTableReplicaByIdList(tableName, failedDeleteList);
+                    jdxReplWs.createSnapshotByIdListIntoQueOut(tableName, failedDeleteList);
                     //
                     log.info("  failed delete: " + tableName + ", done");
                     //

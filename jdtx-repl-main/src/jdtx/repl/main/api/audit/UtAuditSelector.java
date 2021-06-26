@@ -223,14 +223,14 @@ public class UtAuditSelector {
 
         //
         return "select " +
-                UtJdx.SQL_FIELD_OPR_TYPE + ", " +
-                UtJdx.PREFIX + "opr_dttm, " +
-                UtJdx.AUDIT_TABLE_PREFIX + tableFrom.getName() + "." + idFieldName + ", " +
-                "(case when " + UtJdx.SQL_FIELD_OPR_TYPE + " in (" + JdxOprType.OPR_INS + "," + JdxOprType.OPR_UPD + ") and " + tableFrom.getName() + "." + idFieldName + " is null then 1 else 0 end) z_skip, " +
-                tableFieldsAlias +
-                " from " + UtJdx.AUDIT_TABLE_PREFIX + tableFrom.getName() +
-                " left join " + tableFrom.getName() + " on (" + UtJdx.AUDIT_TABLE_PREFIX + tableFrom.getName() + "." + idFieldName + " = " + tableFrom.getName() + "." + idFieldName + ")" +
-                " where " + UtJdx.PREFIX + "id >= " + fromId + " and " + UtJdx.PREFIX + "id <= " + toId +
+                UtJdx.SQL_FIELD_OPR_TYPE + ", \n" +
+                UtJdx.PREFIX + "opr_dttm, \n" +
+                UtJdx.AUDIT_TABLE_PREFIX + tableFrom.getName() + "." + idFieldName + ", \n" +
+                "(case when " + UtJdx.SQL_FIELD_OPR_TYPE + " in (" + JdxOprType.OPR_INS + "," + JdxOprType.OPR_UPD + ") and " + tableFrom.getName() + "." + idFieldName + " is null then 1 else 0 end) z_skip, \n" +
+                tableFieldsAlias + "\n" +
+                " from " + UtJdx.AUDIT_TABLE_PREFIX + tableFrom.getName() + "\n"+
+                " left join " + tableFrom.getName() + " on (" + UtJdx.AUDIT_TABLE_PREFIX + tableFrom.getName() + "." + idFieldName + " = " + tableFrom.getName() + "." + idFieldName + ") \n" +
+                " where " + UtJdx.PREFIX + "id >= " + fromId + " and " + UtJdx.PREFIX + "id <= " + toId + "\n"+
                 " order by " + UtJdx.PREFIX + "id";
     }
 

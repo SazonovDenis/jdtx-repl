@@ -9,7 +9,6 @@ import org.apache.commons.logging.*;
 
 /**
  * Личная очередь реплик (например, queOut).
- * Физическая реализация очереди хранения реплик.
  */
 public class JdxQuePersonal extends JdxQue implements IJdxQue {
 
@@ -33,17 +32,6 @@ public class JdxQuePersonal extends JdxQue implements IJdxQue {
      */
 
     @Override
-    public long getMaxNo() throws Exception {
-        return getMaxAge();
-    }
-
-    @Override
-    public void setMaxNo(long queNo) throws Exception {
-        // Для очереди Personal невозможно (и не нужно) ставить номер - он определяется возрастом ранее помещенных в очередь реплик
-        // throw new XError("Unsupported method: jdtx.repl.main.api.que.JdxQuePersonalFile.setMaxNo");
-    }
-
-    @Override
     public void validateReplica(IReplica replica) throws Exception {
         super.validateReplica(replica);
 
@@ -56,7 +44,7 @@ public class JdxQuePersonal extends JdxQue implements IJdxQue {
         // Проверки: правильность очередности реплик по возрасту age
         long queMaxAge = getMaxAge();
         long replicaAge = replica.getInfo().getAge();
-        if (replicaAge != queMaxAge + 1) {
+        if (replicaAge != -1 && queMaxAge != -1 && replicaAge != queMaxAge + 1) {
             throw new XError("Invalid replica.age: " + replicaAge + ", que.age: " + queMaxAge);
         }
     }
@@ -69,7 +57,7 @@ public class JdxQuePersonal extends JdxQue implements IJdxQue {
     /**
      * @return Последний возраст реплики в очереди для нашей рабочей станции
      */
-    private long getMaxAge() throws Exception {
+    public long getMaxAge() throws Exception {
         String sql = "select max(age) as maxAge, count(*) as cnt from " + UtJdx.SYS_TABLE_PREFIX + "que_" + queName;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("cnt") == 0) {

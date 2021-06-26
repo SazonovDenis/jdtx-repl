@@ -38,7 +38,6 @@ public class JdxQueCommon extends JdxQue implements IJdxQue {
             long replicaWsId = replica.getInfo().getWsId();
             long queWsMaxAge = getMaxAgeForWs(replicaWsId);
             if (queWsMaxAge != -1 && replicaAge != queWsMaxAge + 1) {
-                //log.error("invalid replica.age: " + replicaAge + ", que.age: " + queWsMaxAge +", replica.wsId: " + replicaWsId + ", que.name: " + queName);
                 throw new XError("invalid replica.age: " + replicaAge + ", que.age: " + queWsMaxAge +", replica.wsId: " + replicaWsId + ", que.name: " + queName);
             }
         }

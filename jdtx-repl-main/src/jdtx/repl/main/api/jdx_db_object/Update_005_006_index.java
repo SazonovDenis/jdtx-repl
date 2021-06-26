@@ -38,9 +38,9 @@ public class Update_005_006_index implements ISqlScriptExecutor {
                 log.info("createAuditTableIndex, table: " + table.getName());
             } catch (Exception e) {
                 if (UtJdx.collectExceptionText(e).contains("Unknown columns in index")) {
-                    log.warn("createAuditTableIndex, table: " + table.getName() + ", error: " + e.getMessage().replace("\n", " ").replace("~", ""));
+                    log.warn("createAuditTableIndex, table: " + table.getName() + ", message: " + e.getMessage().replace("\n", " ").replace("~", ""));
                 } else if (UtJdx.errorIs_IndexAlreadyExists(e)) {
-                    log.warn("createAuditTableIndex, table: " + table.getName() + ", IndexAlreadyExists, error: " + e.getMessage().replace("\n", " ").replace("~", ""));
+                    log.warn("createAuditTableIndex, table: " + table.getName() + ", IndexAlreadyExists, message: " + e.getMessage().replace("\n", " ").replace("~", ""));
                 } else {
                     throw e;
                 }

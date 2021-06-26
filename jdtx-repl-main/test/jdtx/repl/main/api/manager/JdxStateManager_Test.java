@@ -44,38 +44,38 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
 
         //
         System.out.println("getDispatchDoneQueCommon[" + wsId_1 + "]: " + stateManager.getDispatchDoneQueCommon(wsId_1));
-        System.out.println("getWsQueInAgeDone[" + wsId_1 + "]: " + stateManager.getWsQueInAgeDone(wsId_1));
+        System.out.println("getWsQueInAgeDone[" + wsId_1 + "]: " + stateManager.getWsQueInNoDone(wsId_1));
         //
         System.out.println("getDispatchDoneQueCommon[" + wsId_2 + "]: " + stateManager.getDispatchDoneQueCommon(wsId_2));
-        System.out.println("getWsQueInAgeDone[" + wsId_2 + "]: " + stateManager.getWsQueInAgeDone(wsId_2));
+        System.out.println("getWsQueInAgeDone[" + wsId_2 + "]: " + stateManager.getWsQueInNoDone(wsId_2));
 
         // ---
         stateManager.setDispatchDoneQueCommon(wsId_1, 20);
-        stateManager.setWsQueInAgeDone(wsId_1, 30);
+        stateManager.setWsQueInNoDone(wsId_1, 30);
         //
         stateManager.setDispatchDoneQueCommon(wsId_2, 21);
-        stateManager.setWsQueInAgeDone(wsId_2, 31);
+        stateManager.setWsQueInNoDone(wsId_2, 31);
 
         //
         System.out.println("getDispatchDoneQueCommon[" + wsId_1 + "]: " + stateManager.getDispatchDoneQueCommon(wsId_1));
-        System.out.println("getWsQueInAgeDone[" + wsId_1 + "]: " + stateManager.getWsQueInAgeDone(wsId_1));
+        System.out.println("getWsQueInAgeDone[" + wsId_1 + "]: " + stateManager.getWsQueInNoDone(wsId_1));
         //
         System.out.println("getDispatchDoneQueCommon[" + wsId_2 + "]: " + stateManager.getDispatchDoneQueCommon(wsId_2));
-        System.out.println("getWsQueInAgeDone[" + wsId_2 + "]: " + stateManager.getWsQueInAgeDone(wsId_2));
+        System.out.println("getWsQueInAgeDone[" + wsId_2 + "]: " + stateManager.getWsQueInNoDone(wsId_2));
 
         // ---
         stateManager.setDispatchDoneQueCommon(wsId_1, 920);
-        stateManager.setWsQueInAgeDone(wsId_1, 930);
+        stateManager.setWsQueInNoDone(wsId_1, 930);
         //
         stateManager.setDispatchDoneQueCommon(wsId_2, 921);
-        stateManager.setWsQueInAgeDone(wsId_2, 931);
+        stateManager.setWsQueInNoDone(wsId_2, 931);
 
         //
         System.out.println("getDispatchDoneQueCommon[" + wsId_1 + "]: " + stateManager.getDispatchDoneQueCommon(wsId_1));
-        System.out.println("getWsQueInAgeDone[" + wsId_1 + "]: " + stateManager.getWsQueInAgeDone(wsId_1));
+        System.out.println("getWsQueInAgeDone[" + wsId_1 + "]: " + stateManager.getWsQueInNoDone(wsId_1));
         //
         System.out.println("getDispatchDoneQueCommon[" + wsId_2 + "]: " + stateManager.getDispatchDoneQueCommon(wsId_2));
-        System.out.println("getWsQueInAgeDone[" + wsId_2 + "]: " + stateManager.getWsQueInAgeDone(wsId_2));
+        System.out.println("getWsQueInAgeDone[" + wsId_2 + "]: " + stateManager.getWsQueInNoDone(wsId_2));
     }
 
     @Test

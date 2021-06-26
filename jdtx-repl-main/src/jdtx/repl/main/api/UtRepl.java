@@ -71,6 +71,10 @@ public class UtRepl {
         // Для начала "фиксированная" структура будет пустая
         IJdxDbStruct structFixed = new JdxDbStruct();
         databaseStructManager.setDbStructFixed(structFixed);
+
+        // Пока в стотоянии MUTE
+        JdxMuteManagerWs muteManager = new JdxMuteManagerWs(db);
+        muteManager.muteWorkstation();
     }
 
 
@@ -143,17 +147,49 @@ public class UtRepl {
     }
 
     /**
-     * Реплика на вставку всех существующих записей в этой БД.
-     * <p>
-     * Используется при включении новой БД в систему:
-     * В числе первых реплик для сервера.
+     * Создает snapsot-реплику для выбранных записей idList, из таблицы table,
+     * без фильтраци (т.к. указаны конкретные id),
+     * по всем полям (игнорируя правила).
      */
-    public IReplica createReplicaTableSnapshot(long wsId, IPublicationRule publicationRule, long age, boolean forbidNotOwnId) throws Exception {
+    public IReplica createSnapshotByIdList(long wsId, IJdxTable table, Collection<Long> idList) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
         replica.getInfo().setWsId(wsId);
-        replica.getInfo().setAge(age);
+        replica.getInfo().setAge(-1);
+
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
+
+        // Начинаем писать файл с данными
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
+
+        // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
+        UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, false);
+        String publicationFields = UtJdx.fieldsToString(table.getFields());
+        dataSelector.readRecordsByIdList(table.getName(), idList, publicationFields, xmlWriter);
+
+        // Заканчиваем формирование файла реплики
+        replicaWriter.replicaFileClose();
+
+        //
+        return replica;
+    }
+
+    /**
+     * Создает snapsot-реплику для таблицы, упомянутой в правиле publicationRule,
+     * без фильтрации записей, по полям, указанным в правиле publicationRule.
+     * <p>
+     * Используется при включении новой БД в систему, в числе первых реплик для сервера
+     * или при добавлении таблицы в БД.
+     */
+    public IReplica createSnapshotForTable(long wsId, IPublicationRule publicationRule, boolean forbidNotOwnId) throws Exception {
+        IReplica replica = new ReplicaFile();
+        replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
+        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
+        replica.getInfo().setWsId(wsId);
+        replica.getInfo().setAge(-1);
 
         // Стартуем формирование файла реплики
         UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
@@ -165,32 +201,6 @@ public class UtRepl {
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
         UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, forbidNotOwnId);
         dataSelector.readAllRecords(publicationRule, xmlWriter);
-
-        // Заканчиваем формирование файла реплики
-        replicaWriter.replicaFileClose();
-
-        //
-        return replica;
-    }
-
-    public IReplica createReplicaTableByIdList(long wsId, IJdxTable publicationTable, long age, Collection<Long> idList) throws Exception {
-        IReplica replica = new ReplicaFile();
-        replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
-        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
-        replica.getInfo().setWsId(wsId);
-        replica.getInfo().setAge(age);
-
-        // Стартуем формирование файла реплики
-        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
-        replicaWriter.replicaFileStart();
-
-        // Начинаем писать файл с данными
-        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
-
-        // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
-        UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, false);
-        String publicationFields = UtJdx.fieldsToString(publicationTable.getFields());
-        dataSelector.readRecordsByIdList(publicationTable.getName(), idList, publicationFields, xmlWriter);
 
         // Заканчиваем формирование файла реплики
         replicaWriter.replicaFileClose();
@@ -274,9 +284,9 @@ public class UtRepl {
         return replica;
     }
 
-    public IReplica createReplicaSetQueInNo(long destinationWsId, long queInNo) throws Exception {
+    public IReplica createReplicaSetWsState(long destinationWsId, JdxWsState wsState) throws Exception {
         IReplica replica = new ReplicaFile();
-        replica.getInfo().setReplicaType(JdxReplicaType.SET_QUE_IN_NO);
+        replica.getInfo().setReplicaType(JdxReplicaType.SET_STATE);
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
 
         // Стартуем формирование файла реплики
@@ -287,11 +297,11 @@ public class UtRepl {
         OutputStream zipOutputStream = replicaWriter.newFileOpen("info.json");
 
         // Информация о получателе
-        JSONObject cfgInfo = new JSONObject();
-        cfgInfo.put("destinationWsId", destinationWsId);
-        cfgInfo.put("queInNo", queInNo);
-        String cfgInfoStr = UtJson.toString(cfgInfo);
-        StringInputStream versionStream = new StringInputStream(cfgInfoStr);
+        JSONObject wsStateJson = new JSONObject();
+        wsStateJson.put("destinationWsId", destinationWsId);
+        wsState.toJson(wsStateJson);
+        String wsStateStr = UtJson.toString(wsStateJson);
+        StringInputStream versionStream = new StringInputStream(wsStateStr);
         UtFile.copyStream(versionStream, zipOutputStream);
 
         // Заканчиваем формирование файла реплики
@@ -300,6 +310,10 @@ public class UtRepl {
         //
         return replica;
     }
+    
+/*
+todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica*** свести к одному по аналогии с ReportReplica
+*/
 
     public IReplica createReplicaAppUpdate(String exeFileName) throws Exception {
         IReplica replica = new ReplicaFile();

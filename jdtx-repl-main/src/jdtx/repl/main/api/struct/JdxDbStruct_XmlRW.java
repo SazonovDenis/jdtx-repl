@@ -13,7 +13,7 @@ public class JdxDbStruct_XmlRW {
     boolean doSortFieldsByName = true;
     boolean doSortTablesByName = true;
 
-    public String toString(IJdxDbStruct struct, boolean doforeignKeys) throws Exception {
+    public String toString(IJdxDbStruct struct, boolean doforeignKeys) {
         EasyXml xml = new EasyXml();
 
         //

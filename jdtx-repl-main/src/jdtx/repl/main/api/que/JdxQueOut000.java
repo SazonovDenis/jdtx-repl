@@ -40,7 +40,6 @@ public class JdxQueOut000 extends JdxQueOut001 {
             long replicaWsId = replica.getInfo().getWsId();
             long queWsMaxAge = getMaxAgeForWs(replicaWsId);
             if (queWsMaxAge != -1 && replicaAge != queWsMaxAge + 1) {
-                //log.error("invalid replica.age: " + replicaAge + ", que.age: " + queWsMaxAge + ", replica.wsId: " + replicaWsId + ", que.name: " + queName);
                 throw new XError("invalid replica.age: " + replicaAge + ", que.age: " + queWsMaxAge + ", replica.wsId: " + replicaWsId + ", que.name: " + queName);
             }
         }
@@ -49,7 +48,7 @@ public class JdxQueOut000 extends JdxQueOut001 {
     /**
      * @return Последний возраст реплики в очереди, созданный рабочей станцией wsId, предназначенный для отправки на destinationWsId
      */
-    long getMaxAgeForWs(long wsId) throws Exception {
+    public long getMaxAgeForWs(long wsId) throws Exception {
         String sqlFromWhere = "from " + UtJdx.SYS_TABLE_PREFIX + "que_" + queName + " where destination_ws_id = " + this.wsId;
         //
         String sql = "select max(age) as maxAge, count(*) as cnt " + sqlFromWhere + " and ws_id = " + wsId;

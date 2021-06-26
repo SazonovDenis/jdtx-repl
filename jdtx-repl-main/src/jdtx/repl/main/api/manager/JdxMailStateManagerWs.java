@@ -5,7 +5,8 @@ import jandcode.dbm.db.*;
 import jdtx.repl.main.api.*;
 
 /**
- * Состояние почты: отметка, насколько отправлена почта.
+ * Состояние почты: отметка, насколько отправлена почта - рабочая станция.
+ * Реализация для рабочей станции отмечает только свою очередь out.
  */
 public class JdxMailStateManagerWs implements IJdxMailStateManager {
 

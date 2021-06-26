@@ -30,7 +30,6 @@ public class UtMail {
         //
         long sendFrom;
         long sendTo;
-        //
         if (requiredInfo.requiredFrom != -1) {
             // Попросили повторную отправку
             sendFrom = requiredInfo.requiredFrom;
@@ -48,7 +47,7 @@ public class UtMail {
             sendTo = queMaxNo;
         }
 
-
+        //
         long count = 0;
         for (long no = sendFrom; no <= sendTo; no++) {
             IReplica replica = que.get(no);
@@ -81,7 +80,7 @@ public class UtMail {
 
 
         //
-        if (sendFrom < sendTo) {
+        if (count > 0) {
             log.info("sendMail done, wsId: " + wsId + ", box: " + box + ", send: " + sendFrom + " .. " + sendTo + ", done count: " + count);
         } else {
             log.info("sendMail done, wsId: " + wsId + ", box: " + box + ", send: " + sendFrom + ", nothing done");

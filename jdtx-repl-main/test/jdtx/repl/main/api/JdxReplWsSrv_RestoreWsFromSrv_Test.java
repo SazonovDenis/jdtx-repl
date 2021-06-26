@@ -21,18 +21,20 @@ public class JdxReplWsSrv_RestoreWsFromSrv_Test extends JdxReplWsSrv_Test {
         // ---
         // Инициализация
         allSetUp();
-
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         // --- Работаем как обычно
         test_AllHttp();
         test_AllHttp();
 
-        //
-        do_DumpTables(db, db2, db3, struct, struct2, struct3);
+        // Проверим синхронность после изменений
+        //do_DumpTables(db, db2, db3, struct, struct2, struct3);
 
 
         // ---
-        // Стираем текущую рабочую базу ws3
+        // Стираем текущую рабочую базу ws3 и рабочий каталог (на "рабочей станции")
 
         doDisconnectAllForce();
 
@@ -40,7 +42,9 @@ public class JdxReplWsSrv_RestoreWsFromSrv_Test extends JdxReplWsSrv_Test {
         UtFile.cleanDir("../_test-data/_test-data_ws3");
         new File("../_test-data/_test-data_ws3").delete();
 
-        // Берем заготовку базы данных
+
+        // ---
+        // Берем заготовку базы данных (на "рабочей станции")
         Rt rt = extWs3.getApp().getRt().getChild("db/default");
         String dbNameDest = rt.getValue("database").toString();
         String dbNameSour = rt.getValue("database_etalon").toString();
@@ -54,13 +58,14 @@ public class JdxReplWsSrv_RestoreWsFromSrv_Test extends JdxReplWsSrv_Test {
 
 
         // ---
-        // Подаем команду на сервер для подготовки snaphot
+        // Подаем команду для подготовки snaphot (на сервере)
         IVariantMap args = new VariantMap();
         args.put("ws", 3);
         extSrv.repl_restore_ws(args);
 
 
-        // Готовим базу рабочей станции
+        // ---
+        // Подаем команду для подготовки базы рабочей станции
         args.clear();
         args.put("ws", 3);
         args.put("guid", "b5781df573ca6ee6.x-34f3cc20bea64503");
@@ -68,12 +73,21 @@ public class JdxReplWsSrv_RestoreWsFromSrv_Test extends JdxReplWsSrv_Test {
         extWs3.repl_create(args);
 
 
+        // ---
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+
+        // Проверим синхронность после восстановления
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
+
+
         // --- Работаем после восстановления
         test_AllHttp();
         test_AllHttp();
         test_AllHttp();
 
-        //
+        // Проверим синхронность после работы
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 

@@ -18,16 +18,20 @@ public class JdxStateManagerSrv {
 
 
     /**
-     * @return Возраст реплики, до которого обработана входящая очередь от рабочей станции
-     * при формировании общей очереди
+     * @return Возраст реплики, до которого обработана
+     * входящая очередь out от рабочей станции при формировании общей очереди.
      */
-    public long getWsQueInAgeDone(long wsId) throws Exception {
+    public long getWsQueInNoDone(long wsId) throws Exception {
         DataRecord rec = loadRecStateWs(wsId);
         //
         return rec.getValueLong("que_in_no_done");
     }
 
-    public void setWsQueInAgeDone(long wsId, long queInAgeDone) throws Exception {
+    /**
+     * Устанавливает возраст реплики, до которого обработана
+     * входящая очередь out от рабочей станции при формировании общей очереди.
+     */
+    public void setWsQueInNoDone(long wsId, long queInAgeDone) throws Exception {
         loadRecStateWs(wsId);
         //
         String sqlUpd = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set que_in_no_done = " + queInAgeDone + " where ws_id = " + wsId;
@@ -36,8 +40,8 @@ public class JdxStateManagerSrv {
 
 
     /**
-     * @return Отметка: номер реплики, до которого обработана общая очередь
-     * при тиражировании реплик для рабочей станции wsId
+     * @return Номер реплики, до которого обработана общая очередь
+     * при тиражировании реплик для рабочей станции wsId.
      */
     public long getDispatchDoneQueCommon(long wsId) throws Exception {
         DataRecord rec = loadRecStateWs(wsId);
@@ -45,6 +49,10 @@ public class JdxStateManagerSrv {
         return rec.getValueLong("que_common_dispatch_done");
     }
 
+    /**
+     * Устанавливает номер реплики, до которого обработана общая очередь
+     * при тиражировании реплик для рабочей станции wsId.
+     */
     public void setDispatchDoneQueCommon(long wsId, long queCommonNoDone) throws Exception {
         loadRecStateWs(wsId);
         //

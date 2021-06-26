@@ -191,7 +191,7 @@ public class UtJdx {
                 replica.getInfo().getReplicaType() == JdxReplicaType.UPDATE_APP_DONE ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SET_CFG ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SET_CFG_DONE ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.SET_QUE_IN_NO ||
+                replica.getInfo().getReplicaType() == JdxReplicaType.SET_STATE ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SEND_SNAPSHOT ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SEND_SNAPSHOT_DONE
 
@@ -201,7 +201,7 @@ public class UtJdx {
         }
 
         // Проверки: правильность возраста данных в реплике
-        if (replica.getInfo().getAge() <= -1) {
+        if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE && replica.getInfo().getAge() <= -1) {
             throw new XError("invalid replica.age");
         }
 

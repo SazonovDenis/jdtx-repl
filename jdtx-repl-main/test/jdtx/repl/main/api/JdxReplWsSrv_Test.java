@@ -58,6 +58,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         allSetUp();
         sync_http_1_2_3();
         sync_http_1_2_3();
+        sync_http_1_2_3();
 
         // Прогон тестов
         test_AllHttp();

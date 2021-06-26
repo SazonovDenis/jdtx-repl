@@ -69,6 +69,9 @@ public class JdxReplWsSrv_Verdb_Test extends JdxReplWsSrv_Test {
         //
         UtDbObjectManager.CURRENT_VER_DB = 6;
         allSetUp();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         //
         test_AllHttp();

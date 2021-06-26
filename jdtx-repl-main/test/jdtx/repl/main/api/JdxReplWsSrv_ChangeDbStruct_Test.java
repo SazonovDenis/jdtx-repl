@@ -28,6 +28,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         allSetUp();
         sync_http_1_2_3();
         sync_http_1_2_3();
+        sync_http_1_2_3();
 
         //
         JdxReplWs ws;
@@ -272,6 +273,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         allSetUp();
         sync_http_1_2_3();
         sync_http_1_2_3();
+        sync_http_1_2_3();
 
         //
         JdxReplWs ws;
@@ -364,7 +366,6 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     @Test
     public void test_ModifyDbStruct() throws Exception {
         allSetUp();
-        //
         sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();
@@ -381,7 +382,6 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     @Test
     public void test_modifyDbStruct_triple() throws Exception {
         allSetUp();
-        //
         sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();

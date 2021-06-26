@@ -29,8 +29,6 @@ public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
 
         // Первичная инициализация
         allSetUp();
-        //
-        sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();
