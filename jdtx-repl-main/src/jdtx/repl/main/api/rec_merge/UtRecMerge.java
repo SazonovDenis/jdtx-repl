@@ -63,6 +63,10 @@ public class UtRecMerge implements IUtRecMerge {
 
     @Override
     public Collection<RecDuplicate> findTableDuplicates(String tableName, String[] fieldNames) throws Exception {
+        return findTableDuplicates(tableName, fieldNames, true);
+    }
+
+    public Collection<RecDuplicate> findTableDuplicates(String tableName, String[] fieldNames, boolean useNullValues) throws Exception {
         List<RecDuplicate> resList = new ArrayList<>();
 
         //
@@ -76,8 +80,11 @@ public class UtRecMerge implements IUtRecMerge {
                 sb.append(" and ");
             }
             sb.append("(");
-            sb.append(name);
-            sb.append(" is not null and upper(");
+            if (!useNullValues) {
+                sb.append(name);
+                sb.append(" is not null and ");
+            }
+            sb.append("upper(");
             sb.append(name);
             sb.append(") = upper(:");
             sb.append(name);
@@ -104,16 +111,24 @@ public class UtRecMerge implements IUtRecMerge {
             //
             Map params = new HashMap();
             boolean valueWasEmpty = false;
+            boolean valueWasEmptyAll = true;
             for (String name : fieldNames) {
                 Object value = rec.getValue(name);
                 if (valueIsEmpty(value)) {
                     valueWasEmpty = true;
+                } else {
+                    valueWasEmptyAll = false;
                 }
                 params.put(name, value);
             }
 
-            // Не ищем дубли для записи, если пусты те её поля, по которым надо искать (поля, перечисленные в fieldNames)
-            if (valueWasEmpty) {
+            // Не ищем дубли для записи, если пусты НЕКОТОРЫЕ её поля, по которым надо искать (поля, перечисленные в fieldNames)
+            if (!useNullValues && valueWasEmpty) {
+                continue;
+            }
+
+            // Не ищем дубли для записи, если пусты ВСЕ её поля, по которым надо искать
+            if (valueWasEmptyAll) {
                 continue;
             }
 

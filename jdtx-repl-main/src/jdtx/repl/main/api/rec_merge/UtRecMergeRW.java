@@ -8,7 +8,7 @@ import org.json.simple.parser.*;
 import java.io.*;
 import java.util.*;
 
-public class UtRecMergeReader {
+public class UtRecMergeRW {
 
     public Collection<RecMergePlan> readTasks(String fileName) throws Exception {
         Collection<RecMergePlan> mergeTasks = new ArrayList<>();
@@ -40,6 +40,17 @@ public class UtRecMergeReader {
             taskJson.put("tableName", task.tableName);
             taskJson.put("recordEtalon", task.recordEtalon);
             taskJson.put("recordsDelete", task.recordsDelete);
+            json.add(taskJson);
+        }
+        UtFile.saveString(json.toJSONString(), new File(fileName));
+    }
+
+    public void writeDuplicates(Collection<RecDuplicate> recDuplicates, String fileName) throws Exception {
+        JSONArray json = new JSONArray();
+        for (RecDuplicate duplicate : recDuplicates) {
+            JSONObject taskJson = new JSONObject();
+            taskJson.put("params", duplicate.params);
+            taskJson.put("records", dataStoreToList(duplicate.records));
             json.add(taskJson);
         }
         UtFile.saveString(json.toJSONString(), new File(fileName));

@@ -124,6 +124,63 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
     }
 
     @Test
+    public void test_FundDuplicatesUseNull() throws Exception {
+        logOff();
+
+        //
+        UtRecMerge utRecMerge = new UtRecMerge(db, struct);
+
+        //
+        tableName = "Lic";
+        namesStr = "NameF,Rnn,DocSer";
+        String namesStrInfo = "NameF,NameI,NameO";
+        String namesStrUpdate = "NameF = 'NameF_test', DocSer = ''";
+        fieldNames = namesStr.split(",");
+
+        // =================
+
+        // Провоцируем наличие дубликатов
+        db.execSql("update " + tableName + " set " + namesStrUpdate + " where id <> 0");
+        db.execSql("update " + tableName + " set " + namesStrUpdate + " where id <> 0");
+
+        // =================
+
+        System.out.println("table: " + tableName + ", fields: " + namesStr);
+
+        UtData.outTable(db.loadSql("select id, " + namesStrInfo + "," + namesStr + " from " + tableName + " order by id"));
+
+        // =================
+
+        // Ищем дубликаты (useNullValues = false)
+        Collection<RecDuplicate> resList0 = utRecMerge.findTableDuplicates(tableName, fieldNames, false);
+
+        // Печатаем дубликаты
+        System.out.println("Заданий на слияние: " + resList0.size());
+        int recordCount0 = 1;
+        for (RecDuplicate res : resList0) {
+            System.out.println(res.params);
+            UtData.outTable(res.records, 10);
+            System.out.println();
+            //
+            recordCount0 = res.records.size();
+        }
+
+        // Ищем дубликаты (useNullValues = true)
+        Collection<RecDuplicate> resList1 = utRecMerge.findTableDuplicates(tableName, fieldNames, true);
+
+        // Печатаем дубликаты
+        System.out.println("Заданий на слияние: " + resList1.size());
+        int recordCount1 = 1;
+        for (RecDuplicate res : resList1) {
+            System.out.println(res.params);
+            UtData.outTable(res.records, 10);
+            System.out.println();
+            //
+            recordCount1 = res.records.size();
+        }
+    }
+
+    @Test
     public void test_execMergeTask() throws Exception {
         tableName = "LicDocTip";
         namesStr = "Name";
@@ -155,7 +212,7 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         UtRecMergePrint.printMergeResults(mergeResults);
 
         // Сохраняем результат выполнения задачи
-        UtRecMergeReader reader = new UtRecMergeReader();
+        UtRecMergeRW reader = new UtRecMergeRW();
         reader.writeMergeResilts(mergeResults, "temp/result.json");
 
 
@@ -183,7 +240,7 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         Collection<RecMergePlan> mergeTasks = utRecMerge.prepareMergePlan(tableName, duplicates);
 
         // Сериализация задач
-        UtRecMergeReader reader = new UtRecMergeReader();
+        UtRecMergeRW reader = new UtRecMergeRW();
         reader.writeTasks(mergeTasks, "temp/task.json");
 
         // Десериализация задач
@@ -201,7 +258,7 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         test_makeMergeTask_ToFile();
 
         // Читаем задачу на слияние
-        UtRecMergeReader reader = new UtRecMergeReader();
+        UtRecMergeRW reader = new UtRecMergeRW();
         Collection<RecMergePlan> mergeTasks = reader.readTasks("temp/task.json");
         //
         assertEquals("Есть задание на слияние", true, mergeTasks.size() > 0);
@@ -217,7 +274,7 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         UtRecMergePrint.printMergeResults(mergeResults);
 
         // Сохраняем результат выполнения задачи
-        reader = new UtRecMergeReader();
+        reader = new UtRecMergeRW();
         reader.writeMergeResilts(mergeResults, "temp/result.json");
 
         // =================
@@ -251,7 +308,7 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         Collection<RecMergePlan> mergeTasks = utRecMerge.prepareMergePlan(tableName, duplicates);
 
         // Сериализация задач
-        UtRecMergeReader reader = new UtRecMergeReader();
+        UtRecMergeRW reader = new UtRecMergeRW();
         reader.writeTasks(mergeTasks, "temp/_" + tableName + ".task");
 
 
@@ -274,7 +331,7 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         UtRecMergePrint.printMergeResults(mergeResults);
 
         // Сохраняем результат выполнения задачи
-        reader = new UtRecMergeReader();
+        reader = new UtRecMergeRW();
         reader.writeMergeResilts(mergeResults, "temp/_" + tableName + ".result.json");
 
         // Печатаем теперь дубликаты
@@ -311,7 +368,7 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         Collection<RecMergePlan> mergeTasks = utRecMerge.prepareMergePlan(tableName, duplicates);
 
         // Сериализация задач
-        UtRecMergeReader reader = new UtRecMergeReader();
+        UtRecMergeRW reader = new UtRecMergeRW();
         reader.writeTasks(mergeTasks, "temp/_Region_1.task.json");
     }
 
@@ -320,7 +377,7 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         test_findTableDuplicates_XXX();
 
         // Читаем задачу на слияние
-        UtRecMergeReader reader = new UtRecMergeReader();
+        UtRecMergeRW reader = new UtRecMergeRW();
         Collection<RecMergePlan> mergeTasks = reader.readTasks("temp/_Region_1.task.json");
 
         // Исполняем задачу на слияние
@@ -339,7 +396,7 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         test_makeMergeTask_ToFile();
 
         // Читаем задачу на слияние
-        UtRecMergeReader reader = new UtRecMergeReader();
+        UtRecMergeRW reader = new UtRecMergeRW();
         Collection<RecMergePlan> mergeTasks = reader.readTasks("temp/task.json");
 
         // Печатаем задачу на слияние
@@ -353,7 +410,7 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         UtRecMergePrint.printMergeResults(mergeResults);
 
         // Сохраняем результат выполнения задачи
-        reader = new UtRecMergeReader();
+        reader = new UtRecMergeRW();
         reader.writeMergeResilts(mergeResults, "temp/result.json");
 
         // Читаем результат выполнения задачи

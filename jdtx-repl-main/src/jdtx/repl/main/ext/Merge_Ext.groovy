@@ -59,6 +59,8 @@ class Merge_Ext extends ProjectExt {
         String fields = args.getValueString("fields")
         String file = args.getValueString("file")
         String fileCfgGroup = args.getValueString("cfg_group")
+        boolean useNull = args.getValueBoolean("use_null", false)
+        boolean doPrintResult = args.getValueBoolean("print", false)
         if (UtString.empty(table)) {
             throw new XError("Не указана [table] - имя таблицы")
         }
@@ -98,17 +100,20 @@ class Merge_Ext extends ProjectExt {
             }
 
             // Ищем дубликаты
-            Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(table, fieldNames)
+            Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(table, fieldNames, useNull)
 
             // Тупо превращаем дубликаты в задачи на слияние
             Collection<RecMergePlan> mergeTasks = utRecMerge.prepareMergePlan(table, duplicates)
 
             // Сериализация
-            UtRecMergeReader reader = new UtRecMergeReader()
+            UtRecMergeRW reader = new UtRecMergeRW()
             reader.writeTasks(mergeTasks, file)
+            reader.writeDuplicates(duplicates, file + ".duplicates")
 
-            // Печатаем задачи
-            UtRecMergePrint.printTasks(mergeTasks)
+            // Печатаем задачи на слияние
+            if (doPrintResult) {
+                UtRecMergePrint.printTasks(mergeTasks)
+            }
 
         } finally {
             db.disconnect()
@@ -147,21 +152,26 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             // Читаем задачу на слияние
-            UtRecMergeReader reader = new UtRecMergeReader()
+            UtRecMergeRW reader = new UtRecMergeRW()
             Collection<RecMergePlan> mergeTasks = reader.readTasks(file)
 
-            // Печатаем задачу на слияние
+            // Печатаем задачи на слияние
             if (print) {
                 UtRecMergePrint.printTasks(mergeTasks)
             }
 
-            // Исполняем задачу на слияние
+            // Исполняем задачи на слияние
             UtRecMerge utRecMerge = new UtRecMerge(db, struct)
             MergeResultTableMap mergeResults = utRecMerge.execMergePlan(mergeTasks, delete)
 
             // Сохраняем результат выполнения задачи
-            reader = new UtRecMergeReader()
+            reader = new UtRecMergeRW()
             reader.writeMergeResilts(mergeResults, outFile.getAbsolutePath())
+
+            // Печатаем результат выполнения задачи
+            if (print) {
+                UtRecMergePrint.printMergeResults(mergeResults)
+            }
         } finally {
             db.disconnect()
         }
