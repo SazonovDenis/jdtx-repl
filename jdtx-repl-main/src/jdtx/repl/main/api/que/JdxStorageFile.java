@@ -6,6 +6,7 @@ import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.replica.*;
 import org.apache.commons.io.*;
 import org.apache.commons.io.filefilter.*;
+import org.apache.commons.logging.*;
 
 import java.io.*;
 
@@ -14,6 +15,10 @@ import java.io.*;
  * Реализация интерфейса IJdxReplicaStorage
  */
 public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
+
+
+    //
+    protected static Log log = LogFactory.getLog("jdtx.JdxStorageFile");
 
 
     //
@@ -62,9 +67,18 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
 
         // Если файл, указанный у реплики не совпадает с постоянным местом хранения, то файл переносим на постоянное место.
         if (replicaFile.getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
-            // Если какой-то файл уже занимает постоянное место, то этот файл НЕ удаляем.
+            // Если какой-то РАЗЛИЧАЮЩИЙСЯ файл уже занимает постоянное место, то этот файл НЕ удаляем.
             if (actualFile.exists()) {
-                throw new XError("ActualFile already exists: " + actualFile.getAbsolutePath());
+                String replicaFileMd5 = UtJdx.getMd5File(replicaFile);
+                String actualFileMd5 = UtJdx.getMd5File(actualFile);
+                if (replicaFileMd5.compareToIgnoreCase(actualFileMd5) != 0) {
+                    // Если ДРУГОЙ файл уже занимает постоянное место, то этот файл НЕ удаляем.
+                    throw new XError("Other actualFile already exists: " + actualFile.getAbsolutePath());
+                } else {
+                    // Если ТАКОЙ-ЖЕ файл уже занимает постоянное место, то этот файл можно заменить.
+                    log.warn("Same actualFile already exists: " + actualFile.getAbsolutePath()+", delete existing");
+                    actualFile.delete();
+                }
             }
             // Переносим файл на постоянное место
             FileUtils.moveFile(replicaFile, actualFile);
