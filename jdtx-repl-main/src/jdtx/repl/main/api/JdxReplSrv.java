@@ -236,20 +236,17 @@ public class JdxReplSrv {
         // Более поздние в snapshot НЕ попали и рабочая станция получит их самостоятельно.
         stateManagerSrv.setDispatchDoneQueCommon(wsId, wsSnapshotAge);
 
-        // Номер последней реплики ОТ новой рабочей станции
-        // Станция пока не имела аудита, поэтому ничего еще не отправила на сервер, поэтому 0.
-        stateManagerSrv.setWsQueInNoDone(wsId, 0);
-
-
-        // Номер реплик в очереди queOut000 этой станции.
-        // Для красивой нумерации в queOut000.
-        // JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
-        // queOut000.setMaxNo(wsSnapshotAge);
+        // Номер реплик в очереди queOut000 новой станции будет совпадать с остальными станциями (так удобнее и правильнее).
+        JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
+        queOut000.setMaxNo(wsSnapshotAge);
 
         // Нумерация отправки реплик из очереди queOut000 на эту станцию.
         IJdxMailStateManager stateManagerMail = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT000);
-        //stateManagerMail.setMailSendDone(wsSnapshotAge);
-        stateManagerMail.setMailSendDone(0);
+        stateManagerMail.setMailSendDone(wsSnapshotAge);
+
+        // Номер последней реплики ОТ новой рабочей станции
+        // Станция пока не имела аудита, поэтому ничего еще не отправила на сервер, поэтому 0.
+        stateManagerSrv.setWsQueInNoDone(wsId, 0);
     }
 
     /**
