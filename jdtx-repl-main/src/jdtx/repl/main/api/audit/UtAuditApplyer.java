@@ -58,16 +58,16 @@ public class UtAuditApplyer {
                     // todo крайне криво - лишние зависимости от конфига появились, транзакция???
                     boolean autoUseRepairReplica = db.getApp().getRt().getChild("app").getValueBoolean("autoUseRepairReplica");
                     if (autoUseRepairReplica) {
-                        log.error("==================================");
-                        log.error("==================================");
-                        log.error("==================================");
-                        log.error("Восстанавливаем записи из временной реплики: " + replicaRepairFile.getAbsolutePath());
+                        log.warn("==================================");
+                        log.warn("==================================");
+                        log.warn("==================================");
+                        log.warn("Восстанавливаем записи из временной реплики: " + replicaRepairFile.getAbsolutePath());
                         ReplicaUseResult useResult = jdxReplWs.useReplicaFile(replicaRepairFile);
                         if (!useResult.replicaUsed) {
                             log.error("Временная реплика не использована: " + replicaRepairFile.getAbsolutePath());
                         }
                         if (replicaRepairFile.delete()) {
-                            log.error("Файл временной реплики удален");
+                            log.info("Файл временной реплики удален");
                         } else {
                             log.error("Файл временной реплики не удалось удалить");
                         }

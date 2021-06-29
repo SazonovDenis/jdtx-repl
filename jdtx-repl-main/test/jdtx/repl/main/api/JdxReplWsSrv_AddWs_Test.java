@@ -65,14 +65,17 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
         sync_http_1_2_3_5();
         sync_http_1_2_3_5();
 
-        //
-        test_DumpTables_1_2_5();
-
         // Идет репликация (ws1, ws2, ws3, ws5)
         System.out.println("=================================");
         test_AllHttp_5();
 
         //
+        test_DumpTables_1_2_5();
+    }
+
+    @Test
+    public void test_AllHttp_5_DumpTables() throws Exception {
+        test_AllHttp();
         test_DumpTables_1_2_5();
     }
 
