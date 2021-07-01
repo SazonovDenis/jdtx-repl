@@ -192,6 +192,8 @@ public class UtJdx {
                 replica.getInfo().getReplicaType() == JdxReplicaType.SET_CFG ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SET_CFG_DONE ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SET_STATE ||
+                replica.getInfo().getReplicaType() == JdxReplicaType.REPAIR_GENERATORS ||
+                replica.getInfo().getReplicaType() == JdxReplicaType.REPAIR_GENERATORS_DONE ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SEND_SNAPSHOT ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SEND_SNAPSHOT_DONE
 

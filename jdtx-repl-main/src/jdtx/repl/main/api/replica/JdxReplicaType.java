@@ -27,6 +27,9 @@ public class JdxReplicaType {
     public static final int SET_STATE = 75;
     public static final int SET_STATE_DONE = 76;
     //
+    public static final int REPAIR_GENERATORS = 78;
+    public static final int REPAIR_GENERATORS_DONE = 79;
+    //
     public static final int SEND_SNAPSHOT = 80;
     public static final int SEND_SNAPSHOT_DONE = 81;
 

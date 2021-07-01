@@ -258,6 +258,32 @@ public class UtRepl {
         return replica;
     }
 
+    public IReplica createReplicaRepairGenerators(long destinationWsId) throws Exception {
+        IReplica replica = new ReplicaFile();
+        replica.getInfo().setReplicaType(JdxReplicaType.REPAIR_GENERATORS);
+        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
+
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
+
+        // Открываем запись файла с информацией о получателе
+        OutputStream zipOutputStream = replicaWriter.newFileOpen("info.json");
+
+        // Информация о получателе
+        JSONObject cfgInfo = new JSONObject();
+        cfgInfo.put("destinationWsId", destinationWsId);
+        String cfgInfoStr = UtJson.toString(cfgInfo);
+        StringInputStream versionStream = new StringInputStream(cfgInfoStr);
+        UtFile.copyStream(versionStream, zipOutputStream);
+
+        // Заканчиваем формирование файла реплики
+        replicaWriter.replicaFileClose();
+
+        //
+        return replica;
+    }
+
     public IReplica createReplicaUnmute(long destinationWsId) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.UNMUTE);

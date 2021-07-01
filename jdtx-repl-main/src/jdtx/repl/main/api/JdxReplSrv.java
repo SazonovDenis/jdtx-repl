@@ -258,6 +258,9 @@ public class JdxReplSrv {
     public void restoreWorkstation(long wsId) throws Exception {
         log.info("Restore workstation, wsId: " + wsId);
 
+        //
+        UtRepl utRepl = new UtRepl(db, struct);
+
         // ---
         // Очередь queOut001 станции (инициализационная)
         JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
@@ -281,6 +284,13 @@ public class JdxReplSrv {
         // ---
         // Подготовим snapshot для станции wsId
         long wsSnapshotAge = sendReplicasSnapshot(queOut001, wsId, cfgPublicationsWs);
+
+
+        // ---
+        // Отправим команду "починить генераторы".
+        // После применения snaphot генераторы рабочей станции будут находятся в устаревшем сосоянии.
+        IReplica replicaRepairGenerators = utRepl.createReplicaRepairGenerators(wsId);
+        queOut001.push(replicaRepairGenerators);
 
 
         // ---
@@ -319,9 +329,7 @@ public class JdxReplSrv {
 
         // Реплика на установку возрастов - отправка.
         // Самым наглым образом, минуя все очереди, тупо под номером 1
-        UtRepl utRepl = new UtRepl(db, struct);
         IReplica replicaSetState = utRepl.createReplicaSetWsState(wsId, wsState);
-        //queOut001.push(replicaSetState);
         //
         mailerWs.send(replicaSetState, "to001", 1);
 

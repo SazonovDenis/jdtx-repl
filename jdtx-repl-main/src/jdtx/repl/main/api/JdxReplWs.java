@@ -937,6 +937,35 @@ public class JdxReplWs {
                 break;
             }
 
+            case JdxReplicaType.REPAIR_GENERATORS: {
+                // Реакция на команду "починить генераторы"
+
+                // Узнаем получателя
+                JSONObject info;
+                InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
+                try {
+                    String cfgStr = loadStringFromSream(infoStream);
+                    info = UtRepl.loadAndValidateJsonStr(cfgStr);
+                } finally {
+                    infoStream.close();
+                }
+                long destinationWsId = longValueOf(info.get("destinationWsId"));
+
+                // Реакция на команду, если получатель - все станции или именно наша
+                if (destinationWsId == 0 || destinationWsId == wsId) {
+
+                    // Чиним генераторы.
+                    PkGenerator pkGenerator = new PkGenerator_PS(db, struct);
+                    pkGenerator.repairGenerators();
+
+                    // Отчитаемся
+                    reportReplica(JdxReplicaType.REPAIR_GENERATORS_DONE);
+                }
+
+                //
+                break;
+            }
+
             case JdxReplicaType.SEND_SNAPSHOT: {
                 // Реакция на команду - SEND_SNAPSHOT
 
@@ -1129,6 +1158,7 @@ public class JdxReplWs {
             case JdxReplicaType.SET_DB_STRUCT_DONE:
             case JdxReplicaType.SET_CFG_DONE:
             case JdxReplicaType.SET_STATE_DONE:
+            case JdxReplicaType.REPAIR_GENERATORS_DONE:
             case JdxReplicaType.SEND_SNAPSHOT_DONE: {
                 break;
             }
