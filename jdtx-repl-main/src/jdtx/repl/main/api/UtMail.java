@@ -16,7 +16,7 @@ public class UtMail {
     /**
      * Передача очереди que в ящик mailer
      */
-    static void sendQueToMail(long wsId, IJdxQue que, IMailer mailer, String box, IJdxMailStateManager stateManager) throws Exception {
+    static void sendQueToMail(long wsId, IJdxQue que, IMailer mailer, String box, IJdxMailStateManager mailStateManager) throws Exception {
         log.info("sendMail, wsId: " + wsId + ", box: " + box);
 
         // Выясняем объем передачи: узнаем сами, сколько просит станция
@@ -25,7 +25,7 @@ public class UtMail {
         // Узнаем, сколько есть у нас
         long queMaxNo = que.getMaxNo();
         // Узнаем, какая последняя отправленная
-        long queLastSendNo = stateManager.getMailSendDone();
+        long queLastSendNo = mailStateManager.getMailSendDone();
 
         //
         long sendFrom;
@@ -60,7 +60,7 @@ public class UtMail {
 
             // Отметим отправку очередного номера реплики (если отметка двигается вперед)
             if (no > queLastSendNo) {
-                stateManager.setMailSendDone(no);
+                mailStateManager.setMailSendDone(no);
             }
 
             //

@@ -90,7 +90,7 @@ public class UtJdx {
                 IJdxTable table = restLst.get(i);
 
                 // перебираем все внешние ключи таблицы table и пытаемся выяснить,
-                // ссылается-ли table на таблицы из уже отсортированных (usedLst)
+                // ссылается ли table на таблицы из уже отсортированных (usedLst)
                 boolean willAdd = true;
                 for (IJdxForeignKey fk : table.getForeignKeys()) {
                     // Если ссылка в таблице ссылается не на эту же таблицу,
