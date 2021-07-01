@@ -623,7 +623,7 @@ class Jdx_Ext extends ProjectExt {
 
             //
             while (true) {
-                DataStore stDisplay = db.loadSql("select * from " + UtJdx.SYS_GEN_PREFIX + "SRV_WORKSTATION_STATE where enabled = 1")
+                DataStore stDisplay = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE where enabled = 1")
                 UtData.outTable(stDisplay)
 
                 // Вычисление состояния
