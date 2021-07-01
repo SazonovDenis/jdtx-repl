@@ -102,7 +102,7 @@ public class JdxReplSrv {
         queCommon.setDataRoot(queCommon_DirLocal);
 
 
-        // Почтовые курьеры, отдельные для каждой станции
+        // Почтовые курьеры, правила входящих реплик - отдельные для каждой станции
         DataStore wsSt = loadWsList();
         for (DataRecord wsRec : wsSt) {
             long wsId = wsRec.getValueLong("id");
@@ -192,7 +192,8 @@ public class JdxReplSrv {
         queOut001.setDataRoot(dataRoot);
 
         // ---
-        // Настройки для станции отметим у себя и отправим на станцию
+        // Настройки для станции отметим у себя и отправим на станцию.
+        // Берем сейчас из файла, а не из publicationsInList.get(wsId), т.к. новой станции еще в этом списке нет
         JSONObject cfgPublicationsWs = UtRepl.loadAndValidateJsonFile(cfgPublicationsFileName);
         JSONObject cfgDecode = UtRepl.loadAndValidateJsonFile(cfgDecodeFileName);
         srvSetAndSendCfg(queOut001, wsId, cfgPublicationsWs, cfgDecode);
@@ -200,7 +201,15 @@ public class JdxReplSrv {
 
         // ---
         // Подготовим snapshot для станции wsId
-        long wsSnapshotAge = sendReplicasSnapshot(queOut001, wsId, cfgPublicationsWs);
+
+        // Правила публикаций (фильтры) для подготовки snapshot для wsId.
+        // В качестве фильтров на ОТПРАВКУ snapshot от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
+        IPublicationRuleStorage publicationRuleWsIn = PublicationRuleStorage.loadRules(cfgPublicationsWs, struct, "in");
+        List<IPublicationRuleStorage> publicationRules = new ArrayList<>();
+        publicationRules.add(publicationRuleWsIn);
+
+        // Подготовим snapshot
+        long wsSnapshotAge = sendReplicasSnapshot(queOut001, wsId, publicationRules);
 
 
         // ---
@@ -283,7 +292,17 @@ public class JdxReplSrv {
 
         // ---
         // Подготовим snapshot для станции wsId
-        long wsSnapshotAge = sendReplicasSnapshot(queOut001, wsId, cfgPublicationsWs);
+
+        // Правила публикаций (фильтры) для подготовки snapshot для wsId.
+        // В качестве фильтров на ОТПРАВКУ snapshot от сервера берем ВХОДЯЩЕЕ и ИСХОДЯЩЕЕ правила рабочей станции.
+        IPublicationRuleStorage publicationRuleWsIn = PublicationRuleStorage.loadRules(cfgPublicationsWs, struct, "in");
+        IPublicationRuleStorage publicationRuleWsOut = PublicationRuleStorage.loadRules(cfgPublicationsWs, struct, "out");
+        List<IPublicationRuleStorage> publicationRules = new ArrayList<>();
+        publicationRules.add(publicationRuleWsIn);
+        publicationRules.add(publicationRuleWsOut);
+
+        // Подготовим snapshot
+        long wsSnapshotAge = sendReplicasSnapshot(queOut001, wsId, publicationRules);
 
 
         // ---
@@ -368,7 +387,7 @@ public class JdxReplSrv {
         srvDbStructFinishInternal(queOut001);
     }
 
-    private long sendReplicasSnapshot(JdxQueOut001 queOut001, long wsId, JSONObject cfgPublicationsWs) throws Exception {
+    private long sendReplicasSnapshot(JdxQueOut001 queOut001, long wsId, List<IPublicationRuleStorage> publicationRules) throws Exception {
         // ---
         // Подготовим snapshot для станции
 
@@ -406,12 +425,6 @@ public class JdxReplSrv {
         // ---
         // Фильтруем записи в snapshot-репликах
 
-        // Правила публикаций (фильтры) для wsId.
-        // В качестве фильтров на ОТПРАВКУ snapshot от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
-        // Не берем сейчас publicationsInList.get(wsId), т.к. новой станции еще в этом списке нет
-        IPublicationRuleStorage publicationRuleWsIn = PublicationRuleStorage.loadRules(cfgPublicationsWs, struct, "in");
-        publicationsInList.put(wsId, publicationRuleWsIn);
-
         //
         List<IReplica> replicasSnapshotFiltered = new ArrayList<>();
 
@@ -427,8 +440,10 @@ public class JdxReplSrv {
 
         // Фильтруем записи
         for (IReplica replica : replicasSnapshot) {
-            IReplica replicaForWs = filter.convertReplicaForWs(replica, publicationRuleWsIn);
-            replicasSnapshotFiltered.add(replicaForWs);
+            for (IPublicationRuleStorage publicationRule : publicationRules) {
+                IReplica replicaForWs = filter.convertReplicaForWs(replica, publicationRule);
+                replicasSnapshotFiltered.add(replicaForWs);
+            }
         }
 
 
