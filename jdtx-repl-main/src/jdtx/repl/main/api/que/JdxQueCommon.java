@@ -33,7 +33,7 @@ public class JdxQueCommon extends JdxQue implements IJdxQue {
         super.validateReplica(replica);
 
         // Проверки: правильность очередности реплик для рабочей станции wsId - монотонное возрастание возраста replica.age
-        if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE || replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
+        if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE) {
             long replicaAge = replica.getInfo().getAge();
             long replicaWsId = replica.getInfo().getWsId();
             long queWsMaxAge = getMaxAgeForWs(replicaWsId);

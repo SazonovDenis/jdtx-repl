@@ -75,7 +75,7 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
 
     @Test
     public void test_AllHttp_5_DumpTables() throws Exception {
-        test_AllHttp();
+        test_AllHttp_5();
         test_DumpTables_1_2_5();
     }
 

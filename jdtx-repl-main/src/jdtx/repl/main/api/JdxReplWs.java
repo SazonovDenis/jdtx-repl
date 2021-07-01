@@ -551,7 +551,7 @@ public class JdxReplWs {
                 // Пополнение исходящей очереди реплик
                 queOut.push(replica);
 
-                // Отметка о пополнении исходящей очереди реплик
+                // Отметка об обработке аудита в исходящую очередь реплик
                 stateManager.setAuditAgeDone(age);
 
                 //
@@ -642,7 +642,15 @@ public class JdxReplWs {
             // Реплика использованна?
             if (replicaUseResult.replicaUsed) {
                 // Отметим применение реплики
-                stateManager.setQueNoDone(queName, no);
+                // Отметку двигаем только вперёд. Это важно учитывать, т.к. бывает ситуация "восстановление базы станции по данным с сервера",
+                // в рамках которых может прийти реплика на изменение возраста очередей.
+                long queDoneNow = stateManager.getQueNoDone(queName);
+                if (no > queDoneNow) {
+                    stateManager.setQueNoDone(queName, no);
+                } else {
+                    log.info("setQueNoDone was not set, queName: " + queName + ", queNo new: " + no + ", queNo now: " + queDoneNow);
+                }
+
                 //
                 count++;
             } else {
@@ -847,67 +855,78 @@ public class JdxReplWs {
                     JdxWsState wsState = new JdxWsState();
                     wsState.fromJson(wsStateJson);
 
-                    // --- in
-                    // Выставим отметку получения в QueIn (её двигаем только вперёд)
-                    long queInNoNow = queIn.getMaxNo();
-                    if (wsState.QUE_IN_NO > queInNoNow) {
-                        queIn.setMaxNo(wsState.QUE_IN_NO);
-                    }
-                    // Выставим отметку использования для QueIn (её двигаем только вперёд)
-                    JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-                    long getQueNoDoneNow = stateManager.getQueNoDone("in");
-                    if (wsState.QUE_IN_NO_DONE > getQueNoDoneNow) {
-                        stateManager.setQueNoDone("in", wsState.QUE_IN_NO_DONE);
-                    }
+                    db.startTran();
+                    try {
+                        // --- in
+                        // Выставим отметку получения в QueIn (её двигаем только вперёд)
+                        long queInNoNow = queIn.getMaxNo();
+                        if (wsState.QUE_IN_NO > queInNoNow) {
+                            queIn.setMaxNo(wsState.QUE_IN_NO);
+                        }
+                        // Выставим отметку использования для QueIn (её двигаем только вперёд)
+                        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+                        long queInNoDoneNow = stateManager.getQueNoDone("in");
+                        if (wsState.QUE_IN_NO_DONE > queInNoDoneNow) {
+                            stateManager.setQueNoDone("in", wsState.QUE_IN_NO_DONE);
+                        }
 
-                    // --- in001
-                    // Выставим отметку получения в QueIn001 (её двигаем только вперёд)
-                    long queIn001NoNow = queIn001.getMaxNo();
-                    if (wsState.QUE_IN001_NO > queIn001NoNow) {
-                        queIn001.setMaxNo(wsState.QUE_IN001_NO);
-                    }
-                    // Выставим отметку использования для QueIn001 (её двигаем только вперёд)
-                    long getQueIn001DoneNow = stateManager.getQueNoDone("in001");
-                    if (wsState.QUE_IN001_NO_DONE > getQueIn001DoneNow) {
-                        stateManager.setQueNoDone("in001", wsState.QUE_IN001_NO_DONE);
-                    }
+                        // --- in001
+                        // Выставим отметку получения в QueIn001 (её двигаем только вперёд)
+                        long queIn001NoNow = queIn001.getMaxNo();
+                        if (wsState.QUE_IN001_NO > queIn001NoNow) {
+                            queIn001.setMaxNo(wsState.QUE_IN001_NO);
+                        }
+                        // Выставим отметку использования для QueIn001 (её двигаем только вперёд)
+                        long queIn001NoDoneNow = stateManager.getQueNoDone("in001");
+                        if (wsState.QUE_IN001_NO_DONE > queIn001NoDoneNow) {
+                            stateManager.setQueNoDone("in001", wsState.QUE_IN001_NO_DONE);
+                        }
 
-                    // --- out
-                    // Выставим отметку получения в QueIn001 (её двигаем только вперёд)
-                    long queOutNoNow = queOut.getMaxNo();
-                    if (wsState.QUE_OUT_NO > queOutNoNow) {
-                        queOut.setMaxNo(wsState.QUE_OUT_NO);
-                    }
-                    // Выставим отметку использования для QueIn001 (её двигаем только вперёд)
-                    long queOutNoDoneNow = stateManager.getQueNoDone("out");
-                    if (wsState.QUE_OUT_NO_DONE > queOutNoDoneNow) {
-                        stateManager.setQueNoDone("out", wsState.QUE_OUT_NO_DONE);
-                    }
+                        // --- out
+                        // Выставим отметку получения в QueIn001 (её двигаем только вперёд)
+                        long queOutNoNow = queOut.getMaxNo();
+                        if (wsState.QUE_OUT_NO > queOutNoNow) {
+                            queOut.setMaxNo(wsState.QUE_OUT_NO);
+                        }
+                        // Выставим отметку использования для QueOut (её двигаем только вперёд)
+                        //long queOutNoDoneNow = stateManager.getQueNoDone("out");
+                        long queOutNoDoneNow = stateManager.getAuditAgeDone();
+                        if (wsState.QUE_OUT_NO_DONE > queOutNoDoneNow) {
+                            //stateManager.setQueNoDone("out", wsState.QUE_OUT_NO_DONE);
+                            stateManager.setAuditAgeDone(wsState.QUE_OUT_NO_DONE);
+                        }
 
-                    // --- MAIL_SEND_DONE
-                    JdxMailStateManagerWs mailStateManagerWs = new JdxMailStateManagerWs(db);
-                    long mailSendDoneNow = mailStateManagerWs.getMailSendDone();
-                    if (wsState.MAIL_SEND_DONE > mailSendDoneNow) {
-                        mailStateManagerWs.setMailSendDone(wsState.MAIL_SEND_DONE);
-                    }
+                        // --- MAIL_SEND_DONE
+                        JdxMailStateManagerWs mailStateManagerWs = new JdxMailStateManagerWs(db);
+                        long mailSendDoneNow = mailStateManagerWs.getMailSendDone();
+                        if (wsState.MAIL_SEND_DONE > mailSendDoneNow) {
+                            mailStateManagerWs.setMailSendDone(wsState.MAIL_SEND_DONE);
+                        }
 
-                    // --- AGE
-                    UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
-                    long auditAgeNow = auditAgeManager.getAuditAge();
-                    if (wsState.AGE > auditAgeNow) {
-                        auditAgeManager.setAuditAge(wsState.AGE);
-                    }
+                        // --- AGE
+                        UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
+                        long auditAgeNow = auditAgeManager.getAuditAge();
+                        if (wsState.AGE > auditAgeNow) {
+                            auditAgeManager.setAuditAge(wsState.AGE);
+                        }
 
-                    // --- Состояние MUTE
-                    if (wsState.MUTE == 1) {
-                        // Последняя обработка собственного аудита
-                        handleSelfAudit();
+                        // --- Состояние MUTE
+                        if (wsState.MUTE == 1) {
+                            // Последняя обработка собственного аудита
+                            handleSelfAudit();
 
-                        // Переход в состояние "Я замолчал"
-                        muteManager.muteWorkstation();
-                    } else {
-                        // Выход из состояния "Я замолчал"
-                        muteManager.unmuteWorkstation();
+                            // Переход в состояние "Я замолчал"
+                            muteManager.muteWorkstation();
+                        } else {
+                            // Выход из состояния "Я замолчал"
+                            muteManager.unmuteWorkstation();
+                        }
+
+                        //
+                        db.commit();
+                    } catch (Exception e) {
+                        db.rollback(e);
+                        throw e;
                     }
 
                     // --- Отчитаемся
@@ -1464,6 +1483,12 @@ public class JdxReplWs {
         // Сколько входящих получено у нас в "официальной" очереди
         long noQueInMarked = queIn.getMaxNo();
 
+        // Сколько входящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
+        long noQueIn001Dir = ((JdxStorageFile) queIn001).getMaxNoFromDir();
+
+        // Сколько входящих получено у нас в "официальной" очереди
+        long noQueIn001Marked = queIn001.getMaxNo();
+
 
         // ---
         // Сколько исходящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
@@ -1478,8 +1503,8 @@ public class JdxReplWs {
         long ageSendDone = mailer.getSendDone("from");
 
         // Сколько исходящих реплик отмечено как отправленое на сервер
-        JdxMailStateManagerWs stateManagerMail = new JdxMailStateManagerWs(db);
-        long ageSendMarked = stateManagerMail.getMailSendDone();
+        JdxMailStateManagerWs mailStateManager = new JdxMailStateManagerWs(db);
+        long ageSendMarked = mailStateManager.getMailSendDone();
 
         // Есть ли отметка о начале ремонта
         File lockFile = new File(dataRoot + "temp/repairBackup.lock");
@@ -1493,6 +1518,8 @@ public class JdxReplWs {
 
         //
         log.warn("Detected restore from backup, self.wsId: " + wsId);
+        log.warn("  noQueIn001Dir: " + noQueIn001Dir);
+        log.warn("  noQueIn001Marked: " + noQueIn001Marked);
         log.warn("  noQueInDir: " + noQueInDir);
         log.warn("  noQueInMarked: " + noQueInMarked);
         log.warn("  ageQueOutDir: " + ageQueOutDir);
@@ -1552,7 +1579,7 @@ public class JdxReplWs {
 
 
         // ---
-        // Чиним данные на основе собственного аудита
+        // Чиним данные на основе собственного аудита (queOut)
         // ---
 
         // Применяем их у себя (это нужно - для случая восстановления из бакапа именно в ИСХОДЯЩИХ репликах содержатся самые последние данные).
@@ -1618,7 +1645,7 @@ public class JdxReplWs {
         // Если возраст "отправлено на сервер" меньше, чем фактический размер исходящей очереди -
         // чиним отметку об отправке собственных реплик.
         if (ageSendMarked < ageSendDone) {
-            stateManagerMail.setMailSendDone(ageSendDone);
+            mailStateManager.setMailSendDone(ageSendDone);
             log.warn("Repair mailSendDone, " + ageSendMarked + " -> " + ageSendDone);
         }
 

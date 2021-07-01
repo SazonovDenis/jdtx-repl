@@ -35,7 +35,7 @@ public class JdxQueOut000 extends JdxQueOut001 {
         super.validateReplica(replica);
 
         //
-        if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE || replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
+        if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE) {
             long replicaAge = replica.getInfo().getAge();
             long replicaWsId = replica.getInfo().getWsId();
             long queWsMaxAge = getMaxAgeForWs(replicaWsId);

@@ -241,8 +241,8 @@ public class JdxReplSrv {
         queOut000.setMaxNo(wsSnapshotAge);
 
         // Нумерация отправки реплик из очереди queOut000 на эту станцию.
-        IJdxMailStateManager stateManagerMail = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT000);
-        stateManagerMail.setMailSendDone(wsSnapshotAge);
+        IJdxMailStateManager mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT000);
+        mailStateManager.setMailSendDone(wsSnapshotAge);
 
         // Номер последней реплики ОТ новой рабочей станции
         // Станция пока не имела аудита, поэтому ничего еще не отправила на сервер, поэтому 0.
@@ -259,11 +259,16 @@ public class JdxReplSrv {
         log.info("Restore workstation, wsId: " + wsId);
 
         // ---
-        // Инициализационная очередь queOut001 (для системных команды для станции)
+        // Очередь queOut001 станции (инициализационная)
         JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
         queOut001.setDataRoot(dataRoot);
-        //
+
+        // Что станция успела получить в прошлой жизни?
         long ageQueOut001Ws = queOut001.getMaxNo();
+
+        // Очередь queOut станции (что станция успела нам отправить в прошлой жизни?)
+        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
+        long wsQueOutNo = stateManager.getWsQueInNoDone(wsId);
 
         // ---
         // Настройки для станции отметим у себя и отправим на станцию
@@ -279,7 +284,19 @@ public class JdxReplSrv {
 
 
         // ---
-        // Команды на установку возраста очередей рабочей станции (начальное состояние)
+        // Установка возрастов очередей рабочей станции (начальное состояние)
+
+        // Самым наглым образом установим номер реплики, разрешенной к отправке, на почтовом сервере.
+        // Это нужно, чтобы станция вышла из состояния "Detected restore from backup, repair needed" и получила нашу первую реплику.
+        // В этой первой реплике возраст QUE_OUT_NO и QUE_OUT_NO_DONE будет возвращен на место, вместе с остальными возрастами.
+        IMailer mailerWs = mailerList.get(wsId);
+        SendRequiredInfo requiredInfo = new SendRequiredInfo();
+        requiredInfo.requiredFrom = 1;
+        requiredInfo.requiredTo = 1;
+        mailerWs.setSendRequired("to001", requiredInfo);
+
+
+        // Реплика на установку возрастов
         JdxWsState wsState = new JdxWsState();
 
         // Возраст очереди "in" новой рабочей станции - по возрасту очереди "in"
@@ -289,20 +306,31 @@ public class JdxReplSrv {
         //
         wsState.QUE_IN001_NO = ageQueOut001Ws;
         wsState.QUE_IN001_NO_DONE = ageQueOut001Ws;
-        // Что станция успела нам отправить в прошлой жизни?
-        long ageQueOutWs = ((JdxQueCommon) queCommon).getMaxAgeForWs(wsId);
-        wsState.QUE_OUT_NO = ageQueOutWs;
-        wsState.QUE_OUT_NO_DONE = ageQueOutWs;
+        //
+        wsState.QUE_OUT_NO = wsQueOutNo;
         // ... отправка тоже ...
-        wsState.MAIL_SEND_DONE = ageQueOutWs;
-        // ... и возраст аудита тоже
-        wsState.AGE = ageQueOutWs;
+        wsState.MAIL_SEND_DONE = wsQueOutNo;
+        // Возраст аудита станции из ее прошлой жизни
+        long wsQueOutAge = ((JdxQueCommon) queCommon).getMaxAgeForWs(wsId);
+        wsState.AGE = wsQueOutAge;
+        wsState.QUE_OUT_NO_DONE = wsQueOutAge;
         // Поехали
         wsState.MUTE = 0L;
-        //
+
+        // Реплика на установку возрастов - отправка.
+        // Самым наглым образом, минуя все очереди, тупо под номером 1
         UtRepl utRepl = new UtRepl(db, struct);
         IReplica replicaSetState = utRepl.createReplicaSetWsState(wsId, wsState);
-        queOut001.push(replicaSetState);
+        //queOut001.push(replicaSetState);
+        //
+        mailerWs.send(replicaSetState, "to001", 1);
+
+
+        // Установим номер реплики, разрешенной к отправке, на почтовом сервере.
+        // На этот раз это номер, соответсвующий имеющимся репликам в out001.
+        requiredInfo.requiredFrom = ageQueOut001Ws + 1;
+        requiredInfo.requiredTo = -1;
+        mailerWs.setSendRequired("to001", requiredInfo);
 
 
         // ---
@@ -529,17 +557,17 @@ public class JdxReplSrv {
             // Рассылаем
             try {
                 // Рассылаем очередь out000 (продукт обработки очереди common -> out000) на каждую станцию
-                IJdxMailStateManager stateManagerMail = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT000);
+                IJdxMailStateManager mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT000);
                 JdxQueOut001 queOut000 = new JdxQueOut000(db, wsId);
                 queOut000.setDataRoot(dataRoot);
-                UtMail.sendQueToMail(wsId, queOut000, mailer, "to", stateManagerMail);
+                UtMail.sendQueToMail(wsId, queOut000, mailer, "to", mailStateManager);
 
                 // Рассылаем queOut001 на каждую станцию
                 JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
                 queOut001.setDataRoot(dataRoot);
                 //
-                stateManagerMail = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT001);
-                UtMail.sendQueToMail(wsId, queOut001, mailer, "to001", stateManagerMail);
+                mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT001);
+                UtMail.sendQueToMail(wsId, queOut001, mailer, "to001", mailStateManager);
 
                 // Отметить состояние сервера, данные сервера (сервер отчитывается о себе для отслеживания активности сервера)
                 // todo: не переложить отметку ли в sendQueToMail?

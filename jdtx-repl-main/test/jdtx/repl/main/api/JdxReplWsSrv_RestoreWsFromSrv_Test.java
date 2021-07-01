@@ -58,22 +58,31 @@ public class JdxReplWsSrv_RestoreWsFromSrv_Test extends JdxReplWsSrv_Test {
 
 
         // ---
-        // Подаем команду для подготовки snaphot (на сервере)
-        IVariantMap args = new VariantMap();
-        args.put("ws", 3);
-        extSrv.repl_restore_ws(args);
-
-
-        // ---
         // Подаем команду для подготовки базы рабочей станции
+        IVariantMap args = new VariantMap();
         args.clear();
         args.put("ws", 3);
         args.put("guid", "b5781df573ca6ee6.x-34f3cc20bea64503");
         args.put("file", cfg_json_ws);
         extWs3.repl_create(args);
 
+        // Подаем команду "repair" для рабочей станции
+        test_repairAfterBackupRestore_ws3();
 
         // ---
+        // Сладко ли работается воскрешенной рабочей станции?
+        sync_http_1_2_3();
+
+
+        // ---
+        // Подаем команду для подготовки snaphot (на сервере)
+        args.clear();
+        args.put("ws", 3);
+        extSrv.repl_restore_ws(args);
+
+
+        // ---
+        // Сладко ли работается воскрешенной и РЕАНИМИРОВАННОЙ рабочей станции?
         sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();
@@ -90,5 +99,13 @@ public class JdxReplWsSrv_RestoreWsFromSrv_Test extends JdxReplWsSrv_Test {
         // Проверим синхронность после работы
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
+
+    @Test
+    public void test_repairAfterBackupRestore_ws3() throws Exception {
+        JdxReplWs ws = new JdxReplWs(db3);
+        ws.init();
+        ws.repairAfterBackupRestore(true);
+    }
+
 
 }
