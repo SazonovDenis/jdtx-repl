@@ -4,6 +4,7 @@ import jdtx.repl.main.api.*;
 import org.junit.*;
 
 /**
+ *
  */
 public class PkGenerator_Test extends ReplDatabaseStruct_Test {
 
@@ -17,24 +18,28 @@ public class PkGenerator_Test extends ReplDatabaseStruct_Test {
     public void test_compare() throws Exception {
         logOff();
         //
-        IPkGenerator IPkGenerator = new PkGenerator_PS(db2, struct2);
+        IPkGenerator IPkGenerator = new PkGenerator_PS(db3, struct2);
         //
         String generatorName = IPkGenerator.getGeneratorName("ulz");
-        System.out.println(generatorName);
+        System.out.println("generator: " + generatorName);
         //
         long value = IPkGenerator.getValue(generatorName);
-        System.out.println(value);
+        System.out.println("      now: " + value);
         //
         IPkGenerator.setValue(generatorName, IPkGenerator.getValue(generatorName) + 1);
-        System.out.println(IPkGenerator.getValue(generatorName));
+        System.out.println("  forvard: " + IPkGenerator.getValue(generatorName));
         assertEquals(value + 1, IPkGenerator.getValue(generatorName));
         //
         IPkGenerator.setValue(generatorName, IPkGenerator.getValue(generatorName) - 1);
-        System.out.println(IPkGenerator.getValue(generatorName));
+        System.out.println("     back: " + IPkGenerator.getValue(generatorName));
         assertEquals(value, IPkGenerator.getValue(generatorName));
         //
+        IPkGenerator.setValue(generatorName, 0);
+        System.out.println("   broken: " + IPkGenerator.getValue(generatorName));
+        assertEquals(0, IPkGenerator.getValue(generatorName));
+        //
         IPkGenerator.repairGenerator(struct.getTable("ulz"));
-        System.out.println(IPkGenerator.getValue(generatorName));
+        System.out.println(" repaired: " + IPkGenerator.getValue(generatorName));
         assertEquals(value, IPkGenerator.getValue(generatorName));
     }
 
