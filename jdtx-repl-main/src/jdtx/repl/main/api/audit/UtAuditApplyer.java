@@ -225,21 +225,25 @@ public class UtAuditApplyer {
 
                             // Поле - ссылка?
                             IJdxTable refTable = field.getRefTable();
-                            if (field.isPrimaryKey() || refTable != null) {
-                                // Ссылка
+                            Object fieldValue = recValues.get(publicationFieldName);
+                            if (fieldValue != null && (field.isPrimaryKey() || refTable != null)) {
+                                // Это значение - ссылка
+                                JdxRef fieldValueRef = JdxRef.parse((String) fieldValue);
+                                // Дополнение ссылки
+                                if (fieldValueRef.ws_id == -1) {
+                                    fieldValueRef.ws_id = dataReader.getWsId();
+                                }
+                                // Перекодировка ссылки
                                 String refTableName;
                                 if (field.isPrimaryKey()) {
                                     refTableName = tableName;
                                 } else {
                                     refTableName = refTable.getName();
                                 }
-                                JdxRef ref = JdxRef.parse((String) recValues.get(publicationFieldName));
-                                if (ref.ws_id == -1) {
-                                    ref.ws_id = dataReader.getWsId();
-                                }
-                                // Перекодировка ссылки
-                                long ref_own = decoder.get_id_own(refTableName, ref.ws_id, ref.value);
-                                recParams.put(publicationFieldName, ref_own);
+                                fieldValue = decoder.get_id_own(refTableName, fieldValueRef.ws_id, fieldValueRef.value);
+                                //
+                                recParams.put(publicationFieldName, fieldValue);
+                                //
                                 continue;
                             }
 
