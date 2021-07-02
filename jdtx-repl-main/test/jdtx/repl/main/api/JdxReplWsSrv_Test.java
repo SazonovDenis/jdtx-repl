@@ -65,9 +65,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_allSetUp_TestAll_filter() throws Exception {
+        cfg_json_decode = "../install/cfg/decode_strategy_194.json";
         cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
         cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
-        cfg_json_decode = "../install/cfg/decode_strategy_194.json";
         test_allSetUp_TestAll();
     }
 

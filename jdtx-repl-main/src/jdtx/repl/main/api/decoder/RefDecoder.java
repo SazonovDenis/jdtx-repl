@@ -35,6 +35,9 @@ public class RefDecoder implements IRefDecoder {
     // RefDecoder
     // ------------------------------------------
 
+    /**
+     * @param self_ws_id Код нашей рабочей станции
+     */
     public RefDecoder(Db db, long self_ws_id) throws Exception {
         if (self_ws_id <= 0) {
             throw new XError("invalid self_ws_id <= 0");
