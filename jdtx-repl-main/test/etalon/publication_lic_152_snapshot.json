@@ -1,0 +1,275 @@
+{
+  "snapshot": "full_snapshot",
+  "full_snapshot": {
+    "appupdate": {
+      "fields": "*",
+      "filter": "false"
+    },
+    "commenttext": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || RECORD_PawnChit = 0"
+    },
+    "commenttip": {
+      "fields": "*"
+    },
+    "lic": {
+      "fields": "*"
+    },
+    "licdat": {
+      "fields": "*"
+    },
+    "licdoctip": {
+      "fields": "*"
+    },
+    "licdocvid": {
+      "fields": "*"
+    },
+    "region": {
+      "fields": "*"
+    },
+    "regiontip": {
+      "fields": "*"
+    },
+    "ulz": {
+      "fields": "*"
+    },
+    "ulztip": {
+      "fields": "*"
+    },
+    "billingvarhist": {
+      "fields": "*"
+    },
+    "billingvarvalues": {
+      "fields": "*"
+    },
+    "bondtip": {
+      "fields": "*"
+    },
+    "cashencash": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "cashencashreason": {
+      "fields": "*"
+    },
+    "cashlog": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "cashordergen": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "categoryhist": {
+      "fields": "*"
+    },
+    "categoryprice": {
+      "fields": "*"
+    },
+    "categorysubjectval": {
+      "fields": "*"
+    },
+    "datatip": {
+      "fields": "*"
+    },
+    "dayoff": {
+      "fields": "*"
+    },
+    "dbinfo": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "dictlist": {
+      "fields": "*"
+    },
+    "dictlistval": {
+      "fields": "*"
+    },
+    "filedat": {
+      "fields": "*"
+    },
+    "inventory": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "inventorybond": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "inventorycash": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "inventorychecksubject": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "inventoryextrasubject": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "inventorymissingsubject": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "inventoryusr": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "measure": {
+      "fields": "*"
+    },
+    "nch": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "nchopl": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "nchtip": {
+      "fields": "*"
+    },
+    "operday": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "operdayusr": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "opr": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "oprtip": {
+      "fields": "*"
+    },
+    "pawnchit": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "pawnchitdat": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "pawnchitdatstruct": {
+      "fields": "*"
+    },
+    "pawnchitdatstructvalues": {
+      "fields": "*"
+    },
+    "pawnchitopr": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "pawnchitstatustip": {
+      "fields": "*"
+    },
+    "pawnchitsubject": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "pawnchitsubjectexhibit": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "pawnchitsubjectsell": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "pawnchitsubjectstatustip": {
+      "fields": "*"
+    },
+    "pawnchitsubjecttosale": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "pawnreceipt": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "reportvar": {
+      "fields": "*"
+    },
+    "smsinfo": {
+      "fields": "*"
+    },
+    "smsjournal": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "smstemplate": {
+      "fields": "*"
+    },
+    "stornopr": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "subjectencash": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "subjectencashreason": {
+      "fields": "*"
+    },
+    "subjecttip": {
+      "fields": "*"
+    },
+    "subjecttippropert": {
+      "fields": "*"
+    },
+    "tariffplan": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "tariffplanbillingvar": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "tariffplanpercstavka": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "tariffplanref": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "tariffplanver": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "usr": {
+      "fields": "*"
+    },
+    "usrgrp": {
+      "fields": "*"
+    },
+    "usrlog": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "usroprtip": {
+      "fields": "*"
+    },
+    "usrotdel": {
+      "fields": "*"
+    },
+    "valpawnchitsubject": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    },
+    "valsubjecttip": {
+      "fields": "*"
+    },
+    "vartip": {
+      "fields": "*"
+    },
+    "ws_list": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination"
+    }
+  }
+}
+
+

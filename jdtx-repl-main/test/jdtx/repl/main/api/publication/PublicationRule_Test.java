@@ -79,7 +79,7 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_PublicationValid_lic_194_snapshot() throws Exception {
+    public void test_PublicationValid_install_lic_194_snapshot() throws Exception {
         System.out.println("Database: " + db.getDbSource().getDatabase());
 
         //
@@ -102,6 +102,24 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
 
         //
         String jsonFileName = "test/etalon/publication_full_152_snapshot.json";
+
+        //
+        System.out.println("Json file: " + jsonFileName);
+        JSONObject cfg = UtRepl.loadAndValidateJsonFile(jsonFileName);
+
+        //
+        System.out.println("Publication: snapshot");
+        IPublicationRuleStorage publication = PublicationRuleStorage.loadRules(cfg, struct, "snapshot");
+        JSONObject cfgPublication = PublicationRuleStorage.extractRulesByName(cfg, "snapshot");
+        UtPublicationRule.checkValid(cfgPublication, publication, struct);
+    }
+
+    @Test
+    public void test_PublicationValid_lic_152_snapshot() throws Exception {
+        System.out.println("Database: " + db.getDbSource().getDatabase());
+
+        //
+        String jsonFileName = "test/etalon/publication_lic_152_snapshot.json";
 
         //
         System.out.println("Json file: " + jsonFileName);
