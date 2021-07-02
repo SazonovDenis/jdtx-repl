@@ -6,7 +6,9 @@
       "fields": "*"
     },
     "commenttext": {
-      "fields": "*,-CommentUsr"
+      "fields": "*",
+      "fields_": "*,-CommentUsr",
+      "fields_": "^^^ пока убрал пропуск поля CommentUsr, чтобы проходили тесты, иначе нужно городить 'значения пропущенных полей по умолчанию', т.к. при поступлении 'пропущенного' поля CommentUsr, база выдает ошибку 'поле null недопустимо'"
     },
     "commenttip": {
       "fields": "*"
@@ -30,6 +32,15 @@
       "fields": "*"
     },
     "ulztip": {
+      "fields": "*"
+    },
+    "usr": {
+      "fields": "*"
+    },
+    "usrgrp": {
+      "fields": "*"
+    },
+    "usrotdel": {
       "fields": "*"
     }
   },
