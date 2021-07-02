@@ -134,9 +134,9 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
         IPublicationRuleStorage publicationOut = PublicationRuleStorage.loadRules(cfgPublication, struct2, "out");
 
         // Забираем установочную реплику
-        long wsId = 2;
+        long selfWsId = 2;
         UtRepl utRepl = new UtRepl(db2, struct2);
-        IReplica replica = utRepl.createSnapshotForTable(wsId, publicationOut.getPublicationRule(tableName), true);
+        IReplica replica = utRepl.createReplicaSnapshotForTable(selfWsId, publicationOut.getPublicationRule(tableName), true);
 
         //
         return replica;

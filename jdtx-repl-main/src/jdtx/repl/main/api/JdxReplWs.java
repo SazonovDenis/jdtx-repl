@@ -251,7 +251,8 @@ public class JdxReplWs {
         List<IReplica> replicasSnapshot;
         db.startTran();
         try {
-            replicasSnapshot = createSnapshotsForTables(tablesNew, forbidNotOwnId);
+            UtRepl ut = new UtRepl(db, struct);
+            replicasSnapshot = ut.createSnapshotsForTables(tablesNew, wsId, publicationOut, forbidNotOwnId);
             //
             db.commit();
         } catch (Exception e) {
@@ -301,50 +302,13 @@ public class JdxReplWs {
 
 
     /**
-     * Создаем snapsot-реплики для таблиц tablesNew,
-     * без фильтрации записей,
-     * но только для таблиц, упомянутых в publicationOut
-     */
-    List<IReplica> createSnapshotsForTables(List<IJdxTable> tables, boolean forbidNotOwnId) throws Exception {
-        List<IReplica> replicaList = new ArrayList<>();
-
-        UtRepl utRepl = new UtRepl(db, struct);
-
-        //
-        for (IJdxTable table : tables) {
-            String tableName = table.getName();
-
-            log.info("SnapshotForTables, wsId: " + wsId + ", table: " + tableName);
-
-            //
-            IPublicationRule publicationTable = publicationOut.getPublicationRule(tableName);
-            if (publicationTable == null) {
-                // Пропускаем
-                log.info("SnapshotForTables, skip createSnapshot, not found in publicationOut, table: " + tableName);
-            } else {
-                // Создаем snapshot-реплику
-                IReplica replicaSnapshot = utRepl.createSnapshotForTable(wsId, publicationTable, forbidNotOwnId);
-                replicaList.add(replicaSnapshot);
-            }
-
-        }
-
-        //
-        log.info("SnapshotForTables, wsId: " + wsId + ", done");
-
-        //
-        return replicaList;
-    }
-
-
-    /**
      * Выполнение фиксации структуры:
      * - дополнение аудита
      * - "реальная" структура запоминается как "зафиксированная"
      *
      * @return true, если структуры были обновлены или не требуют обновления.
      */
-    public boolean dbStructApplyFixed() throws Exception {
+    public boolean dbStructApplyFixed(boolean sendSnapshotForNewTables) throws Exception {
         log.info("dbStructApplyFixed, checking");
 
         // Читаем структуры
@@ -450,16 +414,20 @@ public class JdxReplWs {
         // тогда получится, что пока делается snapshot, аудит не работает.
         // Таким образом данные, вводимые во время подготовки аудита и snapshot-та, не попадут ни в аудит, ни в snapshot,
         // т.к. таблица аудита ЕЩЕ не видна другим транзакциям, а данные, продолжающие поступать в snapshot, УЖЕ не видны нашей транзакции.
-        db.startTran();
-        try {
-            createSnapsotTablesIntoQueOut(tablesNew, true);
+        if (sendSnapshotForNewTables) {
+            db.startTran();
+            try {
+                createSnapsotTablesIntoQueOut(tablesNew, true);
 
-            //
-            db.commit();
+                //
+                db.commit();
 
-        } catch (Exception e) {
-            db.rollback(e);
-            throw e;
+            } catch (Exception e) {
+                db.rollback(e);
+                throw e;
+            }
+        } else {
+            log.info("dbStructApplyFixed, snapshot not send");
         }
 
 
@@ -633,7 +601,7 @@ public class JdxReplWs {
             IReplica replica = que.get(no);
 
             // Пробуем применить реплику
-            ReplicaUseResult replicaUseResult = useReplica(replica, forceUse);
+            ReplicaUseResult replicaUseResult = useReplicaInternal(replica, forceUse);
 
             if (replicaUseResult.replicaUsed && replicaUseResult.lastOwnAgeUsed > handleQueUseResult.lastOwnAgeUsed) {
                 handleQueUseResult.lastOwnAgeUsed = replicaUseResult.lastOwnAgeUsed;
@@ -692,7 +660,7 @@ public class JdxReplWs {
         JdxReplicaReaderXml.readReplicaInfo(replica);
 
         // Пробуем применить реплику
-        ReplicaUseResult replicaUseResult = useReplica(replica, forceApplySelf);
+        ReplicaUseResult replicaUseResult = useReplicaInternal(replica, forceApplySelf);
 
         // Реплика использованна?
         if (!replicaUseResult.replicaUsed) {
@@ -703,7 +671,7 @@ public class JdxReplWs {
         return replicaUseResult;
     }
 
-    private ReplicaUseResult useReplica(IReplica replica, boolean forceApplySelf) throws Exception {
+    private ReplicaUseResult useReplicaInternal(IReplica replica, boolean forceApplySelf) throws Exception {
         ReplicaUseResult useResult = new ReplicaUseResult();
         useResult.replicaUsed = true;
         useResult.doBreak = false;
@@ -969,7 +937,7 @@ public class JdxReplWs {
             case JdxReplicaType.SEND_SNAPSHOT: {
                 // Реакция на команду - SEND_SNAPSHOT
 
-                // Узнаем получателя
+                // Узнаем параметры команды: получателя и таблицу
                 JSONObject info;
                 InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
                 try {
@@ -1001,6 +969,17 @@ public class JdxReplWs {
             case JdxReplicaType.SET_DB_STRUCT: {
                 // Реакция на команду - задать "разрешенную" структуру БД
 
+                // Узнаем параметры команды: надо ли отправлять snapshot после добавления новых таблиц
+                JSONObject info;
+                InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
+                try {
+                    String cfgStr = loadStringFromSream(infoStream);
+                    info = UtRepl.loadAndValidateJsonStr(cfgStr);
+                } finally {
+                    infoStream.close();
+                }
+                boolean sendSnapshot = booleanValueOf(info.get("sendSnapshot"), true);
+
                 // В этой реплике - новая "разрешенная" структура
                 InputStream stream = JdxReplicaReaderXml.createInputStreamData(replica);
                 try {
@@ -1013,7 +992,7 @@ public class JdxReplWs {
                 }
 
                 // Проверяем серьезность измемения структуры и необходимость пересоздавать аудит
-                if (!dbStructApplyFixed()) {
+                if (!dbStructApplyFixed(sendSnapshot)) {
                     // Если пересоздать аудит не удалось (структуры не обновлены или по иным причинам),
                     // то не метим реплику как использованную
                     log.warn("handleQueIn, dbStructApplyFixed <> true");
@@ -1123,8 +1102,14 @@ public class JdxReplWs {
 
                 // Режим применения собственных реплик
                 boolean forceApply_ignorePublicationRules = false;
-                if (replicaType == JdxReplicaType.IDE && replica.getInfo().getWsId() == wsId && forceApplySelf) {
-                    // Свои применяем принудительно, даже если они отфильтруются правилами публикации
+                if (replicaType == JdxReplicaType.SNAPSHOT) {
+                    // Предполагается, что snapshot просто так не присылают, значит дело серьезное и нужно обязательно применить
+                    forceApply_ignorePublicationRules = true;
+                } else if (replicaType == JdxReplicaType.IDE && replica.getInfo().getWsId() == wsId && forceApplySelf) {
+                    // Свои реплики применяем принудительно, даже если они отфильтруются правилами публикации.
+                    // Фильтроваться свои реплики могут, если правила на отправку отличаются от правил на получение,
+                    // а применять их нужно, чтобы обеспечить синхронный поток реплик
+                    // (иначе получим классическую ситуацию "станции А и В обменялись значениями").
                     forceApply_ignorePublicationRules = true;
                 }
 
@@ -1628,7 +1613,7 @@ public class JdxReplWs {
             // из ВХОДЯЩЕЙ очереди QueIn и применим ТОЛЬКО НЕ примененные
             if (handleQueInUseResult.lastOwnAgeUsed > 0 && age > handleQueInUseResult.lastOwnAgeUsed) {
                 // Пробуем применить собственную реплику
-                ReplicaUseResult useResult = useReplica(replica, true);
+                ReplicaUseResult useResult = useReplicaInternal(replica, true);
 
                 //
                 if (!useResult.replicaUsed) {

@@ -219,8 +219,12 @@ class Jdx_Ext extends ProjectExt {
 
     void repl_restore_ws(IVariantMap args) {
         long wsId = args.getValueLong("ws")
+        String cfgSsnapshot = args.getValueString("cfg_snapshot")
         if (wsId == 0L) {
             throw new XError("Не указан [ws] - код рабочей станции")
+        }
+        if (cfgSsnapshot == null || cfgSsnapshot.length() == 0) {
+            throw new XError("Не указан [cfg_snapshot] - cfg-файл для фильтрации snapshot рабочей станции")
         }
 
         // БД
@@ -231,7 +235,7 @@ class Jdx_Ext extends ProjectExt {
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
-            srv.restoreWorkstation(wsId)
+            srv.restoreWorkstation(wsId, cfgSsnapshot)
         } finally {
             db.disconnect()
         }

@@ -192,16 +192,22 @@ public class UtTest extends UtilsTestCase {
         long id5 = dbu.getNextGenerator("g_UsrLog");
         dbu.insertRec("UsrLog", UtCnv.toMap(
                 "id", id5,
-                "Info", "-ins-ws:" + ws_id + "-" + rnd.nextStr(14)
+                "Info", "-ins-ws:" + ws_id + ":" + id5 + "-" + rnd.nextStr(10)
+        ), "Info");
+        id5 = dbu.getNextGenerator("g_UsrLog");
+        dbu.insertRec("UsrLog", UtCnv.toMap(
+                "id", id5,
+                "Info", "-ins-ws:" + ws_id + ":" + id5 + "-" + rnd.nextStr(10)
         ), "Info");
         // диапазон "старых" значений
         long id5_01 = db.loadSql("select min(id) id from UsrLog where id > 0 and id < 2000").getCurRec().getValueLong("id");
         long id5_02 = db.loadSql("select max(id) id from UsrLog where id > 0 and id < 2000").getCurRec().getValueLong("id");
-        if (id5_02 > id5_01) {
-            id5 = id5_01 + rnd.nextInt((int) (id5_02 - id5_01));
+        long id5_Diff = (id5_02 - id5_01) / 2; // Половина диапазона
+        if (id5_Diff > 0) {
+            id5 = id5_01 + id5_Diff + rnd.nextInt((int) id5_Diff);
             dbu.updateRec("UsrLog", UtCnv.toMap(
                     "id", id5,
-                    "Info", "-updWs:" + ws_id + "-" + rnd.nextStr(14)
+                    "Info", "-updWs:" + ws_id + ":" + id5 + "-" + rnd.nextStr(10)
             ), "Info");
         }
 

@@ -86,25 +86,26 @@ Source: {#SourceDirJre}\*.*; DestDir: {app}\jre; Flags: ignoreversion recursesub
 
 
 
-Source: install\cm.bat;                           DestDir: {app};                 Flags: ignoreversion
-Source: install\jc-start.bat;                     DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist
-Source: install\jc-start.vbs;                     DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
-Source: install\jc-stop.bat;                      DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
-Source: install\jc-stop.vbs;                      DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
+Source: install\cm.bat;                                 DestDir: {app};                 Flags: ignoreversion
+Source: install\jc-start.bat;                           DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist
+Source: install\jc-start.vbs;                           DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
+Source: install\jc-stop.bat;                            DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
+Source: install\jc-stop.vbs;                            DestDir: {app}\web\WEB-INF;     Flags: ignoreversion
 
-Source: install\cfg\ws.json;                      DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
-Source: install\cfg\decode_strategy_194.json;     DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
-Source: install\cfg\publication_lic_194_srv.json; DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
-Source: install\cfg\publication_lic_194_ws.json;  DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
-Source: install\cfg\field_groups_194.json;        DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
+Source: install\cfg\ws.json;                            DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion
+Source: install\cfg\field_groups_194.json;              DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
+Source: install\cfg\decode_strategy_194.json;           DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
+Source: install\cfg\publication_lic_194_srv.json;       DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
+Source: install\cfg\publication_lic_194_ws.json;        DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
+Source: install\cfg\publication_lic_194_snapshot.json;  DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
 
-Source: install\sample.srv._app.rt;               DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _app.rt; Components: ServerComponent
-Source: install\sample.ws._app.rt;                DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _app.rt; Components: ClientComponent
-Source: install\sample._db-ini.rt;                DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _db-ini.rt
-Source: install\sample.log.properties;            DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: log.properties
+Source: install\sample.srv._app.rt;                     DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _app.rt; Components: ServerComponent
+Source: install\sample.ws._app.rt;                      DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _app.rt; Components: ClientComponent
+Source: install\sample._db-ini.rt;                      DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _db-ini.rt
+Source: install\sample.log.properties;                  DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: log.properties
 
-Source: install\543.bat;                          DestDir: {app}\web\WEB-INF;     Flags: ignoreversion deleteafterinstall;
-Source: install\rename.dirs.bat;                  DestDir: {app};                 Flags: ignoreversion deleteafterinstall;
+Source: install\543.bat;                                DestDir: {app}\web\WEB-INF;     Flags: ignoreversion deleteafterinstall;
+Source: install\rename.dirs.bat;                        DestDir: {app};                 Flags: ignoreversion deleteafterinstall;
 
 
 

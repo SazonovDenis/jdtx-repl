@@ -173,7 +173,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         databaseStructManager.setDbStructAllowed(structActual_ws1);
 
         // Делаем фиксацию структуры
-        ws.dbStructApplyFixed();
+        ws.dbStructApplyFixed(true);
 
         // Проверяем, что фиксация прошла нормально
         ws = new JdxReplWs(db);
@@ -226,7 +226,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         databaseStructManager_ws2.setDbStructAllowed(structActual_ws1);
 
         // Делаем фиксацию структуры
-        ws2.dbStructApplyFixed();
+        ws2.dbStructApplyFixed(true);
 
         // Проверяем, что фиксация прошла нормально
         ws2 = new JdxReplWs(db2);
@@ -309,7 +309,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws = new JdxReplWs(db);
         ws.init();
         //
-        ws.dbStructApplyFixed();
+        ws.dbStructApplyFixed(true);
 
         // Проверяем, что фиксация не удается
         ws = new JdxReplWs(db);
@@ -336,7 +336,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Пытаемся сделать фиксацию структуры
-        ws.dbStructApplyFixed();
+        ws.dbStructApplyFixed(true);
 
         // Проверяем, что фиксация прошла нормально
         ws = new JdxReplWs(db);

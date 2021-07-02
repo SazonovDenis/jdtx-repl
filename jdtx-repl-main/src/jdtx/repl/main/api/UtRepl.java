@@ -184,11 +184,11 @@ public class UtRepl {
      * Используется при включении новой БД в систему, в числе первых реплик для сервера
      * или при добавлении таблицы в БД.
      */
-    public IReplica createSnapshotForTable(long wsId, IPublicationRule publicationRule, boolean forbidNotOwnId) throws Exception {
+    public IReplica createReplicaSnapshotForTable(long selfWsId, IPublicationRule publicationRule, boolean forbidNotOwnId) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
-        replica.getInfo().setWsId(wsId);
+        replica.getInfo().setWsId(selfWsId);
         replica.getInfo().setAge(-1);
 
         // Стартуем формирование файла реплики
@@ -199,7 +199,7 @@ public class UtRepl {
         JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
-        UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, forbidNotOwnId);
+        UtDataSelector dataSelector = new UtDataSelector(db, struct, selfWsId, forbidNotOwnId);
         dataSelector.readAllRecords(publicationRule, xmlWriter);
 
         // Заканчиваем формирование файла реплики
@@ -209,7 +209,7 @@ public class UtRepl {
         return replica;
     }
 
-    public IReplica createReplicaSetDbStruct() throws Exception {
+    public IReplica createReplicaSetDbStruct(boolean sendSnapshot) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SET_DB_STRUCT);
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
@@ -218,8 +218,19 @@ public class UtRepl {
         UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
         replicaWriter.replicaFileStart();
 
+        // Открываем запись файла с информацией о команде
+        OutputStream zipOutputStream = replicaWriter.newFileOpen("info.json");
+
+        // Информация о получателе
+        JSONObject cfgInfo = new JSONObject();
+        cfgInfo.put("sendSnapshot", sendSnapshot);
+        String cfgInfoStr = UtJson.toString(cfgInfo);
+        StringInputStream infoStream = new StringInputStream(cfgInfoStr);
+        UtFile.copyStream(infoStream, zipOutputStream);
+
+
         // Открываем запись файла с описанием текущей структуры БД
-        OutputStream zipOutputStream = replicaWriter.newFileOpen("dat.xml");
+        zipOutputStream = replicaWriter.newFileOpen("dat.xml");
 
         // Пишем файл с описанием структуры
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
@@ -248,8 +259,8 @@ public class UtRepl {
         JSONObject cfgInfo = new JSONObject();
         cfgInfo.put("destinationWsId", destinationWsId);
         String cfgInfoStr = UtJson.toString(cfgInfo);
-        StringInputStream versionStream = new StringInputStream(cfgInfoStr);
-        UtFile.copyStream(versionStream, zipOutputStream);
+        StringInputStream infoStream = new StringInputStream(cfgInfoStr);
+        UtFile.copyStream(infoStream, zipOutputStream);
 
         // Заканчиваем формирование файла реплики
         replicaWriter.replicaFileClose();
@@ -274,8 +285,8 @@ public class UtRepl {
         JSONObject cfgInfo = new JSONObject();
         cfgInfo.put("destinationWsId", destinationWsId);
         String cfgInfoStr = UtJson.toString(cfgInfo);
-        StringInputStream versionStream = new StringInputStream(cfgInfoStr);
-        UtFile.copyStream(versionStream, zipOutputStream);
+        StringInputStream infoStream = new StringInputStream(cfgInfoStr);
+        UtFile.copyStream(infoStream, zipOutputStream);
 
         // Заканчиваем формирование файла реплики
         replicaWriter.replicaFileClose();
@@ -300,8 +311,8 @@ public class UtRepl {
         JSONObject cfgInfo = new JSONObject();
         cfgInfo.put("destinationWsId", destinationWsId);
         String cfgInfoStr = UtJson.toString(cfgInfo);
-        StringInputStream versionStream = new StringInputStream(cfgInfoStr);
-        UtFile.copyStream(versionStream, zipOutputStream);
+        StringInputStream infoStream = new StringInputStream(cfgInfoStr);
+        UtFile.copyStream(infoStream, zipOutputStream);
 
         // Заканчиваем формирование файла реплики
         replicaWriter.replicaFileClose();
@@ -327,8 +338,8 @@ public class UtRepl {
         wsStateJson.put("destinationWsId", destinationWsId);
         wsState.toJson(wsStateJson);
         String wsStateStr = UtJson.toString(wsStateJson);
-        StringInputStream versionStream = new StringInputStream(wsStateStr);
-        UtFile.copyStream(versionStream, zipOutputStream);
+        StringInputStream infoStream = new StringInputStream(wsStateStr);
+        UtFile.copyStream(infoStream, zipOutputStream);
 
         // Заканчиваем формирование файла реплики
         replicaWriter.replicaFileClose();
@@ -396,8 +407,8 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         cfgInfo.put("destinationWsId", destinationWsId);
         cfgInfo.put("cfgType", cfgType);
         String cfgInfoStr = UtJson.toString(cfgInfo);
-        StringInputStream versionStream = new StringInputStream(cfgInfoStr);
-        UtFile.copyStream(versionStream, zipOutputStream);
+        StringInputStream infoStream = new StringInputStream(cfgInfoStr);
+        UtFile.copyStream(infoStream, zipOutputStream);
 
 
         // Открываем запись файла - сам конфиг
@@ -436,8 +447,8 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         cfgInfo.put("destinationWsId", destinationWsId);
         cfgInfo.put("tableName", table.getName());
         String cfgInfoStr = UtJson.toString(cfgInfo);
-        StringInputStream versionStream = new StringInputStream(cfgInfoStr);
-        UtFile.copyStream(versionStream, zipOutputStream);
+        StringInputStream infoStream = new StringInputStream(cfgInfoStr);
+        UtFile.copyStream(infoStream, zipOutputStream);
 
         // Заканчиваем формирование файла реплики
         replicaWriter.replicaFileClose();
@@ -767,5 +778,42 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         return structCommonSorted;
     }
 
+
+    /**
+     * Создаем snapsot-реплики для таблиц tables,
+     * без последующей фильтрации записей,
+     * но только для таблиц, упомянутых в publicationRules
+     */
+    public List<IReplica> createSnapshotsForTables(List<IJdxTable> tables, long selfWsId, IPublicationRuleStorage publicationRules, boolean forbidNotOwnId) throws Exception {
+        List<IReplica> res = new ArrayList<>();
+
+        //
+        UtRepl utRepl = new UtRepl(db, struct);
+
+        //
+        for (IJdxTable table : tables) {
+            String tableName = table.getName();
+
+            log.info("SnapshotForTables, wsAuthor: " + selfWsId + ", table: " + tableName);
+
+            //
+            IPublicationRule publicationTableRule = publicationRules.getPublicationRule(tableName);
+            if (publicationTableRule == null) {
+                // Пропускаем
+                log.info("SnapshotForTables, skip createSnapshot, not found in publicationRules, table: " + tableName);
+            } else {
+                // Создаем snapshot-реплику
+                IReplica replicaSnapshot = utRepl.createReplicaSnapshotForTable(selfWsId, publicationTableRule, forbidNotOwnId);
+                res.add(replicaSnapshot);
+            }
+
+        }
+
+        //
+        log.info("SnapshotForTables, wsAuthor: " + selfWsId + ", done");
+
+        //
+        return res;
+    }
 
 }

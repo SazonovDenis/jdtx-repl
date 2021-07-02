@@ -16,14 +16,7 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-/*
-
-todo
-затестить применение конфигов при смене версии БД
-реализовать невидимость таблиц, которых нет в конфиге
-затестить инициализацию и смену версии БД на бинарной сборке ????
-
-*/
+// todo затестить рассылку и применение НОВЫХ конфигов при смене версии БД
 
 public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
@@ -38,6 +31,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     String cfg_json_publication_ws;
 
     public JdxReplWsSrv_Test() {
+        super();
+        //
         json_srv = "test/etalon/mail_http_srv.json";
         json_ws = "test/etalon/mail_http_ws.json";
 
@@ -219,11 +214,21 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         new File("../_test-data/_test-data_ws5").delete();
 
         UtFile.cleanDir("../_test-data/csv");
+        UtFile.cleanDir("../_test-data/csv1");
+        UtFile.cleanDir("../_test-data/csv2");
+        UtFile.cleanDir("../_test-data/csv3");
         UtFile.cleanDir("../_test-data/mail");
         UtFile.cleanDir("../_test-data/mail_local");
         new File("../_test-data/csv").delete();
+        new File("../_test-data/csv1").delete();
+        new File("../_test-data/csv2").delete();
+        new File("../_test-data/csv3").delete();
         new File("../_test-data/mail").delete();
         new File("../_test-data/mail_local").delete();
+        try {
+            UtFile.cleanDir("../_test-data");
+        } catch (Exception e){
+        }
         new File("d:/temp/dbm.log").delete();
         new File("d:/temp/jdtx.log").delete();
         UtFile.cleanDir("../../lombard.systems/repl/" + MailerHttp.REPL_PROTOCOL_VERSION + "/b5781df573ca6ee6.x");
@@ -241,9 +246,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ws3.init();
 
         //
-        ws.dbStructApplyFixed();
-        ws2.dbStructApplyFixed();
-        ws3.dbStructApplyFixed();
+        ws.dbStructApplyFixed(true);
+        ws2.dbStructApplyFixed(true);
+        ws3.dbStructApplyFixed(true);
     }
 
     @Test

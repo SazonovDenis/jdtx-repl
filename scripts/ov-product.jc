@@ -56,7 +56,8 @@ repl_add_ws = cm("Добавляет рабочую станцию на серв
 
 //
 repl_restore_ws = cm("Восстанавливает рабочую станцию при потере базы",
-        "ws": [value: 0, help: "Код рабочей станции"]
+        "ws": [value: 0, help: "Код рабочей станции"],
+        "cfg_snapshot": [value: null, help: "cfg-файл для фильтрации snapshot рабочей станции"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_restore_ws(args)

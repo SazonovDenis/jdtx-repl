@@ -17,7 +17,6 @@ public class UtDataSelector {
 
     private Db db;
     private IJdxDbStruct struct;
-    private long wsId;
     private boolean forbidNotOwnId;
     private IRefDecoder decoder;
 
@@ -27,13 +26,14 @@ public class UtDataSelector {
     protected static Log log = LogFactory.getLog("jdtx.DataSelector");
 
 
-    //
-    public UtDataSelector(Db db, IJdxDbStruct struct, long wsId, boolean forbidNotOwnId) throws Exception {
+    /**
+     * @param selfWsId Код рабочей станции, на которой делаем выборку
+     */
+    public UtDataSelector(Db db, IJdxDbStruct struct, long selfWsId, boolean forbidNotOwnId) throws Exception {
         this.db = db;
         this.struct = struct;
-        this.wsId = wsId;
         this.forbidNotOwnId = forbidNotOwnId;
-        this.decoder = new RefDecoder(db, wsId);
+        this.decoder = new RefDecoder(db, selfWsId);
     }
 
     /**

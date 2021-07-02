@@ -7,7 +7,8 @@ import org.junit.*;
 import java.util.*;
 
 /**
- *
+ * Проверяет согласованность и непротиворечивость (по ссылкам)
+ * конфигураций для фильтрации.
  */
 public class PublicationRule_Test extends ReplDatabaseStruct_Test {
 
@@ -47,7 +48,7 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
         System.out.println("Database: " + db.getDbSource().getDatabase());
 
         //
-        String jsonFileName ="test/jdtx/repl/main/api/publication/publication_lic.json";
+        String jsonFileName = "test/jdtx/repl/main/api/publication/publication_lic.json";
         test_PublicationRule(jsonFileName);
     }
 
@@ -77,6 +78,42 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
         test_PublicationRule(jsonFileName);
     }
 
+    @Test
+    public void test_PublicationValid_lic_194_snapshot() throws Exception {
+        System.out.println("Database: " + db.getDbSource().getDatabase());
+
+        //
+        String jsonFileName = "../install/cfg/publication_lic_194_snapshot.json";
+
+        //
+        System.out.println("Json file: " + jsonFileName);
+        JSONObject cfg = UtRepl.loadAndValidateJsonFile(jsonFileName);
+
+        //
+        System.out.println("Publication: snapshot");
+        IPublicationRuleStorage publication = PublicationRuleStorage.loadRules(cfg, struct, "snapshot");
+        JSONObject cfgPublication = PublicationRuleStorage.extractRulesByName(cfg, "snapshot");
+        UtPublicationRule.checkValid(cfgPublication, publication, struct);
+    }
+
+    @Test
+    public void test_PublicationValid_full_152_snapshot() throws Exception {
+        System.out.println("Database: " + db.getDbSource().getDatabase());
+
+        //
+        String jsonFileName = "test/etalon/publication_full_152_snapshot.json";
+
+        //
+        System.out.println("Json file: " + jsonFileName);
+        JSONObject cfg = UtRepl.loadAndValidateJsonFile(jsonFileName);
+
+        //
+        System.out.println("Publication: snapshot");
+        IPublicationRuleStorage publication = PublicationRuleStorage.loadRules(cfg, struct, "snapshot");
+        JSONObject cfgPublication = PublicationRuleStorage.extractRulesByName(cfg, "snapshot");
+        UtPublicationRule.checkValid(cfgPublication, publication, struct);
+    }
+
     void test_PublicationRule(String jsonFileName) throws Exception {
         System.out.println("Json file: " + jsonFileName);
         JSONObject cfg = UtRepl.loadAndValidateJsonFile(jsonFileName);
@@ -84,15 +121,13 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
         //
         System.out.println("Publication: in");
         IPublicationRuleStorage publicationIn = PublicationRuleStorage.loadRules(cfg, struct, "in");
-        //
-        JSONObject cfgPublicationRulesIn = PublicationRuleStorage.extractRulesByName(cfg,  "in");
+        JSONObject cfgPublicationRulesIn = PublicationRuleStorage.extractRulesByName(cfg, "in");
         UtPublicationRule.checkValid(cfgPublicationRulesIn, publicationIn, struct);
 
         //
         System.out.println("Publication: out");
         IPublicationRuleStorage publicationOut = PublicationRuleStorage.loadRules(cfg, struct, "out");
-        //
-        JSONObject cfgPublicationRulesOut = PublicationRuleStorage.extractRulesByName(cfg,  "out");
+        JSONObject cfgPublicationRulesOut = PublicationRuleStorage.extractRulesByName(cfg, "out");
         UtPublicationRule.checkValid(cfgPublicationRulesOut, publicationOut, struct);
     }
 

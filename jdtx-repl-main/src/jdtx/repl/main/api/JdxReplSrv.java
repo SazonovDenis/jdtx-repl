@@ -196,20 +196,19 @@ public class JdxReplSrv {
         // Берем сейчас из файла, а не из publicationsInList.get(wsId), т.к. новой станции еще в этом списке нет
         JSONObject cfgPublicationsWs = UtRepl.loadAndValidateJsonFile(cfgPublicationsFileName);
         JSONObject cfgDecode = UtRepl.loadAndValidateJsonFile(cfgDecodeFileName);
-        srvSetAndSendCfg(queOut001, wsId, cfgPublicationsWs, cfgDecode);
+        srvSetAndSendCfg(queOut001, wsId, cfgPublicationsWs, cfgDecode, true);
 
 
         // ---
         // Подготовим snapshot для станции wsId
 
         // Правила публикаций (фильтры) для подготовки snapshot для wsId.
-        // В качестве фильтров на ОТПРАВКУ snapshot от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
+        // В качестве фильтров на ИНИЦИАЛИЗАЦИОННЫЙ snapshot от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
         IPublicationRuleStorage publicationRuleWsIn = PublicationRuleStorage.loadRules(cfgPublicationsWs, struct, "in");
-        List<IPublicationRuleStorage> publicationRules = new ArrayList<>();
-        publicationRules.add(publicationRuleWsIn);
 
         // Подготовим snapshot
-        long wsSnapshotAge = sendReplicasSnapshot(queOut001, wsId, publicationRules);
+        long serverWsId = 1;
+        long wsSnapshotAge = sendReplicasSnapshot(serverWsId, wsId, publicationRuleWsIn, queOut001);
 
 
         // ---
@@ -264,7 +263,7 @@ public class JdxReplSrv {
      *
      * @param wsId код ранее существующей рабочей станции
      */
-    public void restoreWorkstation(long wsId) throws Exception {
+    public void restoreWorkstation(long wsId, String cfgSnapshotFileName) throws Exception {
         log.info("Restore workstation, wsId: " + wsId);
 
         //
@@ -287,22 +286,19 @@ public class JdxReplSrv {
         DataRecord wsRec = loadWs(wsId);
         JSONObject cfgPublicationsWs = CfgManager.getCfgFromDataRecord(wsRec, CfgType.PUBLICATIONS);
         JSONObject cfgDecode = CfgManager.getCfgFromDataRecord(wsRec, CfgType.DECODE);
-        srvSetAndSendCfg(queOut001, wsId, cfgPublicationsWs, cfgDecode);
+        srvSetAndSendCfg(queOut001, wsId, cfgPublicationsWs, cfgDecode, false);
 
 
         // ---
         // Подготовим snapshot для станции wsId
 
-        // Правила публикаций (фильтры) для подготовки snapshot для wsId.
-        // В качестве фильтров на ОТПРАВКУ snapshot от сервера берем ВХОДЯЩЕЕ и ИСХОДЯЩЕЕ правила рабочей станции.
-        IPublicationRuleStorage publicationRuleWsIn = PublicationRuleStorage.loadRules(cfgPublicationsWs, struct, "in");
-        IPublicationRuleStorage publicationRuleWsOut = PublicationRuleStorage.loadRules(cfgPublicationsWs, struct, "out");
-        List<IPublicationRuleStorage> publicationRules = new ArrayList<>();
-        publicationRules.add(publicationRuleWsIn);
-        publicationRules.add(publicationRuleWsOut);
+        // Правила публикаций (фильтры) для подготовки snapshot для wsId
+        JSONObject cfgSnapsot = UtRepl.loadAndValidateJsonFile(cfgSnapshotFileName);
+        IPublicationRuleStorage ruleSnapsot = PublicationRuleStorage.loadRules(cfgSnapsot, struct, "snapshot");
 
         // Подготовим snapshot
-        long wsSnapshotAge = sendReplicasSnapshot(queOut001, wsId, publicationRules);
+        long serverWsId = 1;
+        long wsSnapshotAge = sendReplicasSnapshot(serverWsId, wsId, ruleSnapsot, queOut001);
 
 
         // ---
@@ -377,19 +373,24 @@ public class JdxReplSrv {
  */
     }
 
-    private void srvSetAndSendCfg(JdxQueOut001 queOut001, long wsId, JSONObject cfgPublicationsWs, JSONObject cfgDecode) throws Exception {
+    private void srvSetAndSendCfg(JdxQueOut001 queOut001, long wsId, JSONObject cfgPublicationsWs, JSONObject cfgDecode, boolean sendSnapshot) throws Exception {
         // ---
         // Отправим настройки для станции
         srvSetAndSendCfgInternal(queOut001, cfgPublicationsWs, CfgType.PUBLICATIONS, wsId);
         //
         srvSetAndSendCfgInternal(queOut001, cfgDecode, CfgType.DECODE, wsId);
         //
-        srvDbStructFinishInternal(queOut001);
+        srvDbStructFinishInternal(queOut001, sendSnapshot);
     }
 
-    private long sendReplicasSnapshot(JdxQueOut001 queOut001, long wsId, List<IPublicationRuleStorage> publicationRules) throws Exception {
+    /**
+     * Подготовим snapshot для станции wsIdOwner,
+     * фильтруем его по правилам ruleForSnapshot,
+     * и отправляем в очередь que
+     */
+    private long sendReplicasSnapshot(long selfWsId, long wsIdOwner, IPublicationRuleStorage ruleForSnapshot, JdxQue que) throws Exception {
         // ---
-        // Подготовим snapshot для станции
+        // Подготовим snapshot из данных станции wsIdOwner
 
         // Запоминаем возраст входящей очереди "серверной" рабочей станции (que_in_no_done).
         // Если мы начинаем готовить snapshot в этом возрасте, то все реплики ДО этого возраста войдут в snapshot,
@@ -400,20 +401,16 @@ public class JdxReplSrv {
         JdxStateManagerWs stateManagerWs = new JdxStateManagerWs(db);
         long wsSnapshotAge = stateManagerWs.getQueNoDone("in");
 
-
-        // Единственное место, где на сервере без экземпляра СЕРВЕРНОЙ рабочей станции - не обойтись
-        JdxReplWs ws = new JdxReplWs(db);
-        ws.init();
-
-        // В publicationOutTables будет соблюден порядок сортировки таблиц с учетом foreign key
-        // (при применении snapsot важен порядок)
-        List<IJdxTable> publicationOutTables = makeOrderedTableListFromPublication(ws.struct, ws.publicationOut);
+        // В publicationOutTables будет соблюден порядок сортировки таблиц с учетом foreign key.
+        // При последующем применении snapsot важен порядок.
+        List<IJdxTable> publicationOutTables = makeOrderedTableListFromPublicationRule(struct, ruleForSnapshot);
 
         // Создаем snapshot-реплики (пока без фильтрации записей)
         List<IReplica> replicasSnapshot;
         db.startTran();
         try {
-            replicasSnapshot = ws.createSnapshotsForTables(publicationOutTables, false);
+            UtRepl ut = new UtRepl(db, struct);
+            replicasSnapshot = ut.createSnapshotsForTables(publicationOutTables, selfWsId, ruleForSnapshot, false);
             //
             db.commit();
         } catch (Exception e) {
@@ -432,25 +429,23 @@ public class JdxReplSrv {
         IReplicaFilter filter = new ReplicaFilter();
 
         // Фильтр, параметры: получатель реплики
-        filter.getFilterParams().put("wsDestination", String.valueOf(wsId));
+        filter.getFilterParams().put("wsDestination", String.valueOf(wsIdOwner));
         // Фильтр, параметры: автор реплики - делаем заведомо не существующее значение.
-        // При подготовке НОВОЙ рабочей станции автор, строго говоря, не определен, но чтобы не было ошибок
-        // поставим ws.wsId - серверную базу
-        filter.getFilterParams().put("wsAuthor", String.valueOf(ws.wsId));
+        // При подготовке snapshot автор, строго говоря, не определен, но чтобы не было ошибок,
+        // поставим в качестве автора - себя.
+        filter.getFilterParams().put("wsAuthor", String.valueOf(selfWsId));
 
         // Фильтруем записи
         for (IReplica replica : replicasSnapshot) {
-            for (IPublicationRuleStorage publicationRule : publicationRules) {
-                IReplica replicaForWs = filter.convertReplicaForWs(replica, publicationRule);
-                replicasSnapshotFiltered.add(replicaForWs);
-            }
+            IReplica replicaForWs = filter.convertReplicaForWs(replica, ruleForSnapshot);
+            replicasSnapshotFiltered.add(replicaForWs);
         }
 
 
         // ---
-        // Помещаем snapshot-реплики в очередь queOut001
+        // Помещаем snapshot-реплики в очередь que
         for (IReplica replicaForWs : replicasSnapshotFiltered) {
-            queOut001.push(replicaForWs);
+            que.push(replicaForWs);
         }
 
 
@@ -458,7 +453,7 @@ public class JdxReplSrv {
         return wsSnapshotAge;
     }
 
-    private List<IJdxTable> makeOrderedTableListFromPublication(IJdxDbStruct struct, IPublicationRuleStorage publicationStorage) {
+    private List<IJdxTable> makeOrderedTableListFromPublicationRule(IJdxDbStruct struct, IPublicationRuleStorage publicationStorage) {
         List<IJdxTable> publicationTables = new ArrayList<>();
         for (IJdxTable table : struct.getTables()) {
             if (publicationStorage.getPublicationRule(table.getName()) != null) {
@@ -727,20 +722,20 @@ public class JdxReplSrv {
         log.info("srvDbStructFinish");
 
         // Системные команды в общую исходящую очередь реплик
-        srvDbStructFinishInternal(queCommon);
+        srvDbStructFinishInternal(queCommon, true);
     }
 
 
     /**
      * Системные команды в очередь que
      */
-    private void srvDbStructFinishInternal(IJdxReplicaQue que) throws Exception {
+    private void srvDbStructFinishInternal(IJdxReplicaQue que, boolean sendSnapshot) throws Exception {
         IReplica replica;
         UtRepl utRepl = new UtRepl(db, struct);
 
 
         // Системная команда "SET_DB_STRUCT"...
-        replica = utRepl.createReplicaSetDbStruct();
+        replica = utRepl.createReplicaSetDbStruct(sendSnapshot);
         // ...в очередь
         que.push(replica);
 

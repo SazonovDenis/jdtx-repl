@@ -40,7 +40,7 @@ public class JdxDbUtils {
         return getNextGenerator(generatorName, 0);
     }
 
-    private long getNextGenerator(String generatorName, int increment) throws SQLException {
+    public long getNextGenerator(String generatorName, int increment) throws SQLException {
         Statement st = db.getConnection().createStatement();
         ResultSet rs = null;
         try {
