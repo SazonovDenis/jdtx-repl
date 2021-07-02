@@ -605,7 +605,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                             while (recValues != null) {
                                 Object idValue = recValues.get(idFieldName);
                                 JdxRef idValueRef = JdxRef.parse((String) idValue);
-                                //
+                                // Дополнение ссылки
                                 if (idValueRef.ws_id == -1 && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
                                     idValueRef.ws_id = replica.getInfo().getWsId();
                                 }

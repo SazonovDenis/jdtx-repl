@@ -207,10 +207,6 @@ class Jdx_Ext extends ProjectExt {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
             srv.addWorkstation(wsId, name, guid, cfgPublications, cfgDecode)
-
-            //
-            System.out.println("new wsId: " + wsId)
-
         } finally {
             db.disconnect()
         }

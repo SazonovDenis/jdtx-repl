@@ -78,9 +78,9 @@ public class RecordFilter implements IRecordFilter {
                 IJdxTable refTable = field.getRefTable();
                 if (field.isPrimaryKey() || refTable != null) {
                     // Ссылка
-                    JdxRef ref = JdxRef.parse((String) fieldValue);
-                    filterExpression.setVariable("RECORD_OWNER_" + fieldName, new BigDecimal(ref.ws_id));
-                    filterExpression.setVariable("RECORD_" + fieldName, new BigDecimal(ref.value));
+                    JdxRef fieldValueRef = JdxRef.parse((String) fieldValue);
+                    filterExpression.setVariable("RECORD_OWNER_" + fieldName, new BigDecimal(fieldValueRef.ws_id));
+                    filterExpression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValueRef.value));
                 } else if (fieldValue instanceof Long || fieldValue instanceof Integer) {
                     // Целочисленное поле
                     filterExpression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValue.toString()));
