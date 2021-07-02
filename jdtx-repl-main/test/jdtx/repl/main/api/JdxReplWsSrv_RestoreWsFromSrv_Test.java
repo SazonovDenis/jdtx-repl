@@ -110,6 +110,15 @@ public class JdxReplWsSrv_RestoreWsFromSrv_Test extends JdxReplWsSrv_Test {
     }
 
     @Test
+    public void test_All_filter() throws Exception {
+        cfg_json_decode = "../install/cfg/decode_strategy_194.json";
+        cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
+        cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
+        cfg_json_snapshot = "test/etalon/publication_lic_152_snapshot.json";
+        test_All();
+    }
+
+    @Test
     public void test_repairAfterBackupRestore_ws3() throws Exception {
         JdxReplWs ws = new JdxReplWs(db3);
         ws.init();

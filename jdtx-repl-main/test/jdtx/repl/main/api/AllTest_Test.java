@@ -32,9 +32,19 @@ public class AllTest_Test extends AppTestCase {
         JdxReplWsSrv_AddWs_Test test2 = new JdxReplWsSrv_AddWs_Test();
         test2.setUp();
         test2.test_all();
+        //
         test2 = new JdxReplWsSrv_AddWs_Test();
         test2.setUp();
         test2.test_allSetUp_TestAll_filter();
+
+        //
+        JdxReplWsSrv_RestoreWsFromSrv_Test test6 = new JdxReplWsSrv_RestoreWsFromSrv_Test();
+        test6.setUp();
+        test6.test_All();
+        //
+        test6 = new JdxReplWsSrv_RestoreWsFromSrv_Test();
+        test6.setUp();
+        test6.test_All_filter();
 
         //
         JdxReplWsSrv_FailedInsertUpdate_Test test3 = new JdxReplWsSrv_FailedInsertUpdate_Test();
