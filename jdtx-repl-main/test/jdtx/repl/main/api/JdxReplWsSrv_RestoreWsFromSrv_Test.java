@@ -127,10 +127,6 @@ public class JdxReplWsSrv_RestoreWsFromSrv_Test extends JdxReplWsSrv_Test {
 
     @Test
     public void test_restoreWorkstation_ws3() throws Exception {
-        // todo: static RefDecodeStrategy instance - ваще капец! Именно за этим и нужна ИНИЦИАЛИЗАЦИЯ ws.init, и больше ни для чего!!!
-        JdxReplWs ws = new JdxReplWs(db);
-        ws.init();
-
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init();
         srv.restoreWorkstation(3, cfg_json_snapshot);

@@ -266,6 +266,11 @@ public class JdxReplSrv {
     public void restoreWorkstation(long wsId, String cfgSnapshotFileName) throws Exception {
         log.info("Restore workstation, wsId: " + wsId);
 
+
+        // todo: static RefDecodeStrategy instance - ваще капец! Именно за этим и нужна ИНИЦИАЛИЗАЦИЯ ws.init, и больше ни для чего!!!
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.init();
+
         //
         UtRepl utRepl = new UtRepl(db, struct);
 
