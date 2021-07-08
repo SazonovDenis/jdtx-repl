@@ -67,7 +67,7 @@ public class JdxQueOut000 extends JdxQueOut001 {
         String sql = "select * " + sqlFromWhere + " and destination_no = " + no;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("id") == 0) {
-            throw new XError("Replica not found, this.wsId" + this.wsId + ", no: " + no);
+            throw new XError("Replica not found, this.wsId: " + this.wsId + ", queName: " + queName + ", no: " + no);
         }
         return rec;
     }

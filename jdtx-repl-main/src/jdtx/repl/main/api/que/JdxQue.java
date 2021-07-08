@@ -121,7 +121,7 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
         String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "que_" + queName + " where id = " + no;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("id") == 0) {
-            throw new XError("Replica not found, no: " + no);
+            throw new XError("Replica not found, queName: " + queName + ", no: " + no);
         }
         return rec;
     }
