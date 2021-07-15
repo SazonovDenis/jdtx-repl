@@ -129,6 +129,9 @@ public class UtAuditApplyer {
                     }
                 }
                 if (n == -1) {
+                    // Для справки/отладки - структуры в файл
+                    jdxReplWs.debugDumpStruct("7.");
+                    //
                     throw new XError("table [" + readerTableName + "] found in replica data, but not found in dbstruct");
                 }
                 //

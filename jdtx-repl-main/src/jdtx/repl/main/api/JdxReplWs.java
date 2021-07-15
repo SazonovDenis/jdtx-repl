@@ -331,10 +331,7 @@ public class JdxReplWs {
             log.info("dbStructApplyFixed, no diff found, Actual == Allowed == Fixed");
 
             // Для справки/отладки - структуры в файл
-            JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-            struct_rw.toFile(structActual, dataRoot + "temp/1.dbStruct.actual.xml");
-            struct_rw.toFile(structAllowed, dataRoot + "temp/1.dbStruct.allowed.xml");
-            struct_rw.toFile(structFixed, dataRoot + "temp/1.dbStruct.fixed.xml");
+            debugDumpStruct("1.");
 
             //
             return true;
@@ -346,10 +343,7 @@ public class JdxReplWs {
             log.warn("dbStructApplyFixed, Actual <> Allowed");
 
             // Для справки/отладки - структуры в файл
-            JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-            struct_rw.toFile(structActual, dataRoot + "temp/2.dbStruct.actual.xml");
-            struct_rw.toFile(structAllowed, dataRoot + "temp/2.dbStruct.allowed.xml");
-            struct_rw.toFile(structFixed, dataRoot + "temp/2.dbStruct.fixed.xml");
+            debugDumpStruct("2.");
 
             //
             return false;
@@ -465,10 +459,7 @@ public class JdxReplWs {
         if (struct.getTables().size() == 0 || !UtDbComparer.dbStructIsEqual(struct, structAllowed)) {
             log.warn("handleSelfAudit, database structActual <> structAllowed");
             // Для справки/отладки - структуры в файл
-            JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-            struct_rw.toFile(struct, dataRoot + "temp/3.dbStruct.actual.xml");
-            struct_rw.toFile(structAllowed, dataRoot + "temp/3.dbStruct.allowed.xml");
-            struct_rw.toFile(structFixed, dataRoot + "temp/3.dbStruct.fixed.xml");
+            debugDumpStruct("3.");
             //
             return;
         }
@@ -476,10 +467,7 @@ public class JdxReplWs {
         if (struct.getTables().size() == 0 || !UtDbComparer.dbStructIsEqual(struct, structFixed)) {
             log.warn("handleSelfAudit, database structActual <> structFixed");
             // Для справки/отладки - структуры в файл
-            JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-            struct_rw.toFile(struct, dataRoot + "temp/4.dbStruct.actual.xml");
-            struct_rw.toFile(structAllowed, dataRoot + "temp/4.dbStruct.allowed.xml");
-            struct_rw.toFile(structFixed, dataRoot + "temp/4.dbStruct.fixed.xml");
+            debugDumpStruct("4.");
             //
             return;
         }
@@ -1065,10 +1053,7 @@ public class JdxReplWs {
                 // Реальная структура базы НЕ совпадает с разрешенной структурой
                 if (!isEqualStruct_Actual_Allowed) {
                     // Для справки/отладки - не совпадающие структуры - в файл
-                    JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-                    struct_rw.toFile(struct, dataRoot + "temp/5.dbStruct.actual.xml");
-                    struct_rw.toFile(structAllowed, dataRoot + "temp/5.dbStruct.allowed.xml");
-                    struct_rw.toFile(structFixed, dataRoot + "temp/5.dbStruct.fixed.xml");
+                    debugDumpStruct("5.");
                     // Генерим ошибку
                     throw new XError("handleQueIn, structActual <> structAllowed");
                 }
@@ -1085,10 +1070,7 @@ public class JdxReplWs {
                 String dbStructActualCrc = UtDbComparer.getDbStructCrcTables(struct);
                 if (replicaStructCrc.compareToIgnoreCase(dbStructActualCrc) != 0) {
                     // Для справки/отладки - структуры в файл
-                    JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-                    struct_rw.toFile(struct, dataRoot + "temp/6.dbStruct.actual.xml");
-                    struct_rw.toFile(structAllowed, dataRoot + "temp/6.dbStruct.allowed.xml");
-                    struct_rw.toFile(structFixed, dataRoot + "temp/6.dbStruct.fixed.xml");
+                    debugDumpStruct("6.");
                     //
                     throw new XError("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
                 }
@@ -1678,6 +1660,13 @@ public class JdxReplWs {
             throw new XError("Can`t delete lock: " + lockFile);
         }
 
+    }
+
+    public void debugDumpStruct(String prefix) throws Exception {
+        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+        struct_rw.toFile(struct, dataRoot + "temp/" + prefix + "dbStruct.actual.xml");
+        struct_rw.toFile(structAllowed, dataRoot + "temp/" + prefix + "dbStruct.allowed.xml");
+        struct_rw.toFile(structFixed, dataRoot + "temp/" + prefix + "dbStruct.fixed.xml");
     }
 
 }
