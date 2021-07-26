@@ -280,7 +280,16 @@ public class UtAuditApplyer {
                                     JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
                                     ee.recParams = recParams;
                                     ee.recValues = recValues;
-                                    throw (ee);
+                                    // todo крайне криво - лишние зависимости от конфига появились???
+                                    // Да и вообще, костыль страшнейший, сделан для пробуска неуместных реплик,
+                                    // которые просочились на станцию из-за кривых настроек фильтров.
+                                    // todo Убрать, когда будут сделана фильтрация по ссылкам!!!
+                                    boolean skipForeignKeyViolationIns = db.getApp().getRt().getChild("app").getValueBoolean("skipForeignKeyViolationIns");
+                                    if (skipForeignKeyViolationIns) {
+                                        log.error("skipForeignKeyViolationIns: " + skipForeignKeyViolationIns);
+                                    } else {
+                                        throw (ee);
+                                    }
                                 } else {
                                     throw (e);
                                 }
@@ -298,7 +307,16 @@ public class UtAuditApplyer {
                                     JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
                                     ee.recParams = recParams;
                                     ee.recValues = recValues;
-                                    throw (ee);
+                                    // todo крайне криво - лишние зависимости от конфига появились???
+                                    // Да и вообще, костыль страшнейший, сделан для пробуска неуместных реплик,
+                                    // которые просочились на станцию из-за кривых настроек фильтров.
+                                    // todo Убрать, когда будут сделана фильтрация по ссылкам!!!
+                                    boolean skipForeignKeyViolationUpd = db.getApp().getRt().getChild("app").getValueBoolean("skipForeignKeyViolationUpd");
+                                    if (skipForeignKeyViolationUpd) {
+                                        log.error("skipForeignKeyViolationUpd: " + skipForeignKeyViolationUpd);
+                                    } else {
+                                        throw (ee);
+                                    }
                                 } else {
                                     throw (e);
                                 }

@@ -19,6 +19,8 @@
 
     <!-- Конфиги 
     <app autoUseRepairReplica="true"/>
+    <app skipForeignKeyViolationIns="false"/>
+    <app skipForeignKeyViolationUpd="false"/>
     -->
 
 </root>
