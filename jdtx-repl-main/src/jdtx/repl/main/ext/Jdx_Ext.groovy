@@ -12,6 +12,7 @@ import jdtx.repl.main.api.*
 import jdtx.repl.main.api.decoder.*
 import jdtx.repl.main.api.mailer.*
 import jdtx.repl.main.api.manager.*
+import jdtx.repl.main.api.que.*
 import jdtx.repl.main.api.replica.*
 import jdtx.repl.main.api.struct.*
 import jdtx.repl.main.gen.*
@@ -699,6 +700,14 @@ class Jdx_Ext extends ProjectExt {
         }
         //
         long destinationWsId = args.getValueLong("ws")
+        if (destinationWsId == 0L) {
+            throw new XError("Не указан [ws] - код рабочей станции")
+        }
+        //
+        String queName = args.getValueString("que")
+        if (queName == null || queName.length() == 0) {
+            queName = UtQue.QUE_COMMON
+        }
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -710,7 +719,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvSendCfg(cfgFileName, cfgType, destinationWsId)
+            srv.srvSendCfg(cfgFileName, cfgType, destinationWsId, queName)
 
         } finally {
             db.disconnect()
@@ -783,7 +792,7 @@ class Jdx_Ext extends ProjectExt {
             throw new XError("Не указан [ws] - код рабочей станции")
         }
         if (tableNames == null || tableNames.length() == 0) {
-            throw new XError("Не указана [tables] - таблицы в БД")
+            throw new XError("Не указаны [tables] - таблицы в БД")
         }
 
         // БД

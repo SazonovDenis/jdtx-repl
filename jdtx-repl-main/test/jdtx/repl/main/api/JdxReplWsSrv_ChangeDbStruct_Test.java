@@ -3,6 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jdtx.repl.main.api.manager.*;
+import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.struct.*;
 import org.json.simple.*;
 import org.junit.*;
@@ -493,7 +494,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         srv.init();
 
         // ... рассылаем на рабочие станции новые правила публикаций (команда repl_send_cfg) ...
-        srv.srvSendCfg(cfg_publications, CfgType.PUBLICATIONS, 0);
+        srv.srvSendCfg(cfg_publications, CfgType.PUBLICATIONS, 0, UtQue.QUE_COMMON);
 
         // ... рассылаем сигнал "всем говорить" (команда repl_dbstruct_finish)
         test_srvDbStructFinish();

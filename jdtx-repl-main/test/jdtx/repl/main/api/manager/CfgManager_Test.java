@@ -3,10 +3,12 @@ package jdtx.repl.main.api.manager;
 import jandcode.utils.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.que.*;
 import org.json.simple.*;
 import org.junit.*;
 
 /**
+ *
  */
 public class CfgManager_Test extends ReplDatabaseStruct_Test {
 
@@ -71,9 +73,14 @@ public class CfgManager_Test extends ReplDatabaseStruct_Test {
         srv.init();
 
         //
-        long destinationWsId = 2;
         String cfgFileName = "test/jdtx/repl/main/api/UtCfg_Marker_Test.publications.json";
-        srv.srvSendCfg(cfgFileName, "cfg_publications", destinationWsId);
+        long destinationWsId = 2;
+        srv.srvSendCfg(cfgFileName, "cfg_publications", destinationWsId, UtQue.QUE_COMMON);
+
+        //
+        cfgFileName = "test/jdtx/repl/main/api/UtCfg_Marker_Test.decode_strategy.json";
+        destinationWsId = 3;
+        srv.srvSendCfg(cfgFileName, "cfg_decode", destinationWsId, UtQue.QUE_OUT001);
     }
 
 

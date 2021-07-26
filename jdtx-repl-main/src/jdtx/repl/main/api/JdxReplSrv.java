@@ -187,7 +187,7 @@ public class JdxReplSrv {
 
 
         // ---
-        // Инициализационная очередь queOut001 (для системных команды для станции)
+        // Очередь queOut001 станции (инициализационная или для системных команд)
         JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
         queOut001.setDataRoot(dataRoot);
 
@@ -275,7 +275,7 @@ public class JdxReplSrv {
         UtRepl utRepl = new UtRepl(db, struct);
 
         // ---
-        // Очередь queOut001 станции (инициализационная)
+        // Очередь queOut001 станции (инициализационная или для системных команд)
         JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
         queOut001.setDataRoot(dataRoot);
 
@@ -585,7 +585,7 @@ public class JdxReplSrv {
                 queOut000.setDataRoot(dataRoot);
                 UtMail.sendQueToMail(wsId, queOut000, mailer, "to", mailStateManager);
 
-                // Рассылаем queOut001 на каждую станцию
+                // Рассылаем очередь queOut001 на каждую станцию
                 JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
                 queOut001.setDataRoot(dataRoot);
                 //
@@ -667,7 +667,7 @@ public class JdxReplSrv {
         for (Map.Entry en : mailerList.entrySet()) {
             long wsId = (long) en.getKey();
 
-            // Инициализационная очередь queOut001
+            // Очередь queOut001 станции (инициализационная или для системных команд)
             JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
             queOut001.setDataRoot(dataRoot);
 
@@ -752,12 +752,26 @@ public class JdxReplSrv {
     }
 
 
-    public void srvSendCfg(String cfgFileName, String cfgType, long destinationWsId) throws Exception {
+    public void srvSendCfg(String cfgFileName, String cfgType, long destinationWsId, String queName) throws Exception {
         log.info("srvSendCfg, cfgFileName: " + new File(cfgFileName).getAbsolutePath() + ", cfgType: " + cfgType + ", destination wsId: " + destinationWsId);
+
+        // Выбор очереди - общая (queCommon) или личная для станции
+        IJdxReplicaQue que;
+        if (queName.compareToIgnoreCase(UtQue.QUE_COMMON) == 0) {
+            // Очередь queCommon (общая)
+            que = queCommon;
+        } else if (queName.compareToIgnoreCase(UtQue.QUE_OUT001) == 0) {
+            // Очередь queOut001 станции (инициализационная или для системных команд)
+            JdxQueOut001 queOut001 = new JdxQueOut001(db, destinationWsId);
+            queOut001.setDataRoot(dataRoot);
+            que = queOut001;
+        } else {
+            throw new XError("Uncknown queName: " + queName);
+        }
 
         //
         JSONObject cfg = UtRepl.loadAndValidateJsonFile(cfgFileName);
-        srvSetAndSendCfgInternal(queCommon, cfg, cfgType, destinationWsId);
+        srvSetAndSendCfgInternal(que, cfg, cfgType, destinationWsId);
     }
 
     private void srvSetAndSendCfgInternal(IJdxReplicaQue que, JSONObject cfg, String cfgType, long destinationWsId) throws Exception {
