@@ -762,9 +762,15 @@ class Jdx_Ext extends ProjectExt {
     void repl_app_update(IVariantMap args) {
         System.out.println("app_version: " + UtRepl.getVersion())
 
+        //
         String exeFileName = args.getValueString("file")
         if (exeFileName == null || exeFileName.length() == 0) {
             throw new XError("Не указан [file] - файл для установки обновления")
+        }
+        //
+        String queName = args.getValueString("que")
+        if (queName == null || queName.length() == 0) {
+            queName = UtQue.QUE_COMMON
         }
 
         // БД
@@ -778,7 +784,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvAppUpdate(exeFileName)
+            srv.srvAppUpdate(exeFileName, queName)
 
         } finally {
             db.disconnect()

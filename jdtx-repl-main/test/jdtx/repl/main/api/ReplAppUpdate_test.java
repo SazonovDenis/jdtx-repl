@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import jdtx.repl.main.api.que.*;
 import org.junit.*;
 
 public class ReplAppUpdate_test extends JdxReplWsSrv_Test {
@@ -26,7 +27,7 @@ public class ReplAppUpdate_test extends JdxReplWsSrv_Test {
 
         //
         String exeFileName = "Z:/jdtx-repl/install/JadatexSync-664.exe";
-        srv.srvAppUpdate(exeFileName);
+        srv.srvAppUpdate(exeFileName, UtQue.QUE_COMMON);
 
         // ===
         // Цикл синхронизации ws1

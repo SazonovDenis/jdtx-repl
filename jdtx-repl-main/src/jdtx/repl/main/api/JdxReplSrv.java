@@ -658,7 +658,7 @@ public class JdxReplSrv {
     }
 
 
-    public void srvAppUpdate(String exeFileName) throws Exception {
+    public void srvAppUpdate(String exeFileName, String queName) throws Exception {
         log.info("srvAppUpdate, exeFileName: " + exeFileName);
 
         UtRepl utRepl = new UtRepl(db, struct);
@@ -667,15 +667,26 @@ public class JdxReplSrv {
         for (Map.Entry en : mailerList.entrySet()) {
             long wsId = (long) en.getKey();
 
-            // Очередь queOut001 станции (инициализационная или для системных команд)
-            JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
-            queOut001.setDataRoot(dataRoot);
+
+            // Выбор очереди - общая (queCommon) или личная для станции
+            IJdxReplicaQue que;
+            if (queName.compareToIgnoreCase(UtQue.QUE_COMMON) == 0) {
+                // Очередь queCommon (общая)
+                que = queCommon;
+            } else if (queName.compareToIgnoreCase(UtQue.QUE_OUT001) == 0) {
+                // Очередь queOut001 станции (инициализационная или для системных команд)
+                JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
+                queOut001.setDataRoot(dataRoot);
+                que = queOut001;
+            } else {
+                throw new XError("Unknown queName: " + queName);
+            }
 
             // Команда на обновление
             IReplica replica = utRepl.createReplicaAppUpdate(exeFileName);
 
             // Системная команда - в исходящую очередь реплик
-            queOut001.push(replica);
+            que.push(replica);
 
             //
             log.info("srvAppUpdate, to wd: " + wsId);
@@ -766,7 +777,7 @@ public class JdxReplSrv {
             queOut001.setDataRoot(dataRoot);
             que = queOut001;
         } else {
-            throw new XError("Uncknown queName: " + queName);
+            throw new XError("Unknown queName: " + queName);
         }
 
         //

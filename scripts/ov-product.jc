@@ -134,6 +134,7 @@ repl_app_version = cm("Версия ПО") {
 //
 repl_app_update = cm("Послать сигнал на обновление ПО",
         "file": [value: null, help: "Файл для установки обновления"],
+        "que": [value: null, help: "В какую очередь отправить команду"]
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_app_update(args)
@@ -200,7 +201,8 @@ repl_set_cfg = cm("Задать конфигурацию рабочей стан
 repl_send_cfg = cm("Отправить конфигурацию на рабочую станцию",
         "file": [value: null, help: "cfg-файл"],
         "cfg": [value: null, help: "Вид конфигурации"],
-        "ws": [value: null, help: "Рабочая станция-получатель"]
+        "ws": [value: null, help: "Рабочая станция-получатель"],
+        "que": [value: null, help: "В какую очередь отправить команду"]
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_send_cfg(args)
