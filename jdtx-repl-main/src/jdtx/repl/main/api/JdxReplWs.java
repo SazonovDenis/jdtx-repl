@@ -132,7 +132,7 @@ public class JdxReplWs {
         JSONObject cfgDecode = cfgManager.getSelfCfg(CfgType.DECODE);
 
         // Параметры приложения
-        appCfg = loadAppCfg((JSONObject) cfgWs.get("app1"));
+        appCfg = loadAppCfg((JSONObject) cfgWs.get("app"));
 
         // Рабочие каталоги
         String sWsId = UtString.padLeft(String.valueOf(wsId), 3, "0");
