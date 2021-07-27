@@ -9,6 +9,7 @@ import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
+import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
@@ -18,6 +19,7 @@ import org.apache.commons.io.comparator.*;
 import org.apache.commons.io.filefilter.*;
 import org.apache.commons.logging.*;
 import org.apache.tools.ant.filters.*;
+import org.joda.time.*;
 import org.json.simple.*;
 
 import java.io.*;
@@ -815,5 +817,41 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         //
         return res;
     }
+
+    /**
+     * Очистка файлов, котрорые есть в каталоге, но которых нет в базе.
+     * Это бывает по разным причинам.
+     */
+    public static void clearTrashFiles(JdxQue que) throws Exception {
+        // Сколько реплик есть в рабочем каталоге?
+        long trashNo = que.getMaxNoFromDir();
+
+        // Сколько реплик есть у нас в базе?
+        long clearFromNo = que.getMaxNo();
+
+        // Лишних - убираем
+        while (trashNo > clearFromNo) {
+            log.warn("clearTrashFiles, que: " + que.getQueName() + ", replica.no: " + trashNo);
+
+            // Файл реплики
+            String actualFileName = que.getFileName(trashNo);
+            File actualFile = new File(que.getBaseDir() + actualFileName);
+
+            // Переносим файл в мусорку
+            if (actualFile.exists()) {
+                File trashFile = new File(que.getBaseDir() + "/trash/" + getFileNameTrash(trashNo));
+                FileUtils.moveFile(actualFile, trashFile);
+                log.warn("clearTrashFiles, move, actualFile: " + actualFile.getAbsolutePath() + ", trashFile: " + trashFile.getAbsolutePath());
+            }
+            //
+            trashNo = trashNo - 1;
+        }
+    }
+
+    private static String getFileNameTrash(long no) {
+        DateTime dt = new DateTime();
+        return UtString.padLeft(String.valueOf(no), 9, '0') + "-" + dt.toString("YYYY.MM.dd_HH.mm.ss.SSS") + ".zip";
+    }
+
 
 }

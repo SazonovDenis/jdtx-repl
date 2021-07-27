@@ -101,6 +101,8 @@ public class JdxReplSrv {
         String queCommon_DirLocal = dataRoot + "srv/que_common/";
         queCommon.setDataRoot(queCommon_DirLocal);
 
+        // Общая очередь: очистка файлов, котрорые есть в каталоге, но которых нет в базе
+        UtRepl.clearTrashFiles((JdxQueCommon) queCommon);
 
         // Почтовые курьеры, правила входящих реплик - отдельные для каждой станции
         DataStore wsSt = loadWsList();

@@ -7,6 +7,7 @@ import jdtx.repl.main.api.replica.*;
 import org.apache.commons.io.*;
 import org.apache.commons.io.filefilter.*;
 import org.apache.commons.logging.*;
+import org.joda.time.*;
 
 import java.io.*;
 
@@ -45,7 +46,6 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
         UtFile.mkdirs(getBaseDir());
     }
 
-
     /*
      * IJdxReplicaStorage
      */
@@ -76,7 +76,7 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
                     throw new XError("Other actualFile already exists: " + actualFile.getAbsolutePath());
                 } else {
                     // Если ТАКОЙ-ЖЕ файл уже занимает постоянное место, то этот файл можно заменить.
-                    log.warn("Same actualFile already exists: " + actualFile.getAbsolutePath()+", delete existing");
+                    log.warn("Same actualFile already exists: " + actualFile.getAbsolutePath() + ", delete existing");
                     actualFile.delete();
                 }
             }
@@ -130,7 +130,7 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
         return Long.valueOf(fileName.substring(0, 9));
     }
 
-    private String getFileName(long no) {
+    public String getFileName(long no) {
         return UtString.padLeft(String.valueOf(no), 9, '0') + ".zip";
     }
 
