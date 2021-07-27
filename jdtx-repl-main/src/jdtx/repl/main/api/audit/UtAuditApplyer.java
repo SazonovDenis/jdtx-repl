@@ -55,8 +55,8 @@ public class UtAuditApplyer {
             } catch (Exception e) {
                 if (e instanceof JdxForeignKeyViolationException) {
                     File replicaRepairFile = jdxReplWs.handleFailedInsertUpdateRef((JdxForeignKeyViolationException) e);
-                    // todo крайне криво - лишние зависимости от конфига появились, транзакция???
-                    boolean autoUseRepairReplica = db.getApp().getRt().getChild("app").getValueBoolean("autoUseRepairReplica");
+                    // todo крайне криво - транзакция же ждет!!!
+                    boolean autoUseRepairReplica = jdxReplWs.appCfg.getValueBoolean("autoUseRepairReplica");
                     if (autoUseRepairReplica) {
                         log.warn("==================================");
                         log.warn("==================================");
@@ -281,11 +281,10 @@ public class UtAuditApplyer {
                                     JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
                                     ee.recParams = recParams;
                                     ee.recValues = recValues;
-                                    // todo крайне криво - лишние зависимости от конфига появились???
-                                    // Да и вообще, костыль страшнейший, сделан для пробуска неуместных реплик,
+                                    // todo вообще, костыль страшнейший, сделан для пробуска неуместных реплик,
                                     // которые просочились на станцию из-за кривых настроек фильтров.
                                     // todo Убрать, когда будут сделана фильтрация по ссылкам!!!
-                                    boolean skipForeignKeyViolationIns = db.getApp().getRt().getChild("app").getValueBoolean("skipForeignKeyViolationIns");
+                                    boolean skipForeignKeyViolationIns = jdxReplWs.appCfg.getValueBoolean("skipForeignKeyViolationIns");
                                     if (skipForeignKeyViolationIns) {
                                         log.error("skipForeignKeyViolationIns: " + skipForeignKeyViolationIns);
                                     } else {
@@ -308,11 +307,10 @@ public class UtAuditApplyer {
                                     JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
                                     ee.recParams = recParams;
                                     ee.recValues = recValues;
-                                    // todo крайне криво - лишние зависимости от конфига появились???
-                                    // Да и вообще, костыль страшнейший, сделан для пробуска неуместных реплик,
+                                    // todo вообще, костыль страшнейший, сделан для пробуска неуместных реплик,
                                     // которые просочились на станцию из-за кривых настроек фильтров.
                                     // todo Убрать, когда будут сделана фильтрация по ссылкам!!!
-                                    boolean skipForeignKeyViolationUpd = db.getApp().getRt().getChild("app").getValueBoolean("skipForeignKeyViolationUpd");
+                                    boolean skipForeignKeyViolationUpd = jdxReplWs.appCfg.getValueBoolean("skipForeignKeyViolationUpd");
                                     if (skipForeignKeyViolationUpd) {
                                         log.error("skipForeignKeyViolationUpd: " + skipForeignKeyViolationUpd);
                                     } else {

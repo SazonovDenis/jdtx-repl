@@ -1,3 +1,8 @@
 {
-  "url": "http://localhost/lombard.systems/repl/"
+  "url": "http://localhost/lombard.systems/repl/",
+  "app": {
+    "autoUseRepairReplica": true,
+    "skipForeignKeyViolationIns": false,
+    "skipForeignKeyViolationUpd": false
+  }
 }

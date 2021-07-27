@@ -5,6 +5,7 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.utils.io.*;
+import jandcode.utils.variant.*;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.database_info.*;
 import jdtx.repl.main.api.decoder.*;
@@ -56,6 +57,9 @@ public class JdxReplWs {
     protected IJdxDbStruct structAllowed;
     protected IJdxDbStruct structFixed;
     protected String databaseInfo;
+
+    // Параметры приложения
+    public IVariantMap appCfg;
 
     //
     private IMailer mailer;
@@ -127,6 +131,9 @@ public class JdxReplWs {
         JSONObject cfgPublications = cfgManager.getSelfCfg(CfgType.PUBLICATIONS);
         JSONObject cfgDecode = cfgManager.getSelfCfg(CfgType.DECODE);
 
+        // Параметры приложения
+        appCfg = loadAppCfg((JSONObject) cfgWs.get("app1"));
+
         // Рабочие каталоги
         String sWsId = UtString.padLeft(String.valueOf(wsId), 3, "0");
         String mailLocalDirTmp = dataRoot + "temp/";
@@ -184,6 +191,21 @@ public class JdxReplWs {
 
         // Чтобы были
         UtFile.mkdirs(dataRoot + "temp");
+    }
+
+    private IVariantMap loadAppCfg(JSONObject app) {
+        //
+        IVariantMap res = new VariantMap();
+
+        //
+        if (app != null) {
+            res.put("autoUseRepairReplica", UtJdx.booleanValueOf(app.get("autoUseRepairReplica"), false));
+            res.put("skipForeignKeyViolationIns", UtJdx.booleanValueOf(app.get("skipForeignKeyViolationIns"), false));
+            res.put("skipForeignKeyViolationUpd", UtJdx.booleanValueOf(app.get("skipForeignKeyViolationUpd"), false));
+        }
+
+        //
+        return res;
     }
 
     /**

@@ -1,54 +1,8 @@
 {
   "url": "http://localhost/lombard.systems/repl/",
-
-  "1": {
-    "mailLocalDirTmp": "../_test-data/ws_001/tmp",
-
-    "queIn_DirLocal": "../_test-data/ws_001/queIn",
-    "queOut_DirLocal": "../_test-data/ws_001/queOut",
-
-    "publicationIn": "publication_full",
-    "publicationOut": "publication_full"
-  },
-
-  "2": {
-    "mailLocalDirTmp": "../_test-data/ws_002/tmp",
-
-    "queIn_DirLocal": "../_test-data/ws_002/queIn",
-    "queOut_DirLocal": "../_test-data/ws_002/queOut",
-
-    "publicationIn": "publication_full",
-    "publicationOut": "publication_full"
-  },
-
-  "3": {
-    "mailLocalDirTmp": "../_test-data/ws_003/tmp",
-
-    "queIn_DirLocal": "../_test-data/ws_003/queIn",
-    "queOut_DirLocal": "../_test-data/ws_003/queOut",
-
-    "publicationIn": "publication_full",
-    "publicationOut": "publication_full"
-  },
-
-  "4": {
-    "mailLocalDirTmp": "../_test-data/ws_004/tmp",
-
-    "queIn_DirLocal": "../_test-data/ws_004/queIn",
-    "queOut_DirLocal": "../_test-data/ws_004/queOut",
-
-    "publicationIn": "publication_full",
-    "publicationOut": "publication_full"
-  },
-
-  "5": {
-    "mailLocalDirTmp": "../_test-data/ws_005/tmp",
-
-    "queIn_DirLocal": "../_test-data/ws_005/queIn",
-    "queOut_DirLocal": "../_test-data/ws_005/queOut",
-
-    "publicationIn": "publication_full",
-    "publicationOut": "publication_full"
+  "app": {
+    "autoUseRepairReplica": true,
+    "skipForeignKeyViolationIns": false,
+    "skipForeignKeyViolationUpd": false
   }
-
 }
