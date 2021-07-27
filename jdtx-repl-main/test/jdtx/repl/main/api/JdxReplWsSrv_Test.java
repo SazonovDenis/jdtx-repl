@@ -45,7 +45,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     /**
-     * Прогон базового сценария репликации
+     * Прогон базового сценария репликации, полная двусторонняя репликация
      */
     @Test
     public void test_allSetUp_TestAll() throws Exception {
@@ -63,6 +63,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
 
+    /**
+     * Прогон базового сценария репликации, с односторонним фильтром по LIC
+     */
     @Test
     public void test_allSetUp_TestAll_filter() throws Exception {
         cfg_json_decode = "../install/cfg/decode_strategy_194.json";

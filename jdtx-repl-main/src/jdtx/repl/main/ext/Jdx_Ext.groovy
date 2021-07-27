@@ -133,7 +133,7 @@ class Jdx_Ext extends ProjectExt {
             throw new XError("Не указан [guid] - guid рабочей станции")
         }
         if (cfgFileName == null || cfgFileName.length() == 0) {
-            throw new XError("Не указан [file] - cfg-файл для рабочей станции")
+            throw new XError("Не указан [file] - конфиг-файл для рабочей станции")
         }
 
         // БД
@@ -193,10 +193,10 @@ class Jdx_Ext extends ProjectExt {
             throw new XError("Не указан [guid] - guid рабочей станции")
         }
         if (cfgPublications == null || cfgPublications.length() == 0) {
-            throw new XError("Не указан [cfg_publications] - cfg-файл для publications рабочей станции")
+            throw new XError("Не указан [cfg_publications] - конфиг-файл для publications рабочей станции")
         }
         if (cfgDecode == null || cfgDecode.length() == 0) {
-            throw new XError("Не указан [cfg_decode] - cfg-файл для decode рабочей станции")
+            throw new XError("Не указан [cfg_decode] - конфиг-файл для decode рабочей станции")
         }
 
         // БД
@@ -221,7 +221,7 @@ class Jdx_Ext extends ProjectExt {
             throw new XError("Не указан [ws] - код рабочей станции")
         }
         if (cfgSsnapshot == null || cfgSsnapshot.length() == 0) {
-            throw new XError("Не указан [cfg_snapshot] - cfg-файл для фильтрации snapshot рабочей станции")
+            throw new XError("Не указан [cfg_snapshot] - конфиг-файл для фильтрации snapshot рабочей станции")
         }
 
         // БД
@@ -691,7 +691,7 @@ class Jdx_Ext extends ProjectExt {
     void repl_send_cfg(IVariantMap args) {
         String cfgFileName = args.getValueString("file")
         if (cfgFileName == null || cfgFileName.length() == 0) {
-            throw new XError("Не указан [file] - cfg-файл")
+            throw new XError("Не указан [file] - конфиг-файл")
         }
         //
         String cfgType = args.getValueString("cfg")
@@ -730,7 +730,7 @@ class Jdx_Ext extends ProjectExt {
     void repl_set_cfg(IVariantMap args) {
         String cfgFileName = args.getValueString("file")
         if (cfgFileName == null || cfgFileName.length() == 0) {
-            throw new XError("Не указан [file] - cfg-файл")
+            throw new XError("Не указан [file] - конфиг-файл")
         }
         //
         String cfgType = args.getValueString("cfg")

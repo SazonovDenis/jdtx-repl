@@ -46,9 +46,9 @@ repl_create = cm("Инициализация базы как рабочей ст
 repl_add_ws = cm("Добавляет рабочую станцию на сервер",
         "ws": [value: 0, help: "Код рабочей станции"],
         "name": [value: null, help: "Название рабочей станции"],
-        "guid": [value: null, help: "guid рабочей станции"],
-        "cfg_publications": [value: null, help: "cfg-файл для publications рабочей станции"],
-        "cfg_decode": [value: null, help: "cfg-файл для decode рабочей станции"],
+        "guid": [value: null, help: "Guid рабочей станции"],
+        "cfg_publications": [value: null, help: "Конфиг-файл для publications рабочей станции"],
+        "cfg_decode": [value: null, help: "Конфиг-файл для decode рабочей станции"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_add_ws(args)
@@ -57,7 +57,7 @@ repl_add_ws = cm("Добавляет рабочую станцию на серв
 //
 repl_restore_ws = cm("Восстанавливает рабочую станцию при потере базы",
         "ws": [value: 0, help: "Код рабочей станции"],
-        "cfg_snapshot": [value: null, help: "cfg-файл для фильтрации snapshot рабочей станции"],
+        "cfg_snapshot": [value: null, help: "Конфиг-файл для фильтрации snapshot рабочей станции"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_restore_ws(args)
@@ -190,7 +190,7 @@ repl_dbstruct_finish = cm("Завершить смену структуры") {
 
 //
 repl_set_cfg = cm("Задать конфигурацию рабочей станции",
-        "file": [value: null, help: "cfg-файл"],
+        "file": [value: null, help: "Конфиг-файл"],
         "cfg": [value: null, help: "Вид конфигурации"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
@@ -199,7 +199,7 @@ repl_set_cfg = cm("Задать конфигурацию рабочей стан
 
 //
 repl_send_cfg = cm("Отправить конфигурацию на рабочую станцию",
-        "file": [value: null, help: "cfg-файл"],
+        "file": [value: null, help: "Конфиг-файл"],
         "cfg": [value: null, help: "Вид конфигурации"],
         "ws": [value: null, help: "Рабочая станция-получатель"],
         "que": [value: null, help: "В какую очередь отправить команду"]
