@@ -230,7 +230,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         new File("../_test-data/mail_local").delete();
         try {
             UtFile.cleanDir("../_test-data");
-        } catch (Exception e){
+        } catch (Exception e) {
         }
         new File("d:/temp/dbm.log").delete();
         new File("d:/temp/jdtx.log").delete();
@@ -810,6 +810,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         replTask.doReplSession();
     }
 
+    /* todo Разобраться с репликацией через папку - сейчас полностью сломано
     @Test
     public void test_sync_srv_Local() throws Exception {
         // Сервер, настройка
@@ -842,6 +843,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         // Тиражирование реплик
         srv.srvDispatchReplicasToDir(json_srv, "../_test-data/mail_local", null, 0, false);
     }
+     */
 
     @Test
     public void test_z() throws Exception {
@@ -1010,7 +1012,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         }
     }
 
-
+/*   todo Разобраться с репликацией через папку - сейчас полностью сломано
     @Test
     public void loop_srv_local() throws Exception {
         while (true) {
@@ -1048,7 +1050,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
             }
         }
     }
-
+*/
+    
     //
     boolean canSkipException(String msg) {
         return msg.contains("deadlock") ||

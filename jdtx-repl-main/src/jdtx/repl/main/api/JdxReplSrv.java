@@ -609,7 +609,7 @@ public class JdxReplSrv {
 
     /**
      * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано
-     */
+     * /
     @Deprecated
     public void srvHandleCommonQueFrom(String cfgFileName, String mailDir) throws Exception {
         // Готовим локальных курьеров (через папку)
@@ -619,10 +619,11 @@ public class JdxReplSrv {
         // Физически забираем данные
         srvHandleCommonQueInternal(mailerListLocal, queCommon);
     }
+     */
 
     /**
      * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано
-     */
+     * /
     @Deprecated
     public void srvDispatchReplicasToDir(String cfgFileName, String mailDir, SendRequiredInfo requiredInfo, long destinationWsId, boolean doMarkDone) throws Exception {
         // Готовим локальных курьеров (через папку)
@@ -632,7 +633,7 @@ public class JdxReplSrv {
         // Физически отправляем данные
         srvDispatchReplicas(queCommon, mailerListLocal, requiredInfo, doMarkDone);
     }
-
+    */
 
     public void srvSetWsMute(long destinationWsId) throws Exception {
         log.info("srvSetWs MUTE, destination.WsId: " + destinationWsId);
