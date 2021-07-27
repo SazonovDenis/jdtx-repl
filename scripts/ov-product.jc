@@ -18,7 +18,7 @@ rec_merge_find = cm("Поиск дубликатов",
         "fields": [value: null, help: "Поля для поиска"],
         "file": [value: null, help: "Файл с результатом поиска в виде задач на слияние"],
         "cfg_group": [value: null, help: "Конфигурация антагонистичных полей"],
-        "use_null": [value: null, help: "Имя таблицы"],
+        "use_null": [value: null, help: "=true если значение null у полей следует считать значимым, а запись с null значением полей не нужно пропускать"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
     ext.rec_merge_find(args)
