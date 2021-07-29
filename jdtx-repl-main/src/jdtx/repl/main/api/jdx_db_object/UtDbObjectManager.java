@@ -168,7 +168,7 @@ public class UtDbObjectManager {
     public void dropAuditBase() throws Exception {
         // Удаляем системные таблицы и генераторы
         String[] jdx_sys_tables = new String[]{
-                "db_info", "workstation_list", "state", // старые, но тоже удаляем
+                "db_info", "workstation_list", "state", "state_ws", "workstation", // старые, но тоже удаляем
                 "age", "flag_tab", "ws_info", "ws_state", "srv_state", "srv_workstation_state", "srv_workstation_list",
                 "que_in", "que_out", "que_common",
                 "que_in001", "que_out001",
