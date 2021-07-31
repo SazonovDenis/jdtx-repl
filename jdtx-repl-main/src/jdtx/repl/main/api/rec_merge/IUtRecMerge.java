@@ -16,6 +16,7 @@ public interface IUtRecMerge {
      *
      * @return Список дубликатов
      */
+    // todo: сделать так, чтобы можно было результат писать сразу В ФАЙЛ - чтобы память не расходовалась
     Collection<RecDuplicate> findTableDuplicates(String tableName, String[] fieldNames) throws Exception;
 
     /**
@@ -23,6 +24,7 @@ public interface IUtRecMerge {
      *
      * @return План на слияние дубликатов
      */
+    // todo: сделать так, чтобы можно было результат писать сразу В ФАЙЛ - чтобы память не расходовалась
     Collection<RecMergePlan> prepareMergePlan(String tableName, Collection<RecDuplicate> duplicates) throws Exception;
 
     /**
@@ -32,6 +34,7 @@ public interface IUtRecMerge {
      * @return Для каждой таблицы (RecMergePlan.tableName) возвращает,
      * что пришлось сделать с каждой из зависимых от RecMergePlan.tableName таблиц, чтобы выполнить каждый план из plans.
      */
+    // todo: сделать так, чтобы можно было результат писать сразу В ФАЙЛ - чтобы память не расходовалась
     MergeResultTableMap execMergePlan(Collection<RecMergePlan> plans, boolean doDelete) throws Exception;
 
     /**
@@ -39,6 +42,7 @@ public interface IUtRecMerge {
      *
      * @param taskResults результат выполнения задач на слияние (затронутые записи)
      */
+    // todo: сделать так, чтобы можно было читать сразу ИЗ ФАЙЛА - чтобы память не расходовалась
     void revertExecMergePlan(MergeResultTableMap taskResults);
 
 }

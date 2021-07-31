@@ -10,6 +10,7 @@ import java.util.*;
 
 public class UtRecMergeRW {
 
+    // todo: все сериализацию сделать в xml, а не в json
     public Collection<RecMergePlan> readTasks(String fileName) throws Exception {
         Collection<RecMergePlan> mergeTasks = new ArrayList<>();
 

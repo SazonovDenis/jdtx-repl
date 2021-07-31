@@ -396,6 +396,7 @@ public class JdxReplSrv {
      * и отправляем в очередь que
      */
     private long sendReplicasSnapshot(long selfWsId, long wsIdOwner, IPublicationRuleStorage ruleForSnapshot, JdxQue que) throws Exception {
+        // todo: После создания и отправки Snapshot сам снимок валяется в temp как мусор и палево
         // ---
         // Подготовим snapshot из данных станции wsIdOwner
 
@@ -915,9 +916,9 @@ public class JdxReplSrv {
      *
      * @deprecated Нужно только для репликации через папку - сейчас полностью сломано
      */
+/*
     @Deprecated
     private void srvDispatchReplicas(IJdxQue que, Map<Long, IMailer> mailerList, SendRequiredInfo requiredInfo, boolean doMarkDone) throws Exception {
-/*
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
 
         // Все что у нас есть на раздачу
@@ -1048,8 +1049,8 @@ public class JdxReplSrv {
             }
 
         }
-*/
     }
+*/
 
     private Map getInfoSrv() {
         return null;
