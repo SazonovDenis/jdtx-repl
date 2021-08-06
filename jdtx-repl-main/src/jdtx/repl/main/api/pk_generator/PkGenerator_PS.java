@@ -7,6 +7,7 @@ import jdtx.repl.main.api.struct.*;
 /**
  * Реализация PkGenerators для PawnShop и RefDecoder с учетом перекодировкой ссылок.
  * Грязно и по месту.
+ * todo: хорошо бы реализовать прочие генераторы (номер билета)
  */
 public class PkGenerator_PS extends PkGenerator implements IPkGenerator {
 
