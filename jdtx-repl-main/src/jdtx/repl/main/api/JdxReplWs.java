@@ -508,7 +508,7 @@ public class JdxReplWs {
 
             // До какого возраста отметили выкладывание в очередь реплик (из своего аудита)
             JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-            long auditAgeFrom = stateManager.getAuditAgeDone();
+            long auditAgeFrom = stateManager.getQueOutNoDone();
 
             //
             long queAuditState = 0;
@@ -534,7 +534,7 @@ public class JdxReplWs {
                 queOut.push(replica);
 
                 // Отметка об обработке аудита в исходящую очередь реплик
-                stateManager.setAuditAgeDone(age);
+                stateManager.setQueOutNoDone(age);
 
                 //
                 count++;
@@ -872,10 +872,10 @@ public class JdxReplWs {
                         }
                         // Выставим отметку использования для QueOut (её двигаем только вперёд)
                         //long queOutNoDoneNow = stateManager.getQueNoDone("out");
-                        long queOutNoDoneNow = stateManager.getAuditAgeDone();
+                        long queOutNoDoneNow = stateManager.getQueOutNoDone();
                         if (wsState.QUE_OUT_NO_DONE > queOutNoDoneNow) {
                             //stateManager.setQueNoDone("out", wsState.QUE_OUT_NO_DONE);
-                            stateManager.setAuditAgeDone(wsState.QUE_OUT_NO_DONE);
+                            stateManager.setQueOutNoDone(wsState.QUE_OUT_NO_DONE);
                         }
 
                         // --- MAIL_SEND_DONE
@@ -1417,7 +1417,7 @@ public class JdxReplWs {
 
         //
         long out_auditAgeActual = auditAgeManager.getAuditAge(); // Возраст аудита БД
-        long out_queAvailable = stateManager.getAuditAgeDone();  // Возраст аудита, до которого сформирована исходящая очередь
+        long out_queAvailable = stateManager.getQueOutNoDone();  // Возраст аудита, до которого сформирована исходящая очередь
         long out_sendDone = stateMailManager.getMailSendDone();  // Возраст, до которого исходящая очередь отправлена на сервер
         long in_queInNoAvailable = queIn.getMaxNo();             // До какого номера есть реплики во входящей очереди
         long in_queInNoDone = stateManager.getQueNoDone("in"); // Номер реплики, до которого обработана (применена) входящая очередь
@@ -1598,7 +1598,11 @@ public class JdxReplWs {
         // ---
         // А теперь применяем все входящие реплики штатным механизмом.
         // Важно их применить, т.к. среди входящих есть и НАШИ СОБСТВЕННЫЕ, но еще не примененные.
-        ReplicaUseResult handleQueInUseResult = handleQueIn(true);
+        ReplicaUseResult queInUseResult = handleQueIn(true);
+
+
+        // Запоминаем наш последний возраст, встретившийся в репликах
+        long lastOwnAgeUsed = queInUseResult.lastOwnAgeUsed;
 
 
         // ---
@@ -1617,8 +1621,13 @@ public class JdxReplWs {
             JdxReplicaReaderXml.readReplicaInfo(replica);
             long age = replica.getInfo().getAge();
 
+            // Отслеживаем наш последний возраст, встретившийся в репликах
+            if (age > lastOwnAgeUsed) {
+                lastOwnAgeUsed = age;
+            }
+
             // Применяем собственную реплику
-            if (handleQueInUseResult.lastOwnAgeUsed != 0 && age != 0 && age <= handleQueInUseResult.lastOwnAgeUsed) {
+            if (queInUseResult.lastOwnAgeUsed != 0 && age != 0 && age <= queInUseResult.lastOwnAgeUsed) {
                 // Учтем, до которого возраста мы получили и применили НАШИ СОБСТВЕННЫЕ реплики
                 // из ВХОДЯЩЕЙ очереди QueIn и применим реплику из queOut ТОЛЬКО НЕ примененные
                 log.warn("Repair queOut, already used: " + no + ", skipped");
@@ -1653,9 +1662,13 @@ public class JdxReplWs {
 
         // ---
         // Чиним отметку возраста аудита.
-        // После применения собственных реплик таблица возрастов для таблиц (z_z_age) все ещё содержит устаревшее состояние.
+        // После применения собственных реплик состояние "возраст age" для рабочей станции все ещё содержит устаревшее состояние.
         UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
-        auditAgeManager.setAuditAge(noQueOutDir);
+        long ageNow = auditAgeManager.getAuditAge();
+        if (ageNow < lastOwnAgeUsed) {
+            auditAgeManager.setAuditAge(lastOwnAgeUsed);
+            log.warn("Repair auditAge, " + ageNow + " -> " + lastOwnAgeUsed);
+        }
 
 
         // ---
@@ -1677,7 +1690,7 @@ public class JdxReplWs {
         // ---
         // Cколько исходящих реплик отметили как выложенные в очередь
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-        stateManager.setAuditAgeDone(noQueOutDir);
+        stateManager.setQueOutNoDone(noQueOutDir);
 
 
         // ---

@@ -6,6 +6,7 @@ import jdtx.repl.main.api.*;
 
 /**
  * Состояние задач рабочей станции: отметки в БД, насколько отработаны очереди и прочее.
+ * todo: А не кажется ли вам, что методы setQueOutNoDone и setQueNoDone друг друга дублируют?????
  */
 public class JdxStateManagerWs {
 
@@ -17,19 +18,19 @@ public class JdxStateManagerWs {
 
 
     /**
-     * @return Возраст аудита, до которого сформирована исходящая очередь
+     * @return Номер (ранее - возраст аудита), до которого сформирована исходящая очередь
      */
-    public long getAuditAgeDone() throws Exception {
+    public long getQueOutNoDone() throws Exception {
         String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_STATE";
         DataRecord rec = db.loadSql(sql).getCurRec();
         return rec.getValueLong("que_out_no_done");
     }
 
     /**
-     * Задает возраст аудита, до которого сформирована исходящая очередь
+     * Задает номер (ранее - возраст аудита), до которого сформирована исходящая очередь
      * (заполняется при выкладывании реплики в исходящую очередь).
      */
-    public void setAuditAgeDone(long queOutAgeDone) throws Exception {
+    public void setQueOutNoDone(long queOutAgeDone) throws Exception {
         String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "WS_STATE set que_out_no_done = " + queOutAgeDone;
         db.execSql(sql);
     }
