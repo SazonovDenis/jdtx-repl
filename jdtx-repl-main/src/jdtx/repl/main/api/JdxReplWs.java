@@ -506,9 +506,9 @@ public class JdxReplWs {
             UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
             long auditAgeTo = auditAgeManager.markAuditAge();
 
-            // До какого возраста отметили выкладывание в очередь реплик (из своего аудита)
+            // До какого возраста выложили в очередь реплик (из своего аудита)
             JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-            long auditAgeFrom = stateManager.getQueOutNoDone();
+            long auditAgeFrom = stateManager.getAgeQueOutDone();
 
             //
             long queAuditState = 0;
@@ -534,7 +534,7 @@ public class JdxReplWs {
                 queOut.push(replica);
 
                 // Отметка об обработке аудита в исходящую очередь реплик
-                stateManager.setQueOutNoDone(age);
+                stateManager.setAgeQueOutDone(age);
 
                 //
                 count++;
@@ -872,10 +872,10 @@ public class JdxReplWs {
                         }
                         // Выставим отметку использования для QueOut (её двигаем только вперёд)
                         //long queOutNoDoneNow = stateManager.getQueNoDone("out");
-                        long queOutNoDoneNow = stateManager.getQueOutNoDone();
+                        long queOutNoDoneNow = stateManager.getAgeQueOutDone();
                         if (wsState.QUE_OUT_NO_DONE > queOutNoDoneNow) {
                             //stateManager.setQueNoDone("out", wsState.QUE_OUT_NO_DONE);
-                            stateManager.setQueOutNoDone(wsState.QUE_OUT_NO_DONE);
+                            stateManager.setAgeQueOutDone(wsState.QUE_OUT_NO_DONE);
                         }
 
                         // --- MAIL_SEND_DONE
@@ -1417,7 +1417,7 @@ public class JdxReplWs {
 
         //
         long out_auditAgeActual = auditAgeManager.getAuditAge(); // Возраст аудита БД
-        long out_queAvailable = stateManager.getQueOutNoDone();  // Возраст аудита, до которого сформирована исходящая очередь
+        long out_queAvailable = stateManager.getAgeQueOutDone();  // Возраст аудита, до которого сформирована исходящая очередь
         long out_sendDone = stateMailManager.getMailSendDone();  // Возраст, до которого исходящая очередь отправлена на сервер
         long in_queInNoAvailable = queIn.getMaxNo();             // До какого номера есть реплики во входящей очереди
         long in_queInNoDone = stateManager.getQueNoDone("in"); // Номер реплики, до которого обработана (применена) входящая очередь
@@ -1661,6 +1661,13 @@ public class JdxReplWs {
 
 
         // ---
+        // Чиним генераторы.
+        // После применения собственных реплик генераторы находятся в устаревшем сосоянии.
+        PkGenerator pkGenerator = new PkGenerator_PS(db, struct);
+        pkGenerator.repairGenerators();
+
+
+        // ---
         // Чиним отметку возраста аудита.
         // После применения собственных реплик состояние "возраст age" для рабочей станции все ещё содержит устаревшее состояние.
         UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
@@ -1669,13 +1676,6 @@ public class JdxReplWs {
             auditAgeManager.setAuditAge(lastOwnAgeUsed);
             log.warn("Repair auditAge, " + ageNow + " -> " + lastOwnAgeUsed);
         }
-
-
-        // ---
-        // Чиним генераторы.
-        // После применения собственных реплик генераторы находятся в устаревшем сосоянии.
-        PkGenerator pkGenerator = new PkGenerator_PS(db, struct);
-        pkGenerator.repairGenerators();
 
 
         // ---
@@ -1688,9 +1688,13 @@ public class JdxReplWs {
 
 
         // ---
-        // Cколько исходящих реплик отметили как выложенные в очередь
+        // До какого возраста аудит отмечен как выложенный в очередь QueOut
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-        stateManager.setQueOutNoDone(noQueOutDir);
+        long ageQueOutDoneNow = stateManager.getAgeQueOutDone();
+        if (ageQueOutDoneNow < lastOwnAgeUsed) {
+            stateManager.setAgeQueOutDone(lastOwnAgeUsed);
+            log.warn("Repair ageQueOutDone, " + ageQueOutDoneNow + " -> " + lastOwnAgeUsed);
+        }
 
 
         // ---
