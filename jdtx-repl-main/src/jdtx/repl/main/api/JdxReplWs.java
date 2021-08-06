@@ -19,6 +19,7 @@ import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
+import jdtx.repl.main.task.*;
 import org.apache.commons.io.*;
 import org.apache.commons.logging.*;
 import org.apache.log4j.*;
@@ -66,6 +67,9 @@ public class JdxReplWs {
 
     //
     protected String dataRoot;
+
+    //
+    public JdxErrorCollector errorCollector = null;
 
     //
     private static Log log = LogFactory.getLog("jdtx.Workstation");
@@ -218,7 +222,7 @@ public class JdxReplWs {
     }
 
     // Проверка версии приложения, обновление при необходимости
-    void checkAppUpdate() throws Exception {
+    public void checkAppUpdate() throws Exception {
         String appRoot = new File(db.getApp().getRt().getChild("app").getValueString("appRoot")).getCanonicalPath();
         UtAppUpdate ut = new UtAppUpdate(db, appRoot);
         // Рабочая станция вседа обновляет приложение,

@@ -4,6 +4,7 @@ import jandcode.bgtasks.*;
 import jandcode.dbm.*;
 import jandcode.dbm.db.*;
 import jdtx.repl.main.api.*;
+import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
 
 /**
@@ -27,7 +28,8 @@ public class WsBgTask extends BgTask {
             log.info("Рабочая станция");
             step_ws();
         } catch (Exception e) {
-            log.error(e);
+            log.error(Ut.getExceptionMessage(e));
+            log.error(Ut.getStackTrace(e));
         }
     }
 

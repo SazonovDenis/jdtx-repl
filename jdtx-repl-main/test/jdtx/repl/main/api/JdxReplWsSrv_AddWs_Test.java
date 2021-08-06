@@ -5,6 +5,7 @@ import jandcode.jc.*;
 import jandcode.jc.test.*;
 import jandcode.utils.variant.*;
 import jdtx.repl.main.ext.*;
+import jdtx.repl.main.task.*;
 import org.junit.*;
 
 /**
@@ -14,7 +15,7 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
 
 
     /**
-     *
+     * Прогон сценария репликации: добавление рабочей станции в середине
      */
     @Test
     public void test_all() throws Exception {

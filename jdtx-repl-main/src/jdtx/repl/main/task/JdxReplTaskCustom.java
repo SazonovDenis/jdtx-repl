@@ -1,7 +1,6 @@
-package jdtx.repl.main.api;
+package jdtx.repl.main.task;
 
 import jandcode.utils.error.*;
-import jdtx.repl.main.action.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
@@ -10,24 +9,19 @@ import java.util.*;
 
 public class JdxReplTaskCustom {
 
-    //
-    List errors = new ArrayList();
 
     //
     Log log;
 
-    //
-    void collectError(String err, Exception e) {
-        Map info = new HashMap();
-        info.put("operation", err);
-        info.put("error", Ut.getExceptionMessage(e));
-        errors.add(info);
-    }
+    JdxErrorCollector errorCollector;
 
+
+    public JdxReplTaskCustom() {
+        errorCollector = new JdxErrorCollector();
+    }
 
     void logInfo(String info) {
         log.info(info);
-        //getLogger().push("state", info);
     }
 
 
@@ -37,7 +31,6 @@ public class JdxReplTaskCustom {
         } else {
             info = "";
         }
-        //getLogger().push("state", info + Ut.getExceptionMessage(e));
         log.error(info + Ut.getExceptionMessage(e));
         log.error(Ut.getStackTrace(e));
     }
@@ -47,11 +40,9 @@ public class JdxReplTaskCustom {
         logError(e, null);
     }
 
-/*
-    public BgTasksLogger getLogger() {
-        return logger;
+    void collectError(String info, Exception e) {
+        errorCollector.collectError(info, e);
     }
-*/
 
     void sendErrors(IMailer mailer, String name) {
         try {
@@ -61,9 +52,9 @@ public class JdxReplTaskCustom {
 
             //
             Map data = null;
-            if (errors.size() != 0) {
+            if (errorCollector.getErrors().size() != 0) {
                 data = new HashMap();
-                data.put("errors", errors);
+                data.put("errors", errorCollector.getErrors());
             }
 
             //

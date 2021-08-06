@@ -4,6 +4,7 @@ import jandcode.bgtasks.*;
 import jandcode.dbm.*;
 import jandcode.dbm.db.*;
 import jdtx.repl.main.api.*;
+import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
 
 /**
@@ -20,7 +21,8 @@ public class SrvBgTask extends BgTask {
             log.info("Сервер");
             step_server();
         } catch (Exception e) {
-            log.error(e);
+            log.error(Ut.getExceptionMessage(e));
+            log.error(Ut.getStackTrace(e));
         }
     }
 

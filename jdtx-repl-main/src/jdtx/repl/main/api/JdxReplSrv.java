@@ -13,6 +13,7 @@ import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
+import jdtx.repl.main.task.*;
 import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
 import org.apache.log4j.*;
@@ -44,8 +45,10 @@ public class JdxReplSrv {
     private String dataRoot;
 
     //
-    protected static Log log = LogFactory.getLog("jdtx.Server");
+    public JdxErrorCollector errorCollector = null;
 
+    //
+    protected static Log log = LogFactory.getLog("jdtx.Server");
 
     //
     public JdxReplSrv(Db db) throws Exception {
@@ -66,6 +69,38 @@ public class JdxReplSrv {
         long wsId = 1;
         return mailerList.get(wsId);
     }
+
+
+    /**
+     * Сервер, задачи по уходу за сервером
+     */
+    public void srvHandleRoutineTask() throws Exception {
+        // Общая очередь: очистка файлов, котрорые есть в каталоге, но которых нет в базе
+        UtRepl.clearTrashFiles((JdxQue) queCommon);
+
+        // Почтовые курьеры - отдельные для каждой станции: очистка файлов, котрорые есть в каталоге, но которых нет в базе
+        DataStore wsSt = loadWsList();
+        for (DataRecord wsRec : wsSt) {
+            long wsId = wsRec.getValueLong("id");
+
+
+            // Исходящая очередь Out000 для станции wsId
+            JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
+            queOut000.setDataRoot(dataRoot);
+
+            //
+            UtRepl.clearTrashFiles(queOut000);
+
+
+            // Очередь queOut001 для станции wsId (инициализационная или для системных команд)
+            JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
+            queOut001.setDataRoot(dataRoot);
+
+            //
+            UtRepl.clearTrashFiles(queOut001);
+        }
+    }
+
 
     /**
      * Сервер, запуск
@@ -100,9 +135,6 @@ public class JdxReplSrv {
         // Общая очередь
         String queCommon_DirLocal = dataRoot + "srv/que_common/";
         queCommon.setDataRoot(queCommon_DirLocal);
-
-        // Общая очередь: очистка файлов, котрорые есть в каталоге, но которых нет в базе
-        UtRepl.clearTrashFiles((JdxQueCommon) queCommon);
 
         // Почтовые курьеры, правила входящих реплик - отдельные для каждой станции
         DataStore wsSt = loadWsList();
@@ -157,7 +189,7 @@ public class JdxReplSrv {
 
 
     // Проверка версии приложения, ошибка при несовпадении
-    void checkAppUpdate() throws Exception {
+    public void checkAppUpdate() throws Exception {
         String appRoot = new File(db.getApp().getRt().getChild("app").getValueString("appRoot")).getCanonicalPath();
         UtAppUpdate ut = new UtAppUpdate(db, appRoot);
         // Рабочая станция вседа обновляет приложение,
@@ -509,63 +541,74 @@ public class JdxReplSrv {
             //
             log.info("srvReplicasDispatch (common -> out000), to.wsId: " + wsId);
 
-            // Исходящая очередь для станции wsId
-            JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
-            queOut000.setDataRoot(dataRoot);
+            try {
 
-            // Преобразователь по фильтрам
-            IReplicaFilter filter = new ReplicaFilter();
+                // Исходящая очередь для станции wsId
+                JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
+                queOut000.setDataRoot(dataRoot);
 
-            // Правила публикаций (фильтры) для wsId.
-            // В качестве фильтров на ОТПРАВКУ от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
-            IPublicationRuleStorage publicationRule = publicationsInList.get(wsId);
+                // Преобразователь по фильтрам
+                IReplicaFilter filter = new ReplicaFilter();
 
-            // Параметры (для правил публикации): получатель реплики (для правил публикации)
-            filter.getFilterParams().put("wsDestination", String.valueOf(wsId));
+                // Правила публикаций (фильтры) для wsId.
+                // В качестве фильтров на ОТПРАВКУ от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
+                IPublicationRuleStorage publicationRule = publicationsInList.get(wsId);
 
-            //
-            long sendFrom = stateManager.getDispatchDoneQueCommon(wsId) + 1;
-            long sendTo = commonQueMaxNo;
-
-            long count = 0;
-            for (long no = sendFrom; no <= sendTo; no++) {
-                // Берем реплику из queCommon
-                IReplica replica = queCommon.get(no);
-
-                // Читаем заголовок
-                JdxReplicaReaderXml.readReplicaInfo(replica);
-
-                // Параметры (для правил публикации): автор реплики
-                filter.getFilterParams().put("wsAuthor", String.valueOf(replica.getInfo().getWsId()));
-
-                // Преобразовываем по правилам публикаций (фильтрам)
-                IReplica replicaForWs = filter.convertReplicaForWs(replica, publicationRule);
+                // Параметры (для правил публикации): получатель реплики (для правил публикации)
+                filter.getFilterParams().put("wsDestination", String.valueOf(wsId));
 
                 //
-                db.startTran();
-                try {
-                    // Положим реплику в очередь (физически переместим)
-                    queOut000.push(replicaForWs);
+                long sendFrom = stateManager.getDispatchDoneQueCommon(wsId) + 1;
+                long sendTo = commonQueMaxNo;
 
-                    // Отметим распределение очередного номера реплики.
-                    stateManager.setDispatchDoneQueCommon(wsId, no);
+                long count = 0;
+                for (long no = sendFrom; no <= sendTo; no++) {
+                    // Берем реплику из queCommon
+                    IReplica replica = queCommon.get(no);
+
+                    // Читаем заголовок
+                    JdxReplicaReaderXml.readReplicaInfo(replica);
+
+                    // Параметры (для правил публикации): автор реплики
+                    filter.getFilterParams().put("wsAuthor", String.valueOf(replica.getInfo().getWsId()));
+
+                    // Преобразовываем по правилам публикаций (фильтрам)
+                    IReplica replicaForWs = filter.convertReplicaForWs(replica, publicationRule);
 
                     //
-                    db.commit();
-                } catch (Exception e) {
-                    db.rollback(e);
-                    throw e;
+                    db.startTran();
+                    try {
+                        // Положим реплику в очередь (физически переместим)
+                        queOut000.push(replicaForWs);
+
+                        // Отметим распределение очередного номера реплики.
+                        stateManager.setDispatchDoneQueCommon(wsId, no);
+
+                        //
+                        db.commit();
+                    } catch (Exception e) {
+                        db.rollback(e);
+                        throw e;
+                    }
+
+                    //
+                    count++;
                 }
 
                 //
-                count++;
-            }
+                if (count > 0) {
+                    log.info("srvReplicasDispatch (common -> out000) done, to.wsId: " + wsId + ", out001.no: " + sendFrom + " .. " + sendTo + ", done count: " + count);
+                } else {
+                    log.info("srvReplicasDispatch (common -> out000) done, to.wsId: " + wsId + ", out001.no: " + sendFrom + ", nothing done");
+                }
 
-            //
-            if (count > 0) {
-                log.info("srvReplicasDispatch (common -> out000) done, wsId: " + wsId + ", out001.no: " + sendFrom + " .. " + sendTo + ", done count: " + count);
-            } else {
-                log.info("srvReplicasDispatch (common -> out000) done, wsId: " + wsId + ", out001.no: " + sendFrom + ", nothing done");
+            } catch (Exception e) {
+                // Ошибка для станции - пропускаем, идем дальше
+                errorCollector.collectError("srvReplicasDispatch (common -> out000), to.wsId: " + wsId, e);
+                //
+                //
+                log.error("Error in srvReplicasDispatch (common -> out000), to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
+                log.error(Ut.getStackTrace(e));
             }
 
         }
@@ -602,7 +645,9 @@ public class JdxReplSrv {
 
             } catch (Exception e) {
                 // Ошибка для станции - пропускаем, идем дальше
-                log.error("Error in SrvDispatchReplicas, to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
+                errorCollector.collectError("srvReplicasSendMail, to.wsId: " + wsId, e);
+                //
+                log.error("Error in srvReplicasSendMail, to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
                 log.error(Ut.getStackTrace(e));
             }
 
@@ -613,30 +658,28 @@ public class JdxReplSrv {
     /**
      * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано
      * /
-    @Deprecated
-    public void srvHandleCommonQueFrom(String cfgFileName, String mailDir) throws Exception {
-        // Готовим локальных курьеров (через папку)
-        Map<Long, IMailer> mailerListLocal = new HashMap<>();
-        fillMailerListLocal(mailerListLocal, cfgFileName, mailDir, 0);
+     @Deprecated public void srvHandleCommonQueFrom(String cfgFileName, String mailDir) throws Exception {
+     // Готовим локальных курьеров (через папку)
+     Map<Long, IMailer> mailerListLocal = new HashMap<>();
+     fillMailerListLocal(mailerListLocal, cfgFileName, mailDir, 0);
 
-        // Физически забираем данные
-        srvHandleCommonQueInternal(mailerListLocal, queCommon);
-    }
+     // Физически забираем данные
+     srvHandleCommonQueInternal(mailerListLocal, queCommon);
+     }
      */
 
     /**
+     * @Deprecated public void srvDispatchReplicasToDir(String cfgFileName, String mailDir, SendRequiredInfo requiredInfo, long destinationWsId, boolean doMarkDone) throws Exception {
+     * // Готовим локальных курьеров (через папку)
+     * Map<Long, IMailer> mailerListLocal = new HashMap<>();
+     * fillMailerListLocal(mailerListLocal, cfgFileName, mailDir, destinationWsId);
+     * <p>
+     * // Физически отправляем данные
+     * srvDispatchReplicas(queCommon, mailerListLocal, requiredInfo, doMarkDone);
+     * }
      * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано
      * /
-    @Deprecated
-    public void srvDispatchReplicasToDir(String cfgFileName, String mailDir, SendRequiredInfo requiredInfo, long destinationWsId, boolean doMarkDone) throws Exception {
-        // Готовим локальных курьеров (через папку)
-        Map<Long, IMailer> mailerListLocal = new HashMap<>();
-        fillMailerListLocal(mailerListLocal, cfgFileName, mailDir, destinationWsId);
-
-        // Физически отправляем данные
-        srvDispatchReplicas(queCommon, mailerListLocal, requiredInfo, doMarkDone);
-    }
-    */
+     */
 
     public void srvSetWsMute(long destinationWsId) throws Exception {
         log.info("srvSetWs MUTE, destination.WsId: " + destinationWsId);
@@ -1051,7 +1094,6 @@ public class JdxReplSrv {
         }
     }
 */
-
     private Map getInfoSrv() {
         return null;
     }

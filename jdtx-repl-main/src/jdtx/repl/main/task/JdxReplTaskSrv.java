@@ -1,5 +1,6 @@
-package jdtx.repl.main.api;
+package jdtx.repl.main.task;
 
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.mailer.*;
 import org.apache.commons.logging.*;
 
@@ -14,18 +15,29 @@ public class JdxReplTaskSrv extends JdxReplTaskCustom {
     //
     public JdxReplTaskSrv(JdxReplSrv srv) {
         this.srv = srv;
+        srv.errorCollector = errorCollector;
         log = LogFactory.getLog("jdtx.JdxReplTaskSrv");
     }
 
     //
     public void doReplSession() throws Exception {
         //
-        log.info("Сервер, настройка");
+        log.info("Сервер");
         srv.init();
 
 
         // Проверка версии приложения
         srv.checkAppUpdate();
+
+
+        //
+        log.info("Сервер, предварительные шаги");
+        try {
+            srv.srvHandleRoutineTask();
+        } catch (Exception e) {
+            logError(e);
+            collectError("srv.srvHandleRoutineTask", e);
+        }
 
 
         //

@@ -7,6 +7,9 @@ import org.junit.*;
 
 import java.io.*;
 
+/**
+ * Проверка ремонта базы при восстановлении из бэкапа
+ */
 public class DatabaseRestore_test extends JdxReplWsSrv_Test {
 
     @Test
@@ -56,8 +59,7 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
         // "Неполная" синхронизация ws2
         JdxReplWs ws = new JdxReplWs(db2);
         ws.init();
-        JdxReplTaskWs replTask = new JdxReplTaskWs(ws);
-        replTask.ws.handleSelfAudit();
+        ws.handleSelfAudit();
 
 
         // "Откат" базы
