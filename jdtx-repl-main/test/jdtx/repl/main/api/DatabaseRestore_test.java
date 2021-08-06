@@ -9,6 +9,8 @@ import java.io.*;
 
 /**
  * Проверка ремонта базы при восстановлении из бэкапа
+ * test_DatabaseRestore_step1 - провоцирует ошибку,
+ * test_DatabaseRestore_step2 - исправляет ее
  */
 public class DatabaseRestore_test extends JdxReplWsSrv_Test {
 

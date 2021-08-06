@@ -1515,19 +1515,19 @@ public class JdxReplWs {
 
         // ---
         // Сколько исходящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
-        long ageQueOutDir = ((JdxStorageFile) queOut).getMaxNoFromDir();
+        long noQueOutDir = ((JdxStorageFile) queOut).getMaxNoFromDir();
 
         // Cколько исходящих реплик есть у нас "официально", т.е. в очереди реплик (в базе)
-        long ageQueOut = queOut.getMaxNo();
+        long noQueOut = queOut.getMaxNo();
 
 
         // ---
         // Сколько исходящих реплик фактически отправлено на сервер (спросим у почтового сервера)
-        long ageSendDone = mailer.getSendDone("from");
+        long noSendDone = mailer.getSendDone("from");
 
         // Сколько исходящих реплик отмечено как отправленое на сервер
         JdxMailStateManagerWs mailStateManager = new JdxMailStateManagerWs(db);
-        long ageSendMarked = mailStateManager.getMailSendDone();
+        long noSendMarked = mailStateManager.getMailSendDone();
 
         // Есть ли отметка о начале ремонта
         File lockFile = new File(dataRoot + "temp/repairBackup.lock");
@@ -1535,7 +1535,7 @@ public class JdxReplWs {
 
         // Допускается, если в каталоге для QueIn меньше реплик, чем помечено в очереди QueIn (noQueInMarked >= noQueInDir)
         // Это бывает из-за того, что при получении собственных snapshot-реплик, мы ее не скачиваем (она нам не нужна)
-        if ((noQueInMarked == -1 || noQueInMarked >= noQueInDir) && ageQueOut == ageQueOutDir && ageSendMarked >= ageSendDone && !lockFile.exists()) {
+        if ((noQueInMarked == -1 || noQueInMarked >= noQueInDir) && noQueOut == noQueOutDir && noSendMarked >= noSendDone && !lockFile.exists()) {
             return;
         }
 
@@ -1545,10 +1545,10 @@ public class JdxReplWs {
         log.warn("  noQueIn001Marked: " + noQueIn001Marked);
         log.warn("  noQueInDir: " + noQueInDir);
         log.warn("  noQueInMarked: " + noQueInMarked);
-        log.warn("  ageQueOutDir: " + ageQueOutDir);
-        log.warn("  ageQueOut: " + ageQueOut);
-        log.warn("  ageSendDone: " + ageSendDone);
-        log.warn("  ageSendMarked: " + ageSendMarked);
+        log.warn("  noQueOutDir: " + noQueOutDir);
+        log.warn("  noQueOut: " + noQueOut);
+        log.warn("  noSendDone: " + noSendDone);
+        log.warn("  noSendMarked: " + noSendMarked);
         log.warn("  lockFile: " + lockFile.exists());
 
         //
@@ -1605,21 +1605,24 @@ public class JdxReplWs {
         // Чиним данные на основе собственного аудита (queOut)
         // ---
 
-        // Применяем их у себя (это нужно - для случая восстановления из бакапа именно в ИСХОДЯЩИХ репликах содержатся самые последние данные).
+        // Применяем их у себя (это нужно - для случая восстановления из бэкапа именно в ИСХОДЯЩИХ репликах содержатся самые последние данные).
         // Восстанавливаем исходящую очередь (вообще-то уже не обязательно, т.к. ОТПРАВЛЕННЫЕ реплики больше не нужны, но просто для порядка).
         queFile.setDataRoot(queOut.getBaseDir());
         count = 0;
-        for (long age = ageQueOut + 1; age <= ageQueOutDir; age++) {
-            log.warn("Repair queOut, self.wsId: " + wsId + ", queOut.age: " + age + " (" + count + "/" + (ageQueOutDir - ageQueOut) + ")");
+        for (long no = noQueOut + 1; no <= noQueOutDir; no++) {
+            log.warn("Repair queOut, self.wsId: " + wsId + ", queOut.no: " + no + " (" + count + "/" + (noQueOutDir - noQueOut) + ")");
 
-            // Извлекаем свою реплику из закромов
-            IReplica replica = queFile.get(age);
+            // Извлекаем собственную реплику из закромов queOut
+            IReplica replica = queFile.get(no);
             JdxReplicaReaderXml.readReplicaInfo(replica);
+            long age = replica.getInfo().getAge();
 
-            // Применяем реплику у себя.
-            // Учтем, до которого возраста мы получили и применили НАШИ СОБСТВЕННЫЕ реплики
-            // из ВХОДЯЩЕЙ очереди QueIn и применим ТОЛЬКО НЕ примененные
-            if (handleQueInUseResult.lastOwnAgeUsed > 0 && age > handleQueInUseResult.lastOwnAgeUsed) {
+            // Применяем собственную реплику
+            if (handleQueInUseResult.lastOwnAgeUsed != 0 && age != 0 && age <= handleQueInUseResult.lastOwnAgeUsed) {
+                // Учтем, до которого возраста мы получили и применили НАШИ СОБСТВЕННЫЕ реплики
+                // из ВХОДЯЩЕЙ очереди QueIn и применим реплику из queOut ТОЛЬКО НЕ примененные
+                log.warn("Repair queOut, already used: " + no + ", skipped");
+            } else {
                 // Пробуем применить собственную реплику
                 ReplicaUseResult useResult = useReplicaInternal(replica, true);
 
@@ -1630,9 +1633,7 @@ public class JdxReplWs {
                 if (useResult.doBreak) {
                     throw new XError("Repair queOut, replica useResult.doBreak == true");
                 }
-                log.warn("Repair queOut, used: " + age);
-            } else {
-                log.warn("Repair queOut, already used: " + age + ", skipped");
+                log.warn("Repair queOut, used: " + no);
             }
 
             // Пополнение (восстановление) исходящей очереди реплик
@@ -1644,9 +1645,9 @@ public class JdxReplWs {
 
         //
         if (count > 0) {
-            log.warn("Repair queOut, self.wsId: " + wsId + ", queOut: " + ageQueOut + " .. " + ageQueOutDir + ", done count: " + count);
+            log.warn("Repair queOut, self.wsId: " + wsId + ", queOut: " + noQueOut + " .. " + noQueOutDir + ", done count: " + count);
         } else {
-            log.info("Repair queOut, self.wsId: " + wsId + ", queOut: " + ageQueOut + ", nothing to do");
+            log.info("Repair queOut, self.wsId: " + wsId + ", queOut: " + noQueOut + ", nothing to do");
         }
 
 
@@ -1654,7 +1655,7 @@ public class JdxReplWs {
         // Чиним отметку возраста аудита.
         // После применения собственных реплик таблица возрастов для таблиц (z_z_age) все ещё содержит устаревшее состояние.
         UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
-        auditAgeManager.setAuditAge(ageQueOutDir);
+        auditAgeManager.setAuditAge(noQueOutDir);
 
 
         // ---
@@ -1667,16 +1668,16 @@ public class JdxReplWs {
         // ---
         // Если возраст "отправлено на сервер" меньше, чем фактический размер исходящей очереди -
         // чиним отметку об отправке собственных реплик.
-        if (ageSendMarked < ageSendDone) {
-            mailStateManager.setMailSendDone(ageSendDone);
-            log.warn("Repair mailSendDone, " + ageSendMarked + " -> " + ageSendDone);
+        if (noSendMarked < noSendDone) {
+            mailStateManager.setMailSendDone(noSendDone);
+            log.warn("Repair mailSendDone, " + noSendMarked + " -> " + noSendDone);
         }
 
 
         // ---
         // Cколько исходящих реплик отметили как выложенные в очередь
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-        stateManager.setAuditAgeDone(ageQueOutDir);
+        stateManager.setAuditAgeDone(noQueOutDir);
 
 
         // ---

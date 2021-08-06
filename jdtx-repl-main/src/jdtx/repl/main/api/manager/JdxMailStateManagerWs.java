@@ -18,7 +18,7 @@ public class JdxMailStateManagerWs implements IJdxMailStateManager {
 
 
     /**
-     * @return Возраст реплики, до которого отправлена собственная почта рабочей станции
+     * @return Номер реплики, до которого отправлена собственная почта рабочей станции
      */
     public long getMailSendDone() throws Exception {
         String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_STATE";
