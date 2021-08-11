@@ -34,6 +34,8 @@ public class ReplicaFilter implements IReplicaFilter {
             throw new XError("Invalid replicaSrc.file == null");
         }
 
+        log.info("convertReplicaForWs, replica.file: " + replicaSrc.getFile().getAbsolutePath());
+
         //
         ReplicaFile replicaRes = new ReplicaFile();
 
