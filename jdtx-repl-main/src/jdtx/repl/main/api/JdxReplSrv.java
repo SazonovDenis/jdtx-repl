@@ -72,32 +72,53 @@ public class JdxReplSrv {
 
 
     /**
+     * Проверка версии приложения, ошибка при несовпадении.
+     * <p>
+     * Рабочая станция вседа обновляет приложение, а сервер - просто ждет пока приложение обновится.
+     * Это разделение для того, чтобы на серверной базе
+     * сервер и рабчая станция одновременно не кинулись обновлять.
+     */
+    public void checkAppUpdate() throws Exception {
+        String appRoot = new File(db.getApp().getRt().getChild("app").getValueString("appRoot")).getCanonicalPath();
+        UtAppUpdate ut = new UtAppUpdate(db, appRoot);
+        ut.checkAppUpdate(false);
+    }
+
+    /**
      * Сервер, задачи по уходу за сервером
      */
     public void srvHandleRoutineTask() throws Exception {
-        // Общая очередь: очистка файлов, котрорые есть в каталоге, но которых нет в базе
+        // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
+        // общая очередь
         UtRepl.clearTrashFiles((JdxQue) queCommon);
 
-        // Почтовые курьеры - отдельные для каждой станции: очистка файлов, котрорые есть в каталоге, но которых нет в базе
+
+        // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
+        // очередь Out000 для станции wsId (исходящая из сервера)
         DataStore wsSt = loadWsList();
         for (DataRecord wsRec : wsSt) {
             long wsId = wsRec.getValueLong("id");
 
-
             // Исходящая очередь Out000 для станции wsId
-            JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
-            queOut000.setDataRoot(dataRoot);
+            JdxQueOut000 que = new JdxQueOut000(db, wsId);
+            que.setDataRoot(dataRoot);
 
             //
-            UtRepl.clearTrashFiles(queOut000);
+            UtRepl.clearTrashFiles(que);
+        }
 
 
-            // Очередь queOut001 для станции wsId (инициализационная или для системных команд)
-            JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
-            queOut001.setDataRoot(dataRoot);
+        // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
+        // очередь queOut001 для станции wsId (инициализационная или для системных команд)
+        for (DataRecord wsRec : wsSt) {
+            long wsId = wsRec.getValueLong("id");
 
             //
-            UtRepl.clearTrashFiles(queOut001);
+            JdxQueOut001 que = new JdxQueOut001(db, wsId);
+            que.setDataRoot(dataRoot);
+
+            //
+            UtRepl.clearTrashFiles(que);
         }
     }
 
@@ -187,17 +208,6 @@ public class JdxReplSrv {
         UtFile.mkdirs(queCommon.getBaseDir());
     }
 
-
-    // Проверка версии приложения, ошибка при несовпадении
-    public void checkAppUpdate() throws Exception {
-        String appRoot = new File(db.getApp().getRt().getChild("app").getValueString("appRoot")).getCanonicalPath();
-        UtAppUpdate ut = new UtAppUpdate(db, appRoot);
-        // Рабочая станция вседа обновляет приложение,
-        // сервер - просто ждет пока приложение обновится.
-        // Это разделение для того, чтобы на серверной базе
-        // сервер и рабчая станция одновременно не кинулись обновлять.
-        ut.checkAppUpdate(false);
-    }
 
     // todo: Создание workstation идет вне транзакции - это плохо, бывали случаи прерывания
     public void addWorkstation(long wsId, String wsName, String wsGuid, String cfgPublicationsFileName, String cfgDecodeFileName) throws Exception {

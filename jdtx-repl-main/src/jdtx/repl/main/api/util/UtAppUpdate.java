@@ -36,11 +36,12 @@ public class UtAppUpdate {
                 // Установлена боле новая версия - не будем обновлять до более старой
                 log.warn("appVersionAllowed < appVersionActual, skip application update");
             } else {
+                // Требуется более новая версия
                 if (doExecUpdate) {
-                    // Есть более новая версия - будем обновлять
+                    // Требуется более новая версия - будем обновлять
                     execAppUpdate(appVersionAllowed);
                 } else {
-                    // Установлена старая версия - надо обновлять до новой, а пока не работаем
+                    // Установлена старая версия - надо обновлять до новой, а пока - ошибка
                     throw new XError("appVersionAllowed != appVersionActual, appVersionAllowed: " + appVersionAllowed + ", appVersionActual: " + appVersionActual);
                 }
             }
