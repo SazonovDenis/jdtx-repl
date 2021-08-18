@@ -122,7 +122,7 @@ public class JdxReplWsSrv_RestoreWsFromSrv_Test extends JdxReplWsSrv_Test {
     public void test_repairAfterBackupRestore_ws3() throws Exception {
         JdxReplWs ws = new JdxReplWs(db3);
         ws.init();
-        ws.repairAfterBackupRestore(true);
+        ws.repairAfterBackupRestore(true, false);
     }
 
     @Test

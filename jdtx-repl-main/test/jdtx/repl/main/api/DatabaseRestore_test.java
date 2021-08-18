@@ -94,7 +94,7 @@ public class DatabaseRestore_test extends JdxReplWsSrv_Test {
         // Ремонт
         JdxReplWs ws = new JdxReplWs(db2);
         ws.init();
-        ws.repairAfterBackupRestore(true);
+        ws.repairAfterBackupRestore(true, false);
 
         // Синхронизация
         sync_http_1_2_3();

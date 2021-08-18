@@ -832,7 +832,7 @@ class Jdx_Ext extends ProjectExt {
                 ws.init()
 
                 //
-                ws.repairAfterBackupRestore(true)
+                ws.repairAfterBackupRestore(true, true)
             } catch (Exception e) {
                 e.printStackTrace()
                 throw e

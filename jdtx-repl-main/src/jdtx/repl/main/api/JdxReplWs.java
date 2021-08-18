@@ -1498,7 +1498,7 @@ public class JdxReplWs {
     /**
      * Выявить ситуацию "станцию восстановили из бэкапа" и починить ее
      */
-    public void repairAfterBackupRestore(boolean doRepair) throws Exception {
+    public void repairAfterBackupRestore(boolean doRepair, boolean doPrint) throws Exception {
         JdxStorageFile queFile = new JdxStorageFile();
 
         // ---
@@ -1506,13 +1506,20 @@ public class JdxReplWs {
         long noQueInDir = ((JdxStorageFile) queIn).getMaxNoFromDir();
 
         // Сколько входящих получено у нас в "официальной" очереди
-        long noQueInMarked = queIn.getMaxNo();
+        long noQueIn = queIn.getMaxNo();
+
+        // До какого возраста обработана очередь QueIn
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+        long noQueInUsed = stateManager.getQueNoDone("in");
 
         // Сколько входящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
         long noQueIn001Dir = ((JdxStorageFile) queIn001).getMaxNoFromDir();
 
         // Сколько входящих получено у нас в "официальной" очереди
-        long noQueIn001Marked = queIn001.getMaxNo();
+        long noQueIn001 = queIn001.getMaxNo();
+
+        // До какого возраста обработана очередь QueIn001
+        long noQueIn001Used = stateManager.getQueNoDone("in001");
 
 
         // ---
@@ -1535,23 +1542,41 @@ public class JdxReplWs {
         File lockFile = new File(dataRoot + "temp/repairBackup.lock");
 
 
-        // Допускается, если в каталоге для QueIn меньше реплик, чем помечено в очереди QueIn (noQueInMarked >= noQueInDir)
+        // Допускается, если в каталоге для QueIn меньше реплик, чем в очереди QueIn (noQueIn >= noQueInDir)
         // Это бывает из-за того, что при получении собственных snapshot-реплик, мы ее не скачиваем (она нам не нужна)
-        if ((noQueInMarked == -1 || noQueInMarked >= noQueInDir) && noQueOut == noQueOutDir && noSendMarked >= noSendDone && !lockFile.exists()) {
+        if ((noQueIn == -1 || noQueIn >= noQueInDir) && noQueIn == noQueInUsed && noQueIn001 == noQueIn001Used && noQueOut == noQueOutDir && noSendMarked >= noSendDone && !lockFile.exists()) {
+            if (doPrint) {
+                log.warn("Detected restore from backup, self.wsId: " + wsId);
+                log.warn("  noQueIn001: " + noQueIn001);
+                log.warn("  noQueIn001Dir: " + noQueIn001Dir);
+                log.warn("  noQueIn001Used: " + noQueIn001Used);
+                log.warn("  noQueIn: " + noQueIn);
+                log.warn("  noQueInDir: " + noQueInDir);
+                log.warn("  noQueInUsed: " + noQueInUsed);
+                log.warn("  noQueOutDir: " + noQueOutDir);
+                log.warn("  noQueOut: " + noQueOut);
+                log.warn("  noSendDone: " + noSendDone);
+                log.warn("  noSendMarked: " + noSendMarked);
+                log.warn("  lockFile: " + lockFile.exists());
+                log.warn("No need to repair");
+            }
             return;
         }
 
         //
         log.warn("Detected restore from backup, self.wsId: " + wsId);
+        log.warn("  noQueIn001: " + noQueIn001);
         log.warn("  noQueIn001Dir: " + noQueIn001Dir);
-        log.warn("  noQueIn001Marked: " + noQueIn001Marked);
+        log.warn("  noQueIn001Used: " + noQueIn001Used);
+        log.warn("  noQueIn: " + noQueIn);
         log.warn("  noQueInDir: " + noQueInDir);
-        log.warn("  noQueInMarked: " + noQueInMarked);
+        log.warn("  noQueInUsed: " + noQueInUsed);
         log.warn("  noQueOutDir: " + noQueOutDir);
         log.warn("  noQueOut: " + noQueOut);
         log.warn("  noSendDone: " + noSendDone);
         log.warn("  noSendMarked: " + noSendMarked);
         log.warn("  lockFile: " + lockFile.exists());
+
 
         //
         if (!doRepair) {
@@ -1576,8 +1601,8 @@ public class JdxReplWs {
         // Запрос на сервер повторной отправки входящих реплик - НЕ НУЖНО - они у нас уже есть.
         queFile.setDataRoot(queIn.getBaseDir());
         long count = 0;
-        for (long no = noQueInMarked + 1; no <= noQueInDir; no++) {
-            log.warn("Repair queIn, self.wsId: " + wsId + ", queIn.no: " + no + " (" + count + "/" + (noQueInDir - noQueInMarked) + ")");
+        for (long no = noQueIn + 1; no <= noQueInDir; no++) {
+            log.warn("Repair queIn, self.wsId: " + wsId + ", queIn.no: " + no + " (" + count + "/" + (noQueInDir - noQueIn) + ")");
 
             // Извлекаем входящую реплику из закромов
             IReplica replica = queFile.get(no);
@@ -1592,9 +1617,9 @@ public class JdxReplWs {
 
         //
         if (count > 0) {
-            log.warn("Repair queIn, self.wsId: " + wsId + ", queIn: " + noQueInMarked + " .. " + noQueInDir + ", done count: " + count);
+            log.warn("Repair queIn, self.wsId: " + wsId + ", queIn: " + noQueIn + " .. " + noQueInDir + ", done count: " + count);
         } else {
-            log.info("Repair queIn, self.wsId: " + wsId + ", queIn: " + noQueInMarked + ", nothing to do");
+            log.info("Repair queIn, self.wsId: " + wsId + ", queIn: " + noQueIn + ", nothing to do");
         }
 
         // ---
@@ -1691,7 +1716,6 @@ public class JdxReplWs {
 
         // ---
         // До какого возраста аудит отмечен как выложенный в очередь QueOut
-        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         long ageQueOutDoneNow = stateManager.getAgeQueOutDone();
         if (ageQueOutDoneNow < lastOwnAgeUsed) {
             stateManager.setAgeQueOutDone(lastOwnAgeUsed);

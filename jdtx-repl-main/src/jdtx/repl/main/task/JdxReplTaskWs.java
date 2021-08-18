@@ -32,7 +32,7 @@ public class JdxReplTaskWs extends JdxReplTaskCustom {
         //
         logInfo("Проверяем аварийную ситуацию");
         try {
-            ws.repairAfterBackupRestore(false);
+            ws.repairAfterBackupRestore(false, false);
         } catch (Exception e) {
             logError(e);
             collectError("ws.repairAfterBackupRestore", e);
