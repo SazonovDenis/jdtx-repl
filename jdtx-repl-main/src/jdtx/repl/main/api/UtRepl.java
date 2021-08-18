@@ -475,7 +475,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
      */
     public IReplica findRecordInReplicas(String tableName, String recordIdStr, String replicasDirsName, boolean skipOprDel, boolean findLastOne, String outFileName) throws Exception {
         if (!skipOprDel && findLastOne) {
-            throw new XError("При поиске последннего варианта (findLastOne == true) нужно skipOprDel == true");
+            throw new XError("При поиске последннего варианта (lastOne == true) нужно skipDel == true");
         }
 
         //
@@ -597,7 +597,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                     while (readerTableName != null) {
                         //
                         if (readerTableName.compareToIgnoreCase(tableName) == 0) {
-                            log.info("file: " + file.getName() + ", wsId: " + replica.getInfo().getWsId());
+                            log.info("file: " + file.getName());
 
                             //
                             long countRec = 0;
@@ -616,9 +616,9 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                                 if (idValueRef.equals(findRecordId)) {
                                     int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
                                     if (oprType == JdxOprType.OPR_DEL && skipOprDel) {
-                                        log.info("  record.OprType == OPR_DEL, skipped");
+                                        log.info("  record found, wsId: " + replica.getInfo().getWsId() + ", OprType == OPR_DEL, skipped");
                                     } else {
-                                        log.info("  record found");
+                                        log.info("  record found, wsId: " + replica.getInfo().getWsId());
                                         log.debug("  " + recValues);
 
                                         // В реплике нашлась запись - сохраним данные по реплике
