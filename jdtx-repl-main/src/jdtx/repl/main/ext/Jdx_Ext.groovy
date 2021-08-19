@@ -820,6 +820,9 @@ class Jdx_Ext extends ProjectExt {
     }
 
     void repl_repair_backup(IVariantMap args) {
+        boolean onlyInfo = !args.isValueNull("info")
+        boolean doRepair = !onlyInfo
+
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -832,7 +835,7 @@ class Jdx_Ext extends ProjectExt {
                 ws.init()
 
                 //
-                ws.repairAfterBackupRestore(true, true)
+                ws.repairAfterBackupRestore(doRepair, true)
             } catch (Exception e) {
                 e.printStackTrace()
                 throw e
