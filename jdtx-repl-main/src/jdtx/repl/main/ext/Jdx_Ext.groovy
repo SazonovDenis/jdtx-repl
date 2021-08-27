@@ -820,7 +820,7 @@ class Jdx_Ext extends ProjectExt {
     }
 
     void repl_repair_backup(IVariantMap args) {
-        boolean onlyInfo = !args.isValueNull("info")
+        boolean onlyInfo = args.containsKey("info")
         boolean doRepair = !onlyInfo
 
         // БД

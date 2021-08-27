@@ -1544,7 +1544,7 @@ public class JdxReplWs {
 
         // Допускается, если в каталоге для QueIn меньше реплик, чем в очереди QueIn (noQueIn >= noQueInDir)
         // Это бывает из-за того, что при получении собственных snapshot-реплик, мы ее не скачиваем (она нам не нужна)
-        if ((noQueIn == -1 || noQueIn >= noQueInDir) && noQueIn == noQueInUsed && noQueIn001 == noQueIn001Used && noQueOut == noQueOutDir && noSendMarked >= noSendDone && !lockFile.exists()) {
+        if ((noQueIn == -1 || noQueIn >= noQueInDir) && noQueIn == noQueInUsed && noQueOut == noQueOutDir && noSendMarked >= noSendDone && !lockFile.exists()) {
             if (doPrint) {
                 log.warn("Detected restore from backup, self.wsId: " + wsId);
                 log.warn("  noQueIn001: " + noQueIn001);
