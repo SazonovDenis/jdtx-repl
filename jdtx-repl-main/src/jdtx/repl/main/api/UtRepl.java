@@ -823,15 +823,21 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
      * Это бывает по разным причинам.
      */
     public static void clearTrashFiles(JdxQue que) throws Exception {
+        log.info("clearTrashFiles, que: " + que.getQueName() + ", baseDir: " + que.getBaseDir());
+
         // Сколько реплик есть в рабочем каталоге?
         long trashNo = que.getMaxNoFromDir();
+
+        if (trashNo < 0) {
+            throw new XError("que.getMaxNoFromDir() < 0");
+        }
 
         // Сколько реплик есть у нас в базе?
         long clearFromNo = que.getMaxNo();
 
         // Лишних - убираем
         while (trashNo > clearFromNo) {
-            log.warn("clearTrashFiles, que: " + que.getQueName() + ", replica.no: " + trashNo);
+            log.warn("clearTrashFiles, replica.no: " + trashNo);
 
             // Файл реплики
             String actualFileName = que.getFileName(trashNo);
