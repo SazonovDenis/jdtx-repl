@@ -52,6 +52,7 @@ public class UtReplService {
 
         //
         List<String> resRun = new ArrayList<>();
+        // cmd schtasks /Query /FO LIST /V
         int exitCode = UtRun.run(resRun, "schtasks", "/Query", "/FO", "LIST", "/V");
 
         //
@@ -70,7 +71,7 @@ public class UtReplService {
                 } else {
                     // Накопление
                     resRunPortion.add(serviceInfoLine);
-                    if (serviceInfoLine.toLowerCase().contains("jadatex")) {
+                    if (serviceInfoLine.toLowerCase().contains("jadatexsync")) {
                         isJadatexLine = true;
                     }
                 }
