@@ -49,7 +49,7 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
 
         //
         String jsonFileName = "test/jdtx/repl/main/api/publication/publication_lic.json";
-        test_PublicationRule(jsonFileName);
+        check_PublicationRule(jsonFileName);
     }
 
     @Test
@@ -58,11 +58,11 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
 
         //
         String jsonFileName = "../install/cfg/publication_lic_194_ws.json";
-        test_PublicationRule(jsonFileName);
+        check_PublicationRule(jsonFileName);
 
         //
         jsonFileName = "../install/cfg/publication_lic_194_srv.json";
-        test_PublicationRule(jsonFileName);
+        check_PublicationRule(jsonFileName);
     }
 
     @Test
@@ -71,11 +71,11 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
 
         //
         String jsonFileName = "test/etalon/publication_lic_152_srv.json";
-        test_PublicationRule(jsonFileName);
+        check_PublicationRule(jsonFileName);
 
         //
         jsonFileName = "test/etalon/publication_lic_152_ws.json";
-        test_PublicationRule(jsonFileName);
+        check_PublicationRule(jsonFileName);
     }
 
     @Test
@@ -132,7 +132,7 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
         UtPublicationRule.checkValid(cfgPublication, publication, struct);
     }
 
-    void test_PublicationRule(String jsonFileName) throws Exception {
+    void check_PublicationRule(String jsonFileName) throws Exception {
         System.out.println("Json file: " + jsonFileName);
         JSONObject cfg = UtRepl.loadAndValidateJsonFile(jsonFileName);
 

@@ -97,7 +97,7 @@ public class ReplicaFilter implements IReplicaFilter {
 
             if (publicationRuleTable == null) {
                 // Пропускаем таблицу
-                log.info("  skip, not found in publicationRules, table: " + tableName);
+                log.debug("  skip, not found in publicationRules, table: " + tableName);
             } else {
                 dataWriter.startTable(tableName);
 
