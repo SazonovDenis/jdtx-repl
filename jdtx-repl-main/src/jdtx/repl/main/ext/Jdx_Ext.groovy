@@ -894,6 +894,8 @@ class Jdx_Ext extends ProjectExt {
 
     void repl_service_remove(IVariantMap args) {
         if (args.containsKey("all")) {
+            // Останавливаем все задачи
+            UtReplService.stop(true)
             // Удаляем все задачи
             UtReplService.removeAll()
         } else {
@@ -910,7 +912,9 @@ class Jdx_Ext extends ProjectExt {
 
                 // Выполнение команды
                 try {
+                    // Останавливаем задачу
                     UtReplService.stop(false)
+                    // Удаляем задачу
                     UtReplService.remove(ws)
                     Collection<ServiceInfo> taskList = UtReplService.serviceList();
                     ServiceInfo.printList(taskList);
