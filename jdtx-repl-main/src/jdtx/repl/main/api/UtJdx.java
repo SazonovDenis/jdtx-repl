@@ -5,6 +5,7 @@ import jandcode.utils.error.*;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
+import org.joda.time.*;
 
 import java.io.*;
 import java.security.*;
@@ -432,6 +433,23 @@ public class UtJdx {
             }
         }
         return valueBoolean;
+    }
+
+    public static DateTime dateTimeValueOf(String valueStr) {
+        DateTime valueDateTime = null;
+
+        if (valueStr != null) {
+            if (valueStr.length() == 10) {
+                // 2015-10-09
+                LocalDate vLocalDate = new LocalDate(valueStr);
+                valueDateTime = vLocalDate.toDateTimeAtStartOfDay();
+            } else if (valueStr.length() != 0) {
+                // 2015-04-01T01:00:00.000+07:00
+                valueDateTime = new DateTime(valueStr);
+            }
+        }
+
+        return valueDateTime;
     }
 
     /**
