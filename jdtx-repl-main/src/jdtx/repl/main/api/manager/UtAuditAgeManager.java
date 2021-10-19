@@ -23,7 +23,7 @@ public class UtAuditAgeManager {
     }
 
     /**
-     * Узнать возраст рабочей станции
+     * Узнать отмеченный возраст рабочей станции
      */
     public long getAuditAge() throws Exception {
         String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_STATE";
@@ -41,7 +41,7 @@ public class UtAuditAgeManager {
 
     /**
      * Проверить и зафиксировать изменения общего возраста рабочей станции,
-     * основываясь на возрасте аудита каждой таблицы.
+     * основываясь на состоянии таблиц аудита для каждой таблицы.
      * Общий возраст рабочей станции есть отметка о совокупности возрастов всех таблиц.
      */
     public long markAuditAge() throws Exception {
@@ -55,13 +55,13 @@ public class UtAuditAgeManager {
         try {
             // Предыдущий записанный возраст аудита для каждой таблицы (максимальный z_id из аудита)
             Map maxIdsFixed = new HashMap<>();
-            fillMaxIdsFixed(auditAgeFixed, maxIdsFixed);
+            loadMaxIdsFixed(auditAgeFixed, maxIdsFixed);
 
             // Текущий актуальный возраст аудита каждой таблицы
             Map maxIdsCurr = new HashMap<>();
-            fillMaxIdsCurr(maxIdsCurr);
+            loadMaxIdsCurr(maxIdsCurr);
 
-            // Увеличился ли общий возраст БД ?
+            // Увеличился ли общий возраст БД (т.е. изменилась ли хоть одна таблица)?
             boolean wasTableChanged = false;
             for (IJdxTable table : struct.getTables()) {
                 String tableName = table.getName();
@@ -79,12 +79,12 @@ public class UtAuditAgeManager {
                 }
             }
 
+            // Увеличился возраст БД?
             if (wasTableChanged) {
-                // Увеличился возраст БД
                 auditAgeNext = auditAgeNext + 1;
                 // Запоминаем состояниния журналов аудита у каждой таблицы для возраста auditAgeNext
-                fillAgeTable(auditAgeNext, maxIdsCurr);
-                //
+                saveMaxIds(auditAgeNext, maxIdsCurr);
+                // Запоминаем новый возраст auditAgeNext
                 setAuditAge(auditAgeNext);
             }
 
@@ -99,18 +99,27 @@ public class UtAuditAgeManager {
         return auditAgeNext;
     }
 
-    private void fillMaxIdsCurr(Map maxIdsCurr) throws Exception {
+    /**
+     * Читает текущие id в таблицах аудита (т.е. текущее состояние таблиц аудита)
+     */
+    private void loadMaxIdsCurr(Map maxIdsCurr) throws Exception {
         for (IJdxTable table : struct.getTables()) {
             if (!UtRepl.tableSkipRepl(table)) {
                 String tableName = table.getName();
-                long maxId = db.loadSql("select max(" + UtJdx.PREFIX + "id) as maxId from " + UtJdx.AUDIT_TABLE_PREFIX + tableName).getCurRec().getValueLong("maxId");
+                DataRecord rec = db.loadSql("select max(" + UtJdx.PREFIX + "id) as maxId from " + UtJdx.AUDIT_TABLE_PREFIX + tableName).getCurRec();
+                long maxId = rec.getValueLong("maxId");
                 maxIdsCurr.put(tableName, maxId);
             }
         }
     }
 
-    private void fillMaxIdsFixed(long auditAgeFixed, Map maxIdsFixed) throws Exception {
-        DataStore st = db.loadSql("select table_name, " + UtJdx.PREFIX + "id as maxId from " + UtJdx.SYS_TABLE_PREFIX + "age where age = " + auditAgeFixed);
+    /**
+     * Читает сохраненные id в таблицах аудита для возраста auditAge
+     *
+     * @param auditAge - читаем для этого возраста
+     */
+    private void loadMaxIdsFixed(long auditAge, Map maxIdsFixed) throws Exception {
+        DataStore st = db.loadSql("select table_name, " + UtJdx.PREFIX + "id as maxId from " + UtJdx.SYS_TABLE_PREFIX + "age where age = " + auditAge);
         for (DataRecord rec : st) {
             String tableName = rec.getValueString("table_name");
             long maxId = rec.getValueLong("maxId");
@@ -118,27 +127,28 @@ public class UtAuditAgeManager {
         }
     }
 
-    private void fillAgeTable(long auditAgeActual, Map maxIdsActual) throws Exception {
+    /**
+     * Записываем состояние id в таблицах аудита, для возраста auditAge
+     *
+     * @param auditAge - записываем для этого возраста
+     */
+    private void saveMaxIds(long auditAge, Map maxIdsActual) throws Exception {
         DateTime dt = new DateTime();
         String sqlIns = "insert into " + UtJdx.SYS_TABLE_PREFIX + "age(age, table_name, " + UtJdx.PREFIX + "id, dt) values (:age, :table_name, :maxId, :dt)";
 
-        // У каждой таблицы зафиксируем состояние журналов для возраста auditAgeActual
+        // У каждой таблицы зафиксируем состояние журналов для возраста auditAge
         for (IJdxTable table : struct.getTables()) {
             String tableName = table.getName();
-            Object maxIdO = maxIdsActual.get(tableName);
-            long maxId = 0;
-            if (maxIdO != null) {
-                maxId = (long) maxIdsActual.get(tableName);
-            }
+            long maxId = UtJdx.longValueOf(maxIdsActual.get(tableName), 0L);
             //
-            db.execSql(sqlIns, UtCnv.toMap("age", auditAgeActual, "table_name", tableName, "maxId", maxId, "dt", dt));
+            db.execSql(sqlIns, UtCnv.toMap("age", auditAge, "table_name", tableName, "maxId", maxId, "dt", dt));
         }
 
-        // Зафиксируем возраст auditAgeActual для таблицы с пустым table_name.
+        // Зафиксируем возраст auditAge для таблицы с пустым table_name.
         // Это нужно, если требуется запомнить возраст, а в структуре struct нет ни одной таблицы.
         // Так бывает при процессах первичной инициализации.
         if (struct.getTables().size() == 0) {
-            db.execSql(sqlIns, UtCnv.toMap("age", auditAgeActual, "table_name", "", "maxId", 0, "dt", dt));
+            db.execSql(sqlIns, UtCnv.toMap("age", auditAge, "table_name", "", "maxId", 0, "dt", dt));
         }
     }
 
