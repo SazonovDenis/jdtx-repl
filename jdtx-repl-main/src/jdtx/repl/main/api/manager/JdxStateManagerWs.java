@@ -6,7 +6,7 @@ import jdtx.repl.main.api.*;
 
 /**
  * Состояние задач рабочей станции: отметки в БД, насколько отработаны очереди и прочее.
- * todo переименова поле WS_STATE.que_out_no_done -> WS_STATE.age_que_out_done
+ * todo переименовать поле WS_STATE.que_out_no_done -> WS_STATE.age_que_out_done
  */
 public class JdxStateManagerWs {
 

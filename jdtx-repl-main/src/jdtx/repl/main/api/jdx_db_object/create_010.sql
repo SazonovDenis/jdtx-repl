@@ -34,7 +34,7 @@ CREATE TABLE Z_Z_WS_STATE (
   que_out_no        INT DEFAULT 0 NOT NULL,    /* Возраст очереди out */
   que_in_no_done    INT DEFAULT 0 NOT NULL,    /* Метка использования/обработки очереди in */
   que_in001_no_done INT DEFAULT 0 NOT NULL,    /* Метка использования/обработки очереди in001 */
-  que_out_no_done   INT DEFAULT 0 NOT NULL,    /* Метка формирования очереди out (возраст аудита, до которого сформирована исходящая очередь out) */
+  que_out_no_done   INT DEFAULT 0 NOT NULL,    /* Метка формирования очереди out (ВОЗРАСТ аудита, до которого сформирована исходящая очередь out) */
   mail_send_done    INT DEFAULT 0 NOT NULL,    /* Метка отправки почты (из очереди out) */
   mute              INT DEFAULT 0 NOT NULL     /* Состояние MUTE */
 );
