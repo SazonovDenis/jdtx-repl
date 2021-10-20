@@ -16,7 +16,6 @@ import jdtx.repl.main.api.util.*;
 import jdtx.repl.main.ut.*;
 import org.apache.commons.io.*;
 import org.apache.commons.io.comparator.*;
-import org.apache.commons.io.filefilter.*;
 import org.apache.commons.logging.*;
 import org.apache.tools.ant.filters.*;
 import org.joda.time.*;
@@ -470,16 +469,12 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
      * @param findLastOne      Найти только один последний вариант записи (тогда поиск идет с последних реплик)
      * @param outFileName      Файл для реплики-результата, например "d:/temp/ABN_10_12345.zip"
      * @return Реплика со всеми операциями, найденными для запрошенной записи
-     * <p>
-     * todo - а как насчет ПОРЯДКА реплик? Получу ли я именно ПОСЛЕДНЮЮ версию записи??? СОбирать отдельно, сортировать по дате (аудита), а потом только писать во Writer
      */
     public IReplica findRecordInReplicas(String tableName, String recordIdStr, String replicasDirsName, boolean skipOprDel, boolean findLastOne, String outFileName) throws Exception {
         if (!skipOprDel && findLastOne) {
             throw new XError("При поиске последннего варианта (lastOne == true) нужно skipDel == true");
         }
 
-        //
-        String inFileMask = "*.zip";
 
         //
         String outFileNameInfo;
@@ -490,28 +485,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         }
 
         // Список файлов-реплик в каталогах replicasDirsName, ищем в них
-        List<File> files = new ArrayList<>();
-        String[] replicasDirsNameArr = replicasDirsName.split(",");
-        for (String replicasDirName : replicasDirsNameArr) {
-            // Файлы из каталога
-            File dir = new File(replicasDirName);
-            File[] filesInDir_arr = dir.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
-            if (filesInDir_arr == null) {
-                throw new XError("Каталог недоступен: " + dir.getCanonicalPath());
-            }
-            log.info(dir.getCanonicalPath() + ", files: " + filesInDir_arr.length);
-            List<File> filesInDir = Arrays.asList(filesInDir_arr);
-
-            // Отсортируем, чтобы команды в результате появлялись в том порядке, как поступали в очередь реплик (или наоборот - смотря как прпросили)
-            if (findLastOne) {
-                filesInDir.sort(NameFileComparator.NAME_REVERSE);
-            } else {
-                filesInDir.sort(NameFileComparator.NAME_COMPARATOR);
-            }
-
-            // В список для поиска
-            files.addAll(filesInDir);
-        }
+        List<File> files = findFilesInDirs(replicasDirsName, findLastOne);
 
         // Тут копим info-данные по найденным репликам
         JSONArray replicaInfoList = new JSONArray();
@@ -724,6 +698,38 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
 
         //
         return replicaOut;
+    }
+
+    static List<File> findFilesInDirs(String replicasDirsName, boolean findLastOne) throws IOException {
+        List<File> files = new ArrayList<>();
+
+        //
+        String[] inFileMask = new String[]{"zip"};
+
+        //
+        String[] replicasDirsNameArr = replicasDirsName.split(",");
+        for (String replicasDirName : replicasDirsNameArr) {
+            // Файлы из каталога
+            File dir = new File(replicasDirName);
+            Collection<File> filesInDir_collection = FileUtils.listFiles(dir, inFileMask, true);
+
+            //
+            log.info(dir.getCanonicalPath() + ", files: " + filesInDir_collection.size());
+
+            // Отсортируем, чтобы команды в результате появлялись в том порядке, как поступали в очередь реплик (или наоборот - смотря как прпросили)
+            List<File> filesInDir = new ArrayList<>(filesInDir_collection);
+            if (findLastOne) {
+                filesInDir.sort(NameFileComparator.NAME_REVERSE);
+            } else {
+                filesInDir.sort(NameFileComparator.NAME_COMPARATOR);
+            }
+
+            // В список для поиска
+            files.addAll(filesInDir);
+        }
+
+
+        return files;
     }
 
 

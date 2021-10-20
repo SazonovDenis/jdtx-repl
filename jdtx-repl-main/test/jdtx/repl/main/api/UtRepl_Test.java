@@ -9,6 +9,7 @@ import org.apache.commons.io.*;
 import org.junit.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  *
@@ -354,6 +355,46 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         //
         utRepl.checkNotOwnId();
         System.out.println();
+    }
+
+    @Test
+    public void test_findReplicasInDirs() throws Exception {
+        // Формируем каталоги
+        String root = new File("temp/dirs").getAbsolutePath() + "/";
+        UtFile.cleanDir(root);
+        UtFile.mkdirs(root + "dir1");
+        UtFile.mkdirs(root + "dir2");
+        //
+        UtFile.saveString(null, new File(root + "dir1/000000000.zip"));
+        UtFile.saveString(null, new File(root + "dir1/000000002.zip"));
+        UtFile.saveString(null, new File(root + "dir1/000000003.zip"));
+        UtFile.saveString(null, new File(root + "dir1/000000004.zip"));
+        UtFile.saveString(null, new File(root + "dir1/000000099.zip"));
+        //
+        UtFile.saveString(null, new File(root + "dir2/000000001.zip"));
+        UtFile.saveString(null, new File(root + "dir2/000000002.zip"));
+        UtFile.saveString(null, new File(root + "dir2/000000003.zip"));
+        UtFile.saveString(null, new File(root + "dir2/000000004.zip"));
+        UtFile.saveString(null, new File(root + "dir2/000000005.zip"));
+        UtFile.saveString(null, new File(root + "dir2/000000020.tmp"));
+        //
+        UtFile.saveString(null, new File(root + "000000000.zip"));
+        UtFile.saveString(null, new File(root + "000000010.zip"));
+        UtFile.saveString(null, new File(root + "000000090.zip"));
+
+        //
+        System.out.println();
+        List<File> files = UtRepl.findFilesInDirs(root + "dir2" + "," + root + "dir1", false);
+        for (File file : files) {
+            System.out.println(file);
+        }
+
+        //
+        System.out.println();
+        files = UtRepl.findFilesInDirs(root, false);
+        for (File file : files) {
+            System.out.println(file);
+        }
     }
 
 
