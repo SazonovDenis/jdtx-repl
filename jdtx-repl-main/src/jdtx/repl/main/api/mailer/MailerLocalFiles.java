@@ -161,7 +161,7 @@ public class MailerLocalFiles implements IMailer {
     }
 
     long getNo(String fileName) {
-        return Long.valueOf(fileName.substring(0, 9));
+        return Long.parseLong(fileName.substring(0, 9));
     }
 
 

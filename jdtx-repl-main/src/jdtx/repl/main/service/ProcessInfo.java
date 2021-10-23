@@ -13,7 +13,7 @@ public class ProcessInfo extends HashMap<String, String> {
     }
 
     public long getProcessId() {
-        return Long.valueOf(get("ProcessId"));
+        return Long.parseLong(get("ProcessId"));
     }
 
     public String getProcessName() {

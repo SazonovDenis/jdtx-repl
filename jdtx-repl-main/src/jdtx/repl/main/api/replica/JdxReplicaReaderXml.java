@@ -150,9 +150,9 @@ public class JdxReplicaReaderXml {
             int event = reader.next();
             if (event == XMLStreamConstants.START_ELEMENT) {
                 if (reader.getLocalName().compareToIgnoreCase("replica") == 0) {
-                    replicaInfo.setReplicaType(Integer.valueOf(reader.getAttributeValue(null, "REPLICA_TYPE")));
-                    replicaInfo.setWsId(Long.valueOf(reader.getAttributeValue(null, "WS_ID")));
-                    replicaInfo.setAge(Long.valueOf(reader.getAttributeValue(null, "AGE")));
+                    replicaInfo.setReplicaType(Integer.parseInt(reader.getAttributeValue(null, "REPLICA_TYPE")));
+                    replicaInfo.setWsId(Long.parseLong(reader.getAttributeValue(null, "WS_ID")));
+                    replicaInfo.setAge(Long.parseLong(reader.getAttributeValue(null, "AGE")));
                     break;
                 }
             }

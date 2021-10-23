@@ -17,10 +17,10 @@ public class JdxRef {
 
         String[] ref_arr = val.split(":");
         if (ref_arr.length == 1) {
-            ref.value = Long.valueOf(ref_arr[0]);
+            ref.value = Long.parseLong(ref_arr[0]);
         } else {
-            ref.ws_id = Long.valueOf(ref_arr[0]);
-            ref.value = Long.valueOf(ref_arr[1]);
+            ref.ws_id = Long.parseLong(ref_arr[0]);
+            ref.value = Long.parseLong(ref_arr[1]);
         }
 
         return ref;
