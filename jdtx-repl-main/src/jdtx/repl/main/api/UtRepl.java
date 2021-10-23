@@ -704,14 +704,14 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         List<File> files = new ArrayList<>();
 
         //
-        String[] inFileMask = new String[]{"zip"};
+        String[] replicaFileExtentions = new String[]{"zip"};
 
         //
         String[] replicasDirsNameArr = replicasDirsName.split(",");
         for (String replicasDirName : replicasDirsNameArr) {
             // Файлы из каталога
             File dir = new File(replicasDirName);
-            Collection<File> filesInDir_collection = FileUtils.listFiles(dir, inFileMask, true);
+            Collection<File> filesInDir_collection = FileUtils.listFiles(dir, replicaFileExtentions, true);
 
             //
             log.info(dir.getCanonicalPath() + ", files: " + filesInDir_collection.size());

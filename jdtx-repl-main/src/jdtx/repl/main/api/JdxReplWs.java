@@ -1553,8 +1553,8 @@ public class JdxReplWs {
                 log.warn("  noQueIn: " + noQueIn);
                 log.warn("  noQueInDir: " + noQueInDir);
                 log.warn("  noQueInUsed: " + noQueInUsed);
-                log.warn("  noQueOutDir: " + noQueOutDir);
                 log.warn("  noQueOut: " + noQueOut);
+                log.warn("  noQueOutDir: " + noQueOutDir);
                 log.warn("  noSendDone: " + noSendDone);
                 log.warn("  noSendMarked: " + noSendMarked);
                 log.warn("  lockFile: " + lockFile.exists());
@@ -1571,8 +1571,8 @@ public class JdxReplWs {
         log.warn("  noQueIn: " + noQueIn);
         log.warn("  noQueInDir: " + noQueInDir);
         log.warn("  noQueInUsed: " + noQueInUsed);
-        log.warn("  noQueOutDir: " + noQueOutDir);
         log.warn("  noQueOut: " + noQueOut);
+        log.warn("  noQueOutDir: " + noQueOutDir);
         log.warn("  noSendDone: " + noSendDone);
         log.warn("  noSendMarked: " + noSendMarked);
         log.warn("  lockFile: " + lockFile.exists());
