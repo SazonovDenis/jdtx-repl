@@ -711,13 +711,12 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         for (String replicasDirName : replicasDirsNameArr) {
             // Файлы из каталога
             File dir = new File(replicasDirName);
-            Collection<File> filesInDir_collection = FileUtils.listFiles(dir, replicaFileExtentions, true);
+            List<File> filesInDir = new ArrayList<>(FileUtils.listFiles(dir, replicaFileExtentions, true));
 
             //
-            log.info(dir.getCanonicalPath() + ", files: " + filesInDir_collection.size());
+            log.info(dir.getCanonicalPath() + ", files: " + filesInDir.size());
 
             // Отсортируем, чтобы команды в результате появлялись в том порядке, как поступали в очередь реплик (или наоборот - смотря как прпросили)
-            List<File> filesInDir = new ArrayList<>(filesInDir_collection);
             if (findLastOne) {
                 filesInDir.sort(NameFileComparator.NAME_REVERSE);
             } else {
