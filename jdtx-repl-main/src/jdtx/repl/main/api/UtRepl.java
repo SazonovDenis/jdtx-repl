@@ -531,7 +531,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
             File file = files.get(countFile);
 
             countFile++;
-            log.debug(countFile + "/" + files.size() + ", file: " + file.getName());
+            log.debug(countFile + "/" + files.size() + ", file: " + file.getCanonicalPath());
 
             //
             try {
@@ -571,7 +571,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                     while (readerTableName != null) {
                         //
                         if (readerTableName.compareToIgnoreCase(tableName) == 0) {
-                            log.info("file: " + file.getName());
+                            log.info("file: " + file.getCanonicalPath());
 
                             //
                             long countRec = 0;
