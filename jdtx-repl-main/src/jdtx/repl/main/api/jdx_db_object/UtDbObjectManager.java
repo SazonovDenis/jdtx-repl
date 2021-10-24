@@ -17,7 +17,7 @@ public class UtDbObjectManager {
 
     Db db;
 
-    enum updMods {INSERT, UPDATE, DELETE}
+    enum IDEmodes {INSERT, UPDATE, DELETE}
 
     public UtDbObjectManager(Db db) {
         this.db = db;
@@ -184,59 +184,51 @@ public class UtDbObjectManager {
     }
 
     public void createAuditTriggers(IJdxTable table) throws Exception {
-        String sql;
+        // Тригер на вставку записи
+        createTrigger(table, IDEmodes.INSERT);
 
-        // тригер на вставку записи
+        // Тригер на обновление записи
+        createTrigger(table, IDEmodes.UPDATE);
+
+        // Тригер на удаление записи
+        createTrigger(table, IDEmodes.DELETE);
+    }
+
+    private void createAuditTriggers_full(IJdxTable table) throws Exception {
+        // Тригер на вставку записи
+        createTrigger_full(table, IDEmodes.INSERT);
+
+        // Тригер на обновление записи
+        createTrigger_full(table, IDEmodes.UPDATE);
+
+        // Тригер на удаление записи
+        createTrigger_full(table, IDEmodes.DELETE);
+    }
+
+    private void createTrigger(IJdxTable table, IDEmodes IDEmode) throws Exception {
         try {
-            sql = getSqlCreateTrigger(table, updMods.INSERT);
+            String sql = getSqlCreateTrigger(table, IDEmode);
             db.execSqlNative(sql);
         } catch (Exception e) {
             if (UtJdx.errorIs_TriggerAlreadyExists(e)) {
-                log.warn("createAuditTriggers, trigger " + updMods.INSERT + " already exists, table: " + table.getName());
-            } else {
-                throw e;
-            }
-        }
-
-        // тригер на обновление записи
-        try {
-            sql = getSqlCreateTrigger(table, updMods.UPDATE);
-            db.execSqlNative(sql);
-        } catch (Exception e) {
-            if (UtJdx.errorIs_TriggerAlreadyExists(e)) {
-                log.warn("createAuditTriggers, trigger " + updMods.UPDATE + " already exists, table: " + table.getName());
-            } else {
-                throw e;
-            }
-        }
-
-        // тригер на удаление записи
-        try {
-            sql = getSqlCreateTrigger(table, updMods.DELETE);
-            db.execSqlNative(sql);
-        } catch (Exception e) {
-            if (UtJdx.errorIs_TriggerAlreadyExists(e)) {
-                log.warn("createAuditTriggers, trigger " + updMods.DELETE + " already exists, table: " + table.getName());
+                log.warn("createAuditTriggers, trigger " + IDEmode + " already exists, table: " + table.getName());
             } else {
                 throw e;
             }
         }
     }
 
-    private void createAuditTriggers_full(IJdxTable table) throws Exception {
-        String sql;
-
-        // тригер на вставку записи в аудит
-        sql = createTrigger_full(table, updMods.INSERT);
-        db.execSqlNative(sql);
-
-        // тригер на обновление записи
-        sql = createTrigger_full(table, updMods.UPDATE);
-        db.execSqlNative(sql);
-
-        // тригер на удаление записи
-        sql = createTrigger_full(table, updMods.DELETE);
-        db.execSqlNative(sql);
+    private void createTrigger_full(IJdxTable table, IDEmodes IDEmode) throws Exception {
+        try {
+            String sql = getSqlCreateTrigger_full(table, IDEmode);
+            db.execSqlNative(sql);
+        } catch (Exception e) {
+            if (UtJdx.errorIs_TriggerAlreadyExists(e)) {
+                log.warn("createAuditTriggers, trigger " + IDEmode + " already exists, table: " + table.getName());
+            } else {
+                throw e;
+            }
+        }
     }
 
     /**
@@ -340,7 +332,7 @@ public class UtDbObjectManager {
         db.execSql(sql);
     }
 
-    private String getSqlCreateTrigger(IJdxTable table, updMods upd_mode) {
+    private String getSqlCreateTrigger(IJdxTable table, IDEmodes upd_mode) {
         String sql;
         String tableName = table.getName();
         String pkFieldName = table.getPrimaryKey().get(0).getName();
@@ -368,7 +360,7 @@ public class UtDbObjectManager {
         return sql;
     }
 
-    private String createTrigger_full(IJdxTable table, updMods upd_mode) {
+    private String getSqlCreateTrigger_full(IJdxTable table, IDEmodes upd_mode) {
         String tableName = table.getName();
         String sql;
         int fieldCount = table.getFields().size();
@@ -414,7 +406,7 @@ public class UtDbObjectManager {
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
             if (UtJdx.errorIs_TriggerNotExists(e)) {
-                log.debug("dropAudit, audit trigger " + updMods.INSERT + " not exists, table: " + tableName);
+                log.debug("dropAudit, audit trigger " + IDEmodes.INSERT + " not exists, table: " + tableName);
             } else {
                 throw e;
             }
@@ -426,7 +418,7 @@ public class UtDbObjectManager {
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
             if (UtJdx.errorIs_TriggerNotExists(e)) {
-                log.debug("dropAudit, audit trigger " + updMods.UPDATE + " not exists, table: " + tableName);
+                log.debug("dropAudit, audit trigger " + IDEmodes.UPDATE + " not exists, table: " + tableName);
             } else {
                 throw e;
             }
@@ -438,7 +430,7 @@ public class UtDbObjectManager {
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
             if (UtJdx.errorIs_TriggerNotExists(e)) {
-                log.debug("dropAudit, audit trigger " + updMods.DELETE + " not exists, table: " + tableName);
+                log.debug("dropAudit, audit trigger " + IDEmodes.DELETE + " not exists, table: " + tableName);
             } else {
                 throw e;
             }
