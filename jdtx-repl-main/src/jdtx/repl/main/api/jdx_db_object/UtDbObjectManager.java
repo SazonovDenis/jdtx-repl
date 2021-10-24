@@ -69,9 +69,14 @@ public class UtDbObjectManager {
             }
         }
 
+        // --- Проверяем версию, что не больше разрешенной
+        if (ver > CURRENT_VER_DB || (ver == CURRENT_VER_DB && ver_step != 0)) {
+            throw new XError("Версия базы больше разрешенной, текущая: " + ver + "." + ver_step + ", разрешенная: " + CURRENT_VER_DB + ".0");
+        }
+
         // --- Обновляем версию
-        int ver_i = ver;
         int ver_to = CURRENT_VER_DB;
+        int ver_i = ver;
         if (ver_i < ver_to) {
             // Запрещаем другим менять версию
             lockDb();
