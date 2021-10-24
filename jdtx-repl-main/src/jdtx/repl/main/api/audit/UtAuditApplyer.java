@@ -398,7 +398,7 @@ public class UtAuditApplyer {
                     //
                     jdxReplWs.createSnapshotByIdListIntoQueOut(tableName, failedDeleteList);
                     //
-                    log.info("  failed delete: " + tableName + ", done");
+                    log.info("  failed delete: " + tableName + ", snapshot done");
                     //
                     failedDeleteList.clear();
                 }

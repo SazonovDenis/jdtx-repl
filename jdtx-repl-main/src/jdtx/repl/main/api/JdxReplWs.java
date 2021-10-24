@@ -1578,7 +1578,20 @@ public class JdxReplWs {
 
         //
         if (needRepair && !doRepair) {
-            throw new XError("Detected restore from backup, repair needed");
+            String errInfo = "" +
+                    "noQueIn001: " + noQueIn001 + ", " +
+                    "noQueIn001Dir: " + noQueIn001Dir + ", " +
+                    "noQueIn001Used: " + noQueIn001Used + ", " +
+                    "noQueIn: " + noQueIn + ", " +
+                    "noQueInDir: " + noQueInDir + ", " +
+                    "noQueInUsed: " + noQueInUsed + ", " +
+                    "noQueOut: " + noQueOut + ", " +
+                    "noQueOutDir: " + noQueOutDir + ", " +
+                    "noSendDone: " + noSendDone + ", " +
+                    "noSendMarked: " + noSendMarked + ", " +
+                    "lockFile: " + lockFile.exists() + ", " +
+                    "need repair: " + needRepair;
+            throw new XError("Detected restore from backup, repair needed: " + errInfo);
         }
 
 
