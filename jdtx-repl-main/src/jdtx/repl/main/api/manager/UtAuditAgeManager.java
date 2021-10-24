@@ -56,11 +56,11 @@ public class UtAuditAgeManager {
         db.startTran();
         try {
             // Предыдущий записанный возраст аудита для каждой таблицы (максимальный z_id из аудита)
-            Map maxIdsFixed = new HashMap<>();
+            Map<String, Long> maxIdsFixed = new HashMap<>();
             loadMaxIdsFixed(auditAgeFixed, maxIdsFixed);
 
             // Текущий актуальный возраст аудита каждой таблицы
-            Map maxIdsCurr = new HashMap<>();
+            Map<String, Long> maxIdsCurr = new HashMap<>();
             loadMaxIdsCurr(maxIdsCurr);
 
             // Увеличился ли общий возраст БД (т.е. изменилась ли хоть одна таблица)?
@@ -70,10 +70,10 @@ public class UtAuditAgeManager {
                 long maxIdCurr = -1;
                 long maxIdFixed = -1;
                 if (maxIdsCurr.get(tableName) != null) {
-                    maxIdCurr = (long) maxIdsCurr.get(tableName);
+                    maxIdCurr = maxIdsCurr.get(tableName);
                 }
                 if (maxIdsFixed.get(tableName) != null) {
-                    maxIdFixed = (long) maxIdsFixed.get(tableName);
+                    maxIdFixed = maxIdsFixed.get(tableName);
                 }
                 if (maxIdCurr != maxIdFixed) {
                     wasTableChanged = true;
@@ -104,7 +104,7 @@ public class UtAuditAgeManager {
     /**
      * Читает текущие id в таблицах аудита (т.е. текущее состояние таблиц аудита)
      */
-    private void loadMaxIdsCurr(Map maxIdsCurr) throws Exception {
+    private void loadMaxIdsCurr(Map<String, Long> maxIdsCurr) throws Exception {
         for (IJdxTable table : struct.getTables()) {
             if (!UtRepl.tableSkipRepl(table)) {
                 String tableName = table.getName();
@@ -120,13 +120,15 @@ public class UtAuditAgeManager {
      *
      * @param auditAge - читаем для этого возраста
      */
-    public DateTime loadMaxIdsFixed(long auditAge, Map maxIdsFixed) throws Exception {
+    public DateTime loadMaxIdsFixed(long auditAge, Map<String, Long> maxIdsFixed) throws Exception {
         DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "age where age = " + auditAge).getCurRec();
         //
         byte[] table_idsBytes = (byte[]) rec.getValue("table_ids");
-        String table_idsStr = new String(table_idsBytes);
-        JSONObject table_ids = (JSONObject) UtJson.toObject(table_idsStr);
-        maxIdsFixed.putAll(table_ids);
+        if (table_idsBytes.length != 0) {
+            String table_idsStr = new String(table_idsBytes);
+            JSONObject table_ids = (JSONObject) UtJson.toObject(table_idsStr);
+            maxIdsFixed.putAll(table_ids);
+        }
         //
         return rec.getValueDateTime("dt");
     }
@@ -147,7 +149,6 @@ public class UtAuditAgeManager {
         );
         db.execSql(sqlIns, params);
     }
-
 
 
 }

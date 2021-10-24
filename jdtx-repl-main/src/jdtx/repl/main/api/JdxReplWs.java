@@ -1502,21 +1502,21 @@ public class JdxReplWs {
         JdxStorageFile queFile = new JdxStorageFile();
 
         // ---
-        // Сколько входящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
-        long noQueInDir = ((JdxStorageFile) queIn).getMaxNoFromDir();
-
         // Сколько входящих получено у нас в "официальной" очереди
         long noQueIn = queIn.getMaxNo();
+
+        // Сколько входящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
+        long noQueInDir = ((JdxStorageFile) queIn).getMaxNoFromDir();
 
         // До какого возраста обработана очередь QueIn
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         long noQueInUsed = stateManager.getQueNoDone("in");
 
-        // Сколько входящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
-        long noQueIn001Dir = ((JdxStorageFile) queIn001).getMaxNoFromDir();
-
         // Сколько входящих получено у нас в "официальной" очереди
         long noQueIn001 = queIn001.getMaxNo();
+
+        // Сколько входящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
+        long noQueIn001Dir = ((JdxStorageFile) queIn001).getMaxNoFromDir();
 
         // До какого возраста обработана очередь QueIn001
         long noQueIn001Used = stateManager.getQueNoDone("in001");
@@ -1538,48 +1538,46 @@ public class JdxReplWs {
         JdxMailStateManagerWs mailStateManager = new JdxMailStateManagerWs(db);
         long noSendMarked = mailStateManager.getMailSendDone();
 
+
         // Есть ли отметка о начале ремонта
         File lockFile = new File(dataRoot + "temp/repairBackup.lock");
 
 
-        // Допускается, если в каталоге для QueIn меньше реплик, чем в очереди QueIn (noQueIn >= noQueInDir)
-        // Это бывает из-за того, что при получении собственных snapshot-реплик, мы ее не скачиваем (она нам не нужна)
-        if ((noQueIn == -1 || noQueIn >= noQueInDir) && noQueIn == noQueInUsed && noQueOut == noQueOutDir && noSendMarked >= noSendDone && !lockFile.exists()) {
-            if (doPrint) {
-                log.warn("Detected restore from backup, self.wsId: " + wsId);
-                log.warn("  noQueIn001: " + noQueIn001);
-                log.warn("  noQueIn001Dir: " + noQueIn001Dir);
-                log.warn("  noQueIn001Used: " + noQueIn001Used);
-                log.warn("  noQueIn: " + noQueIn);
-                log.warn("  noQueInDir: " + noQueInDir);
-                log.warn("  noQueInUsed: " + noQueInUsed);
-                log.warn("  noQueOut: " + noQueOut);
-                log.warn("  noQueOutDir: " + noQueOutDir);
-                log.warn("  noSendDone: " + noSendDone);
-                log.warn("  noSendMarked: " + noSendMarked);
-                log.warn("  lockFile: " + lockFile.exists());
-                log.warn("No need to repair");
-            }
+        // Допускается, если в каталоге для QueIn меньше реплик, чем в очереди QueIn (noQueIn > noQueInDir).
+        // Это бывает из-за того, что при получении собственных snapshot-реплик, мы ее не скачиваем (т.к. она нам не нужна).
+        // Допускается, если не все реплики использованы (noQueIn > noQueInUsed).
+        // Это бывает, если прерывается процесс применения реплик. Это не страшно, т.к. при следующем запуске применение возобновится.
+        boolean needRepair;
+        if ((noQueIn == -1 || noQueIn >= noQueInDir) && noQueIn >= noQueInUsed && noQueOut == noQueOutDir && noSendMarked >= noSendDone && !lockFile.exists()) {
+            needRepair = false;
+        } else {
+            needRepair = true;
+        }
+
+        //
+        if (needRepair || doPrint) {
+            log.warn("Detected restore from backup, self.wsId: " + wsId);
+            log.warn("  noQueIn001: " + noQueIn001);
+            log.warn("  noQueIn001Dir: " + noQueIn001Dir);
+            log.warn("  noQueIn001Used: " + noQueIn001Used);
+            log.warn("  noQueIn: " + noQueIn);
+            log.warn("  noQueInDir: " + noQueInDir);
+            log.warn("  noQueInUsed: " + noQueInUsed);
+            log.warn("  noQueOut: " + noQueOut);
+            log.warn("  noQueOutDir: " + noQueOutDir);
+            log.warn("  noSendDone: " + noSendDone);
+            log.warn("  noSendMarked: " + noSendMarked);
+            log.warn("  lockFile: " + lockFile.exists());
+            log.warn("  need repair: " + needRepair);
+        }
+
+        //
+        if (!needRepair) {
             return;
         }
 
         //
-        log.warn("Detected restore from backup, self.wsId: " + wsId);
-        log.warn("  noQueIn001: " + noQueIn001);
-        log.warn("  noQueIn001Dir: " + noQueIn001Dir);
-        log.warn("  noQueIn001Used: " + noQueIn001Used);
-        log.warn("  noQueIn: " + noQueIn);
-        log.warn("  noQueInDir: " + noQueInDir);
-        log.warn("  noQueInUsed: " + noQueInUsed);
-        log.warn("  noQueOut: " + noQueOut);
-        log.warn("  noQueOutDir: " + noQueOutDir);
-        log.warn("  noSendDone: " + noSendDone);
-        log.warn("  noSendMarked: " + noSendMarked);
-        log.warn("  lockFile: " + lockFile.exists());
-
-
-        //
-        if (!doRepair) {
+        if (needRepair && !doRepair) {
             throw new XError("Detected restore from backup, repair needed");
         }
 
@@ -1596,6 +1594,7 @@ public class JdxReplWs {
         // Сначала чиним получение реплик
         // ---
 
+        // Ситуация: noQueIn <> noQueInDir
         // Берем входящие реплики, которые мы пропустили.
         // Кладем их в свою входящую очередь (потом они будут использованы штатным механизмом).
         // Запрос на сервер повторной отправки входящих реплик - НЕ НУЖНО - они у нас уже есть.
