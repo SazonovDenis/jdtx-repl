@@ -3,9 +3,11 @@ package jdtx.repl.main.api.manager;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.web.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 import org.joda.time.*;
+import org.json.simple.*;
 
 import java.util.*;
 
@@ -118,13 +120,15 @@ public class UtAuditAgeManager {
      *
      * @param auditAge - читаем для этого возраста
      */
-    private void loadMaxIdsFixed(long auditAge, Map maxIdsFixed) throws Exception {
-        DataStore st = db.loadSql("select table_name, " + UtJdx.PREFIX + "id as maxId from " + UtJdx.SYS_TABLE_PREFIX + "age where age = " + auditAge);
-        for (DataRecord rec : st) {
-            String tableName = rec.getValueString("table_name");
-            long maxId = rec.getValueLong("maxId");
-            maxIdsFixed.put(tableName, maxId);
-        }
+    public DateTime loadMaxIdsFixed(long auditAge, Map maxIdsFixed) throws Exception {
+        DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "age where age = " + auditAge).getCurRec();
+        //
+        byte[] table_idsBytes = (byte[]) rec.getValue("table_ids");
+        String table_idsStr = new String(table_idsBytes);
+        JSONObject table_ids = (JSONObject) UtJson.toObject(table_idsStr);
+        maxIdsFixed.putAll(table_ids);
+        //
+        return rec.getValueDateTime("dt");
     }
 
     /**
@@ -134,23 +138,16 @@ public class UtAuditAgeManager {
      */
     private void saveMaxIds(long auditAge, Map maxIdsActual) throws Exception {
         DateTime dt = new DateTime();
-        String sqlIns = "insert into " + UtJdx.SYS_TABLE_PREFIX + "age(age, table_name, " + UtJdx.PREFIX + "id, dt) values (:age, :table_name, :maxId, :dt)";
-
-        // У каждой таблицы зафиксируем состояние журналов для возраста auditAge
-        for (IJdxTable table : struct.getTables()) {
-            String tableName = table.getName();
-            long maxId = UtJdx.longValueOf(maxIdsActual.get(tableName), 0L);
-            //
-            db.execSql(sqlIns, UtCnv.toMap("age", auditAge, "table_name", tableName, "maxId", maxId, "dt", dt));
-        }
-
-        // Зафиксируем возраст auditAge для таблицы с пустым table_name.
-        // Это нужно, если требуется запомнить возраст, а в структуре struct нет ни одной таблицы.
-        // Так бывает при процессах первичной инициализации.
-        if (struct.getTables().size() == 0) {
-            db.execSql(sqlIns, UtCnv.toMap("age", auditAge, "table_name", "", "maxId", 0, "dt", dt));
-        }
+        String table_ids = UtJson.toString(maxIdsActual);
+        String sqlIns = "insert into " + UtJdx.SYS_TABLE_PREFIX + "age(age, dt, table_ids) values (:age, :dt, :table_ids)";
+        Map params = UtCnv.toMap(
+                "age", auditAge,
+                "dt", dt,
+                "table_ids", table_ids
+        );
+        db.execSql(sqlIns, params);
     }
+
 
 
 }

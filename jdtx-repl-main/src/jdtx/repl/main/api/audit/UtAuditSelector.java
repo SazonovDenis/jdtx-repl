@@ -6,6 +6,7 @@ import jandcode.utils.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.data_binder.*;
 import jdtx.repl.main.api.decoder.*;
+import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
@@ -228,9 +229,9 @@ public class UtAuditSelector {
                 UtJdx.AUDIT_TABLE_PREFIX + tableFrom.getName() + "." + idFieldName + ", \n" +
                 "(case when " + UtJdx.SQL_FIELD_OPR_TYPE + " in (" + JdxOprType.OPR_INS + "," + JdxOprType.OPR_UPD + ") and " + tableFrom.getName() + "." + idFieldName + " is null then 1 else 0 end) z_skip, \n" +
                 tableFieldsAlias + "\n" +
-                " from " + UtJdx.AUDIT_TABLE_PREFIX + tableFrom.getName() + "\n"+
+                " from " + UtJdx.AUDIT_TABLE_PREFIX + tableFrom.getName() + "\n" +
                 " left join " + tableFrom.getName() + " on (" + UtJdx.AUDIT_TABLE_PREFIX + tableFrom.getName() + "." + idFieldName + " = " + tableFrom.getName() + "." + idFieldName + ") \n" +
-                " where " + UtJdx.PREFIX + "id >= " + fromId + " and " + UtJdx.PREFIX + "id <= " + toId + "\n"+
+                " where " + UtJdx.PREFIX + "id >= " + fromId + " and " + UtJdx.PREFIX + "id <= " + toId + "\n" +
                 " order by " + UtJdx.PREFIX + "id";
     }
 
@@ -245,9 +246,20 @@ public class UtAuditSelector {
     Map loadAutitIntervals(IPublicationRuleStorage publicationStorage, long age) throws Exception {
         Map auditInfo = new HashMap<>();
 
-        DateTime dtFrom = null;
-        DateTime dtTo = null;
+        //
+        UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
+        //
+        Map maxIdsFixed_From = new HashMap<>();
+        DateTime dtFrom = auditAgeManager.loadMaxIdsFixed(age - 1, maxIdsFixed_From);
+        //
+        Map maxIdsFixed_To = new HashMap<>();
+        DateTime dtTo = auditAgeManager.loadMaxIdsFixed(age, maxIdsFixed_To);
 
+        //
+        auditInfo.put("z_opr_dttm_from", dtFrom);
+        auditInfo.put("z_opr_dttm_to", dtTo);
+
+        // Собираем данные об аудите таблиц
         for (IJdxTable structTable : struct.getTables()) {
             String tableName = structTable.getName();
 
@@ -258,65 +270,22 @@ public class UtAuditSelector {
             }
 
 
-            String sql = "select\n" +
-                    "  --z_z_age_last.table_name,\n" +
-                    "  z_z_age_prior.age age_prior,\n" +
-                    "  z_z_age_last.age age_last,\n" +
-                    "  max(z_prior.z_id) z_id_from,\n" +
-                    "  z_last.z_id z_id_to,\n" +
-                    "  max(z_prior.z_opr_dttm) opr_dttm_from,\n" +
-                    "  z_last.z_opr_dttm opr_dttm_to,\n" +
-                    "  --z_z_age_last.dt,\n" +
-                    "  --z_z_age_prior.dt dt_prior,\n" +
-                    "  1 as x\n" +
-                    "from\n" +
-                    "  z_z_age z_z_age_last\n" +
-                    "  join z_z_age z_z_age_prior on (z_z_age_prior.table_name = '" + tableName + "' and z_z_age_prior.age = " + (age - 1) + ")\n" +
-                    "  left join z_" + tableName + " z_prior on (z_z_age_prior.z_id >= z_prior.z_id)\n" +
-                    "  left join z_" + tableName + " z_last on (z_z_age_last.z_id = z_last.z_id)\n" +
-                    "where\n" +
-                    "  z_z_age_last.age = " + age + " and\n" +
-                    "  z_z_age_last.table_name = '" + tableName + "' and\n" +
-                    "  1=1\n" +
-                    "group by\n" +
-                    "  1,2,4,6";
-
             //
-            DataStore st = db.loadSql(sql);
+            long z_id_from = UtJdx.longValueOf(maxIdsFixed_From.get(tableName), 0L);
+            long z_id_to = UtJdx.longValueOf(maxIdsFixed_To.get(tableName), 0L);
 
-            // Аудит для для таблицы накопился?
-            if (st.size() == 0) {
+            // Аудит таблицы для этого возраста пуст?
+            if (z_id_from >= z_id_to) {
                 continue;
             }
 
-            //
-            DataRecord rec = st.get(0);
-
-            // Аудит для этого возраста пуст?
-            long z_id_from = rec.getValueLong("z_id_from") + 1;
-            long z_id_to = rec.getValueLong("z_id_to");
-            if (z_id_from > z_id_to) {
-                continue;
-            }
-
-            // Собираем мин и макс даты возникновения аудита
-            if (dtFrom == null || dtFrom.compareTo(rec.getValueDateTime("opr_dttm_from")) > 0) {
-                dtFrom = rec.getValueDateTime("opr_dttm_from");
-            }
-            if (dtTo == null || dtTo.compareTo(rec.getValueDateTime("opr_dttm_to")) < 0) {
-                dtTo = rec.getValueDateTime("opr_dttm_to");
-            }
-
-            // Набираем выходные данные об аудите
+            // Набираем выходные данные об аудите таблицы
             Map auditInfoTable = new HashMap<>();
             auditInfoTable.put("z_id_from", z_id_from);
             auditInfoTable.put("z_id_to", z_id_to);
             auditInfo.put(tableName, auditInfoTable);
         }
 
-        //
-        auditInfo.put("z_opr_dttm_from", dtFrom);
-        auditInfo.put("z_opr_dttm_to", dtTo);
 
         //
         return auditInfo;
