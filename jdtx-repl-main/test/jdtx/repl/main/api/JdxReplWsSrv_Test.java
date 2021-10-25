@@ -854,8 +854,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
 
-    /////////////////////////////////////////////////
-
     @Test
     public void test_run_srv() throws Exception {
         while (true) {
@@ -886,8 +884,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
             test_ws3_doReplSession();
         }
     }
-
-    /////////////////////////////////////////////////
 
     @Test
     public void test_loop_1_change() throws Exception {
@@ -1059,7 +1055,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 msg.contains("Connection reset") ||
                 msg.contains("Connection refused: connect") ||
                 msg.contains("Connection timed out: connect") ||
-                msg.contains("Connection refused: connect") ||
                 (msg.contains("Item info") && msg.contains("not found"));
     }
 
