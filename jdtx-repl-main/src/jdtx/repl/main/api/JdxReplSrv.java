@@ -750,7 +750,7 @@ public class JdxReplSrv {
         }
     }
 
-    public void srvRequestSnapshot(long wsId, String tableNames) throws Exception {
+    public void srvRequestSnapshot(long wsId, String tableNames, String queName) throws Exception {
         log.info("srvRequestSnapshot, wsId: " + wsId + ", tables: " + tableNames);
 
         // Разложим в список
@@ -769,11 +769,25 @@ public class JdxReplSrv {
         for (IJdxTable table : tableListSorted) {
             log.info("srvRequestSnapshot, table: " + table.getName());
 
+            // Выбор очереди - общая (queCommon) или личная для станции
+            IJdxReplicaQue que;
+            if (queName.compareToIgnoreCase(UtQue.QUE_COMMON) == 0) {
+                // Очередь queCommon (общая)
+                que = queCommon;
+            } else if (queName.compareToIgnoreCase(UtQue.QUE_OUT001) == 0) {
+                // Очередь queOut001 станции (инициализационная или для системных команд)
+                JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
+                queOut001.setDataRoot(dataRoot);
+                que = queOut001;
+            } else {
+                throw new XError("Unknown queName: " + queName);
+            }
+
             // Реплика-запрос snapshot
             IReplica replica = utRepl.createReplicaWsSendSnapshot(wsId, table.getName());
 
             // Реплика-запрос snapshot - в исходящую очередь реплик
-            queCommon.push(replica);
+            que.push(replica);
         }
 
     }

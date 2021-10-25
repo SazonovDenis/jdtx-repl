@@ -280,16 +280,17 @@ class Jdx_Ext extends ProjectExt {
 
     void repl_find_record(IVariantMap args) {
         String recordId = args.getValueString("id")
-        String dirName = args.getValueString("dir")
+        String dirsName = args.getValueString("dir")
         String outFileName = args.getValueString("out")
         boolean skipOprDel = args.getValueBoolean("skipDel")
         boolean findLastOne = args.getValueBoolean("lastOne")
+        long minReplicaNo = args.getValueLong("minNo")
         //
         if (recordId == null || recordId.length() == 0) {
             throw new XError("Не указан [id] - id записи")
         }
-        if (dirName == null || dirName.length() == 0) {
-            throw new XError("Не указан [dir] - каталог для поиска")
+        if (dirsName == null || dirsName.length() == 0) {
+            throw new XError("Не указан [dir] - каталоги для поиска")
         }
         String tableName = recordId.split(":")[0]
         String recordIdStr = recordId.substring(tableName.length() + 1)
@@ -324,7 +325,7 @@ class Jdx_Ext extends ProjectExt {
 
                 // Ищем запись и формируем реплику на вставку
                 UtRepl utRepl = new UtRepl(db, ws.struct)
-                IReplica replica = utRepl.findRecordInReplicas(tableName, recordIdStr, dirName, skipOprDel, findLastOne, outFileName)
+                IReplica replica = utRepl.findRecordInReplicas(tableName, recordIdStr, dirsName, skipOprDel, findLastOne, minReplicaNo, outFileName)
 
                 //
                 System.out.println("Файл с репликой - результатами поиска сформирован: " + replica.file.getAbsolutePath())
@@ -800,6 +801,10 @@ class Jdx_Ext extends ProjectExt {
         if (tableNames == null || tableNames.length() == 0) {
             throw new XError("Не указаны [tables] - таблицы в БД")
         }
+        String queName = args.getValueString("que")
+        if (queName == null || queName.length() == 0) {
+            queName = UtQue.QUE_COMMON
+        }
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -812,7 +817,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvRequestSnapshot(destinationWsId, tableNames)
+            srv.srvRequestSnapshot(destinationWsId, tableNames, queName)
 
         } finally {
             db.disconnect()
