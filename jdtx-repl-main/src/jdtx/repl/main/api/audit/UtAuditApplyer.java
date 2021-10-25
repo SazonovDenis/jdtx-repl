@@ -272,6 +272,8 @@ public class UtAuditApplyer {
                             } catch (Exception e) {
                                 if (UtJdx.errorIs_ForeignKeyViolation(e)) {
                                     log.error(e.getMessage());
+                                    log.error("table: " + tableName);
+                                    log.error("oprType: " + oprType);
                                     log.error("recParams: " + recParams);
                                     log.error("recValues: " + recValues);
                                     //
@@ -298,6 +300,8 @@ public class UtAuditApplyer {
                             } catch (Exception e) {
                                 if (UtJdx.errorIs_ForeignKeyViolation(e)) {
                                     log.error(e.getMessage());
+                                    log.error("table: " + tableName);
+                                    log.error("oprType: " + oprType);
                                     log.error("recParams: " + recParams);
                                     log.error("recValues: " + recValues);
                                     //
