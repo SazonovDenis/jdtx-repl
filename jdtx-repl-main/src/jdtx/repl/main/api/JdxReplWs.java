@@ -1451,7 +1451,7 @@ public class JdxReplWs {
      * Обработаем аварийную ситуацию - поищем недостающие записи (на которые мы ссылаемся) у себя в каталоге для входящих реплик
      * и выложим их в виде реплики (готовом виде для применения)
      *
-     * @return
+     * @return Команды на вставку/изменение этой записи, оформленные в виде реплики
      */
     public File handleFailedInsertUpdateRef(JdxForeignKeyViolationException e) throws Exception {
         IJdxTable thisTable = UtJdx.get_ForeignKeyViolation_tableInfo(e, struct);

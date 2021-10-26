@@ -751,7 +751,7 @@ public class JdxReplSrv {
     }
 
     public void srvRequestSnapshot(long wsId, String tableNames, String queName) throws Exception {
-        log.info("srvRequestSnapshot, wsId: " + wsId + ", tables: " + tableNames);
+        log.info("srvRequestSnapshot, wsId: " + wsId + ", tables: " + tableNames + ", que: " + queName);
 
         // Разложим в список
         String[] tableNamesArr = tableNames.split(",");
