@@ -201,14 +201,14 @@
     },
     "smsjournal": {
       "fields": "*",
-      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || (RECORD_OWNER_PAWNCHIT = PARAM_wsDestination && RECORD_OWNER_PAWNCHITSUBJECT = PARAM_wsDestination)"
     },
     "smstemplate": {
       "fields": "*"
     },
     "stornopr": {
       "fields": "*",
-      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || PARAM_wsAuthor = 1"
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || (RECORD_OWNER_OPR = PARAM_wsDestination)"
     },
     "subjectencash": {
       "fields": "*",
