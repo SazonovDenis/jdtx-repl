@@ -120,11 +120,11 @@ public class JdxReplWs {
 
         // Читаем код нашей станции
         DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO").getCurRec();
+        this.wsId = rec.getValueLong("ws_id");
         // Проверяем код нашей станции
-        if (rec.getValueLong("ws_id") == 0) {
+        if (this.wsId == 0) {
             throw new XError("Invalid workstation.ws_id == 0");
         }
-        this.wsId = rec.getValueLong("ws_id");
 
         //
         this.wsGuid = rec.getValueString("guid");

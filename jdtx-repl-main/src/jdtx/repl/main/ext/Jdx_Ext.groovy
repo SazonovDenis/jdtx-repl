@@ -166,7 +166,7 @@ class Jdx_Ext extends ProjectExt {
             ws.initFirst()
 
             // Создаем окружение для сервера
-            if (wsId == 1) {
+            if (wsId == JdxReplSrv.SERVER_WS_ID) {
                 JdxReplSrv srv = new JdxReplSrv(db)
                 srv.init()
                 srv.initFirst()

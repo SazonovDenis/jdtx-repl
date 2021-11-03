@@ -28,6 +28,8 @@ import java.util.*;
  */
 public class JdxReplSrv {
 
+    public long SERVER_WS_ID = 1L;
+
     // Общая очередь на сервере
     IJdxQue queCommon;
 
@@ -66,7 +68,7 @@ public class JdxReplSrv {
 
     public IMailer getSelfMailer() {
         // Ошибки сервера кладем в ящик рабочей станции №1
-        long wsId = 1;
+        long wsId = SERVER_WS_ID;
         return mailerList.get(wsId);
     }
 
@@ -152,6 +154,14 @@ public class JdxReplSrv {
         reader.setDb(db);
         IJdxDbStruct structActual = reader.readDbStruct();
 
+
+        // Читаем код нашей станции
+        DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO").getCurRec();
+        // Проверяем код нашей станции
+        long selfWsId = rec.getValueLong("ws_id");
+        if (selfWsId != SERVER_WS_ID) {
+            throw new XError("Invalid server ws_id: " + selfWsId);
+        }
 
         // Общая очередь
         String queCommon_DirLocal = dataRoot + "srv/que_common/";
@@ -250,8 +260,11 @@ public class JdxReplSrv {
         // В качестве фильтров на ИНИЦИАЛИЗАЦИОННЫЙ snapshot от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
         IPublicationRuleStorage publicationRuleWsIn = PublicationRuleStorage.loadRules(cfgPublicationsWs, struct, "in");
 
-        // Подготовим snapshot
-        long serverWsId = 1;
+        // Подготовим snapshot-реплику.
+        // Получатель snapshot-реплики - wsId.
+        // Автор snapshot-реплики - при подготовке snapshot автор, строго говоря, не определен,
+        // но чтобы не было ошибок, поставим в качестве автора - себя (serverWsId).
+        long serverWsId = SERVER_WS_ID;
         long wsSnapshotAge = sendReplicasSnapshot(serverWsId, wsId, publicationRuleWsIn, queOut001);
 
 
@@ -345,8 +358,11 @@ public class JdxReplSrv {
         JSONObject cfgSnapsot = UtRepl.loadAndValidateJsonFile(cfgSnapshotFileName);
         IPublicationRuleStorage ruleSnapsot = PublicationRuleStorage.loadRules(cfgSnapsot, struct, "snapshot");
 
-        // Подготовим snapshot
-        long serverWsId = 1;
+        // Подготовим snapshot-реплику.
+        // Получатель snapshot-реплики - wsId.
+        // Автор snapshot-реплики - при подготовке snapshot автор, строго говоря, не определен,
+        // но чтобы не было ошибок, поставим в качестве автора - себя (serverWsId).
+        long serverWsId = SERVER_WS_ID;
         long wsSnapshotAge = sendReplicasSnapshot(serverWsId, wsId, ruleSnapsot, queOut001);
 
 
