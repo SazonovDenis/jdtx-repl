@@ -188,6 +188,7 @@ public class UtAuditApplyer {
                 Map<String, Object> recValues = dataReader.nextRec();
                 while (recValues != null) {
 
+                    // Перебираем записи, пропускаем те, которые не подходят под наши входящие фильтры publicationRules
                     if (recordFilter.isMach(recValues)) {
 
                         // Обеспечим не слишком огромные порции коммитов
@@ -280,7 +281,7 @@ public class UtAuditApplyer {
                                     JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
                                     ee.recParams = recParams;
                                     ee.recValues = recValues;
-                                    // todo вообще, костыль страшнейший, сделан для пробуска неуместных реплик,
+                                    // todo вообще, костыль страшнейший, сделан для пропуска неуместных реплик,
                                     // которые просочились на станцию из-за кривых настроек фильтров.
                                     // todo Убрать, когда будут сделана фильтрация по ссылкам!!!
                                     boolean skipForeignKeyViolationIns = jdxReplWs.appCfg.getValueBoolean("skipForeignKeyViolationIns");
