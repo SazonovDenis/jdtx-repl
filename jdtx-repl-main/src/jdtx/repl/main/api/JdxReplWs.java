@@ -1427,10 +1427,10 @@ public class JdxReplWs {
         }
 
         // Поиск проблемной записи выполняется в этих каталогах
-        String dirNameOut = queOut.getBaseDir();
         String dirNameIn001 = queIn001.getBaseDir();
         String dirNameIn = queIn.getBaseDir();
-        String dirs = dirNameIn + "," + dirNameIn001 + "," + dirNameOut;
+        String dirNameOut = queOut.getBaseDir();
+        String dirs = dirNameIn001 + "," + dirNameIn + "," + dirNameOut;
         // Собираем все операции с проблемной записью в одну реплику
         UtRepl utRepl = new UtRepl(db, struct);
         IReplica replica = utRepl.findRecordInReplicas(refTableName, refTableId, dirs, true, true, outReplicaFile.getAbsolutePath());
