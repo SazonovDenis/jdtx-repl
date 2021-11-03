@@ -236,7 +236,9 @@ repl_repair_backup = cm("Исправить репликацию после во
 }
 
 //
-repl_replica_use = cm("Применить реплику из файла") {
+repl_replica_use = cm("Применить реплику из файла",
+        "file": [value: null, help: "Файл с репликой"],
+) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_replica_use(args)
 }

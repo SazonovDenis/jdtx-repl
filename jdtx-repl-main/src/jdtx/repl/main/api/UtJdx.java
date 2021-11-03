@@ -484,7 +484,7 @@ public class UtJdx {
 
 
     /**
-     * Разложим tableNames в список
+     * Разложим строку tableNames в список IJdxTable
      */
     public static List<IJdxTable> toTableList(String tableNames, IJdxDbStruct struct) {
         List<IJdxTable> tableList = new ArrayList<>();
