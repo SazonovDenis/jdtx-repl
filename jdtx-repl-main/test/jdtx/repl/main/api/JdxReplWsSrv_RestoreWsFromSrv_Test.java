@@ -9,9 +9,6 @@ import org.junit.*;
 
 import java.io.*;
 
-/**
- * Проверка восстановления утраченной базы рабочей станции по данным с сервера.
- */
 public class JdxReplWsSrv_RestoreWsFromSrv_Test extends JdxReplWsSrv_Test {
 
     String cfg_json_snapshot;
@@ -23,6 +20,9 @@ public class JdxReplWsSrv_RestoreWsFromSrv_Test extends JdxReplWsSrv_Test {
     }
 
 
+    /**
+     * Прогон сценария репликации: восстановление утраченной базы рабочей станции по данным с сервера.
+     */
     @Test
     public void test_All() throws Exception {
         // ---
@@ -109,6 +109,10 @@ public class JdxReplWsSrv_RestoreWsFromSrv_Test extends JdxReplWsSrv_Test {
         new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
     }
 
+    /**
+     * Прогон сценария репликации: восстановление утраченной базы рабочей станции по данным с сервера,
+     * с односторонним фильтром по LIC.
+     */
     @Test
     public void test_All_filter() throws Exception {
         cfg_json_decode = "../install/cfg/decode_strategy_194.json";

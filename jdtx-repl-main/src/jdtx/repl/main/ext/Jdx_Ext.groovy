@@ -284,7 +284,6 @@ class Jdx_Ext extends ProjectExt {
         String outFileName = args.getValueString("out")
         boolean skipOprDel = args.getValueBoolean("skipDel")
         boolean findLastOne = args.getValueBoolean("lastOne")
-        long minReplicaNo = args.getValueLong("minNo")
         //
         if (recordId == null || recordId.length() == 0) {
             throw new XError("Не указан [id] - id записи")
@@ -325,7 +324,7 @@ class Jdx_Ext extends ProjectExt {
 
                 // Ищем запись и формируем реплику на вставку
                 UtRepl utRepl = new UtRepl(db, ws.struct)
-                IReplica replica = utRepl.findRecordInReplicas(tableName, recordIdStr, dirsName, skipOprDel, findLastOne, minReplicaNo, outFileName)
+                IReplica replica = utRepl.findRecordInReplicas(tableName, recordIdStr, dirsName, skipOprDel, findLastOne, outFileName)
 
                 //
                 System.out.println("Файл с репликой - результатами поиска сформирован: " + replica.file.getAbsolutePath())
@@ -818,6 +817,46 @@ class Jdx_Ext extends ProjectExt {
 
             //
             srv.srvRequestSnapshot(destinationWsId, tableNames, queName)
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
+    void repl_send_snapshot(IVariantMap args) {
+        long destinationWsId = args.getValueLong("ws")
+        String tableNames = args.getValueString("tables")
+        if (tableNames == null || tableNames.length() == 0) {
+            throw new XError("Не указаны [tables] - таблицы в БД")
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        try {
+            if (destinationWsId != 0L) {
+                // Запросили для конкретной станциию
+
+                // Отправляем на станцию через сервер, в очередь QUE_OUT001
+                JdxReplSrv srv = new JdxReplSrv(db)
+                srv.init()
+
+                //
+                srv.srvSendSnapshot(destinationWsId, tableNames)
+            } else {
+                // Запросили не для конкретной станции - отправляем всем в очередь QUE_COMMON
+                JdxReplWs ws = new JdxReplWs(db)
+                ws.init()
+
+                // Разложим в список
+                List<IJdxTable> tables = UtJdx.toTableList(tableNames, ws.struct);
+
+                // Создаем снимок таблицы и кладем его в очередь queOut (разрешаем отсылать чужие записи)
+                UtRepl ut = new UtRepl(db, ws.struct);
+                ut.createSendSnapshotForTables(tables, ws.wsId, ws.wsId, ws.publicationOut, false, ws.queOut);
+            }
 
         } finally {
             db.disconnect()

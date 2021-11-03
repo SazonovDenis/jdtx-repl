@@ -6,6 +6,7 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.decoder.*;
+import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
@@ -464,17 +465,16 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
      *
      * @param tableName        Таблица, чью запись ищем, например "ABN"
      * @param recordIdStr      Полный id записи, например "10:12345"
-     * @param replicasDirsName Каталог с репликами для поиска, например "d:/temp/"
+     * @param replicasDirsName Каталоги с репликами для поиска, например "d:/temp/"
      * @param skipOprDel       Пропускать реплики на удаление записи
      * @param findLastOne      Найти только один последний вариант записи (тогда поиск идет с последних реплик)
      * @param outFileName      Файл для реплики-результата, например "d:/temp/ABN_10_12345.zip"
      * @return Реплика со всеми операциями, найденными для запрошенной записи
      */
     public IReplica findRecordInReplicas(String tableName, String recordIdStr, String replicasDirsName, boolean skipOprDel, boolean findLastOne, String outFileName) throws Exception {
-        if (!skipOprDel && findLastOne) {
-            throw new XError("При поиске последннего варианта (lastOne == true) нужно skipDel == true");
+        if (findLastOne && !skipOprDel) {
+            throw new XError("При поиске последннего варианта (lastOne == true) нужно указывать skipDel == true");
         }
-
 
         //
         String outFileNameInfo;
@@ -785,13 +785,81 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         return structCommonSorted;
     }
 
+    /**
+     * Возвращает список таблиц из tablesSource, но том порядке,
+     * в котором они расположены в описании структуры struct - там список таблиц отсортирован по зависимостям.
+     */
+    private List<IJdxTable> makeOrderedFromTableList(IJdxDbStruct struct, List<IJdxTable> tablesSource) {
+        List<IJdxTable> tablesOrdered = new ArrayList<>();
+        //
+        for (IJdxTable tableOrderedSample : struct.getTables()) {
+            for (IJdxTable tableSource : tablesSource) {
+                if (tableOrderedSample.getName().compareTo(tableSource.getName()) ==0) {
+                    tablesOrdered.add(tableSource);
+                    break;
+                }
+            }
+        }
+        //
+        return tablesOrdered;
+    }
+
+    /**
+     * Создаем snapsot-реплики для таблиц tables,
+     * фильруем по фильтрам,
+     * помещаем их в очередь out.
+     */
+    public void createSendSnapshotForTables(List<IJdxTable> tables, long wsIdAuthor, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot, boolean forbidNotOwnId, IJdxQue que) throws Exception {
+        // В tables будет соблюден порядок сортировки таблиц с учетом foreign key.
+        // При последующем применении snapsot важен порядок.
+        tables = UtJdx.sortTablesByReference(tables);
+
+        // ---
+        // Создаем snapshot-реплики (пока без фильтрации записей)
+
+        // Результирующий список исходных, не фильтрованных реплик
+        List<IReplica> replicasSnapshot;
+
+        // Снимок делаем в рамках одной транзакции - чтобы видеть непроитворечивое состояние таблиц
+        db.startTran();
+        try {
+            replicasSnapshot = createSnapshotReplicas(tables, wsIdAuthor, rulesForSnapshot, forbidNotOwnId);
+            //
+            db.commit();
+        } catch (Exception e) {
+            db.rollback(e);
+            throw e;
+        }
+
+
+        // ---
+        // Фильтруем записи в snapshot-репликах
+        List<IReplica> replicasSnapshotFiltered = filterReplicas(replicasSnapshot, wsIdAuthor, wsIdDestination, rulesForSnapshot);
+
+
+        // ---
+        // Помещаем snapshot-реплики в очередь que.
+        // Делаем в рамках одной транзакции - чтобы либо весь снимок ущел, либо ничего
+        db.startTran();
+        try {
+            for (IReplica replica : replicasSnapshotFiltered) {
+                que.push(replica);
+            }
+            //
+            db.commit();
+        } catch (Exception e) {
+            db.rollback(e);
+            throw e;
+        }
+    }
+
 
     /**
      * Создаем snapsot-реплики для таблиц tables,
      * без последующей фильтрации записей,
      * но только для таблиц, упомянутых в publicationRules
      */
-    public List<IReplica> createSnapshotsForTables(List<IJdxTable> tables, long selfWsId, IPublicationRuleStorage publicationRules, boolean forbidNotOwnId) throws Exception {
+    private List<IReplica> createSnapshotReplicas(List<IJdxTable> tables, long selfWsId, IPublicationRuleStorage publicationRules, boolean forbidNotOwnId) throws Exception {
         List<IReplica> res = new ArrayList<>();
 
         //
@@ -821,6 +889,34 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
 
         //
         return res;
+    }
+
+    /**
+     * Из списка не фильрованных replicasSnapshot делает
+     * список реплик, отфильтрованных по правилам ruleForSnapshot
+     */
+    private List<IReplica> filterReplicas(List<IReplica> replicasSnapshot, long wsIdAuthor, long wsIdDestination, IPublicationRuleStorage ruleForSnapshot) throws Exception {
+        // Результирующий список фильтрованных
+        List<IReplica> replicasSnapshotFiltered = new ArrayList<>();
+
+        // Фильтр записей
+        IReplicaFilter filter = new ReplicaFilter();
+
+        // Фильтр, параметры: получатель реплики
+        filter.getFilterParams().put("wsDestination", String.valueOf(wsIdDestination));
+        // Фильтр, параметры: автор реплики - делаем заведомо не существующее значение.
+        // При подготовке snapshot автор, строго говоря, не определен, но чтобы не было ошибок,
+        // поставим в качестве автора - себя.
+        filter.getFilterParams().put("wsAuthor", String.valueOf(wsIdAuthor));
+
+        // Фильтруем записи
+        for (IReplica replicaSnapshot : replicasSnapshot) {
+            IReplica replicaForWs = filter.convertReplicaForWs(replicaSnapshot, ruleForSnapshot);
+            replicasSnapshotFiltered.add(replicaForWs);
+        }
+
+        //
+        return replicasSnapshotFiltered;
     }
 
     /**

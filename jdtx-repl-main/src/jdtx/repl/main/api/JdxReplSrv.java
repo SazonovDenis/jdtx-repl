@@ -28,7 +28,7 @@ import java.util.*;
  */
 public class JdxReplSrv {
 
-    public long SERVER_WS_ID = 1L;
+    public static long SERVER_WS_ID = 1L;
 
     // Общая очередь на сервере
     IJdxQue queCommon;
@@ -324,9 +324,11 @@ public class JdxReplSrv {
         log.info("Restore workstation, wsId: " + wsId);
 
 
-        // todo: static RefDecodeStrategy instance - ваще капец! Именно за этим и нужна ИНИЦИАЛИЗАЦИЯ ws.init, и больше ни для чего!!!
+        // todo: static RefDecodeStrategy instance - ваще капец!
+        // Именно за этим тут и нужна ИНИЦИАЛИЗАЦИЯ ws.init, и больше ни для чего!!!
         JdxReplWs ws = new JdxReplWs(db);
         ws.init();
+
 
         //
         UtRepl utRepl = new UtRepl(db, struct);
@@ -449,14 +451,14 @@ public class JdxReplSrv {
     }
 
     /**
-     * Подготовим snapshot для станции wsIdOwner,
-     * фильтруем его по правилам ruleForSnapshot,
+     * Подготовим snapshot для станции wsIdDestination,
+     * фильтруем его по правилам rulesForSnapshot,
      * и отправляем в очередь que
      */
-    private long sendReplicasSnapshot(long selfWsId, long wsIdOwner, IPublicationRuleStorage ruleForSnapshot, JdxQue que) throws Exception {
+    private long sendReplicasSnapshot(long wsIdAuthor, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot, IJdxQue que) throws Exception {
         // todo: После создания и отправки Snapshot сам снимок валяется в temp как мусор и палево
         // ---
-        // Подготовим snapshot из данных станции wsIdOwner
+        // Подготовим snapshot из данных станции wsIdDestination
 
         // Запоминаем возраст входящей очереди "серверной" рабочей станции (que_in_no_done).
         // Если мы начинаем готовить snapshot в этом возрасте, то все реплики ДО этого возраста войдут в snapshot,
@@ -467,66 +469,31 @@ public class JdxReplSrv {
         JdxStateManagerWs stateManagerWs = new JdxStateManagerWs(db);
         long wsSnapshotAge = stateManagerWs.getQueNoDone("in");
 
-        // В publicationOutTables будет соблюден порядок сортировки таблиц с учетом foreign key.
-        // При последующем применении snapsot важен порядок.
-        List<IJdxTable> publicationOutTables = makeOrderedTableListFromPublicationRule(struct, ruleForSnapshot);
+        // Передаем тот состав таблиц, который перечислен в правилах исходящих публикаций
+        List<IJdxTable> publicationOutTables = makeOrderedFromPublicationRules(struct, rulesForSnapshot);
 
-        // Создаем snapshot-реплики (пока без фильтрации записей)
-        List<IReplica> replicasSnapshot;
-        db.startTran();
-        try {
-            UtRepl ut = new UtRepl(db, struct);
-            replicasSnapshot = ut.createSnapshotsForTables(publicationOutTables, selfWsId, ruleForSnapshot, false);
-            //
-            db.commit();
-        } catch (Exception e) {
-            db.rollback(e);
-            throw e;
-        }
-
-
-        // ---
-        // Фильтруем записи в snapshot-репликах
-
-        //
-        List<IReplica> replicasSnapshotFiltered = new ArrayList<>();
-
-        // Фильтр записей
-        IReplicaFilter filter = new ReplicaFilter();
-
-        // Фильтр, параметры: получатель реплики
-        filter.getFilterParams().put("wsDestination", String.valueOf(wsIdOwner));
-        // Фильтр, параметры: автор реплики - делаем заведомо не существующее значение.
-        // При подготовке snapshot автор, строго говоря, не определен, но чтобы не было ошибок,
-        // поставим в качестве автора - себя.
-        filter.getFilterParams().put("wsAuthor", String.valueOf(selfWsId));
-
-        // Фильтруем записи
-        for (IReplica replica : replicasSnapshot) {
-            IReplica replicaForWs = filter.convertReplicaForWs(replica, ruleForSnapshot);
-            replicasSnapshotFiltered.add(replicaForWs);
-        }
-
-
-        // ---
-        // Помещаем snapshot-реплики в очередь que
-        for (IReplica replicaForWs : replicasSnapshotFiltered) {
-            que.push(replicaForWs);
-        }
-
+        // Создаем snapshot-реплики, фильтруем, отправляем
+        UtRepl ut = new UtRepl(db, struct);
+        ut.createSendSnapshotForTables(publicationOutTables, wsIdAuthor, wsIdDestination, rulesForSnapshot, false, que);
 
         //
         return wsSnapshotAge;
     }
 
-    private List<IJdxTable> makeOrderedTableListFromPublicationRule(IJdxDbStruct struct, IPublicationRuleStorage publicationStorage) {
-        List<IJdxTable> publicationTables = new ArrayList<>();
-        for (IJdxTable table : struct.getTables()) {
-            if (publicationStorage.getPublicationRule(table.getName()) != null) {
-                publicationTables.add(table);
+    /**
+     * Возвращает список таблиц из publicationStorage, но том порядке,
+     * в котором они расположены в описании структуры struct - там список таблиц отсортирован по зависимостям.
+     */
+    private List<IJdxTable> makeOrderedFromPublicationRules(IJdxDbStruct struct, IPublicationRuleStorage publicationStorage) {
+        List<IJdxTable> tablesOrdered = new ArrayList<>();
+        //
+        for (IJdxTable tableOrderedSample : struct.getTables()) {
+            if (publicationStorage.getPublicationRule(tableOrderedSample.getName()) != null) {
+                tablesOrdered.add(tableOrderedSample);
             }
         }
-        return publicationTables;
+        //
+        return tablesOrdered;
     }
 
     public void enableWorkstation(long wsId) throws Exception {
@@ -576,7 +543,7 @@ public class JdxReplSrv {
                 // Преобразователь по фильтрам
                 IReplicaFilter filter = new ReplicaFilter();
 
-                // Правила публикаций (фильтры) для wsId.
+                // Правила публикаций (фильтры) для станции wsId.
                 // В качестве фильтров на ОТПРАВКУ от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
                 IPublicationRuleStorage publicationRule = publicationsInList.get(wsId);
 
@@ -766,16 +733,11 @@ public class JdxReplSrv {
         }
     }
 
-    public void srvRequestSnapshot(long wsId, String tableNames, String queName) throws Exception {
-        log.info("srvRequestSnapshot, wsId: " + wsId + ", tables: " + tableNames + ", que: " + queName);
+    public void srvRequestSnapshot(long destinationWsId, String tableNames, String queName) throws Exception {
+        log.info("srvRequestSnapshot, destination wsId: " + destinationWsId + ", tables: " + tableNames + ", que: " + queName);
 
         // Разложим в список
-        String[] tableNamesArr = tableNames.split(",");
-        List<IJdxTable> tableList = new ArrayList<>();
-        for (String tableName : tableNamesArr) {
-            IJdxTable table = struct.getTable(tableName);
-            tableList.add(table);
-        }
+        List<IJdxTable> tableList = UtJdx.toTableList(tableNames, struct);
 
         // Сортируем список, чтобы несколько snapsot-реплик не сломали ссылки
         List<IJdxTable> tableListSorted = UtJdx.sortTablesByReference(tableList);
@@ -785,14 +747,14 @@ public class JdxReplSrv {
         for (IJdxTable table : tableListSorted) {
             log.info("srvRequestSnapshot, table: " + table.getName());
 
-            // Выбор очереди - общая (queCommon) или личная для станции
+            // Выбор очереди, куда пошлем запрос - общая (queCommon) или личная для станции (queOut001)
             IJdxReplicaQue que;
             if (queName.compareToIgnoreCase(UtQue.QUE_COMMON) == 0) {
                 // Очередь queCommon (общая)
                 que = queCommon;
             } else if (queName.compareToIgnoreCase(UtQue.QUE_OUT001) == 0) {
                 // Очередь queOut001 станции (инициализационная или для системных команд)
-                JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
+                JdxQueOut001 queOut001 = new JdxQueOut001(db, destinationWsId);
                 queOut001.setDataRoot(dataRoot);
                 que = queOut001;
             } else {
@@ -800,12 +762,38 @@ public class JdxReplSrv {
             }
 
             // Реплика-запрос snapshot
-            IReplica replica = utRepl.createReplicaWsSendSnapshot(wsId, table.getName());
+            IReplica replica = utRepl.createReplicaWsSendSnapshot(destinationWsId, table.getName());
 
-            // Реплика-запрос snapshot - в исходящую очередь реплик
+            // Реплика-запрос snapshot - в очередь реплик
             que.push(replica);
         }
 
+    }
+
+    public void srvSendSnapshot(long destinationWsId, String tableNames) throws Exception {
+        log.info("srvSendSnapshot, destination wsId: " + destinationWsId + ", tables: " + tableNames);
+
+
+        // todo: static RefDecodeStrategy instance - ваще капец!
+        // Именно за этим тут и нужна ИНИЦИАЛИЗАЦИЯ ws.init, и больше ни для чего!!!
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.init();
+
+
+        // Разложим в список
+        List<IJdxTable> tables = UtJdx.toTableList(tableNames, struct);
+
+        // Очередь queOut001 станции (инициализационная или для системных команд)
+        JdxQueOut001 queOut001 = new JdxQueOut001(db, destinationWsId);
+        queOut001.setDataRoot(dataRoot);
+
+        // Правила публикаций (фильтры) для станции wsId.
+        // В качестве фильтров на ОТПРАВКУ от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
+        IPublicationRuleStorage publicationRule = publicationsInList.get(destinationWsId);
+
+        // Создаем снимок таблицы и кладем его в очередь queOut (разрешаем отсылать чужие записи)
+        UtRepl ut = new UtRepl(db, struct);
+        ut.createSendSnapshotForTables(tables, SERVER_WS_ID, destinationWsId, publicationRule, false, queOut001);
     }
 
 

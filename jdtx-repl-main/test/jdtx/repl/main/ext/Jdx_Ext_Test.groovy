@@ -171,5 +171,20 @@ class Jdx_Ext_Test extends JcTestCase {
         ext.rec_relocate(args);
     }
 
+    @Test
+    void repl_send_snapshot_srv() {
+        IVariantMap args = new VariantMap()
+        args.put("ws", 2)
+        args.put("tables", "CommentText,CommentTip,Usr,UsrGrp,UsrOtdel")
+        extSrv.repl_send_snapshot(args)
+    }
+
+    @Test
+    void repl_send_snapshot_ws() {
+        IVariantMap args = new VariantMap()
+        args.put("tables", "CommentText,CommentTip,Usr,UsrGrp,UsrOtdel")
+        extWs2.repl_send_snapshot(args)
+    }
+
 
 }

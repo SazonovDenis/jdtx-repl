@@ -37,7 +37,7 @@ public class UtJdx {
     /**
      * Сортирует список таблиц с учетом foreign key и по алфавиту.
      * В начале списка оказываются таблицы, которые не ссылаются на другие таблицы (например, справочники).
-     * Сортировка по алфавиту можкт пригодится для предсказуемого порядка, если таблицы не зависят друг от друга.
+     * Сортировка по алфавиту может пригодится для предсказуемого порядка, если таблицы не зависят друг от друга.
      * Результат можно применять для определения порядка таблиц при ins, для избежания проблем со ссылочной целостностью.
      *
      * @param lst исходный список
@@ -483,4 +483,18 @@ public class UtJdx {
     }
 
 
+    /**
+     * Разложим tableNames в список
+     */
+    public static List<IJdxTable> toTableList(String tableNames, IJdxDbStruct struct) {
+        List<IJdxTable> tableList = new ArrayList<>();
+        //
+        String[] tableNamesArr = tableNames.split(",");
+        for (String tableName : tableNamesArr) {
+            IJdxTable table = struct.getTable(tableName);
+            tableList.add(table);
+        }
+        //
+        return tableList;
+    }
 }

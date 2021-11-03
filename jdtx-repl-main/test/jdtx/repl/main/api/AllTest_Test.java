@@ -19,7 +19,7 @@ public class AllTest_Test extends AppTestCase {
         test5.setUp();
         test5.test_allSetUp_TestAll_filter();
 
-        // Прогон сценария репликации: добавление рабочей станции в середине
+        // Прогон сценария репликации: добавление рабочей станции после того, как остальные уже поработали некоторое время
         JdxReplWsSrv_AddWs_Test test2 = new JdxReplWsSrv_AddWs_Test();
         test2.setUp();
         test2.test_all();
@@ -33,11 +33,11 @@ public class AllTest_Test extends AppTestCase {
         test1.setUp();
         test1.test_Restore_06_Run();
 
-        // Проверка восстановления утраченной базы рабочей станции по данным с сервера
+        // Прогон сценария репликации: восстановление утраченной базы рабочей станции по данным с сервера
         JdxReplWsSrv_RestoreWsFromSrv_Test test6 = new JdxReplWsSrv_RestoreWsFromSrv_Test();
         test6.setUp();
         test6.test_All();
-        //
+        // С фильтрами
         test6 = new JdxReplWsSrv_RestoreWsFromSrv_Test();
         test6.setUp();
         test6.test_All_filter();

@@ -9,7 +9,6 @@ import jandcode.utils.variant.*;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.database_info.*;
 import jdtx.repl.main.api.decoder.*;
-import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.manager.*;
@@ -270,66 +269,6 @@ public class JdxReplWs {
 
 
     /**
-     * Создаем snapsot-реплики для таблиц tablesNew,
-     * фильруем по фильтрам,
-     * помещаем их в очередь out.
-     */
-    private void createSnapsotTablesIntoQueOut(List<IJdxTable> tablesNew, boolean forbidNotOwnId) throws Exception {
-        // Создаем snapshot-реплики
-        List<IReplica> replicasSnapshot;
-        db.startTran();
-        try {
-            UtRepl ut = new UtRepl(db, struct);
-            replicasSnapshot = ut.createSnapshotsForTables(tablesNew, wsId, publicationOut, forbidNotOwnId);
-            //
-            db.commit();
-        } catch (Exception e) {
-            db.rollback(e);
-            throw e;
-        }
-
-
-        // ---
-        // Фильтруем записи в snapshot-репликах
-        List<IReplica> replicasSnapshotFiltered = new ArrayList<>();
-
-        // Фильтр записей
-        IReplicaFilter filter = new ReplicaFilter();
-
-        // Фильтр, параметры: получатель реплики (для правил публикации)
-        // При выгрузке snapshot с рабочей станцции получатель, строго говоря, не определен, но чтобы не было ошибок
-        // при вычислении выражений, будем считать значение PARAM_wsDestination равным своей рабочей станции.
-        filter.getFilterParams().put("wsDestination", String.valueOf(wsId));
-        // Параметры (для правил публикации): автор реплики
-        filter.getFilterParams().put("wsAuthor", String.valueOf(wsId));
-
-        // Фильтруем записи
-        for (IReplica replicaSnapshot : replicasSnapshot) {
-            IReplica replicaForWs = filter.convertReplicaForWs(replicaSnapshot, publicationOut);
-            replicasSnapshotFiltered.add(replicaForWs);
-        }
-
-
-        // ---
-        // Помещаем snapshot-реплики в очередь
-        for (IReplica replicaForWs : replicasSnapshotFiltered) {
-            //
-            db.startTran(); // todo убрать Tran
-            try {
-                // Помещаем реплику в очередь
-                queOut.push(replicaForWs);
-
-                //
-                db.commit();
-            } catch (Exception e) {
-                db.rollback(e);
-                throw e;
-            }
-        }
-    }
-
-
-    /**
      * Выполнение фиксации структуры:
      * - дополнение аудита
      * - "реальная" структура запоминается как "зафиксированная"
@@ -439,7 +378,9 @@ public class JdxReplWs {
         if (sendSnapshotForNewTables) {
             db.startTran();
             try {
-                createSnapsotTablesIntoQueOut(tablesNew, true);
+                // Параметры (для правил публикации и фильтрации): автор и получатель реплики реплики - wsId
+                UtRepl ut = new UtRepl(db, struct);
+                ut.createSendSnapshotForTables(tablesNew, wsId, wsId, publicationOut, true, queOut);
 
                 //
                 db.commit();
@@ -968,11 +909,13 @@ public class JdxReplWs {
                 // Реакция на команду, если получатель - именно наша
                 if (destinationWsId == wsId) {
                     // Список из одной таблицы
-                    List<IJdxTable> tablesNew = new ArrayList<>();
-                    tablesNew.add(struct.getTable(tableName));
+                    List<IJdxTable> tables = new ArrayList<>();
+                    tables.add(struct.getTable(tableName));
 
                     // Создаем снимок таблицы и кладем его в очередь queOut (разрешаем отсылать чужие записи)
-                    createSnapsotTablesIntoQueOut(tablesNew, false);
+                    // Параметры (для правил публикации и фильтрации): автор и получатель реплики реплики - wsId
+                    UtRepl ut = new UtRepl(db, struct);
+                    ut.createSendSnapshotForTables(tables, wsId, wsId, publicationOut, false, queOut);
 
                     // Выкладывание реплики "snapshot отправлен"
                     reportReplica(JdxReplicaType.SEND_SNAPSHOT_DONE);
@@ -1479,7 +1422,7 @@ public class JdxReplWs {
             return outReplicaFile;
         }
 
-        // Поиск проблемной записи выполняется в двух каталогах - in и in001
+        // Поиск проблемной записи выполняется в этих каталогах
         String dirNameOut = queOut.getBaseDir();
         String dirNameIn001 = queIn001.getBaseDir();
         String dirNameIn = queIn.getBaseDir();
