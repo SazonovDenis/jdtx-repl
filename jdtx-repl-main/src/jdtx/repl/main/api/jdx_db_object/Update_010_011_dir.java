@@ -79,8 +79,14 @@ public class Update_010_011_dir implements ISqlScriptExecutor {
 
         //
         File[] files = dir.listFiles((FileFilter) new WildcardFileFilter("*.zip", IOCase.INSENSITIVE));
+        int n = 0;
         for (File file : files) {
             convertFile(dirName, file.getName());
+            //
+            n++;
+            if (n % 1000 == 0) {
+                log.info("  " + n + "/" + files.length + ", " + file.getName());
+            }
         }
 
         //

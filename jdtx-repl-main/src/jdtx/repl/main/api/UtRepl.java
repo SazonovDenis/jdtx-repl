@@ -794,7 +794,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         //
         for (IJdxTable tableOrderedSample : struct.getTables()) {
             for (IJdxTable tableSource : tablesSource) {
-                if (tableOrderedSample.getName().compareTo(tableSource.getName()) ==0) {
+                if (tableOrderedSample.getName().compareTo(tableSource.getName()) == 0) {
                     tablesOrdered.add(tableSource);
                     break;
                 }
@@ -810,6 +810,8 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
      * помещаем их в очередь out.
      */
     public void createSendSnapshotForTables(List<IJdxTable> tables, long wsIdAuthor, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot, boolean forbidNotOwnId, IJdxQue que) throws Exception {
+        log.info("createSendSnapshotForTables, wsAuthor: " + wsIdAuthor + ", wsAuthor: " + wsIdDestination + ", que: " + que.getBaseDir());
+
         // В tables будет соблюден порядок сортировки таблиц с учетом foreign key.
         // При последующем применении snapsot важен порядок.
         tables = UtJdx.sortTablesByReference(tables);

@@ -1115,7 +1115,11 @@ public class JdxReplWs {
      * Применяем входящие реплики из очереди
      */
     public void handleQueIn() throws Exception {
-        handleQueIn001();
+        ReplicaUseResult useResult = handleQueIn001();
+        if (useResult.doBreak) {
+            // Раз просили прерваться - значит прерываемся
+            return;
+        }
         handleQueIn(false);
     }
 
