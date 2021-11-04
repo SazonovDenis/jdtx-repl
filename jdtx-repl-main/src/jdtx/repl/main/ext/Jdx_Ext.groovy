@@ -950,16 +950,12 @@ class Jdx_Ext extends ProjectExt {
                 db = app.service(ModelService.class).model.getDb()
                 db.connect()
 
-                // Рабочая станция
-                JdxReplWs ws = new JdxReplWs(db)
-                ws.init()
-
                 // Выполнение команды
                 try {
                     // Останавливаем задачу
                     UtReplService.stop(false)
                     // Удаляем задачу
-                    UtReplService.remove(ws)
+                    UtReplService.remove(db)
                     Collection<ServiceInfo> taskList = UtReplService.serviceList();
                     ServiceInfo.printList(taskList);
                 } catch (Exception e) {

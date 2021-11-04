@@ -1,5 +1,6 @@
 package jdtx.repl.main.service;
 
+import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.ut.*;
@@ -222,9 +223,12 @@ public class UtReplService {
     }
 
     /**
-     * Удаляем задачи по рабочей станции
+     * Удаляем задачи по рабочей станции.
      */
-    public static void remove(JdxReplWs ws) throws Exception {
+    public static void remove(Db db) throws Exception {
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.readIdGuid();
+
         // Удаляем задачу "Запуск процесса"
         String serviceName = "JadatexSync" + UtReplService.getServiceNameSuffix(ws);
         removeService(serviceName);
@@ -263,8 +267,22 @@ public class UtReplService {
         if (exitCode1 == 0) {
             UtRun.printRes(res1);
         } else {
+            if (!serviceExists(serviceName)) {
+                log.info("Service not installed: " + serviceName);
+            }
+
             UtRun.printRes(exitCode1, res1);
         }
+    }
+
+    private static boolean serviceExists(String serviceName) throws Exception {
+        List<ServiceInfo> serviceList = UtReplService.serviceList();
+        for (ServiceInfo service : serviceList) {
+            if (service.get("ServiceName").compareTo(serviceName) == 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String getServiceNameSuffix(JdxReplWs ws) {

@@ -118,15 +118,7 @@ public class JdxReplWs {
         IJdxDbStruct structActual = structReader.readDbStruct();
 
         // Читаем код нашей станции
-        DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO").getCurRec();
-        this.wsId = rec.getValueLong("ws_id");
-        // Проверяем код нашей станции
-        if (this.wsId == 0) {
-            throw new XError("Invalid workstation.ws_id == 0");
-        }
-
-        //
-        this.wsGuid = rec.getValueString("guid");
+        readIdGuid();
 
         // Чтение конфигурации
         CfgManager cfgManager = new CfgManager(db);
@@ -194,6 +186,22 @@ public class JdxReplWs {
 
         // Чтобы были
         UtFile.mkdirs(dataRoot + "temp");
+    }
+
+    /**
+     * Читаем код нашей станции.
+     * Оформлен как отдельный метод, чтобы можно было вызывать только его
+     * из jdtx.repl.main.service.UtReplService#remove(), без инициализации и смены версии БД.
+     */
+    public void readIdGuid() throws Exception {
+        DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO").getCurRec();
+        this.wsId = rec.getValueLong("ws_id");
+        //
+        this.wsGuid = rec.getValueString("guid");
+        // Проверяем код нашей станции
+        if (this.wsId == 0) {
+            throw new XError("Invalid workstation.ws_id == 0");
+        }
     }
 
     private IVariantMap loadAppCfg(JSONObject app) {

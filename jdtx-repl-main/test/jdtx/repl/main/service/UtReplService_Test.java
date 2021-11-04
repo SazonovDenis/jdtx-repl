@@ -26,6 +26,8 @@ public class UtReplService_Test extends AppTestCase {
 
     @Test
     public void test_install() throws Exception {
+        logOn();
+
         // БД
         Db db = app.service(ModelService.class).getModel().getDb();
         db.connect();
@@ -43,16 +45,14 @@ public class UtReplService_Test extends AppTestCase {
 
     @Test
     public void test_remove() throws Exception {
+        logOn();
+
         // БД
         Db db = app.service(ModelService.class).getModel().getDb();
         db.connect();
 
-        // Рабочая станция
-        JdxReplWs ws = new JdxReplWs(db);
-        ws.init();
-
         //
-        UtReplService.remove(ws);
+        UtReplService.remove(db);
 
         //
         test_ServiceListPrint();
