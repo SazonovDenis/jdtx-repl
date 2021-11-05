@@ -142,7 +142,8 @@ public class MailerHttp implements IMailer {
         UtJdx.validateReplicaFields(replica);
 
         // Проверки: не отправляли ли ранее такую реплику?
-        // Защита от ситуации "восстановление БД из бэкапа"
+        // Защита от ситуации "восстановление БД из бэкапа", а также
+        // защита от ситуации "после переноса рабочей станции на старом компьютере проснулась старая копия рабочей станции"
         JSONObject resState = getState_internal(box);
         JSONObject last_info = (JSONObject) resState.get("last_info");
         long srv_age = longValueOf(last_info.getOrDefault("no", 0));

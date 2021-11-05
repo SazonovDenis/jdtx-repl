@@ -358,7 +358,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
     }
 
     @Test
-    public void test_findReplicasInDirs() throws Exception {
+    public void test_findFilesInDirs() throws Exception {
         // Формируем каталоги
         String root = new File("temp/dirs").getAbsolutePath() + "/";
         UtFile.cleanDir(root);

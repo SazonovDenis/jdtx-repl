@@ -1434,6 +1434,7 @@ public class JdxReplWs {
             return outReplicaFile;
         }
 
+        // todo: при невозможности применения реплики из-за fk, и последующем поиске в репликах, не искать в репликах queIn глубже, чем текущая реплика - приедут более старшие, от других станций, которые поправят дела
         // Поиск проблемной записи выполняется в этих каталогах
         String dirNameIn001 = queIn001.getBaseDir();
         String dirNameIn = queIn.getBaseDir();
@@ -1492,6 +1493,12 @@ public class JdxReplWs {
         // Сколько исходящих реплик отмечено как отправленое на сервер
         JdxMailStateManagerWs mailStateManager = new JdxMailStateManagerWs(db);
         long noSendMarked = mailStateManager.getMailSendDone();
+
+
+        // todo: сделать так, чтобы при проверке repairAfterBackupRestore
+        // ранее отправленная в ЯЩИК реплика с таким же crc как и у нас - не считалась ошибкой не требовала "ручного" запуска ремонта, а восстанавливалась автоматически
+        //////////////////// String srv_lastCrc = (String) last_info.getOrDefault("crc", "");
+        /////////////////////// String md5file = UtJdx.getMd5File(replica.getFile());
 
 
         // Есть ли отметка о начале ремонта
