@@ -12,9 +12,23 @@ public class UtRecMergeRW {
 
     // todo: все сериализацию сделать в xml, а не в json
     public Collection<RecMergePlan> readTasks(String fileName) throws Exception {
-        Collection<RecMergePlan> mergeTasks = new ArrayList<>();
+        Collection<RecMergePlan> mergeTasks;
 
         InputStream inputStream = new FileInputStream(fileName);
+        try {
+            UtRecMergeRW reader = new UtRecMergeRW();
+            mergeTasks = reader.readTasks(inputStream);
+        } finally {
+            inputStream.close();
+        }
+
+        //
+        return mergeTasks;
+    }
+
+    public Collection<RecMergePlan> readTasks(InputStream inputStream) throws Exception {
+        Collection<RecMergePlan> mergeTasks = new ArrayList<>();
+
         Reader reader = new InputStreamReader(inputStream);
         JSONParser parser = new JSONParser();
         JSONArray jsonPoints = (JSONArray) parser.parse(reader);
@@ -55,40 +69,6 @@ public class UtRecMergeRW {
             json.add(taskJson);
         }
         UtFile.saveString(json.toJSONString(), new File(fileName));
-    }
-
-    public void writeMergeResilts(MergeResultTableMap mergeResults, String fileName) throws Exception {
-        JSONObject json = new JSONObject();
-        for (String tableName : mergeResults.keySet()) {
-            MergeResultTable mergeResult = mergeResults.get(tableName);
-
-            JSONObject resultJson = new JSONObject();
-
-            // mergeResult.recordsUpdated
-            JSONObject mergeResultsRefTable = new JSONObject();
-            for (String refTableName : mergeResult.recordsUpdated.keySet()) {
-                RecordsUpdated recordsUpdated = mergeResult.recordsUpdated.get(refTableName);
-                JSONObject mergeResultRefTableJson = new JSONObject();
-                mergeResultRefTableJson.put("refTableName", recordsUpdated.refTableName);
-                mergeResultRefTableJson.put("refFieldName", recordsUpdated.refFieldName);
-                mergeResultRefTableJson.put("recordsUpdated", dataStoreToList(recordsUpdated.recordsUpdated));
-                mergeResultsRefTable.put(refTableName, mergeResultRefTableJson);
-            }
-            resultJson.put("recordsUpdated", mergeResultsRefTable);
-
-            // mergeResult.recordsDeleted
-            List<Map> recordsDeleted = dataStoreToList(mergeResult.recordsDeleted);
-            resultJson.put("recordsDeleted", recordsDeleted);
-
-            //
-            json.put(tableName, resultJson);
-        }
-        UtFile.saveString(json.toJSONString(), new File(fileName));
-    }
-
-    public MergeResultTableMap readResults(String fileName) throws Exception {
-        // todo: реализовать
-        return null;
     }
 
     private List<Map> dataStoreToList(DataStore store) {

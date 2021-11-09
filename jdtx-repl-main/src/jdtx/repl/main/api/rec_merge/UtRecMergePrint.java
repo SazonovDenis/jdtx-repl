@@ -2,6 +2,7 @@ package jdtx.repl.main.api.rec_merge;
 
 import jandcode.dbm.data.*;
 
+import java.io.*;
 import java.util.*;
 
 public class UtRecMergePrint {
@@ -26,28 +27,57 @@ public class UtRecMergePrint {
         for (RecMergePlan mergeTask : mergeTasks) {
             System.out.println(mergeTask.tableName + ": " + mergeTask.recordEtalon);
             System.out.println("Delete: " + mergeTask.recordsDelete);
-            //System.out.println();
         }
     }
 
-    public static void printMergeResults(MergeResultTableMap mergeResults) {
+    public static void printMergeResults(File fileResults) throws Exception {
+        // Читаем результат выполнения задачи
+        RecMergeResultReader resultReader = new RecMergeResultReader(new FileInputStream(fileResults));
+
+        // Печатаем результат выполнения задачи
+        UtRecMergePrint utRecMergePrint = new UtRecMergePrint();
+        utRecMergePrint.printMergeResults(resultReader);
+
+        //
+        resultReader.close();
+    }
+
+    public void printMergeResults(RecMergeResultReader resultReader) throws Exception {
         System.out.println("MergeResults:");
         System.out.println();
-        for (String taskTableName : mergeResults.keySet()) {
-            System.out.println("TableName: " + taskTableName);
+
+        //
+        MergeResultTableItem tableItem = resultReader.nextResultTable();
+
+        while (tableItem != null) {
+            String tableName = tableItem.tableName;
+
+            if (tableItem.tableOperation == MergeResultTableItem.UPD) {
+                System.out.println("Records updated in " + tableName + ":");
+            } else {
+                System.out.println("Records deleted from " + tableName + ":");
+            }
+
+            //
+            doRecs(resultReader);
+
+            //
             System.out.println();
 
-            MergeResultTable mergeResultTable = mergeResults.get(taskTableName);
 
-            System.out.println("Records updated for tables, referenced to " + taskTableName + ":");
-            printRecordsUpdated(mergeResultTable.recordsUpdated);
+            //
+            tableItem = resultReader.nextResultTable();
+        }
+    }
 
-            System.out.println("Records deleted from " + taskTableName + ":");
-            if (mergeResultTable.recordsDeleted == null || mergeResultTable.recordsDeleted.size() == 0) {
-                System.out.println("Records deleted: empty");
-            } else {
-                UtData.outTable(mergeResultTable.recordsDeleted);
-            }
+    private void doRecs(RecMergeResultReader resultReader) {
+        //
+        Map<String, Object> rec = resultReader.nextRec();
+        while (rec != null) {
+            System.out.println(rec);
+
+            //
+            rec = resultReader.nextRec();
         }
     }
 

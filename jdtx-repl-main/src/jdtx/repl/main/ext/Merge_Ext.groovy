@@ -51,8 +51,6 @@ class Merge_Ext extends ProjectExt {
     }
 
     /**
-     * rec_merge_find
-     * @param args
      */
     void rec_merge_find(IVariantMap args) {
         String table = args.getValueString("table")
@@ -72,9 +70,9 @@ class Merge_Ext extends ProjectExt {
         }
 
         // Не затирать существующий
-        File outFile = new File(file);
+        File outFile = new File(file)
         if (outFile.exists()) {
-            throw new XError("Файл уже существует: " + outFile.getCanonicalPath());
+            throw new XError("Файл уже существует: " + outFile.getCanonicalPath())
         }
 
         // БД
@@ -121,21 +119,17 @@ class Merge_Ext extends ProjectExt {
     }
 
     /**
-     * rec_merge_find
-     * @param args
      */
     void rec_merge_exec(IVariantMap args) {
         String file = args.getValueString("file")
-        boolean delete = args.getValueBoolean("delete", false)
-        boolean print = args.getValueBoolean("print", false)
         if (file == null || file.length() == 0) {
             throw new XError("Не указан [file] - файл с задачами на слияние")
         }
 
         // Не затирать существующий
-        File outFile = new File(UtFile.removeExt(file) + ".result.json");
+        File outFile = new File(UtFile.removeExt(file) + ".result.zip")
         if (outFile.exists()) {
-            throw new XError("Файл уже существует: " + outFile.getCanonicalPath());
+            throw new XError("Файл уже существует: " + outFile.getCanonicalPath())
         }
 
         // БД
@@ -155,23 +149,16 @@ class Merge_Ext extends ProjectExt {
             UtRecMergeRW reader = new UtRecMergeRW()
             Collection<RecMergePlan> mergeTasks = reader.readTasks(file)
 
-            // Печатаем задачи на слияние
-            if (print) {
-                UtRecMergePrint.printTasks(mergeTasks)
-            }
-
-            // Исполняем задачи на слияние
-            UtRecMerge utRecMerge = new UtRecMerge(db, struct)
-            MergeResultTableMap mergeResults = utRecMerge.execMergePlan(mergeTasks, delete)
-
             // Сохраняем результат выполнения задачи
-            reader = new UtRecMergeRW()
-            reader.writeMergeResilts(mergeResults, outFile.getAbsolutePath())
+            RecMergeResultWriter recMergeResultWriter = new RecMergeResultWriter()
+            recMergeResultWriter.open(outFile)
 
-            // Печатаем результат выполнения задачи
-            if (print) {
-                UtRecMergePrint.printMergeResults(mergeResults)
-            }
+            // Исполняем
+            UtRecMerge utRecMerge = new UtRecMerge(db, struct)
+            utRecMerge.execMergePlan(mergeTasks, recMergeResultWriter)
+
+            // Сохраняем
+            recMergeResultWriter.close()
         } finally {
             db.disconnect()
         }
@@ -188,6 +175,17 @@ class Merge_Ext extends ProjectExt {
         if (idSour == 0) {
             throw new XError("Не указан [sour] - исходный pk")
         }
+        String outFileName = args.getValueString("outFile")
+        File outFile
+        if (outFileName == null || outFileName.length() == 0) {
+            outFile = new File("relocateCheck_" + tableName + "_" + idSour + ".zip")
+        } else {
+            outFile = new File(outFileName)
+        }
+        // Не затирать существующий
+        if (outFile.exists()) {
+            throw new XError("Файл уже существует: " + outFile.getCanonicalPath())
+        }
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -202,14 +200,11 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             //
-            UtRecMerge relocator = new UtRecMerge(db, struct)
+            UtRecRelocator relocator = new UtRecRelocator(db, struct)
+            relocator.relocateIdCheck(tableName, idSour, outFile)
 
             //
-            MergeResultTable relocateCheckResult = relocator.recordsRelocateFindRefs(tableName, idSour)
-            System.out.println("Record sour:")
-            UtData.outTable(relocateCheckResult.recordsDeleted)
-            System.out.println("Records updated for tables, referenced to " + "Lic" + ":")
-            UtRecMergePrint.printRecordsUpdated(relocateCheckResult.recordsUpdated)
+            System.out.println("OutFile: " + outFile.getAbsolutePath())
 
         } finally {
             db.disconnect()
@@ -231,6 +226,17 @@ class Merge_Ext extends ProjectExt {
         if (idDest == 0) {
             throw new XError("Не указан [dest] - конечный pk")
         }
+        String outFileName = args.getValueString("outFile")
+        File outFile
+        if (outFileName == null || outFileName.length() == 0) {
+            outFile = new File("relocate_" + tableName + "_" + idSour + "_" + idDest + ".zip")
+        } else {
+            outFile = new File(outFileName)
+        }
+        // Не затирать существующий
+        if (outFile.exists()) {
+            throw new XError("Файл уже существует: " + outFile.getCanonicalPath())
+        }
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -245,17 +251,19 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             //
-            UtRecMerge relocator = new UtRecMerge(db, struct)
-
             System.out.println("Record sour:")
             UtData.outTable(db.loadSql("select * from " + tableName + " where id = " + idSour))
 
             //
-            relocator.relocateId(tableName, idSour, idDest)
+            UtRecRelocator relocator = new UtRecRelocator(db, struct)
+            relocator.relocateId(tableName, idSour, idDest, outFile)
 
             //
             System.out.println("Record dest:")
             UtData.outTable(db.loadSql("select * from " + tableName + " where id = " + idDest))
+
+            //
+            System.out.println("OutFile: " + outFile.getAbsolutePath())
 
         } finally {
             db.disconnect()
@@ -265,11 +273,15 @@ class Merge_Ext extends ProjectExt {
     void rec_relocate_all(IVariantMap args) {
         String tableName = args.getValueString("table")
         long idSour = args.getValueLong("sour")
+        String dirName = args.getValueString("dir")
         if (tableName == null || tableName.length() == 0) {
             throw new XError("Не указана [table] - имя таблицы")
         }
         if (idSour == 0) {
             throw new XError("Не указан [sour] - значение pk, выше которого нужно перемещать запись")
+        }
+        if (dirName == null || dirName.length() == 0) {
+            throw new XError("Не указан [outDir] - каталог с результатом")
         }
 
         // БД
@@ -285,8 +297,9 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             //
-            UtRecMerge relocator = new UtRecMerge(db, struct)
-            relocator.relocateAllId(tableName, idSour)
+            dirName = UtFile.unnormPath(dirName) + "/"
+            UtRecRelocator relocator = new UtRecRelocator(db, struct)
+            relocator.relocateIdAll(tableName, idSour, dirName)
         } finally {
             db.disconnect()
         }

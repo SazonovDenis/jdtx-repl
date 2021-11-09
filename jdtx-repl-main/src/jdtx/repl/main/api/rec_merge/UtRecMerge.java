@@ -12,6 +12,7 @@ import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 import org.joda.time.*;
 
+import java.io.*;
 import java.util.*;
 
 /**
@@ -20,11 +21,8 @@ import java.util.*;
  */
 public class UtRecMerge implements IUtRecMerge {
 
-    public static final boolean DO_DELETE = true;
-    public static final boolean UPDATE_ONLY = false;
 
     int COMMIT_SIZE = 100;
-
 
     Db db;
     JdxDbUtils dbu;
@@ -155,9 +153,22 @@ public class UtRecMerge implements IUtRecMerge {
         return resList;
     }
 
+
+    public void execMergePlan(Collection<RecMergePlan> plans, File resultFile) throws Exception {
+        // Сохраняем результат выполнения задачи
+        RecMergeResultWriter recMergeResultWriter = new RecMergeResultWriter();
+        recMergeResultWriter.open(resultFile);
+
+        // Исполняем
+        execMergePlan(plans, recMergeResultWriter);
+
+        // Сохраняем
+        recMergeResultWriter.close();
+    }
+
     @Override
-    public MergeResultTableMap execMergePlan(Collection<RecMergePlan> plans, boolean doDelete) throws Exception {
-        MergeResultTableMap result = new MergeResultTableMap();
+    public void execMergePlan(Collection<RecMergePlan> plans, RecMergeResultWriter resultWriter) throws Exception {
+        boolean doDelete = true;
 
         //
         try {
@@ -170,9 +181,6 @@ public class UtRecMerge implements IUtRecMerge {
 
             //
             for (RecMergePlan mergePlan : plans) {
-                //
-                MergeResultTable taskResultForTable = result.addForTable(mergePlan.tableName);
-
                 // INS - Создаем эталонную запись.
                 // "Эталонная" запись должна быть именно ВСТАВЛЕНА, а не выбранной из уже существующих,
                 // т.к. на рабочей станции может НЕ ОКАЗАТЬСЯ той записи, которую назначили как "эталонная".
@@ -183,18 +191,27 @@ public class UtRecMerge implements IUtRecMerge {
                 //
                 long etalonRecId = dbu.insertRec(mergePlan.tableName, params);
 
+
+                // DEL - Сохранияем то, что нужно удалить
+                if (doDelete) {
+                    recordsDeleteSave(mergePlan.tableName, mergePlan.recordsDelete, resultWriter);
+                }
+
+                // UPD - Сохранияем то, где нужно перебить ссылки
+                recordsRelocateSave(mergePlan.tableName, mergePlan.recordsDelete, resultWriter);
+
+
                 // UPD - Перебиваем ссылки у зависимых таблиц
-                recordsRelocateRefs(mergePlan.tableName, etalonRecId, mergePlan.recordsDelete, taskResultForTable);
+                recordsRelocateExec(mergePlan.tableName, mergePlan.recordsDelete, etalonRecId);
 
                 // DEL - Удаляем лишние (теперь уже) записи
                 if (doDelete) {
-                    recordsDelete(mergePlan.tableName, mergePlan.recordsDelete, taskResultForTable);
+                    recordsDeleteExec(mergePlan.tableName, mergePlan.recordsDelete);
                 }
 
 
                 //
                 done = done + 1;
-
                 if (done % 10 == 0) {
                     log.info("done: " + done + "/" + count);
                 }
@@ -215,9 +232,6 @@ public class UtRecMerge implements IUtRecMerge {
             db.rollback();
             throw e;
         }
-
-        //
-        return result;
     }
 
     // Подготовка recParams - значений полей для записи в БД
@@ -257,90 +271,10 @@ public class UtRecMerge implements IUtRecMerge {
     }
 
     /**
-     * Перемещатель id записей
+     * Вытаскиват все, что нужно будет обновить (в разных таблицах),
+     * если делать relocate/delete записи idSour в таблице tableName
      */
-    public void relocateId(String tableName, long idSour, long idDest) throws Exception {
-        if (idSour == idDest) {
-            throw new XError("Error relocateId: idSour == idDest");
-        }
-        if (idSour == 0) {
-            throw new XError("Error relocateId: idSour == 0");
-        }
-        if (idDest == 0) {
-            throw new XError("Error relocateId: idDest == 0");
-        }
-
-
-        db.startTran();
-        try {
-            // Проверяем, что idSour не пустая
-            String pkField = struct.getTable(tableName).getPrimaryKey().get(0).getName();
-            String sql = "select * from " + tableName + " where " + pkField + " = :" + pkField;
-            DataRecord recSour = dbu.loadSqlRec(sql, UtCnv.toMap(pkField, idSour));
-
-            // Копируем запись tableName.idSour в tableName.idDest
-            recSour.setValue(pkField, idDest);
-            dbu.insertRec(tableName, recSour.getValues());
-
-            //
-            UtRecMerge utrm = new UtRecMerge(db, struct);
-            MergeResultTable taskResultForTable = new MergeResultTable();
-            ArrayList<Long> recordsDelete = new ArrayList<>();
-            recordsDelete.add(idSour);
-
-            // Перебиваем ссылки у зависимых таблиц с tableName.idSour на tableName.idDest
-            utrm.recordsRelocateRefs(tableName, idDest, recordsDelete, taskResultForTable);
-
-            // Удаляем старую запись tableName.idSour
-            utrm.recordsDelete(tableName, recordsDelete, taskResultForTable);
-
-            //
-            db.commit();
-        } catch (Exception e) {
-            db.rollback();
-            throw e;
-        }
-    }
-
-
-    // Вытаскиват все, что нужно будет обновить (в разных таблицах),
-    // если делать relocate/delete записи idSour в таблице tableName
-    public MergeResultTable recordsRelocateFindRefs(String tableName, long idSour) throws Exception {
-        MergeResultTable relocateCheckResult = new MergeResultTable();
-
-        // Проверяем, что idSour не пустая
-        String pkField = struct.getTable(tableName).getPrimaryKey().get(0).getName();
-        String sql = "select * from " + tableName + " where " + pkField + " = :" + pkField;
-        relocateCheckResult.recordsDeleted = db.loadSql(sql, UtCnv.toMap(pkField, idSour));
-
-        // Проверяем все ссылки tableName.idSour на tableName.idDest
-        Map<String, Collection<IJdxForeignKey>> refsToTable = getRefsToTable(tableName);
-        for (String refTableName : refsToTable.keySet()) {
-            Collection<IJdxForeignKey> fkList = refsToTable.get(refTableName);
-            for (IJdxForeignKey fk : fkList) {
-                String refFieldName = fk.getField().getName();
-                //
-                String sqlSelect = "select * from " + refTableName + " where " + refFieldName + " = :" + refFieldName + "_SOUR";
-                Map paramsSelect = UtCnv.toMap(refFieldName + "_SOUR", idSour);
-                DataStore refData = db.loadSql(sqlSelect, paramsSelect);
-                // Селектим как есть сейчас
-                RecordsUpdated recordsUpdateInfo = relocateCheckResult.recordsUpdated.getOrAddForTable(refTableName, refFieldName);
-                // Отчитаемся
-                if (recordsUpdateInfo.recordsUpdated == null) {
-                    recordsUpdateInfo.recordsUpdated = refData;
-                } else {
-                    UtData.copyStore(refData, recordsUpdateInfo.recordsUpdated);
-                }
-            }
-        }
-
-        //
-        return relocateCheckResult;
-    }
-
-
-    // UPD - Перебиваем ссылки у зависимых таблиц tableName с записей recordsDelete на запись etalonRecId
-    public void recordsRelocateRefs(String tableName, long etalonRecId, Collection<Long> recordsDelete, MergeResultTable taskResultForTable) throws Exception {
+    public void recordsRelocateSave(String tableName, Collection<Long> recordsDelete, RecMergeResultWriter resultWriter) throws Exception {
         // Собираем зависимости
         Map<String, Collection<IJdxForeignKey>> refsToTable = getRefsToTable(tableName);
 
@@ -349,13 +283,37 @@ public class UtRecMerge implements IUtRecMerge {
             Collection<IJdxForeignKey> fkList = refsToTable.get(refTableName);
             for (IJdxForeignKey fk : fkList) {
                 String refFieldName = fk.getField().getName();
+                String sqlSelect = "select * from " + refTableName + " where " + refFieldName + " = :" + refFieldName;
 
                 //
-                RecordsUpdated taskRecResult = taskResultForTable.recordsUpdated.getOrAddForTable(refTableName, refFieldName);
+                for (long deleteRecId : recordsDelete) {
+                    Map params = UtCnv.toMap(refFieldName, deleteRecId);
 
-                //
+                    // Селектим как есть сейчас
+                    DbQuery stUpdated = db.openSql(sqlSelect, params);
+
+                    // Отчитаемся
+                    resultWriter.openTableItem(new MergeResultTableItem(refTableName, MergeResultTableItem.UPD));
+                    while (!stUpdated.eof()) {
+                        resultWriter.addRec(stUpdated);
+                        stUpdated.next();
+                    }
+                    resultWriter.closeTableItem();
+                }
+            }
+        }
+    }
+
+    public void recordsRelocateExec(String tableName, Collection<Long> recordsDelete, long etalonRecId) throws Exception {
+        // Собираем зависимости
+        Map<String, Collection<IJdxForeignKey>> refsToTable = getRefsToTable(tableName);
+
+        // Обрабатываем зависимости
+        for (String refTableName : refsToTable.keySet()) {
+            Collection<IJdxForeignKey> fkList = refsToTable.get(refTableName);
+            for (IJdxForeignKey fk : fkList) {
+                String refFieldName = fk.getField().getName();
                 String sqlUpdate = "update " + refTableName + " set " + refFieldName + " = :" + refFieldName + "_NEW" + " where " + refFieldName + " = :" + refFieldName + "_OLD";
-                String sqlSelect = "select * from " + refTableName + " where " + refFieldName + " = :" + refFieldName + "_OLD";
 
                 //
                 for (long deleteRecId : recordsDelete) {
@@ -364,42 +322,50 @@ public class UtRecMerge implements IUtRecMerge {
                             refFieldName + "_NEW", etalonRecId
                     );
 
-                    // Селектим как есть сейчас
-                    DataStore stUpdated = db.loadSql(sqlSelect, params);
-
                     // Апдейтим
                     db.execSql(sqlUpdate, params);
-
-                    // Отчитаемся
-                    if (taskRecResult.recordsUpdated == null) {
-                        taskRecResult.recordsUpdated = stUpdated;
-                    } else {
-                        UtData.copyStore(stUpdated, taskRecResult.recordsUpdated);
-                    }
                 }
             }
         }
     }
 
-    // DEL - Удаляем записи recordsDelete из tableName
-    public void recordsDelete(String tableName, Collection<Long> recordsDelete, MergeResultTable taskResultForTable) throws Exception {
+    /**
+     * Сохраняем записи recordsDelete из tableName
+     */
+    public void recordsDeleteSave(String tableName, Collection<Long> recordsDelete, RecMergeResultWriter resultWriter) throws Exception {
         String pkField = struct.getTable(tableName).getPrimaryKey().get(0).getName();
-        //
         String sqlSelect = "select * from " + tableName + " where " + pkField + " = :" + pkField;
-        String sqlDelete = "delete from " + tableName + " where " + pkField + " = :" + pkField;
+
+        //
+        resultWriter.openTableItem(new MergeResultTableItem(tableName, MergeResultTableItem.DEL) );
 
         //
         for (long deleteRecId : recordsDelete) {
             Map params = UtCnv.toMap(pkField, deleteRecId);
 
             // Селектим как есть сейчас
-            DataStore refData = db.loadSql(sqlSelect, params);
+            DataStore store = db.loadSql(sqlSelect, params);
+
             // Отчитаемся
-            if (taskResultForTable.recordsDeleted == null) {
-                taskResultForTable.recordsDeleted = refData;
-            } else {
-                UtData.copyStore(refData, taskResultForTable.recordsDeleted);
+            for (DataRecord rec : store) {
+                resultWriter.addRec(rec);
             }
+        }
+
+        //
+        resultWriter.closeTableItem();
+    }
+
+    /**
+     * Удаляем записи recordsDelete из tableName
+     */
+    public void recordsDeleteExec(String tableName, Collection<Long> recordsDelete) throws Exception {
+        String pkField = struct.getTable(tableName).getPrimaryKey().get(0).getName();
+        String sqlDelete = "delete from " + tableName + " where " + pkField + " = :" + pkField;
+
+        //
+        for (long deleteRecId : recordsDelete) {
+            Map params = UtCnv.toMap(pkField, deleteRecId);
 
             // Удаляем
             db.execSql(sqlDelete, params);
@@ -408,9 +374,76 @@ public class UtRecMerge implements IUtRecMerge {
 
 
     @Override
-    public void revertExecMergePlan(MergeResultTableMap taskResults) {
-        // todo: реализовать
-        throw new XError("Not implemented");
+    public void revertExecMergePlan(RecMergeResultReader resultReader) throws Exception {
+        log.info("revertExecMergePlan");
+
+        //
+        try {
+            db.startTran();
+
+            //
+            MergeResultTableItem tableItem = resultReader.nextResultTable();
+
+            while (tableItem != null) {
+                String tableName = tableItem.tableName;
+                IJdxTable table = struct.getTable(tableName);
+
+
+                //
+                log.info("revertExecMergePlan, table: " + tableName);
+
+                //
+                long doneRecs = doRecs(resultReader, tableItem.tableOperation, table);
+
+                //
+                log.info("  table done: " + tableName + ", total: " + doneRecs);
+
+
+                //
+                tableItem = resultReader.nextResultTable();
+            }
+
+
+            //
+            db.commit();
+        } catch (Exception e) {
+            db.rollback();
+            throw e;
+        }
+
+        //
+        log.info("revertExecMergePlan done");
+    }
+
+    private long doRecs(RecMergeResultReader resultReader, int tableOperation, IJdxTable table) throws Exception {
+        String sql;
+        if (tableOperation == MergeResultTableItem.UPD) {
+            sql = dbu.generateSqlUpdate(table.getName(), null, null);
+        } else {
+            sql = dbu.generateSqlInsert(table.getName(), null, null);
+        }
+
+        //
+        long doneRecs = 0;
+
+        //
+        Map<String, Object> rec = resultReader.nextRec();
+        while (rec != null) {
+            Map params = prepareParams(rec, table);
+            db.execSql(sql, params);
+
+            //
+            doneRecs++;
+            if (doneRecs % 10000 == 0) {
+                log.info("  table: " + table.getName() + ", " + doneRecs);
+            }
+
+            //
+            rec = resultReader.nextRec();
+        }
+
+        //
+        return doneRecs;
     }
 
 
@@ -539,72 +572,5 @@ public class UtRecMerge implements IUtRecMerge {
         return false;
     }
 
-
-    public Map<String, Collection<Long>> findUsages(String tableName, long maxPkValue) throws Exception {
-        Map<String, Collection<Long>> res = new HashMap<>();
-
-        // Собираем зависимости
-        Map<String, Collection<IJdxForeignKey>> refsToTable = getRefsToTable(tableName);
-
-        // Обрабатываем зависимости
-        for (String refTableName : refsToTable.keySet()) {
-            Collection<IJdxForeignKey> fkList = refsToTable.get(refTableName);
-
-            // Копим тут
-            Collection<Long> ids = new ArrayList<>();
-            res.put(refTableName, ids);
-
-            //
-            for (IJdxForeignKey fk : fkList) {
-                String refFieldName = fk.getField().getName();
-                //String pkField = struct.getTable(refTableName).getPrimaryKey().get(0).getName();
-
-                // Селектим записи, подлежащие переносу
-                String sqlSelect = "select " + refFieldName + " from " + refTableName + " where " + refFieldName + " >= " + maxPkValue + " group by " + refFieldName;
-                DataStore st = db.loadSql(sqlSelect);
-
-                //
-                ids.addAll(UtData.uniqueValues(st, refFieldName));
-
-            }
-        }
-
-        //
-        return res;
-    }
-
-
-    public void relocateAllId(String tableName, long maxPkValue) throws Exception {
-        //
-        System.out.println("References for table: " + tableName);
-
-        //
-        PkGeneratorService svc = db.getApp().service(PkGeneratorService.class);
-        IPkGenerator generator = svc.createGenerator(db, struct);
-
-        // Находим использование таблицы tableName (ссылки на нее)
-        Map<String, Collection<Long>> usges = findUsages(tableName, maxPkValue);
-
-        // Переносим ссылки на tableName
-        for (String refTableName : usges.keySet()) {
-            Collection<Long> ids = usges.get(refTableName);
-
-            //
-            System.out.println(refTableName + " -> " + tableName + ", count: " + ids.size());
-
-            //
-            long idDest = generator.getValue(generator.getGeneratorName(tableName));
-            for (Object idSourObj : ids) {
-                idDest = idDest + 1;
-                generator.setValue(generator.getGeneratorName(tableName), idDest);
-                //
-                long idSour = UtJdx.longValueOf(idSourObj);
-                //
-                System.out.println("  " + tableName + "." + idSour + " -> " + idDest);
-                //
-                relocateId(tableName, idSour, idDest);
-            }
-        }
-    }
 
 }

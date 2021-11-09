@@ -19,7 +19,7 @@ public class RecMergePlan {
     Map<String, Object> recordEtalon;
 
     /**
-     * Удаляемые записи в таблице tableName
+     * Удаляемые записи (Id) в таблице tableName
      */
     Collection<Long> recordsDelete;
 

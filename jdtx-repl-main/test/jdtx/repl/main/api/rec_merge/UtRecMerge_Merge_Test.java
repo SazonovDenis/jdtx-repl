@@ -186,37 +186,35 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         namesStr = "Name";
         fieldNames = namesStr.split(",");
 
-        // Провоцируем появление дубликатов
-        test_MakeDuplicatesLoadDuplicates();
-
         //
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
+
+
+        // Провоцируем появление дубликатов
+        test_MakeDuplicatesLoadDuplicates();
 
         // Ищем дубликаты
         Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(tableName, fieldNames);
         //
         assertEquals("Найдены дубликаты", true, duplicates.size() > 0);
 
+
         // Тупо превращаем дубликаты в задачу на слияние
         Collection<RecMergePlan> mergeTasks = utRecMerge.prepareMergePlan(tableName, duplicates);
         //
         assertEquals("Есть задание на слияние", true, mergeTasks.size() > 0);
 
+
         // Печатаем задачу на слияние
         UtRecMergePrint.printTasks(mergeTasks);
 
         // Исполняем задачу на слияние
-        MergeResultTableMap mergeResults = utRecMerge.execMergePlan(mergeTasks, UtRecMerge.DO_DELETE);
+        File fileResults = new File("temp/result.zip");
+        utRecMerge.execMergePlan(mergeTasks, fileResults);
 
         // Печатаем результат выполнения задачи
-        UtRecMergePrint.printMergeResults(mergeResults);
+        UtRecMergePrint.printMergeResults(fileResults);
 
-        // Сохраняем результат выполнения задачи
-        UtRecMergeRW reader = new UtRecMergeRW();
-        reader.writeMergeResilts(mergeResults, "temp/result.json");
-
-
-        // =================
 
         // Снова ищем дубликаты
         UtData.outTable(db.loadSql("select id, " + namesStr + " from " + tableName + " order by id"));
@@ -257,6 +255,7 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         // Формируем задачу на слияние
         test_makeMergeTask_ToFile();
 
+
         // Читаем задачу на слияние
         UtRecMergeRW reader = new UtRecMergeRW();
         Collection<RecMergePlan> mergeTasks = reader.readTasks("temp/task.json");
@@ -266,18 +265,15 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         // Печатаем задачу на слияние
         UtRecMergePrint.printTasks(mergeTasks);
 
+
         // Исполняем задачу на слияние
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
-        MergeResultTableMap mergeResults = utRecMerge.execMergePlan(mergeTasks, UtRecMerge.DO_DELETE);
+        File fileResults = new File("temp/result.zip");
+        utRecMerge.execMergePlan(mergeTasks, fileResults);
 
         // Печатаем результат выполнения задачи
-        UtRecMergePrint.printMergeResults(mergeResults);
+        UtRecMergePrint.printMergeResults(fileResults);
 
-        // Сохраняем результат выполнения задачи
-        reader = new UtRecMergeRW();
-        reader.writeMergeResilts(mergeResults, "temp/result.json");
-
-        // =================
 
         // Снова ищем дубликаты
         UtData.outTable(db.loadSql("select id, " + namesStr + " from " + tableName + " order by id"));
@@ -322,17 +318,14 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
 
         // Исполняем задачу на слияние
         System.out.println("Исполняем задачу на слияние");
-        //utRecMerge.execMergePlan(mergeTasks, UtRecMerge.UPDATE_ONLY);
-        //UtData.outTable(db.loadSql("select id, " + namesStr + " from " + tableName + " order by " + namesStr + ", id"));
-        //
-        MergeResultTableMap mergeResults = utRecMerge.execMergePlan(mergeTasks, UtRecMerge.DO_DELETE);
+
+
+        // Исполняем задачу на слияние
+        File fileResults = new File("temp/_" + tableName + ".result.zip");
+        utRecMerge.execMergePlan(mergeTasks, fileResults);
 
         // Печатаем результат выполнения задачи
-        UtRecMergePrint.printMergeResults(mergeResults);
-
-        // Сохраняем результат выполнения задачи
-        reader = new UtRecMergeRW();
-        reader.writeMergeResilts(mergeResults, "temp/_" + tableName + ".result.json");
+        UtRecMergePrint.printMergeResults(fileResults);
 
         // Печатаем теперь дубликаты
         UtData.outTable(db.loadSql("select id, " + namesStr + " from " + tableName + " order by " + namesStr + ", id"));
@@ -384,10 +377,11 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         System.out.println("Исполняем задачу на слияние");
         //
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
-        MergeResultTableMap mergeResults = utRecMerge.execMergePlan(mergeTasks, UtRecMerge.DO_DELETE);
+        File fileResults = new File("temp/result.zip");
+        utRecMerge.execMergePlan(mergeTasks, fileResults);
 
         // Печатаем результат выполнения задачи
-        UtRecMergePrint.printMergeResults(mergeResults);
+        UtRecMergePrint.printMergeResults(fileResults);
     }
 
     @Test
@@ -402,22 +396,21 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         // Печатаем задачу на слияние
         UtRecMergePrint.printTasks(mergeTasks);
 
+
         // Исполняем задачу на слияние
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
-        MergeResultTableMap mergeResults = utRecMerge.execMergePlan(mergeTasks, UtRecMerge.DO_DELETE);
+        File fileResults = new File("temp/result.zip");
+        utRecMerge.execMergePlan(mergeTasks, fileResults);
 
         // Печатаем результат выполнения задачи
-        UtRecMergePrint.printMergeResults(mergeResults);
+        UtRecMergePrint.printMergeResults(fileResults);
 
-        // Сохраняем результат выполнения задачи
-        reader = new UtRecMergeRW();
-        reader.writeMergeResilts(mergeResults, "temp/result.json");
 
         // Читаем результат выполнения задачи
-        MergeResultTableMap mergeResults1 = reader.readResults("temp/result.json");
+        RecMergeResultReader resultReader = new RecMergeResultReader(new FileInputStream(fileResults));
+        // Отменяем слияние
+        utRecMerge.revertExecMergePlan(resultReader);
 
-        //
-        utRecMerge.revertExecMergePlan(mergeResults1);
 
         // Снова ищем дубликаты
         Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(tableName, fieldNames);

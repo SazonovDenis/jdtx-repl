@@ -165,8 +165,6 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
         ext.rec_merge_find(args);
 
         //
-        args.put("delete", true);
-        //args.put("delete", false);
         ext.rec_merge_exec(args);
 
         //

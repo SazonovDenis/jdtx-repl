@@ -11,7 +11,9 @@ import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ext.*;
 import org.junit.*;
 
-public class UtRecMerge_Relocate_Test extends DbmTestCase {
+import java.io.*;
+
+public class UtRecRelocator_Test extends DbmTestCase {
 
     Db db;
     IJdxDbStruct struct;
@@ -38,29 +40,27 @@ public class UtRecMerge_Relocate_Test extends DbmTestCase {
 
     @Test
     public void test_check() throws Exception {
-        UtRecMerge relocator = new UtRecMerge(db, struct);
+        UtRecRelocator relocator = new UtRecRelocator(db, struct);
 
         //
         UtData.outTable(db.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by NameF"));
 
         //
         long idSour = 1357;
-        long idDest = 200001357;
-        MergeResultTable relocateCheckResult = relocator.recordsRelocateFindRefs("Lic", idSour);
-        System.out.println("Record relocated:");
-        UtData.outTable(relocateCheckResult.recordsDeleted);
-        System.out.println("Records updated for tables, referenced to " + "Lic" + ":");
-        UtRecMergePrint.printRecordsUpdated(relocateCheckResult.recordsUpdated);
+        File outFile = new File("temp/relocateCheck_Lic_" + idSour + ".zip");
+        relocator.relocateIdCheck("Lic", idSour, outFile);
+        System.out.println("OutFile: " + outFile.getAbsolutePath());
+        UtRecMergePrint.printMergeResults(outFile);
+        System.out.println("");
 
         //
         idSour = 200001357;
-        idDest = 1357;
+        outFile = new File("temp/relocateCheck_Lic_" + idSour + ".zip");
         try {
-            relocateCheckResult = relocator.recordsRelocateFindRefs("Lic", idSour);
-            System.out.println("Record deleted:");
-            UtData.outTable(relocateCheckResult.recordsDeleted);
-            System.out.println("Records updated for tables, referenced to " + "Lic" + ":");
-            UtRecMergePrint.printRecordsUpdated(relocateCheckResult.recordsUpdated);
+            relocator.relocateIdCheck("Lic", idSour, outFile);
+            System.out.println("OutFile: " + outFile.getAbsolutePath());
+            UtRecMergePrint.printMergeResults(outFile);
+            System.out.println("");
         } catch (Exception e) {
             if (e.getMessage().compareToIgnoreCase("No result in sqlrec") != 0) {
                 throw e;
@@ -70,7 +70,7 @@ public class UtRecMerge_Relocate_Test extends DbmTestCase {
 
     @Test
     public void test_relocate() throws Exception {
-        UtRecMerge relocator = new UtRecMerge(db, struct);
+        UtRecRelocator relocator = new UtRecRelocator(db, struct);
 
         //
         System.out.println("===");
@@ -84,7 +84,8 @@ public class UtRecMerge_Relocate_Test extends DbmTestCase {
         //
         long idSour = id1;
         long idDest = 200001357;
-        relocator.relocateId("Lic", idSour, idDest);
+        File outFile = new File("temp/relocate_Lic_" + idSour + "_" + idDest + ".zip");
+        relocator.relocateId("Lic", idSour, idDest, outFile);
 
         //
         System.out.println("===");
@@ -95,7 +96,8 @@ public class UtRecMerge_Relocate_Test extends DbmTestCase {
         //
         idSour = 200001357;
         idDest = id1;
-        relocator.relocateId("Lic", idSour, idDest);
+        outFile = new File("temp/relocate_Lic_" + idSour + "_" + idDest + ".zip");
+        relocator.relocateId("Lic", idSour, idDest, outFile);
 
         //
         System.out.println("===");
@@ -107,7 +109,7 @@ public class UtRecMerge_Relocate_Test extends DbmTestCase {
 
     @Test
     public void test_fail() throws Exception {
-        UtRecMerge relocator = new UtRecMerge(db, struct);
+        UtRecRelocator relocator = new UtRecRelocator(db, struct);
 
         //
         DataStore ds = db.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by id");
@@ -120,8 +122,9 @@ public class UtRecMerge_Relocate_Test extends DbmTestCase {
         //
         long idSour = 9998;
         long idDest = 9999;
+        File outFile = new File("temp/relocate_Lic_" + idSour + "_" + idDest + ".zip");
         try {
-            relocator.relocateId("Lic", idSour, idDest);
+            relocator.relocateId("Lic", idSour, idDest, outFile);
         } catch (Exception e) {
             if (e.getMessage().compareToIgnoreCase("No result in sqlrec") != 0) {
                 throw e;
@@ -135,8 +138,9 @@ public class UtRecMerge_Relocate_Test extends DbmTestCase {
         //
         idSour = id1;
         idDest = id1;
+        outFile = new File("temp/relocate_Lic_" + idSour + "_" + idDest + ".zip");
         try {
-            relocator.relocateId("Lic", idSour, idDest);
+            relocator.relocateId("Lic", idSour, idDest, outFile);
             throw new XError("Нельзя перемещать в самого себя");
         } catch (Exception e) {
             if (!e.getMessage().contains("Error relocateId: idSour == idDest")) {
@@ -147,8 +151,9 @@ public class UtRecMerge_Relocate_Test extends DbmTestCase {
         //
         idSour = 0;
         idDest = id1;
+        outFile = new File("temp/relocate_Lic_" + idSour + "_" + idDest + ".zip");
         try {
-            relocator.relocateId("Lic", idSour, idDest);
+            relocator.relocateId("Lic", idSour, idDest, outFile);
             throw new XError("Нельзя перемещать id = 0");
         } catch (Exception e) {
             if (!e.getMessage().contains("Error relocateId: idSour == 0")) {
@@ -160,8 +165,9 @@ public class UtRecMerge_Relocate_Test extends DbmTestCase {
         //
         idSour = id1;
         idDest = 0;
+        outFile = new File("temp/relocate_Lic_" + idSour + "_" + idDest + ".zip");
         try {
-            relocator.relocateId("Lic", idSour, idDest);
+            relocator.relocateId("Lic", idSour, idDest, outFile);
             throw new XError("Нельзя перемещать id = 0");
         } catch (Exception e) {
             if (!e.getMessage().contains("Error relocateId: idDest == 0")) {
@@ -176,8 +182,9 @@ public class UtRecMerge_Relocate_Test extends DbmTestCase {
         //
         idSour = id1;
         idDest = id2;
+        outFile = new File("temp/relocate_Lic_" + idSour + "_" + idDest + ".zip");
         try {
-            relocator.relocateId("Lic", idSour, idDest);
+            relocator.relocateId("Lic", idSour, idDest, outFile);
             throw new XError("Нельзя перемещать в занятую");
         } catch (Exception e) {
             if (!e.getMessage().contains("violation of PRIMARY or UNIQUE KEY constraint")) {
@@ -199,11 +206,11 @@ public class UtRecMerge_Relocate_Test extends DbmTestCase {
         int maxPkValue = 100000000;
 
         //
-        UtRecMerge relocator = new UtRecMerge(db, struct);
+        UtRecRelocator relocator = new UtRecRelocator(db, struct);
 
         //
         for (String tableName : tableNamesArr) {
-            relocator.relocateAllId(tableName, maxPkValue);
+            relocator.relocateIdAll(tableName, maxPkValue, "temp/");
         }
 
     }
