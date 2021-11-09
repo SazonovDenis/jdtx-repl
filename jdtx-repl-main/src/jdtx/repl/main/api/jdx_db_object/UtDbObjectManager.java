@@ -40,7 +40,7 @@ public class UtDbObjectManager {
             }
         } catch (Exception e) {
             if (UtJdx.errorIs_TableNotExists(e)) {
-                throw new XError("Replication is not initialized");
+                throw new XError("Replication is not initialized: " + e.getMessage());
             } else {
                 throw e;
             }

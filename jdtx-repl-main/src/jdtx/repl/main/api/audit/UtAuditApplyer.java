@@ -71,6 +71,8 @@ public class UtAuditApplyer {
                         } else {
                             log.error("Файл временной реплики не удалось удалить");
                         }
+                    } else {
+                        log.warn("autoUseRepairReplica: " + autoUseRepairReplica);
                     }
                 }
                 throw (e);
