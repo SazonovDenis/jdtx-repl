@@ -22,7 +22,44 @@ public class JdxReplicaReaderXml_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_read() throws Exception {
+    public void test_read_1() throws Exception {
+        // Начинаем читать xml-файл с данными
+        File testFile_1 = new File("../_test-data/test_1.xml");
+        FileInputStream stream = new FileInputStream(testFile_1);
+        JdxReplicaReaderXml xmlReader = new JdxReplicaReaderXml(stream);
+
+        //
+        IJdxField fieldString = struct.getTable("LicDocTip").getField("Name");
+
+        //
+        String tableName = xmlReader.nextTable();
+        while (tableName != null) {
+            System.out.println("tableName: " + tableName);
+
+            Map<String, String> values = xmlReader.nextRec();
+            while (values != null) {
+                for (String key : values.keySet()) {
+                    String value = values.get(key);
+                    System.out.println("  " + key + " = [" + value + "] " + " = " + UtXml.strToValue(value, fieldString));
+                }
+                System.out.println("---");
+                //
+                values = xmlReader.nextRec();
+            }
+
+            //
+            System.out.println();
+
+            //
+            tableName = xmlReader.nextTable();
+        }
+
+        //
+        xmlReader.close();
+    }
+
+    @Test
+    public void test_read_2() throws Exception {
         // Начинаем читать xml-файл с данными
         File testFile_1 = new File("../_test-data/test_2.xml");
         FileInputStream stream = new FileInputStream(testFile_1);

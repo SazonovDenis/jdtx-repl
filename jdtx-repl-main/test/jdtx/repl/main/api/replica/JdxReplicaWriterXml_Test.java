@@ -25,9 +25,10 @@ public class JdxReplicaWriterXml_Test extends UtilsTestCase {
         //
         xmlWriter.startTable("XYZ");
         xmlWriter.appendRec();
-        xmlWriter.writeRecValue("A", "value A");
-        xmlWriter.writeRecValue("B", "value B");
-        xmlWriter.writeRecValue("C", "value C");
+        xmlWriter.writeRecValue("A", "value \n\rA");
+        xmlWriter.writeRecValue("B", "value \tB");
+        xmlWriter.writeRecValue("C", "value \\/\\C");
+        xmlWriter.writeRecValue("D", "value =D ==D");
         //
         xmlWriter.closeDocument();
         stream.close();
