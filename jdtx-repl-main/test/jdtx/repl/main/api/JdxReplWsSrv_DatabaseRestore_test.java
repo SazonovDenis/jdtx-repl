@@ -12,7 +12,7 @@ import java.io.*;
  * test_DatabaseRestore_step1 - провоцирует ошибку,
  * test_DatabaseRestore_step2 - исправляет ее
  */
-public class DatabaseRestore_test extends JdxReplWsSrv_Test {
+public class JdxReplWsSrv_DatabaseRestore_test extends JdxReplWsSrv_Test {
 
     @Test
     public void test_DatabaseRestore_step1() throws Exception {

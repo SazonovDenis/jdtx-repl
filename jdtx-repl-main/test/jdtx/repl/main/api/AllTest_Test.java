@@ -43,7 +43,7 @@ public class AllTest_Test extends AppTestCase {
         test6.test_All_filter();
 
         //
-        JdxDeleteCascade_Test test0 = new JdxDeleteCascade_Test();
+        JdxReplWsSrv_DeleteCascade_Test test0 = new JdxReplWsSrv_DeleteCascade_Test();
         test0.setUp();
         test0.test_allSetUp_CascadeDel();
 
@@ -70,7 +70,7 @@ public class AllTest_Test extends AppTestCase {
         test4.test_ModifyDbStruct();
 
         // Проверка ремонта базы при восстановлении из бэкапа
-        DatabaseRestore_test test7 = new DatabaseRestore_test();
+        JdxReplWsSrv_DatabaseRestore_test test7 = new JdxReplWsSrv_DatabaseRestore_test();
         test7.test_DatabaseRestore_step1();
         test7.test_DatabaseRestore_step2();
     }
