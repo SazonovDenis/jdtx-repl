@@ -11,10 +11,11 @@ import java.util.*;
 public class UtRepl_Depends_Test extends ReplDatabaseStruct_Test {
 
     String delim = "\n  ";
+    String tableMainName = "pawnChit";
 
     @Test
     public void test_getTablesDependsOn() throws Exception {
-        IJdxTable tableMain = struct.getTable("pawnChit");
+        IJdxTable tableMain = struct.getTable(tableMainName);
 
         //
         List<IJdxTable> res0 = UtJdx.getTablesDependsOn(tableMain, true);
@@ -40,6 +41,7 @@ public class UtRepl_Depends_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_getTablesDependsOn_() throws Exception {
         delim = ",";
+        tableMainName = "Lic";
         test_getTablesDependsOn();
         System.out.println();
     }
