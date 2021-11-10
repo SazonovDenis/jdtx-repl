@@ -25,6 +25,7 @@ import java.util.*;
 
 /**
  * Контекст сервера
+ * todo Разобраться с репликацией через папку - сейчас полностью сломано
  */
 public class JdxReplSrv {
 
@@ -648,32 +649,6 @@ public class JdxReplSrv {
     }
 
 
-    /**
-     * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано
-     * /
-     @Deprecated public void srvHandleCommonQueFrom(String cfgFileName, String mailDir) throws Exception {
-     // Готовим локальных курьеров (через папку)
-     Map<Long, IMailer> mailerListLocal = new HashMap<>();
-     fillMailerListLocal(mailerListLocal, cfgFileName, mailDir, 0);
-
-     // Физически забираем данные
-     srvHandleCommonQueInternal(mailerListLocal, queCommon);
-     }
-     */
-
-    /**
-     * @Deprecated public void srvDispatchReplicasToDir(String cfgFileName, String mailDir, SendRequiredInfo requiredInfo, long destinationWsId, boolean doMarkDone) throws Exception {
-     * // Готовим локальных курьеров (через папку)
-     * Map<Long, IMailer> mailerListLocal = new HashMap<>();
-     * fillMailerListLocal(mailerListLocal, cfgFileName, mailDir, destinationWsId);
-     * <p>
-     * // Физически отправляем данные
-     * srvDispatchReplicas(queCommon, mailerListLocal, requiredInfo, doMarkDone);
-     * }
-     * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано
-     * /
-     */
-
     public void srvSetWsMute(long destinationWsId) throws Exception {
         log.info("srvSetWs MUTE, destination.WsId: " + destinationWsId);
 
@@ -982,184 +957,10 @@ public class JdxReplSrv {
         }
     }
 
-    /**
-     * Сервер: распределение очереди по рабочим станциям
-     *
-     * @deprecated Нужно только для репликации через папку - сейчас полностью сломано
-     */
-/*
-    @Deprecated
-    private void srvDispatchReplicas(IJdxQue que, Map<Long, IMailer> mailerList, SendRequiredInfo requiredInfo, boolean doMarkDone) throws Exception {
-        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
-
-        // Все что у нас есть на раздачу
-        long commonQueMaxNo = que.getMaxNo();
-
-        //
-        for (Map.Entry en : mailerList.entrySet()) {
-            long wsId = (long) en.getKey();
-            IMailer mailer = (IMailer) en.getValue();
-
-            // Рассылаем на каждую станцию
-            try {
-                log.info("SrvDispatchReplicas, to.wsId: " + wsId);
-
-                //
-                long sendFrom;
-                long sendTo;
-                long count;
-
-                // ---
-                // queOut001 - очередь Que001
-
-                // Сначала проверим, надо ли отправить queOut001
-                JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
-                queOut001.setDataRoot(dataRoot);
-
-                //
-                sendFrom = stateManager.getDispatchDoneQueOut001(wsId) + 1;
-                sendTo = queOut001.getMaxNoFromDir(); // todo: очень некрасиво - путаюися "физический" (getMaxNo) и "логический" (getMaxNoFromDir) возраст
-
-                // Берем реплику - snapshot
-                count = 0;
-                for (long no = sendFrom; no <= sendTo; no++) {
-                    IReplica replica001 = queOut001.get(no);
-
-                    // Физически отправим реплику - snapshot
-                    mailer.send(replica001, "to001", no);
-
-                    // Отметим отправку
-                    if (doMarkDone) {
-                        // Отметим отправку очередного номера реплики.
-                        stateManager.setDispatchDoneQueOut001(wsId, no);
-                    }
-
-                    //
-                    count = count + 1;
-                }
-
-                //
-                if (sendFrom < sendTo) {
-                    log.info("Que001 DispatchReplicas done, wsId: " + wsId + ", queOut001.no: " + sendFrom + " .. " + sendTo + ", done count: " + count);
-                } else {
-                    log.info("Que001 DispatchReplicas done, wsId: " + wsId + ", queOut001.no: " + sendFrom + ", nothing done");
-                }
-
-
-                // ---
-                // queCommon - общая очередь
-
-                // Выясняем объем передачи
-                // Если никто не просит - узнаем сколько просит станция
-                SendRequiredInfo requiredInfoBox;
-                if (requiredInfo == null) {
-                    requiredInfoBox = mailer.getSendRequired("to");
-                } else {
-                    requiredInfoBox = requiredInfo;
-                }
-
-                //
-                if (requiredInfoBox.requiredFrom != -1) {
-                    // Попросили повторную отправку
-                    log.warn("Repeat send required, from: " + requiredInfoBox.requiredFrom + ", to: " + requiredInfoBox.requiredTo + ", recreate: " + requiredInfoBox.recreate);
-                    sendFrom = requiredInfoBox.requiredFrom;
-                    sendTo = requiredInfoBox.requiredTo;
-                } else {
-                    // Не просили - зададим сами (от последней отправленной до послейдней, что у нас есть на раздачу)
-                    sendFrom = stateManager.getDispatchDoneQueCommon(wsId) + 1;
-                    sendTo = commonQueMaxNo;
-                }
-
-                //
-                count = 0;
-                for (long no = sendFrom; no <= sendTo; no++) {
-                    // Берем реплику
-                    IReplica replica = que.get(no);
-
-                    //
-                    //log.debug("replica.age: " + replica.getInfo().getAge() + ", replica.wsId: " + replica.getInfo().getWsId());
-
-                    // Физически отправим реплику
-                    mailer.send(replica, "to", no); // todo это тупо - вот так копировать и перекладывать файлы из папки в папку???
-
-                    // Отметим отправку очередного номера реплики.
-                    if (doMarkDone) {
-                        stateManager.setMailSendDone(wsId, no);
-                        stateManager.setDispatchDoneQueCommon(wsId, no);
-                    }
-
-                    //
-                    count++;
-                }
-
-
-                // Отметить попытку записи (для отслеживания активности станции, когда нет данных для реальной передачи)
-                mailer.setData(null, "ping.write", "to");
-                // Отметить состояние сервера, данные сервера (сервер отчитывается о себе для отслеживания активности сервера)
-                Map info = getInfoSrv();
-                mailer.setData(info, "srv.info", null);
-
-
-                // Снимем флаг просьбы сервера
-                if (requiredInfoBox.requiredFrom != -1) {
-                    mailer.setSendRequired("to", new SendRequiredInfo());
-                    log.warn("Repeat send done");
-                }
-
-                //
-                if (sendFrom < sendTo) {
-                    log.info("QueCommon DispatchReplicas, to.wsId: " + wsId + ", queCommon.no: " + sendFrom + " .. " + sendTo + ", done count: " + count);
-                } else {
-                    log.info("QueCommon DispatchReplicas, to.wsId: " + wsId + ", queCommon.no: " + sendFrom + ", nothing done");
-                }
-
-            } catch (Exception e) {
-                // Ошибка для станции - пропускаем, идем дальше
-                log.error("Error in SrvDispatchReplicas, to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
-                log.error(Ut.getStackTrace(e));
-            }
-
-        }
-    }
-*/
     private Map getInfoSrv() {
         return null;
     }
 
-
-    /**
-     * Готовим спосок локальных (через папку) мейлеров, отдельные для каждой станции
-     */
-    private void fillMailerListLocal(Map<Long, IMailer> mailerListLocal, String cfgFileName, String mailDir, long destinationWsId) throws Exception {
-/*
-        // Готовим курьеров
-        mailDir = UtFile.unnormPath(mailDir) + "/";
-
-        //
-        JSONObject cfgData = UtRepl.loadAndValidateJsonFile(cfgFileName);
-
-        // Список активных рабочих станций
-        DataStore st = loadWsList(destinationWsId);
-
-        //
-        for (DataRecord rec : st) {
-            long wdId = rec.getValueLong("id");
-            String guid = rec.getValueString("guid");
-            String guidPath = guid.replace("-", "/");
-
-            // Конфиг для мейлера
-            JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wdId));
-            cfgWs.put("mailRemoteDir", mailDir + guidPath);
-
-            // Мейлер
-            IMailer mailerLocal = new MailerLocalFiles();
-            mailerLocal.init(cfgWs);
-
-            //
-            mailerListLocal.put(wdId, mailerLocal);
-        }
-*/
-    }
 
     /**
      * Список активных рабочих станций
