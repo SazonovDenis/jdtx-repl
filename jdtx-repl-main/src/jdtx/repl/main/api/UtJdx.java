@@ -45,7 +45,7 @@ public class UtJdx {
      */
     public static List<IJdxTable> sortTablesByReference(List<IJdxTable> lst) throws Exception {
         // отсортированный список таблиц
-        List<IJdxTable> sortLst = new ArrayList<IJdxTable>();
+        List<IJdxTable> sortLst = new ArrayList<>();
 
         // список таблиц, которые уже вошли в sortLst
         List<IJdxTable> usedLst = new ArrayList<IJdxTable>();
@@ -131,6 +131,79 @@ public class UtJdx {
 
         // Отсортированный список таблиц
         return sortLst;
+    }
+
+
+    /**
+     * Возвращает список таблиц, от которых зависит tableMain (по foreign key).
+     */
+    public static List<IJdxTable> getTablesDependsOn(IJdxTable tableMain, boolean all) throws Exception {
+        // Список таблиц
+        List<IJdxTable> res = new ArrayList<>();
+
+        //
+        getTablesDependsOnInternal(tableMain, all, res);
+
+        //
+        return res;
+    }
+
+    /**
+     * Возвращает список таблиц, которые зависят от tableMain (по foreign key).
+     */
+    public static List<IJdxTable> getDependTables(IJdxDbStruct struct, IJdxTable tableMain, boolean all) throws Exception {
+        // Список таблиц
+        List<IJdxTable> res = new ArrayList<>();
+
+        //
+        getDependTablesInternal(struct, tableMain, all, res);
+
+        //
+        return res;
+    }
+
+    private static void getDependTablesInternal(IJdxDbStruct struct, IJdxTable tableMain, boolean all, List<IJdxTable> res) {
+        //
+        for (IJdxTable tableRef : struct.getTables()) {
+
+            for (IJdxForeignKey fieldFk : tableRef.getForeignKeys()) {
+
+                if (tableMain == fieldFk.getTable()) {
+
+                    //
+                    if (res.contains(tableRef)) {
+                        continue;
+                    }
+
+                    //
+                    res.add(tableRef);
+
+                    //
+                    if (all) {
+                        getDependTablesInternal(struct, tableRef, all, res);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void getTablesDependsOnInternal(IJdxTable tableMain, boolean all, List<IJdxTable> res) {
+        for (IJdxForeignKey fieldFk : tableMain.getForeignKeys()) {
+            IJdxTable tableRef = fieldFk.getTable();
+
+            //
+            if (res.contains(tableRef)) {
+                continue;
+            }
+
+            //
+            res.add(tableRef);
+
+            //
+            if (all) {
+                getTablesDependsOnInternal(tableRef, all, res);
+            }
+        }
     }
 
     public static String getMd5File(File file) throws Exception {
@@ -497,4 +570,5 @@ public class UtJdx {
         //
         return tableList;
     }
+
 }
