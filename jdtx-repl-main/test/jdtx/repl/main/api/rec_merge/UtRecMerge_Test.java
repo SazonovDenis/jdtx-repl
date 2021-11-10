@@ -12,10 +12,9 @@ import java.io.*;
 import java.util.*;
 
 /**
- * todo: 1. Сериализация/десериализация в/из файла
- * todo: 2. Откат результат слияния
+ *
  */
-public class UtRecMerge_Merge_Test extends DbmTestCase {
+public class UtRecMerge_Test extends DbmTestCase {
 
     Db db;
     IJdxDbStruct struct;
@@ -46,18 +45,6 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
         struct = reader.readDbStruct();
         //
         logOn();
-    }
-
-    @Test
-    public void test_UtRecMergeReader() throws Exception {
-        InputStream inputStream = new FileInputStream("test/jdtx/repl/main/api/rec_merge/UtRecMergeTest.xml");
-        UtRecMergeReaderXml reader = new UtRecMergeReaderXml(inputStream);
-        Map map;
-        map = reader.nextRec();
-        while (map != null) {
-            System.out.println(map);
-            map = reader.nextRec();
-        }
     }
 
     @Test
