@@ -41,8 +41,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         cfg_json_decode = "test/etalon/decode_strategy.json";
         cfg_json_publication_srv = "test/etalon/publication_full_152_srv.json";
         cfg_json_publication_ws = "test/etalon/publication_full_152_ws.json";
-        //cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
-        //cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
     }
 
     /**

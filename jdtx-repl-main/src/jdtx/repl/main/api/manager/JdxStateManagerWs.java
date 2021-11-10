@@ -7,6 +7,7 @@ import jdtx.repl.main.api.*;
 /**
  * Состояние задач рабочей станции: отметки в БД, насколько отработаны очереди и прочее.
  * todo переименовать поле WS_STATE.que_out_no_done -> WS_STATE.age_que_out_done
+ * todo или даже WS_STATE.audit_age_done - ВОЗРАСТ обработанного аудита (помещенного в исходящую очередь)
  */
 public class JdxStateManagerWs {
 

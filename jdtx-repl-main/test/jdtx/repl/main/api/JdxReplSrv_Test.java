@@ -13,7 +13,7 @@ public class JdxReplSrv_Test extends ReplDatabaseStruct_Test {
      * Проверяем: сервер не должен подключаться к рабочей станции
      */
     @Test
-    public void test_init() throws Exception {
+    public void test_connectToWsDb() throws Exception {
         JdxReplSrv srv1 = new JdxReplSrv(db);
         srv1.init();
 

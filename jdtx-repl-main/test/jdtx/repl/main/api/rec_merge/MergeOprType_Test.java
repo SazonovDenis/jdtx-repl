@@ -6,7 +6,7 @@ import org.junit.Test;
 public class MergeOprType_Test extends TestCase {
 
     @Test
-    public void test() throws Exception {
+    public void test_toString() throws Exception {
         System.out.println("MergeOprType.UPD: " + MergeOprType.UPD);
         System.out.println("MergeOprType.DEL: " + MergeOprType.DEL);
         //
