@@ -1,45 +1,136 @@
 package jdtx.repl.main.api.rec_merge;
 
 import jandcode.dbm.data.*;
+import jandcode.utils.*;
+import jdtx.repl.main.api.util.*;
+import org.joda.time.*;
 
+import javax.xml.stream.*;
 import java.io.*;
+import java.util.zip.*;
 
 public class RecMergeResultWriter {
 
-    // todo Читатели/ писатели Результата -имплементация
 
-    public void open(File file) {
+    XMLStreamWriter writer;
+    OutputStream outputStream;
+    ZipOutputStream zipOutputStream;
+
+    // Статусы писателя
+    boolean currentElement_root = false;
+    boolean currentElement_table = false;
+
+
+    public void open(File file) throws Exception {
+        // Формируем файл
+        outputStream = new FileOutputStream(file);
+        // Zip-архив пишет в файл
+        zipOutputStream = new ZipOutputStream(outputStream);
+        // Файл "dat.xml" внутри Zip-архива
+        ZipEntry zipEntryHead = new ZipEntry("dat.xml");
+        zipOutputStream.putNextEntry(zipEntryHead);
+        // XML-писатель пишет в Zip-архив
+        XMLOutputFactory xof = XMLOutputFactory.newInstance();
+        writer = xof.createXMLStreamWriter(zipOutputStream, "utf-8");
+        //
+        startDocument();
+    }
+
+    public void close() throws Exception {
+        closeDocument();
+
+        // XML-писатель заканчивает
+        writer.flush();
+        writer.close();
+
+        // Заканчиваем запись в в zip-архив
+        zipOutputStream.closeEntry();
+        zipOutputStream.finish();
+        zipOutputStream.close();
+
+        // Закрываем файл
+        outputStream.close();
 
     }
 
-    public void close() {
 
+    public void openTableItem(MergeResultTableItem tableItem) throws XMLStreamException {
+        // Закрываем уровень
+
+        // <table>
+        if (currentElement_table) {
+            writer.writeEndElement();
+            currentElement_table = false;
+        }
+
+        // Открываем уровень
+        // <table>
+        writer.writeStartElement("table");
+        writer.writeAttribute("name", tableItem.tableName);
+        writer.writeAttribute("operation", String.valueOf(tableItem.tableOperation));
+        //
+        currentElement_table = true;
     }
 
+    public void addRec(DataRecord rec) throws XMLStreamException {
+        // <table>
+        if (!currentElement_table) {
+            throw new XMLStreamException("Not started currentElement_table");
+        }
 
-    public void openTableItem(MergeResultTableItem tableItem) {
+        //
+        writer.writeStartElement("rec");
 
+        //
+        for (String name : rec.getValues().keySet()) {
+            Object value = rec.getValue(name);
+
+            //
+            if (value instanceof byte[]) {
+                // Особая сериализация для BLOB
+                byte[] blob = (byte[]) value;
+                String blobBase64 = UtString.encodeBase64(blob);
+                writer.writeAttribute(name, blobBase64);
+            } else if (value instanceof DateTime) {
+                // Сериализация с или без timezone
+                // todo: Проверить сериализацию и десериализацию с/без timezone
+                writer.writeAttribute(name, UtDate.toString((DateTime) value));
+            } else {
+                // Обычная сериализация
+                writer.writeAttribute(name, UtStringEscape.escapeJava(String.valueOf(value)));
+            }
+        }
+
+        //
+        writer.writeEndElement();
     }
 
-    public void addRec(DataRecord rec) {
-
+    void startDocument() throws XMLStreamException {
+        writer.writeStartDocument();
+        writer.writeStartElement("root");
+        currentElement_root = true;
     }
 
-    public void closeTableItem() {
+    void closeDocument() throws Exception {
+        // Закрываем каждый уровень
 
+        // <table>
+        if (currentElement_table) {
+            writer.writeEndElement();
+            //
+            currentElement_table = false;
+        }
+
+        // Закрываем документ
+        if (currentElement_root) {
+            // <root>
+            writer.writeEndElement();
+            //
+            writer.writeEndDocument();
+            //
+            currentElement_root = false;
+        }
     }
 
-/*
-    public void addUpdatedTable(String refTableName) {
-
-    }
-
-    public void addUpdatedRec(Map<String, Object> rec) {
-
-    }
-
-    public void closeUpdatedTable() {
-
-    }*/
 
 }

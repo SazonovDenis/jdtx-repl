@@ -119,7 +119,7 @@ public class UtRecMerge_Merge_Test extends DbmTestCase {
             recordCount1 = res.records.size();
         }
         //
-        assertEquals("Есть задание на слияние", true, resList.size() == 1);
+        assertEquals("Есть задание на слияние", true, resList.size() != 0);
         assertEquals("Количество дубликатов", recordCount1, recordCount0 + 2);
     }
 

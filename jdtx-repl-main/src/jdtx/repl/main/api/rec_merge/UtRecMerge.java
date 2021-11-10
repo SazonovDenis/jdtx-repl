@@ -3,10 +3,7 @@ package jdtx.repl.main.api.rec_merge;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
-import jandcode.utils.error.*;
-import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.audit.*;
-import jdtx.repl.main.api.pk_generator.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
@@ -293,12 +290,11 @@ public class UtRecMerge implements IUtRecMerge {
                     DbQuery stUpdated = db.openSql(sqlSelect, params);
 
                     // Отчитаемся
-                    resultWriter.openTableItem(new MergeResultTableItem(refTableName, MergeResultTableItem.UPD));
+                    resultWriter.openTableItem(new MergeResultTableItem(refTableName, MergeOprType.UPD));
                     while (!stUpdated.eof()) {
                         resultWriter.addRec(stUpdated);
                         stUpdated.next();
                     }
-                    resultWriter.closeTableItem();
                 }
             }
         }
@@ -337,7 +333,7 @@ public class UtRecMerge implements IUtRecMerge {
         String sqlSelect = "select * from " + tableName + " where " + pkField + " = :" + pkField;
 
         //
-        resultWriter.openTableItem(new MergeResultTableItem(tableName, MergeResultTableItem.DEL) );
+        resultWriter.openTableItem(new MergeResultTableItem(tableName, MergeOprType.DEL) );
 
         //
         for (long deleteRecId : recordsDelete) {
@@ -351,9 +347,6 @@ public class UtRecMerge implements IUtRecMerge {
                 resultWriter.addRec(rec);
             }
         }
-
-        //
-        resultWriter.closeTableItem();
     }
 
     /**
@@ -415,9 +408,9 @@ public class UtRecMerge implements IUtRecMerge {
         log.info("revertExecMergePlan done");
     }
 
-    private long doRecs(RecMergeResultReader resultReader, int tableOperation, IJdxTable table) throws Exception {
+    private long doRecs(RecMergeResultReader resultReader, MergeOprType tableOperation, IJdxTable table) throws Exception {
         String sql;
-        if (tableOperation == MergeResultTableItem.UPD) {
+        if (tableOperation == MergeOprType.UPD) {
             sql = dbu.generateSqlUpdate(table.getName(), null, null);
         } else {
             sql = dbu.generateSqlInsert(table.getName(), null, null);

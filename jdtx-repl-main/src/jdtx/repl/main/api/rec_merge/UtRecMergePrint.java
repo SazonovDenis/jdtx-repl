@@ -2,11 +2,13 @@ package jdtx.repl.main.api.rec_merge;
 
 import jandcode.dbm.data.*;
 
+import javax.xml.stream.*;
 import java.io.*;
 import java.util.*;
 
 public class UtRecMergePrint {
 
+    //todo все тесты по merge и relocate - выполнить и вычистить лишнее
     public static void printRecordsUpdated(RecordsUpdatedMap recordsUpdatedMap) {
         for (String key : recordsUpdatedMap.keySet()) {
             RecordsUpdated recordsUpdated = recordsUpdatedMap.get(key);
@@ -52,7 +54,7 @@ public class UtRecMergePrint {
         while (tableItem != null) {
             String tableName = tableItem.tableName;
 
-            if (tableItem.tableOperation == MergeResultTableItem.UPD) {
+            if (tableItem.tableOperation == MergeOprType.UPD) {
                 System.out.println("Records updated in " + tableName + ":");
             } else {
                 System.out.println("Records deleted from " + tableName + ":");
@@ -70,7 +72,7 @@ public class UtRecMergePrint {
         }
     }
 
-    private void doRecs(RecMergeResultReader resultReader) {
+    private void doRecs(RecMergeResultReader resultReader) throws Exception {
         //
         Map<String, Object> rec = resultReader.nextRec();
         while (rec != null) {
