@@ -40,7 +40,7 @@ public class RecordFilter implements IRecordFilter {
 
 
     @Override
-    public boolean isMach(Map<String, Object> recValues) {
+    public boolean isMach(Map<String, String> recValues) {
         int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
         filterExpression.setVariable("PARAM_oprType", new BigDecimal(oprType));
 
@@ -67,30 +67,29 @@ public class RecordFilter implements IRecordFilter {
     }
 
 
-    void recordToExpressionParams(Map<String, Object> recValues) {
+    void recordToExpressionParams(Map<String, String> recValues) {
         // recValues -> filterExpression.params
         for (IJdxField field : publicationRule.getFields()) {
             String fieldName = field.getName();
-            Object fieldValue = recValues.get(fieldName);
+            String fieldValue = recValues.get(fieldName);
 
             //
             if (fieldValue != null) {
                 IJdxTable refTable = field.getRefTable();
                 if (field.isPrimaryKey() || refTable != null) {
                     // Ссылка
-                    JdxRef fieldValueRef = JdxRef.parse((String) fieldValue);
+                    JdxRef fieldValueRef = JdxRef.parse(fieldValue);
                     filterExpression.setVariable("RECORD_OWNER_" + fieldName, new BigDecimal(fieldValueRef.ws_id));
                     filterExpression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValueRef.value));
-                } else if (fieldValue instanceof Long || fieldValue instanceof Integer) {
+                } else if (field.getJdxDatatype() == JdxDataType.INTEGER) {
                     // Целочисленное поле
-                    filterExpression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValue.toString()));
+                    filterExpression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValue));
                 } else {
                     // Прочие поля
-                    String fieldValueStr = fieldValue.toString();
-                    if (fieldValueStr.length() > 0) {
+                    if (fieldValue.length() > 0) {
                         // filterExpression.setVariable(fieldName, fieldValueStr);
                         // todo: com.udojava.evalex.Expression.isNumber ошибается для дат в строке.
-                        // Пока это не важно - мы сейчас данные в фильтрах не используем
+                        // Пока это не важно - мы сейчас даты в фильтрах не используем
                     }
                 }
             }

@@ -8,9 +8,12 @@ import org.json.simple.parser.*;
 import java.io.*;
 import java.util.*;
 
+/**
+ * Чтение/запись RecMergePlan в json
+ */
 public class UtRecMergeRW {
 
-    // todo: все сериализацию сделать в xml, а не в json
+
     public Collection<RecMergePlan> readTasks(String fileName) throws Exception {
         Collection<RecMergePlan> mergeTasks;
 

@@ -30,7 +30,7 @@ public class UtRecMerge_Test extends DbmTestCase {
     //String namesStr = "RNN";
 
     //
-    String[] fieldNames = namesStr.split(",");
+    Collection<String> fieldNames = Arrays.asList(namesStr.split(","));
 
 
     @Override
@@ -122,7 +122,7 @@ public class UtRecMerge_Test extends DbmTestCase {
         namesStr = "NameF,Rnn,DocSer";
         String namesStrInfo = "NameF,NameI,NameO";
         String namesStrUpdate = "NameF = 'NameF_test', DocSer = ''";
-        fieldNames = namesStr.split(",");
+        fieldNames = Arrays.asList(namesStr.split(","));
 
         // =================
 
@@ -171,7 +171,7 @@ public class UtRecMerge_Test extends DbmTestCase {
     public void test_execMergeTask() throws Exception {
         tableName = "LicDocTip";
         namesStr = "Name";
-        fieldNames = namesStr.split(",");
+        fieldNames = Arrays.asList(namesStr.split(","));
 
         //
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
@@ -273,7 +273,7 @@ public class UtRecMerge_Test extends DbmTestCase {
     public void test_execMergeTask_FromFile_tmp() throws Exception {
         tableName = "SubjectTip";
         namesStr = "Name,Parent";
-        fieldNames = namesStr.split(",");
+        fieldNames = Arrays.asList(namesStr.split(","));
 
         // Провоцируем появление дубликатов
         test_MakeDuplicatesLoadDuplicates();
@@ -338,7 +338,7 @@ public class UtRecMerge_Test extends DbmTestCase {
         //  Астана.parent = 2
         tableName = "Region";
         namesStr = "RegionTip,Parent,Name";
-        fieldNames = namesStr.split(",");
+        fieldNames = Arrays.asList(namesStr.split(","));
 
         // Ищем дубликаты
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
@@ -405,5 +405,25 @@ public class UtRecMerge_Test extends DbmTestCase {
         assertEquals("Найдены дубликаты", true, duplicates.size() > 0);
     }
 
+    @Test
+    public void test_NoDuplicates() throws Exception {
+        logOff();
+        assertEquals("Найдены дубликаты LicDocTip", true, getDuplicatesCount("LicDocTip", "Name") == 0);
+        System.out.println();
+        assertEquals("Найдены дубликаты LicDocVid", true, getDuplicatesCount("LicDocVid", "Name") == 0);
+        System.out.println();
+    }
+
+    public long getDuplicatesCount(String tableName, String fieldNamesStr) throws Exception {
+        DataStore st = db.loadSql("select count(*) cnt, " + fieldNamesStr + " from " + tableName + " where id <> 0 group by " + fieldNamesStr);
+        //
+        System.out.println(tableName + "." + fieldNamesStr);
+        UtData.outTable(st);
+        //
+        UtRecMerge utRecMerge = new UtRecMerge(db, struct);
+        Collection<String> fieldNames = Arrays.asList(fieldNamesStr.split(","));
+        Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(tableName, fieldNames);
+        return duplicates.size();
+    }
 
 }

@@ -56,16 +56,17 @@ public class JdxReplicaReaderXml {
         return null;
     }
 
-    public Map<String, Object> nextRec() throws XMLStreamException {
+    public Map<String, String> nextRec() throws XMLStreamException {
         while (reader.hasNext()) {
             int event = reader.next();
             if (event == XMLStreamConstants.START_ELEMENT) {
                 if (reader.getLocalName().compareToIgnoreCase("rec") == 0) {
                     // Значения полей
-                    Map<String, Object> values = new HashMap<>();
+                    Map<String, String> values = new HashMap<>();
                     for (int i = 0; i < reader.getAttributeCount(); i++) {
                         String fieldName = reader.getAttributeLocalName(i);
                         String fieldValue = reader.getAttributeValue(i);
+/*
                         // Грязный хак: BLOB в MIME-кодировке НЕ нуждются в маскировке,
                         // а зато StringEscapeUtils.unescapeJava() падает на больших строках,
                         // выдает "Java heap space".
@@ -75,6 +76,8 @@ public class JdxReplicaReaderXml {
                         } else {
                             values.put(fieldName, fieldValue);
                         }
+*/
+                        values.put(fieldName, fieldValue);
                     }
                     //
                     return values;

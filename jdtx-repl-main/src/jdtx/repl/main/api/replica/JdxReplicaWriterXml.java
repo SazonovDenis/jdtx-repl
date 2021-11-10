@@ -1,9 +1,7 @@
 package jdtx.repl.main.api.replica;
 
-import jandcode.utils.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.util.*;
-import org.joda.time.*;
 
 import javax.xml.stream.*;
 import java.io.*;
@@ -111,7 +109,7 @@ public class JdxReplicaWriterXml {
         writer.close();
     }
 
-    public void setOprType(int oprType) throws XMLStreamException {
+    public void writeOprType(int oprType) throws XMLStreamException {
         // <rec>
         if (!currentElement_rec) {
             throw new XMLStreamException("Not started currentElement_rec");
@@ -120,28 +118,17 @@ public class JdxReplicaWriterXml {
         writer.writeAttribute(UtJdx.XML_FIELD_OPR_TYPE, String.valueOf(oprType));
     }
 
-    public void setRecValue(String name, Object value) throws XMLStreamException {
+    public void writeRecValue(String name, Object value) throws XMLStreamException {
         // <rec>
         if (!currentElement_rec) {
             throw new XMLStreamException("Not started currentElement_rec");
         }
 
-        if (value instanceof byte[]) {
-            // Особая сериализация для BLOB
-            byte[] blob = (byte[]) value;
-            String blobBase64 = UtString.encodeBase64(blob);
-            writer.writeAttribute(name, blobBase64);
-        } else if (value instanceof DateTime) {
-            // Сериализация с или без timezone
-            // todo: Проверить сериализацию и десериализацию с/без timezone
-            writer.writeAttribute(name, UtDate.toString((DateTime) value));
-        } else {
-            // Обычная сериализация
-            writer.writeAttribute(name, UtStringEscape.escapeJava(String.valueOf(value)));
-        }
+        //
+        writer.writeAttribute(name, UtXml.valueToStr(value));
     }
 
-    void writeReplicaHeader(IReplica replica) throws XMLStreamException {
+    void writeReplicaInfo(IReplicaInfo replicaInfo) throws XMLStreamException {
         // <table>
         if (currentElement_table) {
             throw new XMLStreamException("Already started currentElement_table");
@@ -156,11 +143,11 @@ public class JdxReplicaWriterXml {
             currentElement_replica = true;
         }
         //
-        writer.writeAttribute("WS_ID", String.valueOf(replica.getInfo().getWsId()));
-        writer.writeAttribute("AGE", String.valueOf(replica.getInfo().getAge()));
-        writer.writeAttribute("DT_FROM", String.valueOf(replica.getInfo().getDtFrom()));
-        writer.writeAttribute("DT_TO", String.valueOf(replica.getInfo().getDtTo()));
-        writer.writeAttribute("REPLICA_TYPE", String.valueOf(replica.getInfo().getReplicaType()));
+        writer.writeAttribute("WS_ID", String.valueOf(replicaInfo.getWsId()));
+        writer.writeAttribute("AGE", String.valueOf(replicaInfo.getAge()));
+        writer.writeAttribute("DT_FROM", String.valueOf(replicaInfo.getDtFrom()));
+        writer.writeAttribute("DT_TO", String.valueOf(replicaInfo.getDtTo()));
+        writer.writeAttribute("REPLICA_TYPE", String.valueOf(replicaInfo.getReplicaType()));
     }
 
 

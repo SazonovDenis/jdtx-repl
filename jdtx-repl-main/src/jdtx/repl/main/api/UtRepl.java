@@ -165,7 +165,7 @@ public class UtRepl {
         replicaWriter.replicaFileStart();
 
         // Начинаем писать файл с данными
-        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDat();
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
         UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, false);
@@ -198,7 +198,7 @@ public class UtRepl {
         replicaWriter.replicaFileStart();
 
         // Начинаем писать файл с данными
-        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDat();
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
         UtDataSelector dataSelector = new UtDataSelector(db, struct, selfWsId, forbidNotOwnId);
@@ -504,7 +504,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         replicaWriter.replicaFileStart();
 
         // Начинаем писать файл с данными
-        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDat();
 
         //
         xmlWriter.startTable(tableName);
@@ -604,9 +604,9 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
 
                                         // Если ищем только одну запись - пусть она попадет в реплику как INS
                                         if (findLastOne) {
-                                            xmlWriter.setOprType(JdxOprType.OPR_INS);
+                                            xmlWriter.writeOprType(JdxOprType.OPR_INS);
                                         } else {
-                                            xmlWriter.setOprType(oprType);
+                                            xmlWriter.writeOprType(oprType);
                                         }
 
                                         // Запись значения с проверкой/перекодировкой ссылок
@@ -622,10 +622,10 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                                                 if (fieldValueRef != null && fieldValueRef.ws_id == -1 && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
                                                     fieldValueRef.ws_id = replica.getInfo().getWsId();
                                                 }
-                                                xmlWriter.setRecValue(fieldName, String.valueOf(fieldValueRef));
+                                                xmlWriter.writeRecValue(fieldName, String.valueOf(fieldValueRef));
                                             } else {
                                                 // Это просто значение
-                                                xmlWriter.setRecValue(fieldName, fieldValue);
+                                                xmlWriter.writeRecValue(fieldName, fieldValue);
                                             }
                                         }
                                     }

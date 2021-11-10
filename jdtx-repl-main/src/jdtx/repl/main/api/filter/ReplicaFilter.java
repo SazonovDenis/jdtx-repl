@@ -61,7 +61,7 @@ public class ReplicaFilter implements IReplicaFilter {
                 replicaWriter.replicaFileStart();
 
                 // Начинаем писать файл с данными
-                JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument();
+                JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDat();
 
                 // Копируем данные из реплики
                 copyDataWithFilter(replicaReader, xmlWriter, publicationRules, getFilterParams());
@@ -109,7 +109,7 @@ public class ReplicaFilter implements IReplicaFilter {
                 long countSkipped = 0;
 
                 //
-                Map<String, Object> recValues = dataReader.nextRec();
+                Map<String, String> recValues = dataReader.nextRec();
                 //
                 while (recValues != null) {
                     int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
@@ -120,12 +120,12 @@ public class ReplicaFilter implements IReplicaFilter {
                         dataWriter.appendRec();
 
                         // Тип операции
-                        dataWriter.setOprType(oprType);
+                        dataWriter.writeOprType(oprType);
 
                         // Значения полей
                         for (IJdxField publicationField : publicationRuleTable.getFields()) {
                             String publicationFieldName = publicationField.getName();
-                            dataWriter.setRecValue(publicationFieldName, recValues.get(publicationFieldName));
+                            dataWriter.writeRecValue(publicationFieldName, recValues.get(publicationFieldName));
                         }
                     } else {
                         countSkipped++;

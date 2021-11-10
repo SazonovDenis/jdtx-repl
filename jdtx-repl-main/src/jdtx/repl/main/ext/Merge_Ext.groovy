@@ -88,9 +88,6 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             //
-            String[] fieldNames = fields.split(",")
-
-            //
             UtRecMerge utRecMerge = new UtRecMerge(db, struct)
             if (!UtString.empty(fileCfgGroup)) {
                 JSONObject cfg = UtRepl.loadAndValidateJsonFile(fileCfgGroup)
@@ -98,6 +95,7 @@ class Merge_Ext extends ProjectExt {
             }
 
             // Ищем дубликаты
+            Collection<String> fieldNames = Arrays.asList(fields.split(","));
             Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(table, fieldNames, useNull)
 
             // Тупо превращаем дубликаты в задачи на слияние

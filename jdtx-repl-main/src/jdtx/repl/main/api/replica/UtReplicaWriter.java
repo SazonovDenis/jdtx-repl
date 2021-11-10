@@ -8,8 +8,8 @@ import java.io.*;
 import java.util.zip.*;
 
 /**
- * Утилитный класс для формирования файла реплики.
- * Инкапсулирует логику формирования файла, врапер над всякими утилитными классами.
+ * Утилитный класс для формирования zip-файла с репликой.
+ * Умеет делать запись в zip-архив нескольких файлов, в том числе "dat.xml".
  */
 public class UtReplicaWriter {
 
@@ -17,13 +17,13 @@ public class UtReplicaWriter {
     private OutputStream outputStream = null;
     private ZipOutputStream zipOutputStream = null;
     private JdxReplicaWriterXml writerXml = null;
-    private IReplica replica = null;
+    private IReplica replica;
 
     //
     protected static Log log = LogFactory.getLog("jdtx.UtReplicaWriter");
 
 
-    public UtReplicaWriter(IReplica replica){
+    public UtReplicaWriter(IReplica replica) {
         this.replica = replica;
     }
 
@@ -90,7 +90,7 @@ public class UtReplicaWriter {
      * А не нужен он потому, что вызов writerXml.closeDocument() после writerXml.startDocument()
      * сейчас сделан прямо внутри jdtx.repl.main.api.replica.UtReplicaWriter#replicaFileClose()
      */
-    public JdxReplicaWriterXml replicaWriterStartDocument() throws Exception {
+    public JdxReplicaWriterXml replicaWriterStartDat() throws Exception {
         // Файл "dat.xml" (данные) внутри Zip-архива
         newFileOpen("dat.xml");
 
@@ -99,7 +99,7 @@ public class UtReplicaWriter {
 
         // Пишем заголовок
         writerXml.startDocument();
-        writerXml.writeReplicaHeader(replica);
+        writerXml.writeReplicaInfo(replica.getInfo());
 
         //
         return writerXml;

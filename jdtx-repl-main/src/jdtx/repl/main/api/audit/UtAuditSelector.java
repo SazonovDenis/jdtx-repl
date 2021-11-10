@@ -58,7 +58,7 @@ public class UtAuditSelector {
         replicaWriter.replicaFileStart();
 
         // Начинаем писать файл с данными
-        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDocument(); //<--- вот тут
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDat(); //<--- вот тут
 
         // Забираем аудит по порядку сортировки таблиц в struct
         for (IJdxTable structTable : struct.getTables()) {
@@ -126,7 +126,7 @@ public class UtAuditSelector {
 
                         // Тип операции
                         int oprType = (int) dataTableAudit.getValue(UtJdx.SQL_FIELD_OPR_TYPE);
-                        dataWriter.setOprType(oprType);
+                        dataWriter.writeOprType(oprType);
 
                         // Тело записи (с перекодировкой ссылок)
                         utDataWriter.dataBinderRec_To_DataWriter_WithRefDecode(dataTableAudit, dataWriter);

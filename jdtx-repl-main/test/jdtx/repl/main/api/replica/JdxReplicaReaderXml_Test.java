@@ -1,7 +1,9 @@
 package jdtx.repl.main.api.replica;
 
-import jandcode.dbm.test.*;
 import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.util.*;
+import org.apache.commons.io.*;
 import org.junit.*;
 
 import java.io.*;
@@ -10,38 +12,51 @@ import java.util.*;
 /**
  *
  */
-public class JdxReplicaReaderXml_Test extends DbmTestCase {
+public class JdxReplicaReaderXml_Test extends ReplDatabaseStruct_Test {
 
+
+    @Override
+    public void setUp() throws Exception {
+        rootDir = "../../ext/";
+        super.setUp();
+    }
 
     @Test
-    public void test_JdxReplicaReader_big() throws Exception {
-        //
-        IReplica replicaSnapshot = new ReplicaFile();
+    public void test_read() throws Exception {
+        // Начинаем читать xml-файл с данными
+        File testFile_1 = new File("../_test-data/test_2.xml");
+        FileInputStream stream = new FileInputStream(testFile_1);
+        JdxReplicaReaderXml xmlReader = new JdxReplicaReaderXml(stream);
 
-        // Читаем и печатаем реплику
-        replicaSnapshot.setFile(new File("D:/t/000000082.zip"));
-        UtData_Test.readPrintReplica(replicaSnapshot);
         //
-        replicaSnapshot.setFile(new File("D:/t/000000083.zip"));
-        UtData_Test.readPrintReplica(replicaSnapshot);
+        IJdxField fieldBlob = struct.getTable("PawnChitDat").getField("Dat");
+
         //
-        replicaSnapshot.setFile(new File("D:/t/000000084.zip"));
-        UtData_Test.readPrintReplica(replicaSnapshot);
+        String tableName = xmlReader.nextTable();
+        while (tableName != null) {
+            System.out.println("tableName: " + tableName);
+
+            Map<String, String> values = xmlReader.nextRec();
+            while (values != null) {
+                for (String key : values.keySet()) {
+                    String value = values.get(key);
+                    System.out.println("  " + key + " = " + value.substring(0, Math.min(value.length(), 50)));
+                }
+                System.out.println("---");
+                FileUtils.writeByteArrayToFile(new File("../_test-data/" + testFile_1.getName() + "_" + values.get("NAME")), (byte[]) UtXml.strToValue(values.get("XYZ"), fieldBlob));
+                //
+                values = xmlReader.nextRec();
+            }
+
+            //
+            System.out.println();
+
+            //
+            tableName = xmlReader.nextTable();
+        }
+
         //
-        replicaSnapshot.setFile(new File("D:/t/000000085.zip"));
-        UtData_Test.readPrintReplica(replicaSnapshot);
-        //
-        replicaSnapshot.setFile(new File("D:/t/000000086.zip"));
-        UtData_Test.readPrintReplica(replicaSnapshot);
-        //
-        replicaSnapshot.setFile(new File("D:/t/000000087.zip"));
-        UtData_Test.readPrintReplica(replicaSnapshot);
-        //
-        replicaSnapshot.setFile(new File("D:/t/000000088.zip"));
-        UtData_Test.readPrintReplica(replicaSnapshot);
-        //
-        replicaSnapshot.setFile(new File("D:/t/000000089.zip"));
-        UtData_Test.readPrintReplica(replicaSnapshot);
+        xmlReader.close();
     }
 
 
@@ -53,13 +68,13 @@ public class JdxReplicaReaderXml_Test extends DbmTestCase {
         IReplica replicaSnapshot = writerXml_test.createReplicaSnapshot_Ulz_ws2();
 
         // Проверяем чтение заголовков
-        File f = new File(replicaSnapshot.getFile().getAbsolutePath());
+        File file = new File(replicaSnapshot.getFile().getAbsolutePath());
         IReplica replica = new ReplicaFile();
-        replica.setFile(f);
+        replica.setFile(file);
 
         //
         JdxReplicaReaderXml.readReplicaInfo(replica);
-        System.out.println("replica: " + f);
+        System.out.println("replica: " + file);
         System.out.println("replica.wsId = " + replica.getInfo().getWsId());
         System.out.println("replica.age = " + replica.getInfo().getAge());
         System.out.println("replica.replicaType = " + replica.getInfo().getReplicaType());

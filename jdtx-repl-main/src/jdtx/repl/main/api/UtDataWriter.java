@@ -52,10 +52,10 @@ public class UtDataWriter {
                 }
                 // Перекодировка ссылки
                 JdxRef ref = decoder.get_ref(refTableName, UtJdx.longValueOf(fieldValue));
-                dataWriter.setRecValue(fieldName, ref.toString());
+                dataWriter.writeRecValue(fieldName, ref.toString());
             } else {
                 // Это просто значение
-                dataWriter.setRecValue(fieldName, fieldValue);
+                dataWriter.writeRecValue(fieldName, fieldValue);
             }
         }
     }

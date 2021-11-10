@@ -74,7 +74,7 @@ public class UtRecMergePrint {
 
     private void doRecs(RecMergeResultReader resultReader) throws Exception {
         //
-        Map<String, Object> rec = resultReader.nextRec();
+        Map<String, String> rec = resultReader.nextRec();
         while (rec != null) {
             System.out.println(rec);
 

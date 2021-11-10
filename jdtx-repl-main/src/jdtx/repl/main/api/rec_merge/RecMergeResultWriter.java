@@ -54,7 +54,7 @@ public class RecMergeResultWriter {
     }
 
 
-    public void openTableItem(MergeResultTableItem tableItem) throws XMLStreamException {
+    public void writeTableItem(MergeResultTableItem tableItem) throws XMLStreamException {
         // Закрываем уровень
 
         // <table>
@@ -72,7 +72,7 @@ public class RecMergeResultWriter {
         currentElement_table = true;
     }
 
-    public void addRec(DataRecord rec) throws XMLStreamException {
+    public void writeRec(DataRecord rec) throws XMLStreamException {
         // <table>
         if (!currentElement_table) {
             throw new XMLStreamException("Not started currentElement_table");
@@ -86,19 +86,7 @@ public class RecMergeResultWriter {
             Object value = rec.getValue(name);
 
             //
-            if (value instanceof byte[]) {
-                // Особая сериализация для BLOB
-                byte[] blob = (byte[]) value;
-                String blobBase64 = UtString.encodeBase64(blob);
-                writer.writeAttribute(name, blobBase64);
-            } else if (value instanceof DateTime) {
-                // Сериализация с или без timezone
-                // todo: Проверить сериализацию и десериализацию с/без timezone
-                writer.writeAttribute(name, UtDate.toString((DateTime) value));
-            } else {
-                // Обычная сериализация
-                writer.writeAttribute(name, UtStringEscape.escapeJava(String.valueOf(value)));
-            }
+            writer.writeAttribute(name, UtXml.valueToStr(value));
         }
 
         //

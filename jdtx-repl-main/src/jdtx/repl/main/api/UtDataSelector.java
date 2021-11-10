@@ -89,7 +89,7 @@ public class UtDataSelector {
             dataWriter.appendRec();
 
             // Тип операции
-            dataWriter.setOprType(JdxOprType.OPR_INS);
+            dataWriter.writeOprType(JdxOprType.OPR_INS);
 
             // Тело записи
             utDataWriter.dataBinderRec_To_DataWriter_WithRefDecode(data, dataWriter);

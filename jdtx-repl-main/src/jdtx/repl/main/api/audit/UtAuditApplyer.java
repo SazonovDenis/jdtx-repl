@@ -12,7 +12,6 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
-import org.joda.time.*;
 
 import java.io.*;
 import java.util.*;
@@ -187,7 +186,7 @@ public class UtAuditApplyer {
                 }
                 readerTableNamePrior = readerTableName;
 
-                Map<String, Object> recValues = dataReader.nextRec();
+                Map<String, String> recValues = dataReader.nextRec();
                 while (recValues != null) {
 
                     // Перебираем записи, пропускаем те, которые не подходят под наши входящие фильтры publicationRules
@@ -204,55 +203,10 @@ public class UtAuditApplyer {
                         }
                         countPortion++;
 
-                        // Подготовка recParams - значений полей для записи в БД
-                        Map recParams = new HashMap();
-                        for (IJdxField publicationField : publicationRuleTable.getFields()) {
-                            String publicationFieldName = publicationField.getName();
-                            IJdxField field = table.getField(publicationFieldName);
 
-                            // Поле - BLOB?
-                            if (getDataType(field.getDbDatatype()) == DataType.BLOB) {
-                                String blobBase64 = (String) recValues.get(publicationFieldName);
-                                byte[] blob = UtString.decodeBase64(blobBase64);
-                                recParams.put(publicationFieldName, blob);
-                                continue;
-                            }
+                        // Подготовка recParams для записи в БД - десериализация значений
+                        Map<String, Object> recParams = prepareParams(recValues, publicationRuleTable.getFields(), table, dataReader.getWsId(), decoder);
 
-                            // Поле - дата/время?
-                            if (getDataType(field.getDbDatatype()) == DataType.DATETIME) {
-                                String valueStr = (String) recValues.get(publicationFieldName);
-                                DateTime valueDateTime = UtJdx.dateTimeValueOf(valueStr);
-                                recParams.put(publicationFieldName, valueDateTime);
-                                continue;
-                            }
-
-                            // Поле - ссылка?
-                            IJdxTable refTable = field.getRefTable();
-                            Object fieldValue = recValues.get(publicationFieldName);
-                            if (fieldValue != null && (field.isPrimaryKey() || refTable != null)) {
-                                // Это значение - ссылка
-                                JdxRef fieldValueRef = JdxRef.parse((String) fieldValue);
-                                // Дополнение ссылки
-                                if (fieldValueRef.ws_id == -1) {
-                                    fieldValueRef.ws_id = dataReader.getWsId();
-                                }
-                                // Перекодировка ссылки
-                                String refTableName;
-                                if (field.isPrimaryKey()) {
-                                    refTableName = tableName;
-                                } else {
-                                    refTableName = refTable.getName();
-                                }
-                                fieldValue = decoder.get_id_own(refTableName, fieldValueRef.ws_id, fieldValueRef.value);
-                                //
-                                recParams.put(publicationFieldName, fieldValue);
-                                //
-                                continue;
-                            }
-
-                            // Просто поле, без изменений
-                            recParams.put(publicationFieldName, recValues.get(publicationFieldName));
-                        }
 
                         // Выполняем INS/UPD/DEL
                         String publicationFields = UtJdx.fieldsToString(publicationRuleTable.getFields());
@@ -433,6 +387,55 @@ public class UtAuditApplyer {
             throw e;
         }
 
+    }
+
+    /**
+     * Десериализация значений полей (перед записью в БД)
+     *
+     * @param publicationFields
+     * @param recValues         Данные в строковом виде (из XML)
+     * @param replicaWsId
+     * @param decoder
+     * @return Типизированные данные
+     */
+    Map<String, Object> prepareParams(Map<String, String> recValues, Collection<IJdxField> publicationFields, IJdxTable table, long replicaWsId, IRefDecoder decoder) throws Exception {
+        Map<String, Object> recParams = new HashMap<>();
+
+        //
+        for (IJdxField publicationField : publicationFields) {
+            String publicationFieldName = publicationField.getName();
+            IJdxField field = table.getField(publicationFieldName);
+            IJdxTable refTable = field.getRefTable();
+
+            //
+            String fieldValueStr = recValues.get(publicationFieldName);
+
+            // Поле - ссылка?
+            if (fieldValueStr != null && (field.isPrimaryKey() || refTable != null)) {
+                // Это значение - ссылка
+                JdxRef fieldValueRef = JdxRef.parse(fieldValueStr);
+                // Дополнение ссылки
+                if (fieldValueRef.ws_id == -1) {
+                    fieldValueRef.ws_id = replicaWsId;
+                }
+                // Перекодировка ссылки
+                String refTableName;
+                if (field.isPrimaryKey()) {
+                    refTableName = table.getName();
+                } else {
+                    refTableName = refTable.getName();
+                }
+                long fieldValue = decoder.get_id_own(refTableName, fieldValueRef.ws_id, fieldValueRef.value);
+                //
+                recParams.put(publicationFieldName, fieldValue);
+            } else {
+                // Поле других типов
+                recParams.put(publicationFieldName, UtXml.strToValue(fieldValueStr, field));
+            }
+        }
+
+        //
+        return recParams;
     }
 
     private void insertOrUpdate(JdxDbUtils dbu, String tableName, Map recParams, String publicationFields) throws Exception {

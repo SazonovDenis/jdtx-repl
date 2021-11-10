@@ -3,18 +3,15 @@ package jdtx.repl.main.api.rec_merge;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
-import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
-import org.joda.time.*;
 
 import java.io.*;
 import java.util.*;
 
 /**
- * Утилиты по слиянию записей (исполнитель)
- * todo: doc/merge-dict.md, раздел "Физическое объединеие записей", сделать именно в виде ДОПОЛНЕННИЯ к набору IDE/CUD
+ * Утилиты по поиску и слиянию дубликатов записей (исполнитель)
  */
 public class UtRecMerge implements IUtRecMerge {
 
@@ -57,11 +54,7 @@ public class UtRecMerge implements IUtRecMerge {
 
 
     @Override
-    public Collection<RecDuplicate> findTableDuplicates(String tableName, String[] fieldNames) throws Exception {
-        return findTableDuplicates(tableName, fieldNames, true);
-    }
-
-    public Collection<RecDuplicate> findTableDuplicates(String tableName, String[] fieldNames, boolean useNullValues) throws Exception {
+    public Collection<RecDuplicate> findTableDuplicates(String tableName, Collection<String> fieldNames, boolean useNullValues) throws Exception {
         List<RecDuplicate> resList = new ArrayList<>();
 
         //
@@ -151,6 +144,11 @@ public class UtRecMerge implements IUtRecMerge {
     }
 
 
+    public Collection<RecDuplicate> findTableDuplicates(String tableName, Collection<String> fieldNames) throws Exception {
+        return findTableDuplicates(tableName, fieldNames, true);
+    }
+
+
     public void execMergePlan(Collection<RecMergePlan> plans, File resultFile) throws Exception {
         // Сохраняем результат выполнения задачи
         RecMergeResultWriter recMergeResultWriter = new RecMergeResultWriter();
@@ -165,7 +163,7 @@ public class UtRecMerge implements IUtRecMerge {
 
     @Override
     public void execMergePlan(Collection<RecMergePlan> plans, RecMergeResultWriter resultWriter) throws Exception {
-        boolean doDelete = true;
+        boolean doDelete = true;  // Жалко удалять режим, но пока не понятно, зачем он практически нужен
 
         //
         try {
@@ -181,7 +179,7 @@ public class UtRecMerge implements IUtRecMerge {
                 // INS - Создаем эталонную запись.
                 // "Эталонная" запись должна быть именно ВСТАВЛЕНА, а не выбранной из уже существующих,
                 // т.к. на рабочей станции может НЕ ОКАЗАТЬСЯ той записи, которую назначили как "эталонная".
-                Map params = prepareParams(mergePlan.recordEtalon, struct.getTable(mergePlan.tableName));
+                Map<String, Object> params = prepareParams((Map<String, String>) mergePlan.recordEtalon.values(), struct.getTable(mergePlan.tableName));
                 //
                 String pkField = struct.getTable(mergePlan.tableName).getPrimaryKey().get(0).getName();
                 params.put(pkField, null);
@@ -231,36 +229,20 @@ public class UtRecMerge implements IUtRecMerge {
         }
     }
 
-    // Подготовка recParams - значений полей для записи в БД
-    Map prepareParams(Map recValues, IJdxTable table) {
-        Map recParams = new HashMap();
+    /**
+     * Десериализация значений полей (перед записью в БД)
+     *
+     * @param recValues Данные в строковом виде (из XML)
+     * @return Типизированные данные
+     */
+    Map<String, Object> prepareParams(Map<String, String> recValues, IJdxTable table) {
+        Map<String, Object> recParams = new HashMap<>();
 
         //
-        for (IJdxField publicationField : table.getFields()) {
-            String publicationFieldName = publicationField.getName();
-            IJdxField field = table.getField(publicationFieldName);
-
-            // Поле - BLOB?
-            if (UtAuditApplyer.getDataType(field.getDbDatatype()) == DataType.BLOB) {
-                String blobBase64 = (String) recValues.get(publicationFieldName);
-                byte[] blob = UtString.decodeBase64(blobBase64);
-                recParams.put(publicationFieldName, blob);
-                continue;
-            }
-
-            // Поле - дата/время?
-            if (UtAuditApplyer.getDataType(field.getDbDatatype()) == DataType.DATETIME) {
-                String valueStr = (String) recValues.get(publicationFieldName);
-                DateTime value = null;
-                if (valueStr != null && valueStr.length() != 0) {
-                    value = new DateTime(valueStr);
-                }
-                recParams.put(publicationFieldName, value);
-                continue;
-            }
-
-            // Просто поле, без изменений
-            recParams.put(publicationFieldName, recValues.get(publicationFieldName));
+        for (IJdxField field : table.getFields()) {
+            String fieldName = field.getName();
+            String fieldValueStr = recValues.get(fieldName);
+            recParams.put(fieldName, UtXml.strToValue(fieldValueStr, field));
         }
 
         //
@@ -290,9 +272,9 @@ public class UtRecMerge implements IUtRecMerge {
                     DbQuery stUpdated = db.openSql(sqlSelect, params);
 
                     // Отчитаемся
-                    resultWriter.openTableItem(new MergeResultTableItem(refTableName, MergeOprType.UPD));
+                    resultWriter.writeTableItem(new MergeResultTableItem(refTableName, MergeOprType.UPD));
                     while (!stUpdated.eof()) {
-                        resultWriter.addRec(stUpdated);
+                        resultWriter.writeRec(stUpdated);
                         stUpdated.next();
                     }
                 }
@@ -333,7 +315,7 @@ public class UtRecMerge implements IUtRecMerge {
         String sqlSelect = "select * from " + tableName + " where " + pkField + " = :" + pkField;
 
         //
-        resultWriter.openTableItem(new MergeResultTableItem(tableName, MergeOprType.DEL) );
+        resultWriter.writeTableItem(new MergeResultTableItem(tableName, MergeOprType.DEL));
 
         //
         for (long deleteRecId : recordsDelete) {
@@ -344,7 +326,7 @@ public class UtRecMerge implements IUtRecMerge {
 
             // Отчитаемся
             for (DataRecord rec : store) {
-                resultWriter.addRec(rec);
+                resultWriter.writeRec(rec);
             }
         }
     }
@@ -420,9 +402,9 @@ public class UtRecMerge implements IUtRecMerge {
         long doneRecs = 0;
 
         //
-        Map<String, Object> rec = resultReader.nextRec();
+        Map<String, String> rec = resultReader.nextRec();
         while (rec != null) {
-            Map params = prepareParams(rec, table);
+            Map<String, Object> params = prepareParams(rec, table);
             db.execSql(sql, params);
 
             //
