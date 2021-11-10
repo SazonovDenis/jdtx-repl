@@ -7,10 +7,10 @@ import org.junit.*;
 
 import java.util.*;
 
-public class JdxDeleteCascade_Test extends JdxReplWsSrv_Test {
+public class JdxReplDeleteCascade_Test extends JdxReplWsSrv_Test {
 
 
-    public JdxDeleteCascade_Test() throws Exception {
+    public JdxReplDeleteCascade_Test() throws Exception {
         super();
         //
         cfg_json_publication_srv = "test/etalon/publication_regionTip_152_srv.json";
