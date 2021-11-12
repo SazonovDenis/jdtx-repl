@@ -9,7 +9,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Чтение/запись RecMergePlan в json
+ * Чтение/запись RecMergePlan в JSON
  */
 public class UtRecMergeRW {
 

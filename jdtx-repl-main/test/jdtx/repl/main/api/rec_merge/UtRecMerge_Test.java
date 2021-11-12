@@ -158,20 +158,42 @@ public class UtRecMerge_Test extends DbmTestCase {
         //assertEquals("Количество дубликатов", recordCount1, recordCount0 + 2);
     }
 
+    private void test_MakeNoDuplicates() throws Exception {
+        UtRecMerge utRecMerge = new UtRecMerge(db, struct);
+
+        // Ищем дубликаты
+        Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(tableName, fieldNames);
+
+        // Тупо превращаем дубликаты в задачу на слияние
+        Collection<RecMergePlan> mergeTasks = utRecMerge.prepareMergePlan(tableName, duplicates);
+
+        // Сериализация задач
+        UtRecMergeRW reader = new UtRecMergeRW();
+        reader.writeTasks(mergeTasks, "temp/_" + tableName + ".task.json");
+        reader.writeDuplicates(duplicates, "temp/_" + tableName + ".duplicates.json");
+
+        // Исполняем задачу на слияние
+        File fileResults = new File("temp/result.zip");
+        utRecMerge.execMergePlan(mergeTasks, fileResults);
+    }
+
     @Test
     public void test_execMergeTask() throws Exception {
         tableName = "LicDocTip";
         fieldNamesStr = "Name";
         fieldNames = Arrays.asList(fieldNamesStr.split(","));
 
+        //
+        test_MakeNoDuplicates();
+
         // Вначале дубликатов нет
-        test_NoDuplicates();
+        check_NoDuplicates();
 
         // Провоцируем появление дубликатов
         test_MakeDuplicatesLoadDuplicates();
 
         // Теперь дубликаты есть
-        test_IsDuplicates();
+        check_IsDuplicates();
 
         //
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
@@ -200,19 +222,21 @@ public class UtRecMerge_Test extends DbmTestCase {
 
 
         // Теперь дубликатов нет
-        test_NoDuplicates();
+        check_NoDuplicates();
     }
 
     @Test
     public void test_makeMergeTask_ToFile() throws Exception {
+        test_MakeNoDuplicates();
+
         // Вначале дубликатов нет
-        test_NoDuplicates();
+        check_NoDuplicates();
 
         // Провоцируем появление дубликатов
         test_MakeDuplicatesLoadDuplicates();
 
         // Теперь дубликаты есть
-        test_IsDuplicates();
+        check_IsDuplicates();
 
         //
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
@@ -226,6 +250,7 @@ public class UtRecMerge_Test extends DbmTestCase {
         // Сериализация задач
         UtRecMergeRW reader = new UtRecMergeRW();
         reader.writeTasks(mergeTasks, "temp/task.json");
+        reader.writeDuplicates(duplicates, "temp/duplicates.json");
 
         // Десериализация задач
         Collection<RecMergePlan> mergeTasksFile = reader.readTasks("temp/task.json");
@@ -234,21 +259,20 @@ public class UtRecMerge_Test extends DbmTestCase {
 
         // Печатаем задачи, что прочитали
         UtRecMergePrint.printTasks(mergeTasksFile);
-
-        // Теперь дубликаты есть
-        test_IsDuplicates();
     }
 
     @Test
     public void test_execMergeTask_FromFile() throws Exception {
+        test_MakeNoDuplicates();
+
         // Вначале дубликатов нет
-        test_NoDuplicates();
+        check_NoDuplicates();
 
         // Провоцируем появление дубликатов и формируем задачу на слияние
         test_makeMergeTask_ToFile();
 
         // Теперь дубликаты есть
-        test_IsDuplicates();
+        check_IsDuplicates();
 
         // Читаем задачу на слияние
         UtRecMergeRW reader = new UtRecMergeRW();
@@ -270,7 +294,7 @@ public class UtRecMerge_Test extends DbmTestCase {
 
 
         // Теперь дубликатов нет
-        test_NoDuplicates();
+        check_NoDuplicates();
     }
 
     @Test
@@ -279,14 +303,17 @@ public class UtRecMerge_Test extends DbmTestCase {
         fieldNamesStr = "Name,Parent";
         fieldNames = Arrays.asList(fieldNamesStr.split(","));
 
+        //
+        test_MakeNoDuplicates();
+
         // Вначале дубликатов нет
-        test_NoDuplicates();
+        check_NoDuplicates();
 
         // Провоцируем появление дубликатов
         test_MakeDuplicatesLoadDuplicates();
 
         // Теперь дубликаты есть
-        test_IsDuplicates();
+        check_IsDuplicates();
 
         //
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
@@ -299,11 +326,12 @@ public class UtRecMerge_Test extends DbmTestCase {
 
         // Сериализация задач
         UtRecMergeRW reader = new UtRecMergeRW();
-        reader.writeTasks(mergeTasks, "temp/_" + tableName + ".task");
+        reader.writeTasks(mergeTasks, "temp/_" + tableName + ".task.json");
+        reader.writeDuplicates(duplicates, "temp/_" + tableName + ".duplicates.json");
 
 
         // Читаем задачу на слияние
-        mergeTasks = reader.readTasks("temp/_" + tableName + ".task");
+        mergeTasks = reader.readTasks("temp/_" + tableName + ".task.json");
         //
         assertEquals("Есть задание на слияние", true, mergeTasks.size() > 0);
 
@@ -322,7 +350,7 @@ public class UtRecMerge_Test extends DbmTestCase {
         UtRecMergePrint.printMergeResults(fileResults);
 
         // Теперь дубликатов нет
-        test_NoDuplicates();
+        check_NoDuplicates();
     }
 
     @Test
@@ -357,6 +385,7 @@ public class UtRecMerge_Test extends DbmTestCase {
         // Сериализация задач
         UtRecMergeRW reader = new UtRecMergeRW();
         reader.writeTasks(mergeTasks, "temp/_Region_1.task.json");
+        reader.writeDuplicates(duplicates, "temp/_Region_1.duplicates.json");
     }
 
     @Test
@@ -380,14 +409,16 @@ public class UtRecMerge_Test extends DbmTestCase {
 
     @Test
     public void test_execRevertExecTask() throws Exception {
+        test_MakeNoDuplicates();
+
         // Вначале дубликатов нет
-        test_NoDuplicates();
+        check_NoDuplicates();
 
         // Провоцируем появление дубликатов и формируем задачу на слияние
         test_makeMergeTask_ToFile();
 
         // Теперь дубликаты есть
-        test_IsDuplicates();
+        check_IsDuplicates();
 
 
         // Читаем задачу на слияние
@@ -410,7 +441,7 @@ public class UtRecMerge_Test extends DbmTestCase {
 
 
         // Теперь дубликатов нет
-        test_NoDuplicates();
+        check_NoDuplicates();
 
 
         // Отменяем слияние
@@ -419,18 +450,14 @@ public class UtRecMerge_Test extends DbmTestCase {
 
 
         // Опять дубликаты есть
-        test_IsDuplicates();
+        check_IsDuplicates();
     }
 
-    @Test
-    public void test_NoDuplicates() throws Exception {
-        logOff();
+    public void check_NoDuplicates() throws Exception {
         assertEquals("Найдены дубликаты " + tableName, true, getDuplicatesCount(tableName, fieldNamesStr) == 0);
     }
 
-    @Test
-    public void test_IsDuplicates() throws Exception {
-        logOff();
+    public void check_IsDuplicates() throws Exception {
         assertEquals("Не найдены дубликаты " + tableName, true, getDuplicatesCount(tableName, fieldNamesStr) != 0);
     }
 
@@ -438,9 +465,9 @@ public class UtRecMerge_Test extends DbmTestCase {
         DataStore st = db.loadSql("select count(*) cnt, " + fieldNamesStr + " from " + tableName + " where id <> 0 group by " + fieldNamesStr + " having count(*) > 1");
         //
         if (st.size() == 0) {
-            System.out.println("Дубликатов в: " + tableName + ", по полям: " + fieldNamesStr + " нет");
+            System.out.println("Дубликатов в: " + tableName + " по полям: " + fieldNamesStr + " нет");
         } else {
-            System.out.println("Дубликаты в: " + tableName + ", по полям: " + fieldNamesStr);
+            System.out.println("Дубликаты в: " + tableName + " по полям: " + fieldNamesStr);
             UtData.outTable(st);
         }
         //
