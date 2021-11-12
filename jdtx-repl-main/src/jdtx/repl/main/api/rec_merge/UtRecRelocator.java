@@ -50,7 +50,12 @@ public class UtRecRelocator {
             // Проверяем, что idSour не пустая
             String pkField = struct.getTable(tableName).getPrimaryKey().get(0).getName();
             String sql = "select * from " + tableName + " where " + pkField + " = :" + pkField;
-            DataRecord recSour = dbu.loadSqlRec(sql, UtCnv.toMap(pkField, idSour));
+            DataStore stSour = db.loadSql(sql, UtCnv.toMap(pkField, idSour));
+            if (stSour.size() == 0) {
+                throw new XError("Error relocateId: idSour not found");
+            }
+            DataRecord recSour = stSour.get(0);
+
 
             // Копируем запись tableName.idSour в tableName.idDest
             recSour.setValue(pkField, idDest);
@@ -124,7 +129,7 @@ public class UtRecRelocator {
         DataStore st = db.loadSql(sqlSelect);
         //
         Collection<Long> ids = new ArrayList<>();
-        ids.addAll(UtData.uniqueValues(st, pkFieldName));
+        collectPkVakues(st, pkFieldName, ids);
 
         //
         System.out.println(tableName + ", count: " + ids.size());
@@ -143,6 +148,18 @@ public class UtRecRelocator {
             relocateId(tableName, idSour, idDest, resultFile);
         }
 
+    }
+
+    private void collectPkVakues(DataStore store, String pkFieldName, Collection<Long> res) {
+        for (DataRecord rec : store) {
+            if (rec.isValueNull(pkFieldName)) {
+                continue;
+            }
+            long value = rec.getValueLong(pkFieldName);
+            if (!res.contains(value)) {
+                res.add(value);
+            }
+        }
     }
 
 }

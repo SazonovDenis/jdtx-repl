@@ -21,7 +21,7 @@ public class UtRecRelocator_Test extends DbmTestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        //
+
         // Утилиты Jdx_Ext
         TestExtJc jc = createExt(TestExtJc.class);
         ProjectScript p2 = jc.loadProject("../../ext/ws2/project.jc");
@@ -38,48 +38,23 @@ public class UtRecRelocator_Test extends DbmTestCase {
         struct = reader.readDbStruct();
     }
 
-    @Test
-    public void test_check() throws Exception {
-        UtRecRelocator relocator = new UtRecRelocator(db, struct);
-
-        //
-        UtData.outTable(db.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by NameF"));
-
-        //
-        long idSour = 1357;
-        File outFile = new File("temp/relocateCheck_Lic_" + idSour + ".zip");
-        relocator.relocateIdCheck("Lic", idSour, outFile);
-        System.out.println("OutFile: " + outFile.getAbsolutePath());
-        UtRecMergePrint.printMergeResults(outFile);
-        System.out.println("");
-
-        //
-        idSour = 200001357;
-        outFile = new File("temp/relocateCheck_Lic_" + idSour + ".zip");
-        try {
-            relocator.relocateIdCheck("Lic", idSour, outFile);
-            System.out.println("OutFile: " + outFile.getAbsolutePath());
-            UtRecMergePrint.printMergeResults(outFile);
-            System.out.println("");
-        } catch (Exception e) {
-            if (e.getMessage().compareToIgnoreCase("No result in sqlrec") != 0) {
-                throw e;
-            }
-        }
-    }
 
     @Test
     public void test_relocate() throws Exception {
         UtRecRelocator relocator = new UtRecRelocator(db, struct);
 
         //
-        System.out.println("===");
-        System.out.println("Было");
-        DataStore ds = db.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by NameF");
-        UtData.outTable(ds);
+        String sql = "select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by NameF";
+        String sqlCheck = "select * from Lic order by NameF";
 
         //
-        long id1 = ds.get(1).getValueLong("id");
+        System.out.println("Было");
+        DataStore st = db.loadSql(sql);
+        UtData.outTable(st);
+
+        //
+        long id1 = st.get(1).getValueLong("id");
+        String values1 = db.loadSql(sqlCheck).get(1).getValues().toString();
 
         //
         long idSour = id1;
@@ -88,10 +63,19 @@ public class UtRecRelocator_Test extends DbmTestCase {
         relocator.relocateId("Lic", idSour, idDest, outFile);
 
         //
-        System.out.println("===");
+        UtRecMergePrint.printMergeResults(outFile);
+
+        //
+        System.out.println("Перенос: " + idSour + " -> " + idDest);
+        //
+        assertEquals("Запись не исчезла: ", 0, db.loadSql("select max(id) id from Lic where id = " + idSour).get(0).getValueLong("id"));
+        assertEquals("Запись не появилась: ", idDest, db.loadSql("select max(id) id from Lic where id = " + idDest).get(0).getValueLong("id"));
+
+        //
+        System.out.println();
         System.out.println("Стало");
-        ds = db.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by NameF");
-        UtData.outTable(ds);
+        st = db.loadSql(sql);
+        UtData.outTable(st);
 
         //
         idSour = 200001357;
@@ -100,10 +84,20 @@ public class UtRecRelocator_Test extends DbmTestCase {
         relocator.relocateId("Lic", idSour, idDest, outFile);
 
         //
-        System.out.println("===");
+        System.out.println("Перенос: " + idSour + " -> " + idDest);
+        //
+        assertEquals("Запись не исчезла: ", 0, db.loadSql("select max(id) id from Lic where id = " + idSour).get(0).getValueLong("id"));
+        assertEquals("Запись не появилась: ", idDest, db.loadSql("select max(id) id from Lic where id = " + idDest).get(0).getValueLong("id"));
+
+        //
+        System.out.println();
         System.out.println("Вернулось");
-        ds = db.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by NameF");
-        UtData.outTable(ds);
+        st = db.loadSql(sql);
+        UtData.outTable(st);
+
+        //
+        String values2 = db.loadSql(sqlCheck).get(1).getValues().toString();
+        assertEquals("Записи не одинаковые: ", values1, values2);
     }
 
 
@@ -112,12 +106,15 @@ public class UtRecRelocator_Test extends DbmTestCase {
         UtRecRelocator relocator = new UtRecRelocator(db, struct);
 
         //
-        DataStore ds = db.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by id");
-        UtData.outTable(ds);
+        String sql = "select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by NameF";
 
         //
-        long id1 = ds.get(1).getValueLong("id");
-        long id2 = ds.get(2).getValueLong("id");
+        DataStore st = db.loadSql(sql);
+        UtData.outTable(st);
+
+        //
+        long id1 = st.get(1).getValueLong("id");
+        long id2 = st.get(2).getValueLong("id");
 
         //
         long idSour = 9998;
@@ -126,14 +123,14 @@ public class UtRecRelocator_Test extends DbmTestCase {
         try {
             relocator.relocateId("Lic", idSour, idDest, outFile);
         } catch (Exception e) {
-            if (e.getMessage().compareToIgnoreCase("No result in sqlrec") != 0) {
+            if (e.getMessage().compareToIgnoreCase("Error relocateId: idSour not found") != 0) {
                 throw e;
             }
         }
 
         //
-        ds = db.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by id");
-        UtData.outTable(ds);
+        st = db.loadSql(sql);
+        UtData.outTable(st);
 
         //
         idSour = id1;
@@ -176,8 +173,8 @@ public class UtRecRelocator_Test extends DbmTestCase {
         }
 
         //
-        ds = db.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by id");
-        UtData.outTable(ds);
+        st = db.loadSql(sql);
+        UtData.outTable(st);
 
         //
         idSour = id1;
@@ -193,8 +190,8 @@ public class UtRecRelocator_Test extends DbmTestCase {
         }
 
         //
-        ds = db.loadSql("select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by id");
-        UtData.outTable(ds);
+        st = db.loadSql(sql);
+        UtData.outTable(st);
     }
 
 
@@ -204,15 +201,37 @@ public class UtRecRelocator_Test extends DbmTestCase {
         String[] tableNamesArr = tableNames.split(",");
         //
         int maxPkValue = 100000000;
-
-        //
         UtRecRelocator relocator = new UtRecRelocator(db, struct);
 
+
+        // Создадим себе проблему
+        for (String tableName : tableNamesArr) {
+            long idSour = db.loadSql("select min(id) id from " + tableName + " where id <> 0").getCurRec().getValueLong("id");
+            long idDest = maxPkValue + idSour * 2;
+            relocator.relocateId(tableName, idSour, idDest, new File("temp/1.zip"));
+        }
         //
+        for (String tableName : tableNamesArr) {
+            String sql = "select * from " + tableName + " order by id desc";
+            DataStore st = db.loadSql(sql);
+            UtData.outTable(st, 5);
+        }
+
+
+        // Героически ее решим
         for (String tableName : tableNamesArr) {
             relocator.relocateIdAll(tableName, maxPkValue, "temp/");
         }
 
+
+        //
+        System.out.println();
+        System.out.println("Стало:");
+        for (String tableName : tableNamesArr) {
+            String sql = "select * from " + tableName + " order by id desc";
+            DataStore st = db.loadSql(sql);
+            UtData.outTable(st, 5);
+        }
     }
 
 }
