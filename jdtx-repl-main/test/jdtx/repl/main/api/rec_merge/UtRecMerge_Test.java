@@ -25,12 +25,12 @@ public class UtRecMerge_Test extends DbmTestCase {
     //String tableName = "LicDocVid";
     //String tableName = "Lic";
     //
-    //String namesStr = "Name";
-    String namesStr = "Name,ShortName";
-    //String namesStr = "RNN";
+    //String fieldNamesStr = "Name";
+    String fieldNamesStr = "Name,ShortName";
+    //String fieldNamesStr = "RNN";
 
     //
-    Collection<String> fieldNames = Arrays.asList(namesStr.split(","));
+    Collection<String> fieldNames = Arrays.asList(fieldNamesStr.split(","));
 
 
     @Override
@@ -44,39 +44,30 @@ public class UtRecMerge_Test extends DbmTestCase {
         reader.setDb(db);
         struct = reader.readDbStruct();
         //
-        logOn();
+        //logOn();
     }
 
     @Test
     public void test_MakeDuplicatesLoadDuplicates() throws Exception {
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
 
-
-        // =================
-
-        System.out.println("table: " + tableName + ", fields: " + namesStr);
-
-        UtData.outTable(db.loadSql("select id, " + namesStr + " from " + tableName + " order by id"));
-
-        // =================
-
         // Ищем дубликаты
         Collection<RecDuplicate> resList = utRecMerge.findTableDuplicates(tableName, fieldNames);
 
         // Печатаем дубликаты
-        System.out.println("Заданий на слияние: " + resList.size());
+        UtRecMergePrint.printDuplicates(resList);
+
+        //
         int recordCount0 = 1;
         for (RecDuplicate res : resList) {
-            System.out.println(res.params);
-            UtData.outTable(res.records, 10);
-            System.out.println();
-            //
             recordCount0 = res.records.size();
         }
 
         // =================
 
-        System.out.println("Копируем запись");
+        System.out.println();
+        System.out.println("Копируем запись: " + tableName);
+        System.out.println();
 
         // Копируем запись 2 раза
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
@@ -88,7 +79,7 @@ public class UtRecMerge_Test extends DbmTestCase {
 
         // =================
 
-        UtData.outTable(db.loadSql("select id, " + namesStr + " from " + tableName + " order by id"));
+        //UtData.outTable(db.loadSql("select id, " + fieldNamesStr + " from " + tableName + " order by id"));
 
         // =================
 
@@ -96,15 +87,14 @@ public class UtRecMerge_Test extends DbmTestCase {
         resList = utRecMerge.findTableDuplicates(tableName, fieldNames);
 
         // Снова печатаем дубликаты
-        System.out.println("Заданий на слияние: " + resList.size());
+        UtRecMergePrint.printDuplicates(resList);
+
+        //
         int recordCount1 = 0;
         for (RecDuplicate res : resList) {
-            System.out.println(res.params);
-            UtData.outTable(res.records, 10);
-            System.out.println();
-            //
             recordCount1 = res.records.size();
         }
+
         //
         assertEquals("Есть задание на слияние", true, resList.size() != 0);
         assertEquals("Количество дубликатов", recordCount1, recordCount0 + 2);
@@ -119,10 +109,10 @@ public class UtRecMerge_Test extends DbmTestCase {
 
         //
         tableName = "Lic";
-        namesStr = "NameF,Rnn,DocSer";
+        fieldNamesStr = "NameF,Rnn,DocSer";
         String namesStrInfo = "NameF,NameI,NameO";
         String namesStrUpdate = "NameF = 'NameF_test', DocSer = ''";
-        fieldNames = Arrays.asList(namesStr.split(","));
+        fieldNames = Arrays.asList(fieldNamesStr.split(","));
 
         // =================
 
@@ -132,9 +122,9 @@ public class UtRecMerge_Test extends DbmTestCase {
 
         // =================
 
-        System.out.println("table: " + tableName + ", fields: " + namesStr);
+        System.out.println("table: " + tableName + ", fields: " + fieldNamesStr);
 
-        UtData.outTable(db.loadSql("select id, " + namesStrInfo + "," + namesStr + " from " + tableName + " order by id"));
+        UtData.outTable(db.loadSql("select id, " + namesStrInfo + "," + fieldNamesStr + " from " + tableName + " order by id"));
 
         // =================
 
@@ -142,13 +132,11 @@ public class UtRecMerge_Test extends DbmTestCase {
         Collection<RecDuplicate> resList0 = utRecMerge.findTableDuplicates(tableName, fieldNames, false);
 
         // Печатаем дубликаты
-        System.out.println("Заданий на слияние: " + resList0.size());
+        UtRecMergePrint.printDuplicates(resList0);
+
+        //
         int recordCount0 = 1;
         for (RecDuplicate res : resList0) {
-            System.out.println(res.params);
-            UtData.outTable(res.records, 10);
-            System.out.println();
-            //
             recordCount0 = res.records.size();
         }
 
@@ -156,22 +144,25 @@ public class UtRecMerge_Test extends DbmTestCase {
         Collection<RecDuplicate> resList1 = utRecMerge.findTableDuplicates(tableName, fieldNames, true);
 
         // Печатаем дубликаты
-        System.out.println("Заданий на слияние: " + resList1.size());
+        UtRecMergePrint.printDuplicates(resList1);
+
+        //
         int recordCount1 = 1;
         for (RecDuplicate res : resList1) {
-            System.out.println(res.params);
-            UtData.outTable(res.records, 10);
-            System.out.println();
-            //
             recordCount1 = res.records.size();
         }
+
+
+        //
+        assertEquals("Есть задание на слияние", true, resList1.size() != 0);
+        assertEquals("Количество дубликатов", recordCount1, recordCount0 + 2);
     }
 
     @Test
     public void test_execMergeTask() throws Exception {
         tableName = "LicDocTip";
-        namesStr = "Name";
-        fieldNames = Arrays.asList(namesStr.split(","));
+        fieldNamesStr = "Name";
+        fieldNames = Arrays.asList(fieldNamesStr.split(","));
 
         //
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
@@ -204,7 +195,7 @@ public class UtRecMerge_Test extends DbmTestCase {
 
 
         // Снова ищем дубликаты
-        UtData.outTable(db.loadSql("select id, " + namesStr + " from " + tableName + " order by id"));
+        UtData.outTable(db.loadSql("select id, " + fieldNamesStr + " from " + tableName + " order by id"));
         //
         duplicates = utRecMerge.findTableDuplicates(tableName, fieldNames);
         assertEquals("Найдены дубликаты", false, duplicates.size() > 0);
@@ -239,7 +230,7 @@ public class UtRecMerge_Test extends DbmTestCase {
 
     @Test
     public void test_execMergeTask_FromFile() throws Exception {
-        // Формируем задачу на слияние
+        // Провоцируем появление дубликатов и формируем задачу на слияние
         test_makeMergeTask_ToFile();
 
 
@@ -263,7 +254,7 @@ public class UtRecMerge_Test extends DbmTestCase {
 
 
         // Снова ищем дубликаты
-        UtData.outTable(db.loadSql("select id, " + namesStr + " from " + tableName + " order by id"));
+        UtData.outTable(db.loadSql("select id, " + fieldNamesStr + " from " + tableName + " order by id"));
         //
         Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(tableName, fieldNames);
         assertEquals("Найдены дубликаты", false, duplicates.size() > 0);
@@ -272,14 +263,14 @@ public class UtRecMerge_Test extends DbmTestCase {
     @Test
     public void test_execMergeTask_FromFile_tmp() throws Exception {
         tableName = "SubjectTip";
-        namesStr = "Name,Parent";
-        fieldNames = Arrays.asList(namesStr.split(","));
+        fieldNamesStr = "Name,Parent";
+        fieldNames = Arrays.asList(fieldNamesStr.split(","));
 
         // Провоцируем появление дубликатов
         test_MakeDuplicatesLoadDuplicates();
 
         // Печатаем текущие дубликаты
-        UtData.outTable(db.loadSql("select id, " + namesStr + " from " + tableName + " order by " + namesStr + ", id"));
+        UtData.outTable(db.loadSql("select id, " + fieldNamesStr + " from " + tableName + " order by " + fieldNamesStr + ", id"));
 
         //
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
@@ -315,7 +306,7 @@ public class UtRecMerge_Test extends DbmTestCase {
         UtRecMergePrint.printMergeResults(fileResults);
 
         // Печатаем теперь дубликаты
-        UtData.outTable(db.loadSql("select id, " + namesStr + " from " + tableName + " order by " + namesStr + ", id"));
+        UtData.outTable(db.loadSql("select id, " + fieldNamesStr + " from " + tableName + " order by " + fieldNamesStr + ", id"));
     }
 
     @Test
@@ -337,8 +328,8 @@ public class UtRecMerge_Test extends DbmTestCase {
         // Удаляем:
         //  Астана.parent = 2
         tableName = "Region";
-        namesStr = "RegionTip,Parent,Name";
-        fieldNames = Arrays.asList(namesStr.split(","));
+        fieldNamesStr = "RegionTip,Parent,Name";
+        fieldNames = Arrays.asList(fieldNamesStr.split(","));
 
         // Ищем дубликаты
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
@@ -373,8 +364,17 @@ public class UtRecMerge_Test extends DbmTestCase {
 
     @Test
     public void test_execRevertExecTask() throws Exception {
-        // Формируем задачу на слияние
+        // Вначале дубликатов нет
+        test_NoDuplicates();
+
+
+        // Провоцируем появление дубликатов и формируем задачу на слияние
         test_makeMergeTask_ToFile();
+
+
+        // Теперь дубликаты есть
+        test_IsDuplicates();
+
 
         // Читаем задачу на слияние
         UtRecMergeRW reader = new UtRecMergeRW();
@@ -390,7 +390,13 @@ public class UtRecMerge_Test extends DbmTestCase {
         utRecMerge.execMergePlan(mergeTasks, fileResults);
 
         // Печатаем результат выполнения задачи
+        System.out.println();
+        System.out.println("Результат выполнения слияния:");
         UtRecMergePrint.printMergeResults(fileResults);
+
+
+        // Опять дубликатов нет
+        test_NoDuplicates();
 
 
         // Читаем результат выполнения задачи
@@ -399,26 +405,31 @@ public class UtRecMerge_Test extends DbmTestCase {
         utRecMerge.revertExecMergePlan(resultReader);
 
 
-        // Снова ищем дубликаты
-        Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(tableName, fieldNames);
-        //
-        assertEquals("Найдены дубликаты", true, duplicates.size() > 0);
+        // Опять дубликаты есть
+        test_IsDuplicates();
     }
 
     @Test
     public void test_NoDuplicates() throws Exception {
         logOff();
-        assertEquals("Найдены дубликаты LicDocTip", true, getDuplicatesCount("LicDocTip", "Name") == 0);
-        System.out.println();
-        assertEquals("Найдены дубликаты LicDocVid", true, getDuplicatesCount("LicDocVid", "Name") == 0);
-        System.out.println();
+        assertEquals("Найдены дубликаты " + tableName, true, getDuplicatesCount(tableName, fieldNamesStr) == 0);
+    }
+
+    @Test
+    public void test_IsDuplicates() throws Exception {
+        logOff();
+        assertEquals("Не найдены дубликаты " + tableName, true, getDuplicatesCount(tableName, fieldNamesStr) != 0);
     }
 
     public long getDuplicatesCount(String tableName, String fieldNamesStr) throws Exception {
-        DataStore st = db.loadSql("select count(*) cnt, " + fieldNamesStr + " from " + tableName + " where id <> 0 group by " + fieldNamesStr);
+        DataStore st = db.loadSql("select count(*) cnt, " + fieldNamesStr + " from " + tableName + " where id <> 0 group by " + fieldNamesStr + " having count(*) > 1");
         //
-        System.out.println(tableName + "." + fieldNamesStr);
-        UtData.outTable(st);
+        if (st.size() == 0) {
+            System.out.println("Дубликатов в: " + tableName + ", по полям: " + fieldNamesStr + " нет");
+        } else {
+            System.out.println("Дубликаты в: " + tableName + ", по полям: " + fieldNamesStr);
+            UtData.outTable(st);
+        }
         //
         UtRecMerge utRecMerge = new UtRecMerge(db, struct);
         Collection<String> fieldNames = Arrays.asList(fieldNamesStr.split(","));

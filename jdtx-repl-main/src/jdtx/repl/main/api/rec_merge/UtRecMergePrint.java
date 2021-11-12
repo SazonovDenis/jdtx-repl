@@ -32,6 +32,16 @@ public class UtRecMergePrint {
         }
     }
 
+    public static void printDuplicates(Collection<RecDuplicate> duplicates) {
+        System.out.println("Заданий на слияние: " + duplicates.size());
+        for (RecDuplicate res : duplicates) {
+            System.out.println("  искали: " + res.params);
+            System.out.println("  нашли дубликатов: " + res.records.size());
+            //UtData.outTable(res.records, 10);
+            //System.out.println();
+        }
+    }
+
     public static void printMergeResults(File fileResults) throws Exception {
         // Читаем результат выполнения задачи
         RecMergeResultReader resultReader = new RecMergeResultReader(new FileInputStream(fileResults));
@@ -45,10 +55,6 @@ public class UtRecMergePrint {
     }
 
     public void printMergeResults(RecMergeResultReader resultReader) throws Exception {
-        System.out.println("MergeResults:");
-        System.out.println();
-
-        //
         MergeResultTableItem tableItem = resultReader.nextResultTable();
 
         while (tableItem != null) {
