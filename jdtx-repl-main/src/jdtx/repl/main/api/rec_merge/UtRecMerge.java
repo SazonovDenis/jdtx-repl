@@ -453,10 +453,12 @@ public class UtRecMerge implements IUtRecMerge {
      * а все старые записи - планируем удалить.
      */
     private Collection<RecMergePlan> prepareRemoveDuplicatesTaskAsIs(String tableName, Collection<RecDuplicate> duplicates) throws Exception {
+        Collection<RecMergePlan> res = new ArrayList<>();
+        //
         IJdxTable table = struct.getTable(tableName);
         String pkField = table.getPrimaryKey().get(0).getName();
         //
-        Collection<RecMergePlan> res = new ArrayList<>();
+        GroupStrategy tableGroups = groupsStrategyStorage.getForTable(tableName);
         //
         for (RecDuplicate duplicate : duplicates) {
             // Собираем данные со всех записей:
@@ -464,7 +466,9 @@ public class UtRecMerge implements IUtRecMerge {
             //  - recordEtalon пополняется полями из всех записей
             Map<String, Object> recordEtalon = new HashMap<>();
             Collection<Long> recordsDelete = new ArrayList<>();
-            GroupStrategy tableGroups = groupsStrategyStorage.getForTable(tableName);
+            // За образец берем первую запись
+            recordEtalon.putAll(duplicate.records.get(0).getValues());
+            //
             for (int i = 0; i < duplicate.records.size(); i++) {
                 recordsDelete.add(duplicate.records.get(i).getValueLong(pkField));
                 assignNotEmptyFields(duplicate.records.get(i).getValues(), recordEtalon, tableGroups);
