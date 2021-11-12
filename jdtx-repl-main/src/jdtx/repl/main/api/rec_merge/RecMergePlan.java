@@ -16,7 +16,7 @@ public class RecMergePlan {
     /**
      * Запись (эталонная), корторая появится в таблице tableName взамен удаленных, теперь все будут ссылатся на нее
      */
-    Map<String, Object> recordEtalon;
+    Map<String, String> recordEtalon;
 
     /**
      * Удаляемые записи (Id) в таблице tableName
@@ -27,6 +27,7 @@ public class RecMergePlan {
      *
      */
     public RecMergePlan() {
+        recordEtalon = new HashMap<>();
         recordsDelete = new ArrayList<>();
     }
 

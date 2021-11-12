@@ -205,7 +205,7 @@ public class UtAuditApplyer {
 
 
                         // Подготовка recParams для записи в БД - десериализация значений
-                        Map<String, Object> recParams = prepareParams(recValues, publicationRuleTable.getFields(), table, dataReader.getWsId(), decoder);
+                        Map<String, Object> recParams = prepareValues(recValues, publicationRuleTable.getFields(), table, dataReader.getWsId(), decoder);
 
 
                         // Выполняем INS/UPD/DEL
@@ -392,23 +392,23 @@ public class UtAuditApplyer {
     /**
      * Десериализация значений полей (перед записью в БД)
      *
-     * @param publicationFields
-     * @param recValues         Данные в строковом виде (из XML)
+     * @param fields
+     * @param valuesStr         Данные в строковом виде (из XML)
      * @param replicaWsId
      * @param decoder
      * @return Типизированные данные
      */
-    Map<String, Object> prepareParams(Map<String, String> recValues, Collection<IJdxField> publicationFields, IJdxTable table, long replicaWsId, IRefDecoder decoder) throws Exception {
+    Map<String, Object> prepareValues(Map<String, String> valuesStr, Collection<IJdxField> fields, IJdxTable table, long replicaWsId, IRefDecoder decoder) throws Exception {
         Map<String, Object> recParams = new HashMap<>();
 
         //
-        for (IJdxField publicationField : publicationFields) {
+        for (IJdxField publicationField : fields) {
             String publicationFieldName = publicationField.getName();
             IJdxField field = table.getField(publicationFieldName);
             IJdxTable refTable = field.getRefTable();
 
             //
-            String fieldValueStr = recValues.get(publicationFieldName);
+            String fieldValueStr = valuesStr.get(publicationFieldName);
 
             // Поле - ссылка?
             if (fieldValueStr != null && (field.isPrimaryKey() || refTable != null)) {

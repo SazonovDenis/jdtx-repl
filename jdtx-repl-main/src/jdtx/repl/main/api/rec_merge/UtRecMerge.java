@@ -179,9 +179,10 @@ public class UtRecMerge implements IUtRecMerge {
                 // INS - Создаем эталонную запись.
                 // "Эталонная" запись должна быть именно ВСТАВЛЕНА, а не выбранной из уже существующих,
                 // т.к. на рабочей станции может НЕ ОКАЗАТЬСЯ той записи, которую назначили как "эталонная".
-                Map<String, Object> params = prepareParams((Map<String, String>) mergePlan.recordEtalon.values(), struct.getTable(mergePlan.tableName));
+                IJdxTable table = struct.getTable(mergePlan.tableName);
+                Map<String, Object> params = prepareValues(mergePlan.recordEtalon, table.getFields());
                 //
-                String pkField = struct.getTable(mergePlan.tableName).getPrimaryKey().get(0).getName();
+                String pkField = table.getPrimaryKey().get(0).getName();
                 params.put(pkField, null);
                 //
                 long etalonRecId = dbu.insertRec(mergePlan.tableName, params);
@@ -232,21 +233,40 @@ public class UtRecMerge implements IUtRecMerge {
     /**
      * Десериализация значений полей (перед записью в БД)
      *
-     * @param recValues Данные в строковом виде (из XML)
+     * @param valuesStr Данные в строковом виде (из XML или JSON)
      * @return Типизированные данные
      */
-    Map<String, Object> prepareParams(Map<String, String> recValues, IJdxTable table) {
-        Map<String, Object> recParams = new HashMap<>();
+    Map<String, Object> prepareValues(Map<String, String> valuesStr, Collection<IJdxField> fields) {
+        Map<String, Object> res = new HashMap<>();
 
         //
-        for (IJdxField field : table.getFields()) {
+        for (IJdxField field : fields) {
             String fieldName = field.getName();
-            String fieldValueStr = recValues.get(fieldName);
-            recParams.put(fieldName, UtXml.strToValue(fieldValueStr, field));
+            String fieldValueStr = valuesStr.get(fieldName);
+            res.put(fieldName, UtXml.strToValue(fieldValueStr, field));
         }
 
         //
-        return recParams;
+        return res;
+    }
+
+    /**
+     * Сериализация значений полей (перед записью в БД)
+     *
+     * @param values Типизированные данные
+     * @return Данные в строковом виде (для XML или JSON)
+     */
+    Map<String, String> prepareValuesStr(Map<String, Object> values) {
+        Map<String, String> res = new HashMap<>();
+
+        //
+        for (String fieldName : values.keySet()) {
+            Object fieldValue = values.get(fieldName);
+            res.put(fieldName, UtXml.valueToStr(fieldValue));
+        }
+
+        //
+        return res;
     }
 
     /**
@@ -404,7 +424,7 @@ public class UtRecMerge implements IUtRecMerge {
         //
         Map<String, String> rec = resultReader.nextRec();
         while (rec != null) {
-            Map<String, Object> params = prepareParams(rec, table);
+            Map<String, Object> params = prepareValues(rec, table.getFields());
             db.execSql(sql, params);
 
             //
@@ -429,7 +449,8 @@ public class UtRecMerge implements IUtRecMerge {
 
     /**
      * Превращение ВСЕХ дублей в план на удаление в "лоб".
-     * За образец берем первую запись (на ее основе делаем новую запись), все записи - планируем удалить.
+     * За образец берем первую запись (на ее основе делаем новую запись),
+     * а все старые записи - планируем удалить.
      */
     private Collection<RecMergePlan> prepareRemoveDuplicatesTaskAsIs(String tableName, Collection<RecDuplicate> duplicates) throws Exception {
         IJdxTable table = struct.getTable(tableName);
@@ -438,18 +459,21 @@ public class UtRecMerge implements IUtRecMerge {
         Collection<RecMergePlan> res = new ArrayList<>();
         //
         for (RecDuplicate duplicate : duplicates) {
-            RecMergePlan task = new RecMergePlan();
-            //
-            task.tableName = tableName;
-            task.recordEtalon = duplicate.records.get(0).getValues();
-            //
+            // Собираем данные со всех записей:
+            //  - копим recordsDelete всех записей
+            //  - recordEtalon пополняется полями из всех записей
+            Map<String, Object> recordEtalon = new HashMap<>();
+            Collection<Long> recordsDelete = new ArrayList<>();
             GroupStrategy tableGroups = groupsStrategyStorage.getForTable(tableName);
-            //
             for (int i = 0; i < duplicate.records.size(); i++) {
-                task.recordsDelete.add(duplicate.records.get(i).getValueLong(pkField));
-                // Запись task.recordEtalon - пополняется полями из всех записей
-                assignNotEmptyFields(duplicate.records.get(i).getValues(), task.recordEtalon, tableGroups);
+                recordsDelete.add(duplicate.records.get(i).getValueLong(pkField));
+                assignNotEmptyFields(duplicate.records.get(i).getValues(), recordEtalon, tableGroups);
             }
+            // Задача
+            RecMergePlan task = new RecMergePlan();
+            task.tableName = tableName;
+            task.recordEtalon.putAll(prepareValuesStr(recordEtalon));
+            task.recordsDelete.addAll(recordsDelete);
             //
             res.add(task);
         }

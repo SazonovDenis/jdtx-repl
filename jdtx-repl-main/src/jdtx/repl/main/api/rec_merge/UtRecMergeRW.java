@@ -42,8 +42,8 @@ public class UtRecMergeRW {
             JSONObject taskJson = (JSONObject) k;
             RecMergePlan task = new RecMergePlan();
             task.tableName = taskJson.get("tableName").toString();
-            task.recordEtalon = new HashMap((Map) taskJson.get("recordEtalon"));
-            task.recordsDelete = new ArrayList<>((Collection<Long>) taskJson.get("recordsDelete"));
+            task.recordEtalon.putAll((Map) taskJson.get("recordEtalon"));
+            task.recordsDelete.addAll((Collection<Long>) taskJson.get("recordsDelete"));
             mergeTasks.add(task);
         }
 
