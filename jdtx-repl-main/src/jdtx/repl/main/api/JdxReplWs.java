@@ -8,7 +8,7 @@ import jandcode.utils.io.*;
 import jandcode.utils.variant.*;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.data_serializer.*;
-import jdtx.repl.main.api.data_serializer.UtData;
+import jdtx.repl.main.api.data_serializer.UtJdxData;
 import jdtx.repl.main.api.database_info.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.jdx_db_object.*;
@@ -208,9 +208,9 @@ public class JdxReplWs {
 
         //
         if (app != null) {
-            res.put("autoUseRepairReplica", UtData.booleanValueOf(app.get("autoUseRepairReplica"), false));
-            res.put("skipForeignKeyViolationIns", UtData.booleanValueOf(app.get("skipForeignKeyViolationIns"), false));
-            res.put("skipForeignKeyViolationUpd", UtData.booleanValueOf(app.get("skipForeignKeyViolationUpd"), false));
+            res.put("autoUseRepairReplica", UtJdxData.booleanValueOf(app.get("autoUseRepairReplica"), false));
+            res.put("skipForeignKeyViolationIns", UtJdxData.booleanValueOf(app.get("skipForeignKeyViolationIns"), false));
+            res.put("skipForeignKeyViolationUpd", UtJdxData.booleanValueOf(app.get("skipForeignKeyViolationUpd"), false));
         }
 
         //
@@ -648,7 +648,7 @@ public class JdxReplWs {
         } finally {
             infoStream.close();
         }
-        long destinationWsId = UtData.longValueOf(info.get("destinationWsId"));
+        long destinationWsId = UtJdxData.longValueOf(info.get("destinationWsId"));
 
 
         // Реакция на команду, если получатель - все станции или именно наша
@@ -678,7 +678,7 @@ public class JdxReplWs {
         } finally {
             infoStream.close();
         }
-        long destinationWsId = UtData.longValueOf(info.get("destinationWsId"));
+        long destinationWsId = UtJdxData.longValueOf(info.get("destinationWsId"));
 
         // Реакция на команду, если получатель - все станции или именно наша
         if (destinationWsId == 0 || destinationWsId == wsId) {
@@ -705,7 +705,7 @@ public class JdxReplWs {
         } finally {
             infoStream.close();
         }
-        long destinationWsId = UtData.longValueOf(wsStateJson.get("destinationWsId"));
+        long destinationWsId = UtJdxData.longValueOf(wsStateJson.get("destinationWsId"));
 
         // Реакция на команду, если получатель - именно наша
         if (destinationWsId == wsId) {
@@ -805,7 +805,7 @@ public class JdxReplWs {
         } finally {
             infoStream.close();
         }
-        long destinationWsId = UtData.longValueOf(info.get("destinationWsId"));
+        long destinationWsId = UtJdxData.longValueOf(info.get("destinationWsId"));
 
         // Реакция на команду, если получатель - все станции или именно наша
         if (destinationWsId == 0 || destinationWsId == wsId) {
@@ -832,7 +832,7 @@ public class JdxReplWs {
         } finally {
             infoStream.close();
         }
-        long destinationWsId = UtData.longValueOf(info.get("destinationWsId"));
+        long destinationWsId = UtJdxData.longValueOf(info.get("destinationWsId"));
         String tableName = (String) info.get("tableName");
 
         // Реакция на команду, если получатель - именно наша
@@ -864,7 +864,7 @@ public class JdxReplWs {
         } finally {
             infoStream.close();
         }
-        boolean sendSnapshot = UtData.booleanValueOf(info.get("sendSnapshot"), true);
+        boolean sendSnapshot = UtJdxData.booleanValueOf(info.get("sendSnapshot"), true);
 
         //
         DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
@@ -917,7 +917,7 @@ public class JdxReplWs {
         }
 
         // Данные о новой конфигурации
-        long destinationWsId = UtData.longValueOf(cfgInfo.get("destinationWsId"));
+        long destinationWsId = UtJdxData.longValueOf(cfgInfo.get("destinationWsId"));
         String cfgType = (String) cfgInfo.get("cfgType");
 
         // Пришла конфигурация для нашей станции (или всем станциям)?

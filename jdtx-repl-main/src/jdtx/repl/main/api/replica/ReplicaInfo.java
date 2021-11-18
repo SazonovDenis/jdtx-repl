@@ -85,7 +85,7 @@ public class ReplicaInfo implements IReplicaInfo {
         if (dtTo != null && dtTo.compareTo("null") != 0) {
             this.dtTo = new DateTime(dtTo);
         }
-        this.replicaType = UtData.intValueOf(infoJson.get("replicaType"));
+        this.replicaType = UtJdxData.intValueOf(infoJson.get("replicaType"));
         this.dbStructCrc = (String) infoJson.get("dbStructCrc");
     }
 

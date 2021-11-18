@@ -222,7 +222,7 @@ public class UtAuditApplyer {
                         // (Неполный набр полей используется, например, если на филиалы НЕ отправляются данные из справочников,
                         // на которые ссылается рассматриваемая таблица, например: "примечания, сделанные пользователем":
                         // сами примечания отправляем, а ССЫЛКИ на пользователей придется пропустить).
-                        int oprType = UtData.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
+                        int oprType = UtJdxData.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
                         long recId = (Long) recParams.get(pkFieldName);
                         if (oprType == JdxOprType.OPR_INS) {
                             try {

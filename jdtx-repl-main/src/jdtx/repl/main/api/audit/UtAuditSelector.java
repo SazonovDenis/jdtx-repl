@@ -276,8 +276,8 @@ public class UtAuditSelector {
 
 
             //
-            long z_id_from = UtData.longValueOf(maxIdsFixed_From.get(tableName), 0L);
-            long z_id_to = UtData.longValueOf(maxIdsFixed_To.get(tableName), 0L);
+            long z_id_from = UtJdxData.longValueOf(maxIdsFixed_From.get(tableName), 0L);
+            long z_id_to = UtJdxData.longValueOf(maxIdsFixed_To.get(tableName), 0L);
 
             // Аудит таблицы для этого возраста пуст?
             if (z_id_from >= z_id_to) {

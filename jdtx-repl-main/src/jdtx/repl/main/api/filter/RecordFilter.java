@@ -42,7 +42,7 @@ public class RecordFilter implements IRecordFilter {
 
     @Override
     public boolean isMach(Map<String, String> recValues) {
-        int oprType = UtData.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
+        int oprType = UtJdxData.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
         filterExpression.setVariable("PARAM_oprType", new BigDecimal(oprType));
 
         // recValues -> filterExpression.filterParams

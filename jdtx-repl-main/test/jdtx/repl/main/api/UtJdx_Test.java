@@ -159,17 +159,17 @@ public class UtJdx_Test extends TestCase {
 
     @Test
     public void test_longValueOf() throws Exception {
-        assertEquals(null, UtData.longValueOf(null));
-        assertEquals(null, UtData.longValueOf(""));
-        assertEquals(null, UtData.longValueOf("null"));
-        assertEquals(Long.valueOf(-1), UtData.longValueOf("-1"));
-        assertEquals(Long.valueOf(-1), UtData.longValueOf(-1));
+        assertEquals(null, UtJdxData.longValueOf(null));
+        assertEquals(null, UtJdxData.longValueOf(""));
+        assertEquals(null, UtJdxData.longValueOf("null"));
+        assertEquals(Long.valueOf(-1), UtJdxData.longValueOf("-1"));
+        assertEquals(Long.valueOf(-1), UtJdxData.longValueOf(-1));
 
-        assertEquals(Long.valueOf(200), UtData.longValueOf(null, 200L));
-        assertEquals(Long.valueOf(200), UtData.longValueOf("", 200L));
-        assertEquals(Long.valueOf(200), UtData.longValueOf("null", 200L));
-        assertEquals(Long.valueOf(-1), UtData.longValueOf("-1", 200L));
-        assertEquals(Long.valueOf(-1), UtData.longValueOf(-1, 200L));
+        assertEquals(Long.valueOf(200), UtJdxData.longValueOf(null, 200L));
+        assertEquals(Long.valueOf(200), UtJdxData.longValueOf("", 200L));
+        assertEquals(Long.valueOf(200), UtJdxData.longValueOf("null", 200L));
+        assertEquals(Long.valueOf(-1), UtJdxData.longValueOf("-1", 200L));
+        assertEquals(Long.valueOf(-1), UtJdxData.longValueOf(-1, 200L));
     }
 
 

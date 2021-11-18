@@ -90,7 +90,7 @@ public class UtDataSelector {
                 String pkFieldName = table.getPrimaryKey().get(0).getName();
                 Object pkFieldValue = values.get(pkFieldName);
                 String refTableName = table.getName();
-                long own_id = UtData.longValueOf(pkFieldValue);
+                long own_id = UtJdxData.longValueOf(pkFieldValue);
                 if (!decoder.is_own_id(refTableName, own_id)) {
                     throw new XError("Not own id found, tableName: " + refTableName + ", id: " + own_id);
                 }

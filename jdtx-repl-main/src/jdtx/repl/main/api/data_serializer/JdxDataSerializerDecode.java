@@ -35,7 +35,7 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
                 refTableName = refTable.getName();
             }
             // Запаковка ссылки в JdxRef
-            JdxRef ref = decoder.get_ref(refTableName, UtData.longValueOf(fieldValue));
+            JdxRef ref = decoder.get_ref(refTableName, UtJdxData.longValueOf(fieldValue));
             fieldValueStr = String.valueOf(ref);
         } else {
             // Поле других типов

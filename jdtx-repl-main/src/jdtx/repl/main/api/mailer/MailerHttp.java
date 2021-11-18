@@ -74,7 +74,7 @@ public class MailerHttp implements IMailer {
     public long getBoxState(String box) throws Exception {
         JSONObject res = getState_internal(box);
         JSONObject files = (JSONObject) res.get("files");
-        return UtData.longValueOf(files.get("max"));
+        return UtJdxData.longValueOf(files.get("max"));
     }
 
     @Override
@@ -82,7 +82,7 @@ public class MailerHttp implements IMailer {
         JSONObject resState = getState_internal(box);
         JSONObject last_info = (JSONObject) resState.get("last_info");
         //long age = longValueOf(last_info.getOrDefault("age", 0));
-        long no = UtData.longValueOf(last_info.getOrDefault("no", 0));
+        long no = UtJdxData.longValueOf(last_info.getOrDefault("no", 0));
         return no;
     }
 
@@ -146,7 +146,7 @@ public class MailerHttp implements IMailer {
         // защита от ситуации "после переноса рабочей станции на старом компьютере проснулась старая копия рабочей станции"
         JSONObject resState = getState_internal(box);
         JSONObject last_info = (JSONObject) resState.get("last_info");
-        long srv_age = UtData.longValueOf(last_info.getOrDefault("no", 0));
+        long srv_age = UtJdxData.longValueOf(last_info.getOrDefault("no", 0));
         JSONObject required = (JSONObject) resState.get("required");
         SendRequiredInfo requiredInfo = new SendRequiredInfo(required);
         if (no <= srv_age && requiredInfo.requiredFrom == -1) {

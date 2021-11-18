@@ -48,7 +48,7 @@ public class UtXml {
 
         // Поле - дата/время?
         if (UtAuditApplyer.getDataType(field.getDbDatatype()) == DataType.DATETIME) {
-            DateTime valueDateTime = UtData.dateTimeValueOf(valueStr);
+            DateTime valueDateTime = UtJdxData.dateTimeValueOf(valueStr);
             return valueDateTime;
         }
 
