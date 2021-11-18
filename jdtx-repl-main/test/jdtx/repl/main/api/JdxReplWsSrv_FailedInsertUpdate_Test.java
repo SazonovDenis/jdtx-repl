@@ -54,12 +54,13 @@ public class JdxReplWsSrv_FailedInsertUpdate_Test extends JdxReplWsSrv_Test {
     public void test_ProblemDelete_Show() throws Exception {
         logOn();
 
-        // Первичная инициализация
+        // Создание репликации
         allSetUp();
         //
         select("temp/0.txt");
         System.out.println();
-        //
+
+        // Первичная синхронизация
         sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();

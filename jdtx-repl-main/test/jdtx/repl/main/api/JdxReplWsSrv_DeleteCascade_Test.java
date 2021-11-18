@@ -27,11 +27,14 @@ public class JdxReplWsSrv_DeleteCascade_Test extends JdxReplWsSrv_Test {
         JdxDbUtils dbu2 = new JdxDbUtils(db2, struct2);
         JdxDbUtils dbu3 = new JdxDbUtils(db3, struct3);
 
-        // Первичная инициализация
+        // Создание репликации
         allSetUp();
+
+        // Первичная синхронизация
         sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();
+
         //
         printRegionTip();
 

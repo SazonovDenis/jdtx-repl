@@ -16,8 +16,10 @@ public class JdxReplWsSrv_DatabaseRestore_test extends JdxReplWsSrv_Test {
 
     @Test
     public void test_DatabaseRestore_step1() throws Exception {
-        // Первичная инициализация
+        // Создание репликации
         allSetUp();
+
+        // Первичная синхронизация
         sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();

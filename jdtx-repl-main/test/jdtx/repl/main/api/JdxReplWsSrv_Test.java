@@ -49,8 +49,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
      */
     @Test
     public void test_allSetUp_TestAll() throws Exception {
-        // Первичная инициализация
+        // Создание репликации
         allSetUp();
+
+        // Первичная синхронизация
         sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();
@@ -87,7 +89,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         // ---
         // На рабочих станциях
 
-        // Первичная инициализация и начальный конфиг рабочих станций
+        // Инициализация баз и начальный конфиг рабочих станций
         args.clear();
         args.put("ws", 1);
         args.put("guid", "b5781df573ca6ee6.x-17845f2f56f4d401");
