@@ -16,9 +16,7 @@ public class GroupsStrategyStorage {
 
     public static void initInstance(JSONObject cfgGroups, IJdxDbStruct struct) throws Exception {
         GroupsStrategyStorage groupsStrategyStorage = new GroupsStrategyStorage();
-        if (cfgGroups != null) {
-            groupsStrategyStorage.loadStrategy(cfgGroups, struct);
-        }
+        groupsStrategyStorage.loadStrategy(cfgGroups, struct);
         instance = groupsStrategyStorage;
     }
 
@@ -57,38 +55,40 @@ public class GroupsStrategyStorage {
     public void loadStrategy(JSONObject cfg, IJdxDbStruct structActual) {
         strategyStorage.clear();
 
-        for (Object key : cfg.keySet()) {
-            JSONArray tableStrategysJson = (JSONArray) cfg.get(key);
-            String tableName = (String) key;
+        if (cfg != null) {
+            for (Object key : cfg.keySet()) {
+                JSONArray tableStrategysJson = (JSONArray) cfg.get(key);
+                String tableName = (String) key;
 
-            //
-            IJdxTable structTable = structActual.getTable(tableName);
-            if (structTable == null) {
-                // Правило для таблицы, которой нет в структуре
-                log.warn("Not found table in struct: " + tableName);
-                continue;
-            }
-
-            GroupStrategy groupStrategy = new GroupStrategy();
-            strategyStorage.put(structTable.getName(), groupStrategy);
-
-            for (Object o : tableStrategysJson) {
-                String strategyTableStr = (String) o;
-                String[] strategyTableArr = strategyTableStr.split(",");
-                Collection<String> strategyTableList = new ArrayList<>();
-
-                for (String fieldName : strategyTableArr) {
-                    IJdxField field = structTable.getField(fieldName);
-                    if (field == null) {
-                        log.warn("Not found field in table struct: " + tableName + "." + fieldName);
-                        continue;
-                    }
-                    strategyTableList.add(field.getName());
+                //
+                IJdxTable structTable = structActual.getTable(tableName);
+                if (structTable == null) {
+                    // Правило для таблицы, которой нет в структуре
+                    log.warn("Not found table in struct: " + tableName);
+                    continue;
                 }
 
-                // Добавляем список полей в группе для каждого поля (ключа field)
-                for (String fieldName : strategyTableList) {
-                    groupStrategy.put(fieldName, strategyTableList);
+                GroupStrategy groupStrategy = new GroupStrategy();
+                strategyStorage.put(structTable.getName(), groupStrategy);
+
+                for (Object o : tableStrategysJson) {
+                    String strategyTableStr = (String) o;
+                    String[] strategyTableArr = strategyTableStr.split(",");
+                    Collection<String> strategyTableList = new ArrayList<>();
+
+                    for (String fieldName : strategyTableArr) {
+                        IJdxField field = structTable.getField(fieldName);
+                        if (field == null) {
+                            log.warn("Not found field in table struct: " + tableName + "." + fieldName);
+                            continue;
+                        }
+                        strategyTableList.add(field.getName());
+                    }
+
+                    // Добавляем список полей в группе для каждого поля (ключа field)
+                    for (String fieldName : strategyTableList) {
+                        groupStrategy.put(fieldName, strategyTableList);
+                    }
                 }
             }
         }

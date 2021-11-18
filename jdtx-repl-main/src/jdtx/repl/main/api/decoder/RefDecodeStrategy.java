@@ -40,31 +40,33 @@ public class RefDecodeStrategy {
      */
     protected Map<String, RefDecodeStrategyItem> tablesDecodeStrategy;
 
-    public void init(JSONObject cfgDecode) throws Exception {
+    public void init(JSONObject cfg) throws Exception {
         // Стратегии перекодировки каждой таблицы
         tablesDecodeStrategy = new HashMap<>();
 
         // Загрузим стратегии перекодировки
-        for (Object k : cfgDecode.keySet()) {
-            String tableName = (String) k;
-            tableName = tableName.toUpperCase();
-            JSONObject st = (JSONObject) cfgDecode.get(k);
+        if (cfg != null) {
+            for (Object key : cfg.keySet()) {
+                String tableName = (String) key;
+                tableName = tableName.toUpperCase();
+                JSONObject st = (JSONObject) cfg.get(key);
 
-            //
-            RefDecodeStrategyItem tableDecodeStrategyItem = new RefDecodeStrategyItem();
-            String strategy = (String) st.get("strategy");
-            switch (strategy) {
-                case "DECODE_ID":
-                    tableDecodeStrategyItem.strategy = DECODE_ID;
-                    tableDecodeStrategyItem.decode_from_id = (Long) st.get("decode_from_id");
-                    break;
-                case "NO_DECODE":
-                    tableDecodeStrategyItem.strategy = NO_DECODE;
-                    break;
-                default:
-                    throw new XError("Unknown strategy: " + strategy + ", tableName: " + tableName);
+                //
+                RefDecodeStrategyItem tableDecodeStrategyItem = new RefDecodeStrategyItem();
+                String strategy = (String) st.get("strategy");
+                switch (strategy) {
+                    case "DECODE_ID":
+                        tableDecodeStrategyItem.strategy = DECODE_ID;
+                        tableDecodeStrategyItem.decode_from_id = (Long) st.get("decode_from_id");
+                        break;
+                    case "NO_DECODE":
+                        tableDecodeStrategyItem.strategy = NO_DECODE;
+                        break;
+                    default:
+                        throw new XError("Unknown strategy: " + strategy + ", tableName: " + tableName);
+                }
+                tablesDecodeStrategy.put(tableName, tableDecodeStrategyItem);
             }
-            tablesDecodeStrategy.put(tableName, tableDecodeStrategyItem);
         }
     }
 
