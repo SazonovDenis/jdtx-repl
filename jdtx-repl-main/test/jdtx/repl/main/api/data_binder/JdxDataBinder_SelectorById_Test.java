@@ -40,9 +40,10 @@ public class JdxDataBinder_SelectorById_Test extends DbmTestCase {
         idList.add(4L);
 
         IJdxDataBinder res = new JdxDataBinder_SelectorById(dbm.getDb(), "region", "*", idList);
+        Map<String, Object> values = res.getValues();
 
         while (!res.eof()) {
-            System.out.println("id: " + res.getValue("id") + ", name: " + res.getValue("name"));
+            System.out.println("id: " + values.get("id") + ", name: " + values.get("name"));
             res.next();
         }
 

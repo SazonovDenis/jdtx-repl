@@ -35,13 +35,11 @@ public class GroupStrategy_Test extends DbmTestCase {
     @Test
     public void test_assignNotEmptyFields() throws Exception {
         logOn();
-        //
-        UtRecMerge utRecMerge = new UtRecMerge(db, struct);
 
+        //
         Map<String, Object> record = new HashMap<>();
         Map<String, Object> recordRes = new HashMap<>();
         GroupsStrategyStorage groupsStrategyStorage = new GroupsStrategyStorage();
-
         JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/field_groups.json");
         groupsStrategyStorage.loadStrategy(cfg, struct);
         //
@@ -64,10 +62,14 @@ public class GroupStrategy_Test extends DbmTestCase {
         printFields(struct.getTable("LIC"));
         printValues(record, struct.getTable("LIC"));
         printValues(recordRes, struct.getTable("LIC"));
+
         //
-        utRecMerge.assignNotEmptyFields(record, recordRes, tableGroups);
+        JdxRecMerger recMerger = new JdxRecMerger(db, struct, null);
+        recMerger.assignNotEmptyFields(record, recordRes, tableGroups);
+
         //
         printValues(recordRes, struct.getTable("LIC"));
+
         //
         assertEquals("NameF_V1", recordRes.get("NAMEF"));
         assertEquals("NameI_V1", recordRes.get("NAMEI"));

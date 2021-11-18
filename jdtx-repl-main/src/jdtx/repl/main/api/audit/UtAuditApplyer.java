@@ -4,6 +4,7 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.data_binder.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.manager.*;
@@ -102,7 +103,7 @@ public class UtAuditApplyer {
         AuditDbTriggersManager triggersManager = new AuditDbTriggersManager(db);
 
         //
-        IRefDecoder decoder = new RefDecoder(db, wsId);
+        IJdxDataSerializer dataSerializer = new JdxDataSerializer_decode(db, wsId);
 
         //
         db.startTran();
@@ -138,7 +139,7 @@ public class UtAuditApplyer {
                 //
                 tIdx = n;
                 IJdxTable table = tables.get(n);
-                String idFieldName = table.getPrimaryKey().get(0).getName();
+                String pkFieldName = table.getPrimaryKey().get(0).getName();
                 String tableName = table.getName();
 
                 //
@@ -170,7 +171,7 @@ public class UtAuditApplyer {
                     recordFilter = new RecordFilter(publicationRuleTable, tableName, filterParams);
                 }
 
-                // Тут копим задания на DELETE для таблицы tableName, их выполняем вторым проходом.
+                // Тут будем копить задания на DELETE для таблицы tableName, их выполняем вторым проходом.
                 Collection<Long> delayedDeleteTaskForTable = delayedDeleteTask.get(tableName);
                 if (delayedDeleteTaskForTable == null) {
                     delayedDeleteTaskForTable = new ArrayList<>();
@@ -186,6 +187,11 @@ public class UtAuditApplyer {
                 }
                 readerTableNamePrior = readerTableName;
 
+                //
+                String publicationFieldsName = UtJdx.fieldsToString(publicationRuleTable.getFields());
+                dataSerializer.setTable(table, publicationFieldsName);
+
+                //
                 Map<String, String> recValues = dataReader.nextRec();
                 while (recValues != null) {
 
@@ -205,12 +211,11 @@ public class UtAuditApplyer {
 
 
                         // Подготовка recParams для записи в БД - десериализация значений
-                        Map<String, Object> recParams = prepareValues(recValues, publicationRuleTable.getFields(), table, dataReader.getWsId(), decoder);
+                        Map<String, Object> recParams = dataSerializer.prepareValues(recValues);
 
 
                         // Выполняем INS/UPD/DEL
-                        String publicationFields = UtJdx.fieldsToString(publicationRuleTable.getFields());
-                        // Очень важно взять поля для обновления (publicationFields) именно из правил публикации,
+                        // Очень важно взять поля для обновления (publicationFieldsName) именно из правил публикации,
                         // а не все что есть в физической  таблице, т.к. именно по этим правилам готовилась реплика на сервере,
                         // при этом мог использоваться НЕ ПОЛНЫЙ набор полей. Из-за такого пропуска полей,
                         // при получении на рабочей станции СВОЕЙ реплики и попытке обновить ВСЕ поля,
@@ -219,13 +224,13 @@ public class UtAuditApplyer {
                         // на которые ссылается рассматриваемая таблица, например: "примечания, сделанные пользователем":
                         // сами примечания отправляем, а ССЫЛКИ на пользователей придется пропустить).
                         int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
-                        long recId = (Long) recParams.get(idFieldName);
+                        long recId = (Long) recParams.get(pkFieldName);
                         if (oprType == JdxOprType.OPR_INS) {
                             try {
                                 // Отменим удаление этой записи на втором проходе
                                 delayedDeleteTaskForTable.remove(recId);
                                 //
-                                insertOrUpdate(dbu, tableName, recParams, publicationFields);
+                                insertOrUpdate(dbu, tableName, recParams, publicationFieldsName);
                             } catch (Exception e) {
                                 if (UtJdx.errorIs_ForeignKeyViolation(e)) {
                                     log.error(e.getMessage());
@@ -253,7 +258,7 @@ public class UtAuditApplyer {
 
                         } else if (oprType == JdxOprType.OPR_UPD) {
                             try {
-                                dbu.updateRec(tableName, recParams, publicationFields, null);
+                                dbu.updateRec(tableName, recParams, publicationFieldsName, null);
                             } catch (Exception e) {
                                 if (UtJdx.errorIs_ForeignKeyViolation(e)) {
                                     log.error(e.getMessage());
@@ -389,56 +394,8 @@ public class UtAuditApplyer {
 
     }
 
-    /**
-     * Десериализация значений полей (перед записью в БД)
-     *
-     * @param fields
-     * @param valuesStr         Данные в строковом виде (из XML)
-     * @param replicaWsId
-     * @param decoder
-     * @return Типизированные данные
-     */
-    Map<String, Object> prepareValues(Map<String, String> valuesStr, Collection<IJdxField> fields, IJdxTable table, long replicaWsId, IRefDecoder decoder) throws Exception {
-        Map<String, Object> recParams = new HashMap<>();
 
-        //
-        for (IJdxField publicationField : fields) {
-            String publicationFieldName = publicationField.getName();
-            IJdxField field = table.getField(publicationFieldName);
-            IJdxTable refTable = field.getRefTable();
-
-            //
-            String fieldValueStr = valuesStr.get(publicationFieldName);
-
-            // Поле - ссылка?
-            if (fieldValueStr != null && (field.isPrimaryKey() || refTable != null)) {
-                // Это значение - ссылка
-                JdxRef fieldValueRef = JdxRef.parse(fieldValueStr);
-                // Дополнение ссылки
-                if (fieldValueRef.ws_id == -1) {
-                    fieldValueRef.ws_id = replicaWsId;
-                }
-                // Перекодировка ссылки
-                String refTableName;
-                if (field.isPrimaryKey()) {
-                    refTableName = table.getName();
-                } else {
-                    refTableName = refTable.getName();
-                }
-                long fieldValue = decoder.get_id_own(refTableName, fieldValueRef.ws_id, fieldValueRef.value);
-                //
-                recParams.put(publicationFieldName, fieldValue);
-            } else {
-                // Поле других типов
-                recParams.put(publicationFieldName, UtXml.strToValue(fieldValueStr, field));
-            }
-        }
-
-        //
-        return recParams;
-    }
-
-    private void insertOrUpdate(JdxDbUtils dbu, String tableName, Map recParams, String publicationFields) throws Exception {
+    private void insertOrUpdate(JdxDbUtils dbu, String tableName, Map<String, Object> recParams, String publicationFields) throws Exception {
         try {
             dbu.insertRec(tableName, recParams, publicationFields, null);
         } catch (Exception e) {

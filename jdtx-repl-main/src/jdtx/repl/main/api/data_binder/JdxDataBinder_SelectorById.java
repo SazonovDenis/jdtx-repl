@@ -28,8 +28,8 @@ public class JdxDataBinder_SelectorById implements IJdxDataBinder {
     }
 
     @Override
-    public Object getValue(String name) {
-        return record.getValue(name);
+    public Map<String, Object> getValues() {
+        return record.getValues();
     }
 
     @Override

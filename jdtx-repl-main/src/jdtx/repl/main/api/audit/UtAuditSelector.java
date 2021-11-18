@@ -58,7 +58,7 @@ public class UtAuditSelector {
         replicaWriter.replicaFileStart();
 
         // Начинаем писать файл с данными
-        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDat(); //<--- вот тут
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDat();
 
         // Забираем аудит по порядку сортировки таблиц в struct
         for (IJdxTable structTable : struct.getTables()) {
@@ -94,8 +94,8 @@ public class UtAuditSelector {
 
     void readAuditData_ByInterval(String tableName, String tableFields, long fromId, long toId, JdxReplicaWriterXml dataWriter) throws Exception {
         IJdxTable table = struct.getTable(tableName);
-        IRefDecoder decoder = new RefDecoder(db, wsId);
-        UtDataWriter utDataWriter = new UtDataWriter(table, tableFields, decoder, false);
+        IJdxDataSerializer dataSerializer = new JdxDataSerializer_decode(db, wsId);
+        dataSerializer.setTable(table, tableFields);
 
         // DbQuery, содержащий аудит в указанном диапазоне: id >= fromId и id <= toId
         IJdxTable tableFrom = struct.getTable(tableName);
@@ -112,12 +112,14 @@ public class UtAuditSelector {
                 //
                 long n = 0;
                 while (!dataTableAudit.eof()) {
+                    Map<String, Object> values = dataTableAudit.getValues();
+
                     // Пропуск аудита по изменению УЖЕ УДАЛЕННЫХ записей. Если такие команды оставить,
                     // то рабочая станция при ОТМЕНЕ УДАЛЕНИЯ не сможет выложить в очередь корректную реплику
                     // на "обратную вставку" - эта запись будет с пустыми полями как раз из-за того,
                     // что запрос аудита по изменению уже удаленных записей возвращает все поля null
                     // (что неудивительно, т.к. идет left join аудита и физической таблицы).
-                    int z_skip = (int) dataTableAudit.getValue("z_skip");
+                    int z_skip = (int) values.get("z_skip");
 
                     // Не пропущенная запись
                     if (z_skip == 0) {
@@ -125,11 +127,12 @@ public class UtAuditSelector {
                         dataWriter.appendRec();
 
                         // Тип операции
-                        int oprType = (int) dataTableAudit.getValue(UtJdx.SQL_FIELD_OPR_TYPE);
+                        int oprType = (int) values.get(UtJdx.SQL_FIELD_OPR_TYPE);
                         dataWriter.writeOprType(oprType);
 
                         // Тело записи (с перекодировкой ссылок)
-                        utDataWriter.dataBinderRec_To_DataWriter_WithRefDecode(dataTableAudit, dataWriter);
+                        Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
+                        UtDataSelector.dataBinder_to_dataWriter(valuesStr, tableFields, dataWriter);
                     }
 
                     //
@@ -205,13 +208,13 @@ public class UtAuditSelector {
     }
 
     protected String getSql(IJdxTable tableFrom, String tableFields, long fromId, long toId) {
-        String idFieldName = tableFrom.getPrimaryKey().get(0).getName();
+        String pkFieldName = tableFrom.getPrimaryKey().get(0).getName();
         String tableName = tableFrom.getName();
         //
         String[] tableFromFields = tableFields.split(",");
         StringBuilder sb = new StringBuilder();
         for (String fieldName : tableFromFields) {
-            if (fieldName.compareToIgnoreCase(idFieldName) == 0) {
+            if (fieldName.compareToIgnoreCase(pkFieldName) == 0) {
                 // без id из основной таблицы, id берем из таблицы аудита
                 continue;
             }
@@ -227,11 +230,11 @@ public class UtAuditSelector {
         return "select " +
                 UtJdx.SQL_FIELD_OPR_TYPE + ", \n" +
                 UtJdx.PREFIX + "opr_dttm, \n" +
-                UtJdx.AUDIT_TABLE_PREFIX + tableName + "." + idFieldName + ", \n" +
-                "(case when " + UtJdx.SQL_FIELD_OPR_TYPE + " in (" + JdxOprType.OPR_INS + "," + JdxOprType.OPR_UPD + ") and " + tableName + "." + idFieldName + " is null then 1 else 0 end) z_skip, \n" +
+                UtJdx.AUDIT_TABLE_PREFIX + tableName + "." + pkFieldName + ", \n" +
+                "(case when " + UtJdx.SQL_FIELD_OPR_TYPE + " in (" + JdxOprType.OPR_INS + "," + JdxOprType.OPR_UPD + ") and " + tableName + "." + pkFieldName + " is null then 1 else 0 end) z_skip, \n" +
                 tableFieldsAlias + "\n" +
                 " from " + UtJdx.AUDIT_TABLE_PREFIX + tableName + "\n" +
-                " left join " + tableName + " on (" + UtJdx.AUDIT_TABLE_PREFIX + tableName + "." + idFieldName + " = " + tableName + "." + idFieldName + ") \n" +
+                " left join " + tableName + " on (" + UtJdx.AUDIT_TABLE_PREFIX + tableName + "." + pkFieldName + " = " + tableName + "." + pkFieldName + ") \n" +
                 " where " + UtJdx.PREFIX + "id >= " + fromId + " and " + UtJdx.PREFIX + "id <= " + toId + "\n" +
                 " order by " + UtJdx.PREFIX + "id";
     }

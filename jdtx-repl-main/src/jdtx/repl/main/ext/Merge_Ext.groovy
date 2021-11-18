@@ -9,6 +9,8 @@ import jandcode.utils.*
 import jandcode.utils.error.*
 import jandcode.utils.variant.*
 import jdtx.repl.main.api.*
+import jdtx.repl.main.api.data_binder.IJdxDataSerializer
+import jdtx.repl.main.api.data_binder.JdxDataSerializer_decode
 import jdtx.repl.main.api.rec_merge.*
 import jdtx.repl.main.api.struct.*
 import org.json.simple.*
@@ -88,18 +90,18 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             //
-            UtRecMerge utRecMerge = new UtRecMerge(db, struct)
+            //IJdxDataSerializer dataSerializer =
+            JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer)
             if (!UtString.empty(fileCfgGroup)) {
                 JSONObject cfg = UtRepl.loadAndValidateJsonFile(fileCfgGroup)
-                utRecMerge.groupsStrategyStorage.loadStrategy(cfg, struct)
+                recMerger.groupsStrategyStorage.loadStrategy(cfg, struct)
             }
 
             // Ищем дубликаты
-            Collection<String> fieldNames = Arrays.asList(fields.split(","));
-            Collection<RecDuplicate> duplicates = utRecMerge.findTableDuplicates(table, fieldNames, useNull)
+            Collection<RecDuplicate> duplicates = recMerger.findTableDuplicates(table, fields, useNull)
 
             // Тупо превращаем дубликаты в задачи на слияние
-            Collection<RecMergePlan> mergeTasks = utRecMerge.prepareMergePlan(table, duplicates)
+            Collection<RecMergePlan> mergeTasks = recMerger.prepareMergePlan(table, duplicates)
 
             // Сериализация
             UtRecMergeRW reader = new UtRecMergeRW()
@@ -152,8 +154,9 @@ class Merge_Ext extends ProjectExt {
             recMergeResultWriter.open(outFile)
 
             // Исполняем
-            UtRecMerge utRecMerge = new UtRecMerge(db, struct)
-            utRecMerge.execMergePlan(mergeTasks, recMergeResultWriter)
+            //IJdxDataSerializer dataSerializer = ;
+            JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer)
+            recMerger.execMergePlan(mergeTasks, recMergeResultWriter)
 
             // Сохраняем
             recMergeResultWriter.close()

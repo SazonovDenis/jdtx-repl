@@ -18,8 +18,8 @@ public class PkGenerator_PS extends PkGenerator implements IPkGenerator {
     @Override
     public long getMaxPk(String tableName) throws Exception {
         IJdxTable table = struct.getTable(tableName);
-        String idFieldName = table.getPrimaryKey().get(0).getName();
-        String sql = "select max(" + idFieldName + ") as maxId from " + table.getName() + " where " + idFieldName + " <= " + RefDecoder.get_max_own_id();
+        String pkFieldName = table.getPrimaryKey().get(0).getName();
+        String sql = "select max(" + pkFieldName + ") as maxId from " + table.getName() + " where " + pkFieldName + " <= " + RefDecoder.get_max_own_id();
         long maxId = db.loadSql(sql).getCurRec().getValueLong("maxId");
         return maxId;
     }

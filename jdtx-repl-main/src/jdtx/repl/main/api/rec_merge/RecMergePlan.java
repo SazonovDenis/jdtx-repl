@@ -11,17 +11,20 @@ public class RecMergePlan {
     /**
      * Таблица, для которой делаем merge
      */
-    String tableName;
+    public String tableName;
 
     /**
-     * Запись (эталонная), корторая появится в таблице tableName взамен удаленных, теперь все будут ссылатся на нее
+     * Запись (эталонная), корторая появится в таблице tableName взамен удаленных, теперь все будут ссылатся на нее.
+     * Значения сохраняются в сериализованном виде (в виде строки, так удобнее)
      */
-    Map<String, String> recordEtalon;
+    public Map<String, String> recordEtalon;
 
     /**
-     * Удаляемые записи (Id) в таблице tableName
+     * Удаляемые записи (Id) в таблице tableName.
+     * Значения сохраняются в сериализованном виде (в виде строки, так удобнее)
      */
-    Collection<Long> recordsDelete;
+    public Collection<String> recordsDelete;
+    //todo recordsDelete = пусть будут строковыми (сериализованными)
 
     /**
      *

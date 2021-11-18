@@ -211,6 +211,46 @@ public class UtRepl {
         return replica;
     }
 
+    /**
+     * Создает INS-реплику для записи valuesStr
+     */
+    public IReplica createReplicaRecInsForRecord(String tableName, Map<String, String> valuesStr, long selfWsId) throws Exception {
+        IReplica replica = new ReplicaFile();
+        replica.getInfo().setReplicaType(JdxReplicaType.IDE);
+        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
+        replica.getInfo().setWsId(selfWsId);
+        replica.getInfo().setAge(-1);
+
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
+
+        // Начинаем писать файл с данными
+        JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDat();
+
+        // Данные помещаем в dataWriter
+        xmlWriter.startTable(tableName);
+
+        // Добавляем запись
+        xmlWriter.appendRec();
+
+        // Тип операции
+        xmlWriter.writeOprType(JdxOprType.OPR_INS);
+
+        // Тело записи
+        IJdxTable table = struct.getTable(tableName);
+        UtDataSelector.dataBinder_to_dataWriter(valuesStr, UtJdx.fieldsToString(table.getFields()), xmlWriter);
+
+        //
+        xmlWriter.flush();
+
+        // Заканчиваем формирование файла реплики
+        replicaWriter.replicaFileClose();
+
+        //
+        return replica;
+    }
+
     public IReplica createReplicaSetDbStruct(boolean sendSnapshot) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SET_DB_STRUCT);
@@ -391,6 +431,30 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         return replica;
     }
 
+    public IReplica createReplicaMerge(String taskFileName) throws Exception {
+        IReplica replica = new ReplicaFile();
+        replica.getInfo().setReplicaType(JdxReplicaType.MERGE);
+        replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
+
+        // Стартуем формирование файла реплики
+        UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
+        replicaWriter.replicaFileStart();
+
+        // Открываем запись файла
+        OutputStream zipOutputStream = replicaWriter.newFileOpen("task.json");
+
+        // Пишем содержимое
+        File taskFile = new File(taskFileName);
+        InputStream taskFileStream = new FileInputStream(taskFile);
+        UtFile.copyStream(taskFileStream, zipOutputStream);
+
+        // Заканчиваем формирование файла реплики
+        replicaWriter.replicaFileClose();
+
+        //
+        return replica;
+    }
+
     public IReplica createReplicaSetCfg(JSONObject cfg, String cfgType, long destinationWsId) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SET_CFG);
@@ -522,7 +586,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         if (table == null) {
             throw new XError("Таблица не найдена в структуре: " + tableName);
         }
-        String idFieldName = table.getPrimaryKey().get(0).getName();
+        String pkFieldName = table.getPrimaryKey().get(0).getName();
 
 
         //
@@ -563,8 +627,8 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                     replicaInfo.put("dtFrom", replica.getInfo().getDtFrom());
                     replicaInfo.put("dtTo", replica.getInfo().getDtTo());
                     replicaInfo.put("file", replica.getFile().getAbsolutePath());
-                    JSONArray replicaData = new JSONArray();
-                    replicaInfo.put("data", replicaData);
+                    JSONArray replicaInfoData = new JSONArray();
+                    replicaInfo.put("data", replicaInfoData);
 
                     //
                     String readerTableName = replicaReader.nextTable();
@@ -577,10 +641,10 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                             long countRec = 0;
 
                             //
-                            Map recValues = replicaReader.nextRec();
+                            Map<String, String> recValues = replicaReader.nextRec();
                             while (recValues != null) {
-                                Object idValue = recValues.get(idFieldName);
-                                JdxRef idValueRef = JdxRef.parse((String) idValue);
+                                String idValueStr = recValues.get(pkFieldName);
+                                JdxRef idValueRef = JdxRef.parse(idValueStr);
                                 // Дополнение ссылки
                                 if (idValueRef.ws_id == -1 && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
                                     idValueRef.ws_id = replica.getInfo().getWsId();
@@ -597,17 +661,29 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
 
                                         // В реплике нашлась запись - сохраним данные по реплике
                                         recordsFoundInReplica = true;
-                                        replicaData.add(recValues);
+                                        replicaInfoData.add(recValues);
 
                                         // Сохраняем запись
                                         xmlWriter.appendRec();
 
-                                        // Если ищем только одну запись - пусть она попадет в реплику как INS
+                                        // Если ищем только последнюю запись - пусть она попадет в реплику как INS
+                                        // (так удобнее потом "применять" реплику с командной строки)
                                         if (findLastOne) {
                                             xmlWriter.writeOprType(JdxOprType.OPR_INS);
                                         } else {
                                             xmlWriter.writeOprType(oprType);
                                         }
+
+                                        // Запись значений
+                                        UtDataSelector.dataBinder_to_dataWriter(recValues, UtJdx.fieldsToString(table.getFields()), xmlWriter);
+
+                                        //
+                                        //IJdxDataConverter dataConverter = new JdxDataConverter_decode(null, -1);
+                                        //dataConverter.setTable(table, UtJdx.fieldsToString(table.getFields()));
+/*
+                                        // todo - выяснить, зачем ТУТ БЫЛИ всякие перекодировки, если мы уже работаем с ДАННЫМИ В РЕПЛИКЕ,
+                                        // todo можно же работать с СЕРИАЛИЗОВАННЫМИ значениями, без обработки
+
 
                                         // Запись значения с проверкой/перекодировкой ссылок
                                         for (IJdxField field : table.getFields()) {
@@ -616,7 +692,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                                             // Запись значения с проверкой/перекодировкой ссылок
                                             IJdxTable refTable = field.getRefTable();
                                             if (field.isPrimaryKey() || refTable != null) {
-                                                // Это значение - ссылка
+                                                // Эт о поле - ссылка
                                                 JdxRef fieldValueRef = JdxRef.parse((String) fieldValue);
                                                 // Дополнение ссылки
                                                 if (fieldValueRef != null && fieldValueRef.ws_id == -1 && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
@@ -628,6 +704,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                                                 xmlWriter.writeRecValue(fieldName, fieldValue);
                                             }
                                         }
+*/
                                     }
                                 }
 

@@ -1,6 +1,7 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.db.*;
+import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_binder.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.publication.*;
@@ -19,6 +20,7 @@ public class UtDataSelector {
     private IJdxDbStruct struct;
     private boolean forbidNotOwnId;
     private IRefDecoder decoder;
+    private IJdxDataSerializer dataSerializer;
 
     private long MAX_SNAPSHOT_RECS = 5000;
 
@@ -27,13 +29,25 @@ public class UtDataSelector {
 
 
     /**
+     * Запись всех полей в писателя.
+     */
+    public static void dataBinder_to_dataWriter(Map<String, String> rec, String recFieldNames, JdxReplicaWriterXml writer) throws Exception {
+        for (String fieldName : recFieldNames.split(",")) {
+            String fieldValueStr = rec.get(fieldName);
+            writer.writeRecValue(fieldName, fieldValueStr);
+        }
+    }
+
+
+    /**
      * @param selfWsId Код рабочей станции, на которой делаем выборку
      */
     public UtDataSelector(Db db, IJdxDbStruct struct, long selfWsId, boolean forbidNotOwnId) throws Exception {
-        this.db = db;
         this.struct = struct;
-        this.forbidNotOwnId = forbidNotOwnId;
+        this.db = db;
         this.decoder = new RefDecoder(db, selfWsId);
+        this.forbidNotOwnId = forbidNotOwnId;
+        this.dataSerializer = new JdxDataSerializer_decode(db, selfWsId);
     }
 
     /**
@@ -69,7 +83,7 @@ public class UtDataSelector {
 
     private void flushDataToWriter(IJdxDataBinder data, String tableName, String tableFields, JdxReplicaWriterXml dataWriter) throws Exception {
         IJdxTable table = struct.getTable(tableName);
-        UtDataWriter utDataWriter = new UtDataWriter(table, tableFields, decoder, forbidNotOwnId);
+        dataSerializer.setTable(table, tableFields);
 
         //
         dataWriter.startTable(tableName);
@@ -78,6 +92,19 @@ public class UtDataSelector {
         long count = 0;
         long countPortion = 0;
         while (!data.eof()) {
+            Map<String, Object> values = data.getValues();
+
+            // Защита от дурака (для snapshot): в snapshot недопустимы чужие id
+            if (forbidNotOwnId) {
+                String pkFieldName = table.getPrimaryKey().get(0).getName();
+                Object pkFieldValue = values.get(pkFieldName);
+                String refTableName = table.getName();
+                long own_id = UtJdx.longValueOf(pkFieldValue);
+                if (!decoder.is_own_id(refTableName, own_id)) {
+                    throw new XError("Not own id found, tableName: " + refTableName + ", id: " + own_id);
+                }
+            }
+
             // Обеспечим не слишком огромные порции данных
             if (countPortion >= MAX_SNAPSHOT_RECS) {
                 countPortion = 0;
@@ -92,7 +119,8 @@ public class UtDataSelector {
             dataWriter.writeOprType(JdxOprType.OPR_INS);
 
             // Тело записи
-            utDataWriter.dataBinderRec_To_DataWriter_WithRefDecode(data, dataWriter);
+            Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
+            UtDataSelector.dataBinder_to_dataWriter(valuesStr, tableFields, dataWriter);
 
             //
             data.next();

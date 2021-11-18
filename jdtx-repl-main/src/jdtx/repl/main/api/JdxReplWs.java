@@ -7,6 +7,7 @@ import jandcode.utils.error.*;
 import jandcode.utils.io.*;
 import jandcode.utils.variant.*;
 import jdtx.repl.main.api.audit.*;
+import jdtx.repl.main.api.data_binder.*;
 import jdtx.repl.main.api.database_info.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.jdx_db_object.*;
@@ -15,6 +16,7 @@ import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.pk_generator.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.que.*;
+import jdtx.repl.main.api.rec_merge.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
@@ -1076,6 +1078,62 @@ public class JdxReplWs {
         auditApplyer.applyReplica(replica, publicationIn, filterParams, forceApply_ignorePublicationRules, commitPortionMax);
     }
 
+    /**
+     * Реакция на команду слияния записей
+     */
+    private void useReplica_MERGE(IReplica replica) throws Exception {
+        //
+        log.info("UseReplica MERGE");
+
+        //
+        String sWsId = UtString.padLeft(String.valueOf(wsId), 3, "0");
+        String dirResult = dataRoot + "ws_" + sWsId + "/merge/" + JdxStorageFile.getNo(replica.getFile().getName()) + "/";
+        UtFile.cleanDir(dirResult);
+
+        //
+        log.info("merge result in: " + dirResult);
+
+        // Распаковываем файл с задачей на слияние
+        InputStream stream = JdxReplicaReaderXml.createInputStream(replica, "task.json");
+        try {
+            OutputStream fileStream = new FileOutputStream(dirResult + "task.json");
+            UtFile.copyStream(stream, fileStream);
+            fileStream.close();
+        } finally {
+            stream.close();
+        }
+
+        // Читаем задачу на слияние
+        UtRecMergeRW reader = new UtRecMergeRW();
+        Collection<RecMergePlan> mergeTasks = reader.readTasks(dirResult + "task.json");
+
+        //
+        log.info("mergeTasks.count: " + mergeTasks.size());
+
+
+        // Исполняем задачу на слияние
+        db.startTran();
+        try {
+            // Сохраняем результат выполнения задачи
+            RecMergeResultWriter recMergeResultWriter = new RecMergeResultWriter();
+            recMergeResultWriter.open(new File(dirResult + "result.zip"));
+
+            // Исполняем
+            IJdxDataSerializer dataSerializer = new JdxDataSerializer_decode(db, wsId);
+            JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
+            recMerger.execMergePlan(mergeTasks, recMergeResultWriter);
+
+            // Сохраняем
+            recMergeResultWriter.close();
+
+            //
+            db.commit();
+        } catch (Exception e) {
+            db.rollback(e);
+            throw e;
+        }
+    }
+
 
     private ReplicaUseResult useReplicaInternal(IReplica replica, boolean forceApplySelf) throws Exception {
         ReplicaUseResult useResult = new ReplicaUseResult();
@@ -1126,6 +1184,11 @@ public class JdxReplWs {
 
             case JdxReplicaType.SET_CFG: {
                 useReplica_SET_DB_CFG(replica, useResult);
+                break;
+            }
+
+            case JdxReplicaType.MERGE: {
+                useReplica_MERGE(replica);
                 break;
             }
 
@@ -1490,6 +1553,7 @@ public class JdxReplWs {
 
     /**
      * Выявить ситуацию "станцию восстановили из бэкапа" и починить ее
+     * todo: НЕ обрабатывает ситуацию "в очереди реплики есть, а в каталоге их нет (пропали файлы)"
      */
     public void repairAfterBackupRestore(boolean doRepair, boolean doPrint) throws Exception {
         JdxStorageFile queFile = new JdxStorageFile();

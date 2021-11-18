@@ -2,6 +2,8 @@ package jdtx.repl.main.api.data_binder;
 
 import jandcode.dbm.db.*;
 
+import java.util.*;
+
 public class JdxDataBinder_DbQuery implements IJdxDataBinder {
 
     private DbQuery query;
@@ -11,8 +13,8 @@ public class JdxDataBinder_DbQuery implements IJdxDataBinder {
     }
 
     @Override
-    public Object getValue(String name) {
-        return query.getValue(name);
+    public Map<String, Object> getValues() {
+        return query.getValues();
     }
 
     @Override

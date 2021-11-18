@@ -791,6 +791,30 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
+    void repl_merge_request(IVariantMap args) {
+        String exeFileName = args.getValueString("file")
+        if (exeFileName == null || exeFileName.length() == 0) {
+            throw new XError("Не указан [file] - файл задания для merge")
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        try {
+            //
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init()
+
+            //
+            srv.srvMergeRequest(taskFileName)
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
     void repl_request_snapshot(IVariantMap args) {
         long destinationWsId = args.getValueLong("ws")
         String tableNames = args.getValueString("tables")

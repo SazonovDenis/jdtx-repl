@@ -48,9 +48,9 @@ public class UtRecRelocator {
         db.startTran();
         try {
             // Проверяем, что idSour не пустая
-            String pkField = struct.getTable(tableName).getPrimaryKey().get(0).getName();
-            String sql = "select * from " + tableName + " where " + pkField + " = :" + pkField;
-            DataStore stSour = db.loadSql(sql, UtCnv.toMap(pkField, idSour));
+            String pkFieldName = struct.getTable(tableName).getPrimaryKey().get(0).getName();
+            String sql = "select * from " + tableName + " where " + pkFieldName + " = :" + pkFieldName;
+            DataStore stSour = db.loadSql(sql, UtCnv.toMap(pkFieldName, idSour));
             if (stSour.size() == 0) {
                 throw new XError("Error relocateId: idSour not found");
             }
@@ -58,11 +58,11 @@ public class UtRecRelocator {
 
 
             // Копируем запись tableName.idSour в tableName.idDest
-            recSour.setValue(pkField, idDest);
+            recSour.setValue(pkFieldName, idDest);
             dbu.insertRec(tableName, recSour.getValues());
 
             //
-            UtRecMerge utRecMerge = new UtRecMerge(db, struct);
+            UtRecMerger utRecMerger = new UtRecMerger(db, struct);
             ArrayList<Long> recordsDelete = new ArrayList<>();
             recordsDelete.add(idSour);
 
@@ -72,19 +72,19 @@ public class UtRecRelocator {
             recMergeResultWriter.open(resultFile);
 
             // DEL - Сохранияем то, что нужно удалить
-            utRecMerge.recordsDeleteSave(tableName, recordsDelete, recMergeResultWriter);
+            utRecMerger.recordsDeleteSave(tableName, recordsDelete, recMergeResultWriter);
             // UPD - Сохранияем то, где нужно перебить ссылки
-            utRecMerge.recordsRelocateSave(tableName, recordsDelete, recMergeResultWriter);
+            utRecMerger.recordsRelocateSave(tableName, recordsDelete, recMergeResultWriter);
 
             // Сохраняем
             recMergeResultWriter.close();
 
 
             // Перебиваем ссылки у зависимых таблиц с tableName.idSour на tableName.idDest
-            utRecMerge.recordsRelocateExec(tableName, recordsDelete, idDest);
+            utRecMerger.recordsRelocateExec(tableName, recordsDelete, idDest);
 
             // Удаляем старую запись tableName.idSour
-            utRecMerge.recordsDeleteExec(tableName, recordsDelete);
+            utRecMerger.recordsDeleteExec(tableName, recordsDelete);
 
 
             //
@@ -101,7 +101,7 @@ public class UtRecRelocator {
      */
     public void relocateIdCheck(String tableName, long idSour, File outFile) throws Exception {
         //
-        UtRecMerge utRecMerge = new UtRecMerge(db, struct);
+        UtRecMerger utRecMerger = new UtRecMerger(db, struct);
         ArrayList<Long> recordsDelete = new ArrayList<>();
         recordsDelete.add(idSour);
 
@@ -110,9 +110,9 @@ public class UtRecRelocator {
         recMergeResultWriter.open(outFile);
 
         // DEL - Сохранияем то, что нужно удалить
-        utRecMerge.recordsDeleteSave(tableName, recordsDelete, recMergeResultWriter);
+        utRecMerger.recordsDeleteSave(tableName, recordsDelete, recMergeResultWriter);
         // UPD - Сохранияем то, где нужно перебить ссылки
-        utRecMerge.recordsRelocateSave(tableName, recordsDelete, recMergeResultWriter);
+        utRecMerger.recordsRelocateSave(tableName, recordsDelete, recMergeResultWriter);
 
         // Сохраняем
         recMergeResultWriter.close();

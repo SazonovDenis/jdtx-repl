@@ -4,12 +4,15 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.data_binder.*;
+import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.que.*;
+import jdtx.repl.main.api.rec_merge.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
@@ -674,28 +677,15 @@ public class JdxReplSrv {
 
 
     public void srvAppUpdate(String exeFileName, String queName) throws Exception {
-        log.info("srvAppUpdate, exeFileName: " + exeFileName);
+        log.info("srvAppUpdate, exe fileName: " + exeFileName);
 
         UtRepl utRepl = new UtRepl(db, struct);
 
-        // Рассылка - в исходящую очередь реплик queOut001
-        for (Map.Entry en : mailerList.entrySet()) {
-            long wsId = (long) en.getKey();
-
-
-            // Выбор очереди - общая (queCommon) или личная для станции
-            IJdxReplicaQue que;
-            if (queName.compareToIgnoreCase(UtQue.QUE_COMMON) == 0) {
-                // Очередь queCommon (общая)
-                que = queCommon;
-            } else if (queName.compareToIgnoreCase(UtQue.QUE_OUT001) == 0) {
-                // Очередь queOut001 станции (инициализационная или для системных команд)
-                JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
-                queOut001.setDataRoot(dataRoot);
-                que = queOut001;
-            } else {
-                throw new XError("Unknown queName: " + queName);
-            }
+        // Выбор очереди - общая (queCommon) или личная для станции
+        IJdxReplicaQue que;
+        if (queName.compareToIgnoreCase(UtQue.QUE_COMMON) == 0) {
+            // Очередь queCommon (общая)
+            que = queCommon;
 
             // Команда на обновление
             IReplica replica = utRepl.createReplicaAppUpdate(exeFileName);
@@ -704,8 +694,78 @@ public class JdxReplSrv {
             que.push(replica);
 
             //
-            log.info("srvAppUpdate, to wd: " + wsId);
+            log.info("srvAppUpdate, to ws all, QUE_COMMON");
+        } else if (queName.compareToIgnoreCase(UtQue.QUE_OUT001) == 0) {
+            for (long wsId : mailerList.keySet()) {
+                // Очередь queOut001 станции (инициализационная или для системных команд)
+                JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
+                queOut001.setDataRoot(dataRoot);
+                que = queOut001;
+
+                // Команда на обновление
+                IReplica replica = utRepl.createReplicaAppUpdate(exeFileName);
+
+                // Системная команда - в исходящую очередь реплик
+                que.push(replica);
+
+                //
+                log.info("srvAppUpdate, to ws: " + wsId);
+            }
+        } else {
+            throw new XError("Unknown queName: " + queName);
         }
+    }
+
+    public void srvMergeRequest(String taskFileName) throws Exception {
+        log.info("srvMergeRequest, task fileName: " + taskFileName);
+
+        //
+        UtRepl utRepl = new UtRepl(db, struct);
+
+        //
+        UtRecMergeRW reader = new UtRecMergeRW();
+        Collection<RecMergePlan> mergeTasks = reader.readTasks(taskFileName);
+
+        // Только рабочая станция знает, какая у нас wsId
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.init();
+
+        //
+        IJdxDataSerializer dataSerializer = new JdxDataSerializer_decode(db, ws.wsId);
+
+        //
+        for (RecMergePlan mergePlan : mergeTasks) {
+            IJdxTable table = struct.getTable(mergePlan.tableName);
+            dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
+
+            // Добавим эталонную запись на сервере
+            Map<String, Object> values = dataSerializer.prepareValues(mergePlan.recordEtalon);
+            // Чтобы вставилось с новым PK
+            String pkFieldName = table.getPrimaryKey().get(0).getName();
+            values.put(pkFieldName, null);
+            // Вставляем эталонную запись
+            JdxDbUtils dbu = new JdxDbUtils(db, struct);
+            long etalonRecId = dbu.insertRec(mergePlan.tableName, values);
+
+            // Получим ссылку JdxRef из PK вставленной эталонной записи
+            IRefDecoder decoder = new RefDecoder(db, SERVER_WS_ID);
+            JdxRef etalonRecIdRef = decoder.get_ref(mergePlan.tableName, etalonRecId);
+
+            // Исправляем PK в плане на PK только что вставленной записи
+            mergePlan.recordEtalon.put(pkFieldName, etalonRecIdRef.toString());
+
+            // Отправим реплику на вставку эталонной записи
+            IReplica replicaIns = utRepl.createReplicaRecInsForRecord(mergePlan.tableName, mergePlan.recordEtalon, ws.wsId);
+            queCommon.push(replicaIns);
+        }
+
+        // Записываем обновленный план (в нем PK новых записей проставлены как надо)
+        String taskFileNameRef = dataRoot + "temp/" + "task.json";
+        reader.writeTasks(mergeTasks, taskFileNameRef);
+
+        // Формируем команду на merge
+        IReplica replicaMerge = utRepl.createReplicaMerge(taskFileNameRef);
+        queCommon.push(replicaMerge);
     }
 
     public void srvRequestSnapshot(long destinationWsId, String tableNames, String queName) throws Exception {

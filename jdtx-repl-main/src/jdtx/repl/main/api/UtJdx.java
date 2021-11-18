@@ -269,7 +269,8 @@ public class UtJdx {
                 replica.getInfo().getReplicaType() == JdxReplicaType.REPAIR_GENERATORS ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.REPAIR_GENERATORS_DONE ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SEND_SNAPSHOT ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.SEND_SNAPSHOT_DONE
+                replica.getInfo().getReplicaType() == JdxReplicaType.SEND_SNAPSHOT_DONE ||
+                replica.getInfo().getReplicaType() == JdxReplicaType.MERGE
 
         ) {
             // Для системных команд мы не делаем других проверок

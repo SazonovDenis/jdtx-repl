@@ -43,7 +43,7 @@ public class UtRecMergeRW {
             RecMergePlan task = new RecMergePlan();
             task.tableName = taskJson.get("tableName").toString();
             task.recordEtalon.putAll((Map) taskJson.get("recordEtalon"));
-            task.recordsDelete.addAll((Collection<Long>) taskJson.get("recordsDelete"));
+            task.recordsDelete.addAll((Collection<String>) taskJson.get("recordsDelete"));
             mergeTasks.add(task);
         }
 

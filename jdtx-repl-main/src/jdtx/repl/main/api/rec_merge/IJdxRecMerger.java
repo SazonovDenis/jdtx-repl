@@ -5,11 +5,11 @@ import java.util.*;
 /**
  * Искатель дубликатов записей и исполнитель их слияния
  */
-public interface IUtRecMerge {
+public interface IJdxRecMerger {
 
     /**
      * Заготовка для реализации без заранее прочитанной структуры,
-     * но пока UtRecMerge требует struct в конструкторе
+     * но пока JdxRecMerge требует struct в конструкторе
      *
      * @return Список таблиц в базе
      */
@@ -17,7 +17,7 @@ public interface IUtRecMerge {
 
     /**
      * Заготовка для реализации без заранее прочитанной структуры,
-     * но пока UtRecMerge требует struct в конструкторе
+     * но пока JdxRecMerge требует struct в конструкторе
      *
      * @return Список полей в таблице
      */
@@ -28,7 +28,7 @@ public interface IUtRecMerge {
      *
      * @return Список дубликатов
      */
-    Collection<RecDuplicate> findTableDuplicates(String tableName, Collection<String> fieldNames, boolean useNullValues) throws Exception;
+    Collection<RecDuplicate> findTableDuplicates(String tableName, String tableFields, boolean useNullValues) throws Exception;
 
     /**
      * Для найденных дубликатов duplicates предложить план слияния записей.
