@@ -1,6 +1,7 @@
 package jdtx.repl.main.api.publication;
 
 import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.util.*;
 import org.json.simple.*;
 import org.junit.*;
 

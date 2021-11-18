@@ -1,6 +1,6 @@
 package jdtx.repl.main.api.replica;
 
-import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.util.*;
 
 import javax.xml.stream.*;

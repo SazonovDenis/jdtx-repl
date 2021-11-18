@@ -1,11 +1,12 @@
-package jdtx.repl.main.api;
+package jdtx.repl.main.api.util;
 
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
-public class UtJdx_IsErrors_Test extends ReplDatabaseStruct_Test {
+public class UtDbErrors_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_createAudit_twice() throws Exception {
@@ -40,8 +41,8 @@ public class UtJdx_IsErrors_Test extends ReplDatabaseStruct_Test {
         Exception e = new Exception("violation of FOREIGN KEY constraint \"FK_LIC_ULZ\" on table \"LIC\"");
         JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
         //
-        IJdxTable thisTable = UtJdx.get_ForeignKeyViolation_tableInfo(ee, struct);
-        IJdxForeignKey foreignKey = UtJdx.get_ForeignKeyViolation_refInfo(ee, struct);
+        IJdxTable thisTable = UtDbErrors.get_ForeignKeyViolation_tableInfo(ee, struct);
+        IJdxForeignKey foreignKey = UtDbErrors.get_ForeignKeyViolation_refInfo(ee, struct);
         IJdxField refField = foreignKey.getField();
         IJdxTable refTable = refField.getRefTable();
         //
@@ -54,4 +55,5 @@ public class UtJdx_IsErrors_Test extends ReplDatabaseStruct_Test {
         System.out.println("Foreign key: " + thisTableName + "." + thisTableRefFieldName + " -> " + refTableName + "." + refTableFieldName);
 
     }
+
 }

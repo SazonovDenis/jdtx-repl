@@ -1,7 +1,6 @@
-package jdtx.repl.main.api.data_binder;
+package jdtx.repl.main.api.data_serializer;
 
 import jdtx.repl.main.api.struct.*;
-import jdtx.repl.main.api.util.*;
 
 
 public class JdxDataSerializerPlain extends JdxDataSerializerCustom {

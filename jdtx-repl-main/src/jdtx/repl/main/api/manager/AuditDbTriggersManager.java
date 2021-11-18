@@ -1,7 +1,7 @@
 package jdtx.repl.main.api.manager;
 
 import jandcode.dbm.db.*;
-import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.util.*;
 
 public class AuditDbTriggersManager {
 

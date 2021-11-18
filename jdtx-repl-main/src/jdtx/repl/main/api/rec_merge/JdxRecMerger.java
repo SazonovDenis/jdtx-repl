@@ -3,8 +3,8 @@ package jdtx.repl.main.api.rec_merge;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
-import jdtx.repl.main.api.*;
-import jdtx.repl.main.api.data_binder.*;
+import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.data_serializer.UtData;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
@@ -201,7 +201,7 @@ public class JdxRecMerger implements IJdxRecMerger {
                 // Распаковываем PK удаляемых записей
                 Collection<Long> recordsDelete = new ArrayList<>();
                 for (String recordDeletePkStr : mergePlan.recordsDelete) {
-                    Long recordDeletePk = UtJdx.longValueOf(dataSerializer.prepareValue(recordDeletePkStr, pkField));
+                    Long recordDeletePk = UtData.longValueOf(dataSerializer.prepareValue(recordDeletePkStr, pkField));
                     recordsDelete.add(recordDeletePk);
                 }
 

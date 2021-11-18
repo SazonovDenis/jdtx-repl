@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import jdtx.repl.main.api.data_serializer.*;
 import org.json.simple.*;
 
 public class JdxWsState {
@@ -27,15 +28,15 @@ public class JdxWsState {
     }
 
     public void fromJson(JSONObject wsStateJson) {
-        QUE_IN_NO = UtJdx.longValueOf(wsStateJson.get("que_in_no"));
-        QUE_IN001_NO = UtJdx.longValueOf(wsStateJson.get("que_in001_no"));
-        QUE_IN_NO_DONE = UtJdx.longValueOf(wsStateJson.get("que_in_no_done"));
-        QUE_IN001_NO_DONE = UtJdx.longValueOf(wsStateJson.get("que_in001_no_done"));
-        QUE_OUT_NO_DONE = UtJdx.longValueOf(wsStateJson.get("que_out_no_done"));
-        MAIL_SEND_DONE = UtJdx.longValueOf(wsStateJson.get("mail_send_done"));
-        QUE_OUT_NO = UtJdx.longValueOf(wsStateJson.get("que_out_no"));
-        AGE = UtJdx.longValueOf(wsStateJson.get("age"));
-        MUTE = UtJdx.longValueOf(wsStateJson.get("mute"));
+        QUE_IN_NO = UtData.longValueOf(wsStateJson.get("que_in_no"));
+        QUE_IN001_NO = UtData.longValueOf(wsStateJson.get("que_in001_no"));
+        QUE_IN_NO_DONE = UtData.longValueOf(wsStateJson.get("que_in_no_done"));
+        QUE_IN001_NO_DONE = UtData.longValueOf(wsStateJson.get("que_in001_no_done"));
+        QUE_OUT_NO_DONE = UtData.longValueOf(wsStateJson.get("que_out_no_done"));
+        MAIL_SEND_DONE = UtData.longValueOf(wsStateJson.get("mail_send_done"));
+        QUE_OUT_NO = UtData.longValueOf(wsStateJson.get("que_out_no"));
+        AGE = UtData.longValueOf(wsStateJson.get("age"));
+        MUTE = UtData.longValueOf(wsStateJson.get("mute"));
     }
 
 }

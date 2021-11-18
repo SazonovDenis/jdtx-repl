@@ -7,7 +7,8 @@ import jandcode.utils.error.*;
 import jandcode.utils.io.*;
 import jandcode.utils.variant.*;
 import jdtx.repl.main.api.audit.*;
-import jdtx.repl.main.api.data_binder.*;
+import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.data_serializer.UtData;
 import jdtx.repl.main.api.database_info.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.jdx_db_object.*;
@@ -30,8 +31,6 @@ import org.json.simple.*;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
-
-import static jdtx.repl.main.api.UtJdx.*;
 
 
 /**
@@ -209,9 +208,9 @@ public class JdxReplWs {
 
         //
         if (app != null) {
-            res.put("autoUseRepairReplica", UtJdx.booleanValueOf(app.get("autoUseRepairReplica"), false));
-            res.put("skipForeignKeyViolationIns", UtJdx.booleanValueOf(app.get("skipForeignKeyViolationIns"), false));
-            res.put("skipForeignKeyViolationUpd", UtJdx.booleanValueOf(app.get("skipForeignKeyViolationUpd"), false));
+            res.put("autoUseRepairReplica", UtData.booleanValueOf(app.get("autoUseRepairReplica"), false));
+            res.put("skipForeignKeyViolationIns", UtData.booleanValueOf(app.get("skipForeignKeyViolationIns"), false));
+            res.put("skipForeignKeyViolationUpd", UtData.booleanValueOf(app.get("skipForeignKeyViolationUpd"), false));
         }
 
         //
@@ -649,7 +648,7 @@ public class JdxReplWs {
         } finally {
             infoStream.close();
         }
-        long destinationWsId = longValueOf(info.get("destinationWsId"));
+        long destinationWsId = UtData.longValueOf(info.get("destinationWsId"));
 
 
         // Реакция на команду, если получатель - все станции или именно наша
@@ -679,7 +678,7 @@ public class JdxReplWs {
         } finally {
             infoStream.close();
         }
-        long destinationWsId = longValueOf(info.get("destinationWsId"));
+        long destinationWsId = UtData.longValueOf(info.get("destinationWsId"));
 
         // Реакция на команду, если получатель - все станции или именно наша
         if (destinationWsId == 0 || destinationWsId == wsId) {
@@ -706,7 +705,7 @@ public class JdxReplWs {
         } finally {
             infoStream.close();
         }
-        long destinationWsId = longValueOf(wsStateJson.get("destinationWsId"));
+        long destinationWsId = UtData.longValueOf(wsStateJson.get("destinationWsId"));
 
         // Реакция на команду, если получатель - именно наша
         if (destinationWsId == wsId) {
@@ -806,7 +805,7 @@ public class JdxReplWs {
         } finally {
             infoStream.close();
         }
-        long destinationWsId = longValueOf(info.get("destinationWsId"));
+        long destinationWsId = UtData.longValueOf(info.get("destinationWsId"));
 
         // Реакция на команду, если получатель - все станции или именно наша
         if (destinationWsId == 0 || destinationWsId == wsId) {
@@ -833,7 +832,7 @@ public class JdxReplWs {
         } finally {
             infoStream.close();
         }
-        long destinationWsId = longValueOf(info.get("destinationWsId"));
+        long destinationWsId = UtData.longValueOf(info.get("destinationWsId"));
         String tableName = (String) info.get("tableName");
 
         // Реакция на команду, если получатель - именно наша
@@ -865,7 +864,7 @@ public class JdxReplWs {
         } finally {
             infoStream.close();
         }
-        boolean sendSnapshot = booleanValueOf(info.get("sendSnapshot"), true);
+        boolean sendSnapshot = UtData.booleanValueOf(info.get("sendSnapshot"), true);
 
         //
         DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
@@ -918,7 +917,7 @@ public class JdxReplWs {
         }
 
         // Данные о новой конфигурации
-        long destinationWsId = longValueOf(cfgInfo.get("destinationWsId"));
+        long destinationWsId = UtData.longValueOf(cfgInfo.get("destinationWsId"));
         String cfgType = (String) cfgInfo.get("cfgType");
 
         // Пришла конфигурация для нашей станции (или всем станциям)?
@@ -1506,8 +1505,8 @@ public class JdxReplWs {
      * @return Команды на вставку/изменение этой записи, оформленные в виде реплики
      */
     public File handleFailedInsertUpdateRef(JdxForeignKeyViolationException e) throws Exception {
-        IJdxTable thisTable = UtJdx.get_ForeignKeyViolation_tableInfo(e, struct);
-        IJdxForeignKey foreignKey = UtJdx.get_ForeignKeyViolation_refInfo(e, struct);
+        IJdxTable thisTable = UtDbErrors.get_ForeignKeyViolation_tableInfo(e, struct);
+        IJdxForeignKey foreignKey = UtDbErrors.get_ForeignKeyViolation_refInfo(e, struct);
         IJdxField refField = foreignKey.getField();
         IJdxTable refTable = refField.getRefTable();
         //

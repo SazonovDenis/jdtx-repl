@@ -1,10 +1,11 @@
 package jdtx.repl.main.api.filter;
 
 import com.udojava.evalex.*;
-import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
 import java.math.*;
@@ -41,7 +42,7 @@ public class RecordFilter implements IRecordFilter {
 
     @Override
     public boolean isMach(Map<String, String> recValues) {
-        int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
+        int oprType = UtData.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
         filterExpression.setVariable("PARAM_oprType", new BigDecimal(oprType));
 
         // recValues -> filterExpression.filterParams

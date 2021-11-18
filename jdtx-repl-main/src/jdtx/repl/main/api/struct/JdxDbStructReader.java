@@ -2,7 +2,7 @@ package jdtx.repl.main.api.struct;
 
 
 import jandcode.dbm.db.*;
-import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.util.*;
 
 import java.sql.*;
 import java.util.*;

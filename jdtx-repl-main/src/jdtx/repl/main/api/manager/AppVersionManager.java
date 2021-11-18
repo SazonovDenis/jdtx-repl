@@ -3,7 +3,7 @@ package jdtx.repl.main.api.manager;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
-import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
 public class AppVersionManager {

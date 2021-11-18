@@ -1,11 +1,10 @@
-package jdtx.repl.main.api;
+package jdtx.repl.main.api.util;
 
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
-import org.joda.time.*;
 
 import java.io.*;
 import java.security.*;
@@ -297,135 +296,6 @@ public class UtJdx {
 
     }
 
-    public static String collectExceptionText(Exception e) {
-        String errText = e.toString();
-        if (e.getCause() != null) {
-            errText = errText + "\n" + e.getCause().toString();
-        }
-        return errText;
-    }
-
-    public static boolean errorIs_PrimaryKeyError(Exception e) {
-        String errText = collectExceptionText(e);
-        return errText.contains("violation of PRIMARY or UNIQUE KEY constraint");
-    }
-
-    public static boolean errorIs_ForeignKeyViolation(Exception e) {
-        String errText = collectExceptionText(e);
-        if (errText.contains("violation of FOREIGN KEY constraint") && errText.contains("on table")) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public static boolean errorIs_TableNotExists(Exception e) {
-        String errText = collectExceptionText(e);
-        if ((errText.contains("table/view") && errText.contains("does not exist")) ||
-                errText.contains("Table unknown")) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public static boolean errorIs_GeneratorNotExists(Exception e) {
-        if (collectExceptionText(e).contains("Generator not found")) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public static boolean errorIs_TriggerNotExists(Exception e) {
-        if (collectExceptionText(e).contains("Trigger not found")) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public static boolean errorIs_TableAlreadyExists(Exception e) {
-        String errText = collectExceptionText(e);
-        if (errText.contains("Table") && errText.contains("already exists")) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public static boolean errorIs_GeneratorAlreadyExists(Exception e) {
-        String errText = collectExceptionText(e);
-        if (errText.contains("DEFINE GENERATOR failed") && errText.contains("attempt to store duplicate value")) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public static boolean errorIs_TriggerAlreadyExists(Exception e) {
-        String errText = collectExceptionText(e);
-        if (errText.contains("DEFINE TRIGGER failed") && errText.contains("attempt to store duplicate value")) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public static boolean errorIs_IndexAlreadyExists(Exception e) {
-        String errText = collectExceptionText(e);
-        if (errText.contains("attempt to store duplicate value (visible to active transactions) in unique index")) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * По тексту ошибки возвращает таблицу, в которой содержится неправильная ссылка
-     *
-     * @param e Exception, например: violation of FOREIGN KEY constraint "FK_LIC_ULZ" on table "LIC"
-     * @return IJdxTable - таблица, в которой содержится неправильная ссылка, например: Lic
-     */
-    public static IJdxTable get_ForeignKeyViolation_tableInfo(JdxForeignKeyViolationException e, IJdxDbStruct struct) {
-        //
-        String errText = e.getMessage();
-        String[] sa = errText.split("on table");
-        //
-        String thisTableName = sa[1];
-        thisTableName = thisTableName.replace("\"", "").replace(" ", "");
-        IJdxTable thisTable = struct.getTable(thisTableName);
-        //
-        return thisTable;
-    }
-
-    /**
-     * По тексту ошибки возвращает поле, которое содержит неправильную ссылку
-     *
-     * @param e Exception, например: violation of FOREIGN KEY constraint "FK_LIC_ULZ" on table "LIC"
-     * @return IJdxForeignKey - ссылочное поле, которое привело к ошибке, например: Lic.Ulz
-     */
-    public static IJdxForeignKey get_ForeignKeyViolation_refInfo(JdxForeignKeyViolationException e, IJdxDbStruct struct) {
-        //
-        String errText = e.getMessage();
-        String[] sa = errText.split("on table");
-        //
-        String foreignKeyName = sa[0].split("FOREIGN KEY constraint")[1];
-        foreignKeyName = foreignKeyName.replace("\"", "").replace(" ", "");
-        //
-        String thisTableName = sa[1];
-        thisTableName = thisTableName.replace("\"", "").replace(" ", "");
-        IJdxTable thisTable = struct.getTable(thisTableName);
-        //
-        for (IJdxForeignKey foreignKey : thisTable.getForeignKeys()) {
-            if (foreignKey.getName().compareToIgnoreCase(foreignKeyName) == 0) {
-                return foreignKey;
-            }
-        }
-        //
-        return null;
-    }
-
     /**
      * Проверяет целостность файцла в реплике по crc
      */
@@ -437,93 +307,6 @@ public class UtJdx {
             // Ошибка
             throw new XError("receive.replica.md5 <> info.crc, file: " + replica.getFile());
         }
-    }
-
-    public static Long longValueOf(Object value) {
-        return longValueOf(value, null);
-    }
-
-    public static Integer intValueOf(Object value) {
-        return intValueOf(value, null);
-    }
-
-    public static Long longValueOf(Object value, Long valueIfNull) {
-        Long valueLong;
-        if (value == null) {
-            valueLong = valueIfNull;
-        } else if (value instanceof Long) {
-            valueLong = (Long) value;
-        } else if (value instanceof Integer) {
-            valueLong = Long.valueOf((Integer) value);
-        } else {
-            String valueString = value.toString();
-            if (valueString.length() == 0) {
-                valueLong = valueIfNull;
-            } else if (valueString.compareToIgnoreCase("null") == 0) {
-                valueLong = valueIfNull;
-            } else {
-                valueLong = Long.valueOf(valueString);
-            }
-        }
-        return valueLong;
-    }
-
-    public static Integer intValueOf(Object value, Integer valueIfNull) {
-        Integer valueInteger;
-        if (value == null) {
-            valueInteger = valueIfNull;
-        } else if (value instanceof Integer) {
-            valueInteger = (Integer) value;
-        } else if (value instanceof Long) {
-            // В value может оказаться long, но на самом деле - не более чем int, например в ReplicaInfo.fromJSONObject, в infoJson.get("replicaType") оказывается Long
-            valueInteger = Integer.valueOf(value.toString());
-        } else {
-            String valueString = value.toString();
-            if (valueString.length() == 0) {
-                valueInteger = valueIfNull;
-            } else if (valueString.compareToIgnoreCase("null") == 0) {
-                valueInteger = valueIfNull;
-            } else {
-                valueInteger = Integer.valueOf(valueString);
-            }
-        }
-        return valueInteger;
-    }
-
-    public static Boolean booleanValueOf(Object value, boolean valueIfNull) {
-        Boolean valueBoolean;
-        if (value == null) {
-            valueBoolean = valueIfNull;
-        } else if (value instanceof Boolean) {
-            valueBoolean = (Boolean) value;
-        } else {
-            String valueString = value.toString();
-            if (valueString.length() == 0) {
-                valueBoolean = valueIfNull;
-            } else if (valueString.compareToIgnoreCase("null") == 0) {
-                valueBoolean = valueIfNull;
-            } else {
-                valueBoolean = Boolean.valueOf(valueString);
-            }
-        }
-        return valueBoolean;
-    }
-
-    public static DateTime dateTimeValueOf(String valueStr) {
-        DateTime valueDateTime = null;
-
-        if (valueStr != null) {
-            if (valueStr.length() == 10) {
-                // 2015-10-09
-                LocalDate vLocalDate = new LocalDate(valueStr);
-                valueDateTime = vLocalDate.toDateTimeAtStartOfDay();
-            } else if (valueStr.length() != 0) {
-                // 2015-04-01T01:00:00.000+07:00
-                valueDateTime = new DateTime(valueStr);
-            }
-        }
-
-        return valueDateTime;
     }
 
     /**
@@ -556,23 +339,11 @@ public class UtJdx {
         return sb.toString();
     }
 
-    /**
-     * Запись в писателя значений всех полей, которые не null.
-     */
-    public static void recToWriter(Map<String, String> recValuesStr, String recFieldNames, JdxReplicaWriterXml writer) throws Exception {
-        for (String fieldName : recFieldNames.split(",")) {
-            String fieldValueStr = recValuesStr.get(fieldName);
-            if (fieldValueStr != null) {
-                writer.writeRecValue(fieldName, fieldValueStr);
-            }
-        }
-    }
-
 
     /**
      * Разложим строку tableNames в список IJdxTable
      */
-    public static List<IJdxTable> toTableList(String tableNames, IJdxDbStruct struct) {
+    public static List<IJdxTable> stringToTables(String tableNames, IJdxDbStruct struct) {
         List<IJdxTable> tableList = new ArrayList<>();
         //
         String[] tableNamesArr = tableNames.split(",");

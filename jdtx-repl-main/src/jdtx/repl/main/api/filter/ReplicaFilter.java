@@ -1,10 +1,10 @@
 package jdtx.repl.main.api.filter;
 
 import jandcode.utils.error.*;
-import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
-import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.util.*;
 import org.apache.commons.io.*;
 import org.apache.commons.logging.*;
 
@@ -112,7 +112,7 @@ public class ReplicaFilter implements IReplicaFilter {
                 Map<String, String> recValuesStr = dataReader.nextRec();
                 //
                 while (recValuesStr != null) {
-                    int oprType = UtJdx.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
+                    int oprType = UtData.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
 
                     //
                     if (recordFilter.isMach(recValuesStr)) {
@@ -123,7 +123,7 @@ public class ReplicaFilter implements IReplicaFilter {
                         dataWriter.writeOprType(oprType);
 
                         // Значения полей
-                        UtJdx.recToWriter(recValuesStr, UtJdx.fieldsToString(publicationRuleTable.getFields()), dataWriter);
+                        UtXml.recToWriter(recValuesStr, UtJdx.fieldsToString(publicationRuleTable.getFields()), dataWriter);
                     } else {
                         countSkipped++;
                         //

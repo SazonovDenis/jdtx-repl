@@ -4,10 +4,12 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.data_binder.*;
+import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 import org.joda.time.*;
 
@@ -131,7 +133,7 @@ public class UtAuditSelector {
 
                         // Тело записи (с перекодировкой ссылок)
                         Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
-                        UtJdx.recToWriter(valuesStr, tableFields, dataWriter);
+                        UtXml.recToWriter(valuesStr, tableFields, dataWriter);
                     }
 
                     //
@@ -274,8 +276,8 @@ public class UtAuditSelector {
 
 
             //
-            long z_id_from = UtJdx.longValueOf(maxIdsFixed_From.get(tableName), 0L);
-            long z_id_to = UtJdx.longValueOf(maxIdsFixed_To.get(tableName), 0L);
+            long z_id_from = UtData.longValueOf(maxIdsFixed_From.get(tableName), 0L);
+            long z_id_to = UtData.longValueOf(maxIdsFixed_To.get(tableName), 0L);
 
             // Аудит таблицы для этого возраста пуст?
             if (z_id_from >= z_id_to) {

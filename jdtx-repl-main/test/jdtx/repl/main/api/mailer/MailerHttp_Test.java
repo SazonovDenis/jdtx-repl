@@ -5,6 +5,7 @@ import jandcode.utils.*;
 import jandcode.utils.test.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.replica.*;
+import jdtx.repl.main.api.util.*;
 import org.apache.commons.io.*;
 import org.apache.http.*;
 import org.apache.http.client.*;
@@ -19,6 +20,7 @@ import java.io.*;
 import java.util.*;
 
 /**
+ *
  */
 public class MailerHttp_Test extends AppTestCase {
 
@@ -49,14 +51,10 @@ public class MailerHttp_Test extends AppTestCase {
     public void test_MailerSendReceive() throws Exception {
         long wsId = 2;
 
-        // Готовим реплику
-        UtData_Test writerXml_test = new UtData_Test();
-        writerXml_test.setUp();
-        IReplica replicaSnapshot = writerXml_test.createReplicaSnapshot_Ulz_ws2();
-
-        // Копируем реплику для анализа
-        File fileSnapshot = new File("../_test-data/ws_002/tmp/000000001-src.zip");
-        FileUtils.copyFile(replicaSnapshot.getFile(), fileSnapshot);
+        // Берем реплику
+        File fileSnapshot = new File("../_test-data/_test-data_srv/srv/que_common/000000/000000001.zip");
+        IReplica replicaSnapshot = new ReplicaFile();
+        replicaSnapshot.setFile(fileSnapshot);
 
 
         // --------------------------------

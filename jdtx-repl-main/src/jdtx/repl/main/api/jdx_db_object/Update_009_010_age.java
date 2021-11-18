@@ -1,10 +1,9 @@
 package jdtx.repl.main.api.jdx_db_object;
 
 import jandcode.dbm.db.*;
-import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.manager.*;
-import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
 public class Update_009_010_age implements ISqlScriptExecutor {

@@ -4,7 +4,7 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.*;
-import jdtx.repl.main.api.data_binder.*;
+import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
@@ -222,7 +222,7 @@ public class UtAuditApplyer {
                         // (Неполный набр полей используется, например, если на филиалы НЕ отправляются данные из справочников,
                         // на которые ссылается рассматриваемая таблица, например: "примечания, сделанные пользователем":
                         // сами примечания отправляем, а ССЫЛКИ на пользователей придется пропустить).
-                        int oprType = UtJdx.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
+                        int oprType = UtData.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
                         long recId = (Long) recParams.get(pkFieldName);
                         if (oprType == JdxOprType.OPR_INS) {
                             try {
@@ -231,7 +231,7 @@ public class UtAuditApplyer {
                                 //
                                 insertOrUpdate(dbu, tableName, recParams, publicationFieldsName);
                             } catch (Exception e) {
-                                if (UtJdx.errorIs_ForeignKeyViolation(e)) {
+                                if (UtDbErrors.errorIs_ForeignKeyViolation(e)) {
                                     log.error(e.getMessage());
                                     log.error("table: " + tableName);
                                     log.error("oprType: " + oprType);
@@ -259,7 +259,7 @@ public class UtAuditApplyer {
                             try {
                                 dbu.updateRec(tableName, recParams, publicationFieldsName, null);
                             } catch (Exception e) {
-                                if (UtJdx.errorIs_ForeignKeyViolation(e)) {
+                                if (UtDbErrors.errorIs_ForeignKeyViolation(e)) {
                                     log.error(e.getMessage());
                                     log.error("table: " + tableName);
                                     log.error("oprType: " + oprType);
@@ -331,7 +331,7 @@ public class UtAuditApplyer {
                         dbu.deleteRec(tableName, recId);
                         count = count + 1;
                     } catch (Exception e) {
-                        if (UtJdx.errorIs_ForeignKeyViolation(e)) {
+                        if (UtDbErrors.errorIs_ForeignKeyViolation(e)) {
                             // Пропустим реплику, а ниже - выдадим в исходящую очередь наш вариант удаляемой записи
                             log.info("  table: " + tableName + ", fail to delete: " + failedDeleteList.size());
                             failedDeleteList.add(recId);
@@ -398,7 +398,7 @@ public class UtAuditApplyer {
         try {
             dbu.insertRec(tableName, recParams, publicationFields, null);
         } catch (Exception e) {
-            if (UtJdx.errorIs_PrimaryKeyError(e)) {
+            if (UtDbErrors.errorIs_PrimaryKeyError(e)) {
                 dbu.updateRec(tableName, recParams, publicationFields, null);
             } else {
                 throw e;

@@ -1,8 +1,8 @@
 package jdtx.repl.main.api.replica;
 
 import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.struct.*;
-import jdtx.repl.main.api.util.*;
 import org.apache.commons.io.*;
 import org.junit.*;
 
@@ -100,9 +100,9 @@ public class JdxReplicaReaderXml_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_readReplicaInfo() throws Exception {
         // Готовим реплику от ws2
-        UtData_Test writerXml_test = new UtData_Test();
-        writerXml_test.setUp();
-        IReplica replicaSnapshot = writerXml_test.createReplicaSnapshot_Ulz_ws2();
+        File fileSnapshot = new File("../_test-data/_test-data_srv/srv/que_common/000000/000000001.zip");
+        IReplica replicaSnapshot = new ReplicaFile();
+        replicaSnapshot.setFile(fileSnapshot);
 
         // Проверяем чтение заголовков
         File file = new File(replicaSnapshot.getFile().getAbsolutePath());

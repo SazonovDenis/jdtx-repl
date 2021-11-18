@@ -4,7 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
-import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.data_serializer.UtData;
 import jdtx.repl.main.api.struct.*;
 
 import java.sql.*;
@@ -319,7 +319,7 @@ public class JdxDbUtils {
     public long insertRec(String tableName, Map params, String includeFields, String excludeFields) throws Exception {
         Map p = new HashMapNoCase();
         p.putAll(params);
-        Long id = UtJdx.longValueOf(p.get(ID_FIELD));
+        Long id = UtData.longValueOf(p.get(ID_FIELD));
         if (id == null) {
             id = getTableNextId(tableName);
             p.put(ID_FIELD, id);

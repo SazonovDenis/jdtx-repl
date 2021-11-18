@@ -2,7 +2,7 @@ package jdtx.repl.main.api.manager;
 
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
-import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.util.*;
 
 /**
  * Состояние задач рабочей станции: отметки в БД, насколько отработаны очереди и прочее.

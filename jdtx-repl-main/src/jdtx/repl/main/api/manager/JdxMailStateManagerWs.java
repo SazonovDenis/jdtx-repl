@@ -2,7 +2,7 @@ package jdtx.repl.main.api.manager;
 
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
-import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.util.*;
 
 /**
  * Состояние почты: отметка, насколько отправлена почта - рабочая станция.

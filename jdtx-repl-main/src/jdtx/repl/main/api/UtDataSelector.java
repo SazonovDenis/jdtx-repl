@@ -3,10 +3,12 @@ package jdtx.repl.main.api;
 import jandcode.dbm.db.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_binder.*;
+import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
 import java.util.*;
@@ -88,7 +90,7 @@ public class UtDataSelector {
                 String pkFieldName = table.getPrimaryKey().get(0).getName();
                 Object pkFieldValue = values.get(pkFieldName);
                 String refTableName = table.getName();
-                long own_id = UtJdx.longValueOf(pkFieldValue);
+                long own_id = UtData.longValueOf(pkFieldValue);
                 if (!decoder.is_own_id(refTableName, own_id)) {
                     throw new XError("Not own id found, tableName: " + refTableName + ", id: " + own_id);
                 }
@@ -109,7 +111,7 @@ public class UtDataSelector {
 
             // Тело записи
             Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
-            UtJdx.recToWriter(valuesStr, tableFields, dataWriter);
+            UtXml.recToWriter(valuesStr, tableFields, dataWriter);
 
             //
             data.next();

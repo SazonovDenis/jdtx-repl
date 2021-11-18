@@ -2,7 +2,9 @@ package jdtx.repl.main.api;
 
 import jandcode.utils.*;
 import jandcode.utils.test.*;
+import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.util.*;
 import junit.framework.*;
 import org.junit.Test;
 
@@ -157,17 +159,17 @@ public class UtJdx_Test extends TestCase {
 
     @Test
     public void test_longValueOf() throws Exception {
-        assertEquals(null, UtJdx.longValueOf(null));
-        assertEquals(null, UtJdx.longValueOf(""));
-        assertEquals(null, UtJdx.longValueOf("null"));
-        assertEquals(Long.valueOf(-1), UtJdx.longValueOf("-1"));
-        assertEquals(Long.valueOf(-1), UtJdx.longValueOf(-1));
+        assertEquals(null, UtData.longValueOf(null));
+        assertEquals(null, UtData.longValueOf(""));
+        assertEquals(null, UtData.longValueOf("null"));
+        assertEquals(Long.valueOf(-1), UtData.longValueOf("-1"));
+        assertEquals(Long.valueOf(-1), UtData.longValueOf(-1));
 
-        assertEquals(Long.valueOf(200), UtJdx.longValueOf(null, 200L));
-        assertEquals(Long.valueOf(200), UtJdx.longValueOf("", 200L));
-        assertEquals(Long.valueOf(200), UtJdx.longValueOf("null", 200L));
-        assertEquals(Long.valueOf(-1), UtJdx.longValueOf("-1", 200L));
-        assertEquals(Long.valueOf(-1), UtJdx.longValueOf(-1, 200L));
+        assertEquals(Long.valueOf(200), UtData.longValueOf(null, 200L));
+        assertEquals(Long.valueOf(200), UtData.longValueOf("", 200L));
+        assertEquals(Long.valueOf(200), UtData.longValueOf("null", 200L));
+        assertEquals(Long.valueOf(-1), UtData.longValueOf("-1", 200L));
+        assertEquals(Long.valueOf(-1), UtData.longValueOf(-1, 200L));
     }
 
 

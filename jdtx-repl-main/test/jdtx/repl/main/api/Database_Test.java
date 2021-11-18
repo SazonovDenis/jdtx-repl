@@ -5,6 +5,7 @@ import jandcode.dbm.*;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jdtx.repl.main.api.util.*;
 import org.junit.*;
 
 import java.sql.*;
@@ -92,7 +93,7 @@ public class Database_Test extends AppTestCase {
             db2.loadSql("select * from dbInfo");
             throw new Exception("should fail");
         } catch (Exception e) {
-            if (!UtJdx.collectExceptionText(e).contains("Соединение не установлено")) {
+            if (!UtDbErrors.collectExceptionText(e).contains("Соединение не установлено")) {
                 throw e;
             }
         }

@@ -5,6 +5,8 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
+import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.data_serializer.UtData;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
@@ -239,7 +241,7 @@ public class UtRepl {
 
         // Тело записи
         IJdxTable table = struct.getTable(tableName);
-        UtJdx.recToWriter(valuesStr, UtJdx.fieldsToString(table.getFields()), xmlWriter);
+        UtXml.recToWriter(valuesStr, UtJdx.fieldsToString(table.getFields()), xmlWriter);
 
         //
         xmlWriter.flush();
@@ -652,7 +654,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
 
                                 // Нашли id?
                                 if (idValueRef.equals(findRecordId)) {
-                                    int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
+                                    int oprType = UtData.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
                                     if (oprType == JdxOprType.OPR_DEL && skipOprDel) {
                                         log.info("  record found, wsId: " + replica.getInfo().getWsId() + ", OprType == OPR_DEL, skipped");
                                     } else {
@@ -675,7 +677,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                                         }
 
                                         // Запись значений
-                                        UtJdx.recToWriter(recValues, UtJdx.fieldsToString(table.getFields()), xmlWriter);
+                                        UtXml.recToWriter(recValues, UtJdx.fieldsToString(table.getFields()), xmlWriter);
                                     }
                                 }
 

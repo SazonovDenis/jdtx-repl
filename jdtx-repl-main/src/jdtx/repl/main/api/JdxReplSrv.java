@@ -4,7 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
-import jdtx.repl.main.api.data_binder.*;
+import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
@@ -772,7 +772,7 @@ public class JdxReplSrv {
         log.info("srvRequestSnapshot, destination wsId: " + destinationWsId + ", tables: " + tableNames + ", que: " + queName);
 
         // Разложим в список
-        List<IJdxTable> tableList = UtJdx.toTableList(tableNames, struct);
+        List<IJdxTable> tableList = UtJdx.stringToTables(tableNames, struct);
 
         // Сортируем список, чтобы несколько snapsot-реплик не сломали ссылки
         List<IJdxTable> tableListSorted = UtJdx.sortTablesByReference(tableList);
@@ -816,7 +816,7 @@ public class JdxReplSrv {
 
 
         // Разложим в список
-        List<IJdxTable> tables = UtJdx.toTableList(tableNames, struct);
+        List<IJdxTable> tables = UtJdx.stringToTables(tableNames, struct);
 
         // Очередь queOut001 станции (инициализационная или для системных команд)
         JdxQueOut001 queOut001 = new JdxQueOut001(db, destinationWsId);

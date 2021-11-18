@@ -1,11 +1,9 @@
-package jdtx.repl.main.api.data_binder;
+package jdtx.repl.main.api.data_serializer;
 
 import jandcode.dbm.db.*;
 import jandcode.utils.error.*;
-import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.struct.*;
-import jdtx.repl.main.api.util.*;
 
 
 public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
@@ -37,7 +35,7 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
                 refTableName = refTable.getName();
             }
             // Запаковка ссылки в JdxRef
-            JdxRef ref = decoder.get_ref(refTableName, UtJdx.longValueOf(fieldValue));
+            JdxRef ref = decoder.get_ref(refTableName, UtData.longValueOf(fieldValue));
             fieldValueStr = String.valueOf(ref);
         } else {
             // Поле других типов

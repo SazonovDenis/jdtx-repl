@@ -5,8 +5,8 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
-import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
 import java.util.*;
@@ -39,7 +39,7 @@ public class UtDbObjectManager {
                 throw new XError("Invalid workstation.ws_id == 0");
             }
         } catch (Exception e) {
-            if (UtJdx.errorIs_TableNotExists(e)) {
+            if (UtDbErrors.errorIs_TableNotExists(e)) {
                 throw new XError("Replication is not initialized: " + e.getMessage());
             } else {
                 throw e;
@@ -58,7 +58,7 @@ public class UtDbObjectManager {
             ver = rec.getValueInt("ver");
             ver_step = rec.getValueInt("ver_step");
         } catch (Exception e) {
-            if (UtJdx.errorIs_TableNotExists(e)) {
+            if (UtDbErrors.errorIs_TableNotExists(e)) {
                 // Создаем таблицу verdb
                 log.info("Создаем таблицу " + UtJdx.SYS_TABLE_PREFIX + "verdb");
                 //
@@ -210,7 +210,7 @@ public class UtDbObjectManager {
             String sql = getSqlCreateTrigger(table, IDEmode);
             db.execSqlNative(sql);
         } catch (Exception e) {
-            if (UtJdx.errorIs_TriggerAlreadyExists(e)) {
+            if (UtDbErrors.errorIs_TriggerAlreadyExists(e)) {
                 log.warn("createAuditTriggers, trigger " + IDEmode + " already exists, table: " + table.getName());
             } else {
                 throw e;
@@ -223,7 +223,7 @@ public class UtDbObjectManager {
             String sql = getSqlCreateTrigger_full(table, IDEmode);
             db.execSqlNative(sql);
         } catch (Exception e) {
-            if (UtJdx.errorIs_TriggerAlreadyExists(e)) {
+            if (UtDbErrors.errorIs_TriggerAlreadyExists(e)) {
                 log.warn("createAuditTriggers, trigger " + IDEmode + " already exists, table: " + table.getName());
             } else {
                 throw e;
@@ -260,7 +260,7 @@ public class UtDbObjectManager {
         try {
             db.execSql(sql);
         } catch (Exception e) {
-            if (UtJdx.errorIs_TableAlreadyExists(e)) {
+            if (UtDbErrors.errorIs_TableAlreadyExists(e)) {
                 log.warn("createAuditTable, audit table already exists, table: " + table.getName());
             } else {
                 throw e;
@@ -275,7 +275,7 @@ public class UtDbObjectManager {
             sql = "set generator " + UtJdx.AUDIT_GEN_PREFIX + tableName + " to 0";
             db.execSql(sql);
         } catch (Exception e) {
-            if (UtJdx.errorIs_GeneratorAlreadyExists(e)) {
+            if (UtDbErrors.errorIs_GeneratorAlreadyExists(e)) {
                 log.warn("createAuditTable, generator already exists, table: " + table.getName());
             } else {
                 throw e;
@@ -291,7 +291,7 @@ public class UtDbObjectManager {
             String sql = "CREATE UNIQUE INDEX " + UtJdx.PREFIX + table.getName() + "_idx ON " + UtJdx.PREFIX + table.getName() + " (Z_ID)";
             db.execSql(sql);
         } catch (Exception e) {
-            if (UtJdx.errorIs_GeneratorAlreadyExists(e)) {
+            if (UtDbErrors.errorIs_GeneratorAlreadyExists(e)) {
                 log.warn("createAuditTable, index already exists, table: " + table.getName());
             } else {
                 throw e;
@@ -405,7 +405,7 @@ public class UtDbObjectManager {
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
-            if (UtJdx.errorIs_TriggerNotExists(e)) {
+            if (UtDbErrors.errorIs_TriggerNotExists(e)) {
                 log.debug("dropAudit, audit trigger " + IDEmodes.INSERT + " not exists, table: " + tableName);
             } else {
                 throw e;
@@ -417,7 +417,7 @@ public class UtDbObjectManager {
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
-            if (UtJdx.errorIs_TriggerNotExists(e)) {
+            if (UtDbErrors.errorIs_TriggerNotExists(e)) {
                 log.debug("dropAudit, audit trigger " + IDEmodes.UPDATE + " not exists, table: " + tableName);
             } else {
                 throw e;
@@ -429,7 +429,7 @@ public class UtDbObjectManager {
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
-            if (UtJdx.errorIs_TriggerNotExists(e)) {
+            if (UtDbErrors.errorIs_TriggerNotExists(e)) {
                 log.debug("dropAudit, audit trigger " + IDEmodes.DELETE + " not exists, table: " + tableName);
             } else {
                 throw e;
@@ -442,7 +442,7 @@ public class UtDbObjectManager {
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
-            if (UtJdx.errorIs_TableNotExists(e)) {
+            if (UtDbErrors.errorIs_TableNotExists(e)) {
                 log.debug("dropAudit, audit table not exists, table: " + tableName);
             } else {
                 throw e;
@@ -455,7 +455,7 @@ public class UtDbObjectManager {
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
-            if (UtJdx.errorIs_GeneratorNotExists(e)) {
+            if (UtDbErrors.errorIs_GeneratorNotExists(e)) {
                 log.debug("dropAudit, audit generator not exists, table: " + tableName);
             } else {
                 throw e;
@@ -485,7 +485,7 @@ public class UtDbObjectManager {
                 db.execSql(query);
             } catch (Exception e) {
                 // если удаляемый объект не будет найден, программа продолжит работу
-                if (UtJdx.errorIs_GeneratorNotExists(e)) {
+                if (UtDbErrors.errorIs_GeneratorNotExists(e)) {
                     log.debug("dropSysTables, generator not exists, table: " + name);
                 } else {
                     throw e;
@@ -500,7 +500,7 @@ public class UtDbObjectManager {
                 db.execSql(query);
             } catch (Exception e) {
                 // если удаляемый объект не будет найден, программа продолжит работу
-                if (UtJdx.errorIs_TableNotExists(e)) {
+                if (UtDbErrors.errorIs_TableNotExists(e)) {
                     log.debug("dropSysTables, table not exists, table: " + name);
                 } else {
                     throw e;

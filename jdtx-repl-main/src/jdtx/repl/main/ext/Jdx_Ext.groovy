@@ -15,6 +15,7 @@ import jdtx.repl.main.api.manager.*
 import jdtx.repl.main.api.que.*
 import jdtx.repl.main.api.replica.*
 import jdtx.repl.main.api.struct.*
+import jdtx.repl.main.api.util.UtJdx
 import jdtx.repl.main.gen.*
 import jdtx.repl.main.service.*
 import org.json.simple.*
@@ -875,7 +876,7 @@ class Jdx_Ext extends ProjectExt {
                 ws.init()
 
                 // Разложим в список
-                List<IJdxTable> tables = UtJdx.toTableList(tableNames, ws.struct);
+                List<IJdxTable> tables = UtJdx.stringToTables(tableNames, ws.struct);
 
                 // Создаем снимок таблицы и кладем его в очередь queOut (разрешаем отсылать чужие записи)
                 UtRepl ut = new UtRepl(db, ws.struct);
