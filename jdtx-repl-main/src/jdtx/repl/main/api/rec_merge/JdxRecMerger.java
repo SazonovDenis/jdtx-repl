@@ -3,8 +3,8 @@ package jdtx.repl.main.api.rec_merge;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.data_serializer.*;
-import jdtx.repl.main.api.data_serializer.UtJdxData;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
@@ -183,20 +183,22 @@ public class JdxRecMerger implements IJdxRecMerger {
                 log.info("  recordsDelete.count: " + mergePlan.recordsDelete.size());
                 log.info("  recordEtalon: " + mergePlan.recordEtalon);
 
+                //
+                IJdxTable table = struct.getTable(mergePlan.tableName);
+                String tableFieldNamesStr = UtJdx.fieldsToString(table.getFields());
+                IJdxField pkField = table.getPrimaryKey().get(0);
+                String pkFieldName = pkField.getName();
 
                 // INS - Создаем эталонную запись.
                 // "Эталонная" запись должна быть именно ВСТАВЛЕНА, а не выбранной из уже существующих,
                 // т.к. на рабочей станции может НЕ ОКАЗАТЬСЯ в наличии той записи,
                 // которую на сервере назначили как "эталонная".
-                IJdxTable table = struct.getTable(mergePlan.tableName);
-                dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
+                dataSerializer.setTable(table, tableFieldNamesStr);
                 Map<String, Object> values = dataSerializer.prepareValues(mergePlan.recordEtalon);
-                // Чтобы вставилось с новой Id
-                IJdxField pkField = table.getPrimaryKey().get(0);
-                String pkFieldName = pkField.getName();
-                values.put(pkFieldName, null);
                 //
-                long etalonRecId = dbu.insertRec(mergePlan.tableName, values);
+                UtAuditApplyer.insertOrUpdate(dbu, mergePlan.tableName, values, tableFieldNamesStr);
+                //
+                long etalonRecId = (long) values.get(pkFieldName);
 
                 // Распаковываем PK удаляемых записей
                 Collection<Long> recordsDelete = new ArrayList<>();

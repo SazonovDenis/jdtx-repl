@@ -44,6 +44,13 @@ public class UtRecMerge_Test extends DbmTestCase {
         return recMerger;
     }
 
+    private JdxRecMerger getJdxRecMerger(Db db, IJdxDbStruct struct) throws Exception {
+        IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, 1);
+        //IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain();
+        JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
+        return recMerger;
+    }
+
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -80,7 +87,7 @@ public class UtRecMerge_Test extends DbmTestCase {
 
 
         // Создаем дубликаты
-        makeDuplicates(db, struct, tableName, fieldNamesStr);
+        makeDuplicates(db, struct, tableName);
 
 
         // Снова ищем дубликаты
@@ -381,17 +388,15 @@ public class UtRecMerge_Test extends DbmTestCase {
     }
 
     public void check_NoDuplicates() throws Exception {
-        assertEquals("Найдены дубликаты " + tableName, true, getDuplicatesCount(db, tableName, fieldNamesStr) == 0);
+        assertEquals("Найдены дубликаты " + getDbName(db) + "." + tableName, true, getDuplicatesCount(db, struct, tableName, fieldNamesStr) == 0);
     }
 
     public void check_IsDuplicates() throws Exception {
-        assertEquals("Не найдены дубликаты " + tableName, true, getDuplicatesCount(db, tableName, fieldNamesStr) != 0);
+        assertEquals("Не найдены дубликаты " + getDbName(db) + "." + tableName, true, getDuplicatesCount(db, struct, tableName, fieldNamesStr) != 0);
     }
 
-    public void makeDuplicates(Db db, IJdxDbStruct struct, String tableName, String fieldNames) throws Exception {
-        System.out.println();
-        System.out.println("Копируем запись: " + tableName);
-        System.out.println();
+    public void makeDuplicates(Db db, IJdxDbStruct struct, String tableName) throws Exception {
+        System.out.println("Копируем запись: " + getDbName(db) + "." + tableName);
 
         // Копируем запись 2 раза
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
@@ -402,19 +407,24 @@ public class UtRecMerge_Test extends DbmTestCase {
         dbu.insertRec(tableName, rec.getValues());
     }
 
-    public long getDuplicatesCount(Db db, String tableName, String fieldNamesStr) throws Exception {
+    public long getDuplicatesCount(Db db, IJdxDbStruct struct, String tableName, String fieldNamesStr) throws Exception {
         DataStore st = db.loadSql("select count(*) cnt, " + fieldNamesStr + " from " + tableName + " where id <> 0 group by " + fieldNamesStr + " having count(*) > 1");
         //
         if (st.size() == 0) {
-            System.out.println("Дубликатов в: " + tableName + " по полям: " + fieldNamesStr + " нет");
+            System.out.println("Дубликатов в: " + getDbName(db) + "." + tableName + " по полям: " + fieldNamesStr + " нет");
         } else {
-            System.out.println("Дубликаты в: " + tableName + " по полям: " + fieldNamesStr);
+            System.out.println("Дубликаты в: " + getDbName(db) + "." + tableName + " по полям: " + fieldNamesStr);
             UtData.outTable(st);
         }
         //
-        JdxRecMerger recMerger = getJdxRecMerger();
+        JdxRecMerger recMerger = getJdxRecMerger(db, struct);
         Collection<RecDuplicate> duplicates = recMerger.findTableDuplicates(tableName, fieldNamesStr, true);
         return duplicates.size();
     }
 
+    String getDbName(Db db) {
+        String dbName = new File(db.getDbSource().getDatabase()).getName();
+        dbName = dbName.substring(0, dbName.length() - 4);
+        return dbName;
+    }
 }

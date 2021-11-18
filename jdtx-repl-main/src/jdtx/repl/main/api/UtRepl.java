@@ -218,7 +218,7 @@ public class UtRepl {
      */
     public IReplica createReplicaRecInsForRecord(String tableName, Map<String, String> valuesStr, long selfWsId) throws Exception {
         IReplica replica = new ReplicaFile();
-        replica.getInfo().setReplicaType(JdxReplicaType.IDE);
+        replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
         replica.getInfo().setWsId(selfWsId);
         replica.getInfo().setAge(-1);

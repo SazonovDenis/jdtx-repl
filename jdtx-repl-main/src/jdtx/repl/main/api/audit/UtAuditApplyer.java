@@ -394,7 +394,7 @@ public class UtAuditApplyer {
     }
 
 
-    private void insertOrUpdate(JdxDbUtils dbu, String tableName, Map<String, Object> recParams, String publicationFields) throws Exception {
+    public static void insertOrUpdate(JdxDbUtils dbu, String tableName, Map<String, Object> recParams, String publicationFields) throws Exception {
         try {
             dbu.insertRec(tableName, recParams, publicationFields, null);
         } catch (Exception e) {
