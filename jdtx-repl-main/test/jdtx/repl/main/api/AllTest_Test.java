@@ -73,6 +73,13 @@ public class AllTest_Test extends AppTestCase {
         JdxReplWsSrv_DatabaseRestore_test test7 = new JdxReplWsSrv_DatabaseRestore_test();
         test7.test_DatabaseRestore_step1();
         test7.test_DatabaseRestore_step2();
+
+        // Создание репликации и удаление дубликтов, которые появились после превичного слияния
+        JdxReplWsSrv_Merge_Test test8 = new JdxReplWsSrv_Merge_Test();
+        test8.setUp();
+        test8.test_allSetUp_TestAll();
+        // Создиние дубликатов на работающей системе и их удаление
+        test8.test_allSetUp_TestAll();
     }
 
 }
