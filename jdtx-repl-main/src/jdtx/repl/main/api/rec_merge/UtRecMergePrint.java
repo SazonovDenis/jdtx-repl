@@ -8,7 +8,6 @@ import java.util.*;
 
 public class UtRecMergePrint {
 
-    //todo все тесты по merge и relocate - выполнить и вычистить лишнее
     public static void printRecordsUpdated(RecordsUpdatedMap recordsUpdatedMap) {
         for (String key : recordsUpdatedMap.keySet()) {
             RecordsUpdated recordsUpdated = recordsUpdatedMap.get(key);
@@ -23,12 +22,12 @@ public class UtRecMergePrint {
     }
 
 
-    public static void printTasks(Collection<RecMergePlan> mergeTasks) {
-        System.out.println("MergeTasks count: " + mergeTasks.size());
+    public static void printPlans(Collection<RecMergePlan> mergePlans) {
+        System.out.println("MergePlans count: " + mergePlans.size());
         System.out.println();
-        for (RecMergePlan mergeTask : mergeTasks) {
-            System.out.println(mergeTask.tableName + ": " + mergeTask.recordEtalon);
-            System.out.println("Delete: " + mergeTask.recordsDelete);
+        for (RecMergePlan mergePlan : mergePlans) {
+            System.out.println(mergePlan.tableName + ": " + mergePlan.recordEtalon);
+            System.out.println("Delete: " + mergePlan.recordsDelete);
         }
     }
 
@@ -37,8 +36,6 @@ public class UtRecMergePrint {
         for (RecDuplicate res : duplicates) {
             System.out.println("  искали: " + res.params);
             System.out.println("  нашли дубликатов: " + res.records.size());
-            //UtData.outTable(res.records, 10);
-            //System.out.println();
         }
     }
 

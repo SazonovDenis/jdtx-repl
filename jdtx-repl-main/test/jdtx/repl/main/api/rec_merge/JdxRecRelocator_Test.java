@@ -42,7 +42,7 @@ public class JdxRecRelocator_Test extends DbmTestCase {
 
     @Test
     public void test_relocate() throws Exception {
-        IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain();
+        IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain();
         JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer);
 
         //
@@ -105,7 +105,7 @@ public class JdxRecRelocator_Test extends DbmTestCase {
 
     @Test
     public void test_fail() throws Exception {
-        IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain();
+        IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain();
         JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer);
 
         //
@@ -204,7 +204,7 @@ public class JdxRecRelocator_Test extends DbmTestCase {
         String[] tableNamesArr = tableNames.split(",");
         //
         int maxPkValue = 100000000;
-        IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain();
+        IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain();
         JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer);
 
 

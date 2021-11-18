@@ -38,7 +38,7 @@ public class UtRecMerge_Test extends DbmTestCase {
 
 
     private JdxRecMerger getJdxRecMerger() throws Exception {
-        IJdxDataSerializer dataSerializer = new JdxDataSerializer_decode(db, 1);
+        IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, 1);
         //IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain();
         JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
         return recMerger;
@@ -67,14 +67,14 @@ public class UtRecMerge_Test extends DbmTestCase {
         JdxRecMerger recMerger = getJdxRecMerger();
 
         // Ищем дубликаты
-        Collection<RecDuplicate> mergeTasks = recMerger.findTableDuplicates(tableName, fieldNamesStr, true);
+        Collection<RecDuplicate> duplicates = recMerger.findTableDuplicates(tableName, fieldNamesStr, true);
 
         // Печатаем дубликаты
-        UtRecMergePrint.printDuplicates(mergeTasks);
+        UtRecMergePrint.printDuplicates(duplicates);
 
         //
         int recordCount0 = 1;
-        for (RecDuplicate res : mergeTasks) {
+        for (RecDuplicate res : duplicates) {
             recordCount0 = res.records.size();
         }
 
@@ -84,19 +84,19 @@ public class UtRecMerge_Test extends DbmTestCase {
 
 
         // Снова ищем дубликаты
-        mergeTasks = recMerger.findTableDuplicates(tableName, fieldNamesStr, true);
+        duplicates = recMerger.findTableDuplicates(tableName, fieldNamesStr, true);
 
         // Снова печатаем дубликаты
-        UtRecMergePrint.printDuplicates(mergeTasks);
+        UtRecMergePrint.printDuplicates(duplicates);
 
         //
         int recordCount1 = 0;
-        for (RecDuplicate res : mergeTasks) {
+        for (RecDuplicate res : duplicates) {
             recordCount1 = res.records.size();
         }
 
         //
-        assertEquals("Есть задание на слияние", false, mergeTasks.size() == 0);
+        assertEquals("Есть задание на слияние", false, duplicates.size() == 0);
         assertEquals("Количество дубликатов", recordCount1, recordCount0 + 2);
     }
 
@@ -162,19 +162,19 @@ public class UtRecMerge_Test extends DbmTestCase {
         JdxRecMerger recMerger = getJdxRecMerger();
 
         // Ищем дубликаты, создаем задачу на слияние, пишем ее в файл
-        findDuplicates_makeMergeTasks_ToFile(tableName, fieldNamesStr);
+        findDuplicates_makeMergePlans_ToFile(tableName, fieldNamesStr);
 
         // Читаем задачу на слияние
-        UtRecMergeRW reader = new UtRecMergeRW();
-        Collection<RecMergePlan> mergeTasks = reader.readTasks("temp/_" + tableName + ".task.json");
+        UtRecMergePlanRW reader = new UtRecMergePlanRW();
+        Collection<RecMergePlan> mergePlans = reader.readPlans("temp/_" + tableName + ".plan.json");
 
         // Исполняем задачу на слияние
         File fileResults = new File("temp/result.zip");
-        recMerger.execMergePlan(mergeTasks, fileResults);
+        recMerger.execMergePlan(mergePlans, fileResults);
     }
 
     @Test
-    public void test_execMergeTask() throws Exception {
+    public void test_execMergePlan() throws Exception {
         tableName = "LicDocTip";
         fieldNamesStr = "Name";
         fieldNames = Arrays.asList(fieldNamesStr.split(","));
@@ -201,17 +201,17 @@ public class UtRecMerge_Test extends DbmTestCase {
 
 
         // Тупо превращаем дубликаты в задачу на слияние
-        Collection<RecMergePlan> mergeTasks = recMerger.prepareMergePlan(tableName, duplicates);
+        Collection<RecMergePlan> mergePlans = recMerger.prepareMergePlan(tableName, duplicates);
         //
-        assertEquals("Есть задание на слияние", true, mergeTasks.size() > 0);
+        assertEquals("Есть задание на слияние", true, mergePlans.size() > 0);
 
 
         // Печатаем задачу на слияние
-        UtRecMergePrint.printTasks(mergeTasks);
+        UtRecMergePrint.printPlans(mergePlans);
 
         // Исполняем задачу на слияние
         File fileResults = new File("temp/result.zip");
-        recMerger.execMergePlan(mergeTasks, fileResults);
+        recMerger.execMergePlan(mergePlans, fileResults);
 
         // Печатаем результат выполнения задачи
         UtRecMergePrint.printMergeResults(fileResults);
@@ -222,7 +222,7 @@ public class UtRecMerge_Test extends DbmTestCase {
     }
 
     @Test
-    public void test_makeDuplicates_makeMergeTask_ToFile() throws Exception {
+    public void test_makeDuplicates_makeMergePlan_ToFile() throws Exception {
         test_MakeNoDuplicates();
 
         // Вначале дубликатов нет
@@ -235,56 +235,56 @@ public class UtRecMerge_Test extends DbmTestCase {
         check_IsDuplicates();
 
         // Ищем дубликаты, создаем задачу на слияние, пишем ее в файл
-        findDuplicates_makeMergeTasks_ToFile(tableName, fieldNamesStr);
+        findDuplicates_makeMergePlans_ToFile(tableName, fieldNamesStr);
     }
 
-    public void findDuplicates_makeMergeTasks_ToFile(String tableName, String fieldNamesStr) throws Exception {
+    public void findDuplicates_makeMergePlans_ToFile(String tableName, String fieldNamesStr) throws Exception {
         JdxRecMerger recMerger = getJdxRecMerger();
 
         // Ищем дубликаты
         Collection<RecDuplicate> duplicates = recMerger.findTableDuplicates(tableName, fieldNamesStr, true);
 
         // Тупо превращаем дубликаты в задачи на слияние
-        Collection<RecMergePlan> mergeTasks = recMerger.prepareMergePlan(tableName, duplicates);
+        Collection<RecMergePlan> mergePlans = recMerger.prepareMergePlan(tableName, duplicates);
 
         // Сериализация задач
-        UtRecMergeRW reader = new UtRecMergeRW();
+        UtRecMergePlanRW reader = new UtRecMergePlanRW();
         reader.writeDuplicates(duplicates, "temp/_" + tableName + ".duplicates.json");
-        reader.writeTasks(mergeTasks, "temp/_" + tableName + ".task.json");
+        reader.writePlans(mergePlans, "temp/_" + tableName + ".plan.json");
 
         // Читаем и печатаем задачи
-        Collection<RecMergePlan> mergeTasksFile = reader.readTasks("temp/_" + tableName + ".task.json");
-        UtRecMergePrint.printTasks(mergeTasksFile);
+        Collection<RecMergePlan> mergePlansFile = reader.readPlans("temp/_" + tableName + ".plan.json");
+        UtRecMergePrint.printPlans(mergePlansFile);
     }
 
     @Test
-    public void test_execMergeTask_FromFile() throws Exception {
+    public void test_execMergePlans_FromFile() throws Exception {
         test_MakeNoDuplicates();
 
         // Вначале дубликатов нет
         check_NoDuplicates();
 
         // Провоцируем появление дубликатов и формируем задачу на слияние
-        test_makeDuplicates_makeMergeTask_ToFile();
+        test_makeDuplicates_makeMergePlan_ToFile();
 
         // Теперь дубликаты есть
         check_IsDuplicates();
 
         // Читаем задачу на слияние
-        UtRecMergeRW reader = new UtRecMergeRW();
-        Collection<RecMergePlan> mergeTasks = reader.readTasks("temp/_" + tableName + ".task.json");
+        UtRecMergePlanRW reader = new UtRecMergePlanRW();
+        Collection<RecMergePlan> mergePlans = reader.readPlans("temp/_" + tableName + ".plan.json");
 
         //
-        assertEquals("Есть задание на слияние", true, mergeTasks.size() > 0);
+        assertEquals("Есть задание на слияние", true, mergePlans.size() > 0);
 
         // Печатаем задачу на слияние
-        UtRecMergePrint.printTasks(mergeTasks);
+        UtRecMergePrint.printPlans(mergePlans);
 
 
         // Исполняем задачу на слияние
         JdxRecMerger recMerger = getJdxRecMerger();
         File fileResults = new File("temp/_" + tableName + ".result.zip");
-        recMerger.execMergePlan(mergeTasks, fileResults);
+        recMerger.execMergePlan(mergePlans, fileResults);
 
         // Печатаем результат выполнения задачи
         UtRecMergePrint.printMergeResults(fileResults);
@@ -295,18 +295,18 @@ public class UtRecMerge_Test extends DbmTestCase {
     }
 
     @Test
-    public void test_execMergeTask_FromFile_SubjectTip() throws Exception {
+    public void test_execMergePlans_FromFile_SubjectTip() throws Exception {
         tableName = "SubjectTip";
         fieldNamesStr = "Name,Parent";
         fieldNames = Arrays.asList(fieldNamesStr.split(","));
 
         //
-        test_execMergeTask_FromFile();
+        test_execMergePlans_FromFile();
     }
 
 
     @Test
-    public void test_execMergeTask_Parent() throws Exception {
+    public void test_execMergePlans_Parent() throws Exception {
         // todo: плохо работает поиск дубликатов в иерархичных таблицах:
         // в эталонных записях на ПОДЧИНЕННОМ уровне ссылки на РОДИТЕЛЯ остаются на удаляемые записи,
         // Например
@@ -328,38 +328,38 @@ public class UtRecMerge_Test extends DbmTestCase {
         fieldNames = Arrays.asList(fieldNamesStr.split(","));
 
         //
-        test_execMergeTask_FromFile();
+        test_execMergePlans_FromFile();
     }
 
     @Test
-    public void test_execRevertExecTask() throws Exception {
+    public void test_revertExecMergePlan() throws Exception {
         test_MakeNoDuplicates();
 
         // Вначале дубликатов нет
         check_NoDuplicates();
 
         // Провоцируем появление дубликатов и формируем задачу на слияние
-        test_makeDuplicates_makeMergeTask_ToFile();
+        test_makeDuplicates_makeMergePlan_ToFile();
 
         // Теперь дубликаты есть
         check_IsDuplicates();
 
 
         // Читаем задачу на слияние
-        UtRecMergeRW reader = new UtRecMergeRW();
-        Collection<RecMergePlan> mergeTasks = reader.readTasks("temp/_" + tableName + ".task.json");
+        UtRecMergePlanRW reader = new UtRecMergePlanRW();
+        Collection<RecMergePlan> mergePlans = reader.readPlans("temp/_" + tableName + ".plan.json");
 
         //
-        assertEquals("Есть задание на слияние", false, mergeTasks.size() == 0);
+        assertEquals("Есть задание на слияние", false, mergePlans.size() == 0);
 
         // Печатаем задачу на слияние
-        UtRecMergePrint.printTasks(mergeTasks);
+        UtRecMergePrint.printPlans(mergePlans);
 
 
         // Исполняем задачу на слияние
         JdxRecMerger recMerger = getJdxRecMerger();
         File fileResults = new File("temp/result.zip");
-        recMerger.execMergePlan(mergeTasks, fileResults);
+        recMerger.execMergePlan(mergePlans, fileResults);
 
         // Печатаем результат выполнения задачи
         System.out.println();

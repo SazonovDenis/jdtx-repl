@@ -109,13 +109,13 @@ public class ReplicaFilter implements IReplicaFilter {
                 long countSkipped = 0;
 
                 //
-                Map<String, String> recValues = dataReader.nextRec();
+                Map<String, String> recValuesStr = dataReader.nextRec();
                 //
-                while (recValues != null) {
-                    int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
+                while (recValuesStr != null) {
+                    int oprType = UtJdx.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
 
                     //
-                    if (recordFilter.isMach(recValues)) {
+                    if (recordFilter.isMach(recValuesStr)) {
                         //
                         dataWriter.appendRec();
 
@@ -123,18 +123,15 @@ public class ReplicaFilter implements IReplicaFilter {
                         dataWriter.writeOprType(oprType);
 
                         // Значения полей
-                        for (IJdxField publicationField : publicationRuleTable.getFields()) {
-                            String publicationFieldName = publicationField.getName();
-                            dataWriter.writeRecValue(publicationFieldName, recValues.get(publicationFieldName));
-                        }
+                        UtJdx.recToWriter(recValuesStr, UtJdx.fieldsToString(publicationRuleTable.getFields()), dataWriter);
                     } else {
                         countSkipped++;
                         //
-                        log.debug("Record was skipped: " + recValues);
+                        log.debug("Record was skipped: " + recValuesStr);
                     }
 
                     //
-                    recValues = dataReader.nextRec();
+                    recValuesStr = dataReader.nextRec();
 
                     //
                     count++;

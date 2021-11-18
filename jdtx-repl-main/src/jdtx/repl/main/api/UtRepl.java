@@ -239,7 +239,7 @@ public class UtRepl {
 
         // Тело записи
         IJdxTable table = struct.getTable(tableName);
-        UtDataSelector.dataBinder_to_dataWriter(valuesStr, UtJdx.fieldsToString(table.getFields()), xmlWriter);
+        UtJdx.recToWriter(valuesStr, UtJdx.fieldsToString(table.getFields()), xmlWriter);
 
         //
         xmlWriter.flush();
@@ -441,7 +441,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         replicaWriter.replicaFileStart();
 
         // Открываем запись файла
-        OutputStream zipOutputStream = replicaWriter.newFileOpen("task.json");
+        OutputStream zipOutputStream = replicaWriter.newFileOpen("plan.json");
 
         // Пишем содержимое
         File taskFile = new File(taskFileName);
@@ -675,36 +675,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                                         }
 
                                         // Запись значений
-                                        UtDataSelector.dataBinder_to_dataWriter(recValues, UtJdx.fieldsToString(table.getFields()), xmlWriter);
-
-                                        //
-                                        //IJdxDataConverter dataConverter = new JdxDataConverter_decode(null, -1);
-                                        //dataConverter.setTable(table, UtJdx.fieldsToString(table.getFields()));
-/*
-                                        // todo - выяснить, зачем ТУТ БЫЛИ всякие перекодировки, если мы уже работаем с ДАННЫМИ В РЕПЛИКЕ,
-                                        // todo можно же работать с СЕРИАЛИЗОВАННЫМИ значениями, без обработки
-
-
-                                        // Запись значения с проверкой/перекодировкой ссылок
-                                        for (IJdxField field : table.getFields()) {
-                                            String fieldName = field.getName();
-                                            Object fieldValue = recValues.get(fieldName);
-                                            // Запись значения с проверкой/перекодировкой ссылок
-                                            IJdxTable refTable = field.getRefTable();
-                                            if (field.isPrimaryKey() || refTable != null) {
-                                                // Эт о поле - ссылка
-                                                JdxRef fieldValueRef = JdxRef.parse((String) fieldValue);
-                                                // Дополнение ссылки
-                                                if (fieldValueRef != null && fieldValueRef.ws_id == -1 && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
-                                                    fieldValueRef.ws_id = replica.getInfo().getWsId();
-                                                }
-                                                xmlWriter.writeRecValue(fieldName, String.valueOf(fieldValueRef));
-                                            } else {
-                                                // Это просто значение
-                                                xmlWriter.writeRecValue(fieldName, fieldValue);
-                                            }
-                                        }
-*/
+                                        UtJdx.recToWriter(recValues, UtJdx.fieldsToString(table.getFields()), xmlWriter);
                                     }
                                 }
 

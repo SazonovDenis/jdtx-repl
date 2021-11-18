@@ -4,7 +4,6 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.data_binder.*;
-import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
@@ -94,7 +93,7 @@ public class UtAuditSelector {
 
     void readAuditData_ByInterval(String tableName, String tableFields, long fromId, long toId, JdxReplicaWriterXml dataWriter) throws Exception {
         IJdxTable table = struct.getTable(tableName);
-        IJdxDataSerializer dataSerializer = new JdxDataSerializer_decode(db, wsId);
+        IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, wsId);
         dataSerializer.setTable(table, tableFields);
 
         // DbQuery, содержащий аудит в указанном диапазоне: id >= fromId и id <= toId
@@ -132,7 +131,7 @@ public class UtAuditSelector {
 
                         // Тело записи (с перекодировкой ссылок)
                         Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
-                        UtDataSelector.dataBinder_to_dataWriter(valuesStr, tableFields, dataWriter);
+                        UtJdx.recToWriter(valuesStr, tableFields, dataWriter);
                     }
 
                     //

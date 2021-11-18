@@ -716,25 +716,25 @@ public class JdxReplSrv {
         }
     }
 
-    public void srvMergeRequest(String taskFileName) throws Exception {
-        log.info("srvMergeRequest, task fileName: " + taskFileName);
+    public void srvMergeRequest(String planFileName) throws Exception {
+        log.info("srvMergeRequest, plan fileName: " + planFileName);
 
         //
         UtRepl utRepl = new UtRepl(db, struct);
 
         //
-        UtRecMergeRW reader = new UtRecMergeRW();
-        Collection<RecMergePlan> mergeTasks = reader.readTasks(taskFileName);
+        UtRecMergePlanRW reader = new UtRecMergePlanRW();
+        Collection<RecMergePlan> mergePlans = reader.readPlans(planFileName);
 
         // Только рабочая станция знает, какая у нас wsId
         JdxReplWs ws = new JdxReplWs(db);
         ws.init();
 
         //
-        IJdxDataSerializer dataSerializer = new JdxDataSerializer_decode(db, ws.wsId);
+        IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, ws.wsId);
 
         //
-        for (RecMergePlan mergePlan : mergeTasks) {
+        for (RecMergePlan mergePlan : mergePlans) {
             IJdxTable table = struct.getTable(mergePlan.tableName);
             dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
 
@@ -760,11 +760,11 @@ public class JdxReplSrv {
         }
 
         // Записываем обновленный план (в нем PK новых записей проставлены как надо)
-        String taskFileNameRef = dataRoot + "temp/" + "task.json";
-        reader.writeTasks(mergeTasks, taskFileNameRef);
+        String planFileNameRef = dataRoot + "temp/" + "plan.json";
+        reader.writePlans(mergePlans, planFileNameRef);
 
         // Формируем команду на merge
-        IReplica replicaMerge = utRepl.createReplicaMerge(taskFileNameRef);
+        IReplica replicaMerge = utRepl.createReplicaMerge(planFileNameRef);
         queCommon.push(replicaMerge);
     }
 

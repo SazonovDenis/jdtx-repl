@@ -10,21 +10,33 @@ import org.joda.time.*;
 public class UtXml {
 
     public static String valueToStr(Object value) {
-        if (value instanceof byte[]) {
+        String fieldValueStr;
+
+        //
+        if (value == null) {
+            fieldValueStr = null; //UtXml.valueToStr(fieldValue);
+        } else if (value instanceof byte[]) {
             // Особая сериализация для BLOB
             byte[] blob = (byte[]) value;
-            return UtString.encodeBase64(blob);
+            fieldValueStr = UtString.encodeBase64(blob);
         } else if (value instanceof DateTime) {
             // Сериализация с или без timezone
             // todo: Проверить сериализацию и десериализацию с/без timezone
-            return UtDate.toString((DateTime) value);
+            fieldValueStr = UtDate.toString((DateTime) value);
         } else {
             // Обычная сериализация
-            return UtStringEscape.escapeJava(String.valueOf(value));
+            fieldValueStr = UtStringEscape.escapeJava(String.valueOf(value));
         }
+
+        //
+        return fieldValueStr;
     }
 
     public static Object strToValue(String valueStr, IJdxField field) {
+        if (valueStr == null) {
+            return null;
+        }
+
         // Поле - BLOB?
         if (UtAuditApplyer.getDataType(field.getDbDatatype()) == DataType.BLOB) {
             byte[] valueBlob = UtString.decodeBase64(valueStr);

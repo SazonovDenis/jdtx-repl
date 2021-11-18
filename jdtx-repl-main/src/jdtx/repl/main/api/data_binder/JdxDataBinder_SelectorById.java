@@ -2,6 +2,7 @@ package jdtx.repl.main.api.data_binder;
 
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
+import jandcode.utils.*;
 
 import java.util.*;
 
@@ -29,7 +30,9 @@ public class JdxDataBinder_SelectorById implements IJdxDataBinder {
 
     @Override
     public Map<String, Object> getValues() {
-        return record.getValues();
+        HashMapNoCase<Object> res = new HashMapNoCase<>();
+        res.putAll(record.getValues());
+        return res;
     }
 
     @Override

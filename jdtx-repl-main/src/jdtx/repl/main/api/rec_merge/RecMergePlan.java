@@ -24,7 +24,6 @@ public class RecMergePlan {
      * Значения сохраняются в сериализованном виде (в виде строки, так удобнее)
      */
     public Collection<String> recordsDelete;
-    //todo recordsDelete = пусть будут строковыми (сериализованными)
 
     /**
      *

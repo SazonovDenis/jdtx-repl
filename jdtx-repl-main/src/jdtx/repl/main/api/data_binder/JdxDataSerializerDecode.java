@@ -8,13 +8,13 @@ import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 
 
-public class JdxDataSerializer_decode extends JdxDataSerializer_custom {
+public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
 
 
     private IRefDecoder decoder;
     private long wsId;
 
-    public JdxDataSerializer_decode(Db db, long wsId) throws Exception {
+    public JdxDataSerializerDecode(Db db, long wsId) throws Exception {
         this.decoder = new RefDecoder(db, wsId);
         this.wsId = wsId;
     }
@@ -23,25 +23,25 @@ public class JdxDataSerializer_decode extends JdxDataSerializer_custom {
         String fieldValueStr;
 
         //
+        IJdxTable refTable = field.getRefTable();
+
+        //
         if (fieldValue == null) {
-            fieldValueStr = null; //UtXml.valueToStr(fieldValue);
-        } else {
-            IJdxTable refTable = field.getRefTable();
-            if (field.isPrimaryKey() || refTable != null) {
-                // Это поле - ссылка
-                String refTableName;
-                if (field.isPrimaryKey()) {
-                    refTableName = table.getName();
-                } else {
-                    refTableName = refTable.getName();
-                }
-                // Запаковка ссылки в JdxRef
-                JdxRef ref = decoder.get_ref(refTableName, UtJdx.longValueOf(fieldValue));
-                fieldValueStr = String.valueOf(ref);
+            fieldValueStr = null;
+        } else if (field.isPrimaryKey() || refTable != null) {
+            // Это поле - ссылка
+            String refTableName;
+            if (field.isPrimaryKey()) {
+                refTableName = table.getName();
             } else {
-                // Это значение других типов
-                fieldValueStr = UtXml.valueToStr(fieldValue);
+                refTableName = refTable.getName();
             }
+            // Запаковка ссылки в JdxRef
+            JdxRef ref = decoder.get_ref(refTableName, UtJdx.longValueOf(fieldValue));
+            fieldValueStr = String.valueOf(ref);
+        } else {
+            // Поле других типов
+            fieldValueStr = UtXml.valueToStr(fieldValue);
         }
 
         //
@@ -51,9 +51,13 @@ public class JdxDataSerializer_decode extends JdxDataSerializer_custom {
     public Object prepareValue(String fieldValueStr, IJdxField field) throws Exception {
         Object fieldValue;
 
-        // Поле - ссылка?
+        //
         IJdxTable refTable = field.getRefTable();
-        if (fieldValueStr != null && (field.isPrimaryKey() || refTable != null)) {
+
+        //
+        if (fieldValueStr == null) {
+            fieldValue = null;
+        } else if (field.isPrimaryKey() || refTable != null) {
             // Это поле - ссылка
             JdxRef fieldValueRef = JdxRef.parse(fieldValueStr);
             // Дополнение ws_id для ссылки

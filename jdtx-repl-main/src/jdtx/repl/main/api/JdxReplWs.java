@@ -1091,9 +1091,9 @@ public class JdxReplWs {
         log.info("merge result in: " + dirResult);
 
         // Распаковываем файл с задачей на слияние
-        InputStream stream = JdxReplicaReaderXml.createInputStream(replica, "task.json");
+        InputStream stream = JdxReplicaReaderXml.createInputStream(replica, "plan.json");
         try {
-            OutputStream fileStream = new FileOutputStream(dirResult + "task.json");
+            OutputStream fileStream = new FileOutputStream(dirResult + "plan.json");
             UtFile.copyStream(stream, fileStream);
             fileStream.close();
         } finally {
@@ -1101,11 +1101,11 @@ public class JdxReplWs {
         }
 
         // Читаем задачу на слияние
-        UtRecMergeRW reader = new UtRecMergeRW();
-        Collection<RecMergePlan> mergeTasks = reader.readTasks(dirResult + "task.json");
+        UtRecMergePlanRW reader = new UtRecMergePlanRW();
+        Collection<RecMergePlan> mergePlans = reader.readPlans(dirResult + "plan.json");
 
         //
-        log.info("mergeTasks.count: " + mergeTasks.size());
+        log.info("mergePlans.count: " + mergePlans.size());
 
 
         // Исполняем задачу на слияние
@@ -1116,9 +1116,9 @@ public class JdxReplWs {
             recMergeResultWriter.open(new File(dirResult + "result.zip"));
 
             // Исполняем
-            IJdxDataSerializer dataSerializer = new JdxDataSerializer_decode(db, wsId);
+            IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, wsId);
             JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
-            recMerger.execMergePlan(mergeTasks, recMergeResultWriter);
+            recMerger.execMergePlan(mergePlans, recMergeResultWriter);
 
             // Сохраняем
             recMergeResultWriter.close();

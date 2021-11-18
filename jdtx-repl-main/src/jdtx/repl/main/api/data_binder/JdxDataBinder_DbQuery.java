@@ -1,6 +1,7 @@
 package jdtx.repl.main.api.data_binder;
 
 import jandcode.dbm.db.*;
+import jandcode.utils.*;
 
 import java.util.*;
 
@@ -14,7 +15,9 @@ public class JdxDataBinder_DbQuery implements IJdxDataBinder {
 
     @Override
     public Map<String, Object> getValues() {
-        return query.getValues();
+        HashMapNoCase<Object> res = new HashMapNoCase<>();
+        res.putAll(query.getValues());
+        return res;
     }
 
     @Override

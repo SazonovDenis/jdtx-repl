@@ -5,7 +5,6 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.data_binder.*;
-import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
@@ -103,7 +102,7 @@ public class UtAuditApplyer {
         AuditDbTriggersManager triggersManager = new AuditDbTriggersManager(db);
 
         //
-        IJdxDataSerializer dataSerializer = new JdxDataSerializer_decode(db, wsId);
+        IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, wsId);
 
         //
         db.startTran();
@@ -192,11 +191,11 @@ public class UtAuditApplyer {
                 dataSerializer.setTable(table, publicationFieldsName);
 
                 //
-                Map<String, String> recValues = dataReader.nextRec();
-                while (recValues != null) {
+                Map<String, String> recValuesStr = dataReader.nextRec();
+                while (recValuesStr != null) {
 
                     // Перебираем записи, пропускаем те, которые не подходят под наши входящие фильтры publicationRules
-                    if (recordFilter.isMach(recValues)) {
+                    if (recordFilter.isMach(recValuesStr)) {
 
                         // Обеспечим не слишком огромные порции коммитов
                         if (portionMax != 0 && countPortion >= portionMax) {
@@ -211,7 +210,7 @@ public class UtAuditApplyer {
 
 
                         // Подготовка recParams для записи в БД - десериализация значений
-                        Map<String, Object> recParams = dataSerializer.prepareValues(recValues);
+                        Map<String, Object> recParams = dataSerializer.prepareValues(recValuesStr);
 
 
                         // Выполняем INS/UPD/DEL
@@ -223,7 +222,7 @@ public class UtAuditApplyer {
                         // (Неполный набр полей используется, например, если на филиалы НЕ отправляются данные из справочников,
                         // на которые ссылается рассматриваемая таблица, например: "примечания, сделанные пользователем":
                         // сами примечания отправляем, а ССЫЛКИ на пользователей придется пропустить).
-                        int oprType = UtJdx.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
+                        int oprType = UtJdx.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
                         long recId = (Long) recParams.get(pkFieldName);
                         if (oprType == JdxOprType.OPR_INS) {
                             try {
@@ -237,11 +236,11 @@ public class UtAuditApplyer {
                                     log.error("table: " + tableName);
                                     log.error("oprType: " + oprType);
                                     log.error("recParams: " + recParams);
-                                    log.error("recValues: " + recValues);
+                                    log.error("recValuesStr: " + recValuesStr);
                                     //
                                     JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
                                     ee.recParams = recParams;
-                                    ee.recValues = recValues;
+                                    ee.recValues = recValuesStr;
                                     // todo вообще, костыль страшнейший, сделан для пропуска неуместных реплик,
                                     // которые просочились на станцию из-за кривых настроек фильтров.
                                     // todo Убрать, когда будут сделана фильтрация по ссылкам!!!
@@ -265,11 +264,11 @@ public class UtAuditApplyer {
                                     log.error("table: " + tableName);
                                     log.error("oprType: " + oprType);
                                     log.error("recParams: " + recParams);
-                                    log.error("recValues: " + recValues);
+                                    log.error("recValuesStr: " + recValuesStr);
                                     //
                                     JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
                                     ee.recParams = recParams;
-                                    ee.recValues = recValues;
+                                    ee.recValues = recValuesStr;
                                     // todo вообще, костыль страшнейший, сделан для пробуска неуместных реплик,
                                     // которые просочились на станцию из-за кривых настроек фильтров.
                                     // todo Убрать, когда будут сделана фильтрация по ссылкам!!!
@@ -290,7 +289,7 @@ public class UtAuditApplyer {
                     }
 
                     //
-                    recValues = dataReader.nextRec();
+                    recValuesStr = dataReader.nextRec();
 
                     //
                     count = count + 1;

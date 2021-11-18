@@ -102,16 +102,16 @@ class Merge_Ext extends ProjectExt {
             Collection<RecDuplicate> duplicates = recMerger.findTableDuplicates(table, fields, useNull)
 
             // Тупо превращаем дубликаты в задачи на слияние
-            Collection<RecMergePlan> mergeTasks = recMerger.prepareMergePlan(table, duplicates)
+            Collection<RecMergePlan> mergePlans = recMerger.prepareMergePlan(table, duplicates)
 
             // Сериализация
-            UtRecMergeRW reader = new UtRecMergeRW()
-            reader.writeTasks(mergeTasks, file)
+            UtRecMergePlanRW reader = new UtRecMergePlanRW()
+            reader.writePlans(mergePlans, file)
             reader.writeDuplicates(duplicates, file + ".duplicates")
 
             // Печатаем задачи на слияние
             if (doPrintResult) {
-                UtRecMergePrint.printTasks(mergeTasks)
+                UtRecMergePrint.printPlans(mergePlans)
             }
 
         } finally {
@@ -147,8 +147,8 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             // Читаем задачу на слияние
-            UtRecMergeRW reader = new UtRecMergeRW()
-            Collection<RecMergePlan> mergeTasks = reader.readTasks(file)
+            UtRecMergePlanRW reader = new UtRecMergePlanRW()
+            Collection<RecMergePlan> mergePlans = reader.readPlans(file)
 
             // Сохраняем результат выполнения задачи
             RecMergeResultWriter recMergeResultWriter = new RecMergeResultWriter()
@@ -157,7 +157,7 @@ class Merge_Ext extends ProjectExt {
             // Исполняем
             //IJdxDataSerializer dataSerializer = ;
             JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer)
-            recMerger.execMergePlan(mergeTasks, recMergeResultWriter)
+            recMerger.execMergePlan(mergePlans, recMergeResultWriter)
 
             // Сохраняем
             recMergeResultWriter.close()
@@ -202,7 +202,7 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             //
-            IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain()
+            IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain()
             JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer)
             relocator.relocateIdCheck(tableName, idSour, outFile)
 
@@ -258,7 +258,7 @@ class Merge_Ext extends ProjectExt {
             UtData.outTable(db.loadSql("select * from " + tableName + " where id = " + idSour))
 
             //
-            IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain()
+            IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain()
             JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer)
             relocator.relocateId(tableName, idSour, idDest, outFile)
 
@@ -301,7 +301,7 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             //
-            IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain()
+            IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain()
             JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer)
             dirName = UtFile.unnormPath(dirName) + "/"
             relocator.relocateIdAll(tableName, idSour, dirName)

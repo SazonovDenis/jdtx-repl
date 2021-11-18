@@ -29,17 +29,6 @@ public class UtDataSelector {
 
 
     /**
-     * Запись всех полей в писателя.
-     */
-    public static void dataBinder_to_dataWriter(Map<String, String> rec, String recFieldNames, JdxReplicaWriterXml writer) throws Exception {
-        for (String fieldName : recFieldNames.split(",")) {
-            String fieldValueStr = rec.get(fieldName);
-            writer.writeRecValue(fieldName, fieldValueStr);
-        }
-    }
-
-
-    /**
      * @param selfWsId Код рабочей станции, на которой делаем выборку
      */
     public UtDataSelector(Db db, IJdxDbStruct struct, long selfWsId, boolean forbidNotOwnId) throws Exception {
@@ -47,7 +36,7 @@ public class UtDataSelector {
         this.db = db;
         this.decoder = new RefDecoder(db, selfWsId);
         this.forbidNotOwnId = forbidNotOwnId;
-        this.dataSerializer = new JdxDataSerializer_decode(db, selfWsId);
+        this.dataSerializer = new JdxDataSerializerDecode(db, selfWsId);
     }
 
     /**
@@ -120,7 +109,7 @@ public class UtDataSelector {
 
             // Тело записи
             Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
-            UtDataSelector.dataBinder_to_dataWriter(valuesStr, tableFields, dataWriter);
+            UtJdx.recToWriter(valuesStr, tableFields, dataWriter);
 
             //
             data.next();

@@ -542,18 +542,30 @@ public class UtJdx {
         StringBuilder sb = new StringBuilder();
 
         //
-        for (IJdxField f : fields) {
+        for (IJdxField field : fields) {
             if (sb.length() != 0) {
                 sb.append(",");
             }
             if (fieldPrefix != null) {
                 sb.append(fieldPrefix);
             }
-            sb.append(f.getName());
+            sb.append(field.getName());
         }
 
         //
         return sb.toString();
+    }
+
+    /**
+     * Запись в писателя значений всех полей, которые не null.
+     */
+    public static void recToWriter(Map<String, String> recValuesStr, String recFieldNames, JdxReplicaWriterXml writer) throws Exception {
+        for (String fieldName : recFieldNames.split(",")) {
+            String fieldValueStr = recValuesStr.get(fieldName);
+            if (fieldValueStr != null) {
+                writer.writeRecValue(fieldName, fieldValueStr);
+            }
+        }
     }
 
 
