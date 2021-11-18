@@ -174,28 +174,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         assertEquals("Ящики не созданы", true, extSrv.repl_mail_check(args));
         //createBoxes_Local();
 
-        /*
-        // Сразу рассылаем настройки для всех станций
-        args.clear();
-        args.put("file", cfg_json_decode);
-        args.put("cfg", UtCfgType.DECODE);
-        extSrv.repl_send_cfg(args);
-        //
-        args.clear();
-        args.put("file", cfg_json_publication_ws);
-        args.put("cfg", UtCfgType.PUBLICATIONS);
-        extSrv.repl_send_cfg(args);
-        //
-        args.clear();
-        args.put("file", cfg_json_publication_srv);
-        args.put("cfg", UtCfgType.PUBLICATIONS);
-        args.put("ws", 1);
-        extSrv.repl_send_cfg(args);
-
-        // Для сервера - сразу инициируем фиксацию структуры БД
-        args.clear();
-        extSrv.repl_dbstruct_finish(args);
-        */
 
         // ---
         UtData.outTable(db.loadSql("select id, name, guid from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST"));
