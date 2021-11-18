@@ -67,6 +67,8 @@ public class JdxReplicaReaderXml {
                         String fieldName = reader.getAttributeLocalName(i);
                         String fieldValue = reader.getAttributeValue(i);
 /*
+                todo убрась дубль в jdtx.repl.main.api.rec_merge.RecMergeResultReader#nextRec
+                ////////////////////////
                         // Грязный хак: BLOB в MIME-кодировке НЕ нуждются в маскировке,
                         // а зато StringEscapeUtils.unescapeJava() падает на больших строках,
                         // выдает "Java heap space".

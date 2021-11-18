@@ -1,6 +1,5 @@
 package jdtx.repl.main.api.rec_merge;
 
-import groovy.json.*;
 import jandcode.utils.error.*;
 
 import javax.xml.stream.*;
@@ -66,6 +65,8 @@ public class RecMergeResultReader {
                         String fieldName = reader.getAttributeLocalName(i);
                         String fieldValue = reader.getAttributeValue(i);
 /*
+            todo дубль в jdtx.repl.main.api.replica.JdxReplicaReaderXml.nextRec
+                ////////////////////////
                         // Грязный хак: BLOB в MIME-кодировке НЕ нуждются в маскировке,
                         // а зато StringEscapeUtils.unescapeJava() падает на больших строках,
                         // выдает "Java heap space".
