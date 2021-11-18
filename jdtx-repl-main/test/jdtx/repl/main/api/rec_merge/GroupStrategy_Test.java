@@ -39,11 +39,11 @@ public class GroupStrategy_Test extends DbmTestCase {
         //
         Map<String, Object> record = new HashMap<>();
         Map<String, Object> recordRes = new HashMap<>();
-        GroupsStrategyStorage groupsStrategyStorage = new GroupsStrategyStorage();
-        JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/field_groups.json");
-        groupsStrategyStorage.loadStrategy(cfg, struct);
         //
-        GroupStrategy tableGroups = groupsStrategyStorage.getForTable("LIC");
+        JSONObject cfgGroups = UtRepl.loadAndValidateJsonFile("test/etalon/field_groups.json");
+        GroupsStrategyStorage.initInstance(cfgGroups, struct);
+        //
+        GroupStrategy tableGroups = GroupsStrategyStorage.getInstance().getForTable("LIC");
 
         // Проверяем
         record.put("NAMEF", "NameF_V1");

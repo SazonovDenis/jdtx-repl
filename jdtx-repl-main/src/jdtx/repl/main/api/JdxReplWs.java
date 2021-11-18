@@ -162,10 +162,7 @@ public class JdxReplWs {
         mailer.init(cfgMailer);
 
         // Стратегии перекодировки каждой таблицы
-        if (cfgDecode != null && RefDecodeStrategy.instance == null) {
-            RefDecodeStrategy.instance = new RefDecodeStrategy();
-            RefDecodeStrategy.instance.init(cfgDecode);
-        }
+        RefDecodeStrategy.initInstance(cfgDecode);
 
         // Правила публикаций
         this.publicationIn = PublicationRuleStorage.loadRules(cfgPublications, structActual, "in");

@@ -2,6 +2,7 @@ package jdtx.repl.main.api.decoder;
 
 import jandcode.dbm.test.*;
 import jdtx.repl.main.api.*;
+import org.json.simple.*;
 import org.junit.*;
 
 import java.util.*;
@@ -9,8 +10,15 @@ import java.util.*;
 /**
  *
  */
-// todo: тест сломался
 public class RefDecoder_Test extends DbmTestCase {
+
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        // Стратегии перекодировки каждой таблицы
+        JSONObject cfgDecode = UtRepl.loadAndValidateJsonFile("test/etalon/decode_strategy.json");
+        RefDecodeStrategy.initInstance(cfgDecode);
+    }
 
     @Test
     public void test_x() throws Exception {

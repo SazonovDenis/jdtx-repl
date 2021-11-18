@@ -7,17 +7,37 @@ import java.util.*;
 
 /**
  * todo: путаница в ролях RefDecoder и RefDecodeStrategy,
- * todo: кроме того, RefDecoder имеет прявязку к PS, а через фабрику кастомизируется именно JdxRefDecoderService
- * todo: кроме того! по коду куча вызовов "new RefDecoder()" - а зачем тогда фабрика????
+ * todo: кроме того, именно RefDecoder специфичен для PS, а через фабрику кастомизируется именно JdxRefDecoderService
  * todo: кроме того! static RefDecodeStrategy instance - ваще капец!
  */
+
+// todo: по коду куча вызовов "new RefDecoder()" - а зачем тогда фабрика jdtx.repl.main.api.decoder.JdxRefDecoderService?
 public class RefDecodeStrategy {
 
     int NO_DECODE = 1;
     int DECODE_ID = 2;
 
-    public static RefDecodeStrategy instance = null;
+    private static RefDecodeStrategy instance = null;
 
+    public static void initInstance(JSONObject cfgDecode) throws Exception {
+        RefDecodeStrategy decodeStrategy = new RefDecodeStrategy();
+        decodeStrategy.init(cfgDecode);
+        instance = decodeStrategy;
+    }
+
+    public static RefDecodeStrategy getInstance() {
+        if (instance == null) {
+            // Не заданы стратегии перекодировки для каждой таблицы
+            throw new XError("RefDecodeStrategy.instance == null");
+        }
+        return instance;
+    }
+
+    /**
+     * Хранилище устроено так:
+     * TableA: {strategy: DECODE_ID, decode_from_id: 1000},
+     * TableB: {strategy: NO_DECODE}
+     */
     protected Map<String, RefDecodeStrategyItem> tablesDecodeStrategy;
 
     public void init(JSONObject cfgDecode) throws Exception {

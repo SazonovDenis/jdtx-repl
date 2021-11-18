@@ -7,15 +7,10 @@ import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 
-import java.util.*;
+
+public class JdxDataSerializer_decode extends JdxDataSerializer_custom {
 
 
-public class JdxDataSerializer_decode implements IJdxDataSerializer {
-
-
-    private IJdxTable table = null;
-    private String[] tableFieldNames = null;
-    private Collection<IJdxField> fields = null;
     private IRefDecoder decoder;
     private long wsId;
 
@@ -24,36 +19,29 @@ public class JdxDataSerializer_decode implements IJdxDataSerializer {
         this.wsId = wsId;
     }
 
-    @Override
-    public void setTable(IJdxTable table, String tableFieldNamesStr) {
-        this.table = table;
-        this.tableFieldNames = tableFieldNamesStr.split(",");
-
-        fields = new ArrayList<>();
-        for (String fieldName : this.tableFieldNames) {
-            fields.add(table.getField(fieldName));
-        }
-    }
-
     public String prepareValueStr(Object fieldValue, IJdxField field) throws Exception {
         String fieldValueStr;
 
         //
-        IJdxTable refTable = field.getRefTable();
-        if (field.isPrimaryKey() || refTable != null) {
-            // Это поле - ссылка
-            String refTableName;
-            if (field.isPrimaryKey()) {
-                refTableName = table.getName();
-            } else {
-                refTableName = refTable.getName();
-            }
-            // Запаковка ссылки в JdxRef
-            JdxRef ref = decoder.get_ref(refTableName, UtJdx.longValueOf(fieldValue));
-            fieldValueStr = ref.toString();
+        if (fieldValue == null) {
+            fieldValueStr = null; //UtXml.valueToStr(fieldValue);
         } else {
-            // Это значение других типов
-            fieldValueStr = UtXml.valueToStr(fieldValue);
+            IJdxTable refTable = field.getRefTable();
+            if (field.isPrimaryKey() || refTable != null) {
+                // Это поле - ссылка
+                String refTableName;
+                if (field.isPrimaryKey()) {
+                    refTableName = table.getName();
+                } else {
+                    refTableName = refTable.getName();
+                }
+                // Запаковка ссылки в JdxRef
+                JdxRef ref = decoder.get_ref(refTableName, UtJdx.longValueOf(fieldValue));
+                fieldValueStr = String.valueOf(ref);
+            } else {
+                // Это значение других типов
+                fieldValueStr = UtXml.valueToStr(fieldValue);
+            }
         }
 
         //
@@ -94,52 +82,5 @@ public class JdxDataSerializer_decode implements IJdxDataSerializer {
         return fieldValue;
     }
 
-    /**
-     * Сериализация значений полей (перед записью в БД).
-     * С запаковкой ссылок.
-     *
-     * @param values Типизированные данные
-     * @return Данные в строковом виде (для XML или JSON)
-     */
-    public Map<String, String> prepareValuesStr(Map<String, Object> values) throws Exception {
-        Map<String, String> res = new HashMap<>();
-
-        //
-        for (IJdxField field : fields) {
-            String fieldName = field.getName();
-            Object fieldValue = values.get(field.getName());
-            String fieldValueStr = prepareValueStr(fieldValue, field);
-
-            //
-            res.put(fieldName, fieldValueStr);
-        }
-
-        //
-        return res;
-    }
-
-    /**
-     * Десериализация значений полей (перед записью в БД и т.п.).
-     * Из строки в Object и распаковка ссылок.
-     *
-     * @param valuesStr Данные в строковом виде (из XML)
-     * @return Типизированные данные
-     */
-    public Map<String, Object> prepareValues(Map<String, String> valuesStr) throws Exception {
-        Map<String, Object> res = new HashMap<>();
-
-        //
-        for (IJdxField field : fields) {
-            String fieldName = field.getName();
-            String fieldValueStr = valuesStr.get(fieldName);
-            Object fieldValue = prepareValue(fieldValueStr, field);
-
-            //
-            res.put(fieldName, fieldValue);
-        }
-
-        //
-        return res;
-    }
 
 }

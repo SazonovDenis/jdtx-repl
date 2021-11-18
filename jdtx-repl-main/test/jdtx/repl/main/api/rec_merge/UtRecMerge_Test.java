@@ -4,9 +4,12 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.dbm.test.*;
 import jandcode.utils.*;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.data_binder.*;
+import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
+import org.json.simple.*;
 import org.junit.*;
 
 import java.io.*;
@@ -36,6 +39,7 @@ public class UtRecMerge_Test extends DbmTestCase {
 
     private JdxRecMerger getJdxRecMerger() throws Exception {
         IJdxDataSerializer dataSerializer = new JdxDataSerializer_decode(db, 1);
+        //IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain();
         JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
         return recMerger;
     }
@@ -51,6 +55,10 @@ public class UtRecMerge_Test extends DbmTestCase {
         reader.setDb(db);
         struct = reader.readDbStruct();
         //
+        JSONObject cfgDecode = UtRepl.loadAndValidateJsonFile("test/etalon/decode_strategy.json");
+        RefDecodeStrategy.initInstance(cfgDecode);
+        JSONObject cfgGroups = UtRepl.loadAndValidateJsonFile("test/etalon/field_groups.json");
+        GroupsStrategyStorage.initInstance(cfgGroups, struct);
         //logOn();
     }
 

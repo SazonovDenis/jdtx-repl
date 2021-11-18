@@ -7,6 +7,7 @@ import org.joda.time.*;
 
 import javax.xml.stream.*;
 import java.io.*;
+import java.util.*;
 import java.util.zip.*;
 
 public class RecMergeResultWriter {
@@ -72,7 +73,7 @@ public class RecMergeResultWriter {
         currentElement_table = true;
     }
 
-    public void writeRec(DataRecord rec) throws XMLStreamException {
+    public void writeRec(Map<String, String> valuesStr) throws XMLStreamException {
         // <table>
         if (!currentElement_table) {
             throw new XMLStreamException("Not started currentElement_table");
@@ -82,11 +83,11 @@ public class RecMergeResultWriter {
         writer.writeStartElement("rec");
 
         //
-        for (String name : rec.getValues().keySet()) {
-            Object value = rec.getValue(name);
+        for (String name : valuesStr.keySet()) {
+            String valueStr = valuesStr.get(name);
 
             //
-            writer.writeAttribute(name, UtXml.valueToStr(value));
+            writer.writeAttribute(name, valueStr);
         }
 
         //

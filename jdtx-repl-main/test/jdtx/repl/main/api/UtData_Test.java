@@ -59,9 +59,8 @@ public class UtData_Test extends ReplDatabaseStruct_Test {
         sw.start("Применяем реплику");
 
         // Стратегии перекодировки каждой таблицы
-        JSONObject cfgDbDecode = UtRepl.loadAndValidateJsonFile("test/etalon/decode_strategy.json");
-        RefDecodeStrategy.instance = new RefDecodeStrategy();
-        RefDecodeStrategy.instance.init(cfgDbDecode);
+        JSONObject cfgDecode = UtRepl.loadAndValidateJsonFile("test/etalon/decode_strategy.json");
+        RefDecodeStrategy.initInstance(cfgDecode);
 
         // Применятель
         long wsId = 1;

@@ -7,13 +7,14 @@ import jandcode.dbm.test.*;
 import jandcode.jc.*;
 import jandcode.jc.test.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.data_binder.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ext.*;
 import org.junit.*;
 
 import java.io.*;
 
-public class UtRecRelocator_Test extends DbmTestCase {
+public class JdxRecRelocator_Test extends DbmTestCase {
 
     Db db;
     IJdxDbStruct struct;
@@ -41,7 +42,8 @@ public class UtRecRelocator_Test extends DbmTestCase {
 
     @Test
     public void test_relocate() throws Exception {
-        UtRecRelocator relocator = new UtRecRelocator(db, struct);
+        IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain();
+        JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer);
 
         //
         String sql = "select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by NameF";
@@ -103,7 +105,8 @@ public class UtRecRelocator_Test extends DbmTestCase {
 
     @Test
     public void test_fail() throws Exception {
-        UtRecRelocator relocator = new UtRecRelocator(db, struct);
+        IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain();
+        JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer);
 
         //
         String sql = "select id, NameF, NameI, NameO, BornDt, DocDt from Lic order by NameF";
@@ -201,7 +204,8 @@ public class UtRecRelocator_Test extends DbmTestCase {
         String[] tableNamesArr = tableNames.split(",");
         //
         int maxPkValue = 100000000;
-        UtRecRelocator relocator = new UtRecRelocator(db, struct);
+        IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain();
+        JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer);
 
 
         // Создадим себе проблему

@@ -124,7 +124,7 @@ public class RefDecoder implements IRefDecoder {
         // Ищем наш слот
         RefDecoderSlot sl = slotToWs.get(own_slot_no);
         if (sl == null) {
-            throw new XError("Trying to decode key, than was not inserted, id: " + own_id + ", table: " + tableName + ", ws_id: " + this.self_ws_id);
+            throw new XError("Trying to decode id, than was not inserted, id: " + own_id + ", table: " + tableName + ", ws_id: " + this.self_ws_id);
         }
 
         // По нашему номеру слота определяем ws_id и ws_slot_no
@@ -206,13 +206,8 @@ public class RefDecoder implements IRefDecoder {
             return false;
         }
 
-        // Не заданы стратегии перекодировки для каждой таблицы
-        if (RefDecodeStrategy.instance == null) {
-            throw new XError("RefDecodeStrategy.instance == null");
-        }
-
         // Стратегии перекодировки заданы
-        return RefDecodeStrategy.instance.needDecode(tableName, ws_id, db_id);
+        return RefDecodeStrategy.getInstance().needDecode(tableName, ws_id, db_id);
     }
 
 

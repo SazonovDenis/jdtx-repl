@@ -9,8 +9,7 @@ import jandcode.utils.*
 import jandcode.utils.error.*
 import jandcode.utils.variant.*
 import jdtx.repl.main.api.*
-import jdtx.repl.main.api.data_binder.IJdxDataSerializer
-import jdtx.repl.main.api.data_binder.JdxDataSerializer_decode
+import jdtx.repl.main.api.data_binder.*
 import jdtx.repl.main.api.rec_merge.*
 import jdtx.repl.main.api.struct.*
 import org.json.simple.*
@@ -90,11 +89,13 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             //
-            //IJdxDataSerializer dataSerializer =
+            //IJdxDataSerializer dataSerializer = ;
             JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer)
             if (!UtString.empty(fileCfgGroup)) {
                 JSONObject cfg = UtRepl.loadAndValidateJsonFile(fileCfgGroup)
-                recMerger.groupsStrategyStorage.loadStrategy(cfg, struct)
+                GroupsStrategyStorage.initInstance(cfg, struct)
+            } else {
+                GroupsStrategyStorage.initInstance(null, struct)
             }
 
             // Ищем дубликаты
@@ -201,7 +202,8 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             //
-            UtRecRelocator relocator = new UtRecRelocator(db, struct)
+            IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain()
+            JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer)
             relocator.relocateIdCheck(tableName, idSour, outFile)
 
             //
@@ -256,7 +258,8 @@ class Merge_Ext extends ProjectExt {
             UtData.outTable(db.loadSql("select * from " + tableName + " where id = " + idSour))
 
             //
-            UtRecRelocator relocator = new UtRecRelocator(db, struct)
+            IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain()
+            JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer)
             relocator.relocateId(tableName, idSour, idDest, outFile)
 
             //
@@ -298,8 +301,9 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             //
+            IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain()
+            JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer)
             dirName = UtFile.unnormPath(dirName) + "/"
-            UtRecRelocator relocator = new UtRecRelocator(db, struct)
             relocator.relocateIdAll(tableName, idSour, dirName)
         } finally {
             db.disconnect()

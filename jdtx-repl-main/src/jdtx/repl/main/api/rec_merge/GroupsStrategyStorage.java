@@ -1,5 +1,6 @@
 package jdtx.repl.main.api.rec_merge;
 
+import jandcode.utils.error.*;
 import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
 import org.json.simple.*;
@@ -11,12 +12,29 @@ import java.util.*;
  */
 public class GroupsStrategyStorage {
 
+    private static GroupsStrategyStorage instance = null;
+
+    public static void initInstance(JSONObject cfgGroups, IJdxDbStruct struct) throws Exception {
+        GroupsStrategyStorage groupsStrategyStorage = new GroupsStrategyStorage();
+        if (cfgGroups != null) {
+            groupsStrategyStorage.loadStrategy(cfgGroups, struct);
+        }
+        instance = groupsStrategyStorage;
+    }
+
+    public static GroupsStrategyStorage getInstance() {
+        if (instance == null) {
+            throw new XError("GroupsStrategyStorage.instance == null");
+        }
+        return instance;
+    }
+
     /**
      * Хранилище устроено так:
      * TableA: [ f1:[f1,f2,f3], f2:[f1,f2,f3], f3:[f1,f2,f3] ],
      * TableB: [ f5:[f5,f6], f6:[f5,f6] ]
      */
-    Map<String, GroupStrategy> strategyStorage = new HashMap<>();
+    private Map<String, GroupStrategy> strategyStorage = new HashMap<>();
 
     //
     protected static Log log = LogFactory.getLog("jdtx.FieldsGroupsStrategy");

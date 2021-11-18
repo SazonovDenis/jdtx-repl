@@ -3,6 +3,7 @@ package jdtx.repl.main.api.rec_merge;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jdtx.repl.main.api.data_binder.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 
@@ -24,7 +25,7 @@ public class UtRecMerger {
      * Вытаскиват все, что нужно будет обновить (в разных таблицах),
      * если делать relocate/delete записи idSour в таблице tableName
      */
-    public void recordsRelocateSave(String tableName, Collection<Long> recordsDelete, RecMergeResultWriter resultWriter) throws Exception {
+    public void recordsRelocateSave(String tableName, Collection<Long> recordsDelete, IJdxDataSerializer dataSerializer, RecMergeResultWriter resultWriter) throws Exception {
         // Собираем зависимости
         Map<String, Collection<IJdxForeignKey>> refsToTable = getRefsToTable(tableName);
 
@@ -44,7 +45,10 @@ public class UtRecMerger {
                     // Отчитаемся
                     resultWriter.writeTableItem(new MergeResultTableItem(refTableName, MergeOprType.UPD));
                     while (!stUpdated.eof()) {
-                        resultWriter.writeRec(stUpdated);
+                        Map<String, Object> values = stUpdated.getValues();
+                        Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
+                        resultWriter.writeRec(valuesStr);
+                        //
                         stUpdated.next();
                     }
                 }
@@ -80,7 +84,7 @@ public class UtRecMerger {
     /**
      * Сохраняем записи recordsDelete из tableName
      */
-    public void recordsDeleteSave(String tableName, Collection<Long> recordsDelete, RecMergeResultWriter resultWriter) throws Exception {
+    public void recordsDeleteSave(String tableName, Collection<Long> recordsDelete, IJdxDataSerializer dataSerializer, RecMergeResultWriter resultWriter) throws Exception {
         String pkFieldName = struct.getTable(tableName).getPrimaryKey().get(0).getName();
         String sqlSelect = "select * from " + tableName + " where " + pkFieldName + " = :" + pkFieldName;
 
@@ -96,7 +100,9 @@ public class UtRecMerger {
 
             // Отчитаемся
             for (DataRecord rec : store) {
-                resultWriter.writeRec(rec);
+                Map<String, Object> values = rec.getValues();
+                Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
+                resultWriter.writeRec(valuesStr);
             }
         }
     }

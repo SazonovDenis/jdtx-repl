@@ -24,7 +24,6 @@ public class JdxRecMerger implements IJdxRecMerger {
     IJdxDbStruct struct;
     JdxDbUtils dbu;
     IJdxDataSerializer dataSerializer;
-    public GroupsStrategyStorage groupsStrategyStorage;
 
     //
     protected static Log log = LogFactory.getLog("jdtx.JdxRecMerger");
@@ -35,7 +34,6 @@ public class JdxRecMerger implements IJdxRecMerger {
         this.struct = struct;
         this.dbu = new JdxDbUtils(db, struct);
         this.dataSerializer = dataSerializer;
-        this.groupsStrategyStorage = new GroupsStrategyStorage();
     }
 
 
@@ -192,28 +190,28 @@ public class JdxRecMerger implements IJdxRecMerger {
                 // которую на сервере назначили как "эталонная".
                 IJdxTable table = struct.getTable(mergePlan.tableName);
                 dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
-                Map<String, Object> params = dataSerializer.prepareValues(mergePlan.recordEtalon);
+                Map<String, Object> values = dataSerializer.prepareValues(mergePlan.recordEtalon);
                 // Чтобы вставилось с новой Id
                 IJdxField pkField = table.getPrimaryKey().get(0);
                 String pkFieldName = pkField.getName();
-                params.put(pkFieldName, null);
+                values.put(pkFieldName, null);
                 //
-                long etalonRecId = dbu.insertRec(mergePlan.tableName, params);
+                long etalonRecId = dbu.insertRec(mergePlan.tableName, values);
 
                 // Распаковываем PK удаляемых записей
                 Collection<Long> recordsDelete = new ArrayList<>();
                 for (String recordDeletePkStr : mergePlan.recordsDelete) {
-                    Long recordDeletePk = (Long) dataSerializer.prepareValue(recordDeletePkStr, pkField);
+                    Long recordDeletePk = UtJdx.longValueOf(dataSerializer.prepareValue(recordDeletePkStr, pkField));
                     recordsDelete.add(recordDeletePk);
                 }
 
                 // DEL - Сохранияем то, что нужно удалить
                 if (doDelete) {
-                    utRecMerger.recordsDeleteSave(mergePlan.tableName, recordsDelete, resultWriter);
+                    utRecMerger.recordsDeleteSave(mergePlan.tableName, recordsDelete, dataSerializer, resultWriter);
                 }
 
                 // UPD - Сохранияем то, где нужно перебить ссылки
-                utRecMerger.recordsRelocateSave(mergePlan.tableName, recordsDelete, resultWriter);
+                utRecMerger.recordsRelocateSave(mergePlan.tableName, recordsDelete, dataSerializer, resultWriter);
 
 
                 // UPD - Перебиваем ссылки у зависимых таблиц
@@ -334,6 +332,10 @@ public class JdxRecMerger implements IJdxRecMerger {
      * Превращение ВСЕХ дублей в план на удаление в "лоб".
      * За образец берем первую запись (на ее основе делаем новую запись),
      * а все старые записи - планируем удалить.
+     * <p>
+     * "Эталонная" запись должна быть именно ВСТАВЛЕНА, а не выбранной из уже существующих,
+     * т.к. на рабочей станции может НЕ ОКАЗАТЬСЯ в наличии той записи,
+     * которую на сервере назначили как "эталонная".
      */
     private Collection<RecMergePlan> prepareRemoveDuplicatesTaskAsIs(String tableName, Collection<RecDuplicate> duplicates) throws Exception {
         Collection<RecMergePlan> res = new ArrayList<>();
@@ -344,7 +346,7 @@ public class JdxRecMerger implements IJdxRecMerger {
         //
         dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
         //
-        GroupStrategy tableGroups = groupsStrategyStorage.getForTable(tableName);
+        GroupStrategy tableGroups = GroupsStrategyStorage.getInstance().getForTable(tableName);
         //
         for (RecDuplicate duplicate : duplicates) {
             Map<String, Object> recordEtalon = new HashMap<>();

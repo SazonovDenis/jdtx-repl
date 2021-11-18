@@ -31,10 +31,10 @@ public class RefDecoderCheck_Test extends ReplDatabaseStruct_Test {
 
     void checkValid(String jsonFileName) throws Exception {
         JSONObject cfgDecode = UtRepl.loadAndValidateJsonFile(jsonFileName);
-        RefDecodeStrategy strategy = new RefDecodeStrategy();
-        strategy.init(cfgDecode);
+        RefDecodeStrategy.initInstance(cfgDecode);
 
         //
+        RefDecodeStrategy strategy = RefDecodeStrategy.getInstance();
         System.out.println("file: " + jsonFileName);
         UtDecodeStrategy.checkValid(strategy, struct);
 
