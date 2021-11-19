@@ -10,6 +10,7 @@ import jandcode.utils.error.*
 import jandcode.utils.variant.*
 import jdtx.repl.main.api.*
 import jdtx.repl.main.api.data_serializer.IJdxDataSerializer
+import jdtx.repl.main.api.data_serializer.JdxDataSerializerDecode
 import jdtx.repl.main.api.data_serializer.JdxDataSerializerPlain
 import jdtx.repl.main.api.rec_merge.*
 import jdtx.repl.main.api.struct.*
@@ -90,7 +91,12 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             //
-            //IJdxDataSerializer dataSerializer = ;
+            // Только рабочая станция знает, какая у нас wsId
+            JdxReplWs ws = new JdxReplWs(db)
+            ws.init()
+
+            //
+            IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, ws.wsId)
             JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer)
             if (!UtString.empty(fileCfgGroup)) {
                 JSONObject cfg = UtRepl.loadAndValidateJsonFile(fileCfgGroup)
@@ -155,8 +161,14 @@ class Merge_Ext extends ProjectExt {
             RecMergeResultWriter recMergeResultWriter = new RecMergeResultWriter()
             recMergeResultWriter.open(outFile)
 
+            // Только рабочая станция знает, какая у нас wsId
+            JdxReplWs ws = new JdxReplWs(db)
+            ws.init()
+
+            //
+            IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, ws.wsId)
+
             // Исполняем
-            //IJdxDataSerializer dataSerializer = ;
             JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer)
             recMerger.execMergePlan(mergePlans, recMergeResultWriter)
 
