@@ -8,16 +8,13 @@ import java.util.*;
 public class JdxDataSerializerCustom implements IJdxDataSerializer {
 
     protected IJdxTable table = null;
-    protected String[] tableFieldNames = null;
     protected Collection<IJdxField> fields = null;
 
     @Override
     public void setTable(IJdxTable table, String tableFieldNamesStr) {
         this.table = table;
-        this.tableFieldNames = tableFieldNamesStr.split(",");
-
         fields = new ArrayList<>();
-        for (String fieldName : this.tableFieldNames) {
+        for (String fieldName : tableFieldNamesStr.split(",")) {
             fields.add(table.getField(fieldName));
         }
     }
