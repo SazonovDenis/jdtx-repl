@@ -418,13 +418,33 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
+    public void test_DumpTables_2_3_5() throws Exception {
+        do_DumpTables(db2, db3, db5, struct2, struct3, struct5);
+    }
+
+    @Test
     public void test_DumpTables_1_2_3() throws Exception {
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
     @Test
-    public void test_DumpTables_2_3_5() throws Exception {
-        do_DumpTables(db2, db3, db5, struct2, struct3, struct5);
+    public void test_DumpTables_1_2_5() throws Exception {
+        do_DumpTables(db, db2, db5, struct, struct2, struct5);
+    }
+
+    @Test
+    public void sync_http_1_2_3_5() throws Exception {
+        test_ws1_doReplSession();
+        test_ws2_doReplSession();
+        test_ws3_doReplSession();
+        test_ws5_doReplSession();
+
+        test_srv_doReplSession();
+
+        test_ws1_doReplSession();
+        test_ws2_doReplSession();
+        test_ws3_doReplSession();
+        test_ws5_doReplSession();
     }
 
     void do_DumpTables(Db db1, Db db2, Db db3, IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct struct3) throws Exception {
@@ -651,6 +671,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_ws3_doReplSession() throws Exception {
         JdxReplWs ws = new JdxReplWs(db3);
+        JdxReplTaskWs replTask = new JdxReplTaskWs(ws);
+        //
+        replTask.doReplSession();
+    }
+
+    @Test
+    public void test_ws5_doReplSession() throws Exception {
+        JdxReplWs ws = new JdxReplWs(db5);
         JdxReplTaskWs replTask = new JdxReplTaskWs(ws);
         //
         replTask.doReplSession();

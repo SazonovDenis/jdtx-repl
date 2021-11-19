@@ -4,6 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.jc.*;
 import jandcode.jc.test.*;
 import jandcode.utils.variant.*;
+import jdtx.repl.main.api.rec_merge.*;
 import jdtx.repl.main.ext.*;
 import jdtx.repl.main.task.*;
 import org.junit.*;
@@ -142,100 +143,9 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
     }
 
     @Test
-    public void test_all_CommentTip_Merge() throws Exception {
-        // Готовим почву для сияния
-        UtData.outTable(db.loadSql("select id, Name from CommentTip order by id"));
-        db.execSql("update CommentTip set Name = 'Tip-ins-all' where Name like 'Tip-ins-ws%'");
-        UtData.outTable(db.loadSql("select id, Name from CommentTip order by id"));
-
-
-        // Сливаем записи
-        TestExtJc jc = createExt(TestExtJc.class);
-        ProjectScript project = jc.loadProject("../ext/srv/project.jc");
-        Merge_Ext ext = (Merge_Ext) project.createExt("jdtx.repl.main.ext.Merge_Ext");
-
-        //
-        IVariantMap args = new VariantMap();
-        args.put("table", "CommentTip");
-        args.put("file", "temp/_CommentTip.task");
-        args.put("fields", "Name");
-        args.put("cfg_group", "test/etalon/field_groups.json");
-
-        //
-        ext.rec_merge_find(args);
-
-        //
-        ext.rec_merge_exec(args);
-
-        //
-        UtData.outTable(db.loadSql("select id, Name from CommentTip order by id"));
-
-
-        // Синхронизируем
-        sync_http_1_2_3_5();
-        sync_http_1_2_3_5();
-        sync_http_1_2_3_5();
-        sync_http_1_2_3_5();
-
-
-/*
-        // Удаляем лишние
-        args.put("delete", true);
-        ext.rec_merge_exec(args);
-
-        //
-        UtData.outTable(db.loadSql("select id, Name from CommentTip order by id"));
-
-
-        // Синхронизируем
-        sync_http_1_2_3_5();
-        sync_http_1_2_3_5();
-        sync_http_1_2_3_5();
-        sync_http_1_2_3_5();
-*/
-
-
-        //
-        test_DumpTables_1_2_5();
-    }
-
-    @Test
-    public void test_DumpTables_1_2_3() throws Exception {
-        do_DumpTables(db, db2, db3, struct, struct2, struct3);
-    }
-
-    @Test
-    public void test_DumpTables_1_2_5() throws Exception {
-        do_DumpTables(db, db2, db5, struct, struct2, struct5);
-    }
-
-    @Test
     public void test_ws2_makeChange_CommentTip() throws Exception {
         UtTest utTest = new UtTest(db2);
         utTest.makeChange_CommentTip(struct2, 2);
-    }
-
-    @Test
-    public void sync_http_1_2_3_5() throws Exception {
-        test_ws1_doReplSession();
-        test_ws2_doReplSession();
-        test_ws3_doReplSession();
-        test_ws5_doReplSession();
-
-        test_srv_doReplSession();
-
-        test_ws1_doReplSession();
-        test_ws2_doReplSession();
-        test_ws3_doReplSession();
-        test_ws5_doReplSession();
-    }
-
-    @Test
-    public void test_ws5_doReplSession() throws Exception {
-        JdxReplWs ws = new JdxReplWs(db5);
-        JdxReplTaskWs replTask = new JdxReplTaskWs(ws);
-        //
-        replTask.doReplSession();
     }
 
 
