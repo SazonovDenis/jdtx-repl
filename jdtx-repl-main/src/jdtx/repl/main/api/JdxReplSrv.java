@@ -536,7 +536,7 @@ public class JdxReplSrv {
             long wsId = (long) en.getKey();
 
             //
-            log.info("srvReplicasDispatch (common -> out000), to.wsId: " + wsId);
+            log.info("srvReplicasDispatch, to.wsId: " + wsId);
 
             try {
 
@@ -558,8 +558,11 @@ public class JdxReplSrv {
                 long sendFrom = stateManager.getDispatchDoneQueCommon(wsId) + 1;
                 long sendTo = commonQueMaxNo;
 
+                long countToDo = sendTo - sendFrom + 1;
                 long count = 0;
                 for (long no = sendFrom; no <= sendTo; no++) {
+                    log.info("srvReplicasDispatch, to.wsId: " + wsId + ", no: " + no + ", " + count + "/" + countToDo);
+
                     // Берем реплику из queCommon
                     IReplica replica = queCommon.get(no);
 
@@ -594,17 +597,17 @@ public class JdxReplSrv {
 
                 //
                 if (count > 0) {
-                    log.info("srvReplicasDispatch (common -> out000) done, to.wsId: " + wsId + ", out001.no: " + sendFrom + " .. " + sendTo + ", done count: " + count);
+                    log.info("srvReplicasDispatch done, to.wsId: " + wsId + ", out001.no: " + sendFrom + " .. " + sendTo + ", done count: " + count);
                 } else {
-                    log.info("srvReplicasDispatch (common -> out000) done, to.wsId: " + wsId + ", out001.no: " + sendFrom + ", nothing done");
+                    log.info("srvReplicasDispatch done, to.wsId: " + wsId + ", out001.no: " + sendFrom + ", nothing done");
                 }
 
             } catch (Exception e) {
                 // Ошибка для станции - пропускаем, идем дальше
-                errorCollector.collectError("srvReplicasDispatch (common -> out000), to.wsId: " + wsId, e);
+                errorCollector.collectError("srvReplicasDispatch, to.wsId: " + wsId, e);
                 //
                 //
-                log.error("Error in srvReplicasDispatch (common -> out000), to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
+                log.error("Error in srvReplicasDispatch, to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
                 log.error(Ut.getStackTrace(e));
             }
 
