@@ -3,10 +3,13 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.jc.*;
 import jandcode.jc.test.*;
+import jandcode.utils.*;
 import jandcode.utils.variant.*;
 import jdtx.repl.main.api.rec_merge.*;
 import jdtx.repl.main.ext.*;
 import org.junit.*;
+
+import java.io.*;
 
 public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
 
@@ -115,7 +118,7 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         // Проверяем отсутствие дубликатов на ws2
         assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "LicDocTip", "Name") == 0);
         assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "LicDocVid", "Name") == 0);
-        
+
         // Проверяем отсутствие дубликатов на ws3
         assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "LicDocTip", "Name") == 0);
         assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "LicDocVid", "Name") == 0);
@@ -254,6 +257,11 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         args.put("file", "temp/_CommentTip.plan.json");
         args.put("fields", "Name");
         args.put("cfg_group", "test/etalon/field_groups.json");
+
+        //
+        new File("temp/_CommentTip.plan.json").delete();
+        new File("temp/_CommentTip.plan.json.duplicates").delete();
+        new File("temp/_CommentTip.plan.result.zip").delete();
 
         // Готовим план слияния записей
         ext.rec_merge_find(args);

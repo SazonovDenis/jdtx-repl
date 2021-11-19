@@ -463,7 +463,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         utt3.dumpTable("ulz", "../_test-data/csv/ws3-ulz.csv", "name");
 
         // Lic
-        String sql = "select Lic.nameF, Lic.nameI, Lic.nameO, Region.name as RegionName, RegionTip.name as RegionTip, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) left join RegionTip on (Region.RegionTip = RegionTip.id) order by Lic.NameF";
+        String sql = "select Lic.nameF, Lic.nameI, Lic.nameO, Region.name as RegionName, RegionTip.name as RegionTip, UlzTip.name as UlzTip, Ulz.name as UlzName, Lic.Dom, Lic.Kv, Lic.tel from Lic left join Ulz on (Lic.Ulz = Ulz.id) left join UlzTip on (Ulz.UlzTip = UlzTip.id) left join Region on (Ulz.Region = Region.id) left join RegionTip on (Region.RegionTip = RegionTip.id) order by Lic.NameF, Lic.NameI, Lic.NameO";
         DataStore st1 = db1.loadSql(sql);
         OutTableSaver svr1 = new OutTableSaver(st1);
         //svr1.save().toFile("../_test-data/csv/ws1-all.csv");
