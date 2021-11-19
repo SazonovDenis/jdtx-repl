@@ -394,9 +394,11 @@ public class UtAuditApplyer {
     }
 
 
-    public static void insertOrUpdate(JdxDbUtils dbu, String tableName, Map<String, Object> recParams, String publicationFields) throws Exception {
+    public static Long insertOrUpdate(JdxDbUtils dbu, String tableName, Map<String, Object> recParams, String publicationFields) throws Exception {
+        Long id = null;
+
         try {
-            dbu.insertRec(tableName, recParams, publicationFields, null);
+            id = dbu.insertRec(tableName, recParams, publicationFields, null);
         } catch (Exception e) {
             if (UtDbErrors.errorIs_PrimaryKeyError(e)) {
                 dbu.updateRec(tableName, recParams, publicationFields, null);
@@ -404,6 +406,8 @@ public class UtAuditApplyer {
                 throw e;
             }
         }
+
+        return id;
     }
 
     public static int getDataType(String dbDatatypeName) {

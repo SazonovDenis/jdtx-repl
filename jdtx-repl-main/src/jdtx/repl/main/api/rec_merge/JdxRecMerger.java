@@ -190,15 +190,15 @@ public class JdxRecMerger implements IJdxRecMerger {
                 String pkFieldName = pkField.getName();
 
                 // INS - Создаем эталонную запись.
-                // "Эталонная" запись должна быть именно ВСТАВЛЕНА, а не выбранной из уже существующих,
-                // т.к. на рабочей станции может НЕ ОКАЗАТЬСЯ в наличии той записи,
-                // которую на сервере назначили как "эталонная".
                 dataSerializer.setTable(table, tableFieldNamesStr);
                 Map<String, Object> values = dataSerializer.prepareValues(mergePlan.recordEtalon);
                 //
-                UtAuditApplyer.insertOrUpdate(dbu, mergePlan.tableName, values, tableFieldNamesStr);
+                Long insertedRecId = UtAuditApplyer.insertOrUpdate(dbu, mergePlan.tableName, values, tableFieldNamesStr);
                 //
-                long etalonRecId = (long) values.get(pkFieldName);
+                Long etalonRecId = (Long) values.get(pkFieldName);
+                if (etalonRecId == null) {
+                    etalonRecId = insertedRecId;
+                }
 
                 // Распаковываем PK удаляемых записей
                 Collection<Long> recordsDelete = new ArrayList<>();
@@ -366,6 +366,12 @@ public class JdxRecMerger implements IJdxRecMerger {
                 // Пополняеем recordEtalon полями из всех записей
                 assignNotEmptyFields(recordDuplicate.getValues(), recordEtalon, tableGroups);
             }
+
+            // "Эталонная" запись должна быть именно ВСТАВЛЕНА, а не выбранной из уже существующих,
+            // т.к. на рабочей станции может НЕ ОКАЗАТЬСЯ в наличии той записи,
+            // которую на сервере назначили как "эталонная",
+            // поэтому id эталонной будет null.
+            recordEtalon.put(pkFieldName, null);
 
             // Задача
             RecMergePlan task = new RecMergePlan();
