@@ -12,6 +12,10 @@ public class UtJdxData {
         return intValueOf(value, null);
     }
 
+    public static Double doubleValueOf(Object value) {
+        return doubleValueOf(value, null);
+    }
+
     public static Long longValueOf(Object value, Long valueIfNull) {
         Long valueLong;
         if (value == null) {
@@ -53,6 +57,29 @@ public class UtJdxData {
             }
         }
         return valueInteger;
+    }
+
+    public static Double doubleValueOf(Object value, Double valueIfNull) {
+        Double valueDouble;
+        if (value == null) {
+            valueDouble = valueIfNull;
+        } else if (value instanceof Double) {
+            valueDouble = (Double) value;
+        } else if (value instanceof Integer) {
+            valueDouble = Double.valueOf(value.toString());
+        } else if (value instanceof Long) {
+            valueDouble = Double.valueOf(value.toString());
+        } else {
+            String valueString = value.toString();
+            if (valueString.length() == 0) {
+                valueDouble = valueIfNull;
+            } else if (valueString.compareToIgnoreCase("null") == 0) {
+                valueDouble = valueIfNull;
+            } else {
+                valueDouble = Double.valueOf(value.toString());
+            }
+        }
+        return valueDouble;
     }
 
     public static Boolean booleanValueOf(Object value, boolean valueIfNull) {

@@ -125,7 +125,7 @@ public class JdxReplicaWriterXml {
         }
 
         //
-        writer.writeAttribute(name, UtXml.valueToStr(value));
+        UtXmlRW.writeAttribute(writer, name, UtXml.valueToStr(value));
     }
 
     void writeReplicaInfo(IReplicaInfo replicaInfo) throws XMLStreamException {

@@ -1,11 +1,9 @@
 package jdtx.repl.main.api.data_serializer;
 
-import groovy.json.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
-import jdtx.repl.main.api.util.*;
 import org.joda.time.*;
 
 import java.util.*;
@@ -28,7 +26,7 @@ public class UtXml {
             fieldValueStr = UtDate.toString((DateTime) value);
         } else {
             // Обычная сериализация
-            fieldValueStr = UtStringEscape.escapeJava(String.valueOf(value));
+            fieldValueStr = String.valueOf(value);
         }
 
         //
@@ -41,19 +39,35 @@ public class UtXml {
         }
 
         // Поле - BLOB?
-        if (UtAuditApplyer.getDataType(field.getDbDatatype()) == DataType.BLOB) {
+        if (field.getJdxDatatype() == JdxDataType.BLOB) {
             byte[] valueBlob = UtString.decodeBase64(valueStr);
             return valueBlob;
         }
 
         // Поле - дата/время?
-        if (UtAuditApplyer.getDataType(field.getDbDatatype()) == DataType.DATETIME) {
+        if (field.getJdxDatatype() == JdxDataType.DATETIME) {
             DateTime valueDateTime = UtJdxData.dateTimeValueOf(valueStr);
             return valueDateTime;
         }
 
+        // 
+        if (field.getJdxDatatype() == JdxDataType.DOUBLE) {
+            double valueDouble = UtJdxData.doubleValueOf(valueStr);
+            return valueDouble;
+        }
+
+        if (UtAuditApplyer.getDataType(field.getDbDatatype()) == DataType.INT) {
+            double valueInteger = UtJdxData.intValueOf(valueStr);
+            return valueInteger;
+        }
+
+        if (UtAuditApplyer.getDataType(field.getDbDatatype()) == DataType.LONG) {
+            long valueLong = UtJdxData.longValueOf(valueStr);
+            return valueLong;
+        }
+
         // Просто поле, без изменений
-        return StringEscapeUtils.unescapeJava(valueStr);
+        return valueStr;
     }
 
     /**

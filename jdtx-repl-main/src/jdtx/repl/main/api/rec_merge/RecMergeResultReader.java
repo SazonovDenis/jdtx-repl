@@ -1,6 +1,7 @@
 package jdtx.repl.main.api.rec_merge;
 
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.data_serializer.*;
 
 import javax.xml.stream.*;
 import java.io.*;
@@ -55,46 +56,7 @@ public class RecMergeResultReader {
     }
 
     public Map<String, String> nextRec() throws XMLStreamException {
-        while (reader.hasNext()) {
-            int event = reader.next();
-            if (event == XMLStreamConstants.START_ELEMENT) {
-                if (reader.getLocalName().compareToIgnoreCase("rec") == 0) {
-                    // Значения полей
-                    Map<String, String> values = new HashMap<>();
-                    for (int i = 0; i < reader.getAttributeCount(); i++) {
-                        String fieldName = reader.getAttributeLocalName(i);
-                        String fieldValue = reader.getAttributeValue(i);
-/*
-            todo дубль в jdtx.repl.main.api.replica.JdxReplicaReaderXml.nextRec
-                ////////////////////////
-                        // Грязный хак: BLOB в MIME-кодировке НЕ нуждются в маскировке,
-                        // а зато StringEscapeUtils.unescapeJava() падает на больших строках,
-                        // выдает "Java heap space".
-                        // todo Хорошо бы не по длине судить, а по более надежому критерию!
-                        if (fieldValue.length() < 1024 * 10) {
-                            values.put(fieldName, StringEscapeUtils.unescapeJava(fieldValue));
-                        } else {
-                            values.put(fieldName, fieldValue);
-                        }
-*/
-                        values.put(fieldName, fieldValue);
-                    }
-                    //
-                    return values;
-                }
-            } else if (event == XMLStreamConstants.END_ELEMENT) {
-                if (reader.getLocalName().compareToIgnoreCase("rec") == 0) {
-                    // кончился <rec>
-                    continue;
-                }
-                if (reader.getLocalName().compareToIgnoreCase("table") == 0) {
-                    // кончился <table>
-                    break;
-                }
-            }
-        }
-
-        return null;
+        return UtXmlRW.readRec(reader);
     }
 
     public void close() throws Exception {

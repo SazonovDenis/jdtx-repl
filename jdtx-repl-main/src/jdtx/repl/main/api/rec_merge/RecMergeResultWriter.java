@@ -1,9 +1,6 @@
 package jdtx.repl.main.api.rec_merge;
 
-import jandcode.dbm.data.*;
-import jandcode.utils.*;
-import jdtx.repl.main.api.util.*;
-import org.joda.time.*;
+import jdtx.repl.main.api.data_serializer.*;
 
 import javax.xml.stream.*;
 import java.io.*;
@@ -85,9 +82,7 @@ public class RecMergeResultWriter {
         //
         for (String name : valuesStr.keySet()) {
             String valueStr = valuesStr.get(name);
-
-            //
-            writer.writeAttribute(name, valueStr);
+            UtXmlRW.writeAttribute(writer, name, valueStr);
         }
 
         //
