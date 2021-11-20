@@ -6,7 +6,6 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.data_serializer.*;
-import jdtx.repl.main.api.data_serializer.UtJdxData;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
@@ -597,7 +596,11 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
             File file = files.get(countFile);
 
             countFile++;
-            log.debug(countFile + "/" + files.size() + ", file: " + file.getCanonicalPath());
+            if (countFile % 100 == 0) {
+                log.debug(countFile + "/" + files.size() + ", file: " + file.getCanonicalPath());
+            } else {
+                log.info(countFile + "/" + files.size() + ", file: " + file.getCanonicalPath());
+            }
 
             //
             try {
@@ -637,9 +640,6 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                     while (readerTableName != null) {
                         //
                         if (readerTableName.compareToIgnoreCase(tableName) == 0) {
-                            log.info("file: " + file.getCanonicalPath());
-
-                            //
                             long countRec = 0;
 
                             //
