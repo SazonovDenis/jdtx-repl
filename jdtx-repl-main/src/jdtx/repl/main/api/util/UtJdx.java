@@ -2,7 +2,6 @@ package jdtx.repl.main.api.util;
 
 import jandcode.utils.*;
 import jandcode.utils.error.*;
-import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 
@@ -297,16 +296,23 @@ public class UtJdx {
     }
 
     /**
-     * Проверяет целостность файцла в реплике по crc
+     * Проверяет целостность файла в реплике, сравнивая CRC файла, с CRC в info
      */
-    public static void checkReplicaCrc(IReplica replica, IReplicaFileInfo info) throws Exception {
-        String md5file = UtJdx.getMd5File(replica.getFile());
-        if (!md5file.equals(info.getCrc())) {
+    public static void checkReplicaCrc(IReplica replica, String crc) throws Exception {
+        if (!equalReplicaCrc(replica, crc)) {
             // Неправильно скачанный файл - удаляем, чтобы потом начать снова
             replica.getFile().delete();
             // Ошибка
             throw new XError("receive.replica.md5 <> info.crc, file: " + replica.getFile());
         }
+    }
+
+    /**
+     * @return true, если CRC файла в реплике совпадает с crc
+     */
+    public static boolean equalReplicaCrc(IReplica replica, String crc) throws Exception {
+        String md5file = UtJdx.getMd5File(replica.getFile());
+        return md5file.compareToIgnoreCase(crc) == 0;
     }
 
     /**

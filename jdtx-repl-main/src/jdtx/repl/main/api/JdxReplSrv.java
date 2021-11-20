@@ -957,7 +957,7 @@ public class JdxReplSrv {
                     IReplica replica = mailer.receive("from", age);
 
                     // Проверяем целостность скачанного
-                    UtJdx.checkReplicaCrc(replica, info);
+                    UtJdx.checkReplicaCrc(replica, info.getCrc());
 
                     // Читаем заголовок
                     JdxReplicaReaderXml.readReplicaInfo(replica);

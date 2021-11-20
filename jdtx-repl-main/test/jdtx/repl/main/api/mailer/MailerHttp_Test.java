@@ -33,12 +33,12 @@ public class MailerHttp_Test extends AppTestCase {
     public void setUp() throws Exception {
         super.setUp();
 
-        long wsId = 2;
+        //long wsId = 2;
 
         JSONObject cfgData = UtRepl.loadAndValidateJsonFile("test/etalon/mail_http_ws.json");
         String url = (String) cfgData.get("url");
 
-        JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
+        JSONObject cfgWs = new JSONObject(); // (JSONObject); cfgData.get(String.valueOf(wsId));
         cfgWs.put("url", url);
         cfgWs.put("guid", guid);
         cfgWs.put("localDirTmp", "../_test-data/temp");
@@ -440,6 +440,32 @@ public class MailerHttp_Test extends AppTestCase {
         System.out.println("sate.to: " + no_to);
     }
 
+    @Test
+    public void test_getData() throws Exception {
+        String name = "last.info";
+        String box = "to";
+        //
+        JSONObject lastInfo = mailer.getData(name, box);
+        //
+        System.out.println("res: " + lastInfo);
+        JSONObject file_info = (JSONObject) lastInfo.get("data");
+        System.out.println("data: " + file_info);
+        System.out.println("crc: " + file_info.getOrDefault("crc", ""));
+    }
+
+    @Test
+    public void test_getLastReplicaInfo() throws Exception {
+        String box = "to";
+        //
+        IReplicaFileInfo lastInfo = ((MailerHttp) mailer).getLastReplicaInfo(box);
+        //
+        System.out.println("Res: " + lastInfo);
+        System.out.println("Crc: " + lastInfo.getCrc());
+        System.out.println("Age: " + lastInfo.getAge());
+        System.out.println("WsId: " + lastInfo.getWsId());
+        System.out.println("DtFrom: " + lastInfo.getDtFrom());
+        System.out.println("DtTo: " + lastInfo.getDtTo());
+    }
 
     @Test
     public void test_setData() throws Exception {

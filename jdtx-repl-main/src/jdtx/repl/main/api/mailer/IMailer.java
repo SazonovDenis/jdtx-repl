@@ -45,7 +45,7 @@ public interface IMailer {
     void send(IReplica repl, String box, long no) throws Exception;
 
     /**
-     * Информация о реплике (письме)
+     * Информация о реплике (письме) с указанным номером
      *
      * @return заголовок с возрастом реплики, её типом, размером, crc и т.п.
      */

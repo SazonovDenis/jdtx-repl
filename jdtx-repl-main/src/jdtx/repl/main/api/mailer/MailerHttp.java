@@ -25,6 +25,7 @@ import java.io.*;
 import java.util.*;
 
 /**
+ *
  */
 public class MailerHttp implements IMailer {
 
@@ -146,14 +147,24 @@ public class MailerHttp implements IMailer {
         // защита от ситуации "после переноса рабочей станции на старом компьютере проснулась старая копия рабочей станции"
         JSONObject resState = getState_internal(box);
         JSONObject last_info = (JSONObject) resState.get("last_info");
-        long srv_age = UtJdxData.longValueOf(last_info.getOrDefault("no", 0));
+        long srv_no = UtJdxData.longValueOf(last_info.getOrDefault("no", 0));
         JSONObject required = (JSONObject) resState.get("required");
         SendRequiredInfo requiredInfo = new SendRequiredInfo(required);
-        if (no <= srv_age && requiredInfo.requiredFrom == -1) {
-            throw new XError("invalid replica.no, send.no: " + no + ", srv.no: " + srv_age);
-        }
-        if (no != srv_age + 1 && srv_age != 0 && requiredInfo.requiredFrom == -1) {
-            throw new XError("invalid replica.no, send.no: " + no + ", srv.no: " + srv_age);
+        if (no < srv_no && requiredInfo.requiredFrom == -1) {
+            // Рабочая станция сильно отстает от сервера
+            throw new XError("invalid replica.no, send.no: " + no + ", srv.no: " + srv_no + ", server is forward");
+        } else if (no == srv_no && srv_no != 0 && requiredInfo.requiredFrom == -1) {
+            // Рабочая станция одинакова с сервером
+            IReplicaFileInfo fileInfo = getLastReplicaInfo(box);
+            // Если последнее письмо совпадает - то считаем это недоразумением ит игнорируем.
+            if (!UtJdx.equalReplicaCrc(replica, fileInfo.getCrc())) {
+                throw new XError("invalid replica.no, send.no: " + no + ", srv.no: " + srv_no + ", workstation and server have equal replica.no, but different replica.crc");
+            } else {
+                log.warn("mailer.send, already sent replica.no: " + no + ", workstation and server have equal replica.no and equal replica.crc");
+            }
+        } else if (no > srv_no + 1 && srv_no != 0 && requiredInfo.requiredFrom == -1) {
+            // Рабочая станция сильно опережает сервер
+            throw new XError("invalid replica.no, send.no: " + no + ", srv.no: " + srv_no + ", workstation is forward");
         }
 
 
@@ -260,7 +271,6 @@ public class MailerHttp implements IMailer {
         info.fromJSONObject(file_info);
         return info;
     }
-
 
     @Override
     public IReplica receive(String box, long no) throws Exception {
@@ -447,6 +457,13 @@ public class MailerHttp implements IMailer {
         return res;
     }
 
+    public IReplicaFileInfo getLastReplicaInfo(String box) throws Exception {
+        JSONObject resInfo = getData("last.info", box);
+        JSONObject data = (JSONObject) resInfo.get("data");
+        IReplicaFileInfo info = new ReplicaFileInfo();
+        info.fromJSONObject(data);
+        return info;
+    }
 
     void sendCommit_internal(String box, long no, IReplicaFileInfo info, long partsCount, long totalBytes) throws Exception {
         HttpClient client = HttpClientBuilder.create().build();
@@ -520,9 +537,6 @@ public class MailerHttp implements IMailer {
 
     JSONObject parseHttpResponse(HttpResponse response) throws Exception {
         HttpEntity entity = response.getEntity();
-
-        //
-        //log.debug("response.entity.contentLength: " + entity.getContentLength());
 
         //
         String resStr = EntityUtils.toString(entity);
