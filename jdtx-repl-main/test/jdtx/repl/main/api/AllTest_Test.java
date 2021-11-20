@@ -75,11 +75,12 @@ public class AllTest_Test extends AppTestCase {
         test7.test_DatabaseRestore_step2();
 
         // Создание репликации и удаление дубликтов, которые появились после превичного слияния
-        JdxReplWsSrv_Merge_Test test8 = new JdxReplWsSrv_Merge_Test();
-        test8.setUp();
-        test8.test_allSetUp_TestAll();
+        JdxReplWsSrv_Merge_Test testMerge = new JdxReplWsSrv_Merge_Test();
+        testMerge.setUp();
+        testMerge.test_SetUp_Merge();
         // Создиние дубликатов на работающей системе и их удаление
-        test8.test_allSetUp_TestAll();
+        testMerge.test_LicDoc_MergeCommand();
+        testMerge.test_CommentTip_jc();
     }
 
 }

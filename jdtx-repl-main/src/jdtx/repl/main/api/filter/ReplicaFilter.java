@@ -45,7 +45,7 @@ public class ReplicaFilter implements IReplicaFilter {
         //
         replicaRes.getInfo().assign(replicaInfo);
 
-        //
+        // Фильтруем только SNAPSHOT и IDE, реплику IDE_SNAPSHOT не надо фильтровать.
         if (replicaInfo.getReplicaType() == JdxReplicaType.SNAPSHOT || replicaInfo.getReplicaType() == JdxReplicaType.IDE) {
 
             //
@@ -76,7 +76,7 @@ public class ReplicaFilter implements IReplicaFilter {
                 }
             }
         } else {
-            // Тупое копирование файла (нечего фильтровать)
+            // Простое копирование файла (не будем фильтровать)
             File replicaResFile = UtReplicaWriter.createTempFileReplica(replicaRes);
             FileUtils.copyFile(replicaFile, replicaResFile);
             replicaRes.setFile(replicaResFile);

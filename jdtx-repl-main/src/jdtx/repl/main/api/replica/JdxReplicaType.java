@@ -32,6 +32,6 @@ public class JdxReplicaType {
     public static final int SEND_SNAPSHOT_DONE = 81;
     //
     public static final int MERGE = 90;
-    //public static final int SEND_SNAPSHOT_DONE = 81;
+    public static final int IDE_MERGE = 91;
 
 }

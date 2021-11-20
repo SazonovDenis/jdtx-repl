@@ -215,7 +215,7 @@ public class UtRepl {
     /**
      * Создает INS-реплику для записи valuesStr
      */
-    public IReplica createReplicaRecInsForRecord(String tableName, Map<String, String> valuesStr, long selfWsId) throws Exception {
+    public IReplica createReplicaInsRecord(String tableName, Map<String, String> valuesStr, long selfWsId) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
@@ -608,7 +608,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                 replica.setFile(file);
                 JdxReplicaReaderXml.readReplicaInfo(replica);
 
-                if (replica.getInfo().getReplicaType() != JdxReplicaType.IDE && replica.getInfo().getReplicaType() != JdxReplicaType.SNAPSHOT) {
+                if (replica.getInfo().getReplicaType() != JdxReplicaType.IDE && replica.getInfo().getReplicaType() != JdxReplicaType.IDE_MERGE && replica.getInfo().getReplicaType() != JdxReplicaType.SNAPSHOT) {
                     log.debug("  skip, replicaType: " + replica.getInfo().getReplicaType());
                     continue;
                 }

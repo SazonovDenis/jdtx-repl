@@ -793,9 +793,9 @@ class Jdx_Ext extends ProjectExt {
     }
 
     void repl_merge_request(IVariantMap args) {
-        String exeFileName = args.getValueString("file")
-        if (exeFileName == null || exeFileName.length() == 0) {
-            throw new XError("Не указан [file] - файл задания для merge")
+        String planFileName = args.getValueString("file")
+        if (planFileName == null || planFileName.length() == 0) {
+            throw new XError("Не указан [file] - файл с планом слияния")
         }
 
         // БД
@@ -809,7 +809,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvMergeRequest(taskFileName)
+            srv.srvMergeRequest(planFileName)
 
         } finally {
             db.disconnect()

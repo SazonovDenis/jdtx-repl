@@ -1041,8 +1041,9 @@ public class JdxReplWs {
 
         // Режим применения собственных реплик
         boolean forceApply_ignorePublicationRules = false;
-        if (replicaType == JdxReplicaType.SNAPSHOT) {
-            // Предполагается, что snapshot просто так не присылают, значит дело серьезное и нужно обязательно применить
+        if (replicaType == JdxReplicaType.SNAPSHOT || replicaType == JdxReplicaType.IDE_MERGE) {
+            // Предполагается, что SNAPSHOT или IDE_MERGE просто так не присылают,
+            // значит дело серьезное и нужно обязательно применить.
             forceApply_ignorePublicationRules = true;
         } else if (replicaType == JdxReplicaType.IDE && replica.getInfo().getWsId() == wsId && forceApplySelf) {
             // Свои реплики применяем принудительно, даже если они отфильтруются правилами публикации.
@@ -1188,6 +1189,7 @@ public class JdxReplWs {
             }
 
             case JdxReplicaType.IDE:
+            case JdxReplicaType.IDE_MERGE:
             case JdxReplicaType.SNAPSHOT: {
                 useReplica_IDE_SNAPSHOT(replica, forceApplySelf);
                 break;

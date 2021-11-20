@@ -268,14 +268,15 @@ public class UtJdx {
                 replica.getInfo().getReplicaType() == JdxReplicaType.REPAIR_GENERATORS_DONE ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SEND_SNAPSHOT ||
                 replica.getInfo().getReplicaType() == JdxReplicaType.SEND_SNAPSHOT_DONE ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.MERGE
+                replica.getInfo().getReplicaType() == JdxReplicaType.MERGE ||
+                replica.getInfo().getReplicaType() == JdxReplicaType.IDE_MERGE
 
         ) {
             // Для системных команд мы не делаем других проверок
             return;
         }
 
-        // Проверки: правильность возраста данных в реплике
+        // Проверки: указан возраст данных в реплике IDE
         if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE && replica.getInfo().getAge() <= -1) {
             throw new XError("invalid replica.age");
         }

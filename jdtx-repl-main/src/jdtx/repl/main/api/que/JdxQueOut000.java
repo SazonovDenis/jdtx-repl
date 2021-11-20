@@ -34,7 +34,7 @@ public class JdxQueOut000 extends JdxQueOut001 {
     public void validateReplica(IReplica replica) throws Exception {
         super.validateReplica(replica);
 
-        //
+        // Проверки: правильность очередности реплик IDE для рабочей станции wsId - обязательно монотонное возрастание возраста replica.age
         if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE) {
             long replicaAge = replica.getInfo().getAge();
             long replicaWsId = replica.getInfo().getWsId();

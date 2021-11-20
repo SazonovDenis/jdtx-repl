@@ -758,7 +758,8 @@ public class JdxReplSrv {
             mergePlan.recordEtalon.put(pkFieldName, etalonRecIdRef.toString());
 
             // Отправим реплику на вставку эталонной записи
-            IReplica replicaIns = utRepl.createReplicaRecInsForRecord(mergePlan.tableName, mergePlan.recordEtalon, ws.wsId);
+            IReplica replicaIns = utRepl.createReplicaInsRecord(mergePlan.tableName, mergePlan.recordEtalon, ws.wsId);
+            replicaIns.getInfo().setReplicaType(JdxReplicaType.IDE_MERGE);
             queCommon.push(replicaIns);
         }
 

@@ -15,11 +15,10 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
 
 
     /**
-     * Создание репликации.
-     * Удаление дубликтов, которые появились на сервере после превичного слияния.
+     * Создание репликации и удаление дубликтов, которые появились на сервере после превичного слияния.
      */
     @Test
-    public void test_allSetUp_TestAll() throws Exception {
+    public void test_SetUp_Merge() throws Exception {
         // ---
 
         // Создание репликации
@@ -102,11 +101,11 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
     }
 
     /**
-     * Умышленное создиние дубликатов на работающей системе
-     * и их удаление через команду merge репликации
+     * Создиние дубликатов на работающей системе и их удаление
+     * через команду "MERGE" репликации
      */
     @Test
-    public void test_MergeByReplicaCommand() throws Exception {
+    public void test_LicDoc_MergeCommand() throws Exception {
         UtRecMerge_Test testMerge = new UtRecMerge_Test();
         testMerge.setUp();
 
@@ -191,36 +190,43 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
     }
 
     /**
-     * Проверяем удаление дубликатов на сервере, через jc-команду
+     * Создиние дубликатов на работающей системе и их удаление
+     * на сервере, через jc-команду
      */
     @Test
-    public void test_all_CommentTip_Merge() throws Exception {
+    public void test_CommentTip_jc() throws Exception {
         UtRecMerge_Test testMerge = new UtRecMerge_Test();
 
         // Проверяем отсутствие дубликатов
         assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "CommentTip", "Name") == 0);
         assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "CommentTip", "Name") == 0);
         assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct2, "CommentTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") == 0);
+        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") == 0);
 
         // Просто добавляем значения
         UtTest utTest1 = new UtTest(db);
         utTest1.makeChange_CommentTip(struct, 1);
+        utTest1.makeChange_CommentTip(struct, 1);
+        utTest1.makeChange_CommentTip(struct, 1);
         //
         UtTest utTest2 = new UtTest(db2);
+        utTest2.makeChange_CommentTip(struct2, 2);
+        utTest2.makeChange_CommentTip(struct2, 2);
         utTest2.makeChange_CommentTip(struct2, 2);
         //
         UtTest utTest3 = new UtTest(db3);
         utTest3.makeChange_CommentTip(struct3, 3);
+        utTest3.makeChange_CommentTip(struct3, 3);
+        utTest3.makeChange_CommentTip(struct3, 3);
         //
-        UtTest utTest5 = new UtTest(db5);
-        utTest5.makeChange_CommentTip(struct5, 5);
+        //UtTest utTest5 = new UtTest(db5);
+        //utTest5.makeChange_CommentTip(struct5, 5);
 
         // Проверяем отсутствие дубликатов
         assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "CommentTip", "Name") == 0);
         assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "CommentTip", "Name") == 0);
         assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct2, "CommentTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") == 0);
+        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") == 0);
 
         // Делаем дубликаты
         UtData.outTable(db.loadSql("select id, Name from CommentTip order by id"));
@@ -232,19 +238,19 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         // Проверяем отсутствие дубликатов на филиалах
         assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "CommentTip", "Name") == 0);
         assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct2, "CommentTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") == 0);
+        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") == 0);
 
         // Синхронизируем
-        sync_http_1_2_3_5();
-        sync_http_1_2_3_5();
-        sync_http_1_2_3_5();
-        sync_http_1_2_3_5();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
         // Проверяем наличие дубликатов
         assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db, struct, "CommentTip", "Name") != 0);
         assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "CommentTip", "Name") != 0);
         assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db3, struct2, "CommentTip", "Name") != 0);
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") != 0);
+        //assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") != 0);
 
         //
         TestExtJc jc = createExt(TestExtJc.class);
@@ -258,12 +264,8 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         args.put("fields", "Name");
         args.put("cfg_group", "test/etalon/field_groups.json");
 
-        //
-        new File("temp/_CommentTip.plan.json").delete();
-        new File("temp/_CommentTip.plan.json.duplicates").delete();
-        new File("temp/_CommentTip.plan.result.zip").delete();
-
         // Готовим план слияния записей
+        deletePlanFiles("temp/_CommentTip");
         ext.rec_merge_find(args);
 
         // Сливаем записи
@@ -278,25 +280,25 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         // Проверяем наличие дубликатов на филиалах
         assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "CommentTip", "Name") != 0);
         assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db3, struct2, "CommentTip", "Name") != 0);
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") != 0);
+        //assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") != 0);
 
 
         // Синхронизируем
-        sync_http_1_2_3_5();
-        sync_http_1_2_3_5();
-        sync_http_1_2_3_5();
-        sync_http_1_2_3_5();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
 
         // Проверяем отсутствие дубликатов
         assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "CommentTip", "Name") == 0);
         assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "CommentTip", "Name") == 0);
         assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct2, "CommentTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") == 0);
+        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") == 0);
 
 
         //
-        test_DumpTables_1_2_5();
+        test_DumpTables_1_2_3();
     }
 
     /**
@@ -308,15 +310,62 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
 
 
         // Поиск дубликатов, формирование плана
-        testMerge.findDuplicates_makeMergePlans_ToFile("LicDocTip", "Name");
-        testMerge.findDuplicates_makeMergePlans_ToFile("LicDocVid", "Name");
+        //testMerge.findDuplicates_makeMergePlans_ToFile("LicDocTip", "Name");
+        //testMerge.findDuplicates_makeMergePlans_ToFile("LicDocVid", "Name");
+
+        //
+        TestExtJc jc = createExt(TestExtJc.class);
+        ProjectScript project = jc.loadProject("../ext/srv/project.jc");
+        Merge_Ext extMerge = (Merge_Ext) project.createExt("jdtx.repl.main.ext.Merge_Ext");
+        Jdx_Ext extJdx = (Jdx_Ext) project.createExt("jdtx.repl.main.ext.Jdx_Ext");
 
 
+        //
+        IVariantMap args = new VariantMap();
+
+        // Готовим план слияния записей
+        deletePlanFiles("temp/LicDocTip");
+        //
+        args.clear();
+        args.put("table", "LicDocTip");
+        args.put("fields", "Name");
+        args.put("file", "temp/LicDocTip.plan.json");
+        args.put("cfg_group", "test/etalon/field_groups.json");
+        //
+        extMerge.rec_merge_find(args);
+
+        //
+        deletePlanFiles("temp/LicDocVid");
+        //
+        args.clear();
+        args.put("table", "LicDocVid");
+        args.put("fields", "Name");
+        args.put("file", "temp/LicDocVid.plan.json");
+        args.put("cfg_group", "test/etalon/field_groups.json");
+        //
+        extMerge.rec_merge_find(args);
+
+
+        // Отправляем команду на слияние
+        args.clear();
+        args.put("file", "temp/LicDocTip.plan.json");
+        //
+        extJdx.repl_merge_request(args);
+
+        //
+        args.clear();
+        args.put("file", "temp/LicDocVid.plan.json");
+        //
+        extJdx.repl_merge_request(args);
+
+
+/*
         // Формируем из плана команду MERGE для филиалов
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init();
         srv.srvMergeRequest("temp/_LicDocTip.plan.json");
         srv.srvMergeRequest("temp/_LicDocVid.plan.json");
+*/
 
 
         // Обмен
@@ -326,6 +375,11 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         sync_http_1_2_3();
     }
 
+    private void deletePlanFiles(String filePrefix) {
+        new File(filePrefix+".plan.json").delete();
+        new File(filePrefix+".plan.json.duplicates").delete();
+        new File(filePrefix+".plan.result.zip").delete();
+    }
 
 
 }
