@@ -18,7 +18,7 @@ import java.util.*;
 /**
  *
  */
-public class UtRecMerge_Test extends DbmTestCase {
+public class JdxRecMerge_Test extends DbmTestCase {
 
     Db db;
     IJdxDbStruct struct;
@@ -38,15 +38,15 @@ public class UtRecMerge_Test extends DbmTestCase {
 
 
     private JdxRecMerger getJdxRecMerger() throws Exception {
-        IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, 1);
-        //IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain();
+        //IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, 1);
+        IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain();
         JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
         return recMerger;
     }
 
     private JdxRecMerger getJdxRecMerger(Db db, IJdxDbStruct struct) throws Exception {
-        IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, 1);
-        //IJdxDataSerializer dataSerializer = new JdxDataSerializer_plain();
+        //IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, 1);
+        IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain();
         JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
         return recMerger;
     }

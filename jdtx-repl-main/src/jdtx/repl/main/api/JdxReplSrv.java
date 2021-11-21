@@ -5,7 +5,6 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
-import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
@@ -744,23 +743,44 @@ public class JdxReplSrv {
             // Добавим эталонную запись на сервере
             Map<String, Object> values = dataSerializer.prepareValues(mergePlan.recordEtalon);
             // Чтобы вставилось с новым PK
-            String pkFieldName = table.getPrimaryKey().get(0).getName();
+            IJdxField pkField = table.getPrimaryKey().get(0);
+            String pkFieldName = pkField.getName();
             values.put(pkFieldName, null);
             // Вставляем эталонную запись
             JdxDbUtils dbu = new JdxDbUtils(db, struct);
-            long etalonRecId = dbu.insertRec(mergePlan.tableName, values);
+            long recordEtalonId = dbu.insertRec(mergePlan.tableName, values);
 
-            // Получим ссылку JdxRef из PK вставленной эталонной записи
-            IRefDecoder decoder = new RefDecoder(db, SERVER_WS_ID);
-            JdxRef etalonRecIdRef = decoder.get_ref(mergePlan.tableName, etalonRecId);
+            //// Получим ссылку JdxRef из PK вставленной эталонной записи
+            //IRefDecoder decoder = new RefDecoder(db, SERVER_WS_ID);
+            //JdxRef etalonRecIdRef = decoder.get_ref(mergePlan.tableName, recordEtalonId);
 
-            // Исправляем PK в плане на PK только что вставленной записи
-            mergePlan.recordEtalon.put(pkFieldName, etalonRecIdRef.toString());
+            // Записываем PK только что вставленной записи
+            values.put(pkFieldName, recordEtalonId);
+
+            // Исправляем запись mergePlan.recordEtalon в плане (исправляем ссылки если они в плане не подготовлены с дополнением)
+            Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
+            mergePlan.recordEtalon = valuesStr;
 
             // Отправим реплику на вставку эталонной записи
             IReplica replicaIns = utRepl.createReplicaInsRecord(mergePlan.tableName, mergePlan.recordEtalon, ws.wsId);
             replicaIns.getInfo().setReplicaType(JdxReplicaType.IDE_MERGE);
             queCommon.push(replicaIns);
+
+            // Исправляем ссылки в mergePlan.recordsDelete (если они в плане не подготовлены с дополнением ссылки)
+            // Распаковываем PK удаляемых записей
+            Collection<Long> recordsDelete = new ArrayList<>();
+            for (String recordDeleteIdStr : mergePlan.recordsDelete) {
+                Long recordDeleteId = UtJdxData.longValueOf(dataSerializer.prepareValue(recordDeleteIdStr, pkField));
+                recordsDelete.add(recordDeleteId);
+            }
+            // Обратно запаковываем PK удаляемых записей
+            Collection<String> recordsDeleteStr = new ArrayList<>();
+            for (Long recordDeletePk : recordsDelete) {
+                String recordDeletePkStr = dataSerializer.prepareValueStr(recordDeletePk, pkField);
+                recordsDeleteStr.add(recordDeletePkStr);
+            }
+            // Исправляем PK у recordsDelete в плане
+            mergePlan.recordsDelete = recordsDeleteStr;
         }
 
         // Записываем обновленный план (в нем PK новых записей проставлены как надо)

@@ -58,11 +58,12 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
         } else if (field.isPrimaryKey() || refTable != null) {
             // Это поле - ссылка
             JdxRef fieldValueRef = JdxRef.parse(fieldValueStr);
-            // Дополнение ws_id для ссылки
+            // Дополнение ws_id для ссылки.
+            // Используется, если нам пришли не полные ссылки, а локальные
             if (fieldValueRef.ws_id == -1) {
-                if (wsId != -1) {
+                if (wsId > 0) {
                     fieldValueRef.ws_id = wsId;
-                    throw new XError("prepareValue, fieldValueRef.ws_id is not set");
+                    //throw new XError("prepareValue, fieldValueRef.ws_id is not set");
                 } else {
                     throw new XError("prepareValue, wsIdDefault is not set");
                 }

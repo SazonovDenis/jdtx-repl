@@ -1,6 +1,7 @@
 package jdtx.repl.main.api;
 
 import jandcode.app.test.*;
+import jdtx.repl.main.api.rec_merge.*;
 import org.junit.*;
 
 /**
@@ -74,13 +75,17 @@ public class AllTest_Test extends AppTestCase {
         test7.test_DatabaseRestore_step1();
         test7.test_DatabaseRestore_step2();
 
+        // Все тесты JdxRecMerge_Test
+        JdxRecMerge_Test testMerge = new JdxRecMerge_Test();
+        // Выполнить все тесты testMerge
+
         // Создание репликации и удаление дубликтов, которые появились после превичного слияния
-        JdxReplWsSrv_Merge_Test testMerge = new JdxReplWsSrv_Merge_Test();
-        testMerge.setUp();
-        testMerge.test_SetUp_Merge();
+        JdxReplWsSrv_Merge_Test testMergeWsSrv = new JdxReplWsSrv_Merge_Test();
+        testMergeWsSrv.setUp();
+        testMergeWsSrv.test_SetUp_Merge();
         // Создиние дубликатов на работающей системе и их удаление
-        testMerge.test_LicDoc_MergeCommand();
-        testMerge.test_CommentTip_jc();
+        testMergeWsSrv.test_LicDoc_MergeCommand();
+        testMergeWsSrv.test_CommentTip_jc();
     }
 
 }
