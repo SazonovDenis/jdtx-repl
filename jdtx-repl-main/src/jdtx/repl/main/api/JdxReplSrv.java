@@ -766,6 +766,8 @@ public class JdxReplSrv {
             replicaIns.getInfo().setReplicaType(JdxReplicaType.IDE_MERGE);
             queCommon.push(replicaIns);
 
+            // todo рассмотреть неоходимость добавлять каскадно и ВЛИЯЮШИЕ записл для вставляемой эталонной (и далее - каскадно) - их ТОЖЕ может не оказаться на филиале
+
             // Исправляем ссылки в mergePlan.recordsDelete (если они в плане не подготовлены с дополнением ссылки)
             // Распаковываем PK удаляемых записей
             Collection<Long> recordsDelete = new ArrayList<>();
