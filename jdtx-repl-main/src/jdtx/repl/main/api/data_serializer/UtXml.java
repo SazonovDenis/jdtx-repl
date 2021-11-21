@@ -57,7 +57,7 @@ public class UtXml {
         }
 
         if (UtAuditApplyer.getDataType(field.getDbDatatype()) == DataType.INT) {
-            double valueInteger = UtJdxData.intValueOf(valueStr);
+            int valueInteger = UtJdxData.intValueOf(valueStr);
             return valueInteger;
         }
 
