@@ -1,10 +1,12 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
+import jandcode.dbm.db.*;
 import jandcode.jc.*;
 import jandcode.jc.test.*;
 import jandcode.utils.variant.*;
 import jdtx.repl.main.api.rec_merge.*;
+import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ext.*;
 import org.junit.*;
 
@@ -28,19 +30,19 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         testMerge.setUp();
 
         // Проверяем отсутствие дубликатов на сервере
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "LicDocTip", "Name") == 0);
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "LicDocVid", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "Usr", "Name") == 0);
+        //testMerge.assertDuplicatesExists(false, db, struct, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db, struct, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(false, db, struct, "Usr", "Name");
 
         // Проверяем отсутствие дубликатов на ws2
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "LicDocTip", "Name") == 0);
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "LicDocVid", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "Usr", "Name") == 0);
+        //testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(false, db2, struct2, "Usr", "Name");
 
         // Проверяем отсутствие дубликатов на ws3
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "LicDocTip", "Name") == 0);
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "LicDocVid", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "Usr", "Name") == 0);
+        //testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(false, db3, struct3, "Usr", "Name");
 
 
         // ---
@@ -54,19 +56,19 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         test_AllHttp();
 
         // Проверяем наличие дубликатов на сервере
-        //assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db, struct, "LicDocTip", "Name") != 0);
-        //assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db, struct, "LicDocVid", "Name") != 0);
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db, struct, "Usr", "Name") != 0);
+        //testMerge.assertDuplicatesExists(true, db, struct, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(true, db, struct, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(true, db, struct, "Usr", "Name");
 
         // Проверяем наличие дубликатов на ws2
-        //assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "LicDocTip", "Name") != 0);
-        //assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "LicDocVid", "Name") != 0);
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "Usr", "Name") != 0);
+        //testMerge.assertDuplicatesExists(true, db2, struct2, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(true, db2, struct2, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(true, db2, struct2, "Usr", "Name");
 
         // Проверяем наличие дубликатов на ws3
-        //assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "LicDocTip", "Name") != 0);
-        //assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "LicDocVid", "Name") != 0);
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "Usr", "Name") != 0);
+        //testMerge.assertDuplicatesExists(true, db3, struct3, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(true, db3, struct3, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(true, db3, struct3, "Usr", "Name");
 
 
         // ---
@@ -78,19 +80,19 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         // ---
 
         // Проверяем отсутствие дубликатов на сервере
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "LicDocTip", "Name") == 0);
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "LicDocVid", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "Usr", "Name") == 0);
+        //testMerge.assertDuplicatesExists(false, db, struct, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db, struct, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(false, db, struct, "Usr", "Name");
 
         // Проверяем отсутствие дубликатов на ws2
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "LicDocTip", "Name") == 0);
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "LicDocVid", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "Usr", "Name") == 0);
+        //testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(false, db2, struct2, "Usr", "Name");
 
         // Проверяем отсутствие дубликатов на ws3
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "LicDocTip", "Name") == 0);
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "LicDocVid", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "Usr", "Name") == 0);
+        //testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(false, db3, struct3, "Usr", "Name");
 
 
         //
@@ -119,19 +121,19 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
 
 
         // Проверяем отсутствие дубликатов на сервере
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "LicDocTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "LicDocVid", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "Usr", "Name") == 0);
+        testMerge.assertDuplicatesExists(false, db, struct, "LicDocTip", "Name");
+        testMerge.assertDuplicatesExists(false, db, struct, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(false, db, struct, "Usr", "Name");
 
         // Проверяем отсутствие дубликатов на ws2
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "LicDocTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "LicDocVid", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "Usr", "Name") == 0);
+        testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocTip", "Name");
+        testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(false, db2, struct2, "Usr", "Name");
 
         // Проверяем отсутствие дубликатов на ws3
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "LicDocTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "LicDocVid", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "Usr", "Name") == 0);
+        testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocTip", "Name");
+        testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(false, db3, struct3, "Usr", "Name");
 
         //
         System.out.println();
@@ -150,19 +152,19 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         System.out.println();
 
         // Проверяем отсутствие дубликатов на сервере
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "LicDocTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "LicDocVid", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "Usr", "Name") == 0);
+        testMerge.assertDuplicatesExists(false, db, struct, "LicDocTip", "Name");
+        testMerge.assertDuplicatesExists(false, db, struct, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(false, db, struct, "Usr", "Name");
 
         // Проверяем наличие дубликатов на ws2
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "LicDocTip", "Name") != 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "LicDocVid", "Name") == 0);
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "Usr", "Name") != 0);
+        testMerge.assertDuplicatesExists(true, db2, struct2, "LicDocTip", "Name");
+        testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(true, db2, struct2, "Usr", "Name");
 
         // Проверяем наличие дубликатов на ws3
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "LicDocTip", "Name") == 0);
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "LicDocVid", "Name") != 0);
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "Usr", "Name") != 0);
+        testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocTip", "Name");
+        testMerge.assertDuplicatesExists(true, db3, struct3, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(true, db3, struct3, "Usr", "Name");
 
         //
         System.out.println();
@@ -176,9 +178,9 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         System.out.println();
 
         // Проверяем наличие дубликатов на сервере
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db, struct, "LicDocTip", "Name") != 0);
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db, struct, "LicDocVid", "Name") != 0);
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db, struct, "Usr", "Name") != 0);
+        testMerge.assertDuplicatesExists(true, db, struct, "LicDocTip", "Name");
+        testMerge.assertDuplicatesExists(true, db, struct, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(true, db, struct, "Usr", "Name");
 
 
         // ---
@@ -190,19 +192,19 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         System.out.println();
 
         // Проверяем отсутствие дубликатов на сервере
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "LicDocTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "LicDocVid", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "Usr", "Name") == 0);
+        testMerge.assertDuplicatesExists(false, db, struct, "LicDocTip", "Name");
+        testMerge.assertDuplicatesExists(false, db, struct, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(false, db, struct, "Usr", "Name");
 
         // Проверяем отсутствие дубликатов на ws2
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "LicDocTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "LicDocVid", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "Usr", "Name") == 0);
+        testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocTip", "Name");
+        testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(false, db2, struct2, "Usr", "Name");
 
         // Проверяем отсутствие дубликатов на ws3
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "LicDocTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "LicDocVid", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct3, "Usr", "Name") == 0);
+        testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocTip", "Name");
+        testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocVid", "Name");
+        testMerge.assertDuplicatesExists(false, db3, struct3, "Usr", "Name");
 
 
         //
@@ -218,10 +220,10 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         JdxRecMerge_Test testMerge = new JdxRecMerge_Test();
 
         // Проверяем отсутствие дубликатов
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "CommentTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "CommentTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct2, "CommentTip", "Name") == 0);
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") == 0);
+        testMerge.assertDuplicatesExists(false, db, struct, "CommentTip", "Name");
+        testMerge.assertDuplicatesExists(false, db2, struct2, "CommentTip", "Name");
+        testMerge.assertDuplicatesExists(false, db3, struct2, "CommentTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db5, struct2, "CommentTip", "Name");
 
         // Просто добавляем значения
         UtTest utTest1 = new UtTest(db);
@@ -243,10 +245,10 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         //utTest5.makeChange_CommentTip(struct5, 5);
 
         // Проверяем отсутствие дубликатов
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "CommentTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "CommentTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct2, "CommentTip", "Name") == 0);
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") == 0);
+        testMerge.assertDuplicatesExists(false, db, struct, "CommentTip", "Name");
+        testMerge.assertDuplicatesExists(false, db2, struct2, "CommentTip", "Name");
+        testMerge.assertDuplicatesExists(false, db3, struct2, "CommentTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db5, struct2, "CommentTip", "Name");
 
         // Делаем дубликаты
         UtData.outTable(db.loadSql("select id, Name from CommentTip order by id"));
@@ -254,11 +256,11 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         UtData.outTable(db.loadSql("select id, Name from CommentTip order by id"));
 
         // Проверяем наличие дубликатов на сервере
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db, struct, "CommentTip", "Name") != 0);
+        testMerge.assertDuplicatesExists(true, db, struct, "CommentTip", "Name");
         // Проверяем отсутствие дубликатов на филиалах
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "CommentTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct2, "CommentTip", "Name") == 0);
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") == 0);
+        testMerge.assertDuplicatesExists(false, db2, struct2, "CommentTip", "Name");
+        testMerge.assertDuplicatesExists(false, db3, struct2, "CommentTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db5, struct2, "CommentTip", "Name");
 
         // Синхронизируем
         sync_http_1_2_3();
@@ -267,10 +269,10 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         sync_http_1_2_3();
 
         // Проверяем наличие дубликатов
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db, struct, "CommentTip", "Name") != 0);
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "CommentTip", "Name") != 0);
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db3, struct2, "CommentTip", "Name") != 0);
-        //assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") != 0);
+        testMerge.assertDuplicatesExists(true, db, struct, "CommentTip", "Name");
+        testMerge.assertDuplicatesExists(true, db2, struct2, "CommentTip", "Name");
+        testMerge.assertDuplicatesExists(true, db3, struct2, "CommentTip", "Name");
+        //testMerge.assertDuplicatesExists(true, db5, struct2, "CommentTip", "Name");
 
         //
         TestExtJc jc = createExt(TestExtJc.class);
@@ -296,11 +298,11 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
 
 
         // Проверяем отсутствие дубликатов на сервере
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "CommentTip", "Name") == 0);
+        testMerge.assertDuplicatesExists(false, db, struct, "CommentTip", "Name");
         // Проверяем наличие дубликатов на филиалах
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "CommentTip", "Name") != 0);
-        assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db3, struct2, "CommentTip", "Name") != 0);
-        //assertEquals("Не появились дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") != 0);
+        testMerge.assertDuplicatesExists(true, db2, struct2, "CommentTip", "Name");
+        testMerge.assertDuplicatesExists(true, db3, struct2, "CommentTip", "Name");
+        //testMerge.assertDuplicatesExists(true, db5, struct2, "CommentTip", "Name");
 
 
         // Синхронизируем
@@ -311,10 +313,10 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
 
 
         // Проверяем отсутствие дубликатов
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db, struct, "CommentTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db2, struct2, "CommentTip", "Name") == 0);
-        assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db3, struct2, "CommentTip", "Name") == 0);
-        //assertEquals("Найдены дубликаты", true, testMerge.getDuplicatesCount(db5, struct2, "CommentTip", "Name") == 0);
+        testMerge.assertDuplicatesExists(false, db, struct, "CommentTip", "Name");
+        testMerge.assertDuplicatesExists(false, db2, struct2, "CommentTip", "Name");
+        testMerge.assertDuplicatesExists(false, db3, struct2, "CommentTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db5, struct2, "CommentTip", "Name");
 
 
         //
@@ -366,7 +368,7 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         //args.put("cfg_group", "test/etalon/field_groups.json");
         ////
         //extMerge.rec_merge_find(args);
-                                      //тест LicDocVid - в массиве
+
         //
         deletePlanFiles("temp/Usr");
         //

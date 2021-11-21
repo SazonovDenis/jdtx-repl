@@ -387,12 +387,20 @@ public class JdxRecMerge_Test extends DbmTestCase {
         check_IsDuplicates();
     }
 
-    public void check_NoDuplicates() throws Exception {
-        assertEquals("Найдены дубликаты " + getDbName(db) + "." + tableName, true, getDuplicatesCount(db, struct, tableName, fieldNamesStr) == 0);
+    void check_NoDuplicates() throws Exception {
+        assertDuplicatesExists(false, db, struct, tableName, fieldNamesStr);
     }
 
-    public void check_IsDuplicates() throws Exception {
-        assertEquals("Не найдены дубликаты " + getDbName(db) + "." + tableName, true, getDuplicatesCount(db, struct, tableName, fieldNamesStr) != 0);
+    void check_IsDuplicates() throws Exception {
+        assertDuplicatesExists(true, db, struct, tableName, fieldNamesStr);
+    }
+
+    public void assertDuplicatesExists(boolean shouldExists, Db db, IJdxDbStruct struct, String tableName, String fieldsNames) throws Exception {
+        if (shouldExists) {
+            assertEquals("Не найдены дубликаты " + getDbName(db) + "." + tableName, true, getDuplicatesCount(db, struct, tableName, fieldsNames) != 0);
+        } else {
+            assertEquals("Найдены дубликаты " + getDbName(db) + "." + tableName, true, getDuplicatesCount(db, struct, tableName, fieldsNames) == 0);
+        }
     }
 
     public void makeDuplicates(Db db, IJdxDbStruct struct, String tableName) throws Exception {
