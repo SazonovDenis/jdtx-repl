@@ -1,6 +1,7 @@
 package jdtx.repl.main.api.replica;
 
 import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.util.*;
 import org.joda.time.*;
 import org.json.simple.*;
 
@@ -88,14 +89,8 @@ public class ReplicaInfo implements IReplicaInfo {
         this.wsId = (long) infoJson.get("wsId");
         this.age = (long) infoJson.get("age");
         this.crc = (String) infoJson.get("crc");
-        String dtFrom = (String) infoJson.get("dtFrom");
-        if (dtFrom != null && dtFrom.compareTo("null") != 0) {
-            this.dtFrom = new DateTime(dtFrom);
-        }
-        String dtTo = (String) infoJson.get("dtTo");
-        if (dtTo != null && dtTo.compareTo("null") != 0) {
-            this.dtTo = new DateTime(dtTo);
-        }
+        this.dtFrom = UtJdxData.dateTimeValueOf((String) infoJson.get("dtFrom"));
+        this.dtFrom = UtJdxData.dateTimeValueOf((String) infoJson.get("dtTo"));
         this.replicaType = UtJdxData.intValueOf(infoJson.get("replicaType"));
         this.dbStructCrc = (String) infoJson.get("dbStructCrc");
     }

@@ -102,17 +102,21 @@ public class UtJdxData {
     }
 
     public static DateTime dateTimeValueOf(String valueStr) {
-        DateTime valueDateTime = null;
+        DateTime valueDateTime;
 
-        if (valueStr != null) {
-            if (valueStr.length() == 10) {
-                // 2015-10-09
-                LocalDate vLocalDate = new LocalDate(valueStr);
-                valueDateTime = vLocalDate.toDateTimeAtStartOfDay();
-            } else if (valueStr.length() != 0) {
-                // 2015-04-01T01:00:00.000+07:00
-                valueDateTime = new DateTime(valueStr);
-            }
+        if (valueStr == null) {
+            valueDateTime = null;
+        } else if (valueStr.compareToIgnoreCase("null") == 0) {
+            valueDateTime = null;
+        } else if (valueStr.length() == 0) {
+            valueDateTime = null;
+        } else if (valueStr.length() == 10) {
+            // 2015-10-09
+            LocalDate vLocalDate = new LocalDate(valueStr);
+            valueDateTime = vLocalDate.toDateTimeAtStartOfDay();
+        } else {
+            // 2015-04-01T01:00:00.000+07:00
+            valueDateTime = new DateTime(valueStr);
         }
 
         return valueDateTime;
