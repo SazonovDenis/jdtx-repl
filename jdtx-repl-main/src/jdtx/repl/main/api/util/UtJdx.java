@@ -297,7 +297,8 @@ public class UtJdx {
     }
 
     /**
-     * Проверяет целостность файла в реплике, сравнивая CRC файла, с CRC в info
+     * Проверяет целостность файла в реплике,
+     * сравнивая CRC самого файла, с CRC в replica.info
      */
     public static void checkReplicaCrc(IReplica replica, String crc) throws Exception {
         if (!equalReplicaCrc(replica, crc)) {
@@ -309,11 +310,15 @@ public class UtJdx {
     }
 
     /**
-     * @return true, если CRC файла в реплике совпадает с crc
+     * @return true, если CRC файла в реплике совпадает с указанным crc
      */
     public static boolean equalReplicaCrc(IReplica replica, String crc) throws Exception {
         String md5file = UtJdx.getMd5File(replica.getData());
-        return md5file.compareToIgnoreCase(crc) == 0;
+        try {
+            return md5file.compareToIgnoreCase(crc) == 0;
+        } catch (Exception e) {
+            return md5file.compareToIgnoreCase(crc) == 0;
+        }
     }
 
     /**

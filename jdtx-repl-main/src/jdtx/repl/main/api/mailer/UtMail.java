@@ -1,6 +1,5 @@
 package jdtx.repl.main.api.mailer;
 
-import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;

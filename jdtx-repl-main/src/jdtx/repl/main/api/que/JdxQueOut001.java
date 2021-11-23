@@ -48,6 +48,12 @@ public class JdxQueOut001 extends JdxQue implements IJdxQue {
         // Генерим следующий номер - по порядку
         long queNo = getMaxNo() + 1;
 
+        // Вычисляем crc файла данных
+        if (replica.getData() != null) {
+            String crc = UtJdx.getMd5File(replica.getData());
+            replica.getInfo().setCrc(crc);
+        }
+
         // Помещаем файл на место хранения файлов очереди.
         if (replica.getData() != null) {
             put(replica, queNo);
@@ -59,13 +65,14 @@ public class JdxQueOut001 extends JdxQue implements IJdxQue {
             JdxDbUtils dbu = new JdxDbUtils(db, null);
             long id = dbu.getNextGenerator(UtJdx.SYS_GEN_PREFIX + "que_" + queName);
             //
-            String sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "que_" + queName + " (id, destination_ws_id, destination_no, ws_id, age, replica_type) values (:id, :destination_ws_id, :destination_no, :ws_id, :age, :replica_type)";
+            String sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "que_" + queName + " (id, destination_ws_id, destination_no, ws_id, age, crc, replica_type) values (:id, :destination_ws_id, :destination_no, :ws_id, :age, :crc, :replica_type)";
             db.execSql(sql, UtCnv.toMap(
                     "id", id,
                     "destination_ws_id", wsId,
                     "destination_no", queNo,
                     "ws_id", replica.getInfo().getWsId(),
                     "age", replica.getInfo().getAge(),
+                    "crc", replica.getInfo().getCrc(),
                     "replica_type", replica.getInfo().getReplicaType()
             ));
 

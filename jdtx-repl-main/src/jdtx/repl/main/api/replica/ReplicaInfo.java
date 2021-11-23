@@ -118,7 +118,7 @@ public class ReplicaInfo implements IReplicaInfo {
     }
 
     public String toJSONString() {
-        return "{\"wsId\": " + wsId + ", \"age\": " + age + ", \"crc\": " + crc + ", \"replicaType\": " + replicaType + ", \"dbStructCrc\": \"" + dbStructCrc + "\", \"dtFrom\": \"" + dtFrom + "\", \"dtTo\": \"" + dtTo + "\"}";
+        return "{\"wsId\": " + wsId + ", \"age\": " + age + ", \"crc\": \"" + crc + "\", \"replicaType\": " + replicaType + ", \"dbStructCrc\": \"" + dbStructCrc + "\", \"dtFrom\": \"" + dtFrom + "\", \"dtTo\": \"" + dtTo + "\"}";
     }
 
 }

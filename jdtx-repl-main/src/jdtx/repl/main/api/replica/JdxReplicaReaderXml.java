@@ -76,7 +76,7 @@ public class JdxReplicaReaderXml {
             info.fromJSONObject(jsonObject);
         }
 
-        //
+        // Тут CRC реплики НЕ забираем!!! Его в .info не может быть
         replica.getInfo().setReplicaType(info.getReplicaType());
         replica.getInfo().setDbStructCrc(info.getDbStructCrc());
         replica.getInfo().setWsId(info.getWsId());

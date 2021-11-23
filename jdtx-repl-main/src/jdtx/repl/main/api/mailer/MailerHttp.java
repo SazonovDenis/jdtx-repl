@@ -252,7 +252,7 @@ public class MailerHttp implements IMailer {
         info.setAge(replica.getInfo().getAge());
         info.setDtFrom(replica.getInfo().getDtFrom());
         info.setDtTo(replica.getInfo().getDtTo());
-        info.setCrc(UtJdx.getMd5File(replica.getData()));
+        info.setCrc(replica.getInfo().getCrc());
 
         //
         sendCommit_internal(box, no, info, filePart, totalBytes);

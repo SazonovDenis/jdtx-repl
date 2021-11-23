@@ -71,7 +71,13 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
         // Генерим следующий номер - по порядку
         long queNo = getMaxNo() + 1;
 
-        // Помещаем файл на место хранения файлов очереди.
+        // Вычисляем crc файла данных
+        if (replica.getData() != null) {
+            String crc = UtJdx.getMd5File(replica.getData());
+            replica.getInfo().setCrc(crc);
+        }
+
+        // Помещаем файл данных на место хранения файлов очереди
         if (replica.getData() != null) {
             put(replica, queNo);
         }
@@ -79,11 +85,12 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
         // Отмечаем в БД
         db.startTran();
         try {
-            String sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "que_" + queName + " (id, ws_id, age, replica_type) values (:id, :ws_id, :age, :replica_type)";
+            String sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "que_" + queName + " (id, ws_id, age, crc, replica_type) values (:id, :ws_id, :age, :crc, :replica_type)";
             db.execSql(sql, UtCnv.toMap(
                     "id", queNo,
                     "ws_id", replica.getInfo().getWsId(),
                     "age", replica.getInfo().getAge(),
+                    "crc", replica.getInfo().getCrc(),
                     "replica_type", replica.getInfo().getReplicaType()
             ));
 
@@ -130,6 +137,7 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
         info.setReplicaType(rec.getValueInt("replica_type"));
         info.setAge(rec.getValueLong("age"));
         info.setWsId(rec.getValueLong("ws_id"));
+        info.setCrc(rec.getValueString("crc"));
     }
 
 
