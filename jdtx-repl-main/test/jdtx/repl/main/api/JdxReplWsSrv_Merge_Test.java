@@ -369,6 +369,8 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         ////
         //extMerge.rec_merge_find(args);
 
+        //тест LicDocVid - в массиве???
+
         //
         deletePlanFiles("temp/Usr");
         //
