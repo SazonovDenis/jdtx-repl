@@ -529,16 +529,16 @@ public class JdxReplWs {
 
         // Копируем реплику на место старой
         IReplica replicaOriginal = queOut.get(age);
-        File replicaOriginalFile = replicaOriginal.getFile();
+        File replicaOriginalFile = replicaOriginal.getData();
 
         log.info("Original replica file: " + replicaOriginalFile.getAbsolutePath());
         log.info("Original replica size: " + replicaOriginalFile.length());
-        log.info("Recreated replica file: " + replicaRecreated.getFile().getAbsolutePath());
-        log.info("Recreated replica size: " + replicaRecreated.getFile().length());
+        log.info("Recreated replica file: " + replicaRecreated.getData().getAbsolutePath());
+        log.info("Recreated replica size: " + replicaRecreated.getData().length());
 
         FileUtils.forceDelete(replicaOriginalFile);
-        FileUtils.copyFile(replicaRecreated.getFile(), replicaOriginalFile);
-        FileUtils.forceDelete(replicaRecreated.getFile());
+        FileUtils.copyFile(replicaRecreated.getData(), replicaOriginalFile);
+        FileUtils.forceDelete(replicaRecreated.getData());
 
         //
         return replicaOriginal;
@@ -618,7 +618,7 @@ public class JdxReplWs {
 
         //
         IReplica replica = new ReplicaFile();
-        replica.setFile(f);
+        replica.setData(f);
         JdxReplicaReaderXml.readReplicaInfo(replica);
 
         // Пробуем применить реплику
@@ -1083,7 +1083,7 @@ public class JdxReplWs {
 
         //
         String sWsId = UtString.padLeft(String.valueOf(wsId), 3, "0");
-        String dirResult = dataRoot + "ws_" + sWsId + "/merge/" + JdxStorageFile.getNo(replica.getFile().getName()) + "/";
+        String dirResult = dataRoot + "ws_" + sWsId + "/merge/" + JdxStorageFile.getNo(replica.getData().getName()) + "/";
         UtFile.cleanDir(dirResult);
 
         //
@@ -1542,7 +1542,7 @@ public class JdxReplWs {
         IReplica replica = utRepl.findRecordInReplicas(refTableName, refTableId, dirs, true, true, outReplicaFile.getAbsolutePath());
 
         //
-        log.error("Файл с временной репликой - результатами поиска сформирован: " + replica.getFile().getAbsolutePath());
+        log.error("Файл с временной репликой - результатами поиска сформирован: " + replica.getData().getAbsolutePath());
 
         //
         return outReplicaFile;

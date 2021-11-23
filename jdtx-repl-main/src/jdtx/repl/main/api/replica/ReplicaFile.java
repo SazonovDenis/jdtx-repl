@@ -10,19 +10,19 @@ import java.io.*;
  */
 public class ReplicaFile implements IReplica {
 
-    protected IReplicaInfo info = new ReplicaInfo();
+    private IReplicaInfo info = new ReplicaInfo();
 
-    protected File file = null;
+    private File file = null;
 
     public IReplicaInfo getInfo() {
         return this.info;
     }
 
-    public File getFile() {
+    public File getData() {
         return this.file;
     }
 
-    public void setFile(File file) {
+    public void setData(File file) {
         this.file = file;
     }
 

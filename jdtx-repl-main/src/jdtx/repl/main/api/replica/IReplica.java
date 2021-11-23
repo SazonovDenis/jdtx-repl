@@ -11,8 +11,8 @@ public interface IReplica {
 
     IReplicaInfo getInfo();
 
-    File getFile();
+    File getData();
 
-    void setFile(File file);
+    void setData(File file);
 
 }

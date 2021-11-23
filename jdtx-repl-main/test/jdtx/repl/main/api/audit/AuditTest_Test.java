@@ -60,7 +60,7 @@ public class AuditTest_Test extends AppTestCase {
         IReplica replica = auditSelector.createReplicaFromAudit(publication, wsAuditAge);
         // Переносим файл на постоянное место
         File actualFile = new File("../_test-data/~tmp_csv-" + wsAuditAge + ".zip");
-        FileUtils.moveFile(replica.getFile(), actualFile);
+        FileUtils.moveFile(replica.getData(), actualFile);
         System.out.println(actualFile.getAbsolutePath());
     }
 
@@ -77,28 +77,28 @@ public class AuditTest_Test extends AppTestCase {
         IReplica replica = auditSelector.createReplicaFromAudit(publication, wsAuditAge);
         // Переносим файл на постоянное место
         File actualFile = new File("../_test-data/~tmp_csv-" + wsAuditAge + ".zip");
-        FileUtils.moveFile(replica.getFile(), actualFile);
+        FileUtils.moveFile(replica.getData(), actualFile);
         System.out.println(actualFile.getAbsolutePath());
 
         //
         wsAuditAge = 140;
         replica = auditSelector.createReplicaFromAudit(publication, wsAuditAge);
         actualFile = new File("../_test-data/~tmp_csv-" + wsAuditAge + ".zip");
-        FileUtils.moveFile(replica.getFile(), actualFile);
+        FileUtils.moveFile(replica.getData(), actualFile);
         System.out.println(actualFile.getAbsolutePath());
 
         //
         wsAuditAge = 141;
         replica = auditSelector.createReplicaFromAudit(publication, wsAuditAge);
         actualFile = new File("../_test-data/~tmp_csv-" + wsAuditAge + ".zip");
-        FileUtils.moveFile(replica.getFile(), actualFile);
+        FileUtils.moveFile(replica.getData(), actualFile);
         System.out.println(actualFile.getAbsolutePath());
 
         //
         wsAuditAge = 145;
         replica = auditSelector.createReplicaFromAudit(publication, wsAuditAge);
         actualFile = new File("../_test-data/~tmp_csv-" + wsAuditAge + ".zip");
-        FileUtils.moveFile(replica.getFile(), actualFile);
+        FileUtils.moveFile(replica.getData(), actualFile);
         System.out.println(actualFile.getAbsolutePath());
     }
 

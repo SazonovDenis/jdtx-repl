@@ -115,7 +115,7 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
         IReplica replica = auditSelector.createReplicaFromAudit(publication, selfAuditAge);
 
         //
-        System.out.println(replica.getFile().getAbsolutePath());
+        System.out.println(replica.getData().getAbsolutePath());
 
         // Фиксируем возраст
         selfAuditAge = ut.getAuditAge();

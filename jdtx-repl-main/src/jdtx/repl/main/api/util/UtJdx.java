@@ -287,7 +287,7 @@ public class UtJdx {
         }
 
         // Проверки: обязательность файла
-        File replicaFile = replica.getFile();
+        File replicaFile = replica.getData();
         if (replicaFile == null && replica.getInfo().getReplicaType() != JdxReplicaType.SNAPSHOT) {
             // Разрещаем SNAPSHOT быть без файла, т.к. свои собственные snapshot-реплики, поступающие в queIn,
             // можно не скачивать (и в дальнейшем не применять)
@@ -302,9 +302,9 @@ public class UtJdx {
     public static void checkReplicaCrc(IReplica replica, String crc) throws Exception {
         if (!equalReplicaCrc(replica, crc)) {
             // Неправильно скачанный файл - удаляем, чтобы потом начать снова
-            replica.getFile().delete();
+            replica.getData().delete();
             // Ошибка
-            throw new XError("receive.replica.md5 <> info.crc, file: " + replica.getFile());
+            throw new XError("receive.replica.md5 <> info.crc, file: " + replica.getData());
         }
     }
 
@@ -312,7 +312,7 @@ public class UtJdx {
      * @return true, если CRC файла в реплике совпадает с crc
      */
     public static boolean equalReplicaCrc(IReplica replica, String crc) throws Exception {
-        String md5file = UtJdx.getMd5File(replica.getFile());
+        String md5file = UtJdx.getMd5File(replica.getData());
         return md5file.compareToIgnoreCase(crc) == 0;
     }
 

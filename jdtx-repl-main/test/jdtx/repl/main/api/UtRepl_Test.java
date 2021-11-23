@@ -225,10 +225,10 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         String dirName = "D:/t/012/que_in_012";
 
         IReplica replica = utRepl.findRecordInReplicas("lic", "12:1418", dirName, false, false, "temp/LIC_12_1418.zip");
-        System.out.println("File: " + replica.getFile().getAbsolutePath());
+        System.out.println("File: " + replica.getData().getAbsolutePath());
 
         IReplica replica2 = utRepl.findRecordInReplicas("lic", "1418", dirName, false, false, "temp/LIC_1418.zip");
-        System.out.println("File: " + replica2.getFile().getAbsolutePath());
+        System.out.println("File: " + replica2.getData().getAbsolutePath());
     }
 
     @Test
@@ -242,7 +242,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         String recordIdStr = tableIdRef.toString();
 
         IReplica replica = utRepl.findRecordInReplicas("lic", recordIdStr, dirName, false, false, "temp/lic_1138.zip");
-        System.out.println("File: " + replica.getFile().getAbsolutePath());
+        System.out.println("File: " + replica.getData().getAbsolutePath());
     }
 
     @Test
@@ -251,11 +251,11 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         String dirs = "../_test-data/_test-data_ws2/ws_002/que_in,../_test-data/_test-data_ws2/ws_002/que_in001,../_test-data/_test-data_ws2/ws_002/que_out";
         //
         IReplica replica2 = utRepl.findRecordInReplicas("lic", "2:1361", dirs, false, true, "temp/LIC_2_1361-last.zip");
-        System.out.println("File: " + replica2.getFile().getAbsolutePath());
+        System.out.println("File: " + replica2.getData().getAbsolutePath());
         System.out.println("");
         //
         IReplica replica0 = utRepl.findRecordInReplicas("lic", "2:1361", dirs, false, false, "temp/LIC_2_1361.zip");
-        System.out.println("File: " + replica0.getFile().getAbsolutePath());
+        System.out.println("File: " + replica0.getData().getAbsolutePath());
     }
 
     @Test
@@ -275,28 +275,28 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         IReplica replica0 = ws2.queOut.get(age);
 
         // Копируем для анализа
-        System.out.println("Original replica file: " + replica0.getFile().getAbsolutePath());
-        System.out.println("Original file size: " + replica0.getFile().length());
+        System.out.println("Original replica file: " + replica0.getData().getAbsolutePath());
+        System.out.println("Original file size: " + replica0.getData().length());
         File newReplicaFile0 = new File("../_test-data/" + ws2.getWsId() + "." + +age + ".original.zip");
-        FileUtils.copyFile(replica0.getFile(), newReplicaFile0);
+        FileUtils.copyFile(replica0.getData(), newReplicaFile0);
 
         // Портим файл реплики
-        FileUtils.writeStringToFile(replica0.getFile(), "1qaz2wsx");
+        FileUtils.writeStringToFile(replica0.getData(), "1qaz2wsx");
 
         // Копируем для анализа
-        System.out.println("Damaged replica file: " + replica0.getFile().getAbsolutePath());
-        System.out.println("Damaged file size: " + replica0.getFile().length());
+        System.out.println("Damaged replica file: " + replica0.getData().getAbsolutePath());
+        System.out.println("Damaged file size: " + replica0.getData().length());
         File newReplicaFile1 = new File("../_test-data/" + ws2.getWsId() + "." + +age + ".damaged.zip");
-        FileUtils.copyFile(replica0.getFile(), newReplicaFile1);
+        FileUtils.copyFile(replica0.getData(), newReplicaFile1);
 
         // Чиним файл реплики
         IReplica replica1 = ws2.recreateQueOutReplicaAge(age);
         //
-        System.out.println("Recreated replica file: " + replica0.getFile().getAbsolutePath());
-        System.out.println("Recreated file size: " + replica0.getFile().length());
+        System.out.println("Recreated replica file: " + replica0.getData().getAbsolutePath());
+        System.out.println("Recreated file size: " + replica0.getData().length());
         // Копируем для анализа
         File newReplicaFile2 = new File("../_test-data/" + ws2.getWsId() + "." + +age + ".new.zip");
-        FileUtils.copyFile(replica1.getFile(), newReplicaFile2);
+        FileUtils.copyFile(replica1.getData(), newReplicaFile2);
 
         //
         System.out.println("Original replica file: " + newReplicaFile0.getAbsolutePath());

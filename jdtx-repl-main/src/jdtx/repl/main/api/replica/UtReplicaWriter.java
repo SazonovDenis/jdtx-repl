@@ -33,7 +33,7 @@ public class UtReplicaWriter {
     public void replicaFileStart() throws Exception {
         // Файл
         File outFile = createTempFileReplica(replica);
-        replica.setFile(outFile);
+        replica.setData(outFile);
 
         //
         outputStream = new FileOutputStream(outFile);

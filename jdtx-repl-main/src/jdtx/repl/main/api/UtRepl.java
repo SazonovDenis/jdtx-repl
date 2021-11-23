@@ -605,7 +605,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
             //
             try {
                 IReplica replica = new ReplicaFile();
-                replica.setFile(file);
+                replica.setData(file);
                 JdxReplicaReaderXml.readReplicaInfo(replica);
 
                 if (replica.getInfo().getReplicaType() != JdxReplicaType.IDE && replica.getInfo().getReplicaType() != JdxReplicaType.IDE_MERGE && replica.getInfo().getReplicaType() != JdxReplicaType.SNAPSHOT) {
@@ -631,7 +631,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                     replicaInfo.put("replicaType", replica.getInfo().getReplicaType());
                     replicaInfo.put("dtFrom", replica.getInfo().getDtFrom());
                     replicaInfo.put("dtTo", replica.getInfo().getDtTo());
-                    replicaInfo.put("file", replica.getFile().getAbsolutePath());
+                    replicaInfo.put("file", replica.getData().getAbsolutePath());
                     JSONArray replicaInfoData = new JSONArray();
                     replicaInfo.put("data", replicaInfoData);
 
@@ -739,8 +739,8 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
 
         // Копируем реплику в файл, куда просили
         File outReplicaFile = new File(outFileName);
-        FileUtils.copyFile(replicaOut.getFile(), outReplicaFile);
-        replicaOut.setFile(outReplicaFile);
+        FileUtils.copyFile(replicaOut.getData(), outReplicaFile);
+        replicaOut.setData(outReplicaFile);
 
         // Данные по реплике - в info-файл
         UtFile.saveString(UtJson.toString(replicaInfoList), new File(outFileNameInfo));

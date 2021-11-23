@@ -27,14 +27,14 @@ public class ReplicaFilter implements IReplicaFilter {
 
     @Override
     public IReplica convertReplicaForWs(IReplica replicaSrc, IPublicationRuleStorage publicationRules) throws Exception {
-        File replicaFile = replicaSrc.getFile();
+        File replicaFile = replicaSrc.getData();
 
         // Файл должен быть - иначе незачем делать
         if (replicaFile == null) {
             throw new XError("Invalid replicaSrc.file == null");
         }
 
-        log.info("convertReplicaForWs, replica.file: " + replicaSrc.getFile().getAbsolutePath());
+        log.info("convertReplicaForWs, replica.file: " + replicaSrc.getData().getAbsolutePath());
 
         //
         ReplicaFile replicaRes = new ReplicaFile();
@@ -79,7 +79,7 @@ public class ReplicaFilter implements IReplicaFilter {
             // Простое копирование файла (не будем фильтровать)
             File replicaResFile = UtReplicaWriter.createTempFileReplica(replicaRes);
             FileUtils.copyFile(replicaFile, replicaResFile);
-            replicaRes.setFile(replicaResFile);
+            replicaRes.setData(replicaResFile);
         }
 
 

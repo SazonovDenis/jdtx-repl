@@ -86,7 +86,7 @@ public class MailerLocalFiles implements IMailer {
         //
         UtFile.mkdirs(remoteDir + box);
         //
-        File localFile = replica.getFile();
+        File localFile = replica.getData();
         //
         String remoteFileName = getFileName(no);
         File remoteFile = new File(remoteDir + box + "/" + remoteFileName);
@@ -126,7 +126,7 @@ public class MailerLocalFiles implements IMailer {
 
         //
         IReplica replica = new ReplicaFile();
-        replica.setFile(localFile);
+        replica.setData(localFile);
 
         //
         return replica;

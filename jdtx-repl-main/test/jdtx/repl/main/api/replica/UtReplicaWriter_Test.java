@@ -82,7 +82,7 @@ public class UtReplicaWriter_Test extends UtilsTestCase {
         // На посмотреть
         File testFile = new File("../_test-data/ReplicaWriter_Test.zip");
         testFile.delete();
-        FileUtils.moveFile(replica.getFile(), testFile);
+        FileUtils.moveFile(replica.getData(), testFile);
     }
 
 }

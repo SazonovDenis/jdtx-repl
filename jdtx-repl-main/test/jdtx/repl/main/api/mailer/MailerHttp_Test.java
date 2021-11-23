@@ -54,7 +54,7 @@ public class MailerHttp_Test extends AppTestCase {
         // Берем реплику
         File fileSnapshot = new File("../_test-data/_test-data_srv/srv/que_common/000000/000000001.zip");
         IReplica replicaSnapshot = new ReplicaFile();
-        replicaSnapshot.setFile(fileSnapshot);
+        replicaSnapshot.setData(fileSnapshot);
 
 
         // --------------------------------
@@ -73,9 +73,9 @@ public class MailerHttp_Test extends AppTestCase {
 
 
         // Отправляем реплику
-        File fileReplica = new File(replicaSnapshot.getFile().getAbsolutePath());
+        File fileReplica = new File(replicaSnapshot.getData().getAbsolutePath());
         IReplica replica = new ReplicaFile();
-        replica.setFile(fileReplica);
+        replica.setData(fileReplica);
         JdxReplicaReaderXml.readReplicaInfo(replica);
         mailer.send(replica, "from", 1);
 
@@ -88,12 +88,12 @@ public class MailerHttp_Test extends AppTestCase {
 
         // Копируем ее для анализа
         File f2 = new File("../_test-data/ws_002/tmp/000000001-receive.zip");
-        FileUtils.copyFile(replica2.getFile(), f2);
+        FileUtils.copyFile(replica2.getData(), f2);
         System.out.println("mailer.receive: " + f2);
 
         // Информацмия о реплике с почтового сервера
         IReplicaFileInfo info = mailer.getReplicaInfo("from", 1);
-        System.out.println("receive.replica.md5: " + UtJdx.getMd5File(replica2.getFile()));
+        System.out.println("receive.replica.md5: " + UtJdx.getMd5File(replica2.getData()));
         System.out.println("mailer.info.crc:     " + info.getCrc());
     }
 
@@ -104,7 +104,7 @@ public class MailerHttp_Test extends AppTestCase {
         // Готовим реплику
         IReplica replica1 = new ReplicaFile();
         File fileSnapshot = new File("../_test-data/_test-data_srv/srv/queOut001_ws_001/000000001.zip");
-        replica1.setFile(fileSnapshot);
+        replica1.setData(fileSnapshot);
 
 
         // --------------------------------
@@ -137,12 +137,12 @@ public class MailerHttp_Test extends AppTestCase {
 
         // Копируем ее для анализа
         File f2 = new File("../_test-data/ws_002/tmp/000000001-receive.zip");
-        FileUtils.copyFile(replica2.getFile(), f2);
+        FileUtils.copyFile(replica2.getData(), f2);
         System.out.println("mailer.receive: " + f2);
 
         // Информацмия о реплике с почтового сервера
         IReplicaFileInfo info = mailer.getReplicaInfo("from", 1);
-        System.out.println("receive.replica.md5: " + UtJdx.getMd5File(replica2.getFile()));
+        System.out.println("receive.replica.md5: " + UtJdx.getMd5File(replica2.getData()));
         System.out.println("mailer.info.crc:     " + info.getCrc());
     }
 
@@ -174,7 +174,7 @@ public class MailerHttp_Test extends AppTestCase {
         // Отправляем реплику
         File fileReplica = new File("test/etalon/000000067.zip");
         IReplica replica1 = new ReplicaFile();
-        replica1.setFile(fileReplica);
+        replica1.setData(fileReplica);
         JdxReplicaReaderXml.readReplicaInfo(replica1);
         mailer.send(replica1, "from", 100);
 
@@ -187,13 +187,13 @@ public class MailerHttp_Test extends AppTestCase {
 
         // Копируем ее для анализа
         File f2 = new File("../_test-data/000000067-receive.zip");
-        FileUtils.copyFile(replica2.getFile(), f2);
+        FileUtils.copyFile(replica2.getData(), f2);
         System.out.println("mailer.receive: " + f2);
 
         // Информацмия о реплике с почтового сервера
         IReplicaFileInfo info = mailer.getReplicaInfo("from", 100);
         System.out.println("send.replica.md5:    " + UtJdx.getMd5File(fileReplica));
-        System.out.println("receive.replica.md5: " + UtJdx.getMd5File(replica2.getFile()));
+        System.out.println("receive.replica.md5: " + UtJdx.getMd5File(replica2.getData()));
         System.out.println("mailer.info.crc:     " + info.getCrc());
     }
 
@@ -230,7 +230,7 @@ public class MailerHttp_Test extends AppTestCase {
         replica.getInfo().setDbStructCrc("00000000000000000000");
         replica.getInfo().setWsId(1);
         replica.getInfo().setAge(999);
-        replica.setFile(srcFile);
+        replica.setData(srcFile);
 
 
         // ---
@@ -254,15 +254,15 @@ public class MailerHttp_Test extends AppTestCase {
 
 
         //
-        assertEquals("Размер исходного и конечного файла не совпадает", srcFile.length(), replicaReceive.getFile().length());
-        assertEquals("Контрольная сумма исходного и конечного файла не совпадает", UtJdx.getMd5File(srcFile), UtJdx.getMd5File(replicaReceive.getFile()));
+        assertEquals("Размер исходного и конечного файла не совпадает", srcFile.length(), replicaReceive.getData().length());
+        assertEquals("Контрольная сумма исходного и конечного файла не совпадает", UtJdx.getMd5File(srcFile), UtJdx.getMd5File(replicaReceive.getData()));
     }
 
 
     @Test
     public void test_receive() throws Exception {
         IReplica replica_1 = mailer.receive("from", 999);
-        System.out.println("receive: " + replica_1.getFile());
+        System.out.println("receive: " + replica_1.getData());
     }
 
 

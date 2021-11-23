@@ -72,7 +72,7 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
         long queNo = getMaxNo() + 1;
 
         // Помещаем файл на место хранения файлов очереди.
-        if (replica.getFile() != null) {
+        if (replica.getData() != null) {
             put(replica, queNo);
         }
 

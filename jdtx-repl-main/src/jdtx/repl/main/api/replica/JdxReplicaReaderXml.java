@@ -91,7 +91,7 @@ public class JdxReplicaReaderXml {
 
     public static InputStream createInputStream(IReplica replica, String dataFileMask) throws IOException {
         InputStream inputStream = null;
-        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(replica.getFile()));
+        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(replica.getData()));
         ZipEntry entry;
         while ((entry = zipInputStream.getNextEntry()) != null) {
             String name = entry.getName();
@@ -101,7 +101,7 @@ public class JdxReplicaReaderXml {
             }
         }
         if (inputStream == null) {
-            throw new XError("Not found [" + dataFileMask + "] in replica: " + replica.getFile());
+            throw new XError("Not found [" + dataFileMask + "] in replica: " + replica.getData());
         }
 
         return inputStream;

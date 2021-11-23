@@ -49,7 +49,7 @@ public class JdxQueOut001 extends JdxQue implements IJdxQue {
         long queNo = getMaxNo() + 1;
 
         // Помещаем файл на место хранения файлов очереди.
-        if (replica.getFile() != null) {
+        if (replica.getData() != null) {
             put(replica, queNo);
         }
 

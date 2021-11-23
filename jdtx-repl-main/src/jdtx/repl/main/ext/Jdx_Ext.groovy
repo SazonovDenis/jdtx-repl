@@ -328,7 +328,7 @@ class Jdx_Ext extends ProjectExt {
                 IReplica replica = utRepl.findRecordInReplicas(tableName, recordIdStr, dirsName, skipOprDel, findLastOne, outFileName)
 
                 //
-                System.out.println("Файл с репликой - результатами поиска сформирован: " + replica.file.getAbsolutePath())
+                System.out.println("Файл с репликой - результатами поиска сформирован: " + replica.data.getAbsolutePath())
             } catch (Exception e) {
                 e.printStackTrace()
                 throw e

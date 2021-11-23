@@ -174,7 +174,7 @@ public class MailerHttp implements IMailer {
         // Закачиваем по частям
         long filePart = 0;
         long sentBytes = 0;
-        long totalBytes = replica.getFile().length();
+        long totalBytes = replica.getData().length();
 
 
         // Большие письма отправляем с докачкой, для чего сначала выясняем, что уже успели закачать
@@ -198,7 +198,7 @@ public class MailerHttp implements IMailer {
             HttpPost post = createHttpPost("repl_send_part");
 
             //
-            byte[] buff = readFilePart(replica.getFile(), sentBytes, HTTP_FILE_MAX_SIZE);
+            byte[] buff = readFilePart(replica.getData(), sentBytes, HTTP_FILE_MAX_SIZE);
             ByteArrayBody byteBody = new ByteArrayBody(buff, "file");
             //
             String partCrc = UtJdx.getMd5Buffer(buff);
@@ -252,7 +252,7 @@ public class MailerHttp implements IMailer {
         info.setAge(replica.getInfo().getAge());
         info.setDtFrom(replica.getInfo().getDtFrom());
         info.setDtTo(replica.getInfo().getDtTo());
-        info.setCrc(UtJdx.getMd5File(replica.getFile()));
+        info.setCrc(UtJdx.getMd5File(replica.getData()));
 
         //
         sendCommit_internal(box, no, info, filePart, totalBytes);
@@ -370,7 +370,7 @@ public class MailerHttp implements IMailer {
 
         //
         IReplica replica = new ReplicaFile();
-        replica.setFile(replicaFile);
+        replica.setData(replicaFile);
 
         //
         return replica;

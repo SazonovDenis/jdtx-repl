@@ -102,12 +102,12 @@ public class JdxReplicaReaderXml_Test extends ReplDatabaseStruct_Test {
         // Готовим реплику от ws2
         File fileSnapshot = new File("../_test-data/_test-data_srv/srv/que_common/000000/000000001.zip");
         IReplica replicaSnapshot = new ReplicaFile();
-        replicaSnapshot.setFile(fileSnapshot);
+        replicaSnapshot.setData(fileSnapshot);
 
         // Проверяем чтение заголовков
-        File file = new File(replicaSnapshot.getFile().getAbsolutePath());
+        File file = new File(replicaSnapshot.getData().getAbsolutePath());
         IReplica replica = new ReplicaFile();
-        replica.setFile(file);
+        replica.setData(file);
 
         //
         JdxReplicaReaderXml.readReplicaInfo(replica);
