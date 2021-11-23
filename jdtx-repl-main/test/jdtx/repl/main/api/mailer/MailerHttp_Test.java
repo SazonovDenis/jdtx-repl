@@ -92,7 +92,7 @@ public class MailerHttp_Test extends AppTestCase {
         System.out.println("mailer.receive: " + f2);
 
         // Информацмия о реплике с почтового сервера
-        IReplicaFileInfo info = mailer.getReplicaInfo("from", 1);
+        IReplicaInfo info = mailer.getReplicaInfo("from", 1);
         System.out.println("receive.replica.md5: " + UtJdx.getMd5File(replica2.getData()));
         System.out.println("mailer.info.crc:     " + info.getCrc());
     }
@@ -141,7 +141,7 @@ public class MailerHttp_Test extends AppTestCase {
         System.out.println("mailer.receive: " + f2);
 
         // Информацмия о реплике с почтового сервера
-        IReplicaFileInfo info = mailer.getReplicaInfo("from", 1);
+        IReplicaInfo info = mailer.getReplicaInfo("from", 1);
         System.out.println("receive.replica.md5: " + UtJdx.getMd5File(replica2.getData()));
         System.out.println("mailer.info.crc:     " + info.getCrc());
     }
@@ -191,7 +191,7 @@ public class MailerHttp_Test extends AppTestCase {
         System.out.println("mailer.receive: " + f2);
 
         // Информацмия о реплике с почтового сервера
-        IReplicaFileInfo info = mailer.getReplicaInfo("from", 100);
+        IReplicaInfo info = mailer.getReplicaInfo("from", 100);
         System.out.println("send.replica.md5:    " + UtJdx.getMd5File(fileReplica));
         System.out.println("receive.replica.md5: " + UtJdx.getMd5File(replica2.getData()));
         System.out.println("mailer.info.crc:     " + info.getCrc());
@@ -457,7 +457,7 @@ public class MailerHttp_Test extends AppTestCase {
     public void test_getLastReplicaInfo() throws Exception {
         String box = "to";
         //
-        IReplicaFileInfo lastInfo = ((MailerHttp) mailer).getLastReplicaInfo(box);
+        IReplicaInfo lastInfo = ((MailerHttp) mailer).getLastReplicaInfo(box);
         //
         System.out.println("Res: " + lastInfo);
         System.out.println("Crc: " + lastInfo.getCrc());

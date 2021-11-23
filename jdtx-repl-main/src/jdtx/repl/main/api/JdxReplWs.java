@@ -1355,7 +1355,7 @@ public class JdxReplWs {
             log.info("receive, receiving.no: " + no);
 
             // Информация о реплике с почтового сервера
-            IReplicaFileInfo info = mailer.getReplicaInfo(boxName, no);
+            IReplicaInfo info = mailer.getReplicaInfo(boxName, no);
 
             // Нужно ли скачивать эту реплику с сервера?
             IReplica replica;
@@ -1596,7 +1596,7 @@ public class JdxReplWs {
         boolean equal_Marked_SrvDone = false;
         if ((noSendMarked + 1) == noSendSrvDone) {
             // Читаем информацию о реплике с сервера
-            IReplicaFileInfo infoSrv = ((MailerHttp) mailer).getLastReplicaInfo("from");
+            IReplicaInfo infoSrv = ((MailerHttp) mailer).getLastReplicaInfo("from");
             String crcSrv = infoSrv.getCrc();
             // Берем реплику из очереди
             IReplica replicaWs = queOut.get(noSendSrvDone);

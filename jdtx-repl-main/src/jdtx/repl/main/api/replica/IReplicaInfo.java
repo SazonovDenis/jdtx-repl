@@ -19,6 +19,10 @@ public interface IReplicaInfo {
 
     void setAge(long age);
 
+    String getCrc();
+
+    void setCrc(String crc);
+
     DateTime getDtFrom();
 
     void setDtFrom(DateTime dtFrom);

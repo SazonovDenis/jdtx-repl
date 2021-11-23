@@ -5,7 +5,7 @@ import org.joda.time.*;
 import java.io.*;
 
 /**
- * Блок данных. todo: возможно нет необходитости хранить возраст (номер) ВНУТРИ реплики
+ * Блок данных.
  */
 public interface IReplica {
 

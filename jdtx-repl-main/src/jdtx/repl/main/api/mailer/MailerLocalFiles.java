@@ -96,8 +96,8 @@ public class MailerLocalFiles implements IMailer {
     }
 
     @Override
-    public IReplicaFileInfo getReplicaInfo(String box, long no) throws Exception {
-        ReplicaFileInfo info = new ReplicaFileInfo();
+    public IReplicaInfo getReplicaInfo(String box, long no) throws Exception {
+        ReplicaInfo info = new ReplicaInfo();
 
         String remoteFileName = getFileName(no);
         File remoteFile = new File(remoteDir + box + "/" + remoteFileName);

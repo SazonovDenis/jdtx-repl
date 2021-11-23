@@ -155,7 +155,7 @@ public class MailerHttp implements IMailer {
             throw new XError("invalid replica.no, send.no: " + no + ", srv.no: " + srv_no + ", server is forward");
         } else if (no == srv_no && srv_no != 0 && requiredInfo.requiredFrom == -1) {
             // Рабочая станция одинакова с сервером
-            IReplicaFileInfo fileInfo = getLastReplicaInfo(box);
+            IReplicaInfo fileInfo = getLastReplicaInfo(box);
             // Если последнее письмо совпадает - то считаем это недоразумением ит игнорируем.
             if (!UtJdx.equalReplicaCrc(replica, fileInfo.getCrc())) {
                 throw new XError("invalid replica.no, send.no: " + no + ", srv.no: " + srv_no + ", workstation and server have equal replica.no, but different replica.crc");
@@ -245,7 +245,7 @@ public class MailerHttp implements IMailer {
 
 
         // Завершение закачки
-        IReplicaFileInfo info = new ReplicaFileInfo();
+        IReplicaInfo info = new ReplicaInfo();
         info.setReplicaType(replica.getInfo().getReplicaType());
         info.setDbStructCrc(replica.getInfo().getDbStructCrc());
         info.setWsId(replica.getInfo().getWsId());
@@ -260,14 +260,14 @@ public class MailerHttp implements IMailer {
 
 
     @Override
-    public IReplicaFileInfo getReplicaInfo(String box, long no) throws Exception {
+    public IReplicaInfo getReplicaInfo(String box, long no) throws Exception {
         JSONObject resInfo = getInfo_internal(box, no);
 
         //
         JSONObject file_info = (JSONObject) resInfo.get("file_info");
 
         //
-        IReplicaFileInfo info = new ReplicaFileInfo();
+        IReplicaInfo info = new ReplicaInfo();
         info.fromJSONObject(file_info);
         return info;
     }
@@ -457,15 +457,15 @@ public class MailerHttp implements IMailer {
         return res;
     }
 
-    public IReplicaFileInfo getLastReplicaInfo(String box) throws Exception {
+    public IReplicaInfo getLastReplicaInfo(String box) throws Exception {
         JSONObject resInfo = getData("last.info", box);
         JSONObject data = (JSONObject) resInfo.get("data");
-        IReplicaFileInfo info = new ReplicaFileInfo();
+        IReplicaInfo info = new ReplicaInfo();
         info.fromJSONObject(data);
         return info;
     }
 
-    void sendCommit_internal(String box, long no, IReplicaFileInfo info, long partsCount, long totalBytes) throws Exception {
+    void sendCommit_internal(String box, long no, IReplicaInfo info, long partsCount, long totalBytes) throws Exception {
         HttpClient client = HttpClientBuilder.create().build();
 
         HttpPost post = createHttpPost("repl_send_commit");
