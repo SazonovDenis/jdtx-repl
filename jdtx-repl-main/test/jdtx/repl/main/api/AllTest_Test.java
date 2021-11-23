@@ -77,7 +77,7 @@ public class AllTest_Test extends AppTestCase {
 
         // Все тесты JdxRecMerge_Test
         JdxRecMerge_Test testMerge = new JdxRecMerge_Test();
-        // Выполнить все тесты testMerge
+        // Выполнить все тесты в классе testMerge
 
         // Создание репликации и удаление дубликтов, которые появились после превичного слияния
         JdxReplWsSrv_Merge_Test testMergeWsSrv = new JdxReplWsSrv_Merge_Test();
