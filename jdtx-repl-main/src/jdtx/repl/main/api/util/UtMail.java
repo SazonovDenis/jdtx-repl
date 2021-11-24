@@ -48,23 +48,10 @@ public class UtMail {
             sendFrom = queLastSendNo + 1;
             sendTo = queMaxNo;
 
-            // Проверим, что мы не будем отправлять повторно
-
-            /////////////////////////////////
-            //getState_internal - public? В интерфейс его?
-
-
-
-            long srv_no = mailer.getSendDone(box);
-
             // Проверки: не отправляли ли ранее такую реплику?
             // Защита от ситуации "восстановление БД из бэкапа", а также
             // защита от ситуации "после переноса рабочей станции на старом компьютере проснулась старая копия рабочей станции"
-            //JSONObject resState = getState_internal(box);
-            //JSONObject last_info = (JSONObject) resState.get("last_info");
-            //long srv_no = UtJdxData.longValueOf(last_info.getOrDefault("no", 0));
-            //JSONObject required = (JSONObject) resState.get("required");
-            //SendRequiredInfo requiredInfo = new SendRequiredInfo(required);
+            long srv_no = mailer.getSendDone(box);
             if (sendFrom < srv_no && requiredInfo.requiredFrom == -1) {
                 // Рабочая станция сильно отстает от сервера
                 throw new XError("invalid replica.no, send.no: " + sendFrom + ", srv.no: " + srv_no + ", server is forward");
@@ -83,7 +70,6 @@ public class UtMail {
                 // Рабочая станция сильно опережает сервер
                 throw new XError("invalid replica.no, send.no: " + sendFrom + ", srv.no: " + srv_no + ", workstation is forward");
             }
-            /////////////////////////////////
         }
 
         //
