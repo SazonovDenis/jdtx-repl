@@ -61,6 +61,7 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
         // Переносим файл на постоянное место
         String actualFileName = getFileName(no);
         File actualFile = new File(baseDir + actualFileName);
+        //
         File replicaFile = replica.getData();
 
         // Файл должен быть - иначе незачем делать put
@@ -85,6 +86,8 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
             }
             // Переносим файл на постоянное место
             FileUtils.moveFile(replicaFile, actualFile);
+            // Пусть в реплике теперь указан правильный файл
+            replica.setData(actualFile);
         }
     }
 

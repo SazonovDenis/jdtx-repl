@@ -5,21 +5,13 @@ import jdtx.repl.main.api.struct.*;
 
 public class UtDbErrors {
 
-    public static String collectExceptionText(Exception e) {
-        String errText = e.toString();
-        if (e.getCause() != null) {
-            errText = errText + "\n" + e.getCause().toString();
-        }
-        return errText;
-    }
-
     public static boolean errorIs_PrimaryKeyError(Exception e) {
-        String errText = collectExceptionText(e);
+        String errText = UtJdxErrors.collectExceptionText(e);
         return errText.contains("violation of PRIMARY or UNIQUE KEY constraint");
     }
 
     public static boolean errorIs_ForeignKeyViolation(Exception e) {
-        String errText = collectExceptionText(e);
+        String errText = UtJdxErrors.collectExceptionText(e);
         if (errText.contains("violation of FOREIGN KEY constraint") && errText.contains("on table")) {
             return true;
         } else {
@@ -28,7 +20,7 @@ public class UtDbErrors {
     }
 
     public static boolean errorIs_TableNotExists(Exception e) {
-        String errText = collectExceptionText(e);
+        String errText = UtJdxErrors.collectExceptionText(e);
         if ((errText.contains("table/view") && errText.contains("does not exist")) ||
                 errText.contains("Table unknown")) {
             return true;
@@ -38,7 +30,7 @@ public class UtDbErrors {
     }
 
     public static boolean errorIs_GeneratorNotExists(Exception e) {
-        if (collectExceptionText(e).contains("Generator not found")) {
+        if (UtJdxErrors.collectExceptionText(e).contains("Generator not found")) {
             return true;
         } else {
             return false;
@@ -46,7 +38,7 @@ public class UtDbErrors {
     }
 
     public static boolean errorIs_TriggerNotExists(Exception e) {
-        if (collectExceptionText(e).contains("Trigger not found")) {
+        if (UtJdxErrors.collectExceptionText(e).contains("Trigger not found")) {
             return true;
         } else {
             return false;
@@ -54,7 +46,7 @@ public class UtDbErrors {
     }
 
     public static boolean errorIs_TableAlreadyExists(Exception e) {
-        String errText = collectExceptionText(e);
+        String errText = UtJdxErrors.collectExceptionText(e);
         if (errText.contains("Table") && errText.contains("already exists")) {
             return true;
         } else {
@@ -63,7 +55,7 @@ public class UtDbErrors {
     }
 
     public static boolean errorIs_GeneratorAlreadyExists(Exception e) {
-        String errText = collectExceptionText(e);
+        String errText = UtJdxErrors.collectExceptionText(e);
         if (errText.contains("DEFINE GENERATOR failed") && errText.contains("attempt to store duplicate value")) {
             return true;
         } else {
@@ -72,7 +64,7 @@ public class UtDbErrors {
     }
 
     public static boolean errorIs_TriggerAlreadyExists(Exception e) {
-        String errText = collectExceptionText(e);
+        String errText = UtJdxErrors.collectExceptionText(e);
         if (errText.contains("DEFINE TRIGGER failed") && errText.contains("attempt to store duplicate value")) {
             return true;
         } else {
@@ -81,7 +73,7 @@ public class UtDbErrors {
     }
 
     public static boolean errorIs_IndexAlreadyExists(Exception e) {
-        String errText = collectExceptionText(e);
+        String errText = UtJdxErrors.collectExceptionText(e);
         if (errText.contains("attempt to store duplicate value (visible to active transactions) in unique index")) {
             return true;
         } else {

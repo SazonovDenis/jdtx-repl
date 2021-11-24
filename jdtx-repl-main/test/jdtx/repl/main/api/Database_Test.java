@@ -93,7 +93,7 @@ public class Database_Test extends AppTestCase {
             db2.loadSql("select * from dbInfo");
             throw new Exception("should fail");
         } catch (Exception e) {
-            if (!UtDbErrors.collectExceptionText(e).contains("Соединение не установлено")) {
+            if (!UtJdxErrors.collectExceptionText(e).contains("Соединение не установлено")) {
                 throw e;
             }
         }

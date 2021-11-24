@@ -563,7 +563,15 @@ public class JdxReplWs {
             IReplica replica = que.get(no);
 
             // Пробуем применить реплику
-            ReplicaUseResult replicaUseResult = useReplicaInternal(replica, forceUse);
+            ReplicaUseResult replicaUseResult;
+            try {
+                replicaUseResult = useReplicaInternal(replica, forceUse);
+            } catch (Exception e) {
+                // Пробуем что-то сделать с проблемой применения реплики
+                log.error("handleQue: " + e.getMessage());
+                handleError_UseReplica(que, queName, no, mailer, e);
+                break;
+            }
 
             if (replicaUseResult.replicaUsed && replicaUseResult.lastOwnAgeUsed > handleQueUseResult.lastOwnAgeUsed) {
                 handleQueUseResult.lastOwnAgeUsed = replicaUseResult.lastOwnAgeUsed;
@@ -609,17 +617,84 @@ public class JdxReplWs {
         return handleQueUseResult;
     }
 
+    private void handleError_UseReplica(IJdxReplicaStorage que, String queName, long no, IMailer mailer, Exception exceptionUse) throws Exception {
+        if (UtJdxErrors.errorIs_replicaUsedBadCrc(exceptionUse) || UtJdxErrors.errorIs_replicaFileNotExists(exceptionUse)) {
+            String box;
+            switch (queName) {
+                case UtQue.QUE_IN:
+                    box = "to";
+                    break;
+                case UtQue.QUE_IN001:
+                    box = "to001";
+                    break;
+                default:
+                    throw new XError("handleUseError, unknown mailer.box for que.name: " + queName);
+            }
+
+            try {
+                // Проверим, есть ли такая реплика в ящике (еще осталась или запросили на предыдущем цикле)
+                IReplicaInfo info = mailer.getReplicaInfo(box, no);
+
+                //
+                log.info("handleError_UseReplica, try replica receive, replica.no: " + no + ", box: " + box);
+
+                // Скачиваем
+                IReplica replica = mailer.receive(box, no);
+
+                // Проверяем целостность скачанного
+                UtJdx.checkReplicaCrc(replica, info.getCrc());
+
+                // Читаем заголовок
+                JdxReplicaReaderXml.readReplicaInfo(replica);
+
+                // Обновим "битую" реплику - заменим на нормальную
+                String actualFileName = JdxStorageFile.getFileName(no);
+                File actualFile = new File(((JdxStorageFile) que).getBaseDir() + actualFileName);
+                actualFile.delete();
+                //
+                que.put(replica, no);
+
+                // Удаляем с почтового сервера
+                mailer.delete(box, no);
+
+                //
+                log.info("handleError_UseReplica, replica receive done");
+                throw new XError("handleError_UseReplica, replica receive done, replica.no: " + no + ", box: " + box);
+            } catch (Exception exceptionMail) {
+                if (UtJdxErrors.errorIs_MailerReplicaNotFound(exceptionMail)) {
+                    log.info("handleError_UseReplica, try request replica: " + no + ", box: " + box);
+                    // Реплику еще не просили - попросим прислать
+                    SendRequiredInfo requiredInfo = new SendRequiredInfo();
+                    requiredInfo.requiredFrom = no;
+                    requiredInfo.requiredTo = no;
+                    // Просим
+                    mailer.setSendRequired(box, requiredInfo);
+
+                    //
+                    log.info("handleError_UseReplica, request done");
+                    throw new XError("handleError_UseReplica, request done, replica.no: " + no + ", box: " + box);
+                } else {
+                    throw exceptionMail;
+                }
+            }
+
+        } else {
+            throw exceptionUse;
+        }
+    }
+
     public ReplicaUseResult useReplicaFile(File f) throws Exception {
         return useReplicaFile(f, true);
     }
 
-    public ReplicaUseResult useReplicaFile(File f, boolean forceApplySelf) throws Exception {
+    private ReplicaUseResult useReplicaFile(File f, boolean forceApplySelf) throws Exception {
         log.info("useReplicaFile, file: " + f.getAbsolutePath());
 
         //
         IReplica replica = new ReplicaFile();
         replica.setData(f);
         JdxReplicaReaderXml.readReplicaInfo(replica);
+        replica.getInfo().setCrc(UtJdx.getMd5File(replica.getData()));  // Это толькодля того, чтобы useReplicaInternal не ругался
 
         // Пробуем применить реплику
         ReplicaUseResult replicaUseResult = useReplicaInternal(replica, forceApplySelf);
@@ -1016,7 +1091,7 @@ public class JdxReplWs {
         }
 
         // Свои собственные snapshot-реплики точно можно не применять
-        if (replicaType == JdxReplicaType.SNAPSHOT && replica.getInfo().getWsId() == wsId && !forceApplySelf) {
+        if (isReplicaSelfSnapshot(replica.getInfo()) && !forceApplySelf) {
             log.info("skip self snapshot");
             return;
         }
@@ -1072,6 +1147,12 @@ public class JdxReplWs {
 
         //
         auditApplyer.applyReplica(replica, publicationIn, filterParams, forceApply_ignorePublicationRules, commitPortionMax);
+    }
+
+    private boolean isReplicaSelfSnapshot(IReplicaInfo replicaInfo) {
+        int replicaType = replicaInfo.getReplicaType();
+        long replicaWsId = replicaInfo.getWsId();
+        return replicaType == JdxReplicaType.SNAPSHOT && replicaWsId == wsId;
     }
 
     /**
@@ -1133,12 +1214,27 @@ public class JdxReplWs {
 
     private ReplicaUseResult useReplicaInternal(IReplica replica, boolean forceApplySelf) throws Exception {
         ReplicaUseResult useResult = new ReplicaUseResult();
+
+        // Проверим crc реплики
+        if (!isReplicaSelfSnapshot(replica.getInfo())) {
+            if (!replica.getData().exists()) {
+                throw new XError("useReplicaInternal: " + UtJdxErrors.message_replicaFileNotExists);
+            }
+            //
+            String crcFile = UtJdx.getMd5File(replica.getData());
+            String crcInfo = replica.getInfo().getCrc();
+            if (crcInfo.compareTo(crcFile) != 0) {
+                //useResult.replicaUsed = false;
+                //useResult.doBreak = true;
+                throw new XError("useReplicaInternal: " + UtJdxErrors.message_replicaBadCrc);
+            }
+        }
+
         useResult.replicaUsed = true;
         useResult.doBreak = false;
         if (wsId == replica.getInfo().getWsId()) {
             useResult.lastOwnAgeUsed = replica.getInfo().getAge();
         }
-
 
         //
         int replicaType = replica.getInfo().getReplicaType();
@@ -1359,14 +1455,14 @@ public class JdxReplWs {
 
             // Нужно ли скачивать эту реплику с сервера?
             IReplica replica;
-            if (info.getWsId() == wsId && info.getReplicaType() == JdxReplicaType.SNAPSHOT) {
+            if (isReplicaSelfSnapshot(info)) {
                 // Свои собственные установочные реплики (snapshot таблиц) можно не скачивать
                 // (и в дальнейшем не применять)
                 log.info("Found self snapshot replica, no: " + no + ", replica.age: " + info.getAge());
-                // Имитируем реплику просто чтобы положить в очередь. Никто не заметит, что она пустая, т.к. она НЕ нужна
+                // Имитируем реплику просто чтобы положить в очередь.
+                // Никто не заметит, что реплика пустая, т.к. она НЕ нужна
                 replica = new ReplicaFile();
                 replica.getInfo().setReplicaType(info.getReplicaType());
-                replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
                 replica.getInfo().setWsId(info.getWsId());
                 replica.getInfo().setAge(info.getAge());
             } else {
@@ -1379,9 +1475,6 @@ public class JdxReplWs {
                 // Читаем заголовок
                 JdxReplicaReaderXml.readReplicaInfo(replica);
             }
-
-            //
-            //log.debug("replica.age: " + replica.getInfo().getAge() + ", replica.wsId: " + replica.getInfo().getWsId());
 
             // Помещаем реплику в свою входящую очередь
             que.push(replica);
