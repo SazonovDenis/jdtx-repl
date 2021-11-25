@@ -460,10 +460,6 @@ public class JdxReplSrv {
      * и отправляем в очередь que
      */
     private long sendReplicasSnapshot(long wsIdAuthor, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot, IJdxQue que) throws Exception {
-        // todo: После создания и отправки Snapshot сам снимок валяется в temp как мусор и палево
-        // ---
-        // Подготовим snapshot из данных станции wsIdDestination
-
         // Запоминаем возраст входящей очереди "серверной" рабочей станции (que_in_no_done).
         // Если мы начинаем готовить snapshot в этом возрасте, то все реплики ДО этого возраста войдут в snapshot,
         // а все реплики ПОСЛЕ этого возраста в snapshot НЕ попадут,
@@ -720,7 +716,7 @@ public class JdxReplSrv {
     }
 
     public void srvMergeRequest(String planFileName) throws Exception {
-        log.info("srvMergeRequest, plan fileName: " + planFileName);
+        log.info("srvMergeRequest, plan file: " + planFileName);
 
         //
         UtRepl utRepl = new UtRepl(db, struct);
@@ -741,6 +737,9 @@ public class JdxReplSrv {
             IJdxTable table = struct.getTable(mergePlan.tableName);
             dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
 
+            //
+            log.info("srvMergeRequest, table: " + mergePlan.tableName + ", records delete: " + mergePlan.recordsDelete.size());
+
             // Добавим эталонную запись на сервере
             Map<String, Object> values = dataSerializer.prepareValues(mergePlan.recordEtalon);
             // Чтобы вставилось с новым PK
@@ -750,10 +749,6 @@ public class JdxReplSrv {
             // Вставляем эталонную запись
             JdxDbUtils dbu = new JdxDbUtils(db, struct);
             long recordEtalonId = dbu.insertRec(mergePlan.tableName, values);
-
-            //// Получим ссылку JdxRef из PK вставленной эталонной записи
-            //IRefDecoder decoder = new RefDecoder(db, SERVER_WS_ID);
-            //JdxRef etalonRecIdRef = decoder.get_ref(mergePlan.tableName, recordEtalonId);
 
             // Записываем PK только что вставленной записи
             values.put(pkFieldName, recordEtalonId);
@@ -765,9 +760,15 @@ public class JdxReplSrv {
             // Отправим реплику на вставку эталонной записи
             IReplica replicaIns = utRepl.createReplicaInsRecord(mergePlan.tableName, mergePlan.recordEtalon, ws.wsId);
             replicaIns.getInfo().setReplicaType(JdxReplicaType.IDE_MERGE);
+            log.info("  before queCommon.push(replicaIns), replica etalon ins: " + replicaIns.getData());
+            log.info("  queCommon.getBaseDir(): " + queCommon.getBaseDir());
             queCommon.push(replicaIns);
 
-            // todo рассмотреть неоходимость добавлять каскадно и ВЛИЯЮШИЕ записл для вставляемой эталонной (и далее - каскадно) - их ТОЖЕ может не оказаться на филиале
+            // todo рассмотреть неоходимость добавлять каскадно и ВЛИЯЮШИЕ записи для вставляемой эталонной
+            //  (и далее - каскадно) - их ТОЖЕ может не оказаться на филиале
+
+            //
+            log.info("srvMergeRequest, replica etalon ins: " + replicaIns.getData());
 
             // Исправляем ссылки в mergePlan.recordsDelete (если они в плане не подготовлены с дополнением ссылки)
             // Распаковываем PK удаляемых записей
@@ -793,6 +794,9 @@ public class JdxReplSrv {
         // Формируем команду на merge
         IReplica replicaMerge = utRepl.createReplicaMerge(planFileNameRef);
         queCommon.push(replicaMerge);
+
+        //
+        log.info("srvMergeRequest, replica merge: " + replicaMerge.getData());
     }
 
     public void srvRequestSnapshot(long destinationWsId, String tableNames, String queName) throws Exception {
