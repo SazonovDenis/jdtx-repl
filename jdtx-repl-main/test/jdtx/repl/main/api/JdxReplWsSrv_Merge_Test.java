@@ -100,7 +100,8 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
     }
 
     /**
-     * Прогон базового сценария репликации, с односторонним фильтром по LIC
+     * Создание репликации и удаление дубликтов, которые появились на сервере после превичного слияния,
+     * с односторонним фильтром по LIC
      */
     @Test
     public void test_allSetUp_TestAll_filter() throws Exception {

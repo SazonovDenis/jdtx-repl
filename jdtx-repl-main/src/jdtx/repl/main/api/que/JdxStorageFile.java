@@ -71,7 +71,7 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
 
         // Если файл, указанный у реплики не совпадает с постоянным местом хранения, то файл переносим на постоянное место.
         if (replicaFile.getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
-            // Если какой-то РАЗЛИЧАЮЩИЙСЯ файл уже занимает постоянное место, то этот файл НЕ удаляем.
+            // Какой-то файл уже занимает постоянное место?
             if (actualFile.exists()) {
                 String crcInfo = replica.getInfo().getCrc();
                 String crcFile = UtJdx.getMd5File(actualFile);

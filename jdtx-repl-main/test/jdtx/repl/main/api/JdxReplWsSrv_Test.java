@@ -327,6 +327,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         sync_http_1_2_3();
     }
 
+/*
     @Test
     public void test_all_local() throws Exception {
         test_ws1_makeChange_Unimportant();
@@ -339,6 +340,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         //
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
+*/
 
 
     @Test
