@@ -760,8 +760,6 @@ public class JdxReplSrv {
             // Отправим реплику на вставку эталонной записи
             IReplica replicaIns = utRepl.createReplicaInsRecord(mergePlan.tableName, mergePlan.recordEtalon, ws.wsId);
             replicaIns.getInfo().setReplicaType(JdxReplicaType.IDE_MERGE);
-            log.info("  before queCommon.push(replicaIns), replica etalon ins: " + replicaIns.getData());
-            log.info("  queCommon.getBaseDir(): " + queCommon.getBaseDir());
             queCommon.push(replicaIns);
 
             // todo рассмотреть неоходимость добавлять каскадно и ВЛИЯЮШИЕ записи для вставляемой эталонной
