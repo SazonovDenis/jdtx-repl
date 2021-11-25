@@ -18,6 +18,7 @@ import jdtx.repl.main.api.struct.*
 import jdtx.repl.main.api.util.UtJdx
 import jdtx.repl.main.gen.*
 import jdtx.repl.main.service.*
+import org.apache.log4j.MDC
 import org.json.simple.*
 
 /**
@@ -38,6 +39,8 @@ class Jdx_Ext extends ProjectExt {
         } else {
             System.out.println("Файл log.properties или _log.properties не найден, логирование отключено")
         }
+
+        MDC.put("serviceName", "jc");
     }
 
     /**
