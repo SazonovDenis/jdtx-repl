@@ -1224,9 +1224,7 @@ public class JdxReplWs {
             String crcFile = UtJdx.getMd5File(replica.getData());
             String crcInfo = replica.getInfo().getCrc();
             if (crcInfo.compareTo(crcFile) != 0) {
-                //useResult.replicaUsed = false;
-                //useResult.doBreak = true;
-                throw new XError("useReplicaInternal: " + UtJdxErrors.message_replicaBadCrc);
+                throw new XError("useReplicaInternal: " + UtJdxErrors.message_replicaBadCrc + ", file.crc: " + crcFile + ", info.crc: " + crcInfo);
             }
         }
 
