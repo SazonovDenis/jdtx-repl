@@ -73,8 +73,8 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
 
         // Вычисляем crc файла данных
         if (replica.getData() != null) {
-            String crc = UtJdx.getMd5File(replica.getData());
-            replica.getInfo().setCrc(crc);
+            String crcFile = UtJdx.getMd5File(replica.getData());
+            replica.getInfo().setCrc(crcFile);
         }
 
         // Помещаем файл данных на место хранения файлов очереди

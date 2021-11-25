@@ -73,9 +73,9 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
         if (replicaFile.getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
             // Если какой-то РАЗЛИЧАЮЩИЙСЯ файл уже занимает постоянное место, то этот файл НЕ удаляем.
             if (actualFile.exists()) {
-                String replicaFileMd5 = replica.getInfo().getCrc();
-                String actualFileMd5 = UtJdx.getMd5File(actualFile);
-                if (replicaFileMd5.compareToIgnoreCase(actualFileMd5) != 0) {
+                String crcInfo = replica.getInfo().getCrc();
+                String crcFile = UtJdx.getMd5File(actualFile);
+                if (crcInfo.compareToIgnoreCase(crcFile) != 0) {
                     // Если ДРУГОЙ файл уже занимает постоянное место, то этот файл НЕ удаляем.
                     throw new XError("Other actualFile already exists: " + actualFile.getAbsolutePath());
                 } else {

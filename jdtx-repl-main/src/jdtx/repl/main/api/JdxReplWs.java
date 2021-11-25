@@ -694,7 +694,6 @@ public class JdxReplWs {
         IReplica replica = new ReplicaFile();
         replica.setData(f);
         JdxReplicaReaderXml.readReplicaInfo(replica);
-        replica.getInfo().setCrc(UtJdx.getMd5File(replica.getData()));  // Это толькодля того, чтобы useReplicaInternal не ругался
 
         // Пробуем применить реплику
         ReplicaUseResult replicaUseResult = useReplicaInternal(replica, forceApplySelf);
@@ -1223,7 +1222,7 @@ public class JdxReplWs {
             //
             String crcFile = UtJdx.getMd5File(replica.getData());
             String crcInfo = replica.getInfo().getCrc();
-            if (crcInfo.compareTo(crcFile) != 0) {
+            if (!UtJdx.equalCrc(crcFile, crcInfo)) {
                 throw new XError("useReplicaInternal: " + UtJdxErrors.message_replicaBadCrc + ", file.crc: " + crcFile + ", info.crc: " + crcInfo);
             }
         }

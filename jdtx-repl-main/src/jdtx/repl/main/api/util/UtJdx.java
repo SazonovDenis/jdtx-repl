@@ -297,28 +297,36 @@ public class UtJdx {
     }
 
     /**
-     * Проверяет целостность файла в реплике,
-     * сравнивая CRC самого файла, с CRC в replica.info
+     * Проверяет целостность файла в реплике, сравнивая crc самого файла с указанным crc
+     * Выкидывет exception если crc файла не совпадают
      */
     public static void checkReplicaCrc(IReplica replica, String crc) throws Exception {
-        if (!equalReplicaCrc(replica, crc)) {
+        String crcFile = UtJdx.getMd5File(replica.getData());
+        if (!equalCrc(crcFile, crc)) {
             // Неправильно скачанный файл - удаляем, чтобы потом начать снова
             replica.getData().delete();
             // Ошибка
-            throw new XError("receive.replica.md5 <> info.crc, file: " + replica.getData());
+            throw new XError("receive.replica.crc <> info.crc, file.crc: " + crcFile + ", crc: " + crc + ", file: " + replica.getData());
         }
     }
 
     /**
-     * @return true, если CRC файла в реплике совпадает с указанным crc
+     * Проверяет целостность файла в реплике, сравнивая crc самого файла с указанным crc
+     *
+     * @return true, если crc совпадают.
      */
     public static boolean equalReplicaCrc(IReplica replica, String crc) throws Exception {
-        String md5file = UtJdx.getMd5File(replica.getData());
-        try {
-            return md5file.compareToIgnoreCase(crc) == 0;
-        } catch (Exception e) {
-            return md5file.compareToIgnoreCase(crc) == 0;
-        }
+        String crcFile = UtJdx.getMd5File(replica.getData());
+        return equalCrc(crcFile, crc);
+    }
+
+    /**
+     * @return true, если crc пустой или crc == null или crcFile совпадает c crc.
+     */
+    public static boolean equalCrc(String crcFile, String crc) {
+        // crcFile не может быть null, т.к. он берется из файла, но crc разрешаем быть пустым или null -
+        // так бывает при различных переходных процессах (смене версии, приготовлении реплики вручную и т.п.)
+        return crc == null || crc.length() == 0 || crcFile.compareToIgnoreCase(crc) == 0;
     }
 
     /**

@@ -62,8 +62,8 @@ public class JdxQueOut001 extends JdxQue implements IJdxQue {
 
         // Вычисляем crc файла данных
         if (replica.getData() != null) {
-            String crc = UtJdx.getMd5File(replica.getData());
-            replica.getInfo().setCrc(crc);
+            String crcFile = UtJdx.getMd5File(replica.getData());
+            replica.getInfo().setCrc(crcFile);
         }
 
         // Помещаем файл на место хранения файлов очереди.
