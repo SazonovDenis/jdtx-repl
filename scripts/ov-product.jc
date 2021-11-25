@@ -27,11 +27,17 @@ rec_merge_find = cm("Поиск дубликатов",
 //
 rec_merge_exec = cm("Слияние дубликатов",
         "file": [value: null, help: "Файл с задачами на слияние"],
-        "delete": [value: false, help: "Выполнять не только обновление зависимых, но также и удаление основных записей"],
-        
 ) {
     def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
     ext.rec_merge_exec(args)
+}
+
+//
+rec_merge_request = cm("Разослать команду на слияние дубликатов",
+        "file": [value: null, help: "Файл с задачами на слияние"],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_merge_request(args)
 }
 
 //
