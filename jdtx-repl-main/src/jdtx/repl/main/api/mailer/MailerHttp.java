@@ -141,6 +141,12 @@ public class MailerHttp implements IMailer {
         // Проверки: правильность полей реплики
         UtJdx.validateReplicaFields(replica);
 
+        // Если почему-то не указан crc файла данных - вычисляем
+        if (replica.getData() != null && (replica.getInfo().getCrc() == null || replica.getInfo().getCrc().length() == 0)) {
+            log.warn("mailer.send, replica.crc is no set");
+            String crcFile = UtJdx.getMd5File(replica.getData());
+            replica.getInfo().setCrc(crcFile);
+        }
 
         // Закачиваем
         HttpClient client = HttpClientBuilder.create().build();
