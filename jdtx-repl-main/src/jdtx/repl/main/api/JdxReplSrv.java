@@ -766,7 +766,7 @@ public class JdxReplSrv {
             //  (и далее - каскадно) - их ТОЖЕ может не оказаться на филиале
 
             //
-            log.info("srvMergeRequest, replica etalon ins: " + replicaIns.getData());
+            //log.info("srvMergeRequest, replica etalon ins: " + replicaIns.getData());
 
             // Исправляем ссылки в mergePlan.recordsDelete (если они в плане не подготовлены с дополнением ссылки)
             // Распаковываем PK удаляемых записей
@@ -794,7 +794,8 @@ public class JdxReplSrv {
         queCommon.push(replicaMerge);
 
         //
-        log.info("srvMergeRequest, replica merge: " + replicaMerge.getData());
+        //log.info("srvMergeRequest, replica merge: " + replicaMerge.getData());
+        log.info("srvMergeRequest, replica merge done");
     }
 
     public void srvRequestSnapshot(long destinationWsId, String tableNames, String queName) throws Exception {
