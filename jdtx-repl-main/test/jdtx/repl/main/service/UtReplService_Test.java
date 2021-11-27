@@ -3,7 +3,6 @@ package jdtx.repl.main.service;
 import jandcode.app.test.*;
 import jandcode.dbm.*;
 import jandcode.dbm.db.*;
-import jdtx.repl.main.api.*;
 import org.junit.*;
 
 import java.util.*;
@@ -32,12 +31,8 @@ public class UtReplService_Test extends AppTestCase {
         Db db = app.service(ModelService.class).getModel().getDb();
         db.connect();
 
-        // Рабочая станция
-        JdxReplWs ws = new JdxReplWs(db);
-        ws.init();
-
         //
-        UtReplService.install(ws);
+        UtReplService.install(db);
 
         //
         test_ServiceListPrint();
@@ -106,6 +101,47 @@ public class UtReplService_Test extends AppTestCase {
         //
         UtReplService.stop(true);
     }
+
+    @Test
+    public void test_stop_uninstall() throws Exception {
+        logOff();
+
+        // БД
+        Db db = app.service(ModelService.class).getModel().getDb();
+        db.connect();
+
+        //
+        System.out.println("===");
+        ReplServiceState serviceState = UtReplService.readServiceState(db);
+        System.out.println("started: " + serviceState.isStarted);
+        System.out.println("installed: " + serviceState.isInstalled);
+
+        //
+        System.out.println("===");
+        System.out.println("UtReplService.stop");
+        UtReplService.stop(false);
+        UtReplService.processList();
+
+        //
+        System.out.println("===");
+        System.out.println("UtReplService.remove");
+        UtReplService.remove(db);
+
+        //
+        System.out.println("===");
+        System.out.println("UtReplService.start");
+        UtReplService.start();
+
+        //
+        System.out.println("===");
+        System.out.println("UtReplService.install");
+        UtReplService.install(db);
+
+        //
+        System.out.println("===");
+        UtReplService.remove(db);
+    }
+
 
 
 }

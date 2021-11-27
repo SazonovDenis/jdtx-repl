@@ -117,10 +117,6 @@ public class UtReplService {
 
 
     public static void stop(boolean stopAll) throws Exception {
-        String workDir = UtFile.getWorkdir().getAbsolutePath();
-        workDir = new File(new File(workDir).getParent()).getParent();
-
-        //
         Collection<ProcessInfo> processList = processList();
         if (processList.size() == 0) {
             System.out.println("No process running");
@@ -136,9 +132,7 @@ public class UtReplService {
 
         //
         for (ProcessInfo processInfo : processList) {
-            String executablePath = processInfo.getProcessPath();
-            executablePath = new File(new File(executablePath).getParent()).getParent();
-            if (stopAll || executablePath.compareToIgnoreCase(workDir) == 0) {
+            if (stopAll || isOurProcess(processInfo)) {
                 long processId = processInfo.getProcessId();
                 ProcessInfo.printInfo(processInfo);
                 if (stopByProcessId(processId)) {
@@ -153,30 +147,32 @@ public class UtReplService {
         }
     }
 
-
-    static boolean stopByProcessId(long processId) throws Exception {
-        List<String> res = new ArrayList<>();
-        int exitCode = UtRun.run(res, "wmic", "process", "where", "\"processid=" + processId + "\"", "call", "terminate");
+    public static boolean isStarted() throws Exception {
+        Collection<ProcessInfo> processList = processList();
 
         //
-        if (exitCode == 0) {
-            for (String outLine : res) {
-                if (outLine.length() > 0 && outLine.contains("ReturnValue")) {
-                    if (outLine.contains("ReturnValue = 0;")) {
-                        return true;
-                    } else {
-                        log.info(">> " + outLine);
-                    }
-                }
+        for (ProcessInfo processInfo : processList) {
+            if (isOurProcess(processInfo)) {
+                return true;
             }
-        } else {
-            UtRun.printRes(exitCode, res);
         }
 
         return false;
     }
 
-    public static void install(JdxReplWs ws) throws Exception {
+    private static boolean isOurProcess(ProcessInfo processInfo) {
+        String workDir = UtFile.getWorkdir().getAbsolutePath();
+        workDir = new File(new File(workDir).getParent()).getParent();
+        String executablePath = processInfo.getProcessPath();
+        executablePath = new File(new File(executablePath).getParent()).getParent();
+        return executablePath.compareToIgnoreCase(workDir) == 0;
+    }
+
+    public static void install(Db db) throws Exception {
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.readIdGuid();
+
+        //
         log.info("Service install");
 
         // Создаем задачу "Запуск процесса"
@@ -229,13 +225,14 @@ public class UtReplService {
         JdxReplWs ws = new JdxReplWs(db);
         ws.readIdGuid();
 
-        // Удаляем задачу "Запуск процесса"
-        String serviceName = "JadatexSync" + UtReplService.getServiceNameSuffix(ws);
-        removeService(serviceName);
+        //
+        String serviceNameS = "JadatexSync" + UtReplService.getServiceNameSuffix(ws);
+        String serviceNameWS = "JadatexSyncWatchdog" + UtReplService.getServiceNameSuffix(ws);
 
+        // Удаляем задачу "Запуск процесса"
+        removeService(serviceNameS);
         // Удаляем задачу "Перезапуск процесса"
-        serviceName = "JadatexSyncWatchdog" + UtReplService.getServiceNameSuffix(ws);
-        removeService(serviceName);
+        removeService(serviceNameWS);
     }
 
     /**
@@ -252,6 +249,69 @@ public class UtReplService {
             String serviceName = serviceInfo.get("ServiceName");
             removeService(serviceName);
         }
+    }
+
+
+    /**
+     * Установлены ли задачи по рабочей станции
+     */
+    public static boolean isInstalled(Db db) throws Exception {
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.readIdGuid();
+
+        //
+        String serviceNameS = "JadatexSync" + UtReplService.getServiceNameSuffix(ws);
+        String serviceNameWS = "JadatexSyncWatchdog" + UtReplService.getServiceNameSuffix(ws);
+
+        //
+        return serviceExists(serviceNameS) || serviceExists(serviceNameWS);
+    }
+
+
+    public static ReplServiceState readServiceState(Db db) throws Exception {
+        ReplServiceState serviceState = new ReplServiceState();
+        serviceState.isStarted = UtReplService.isStarted();
+        serviceState.isInstalled = UtReplService.isInstalled(db);
+        log.info("Service state read, started: " + serviceState.isStarted + ", installed: " + serviceState.isInstalled);
+        return serviceState;
+    }
+
+    public static void setServiceState(Db db, ReplServiceState serviceState) throws Exception {
+        log.info("Service state set, started: " + serviceState.isStarted + ", installed: " + serviceState.isInstalled);
+        if (serviceState.isStarted) {
+            UtReplService.start();
+            log.info("Service state set - started");
+        }
+        if (serviceState.isInstalled) {
+            UtReplService.install(db);
+            log.info("Service state set - installed");
+        }
+    }
+
+
+    /**
+     * Останавливаем задачу по имени
+     */
+    private static boolean stopByProcessId(long processId) throws Exception {
+        List<String> res = new ArrayList<>();
+        int exitCode = UtRun.run(res, "wmic", "process", "where", "\"processid=" + processId + "\"", "call", "terminate");
+
+        //
+        if (exitCode == 0) {
+            for (String outLine : res) {
+                if (outLine.length() > 0 && outLine.contains("ReturnValue")) {
+                    if (outLine.contains("ReturnValue = 0;")) {
+                        return true;
+                    } else {
+                        log.info(">> " + outLine);
+                    }
+                }
+            }
+        } else {
+            UtRun.printRes(exitCode, res);
+        }
+
+        return false;
     }
 
     /**
