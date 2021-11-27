@@ -1462,6 +1462,7 @@ public class JdxReplWs {
                 replica.getInfo().setReplicaType(info.getReplicaType());
                 replica.getInfo().setWsId(info.getWsId());
                 replica.getInfo().setAge(info.getAge());
+                //replica.getInfo().setCrc(info.getCrc()); по идее crc тоже удобнее НЕ прописывать - как сигнал, что и файла тоже нет
             } else {
                 // Физически забираем данные реплики с сервера
                 replica = mailer.receive(boxName, no);
