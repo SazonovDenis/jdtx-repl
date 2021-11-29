@@ -210,8 +210,15 @@ class Jdx_Ext extends ProjectExt {
         //
         ReplServiceState serviceState = UtReplService.readServiceState(db)
         try {
+            // Останавливаем задачу и удаляем процесс
+            UtReplService.stop(false)
+            UtReplService.remove(db)
+
+            //
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
+
+            //
             srv.addWorkstation(wsId, name, guid, cfgPublications, cfgDecode)
         } finally {
             UtReplService.setServiceState(db, serviceState)
@@ -237,8 +244,15 @@ class Jdx_Ext extends ProjectExt {
         //
         ReplServiceState serviceState = UtReplService.readServiceState(db)
         try {
+            // Останавливаем задачу и удаляем процесс
+            UtReplService.stop(false)
+            UtReplService.remove(db)
+
+            //
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
+
+            //
             srv.restoreWorkstation(wsId, cfgSsnapshot)
         } finally {
             UtReplService.setServiceState(db, serviceState)
@@ -260,6 +274,11 @@ class Jdx_Ext extends ProjectExt {
         //
         ReplServiceState serviceState = UtReplService.readServiceState(db)
         try {
+            // Останавливаем задачу и удаляем процесс
+            UtReplService.stop(false)
+            UtReplService.remove(db)
+
+            //
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.enableWorkstation(wsId)
         } finally {
@@ -282,6 +301,11 @@ class Jdx_Ext extends ProjectExt {
         //
         ReplServiceState serviceState = UtReplService.readServiceState(db)
         try {
+            // Останавливаем задачу и удаляем процесс
+            UtReplService.stop(false)
+            UtReplService.remove(db)
+
+            //
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.disableWorkstation(wsId)
         } finally {
@@ -364,6 +388,10 @@ class Jdx_Ext extends ProjectExt {
         //
         ReplServiceState serviceState = UtReplService.readServiceState(db)
         try {
+            // Останавливаем задачу и удаляем процесс
+            UtReplService.stop(false)
+            UtReplService.remove(db)
+
             // Рабочая станция
             JdxReplWs ws = new JdxReplWs(db)
             ws.init()
@@ -543,6 +571,11 @@ class Jdx_Ext extends ProjectExt {
         try {
             ReplServiceState serviceState = UtReplService.readServiceState(db)
             try {
+                // Останавливаем задачу и удаляем процесс
+                UtReplService.stop(false)
+                UtReplService.remove(db)
+
+                //
                 JdxReplSrv srv = new JdxReplSrv(db)
                 srv.init()
 
@@ -572,6 +605,11 @@ class Jdx_Ext extends ProjectExt {
         //
         ReplServiceState serviceState = UtReplService.readServiceState(db)
         try {
+            // Останавливаем задачу и удаляем процесс
+            UtReplService.stop(false)
+            UtReplService.remove(db)
+
+            //
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
@@ -601,6 +639,11 @@ class Jdx_Ext extends ProjectExt {
         //
         ReplServiceState serviceState = UtReplService.readServiceState(db)
         try {
+            // Останавливаем задачу и удаляем процесс
+            UtReplService.stop(false)
+            UtReplService.remove(db)
+
+            //
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
@@ -673,6 +716,11 @@ class Jdx_Ext extends ProjectExt {
         //
         ReplServiceState serviceState = UtReplService.readServiceState(db)
         try {
+            // Останавливаем задачу и удаляем процесс
+            UtReplService.stop(false)
+            UtReplService.remove(db)
+
+            //
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
@@ -714,6 +762,11 @@ class Jdx_Ext extends ProjectExt {
         //
         ReplServiceState serviceState = UtReplService.readServiceState(db)
         try {
+            // Останавливаем задачу и удаляем процесс
+            UtReplService.stop(false)
+            UtReplService.remove(db)
+
+            //
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
@@ -780,6 +833,10 @@ class Jdx_Ext extends ProjectExt {
         //
         ReplServiceState serviceState = UtReplService.readServiceState(db)
         try {
+            // Останавливаем задачу и удаляем процесс
+            UtReplService.stop(false)
+            UtReplService.remove(db)
+
             //
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
@@ -806,6 +863,10 @@ class Jdx_Ext extends ProjectExt {
         //
         ReplServiceState serviceState = UtReplService.readServiceState(db)
         try {
+            // Останавливаем задачу и удаляем процесс
+            UtReplService.stop(false)
+            UtReplService.remove(db)
+
             //
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
@@ -840,6 +901,10 @@ class Jdx_Ext extends ProjectExt {
         //
         ReplServiceState serviceState = UtReplService.readServiceState(db)
         try {
+            // Останавливаем задачу и удаляем процесс
+            UtReplService.stop(false)
+            UtReplService.remove(db)
+
             //
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
@@ -867,6 +932,11 @@ class Jdx_Ext extends ProjectExt {
         //
         ReplServiceState serviceState = UtReplService.readServiceState(db)
         try {
+            // Останавливаем задачу и удаляем процесс
+            UtReplService.stop(false)
+            UtReplService.remove(db)
+
+            //
             if (destinationWsId != 0L) {
                 // Запросили для конкретной станциию
 
@@ -906,6 +976,11 @@ class Jdx_Ext extends ProjectExt {
         //
         ReplServiceState serviceState = UtReplService.readServiceState(db)
         try {
+            // Останавливаем задачу и удаляем процесс
+            UtReplService.stop(false)
+            UtReplService.remove(db)
+
+            //
             try {
                 //
                 JdxReplWs ws = new JdxReplWs(db)
