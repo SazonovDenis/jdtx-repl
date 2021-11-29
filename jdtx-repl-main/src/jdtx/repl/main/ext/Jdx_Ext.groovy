@@ -688,6 +688,32 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
+
+    void repl_unmute(IVariantMap args) {
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        ReplServiceState serviceState = UtReplService.readServiceState(db)
+        try {
+            // Останавливаем задачу и удаляем процесс
+            UtReplService.stop(false)
+            UtReplService.remove(db)
+
+            //
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init()
+
+            //
+            srv.srvUnmuteAll()
+
+        } finally {
+            UtReplService.setServiceState(db, serviceState)
+            db.disconnect()
+        }
+    }
+
     void repl_mute_state(IVariantMap args) {
         boolean doWaitMute = !args.isValueNull("wait")
 

@@ -174,8 +174,8 @@ repl_ws_unmute = cm("Отправить на станцию команду 'вы
 }
 
 //
-repl_mute = cm("Перевести все станции в режим mute",
-        "wait": [value: null, help: "Ожидать состояния MUTE у всех станций "],
+repl_mute = cm("Перевести все станции в режим MUTE",
+        "wait": [value: null, help: "Ожидать состояния MUTE у всех станций"],
         "age": [value: null, help: "Запустить двойной цикл перевода в состояние MUTE"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
@@ -183,8 +183,15 @@ repl_mute = cm("Перевести все станции в режим mute",
 }
 
 //
-repl_mute_state = cm("Состояние MUTE у рабочих станций",
-        "wait": [value: null, help: "Ожидать состояния MUTE у всех станций "],
+repl_unmute = cm("Перевести все станции в режим UNMUTE",
+) {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_unmute(args)
+}
+
+//
+repl_mute_state = cm("Показать состояние MUTE у рабочих станций",
+        "wait": [value: null, help: "Ожидать состояния MUTE у всех станций"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_mute_state(args)

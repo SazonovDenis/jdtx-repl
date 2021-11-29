@@ -687,6 +687,18 @@ public class JdxReplSrv {
     }
 
 
+    public void srvUnmuteAll() throws Exception {
+        log.info("srvUnmuteAll");
+
+        // Системная команда "UNMUTE"...
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.createReplicaUnmute(0);
+
+        // ... в исходящую (общую) очередь реплик
+        queCommon.push(replica);
+    }
+
+
     public long srvMuteState(boolean doWaitMute, long muteAgeWait) throws Exception {
         while (true) {
             // DataStore stDisplay = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE where enabled = 1");
