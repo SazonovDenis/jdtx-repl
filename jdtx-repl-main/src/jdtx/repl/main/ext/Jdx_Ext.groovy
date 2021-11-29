@@ -385,30 +385,6 @@ class Jdx_Ext extends ProjectExt {
     }
 
 /*
-    void repl_check_id(IVariantMap args) {
-        // БД
-        Db db = app.service(ModelService.class).model.getDb()
-        db.connect()
-        //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
-
-        //
-        try {
-            //
-            IJdxDbStructReader dbStructReader = new JdxDbStructReader()
-            dbStructReader.setDb(db)
-            IJdxDbStruct struct = dbStructReader.readDbStruct()
-
-            //
-            UtRepl utRepl = new UtRepl(db, struct)
-            utRepl.checkNotOwnId()
-        } finally {
-            db.disconnect()
-        }
-    }
-*/
-
-/*
     void repl_sync_ws(IVariantMap args) {
         String mailDir = args.getValueString("dir")
         long age_from = args.getValueLong("from", 0)

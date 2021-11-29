@@ -110,6 +110,11 @@ public class UtRepl {
     }
 
 
+    /**
+     * Проверяет, что в БД нет недопустимых ID.
+     * При некоторых способах разведения id между рабочими станциями
+     * id должны быть меньше определенного числа, см. реализацию jdtx.repl.main.api.decoder.RefDecoder
+     */
     public void checkNotOwnId() throws Exception {
         log.info("Check not own id");
         boolean foundNotOwnId = false;

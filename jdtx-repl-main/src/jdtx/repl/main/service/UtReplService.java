@@ -142,7 +142,7 @@ public class UtReplService {
                 }
             } else {
                 ProcessInfo.printInfo(processInfo);
-                System.out.println("  Skipped, " + processInfo.getProcessId());
+                System.out.println("  Skipped, " + processInfo.getProcessId() + ", " + processInfo.getProcessPath());
             }
         }
     }
