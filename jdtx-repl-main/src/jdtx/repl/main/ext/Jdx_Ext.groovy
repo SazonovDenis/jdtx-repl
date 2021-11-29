@@ -999,16 +999,14 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
-    void repl_service_list(IVariantMap args) {
-        Collection<ServiceInfo> taskList = UtReplService.serviceList();
-        ServiceInfo.printList(taskList);
-    }
-
     void repl_service_start(IVariantMap args) {
         UtReplService.start()
     }
 
     void repl_service_state(IVariantMap args) {
+        Collection<ServiceInfo> taskList = UtReplService.serviceList();
+        ServiceInfo.printList(taskList);
+        //
         Collection<ProcessInfo> processList = UtReplService.processList()
         ProcessInfo.printList(processList)
     }
@@ -1027,8 +1025,6 @@ class Jdx_Ext extends ProjectExt {
             // Выполнение команды
             try {
                 UtReplService.install(db)
-                Collection<ServiceInfo> taskList = UtReplService.serviceList();
-                ServiceInfo.printList(taskList);
             } catch (Exception e) {
                 e.printStackTrace()
                 throw e
@@ -1039,6 +1035,13 @@ class Jdx_Ext extends ProjectExt {
                 db.disconnect()
             }
         }
+
+        //
+        Collection<ServiceInfo> taskList = UtReplService.serviceList();
+        ServiceInfo.printList(taskList);
+        //
+        Collection<ProcessInfo> processList = UtReplService.processList()
+        ProcessInfo.printList(processList)
     }
 
     void repl_service_remove(IVariantMap args) {
@@ -1059,14 +1062,19 @@ class Jdx_Ext extends ProjectExt {
                 UtReplService.stop(false)
                 // Удаляем задачу
                 UtReplService.remove(db)
-                Collection<ServiceInfo> taskList = UtReplService.serviceList();
-                ServiceInfo.printList(taskList);
             } finally {
                 if (db != null && db.connected) {
                     db.disconnect()
                 }
             }
         }
+
+        //
+        Collection<ServiceInfo> taskList = UtReplService.serviceList();
+        ServiceInfo.printList(taskList);
+        //
+        Collection<ProcessInfo> processList = UtReplService.processList()
+        ProcessInfo.printList(processList)
     }
 
     void gen_setup(IVariantMap args) {

@@ -84,9 +84,9 @@ class Jdx_Ext_Test extends JcTestCase {
     }
 
     @Test
-    void repl_service_list() {
+    void repl_service_state() {
         IVariantMap args = new VariantMap()
-        extSrv.repl_service_list(args)
+        extSrv.repl_service_state(args)
     }
 
     @Test

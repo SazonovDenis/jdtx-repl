@@ -37,7 +37,7 @@ public class ProcessInfo extends HashMap<String, String> {
     public static void printInfo(ProcessInfo processInfo) {
         long processId = processInfo.getProcessId();
         String processPath = processInfo.getProcessName();
-        System.out.println(processPath + ", processId: " + processId);
+        System.out.println("  " + processPath + ", processId: " + processId);
     }
 
 }

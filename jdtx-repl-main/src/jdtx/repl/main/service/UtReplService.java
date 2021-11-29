@@ -111,6 +111,12 @@ public class UtReplService {
         }
 
         //
+        Thread.sleep(1000);
+
+        //
+        List<ServiceInfo> taskList = UtReplService.serviceList();
+        ServiceInfo.printList(taskList);
+        //
         Collection<ProcessInfo> processList = UtReplService.processList();
         ProcessInfo.printList(processList);
     }
@@ -145,6 +151,16 @@ public class UtReplService {
                 System.out.println("  Skipped, " + processInfo.getProcessId() + ", " + processInfo.getProcessPath());
             }
         }
+
+        //
+        Thread.sleep(1000);
+
+        //
+        List<ServiceInfo> taskList = UtReplService.serviceList();
+        ServiceInfo.printList(taskList);
+        //
+        processList = UtReplService.processList();
+        ProcessInfo.printList(processList);
     }
 
     public static boolean isStarted() throws Exception {

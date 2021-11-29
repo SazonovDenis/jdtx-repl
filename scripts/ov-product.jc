@@ -284,13 +284,6 @@ repl_find_record = cm("Найти последний вариант записи
     ext.repl_find_record(args)
 }
 
-
-//
-repl_service_list = cm("Список установленных служб") {
-    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    ext.repl_service_list(args)
-}
-
 //
 repl_service_start = cm("Запуск службы") {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
@@ -298,7 +291,7 @@ repl_service_start = cm("Запуск службы") {
 }
 
 //
-repl_service_state = cm("Статус службы") {
+repl_service = cm("Список установленных служб и их статус") {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_service_state(args)
 }
