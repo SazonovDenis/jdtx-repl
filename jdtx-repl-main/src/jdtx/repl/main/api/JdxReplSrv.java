@@ -675,6 +675,102 @@ public class JdxReplSrv {
     }
 
 
+    public void srvMuteAll() throws Exception {
+        log.info("srvMuteAll");
+
+        // Системная команда "MUTE"...
+        UtRepl utRepl = new UtRepl(db, struct);
+        IReplica replica = utRepl.createReplicaMute(0);
+
+        // ... в исходящую (общую) очередь реплик
+        queCommon.push(replica);
+    }
+
+
+    public long srvMuteState(boolean doWaitMute, long muteAgeWait) throws Exception {
+        while (true) {
+            // DataStore stDisplay = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE where enabled = 1");
+            // UtData.outTable(stDisplay);
+            DataStore stDisplay = db.loadSql("select WS_ID, QUE_IN_NO_DONE, MUTE_AGE, '' as MUTE_STATE from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE where enabled = 1");
+
+            // Вычисление состояния
+            long count_total = stDisplay.size();
+            long countMute = 0;
+            long countWaitAge = 0;
+            long muteAgeMax = 0;
+            long muteAgeMin = Long.MAX_VALUE;
+            for (DataRecord recDisplay : stDisplay) {
+                long muteAgeWs = recDisplay.getValueLong("mute_age");
+                if (muteAgeWs > 0) {
+                    countMute = countMute + 1;
+                }
+                if (muteAgeWs >= muteAgeWait) {
+                    countWaitAge = countWaitAge + 1;
+                }
+                if (muteAgeMin > muteAgeWs) {
+                    muteAgeMin = muteAgeWs;
+                }
+                if (muteAgeMax < muteAgeWs) {
+                    muteAgeMax = muteAgeWs;
+                }
+                //
+                if (muteAgeWait == 0) {
+                    if (muteAgeWs == 0) {
+                        recDisplay.setValue("mute_state", "Wait mute");
+                    } else {
+                        recDisplay.setValue("mute_state", "Muted ok");
+                    }
+                } else {
+                    if (muteAgeWs == 0) {
+                        recDisplay.setValue("mute_state", "Wait mute");
+                    } else if (muteAgeWs < muteAgeWait) {
+                        recDisplay.setValue("mute_state", "Wait age");
+                    } else {
+                        recDisplay.setValue("mute_state", "Age ok");
+                    }
+                }
+            }
+
+            // Печать состояния
+            UtData.outTable(stDisplay);
+            //
+            if (countMute == 0) {
+                System.out.println("No workstations in MUTE");
+            } else if (countMute == count_total) {
+                System.out.println("All workstations in MUTE, min age: " + muteAgeMin + ", max age: " + muteAgeMax);
+            } else {
+                System.out.println("Workstations in MUTE: " + countMute + "/" + count_total);
+            }
+
+            // Не делаем ожидания, если не нужно
+            if (!doWaitMute) {
+                return muteAgeMax;
+            }
+
+            // Выход из ожидания, если все MUTE и не нужно ждать возраста
+            if (countMute == count_total && muteAgeWait == 0) {
+                return muteAgeMax;
+            }
+
+            // Выход из ожидания, если если все MUTE и дождались возраста
+            if (countMute == count_total && muteAgeMin >= muteAgeWait) {
+                System.out.println("Wait for MUTE age done: " + muteAgeWait);
+                return muteAgeMax;
+            }
+
+            //
+            if (muteAgeWait == 0) {
+                System.out.println("Wait for all MUTE");
+            } else {
+                System.out.println("Wait for MUTE age: " + muteAgeWait + ", done: " + countWaitAge + "/" + count_total);
+            }
+
+            //
+            Thread.sleep(2000);
+        }
+    }
+
+
     public void srvAppUpdate(String exeFileName, String queName) throws Exception {
         log.info("srvAppUpdate, exe fileName: " + exeFileName);
 
@@ -859,18 +955,6 @@ public class JdxReplSrv {
         // Создаем снимок таблицы и кладем его в очередь queOut (разрешаем отсылать чужие записи)
         UtRepl ut = new UtRepl(db, struct);
         ut.createSendSnapshotForTables(tables, SERVER_WS_ID, destinationWsId, publicationRule, false, queOut001);
-    }
-
-
-    public void srvDbStructStart() throws Exception {
-        log.info("srvDbStructStart");
-
-        // Системная команда "MUTE"...
-        UtRepl utRepl = new UtRepl(db, struct);
-        IReplica replica = utRepl.createReplicaMute(0);
-
-        // ... в исходящую (общую) очередь реплик
-        queCommon.push(replica);
     }
 
 

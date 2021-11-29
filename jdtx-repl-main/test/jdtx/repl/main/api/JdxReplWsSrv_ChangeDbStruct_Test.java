@@ -9,6 +9,7 @@ import org.json.simple.*;
 import org.junit.*;
 
 /**
+ *
  */
 public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
@@ -73,7 +74,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Начинаем (на сервере) смену версии БД - формируем сигнал "всем молчать"
-        test_srvDbStructStart();
+        test_srvMuteAll();
 
         // Цикл синхронизации
         sync_http_1_2_3();
@@ -440,7 +441,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Начинаем (на сервере) смену версии БД - формируем сигнал "всем молчать"
-        test_srvDbStructStart();
+        test_srvMuteAll();
 
         // Цикл синхронизации
         sync_http_1_2_3();
@@ -496,7 +497,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // ... рассылаем на рабочие станции новые правила публикаций (команда repl_send_cfg) ...
         srv.srvSendCfg(cfg_publications, CfgType.PUBLICATIONS, 0, UtQue.QUE_COMMON);
 
-        // ... рассылаем сигнал "всем говорить" (команда repl_dbstruct_finish)
+        // ... рассылаем сигнал "SET_DB_STRUCT" (команда repl_dbstruct_finish)
         test_srvDbStructFinish();
 
         //
@@ -607,12 +608,43 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     }
 
     @Test
-    public void test_srvDbStructStart() throws Exception {
+    public void test_srvMuteAll() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init();
 
         //
-        srv.srvDbStructStart();
+        srv.srvMuteAll();
+    }
+
+    @Test
+    public void test_srvDbStructStateWait() throws Exception {
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init();
+
+        // Печатаем состояние MUTE
+        srv.srvMuteState(false, 0);
+
+        // Всех в состояние MUTE
+        srv.srvMuteAll();
+        System.out.println("===");
+        System.out.println("wait for MUTE");
+        System.out.println("===");
+        //
+        long waitMuteAge = srv.srvMuteState(true, 0);
+
+        // Всех в состояние MUTE с контролем возраста по предыдущему MUTE
+        waitMuteAge = waitMuteAge + 1;
+        System.out.println("===");
+        System.out.println("wait for MUTE age: " + waitMuteAge);
+        System.out.println("===");
+        //
+        srv.srvMuteAll();
+        //
+        srv.srvMuteState(true, waitMuteAge);
+        System.out.println("===");
+
+        // Всех в состояние UNMUTE
+        srv.srvDbStructFinish();
     }
 
     @Test

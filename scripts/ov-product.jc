@@ -180,27 +180,29 @@ repl_ws_unmute = cm("Отправить на станцию команду 'вы
     ext.repl_ws_unmute(args)
 }
 
-
 //
-repl_dbstruct_start = cm("Начать смену структуры") {
-    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    ext.repl_dbstruct_start(args)
-}
-
-//
-repl_dbstruct_state = cm("Состояние mute у рабочих станций",
-        "wait": [value: null, help: "Ожидать состояния у всех станций mute = true"],
+repl_mute = cm("Перевести все станции в режим mute",
+        "wait": [value: null, help: "Ожидать состояния MUTE у всех станций "],
+        "age": [value: null, help: "Запустить двойной цикл перевода в состояние MUTE"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    ext.repl_dbstruct_state(args)
+    ext.repl_mute(args)
 }
 
 //
-repl_dbstruct_finish = cm("Завершить смену структуры") {
+repl_mute_state = cm("Состояние MUTE у рабочих станций",
+        "wait": [value: null, help: "Ожидать состояния MUTE у всех станций "],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_mute_state(args)
+}
+
+
+//
+repl_dbstruct_finish = cm("Завершить смену структуры, первести все станции в режим UNMUTE") {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_dbstruct_finish(args)
 }
-
 
 
 //

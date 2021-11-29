@@ -609,7 +609,15 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
-    void repl_dbstruct_start(IVariantMap args) {
+    void repl_mute(IVariantMap args) {
+        boolean doWaitMute = !args.isValueNull("wait")
+        boolean doWaitAge = !args.isValueNull("age")
+
+        //
+        if (doWaitAge && !doWaitMute) {
+            throw new XError("Режим [age] доступен только в режиме [wait]")
+        }
+
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -620,8 +628,40 @@ class Jdx_Ext extends ProjectExt {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
-            //
-            srv.srvDbStructStart()
+            // Покажем как сейчас
+            srv.srvMuteState(false, 0)
+
+            // Запущенный сервис мешает
+            UtReplService.stop(false)
+
+            // Отправим команду MUTE (первый раз)
+            srv.srvMuteAll()
+
+            // Теперь нужен запущенный сервис
+            UtReplService.start()
+
+            // Ждем результат
+            long age = 0
+            if (doWaitMute) {
+                age = srv.srvMuteState(true, 0)
+            }
+
+            // Еще раз отправим команду MUTE и ждем результат
+            if (doWaitAge) {
+                age = age + 1;
+
+                // Запущенный сервис мешает
+                UtReplService.stop(false)
+
+                // Отправим команду
+                srv.srvMuteAll()
+
+                // Теперь нужен запущенный сервис
+                UtReplService.start()
+
+                // Ждем результат
+                srv.srvMuteState(true, age)
+            }
 
         } finally {
             UtReplService.setServiceState(db, serviceState)
@@ -629,8 +669,8 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
-    void repl_dbstruct_state(IVariantMap args) {
-        boolean doWaitMute = args.getValueBoolean("wait")
+    void repl_mute_state(IVariantMap args) {
+        boolean doWaitMute = !args.isValueNull("wait")
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -642,45 +682,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            while (true) {
-                DataStore stDisplay = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE where enabled = 1")
-                UtData.outTable(stDisplay)
-
-                // Вычисление состояния
-                long count_total = stDisplay.size()
-                long count_mute = 0
-                long mute_age_max = 0
-                long mute_age_min = Long.MAX_VALUE
-                for (DataRecord recDisplay : stDisplay) {
-                    long mute_age_ws = recDisplay.getValueLong("mute_age")
-                    if (mute_age_ws > 0) {
-                        count_mute = count_mute + 1
-                    }
-                    if (mute_age_min > mute_age_ws) {
-                        mute_age_min = mute_age_ws
-                    }
-                    if (mute_age_max < mute_age_ws) {
-                        mute_age_max = mute_age_ws
-                    }
-                }
-
-                // Печать состояния
-                if (count_mute == 0) {
-                    System.out.println("No workstations in MUTE")
-                } else if (count_mute == count_total) {
-                    System.out.println("All workstations in MUTE, min age: " + mute_age_min + ", max age: " + mute_age_max)
-                } else {
-                    System.out.println("Workstations in MUTE: " + count_mute + "/" + count_total)
-                }
-
-                // Выход из ожидания, если он был
-                if (!doWaitMute || (count_mute == count_total)) {
-                    break
-                }
-
-                //
-                Timer.sleep(5000L)
-            }
+            srv.srvMuteState(doWaitMute, 0)
 
         } finally {
             db.disconnect()
