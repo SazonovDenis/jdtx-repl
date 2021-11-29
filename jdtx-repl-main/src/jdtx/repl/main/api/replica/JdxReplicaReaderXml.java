@@ -2,6 +2,7 @@ package jdtx.repl.main.api.replica;
 
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.util.*;
 import org.json.simple.*;
 import org.json.simple.parser.*;
 
@@ -101,7 +102,7 @@ public class JdxReplicaReaderXml {
             }
         }
         if (inputStream == null) {
-            throw new XError("Not found [" + dataFileMask + "] in replica: " + replica.getData());
+            throw new XError(UtJdxErrors.message_replicaNotFoundContent + ", content: [" + dataFileMask + "], replica: " + replica.getData());
         }
 
         return inputStream;

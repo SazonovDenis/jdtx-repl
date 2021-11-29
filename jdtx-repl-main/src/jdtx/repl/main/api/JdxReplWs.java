@@ -618,7 +618,7 @@ public class JdxReplWs {
     }
 
     private void handleError_UseReplica(IJdxReplicaStorage que, String queName, long no, IMailer mailer, Exception exceptionUse) throws Exception {
-        if (UtJdxErrors.errorIs_replicaUsedBadCrc(exceptionUse) || UtJdxErrors.errorIs_replicaFileNotExists(exceptionUse)) {
+        if (UtJdxErrors.errorIs_replicaUsedBadCrc(exceptionUse) || UtJdxErrors.errorIs_replicaFileNotExists(exceptionUse) || UtJdxErrors.errorIs_replicaNotFoundContent(exceptionUse)) {
             String box;
             switch (queName) {
                 case UtQue.QUE_IN:
