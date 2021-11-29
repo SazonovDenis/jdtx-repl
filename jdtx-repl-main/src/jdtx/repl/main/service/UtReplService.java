@@ -162,10 +162,23 @@ public class UtReplService {
 
     private static boolean isOurProcess(ProcessInfo processInfo) {
         String workDir = UtFile.getWorkdir().getAbsolutePath();
-        workDir = new File(new File(workDir).getParent()).getParent();
-        String executablePath = processInfo.getProcessPath();
-        executablePath = new File(new File(executablePath).getParent()).getParent();
-        return executablePath.compareToIgnoreCase(workDir) == 0;
+        if (workDir.endsWith("WEB-INF")) {
+            workDir = workDir.substring(0, workDir.length() - 8);
+        }
+        if (workDir.endsWith("web")) {
+            workDir = workDir.substring(0, workDir.length() - 4);
+        }
+
+        String processDir = processInfo.getProcessPath();
+        if (processDir.endsWith("bin")) {
+            processDir = processDir.substring(0, processDir.length() - 4);
+        }
+        if (processDir.endsWith("jre")) {
+            processDir = processDir.substring(0, processDir.length() - 4);
+        }
+
+        //
+        return processDir.compareToIgnoreCase(workDir) == 0;
     }
 
     public static void install(Db db) throws Exception {
