@@ -1,5 +1,6 @@
 package jdtx.repl.main.api.replica;
 
+import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.util.*;
@@ -67,14 +68,15 @@ public class JdxReplicaReaderXml {
 
     public static void readReplicaInfo(IReplica replica) throws Exception {
         ReplicaInfo info = new ReplicaInfo();
-        try (
-                InputStream zipInputStream = createInputStream(replica, ".info")
-        ) {
+        InputStream stream = createInputStream(replica, ".info");
+        try {
             JSONObject jsonObject;
-            Reader reader = new InputStreamReader(zipInputStream);
+            Reader reader = new InputStreamReader(stream);
             JSONParser parser = new JSONParser();
             jsonObject = (JSONObject) parser.parse(reader);
             info.fromJSONObject(jsonObject);
+        } finally {
+            stream.close();
         }
 
         // Тут CRC реплики НЕ забираем!!! Его в .info не может быть
@@ -91,18 +93,18 @@ public class JdxReplicaReaderXml {
     }
 
     public static InputStream createInputStream(IReplica replica, String dataFileMask) throws IOException {
-        InputStream inputStream = null;
+        InputStream contentInputStream = null;
         ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(replica.getData()));
         try {
             ZipEntry entry;
             while ((entry = zipInputStream.getNextEntry()) != null) {
                 String name = entry.getName();
                 if (name.endsWith(dataFileMask)) {
-                    inputStream = zipInputStream;
+                    contentInputStream = zipInputStream;
                     break;
                 }
             }
-            if (inputStream == null) {
+            if (contentInputStream == null) {
                 throw new XError(UtJdxErrors.message_replicaNotFoundContent + ", content: [" + dataFileMask + "], replica: " + replica.getData());
             }
         } catch (Exception e) {
@@ -110,7 +112,7 @@ public class JdxReplicaReaderXml {
             throw e;
         }
 
-        return inputStream;
+        return contentInputStream;
     }
 
 
