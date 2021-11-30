@@ -93,16 +93,21 @@ public class JdxReplicaReaderXml {
     public static InputStream createInputStream(IReplica replica, String dataFileMask) throws IOException {
         InputStream inputStream = null;
         ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(replica.getData()));
-        ZipEntry entry;
-        while ((entry = zipInputStream.getNextEntry()) != null) {
-            String name = entry.getName();
-            if (name.endsWith(dataFileMask)) {
-                inputStream = zipInputStream;
-                break;
+        try {
+            ZipEntry entry;
+            while ((entry = zipInputStream.getNextEntry()) != null) {
+                String name = entry.getName();
+                if (name.endsWith(dataFileMask)) {
+                    inputStream = zipInputStream;
+                    break;
+                }
             }
-        }
-        if (inputStream == null) {
-            throw new XError(UtJdxErrors.message_replicaNotFoundContent + ", content: [" + dataFileMask + "], replica: " + replica.getData());
+            if (inputStream == null) {
+                throw new XError(UtJdxErrors.message_replicaNotFoundContent + ", content: [" + dataFileMask + "], replica: " + replica.getData());
+            }
+        } catch (Exception e) {
+            zipInputStream.close();
+            throw e;
         }
 
         return inputStream;
