@@ -650,7 +650,7 @@ public class JdxReplWs {
                 // Обновим "битую" реплику - заменим на нормальную
                 String actualFileName = JdxStorageFile.getFileName(no);
                 File actualFile = new File(((JdxStorageFile) que).getBaseDir() + actualFileName);
-                if (!actualFile.delete()) {
+                if (actualFile.exists() && !actualFile.delete()) {
                     throw new XError("handleError_UseReplica, unable to delete bad replica: " + actualFile.getAbsolutePath());
                 }
                 //
