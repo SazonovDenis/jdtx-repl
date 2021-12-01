@@ -34,26 +34,29 @@ public class UtJdx {
 
     /**
      * Сортирует список таблиц с учетом foreign key и по алфавиту.
+     * <p>
      * В начале списка оказываются таблицы, которые не ссылаются на другие таблицы (например, справочники).
+     * Результат можно применять для определения порядка таблиц при INS|DEL, для избежания проблем со ссылочной целостностью,
+     * удалять данные можно с конца списка, а добавлять - с начала.
+     * <p>
      * Сортировка по алфавиту может пригодится для предсказуемого порядка, если таблицы не зависят друг от друга.
-     * Результат можно применять для определения порядка таблиц при ins, для избежания проблем со ссылочной целостностью.
      *
      * @param lst исходный список
      * @return отсортированный список
      */
     public static List<IJdxTable> sortTablesByReference(List<IJdxTable> lst) throws Exception {
         // отсортированный список таблиц
-        List<IJdxTable> sortLst = new ArrayList<>();
+        List<IJdxTable> sortedLst = new ArrayList<>();
 
-        // список таблиц, которые уже вошли в sortLst
-        List<IJdxTable> usedLst = new ArrayList<IJdxTable>();
+        // список таблиц, которые уже вошли в sortedLst
+        List<IJdxTable> usedLst = new ArrayList<>();
 
-        // список таблиц, которые еще не вошли в sortLst (пока все таблицы)
-        List<IJdxTable> restLst = new ArrayList<IJdxTable>();
+        // список таблиц, которые еще не вошли в sortedLst (пока все таблицы)
+        List<IJdxTable> restLst = new ArrayList<>();
         restLst.addAll(lst);
 
-        // В первую итерацию в sortLst помещаем таблицы, не ссылающиеся на другие таблицы
-        List<IJdxTable> curLst = new ArrayList<IJdxTable>();
+        // В первую итерацию в sortedLst помещаем таблицы, не ссылающиеся на другие таблицы
+        List<IJdxTable> curLst = new ArrayList<>();
         int i = 0;
         while (i < restLst.size()) {
             IJdxTable table = restLst.get(i);
@@ -73,14 +76,14 @@ public class UtJdx {
         curLst.sort(tableComparator);
 
         // К списку отсортированнных и использованных таблиц прибавляем список таблиц первой итерации
-        sortLst.addAll(curLst);
+        sortedLst.addAll(curLst);
         usedLst.addAll(curLst);
 
 
-        // Для всех добавленных (и отсортированных) таблиц ищем зависимые таблицы и добавляем их в sortLst до тех пор,
-        // пока в sortLst не окажутся все таблицы
+        // Для всех добавленных (и отсортированных) таблиц ищем зависимые таблицы и добавляем их в sortedLst до тех пор,
+        // пока в sortedLst не окажутся все таблицы
         while (restLst.size() != 0) {
-            // список таблиц, добавленных на данной итерации
+            // Список таблиц, добавленных на данной итерации
             curLst.clear();
 
             // Ищем таблицы, ссылающиеся на уже имеющиеся в usedLst таблицы
@@ -88,25 +91,26 @@ public class UtJdx {
             while (i < restLst.size()) {
                 IJdxTable table = restLst.get(i);
 
-                // перебираем все внешние ключи таблицы table и пытаемся выяснить,
+                // Перебираем все внешние ключи таблицы table и пытаемся выяснить,
                 // ссылается ли table на таблицы из уже отсортированных (usedLst)
                 boolean willAdd = true;
                 for (IJdxForeignKey fk : table.getForeignKeys()) {
-                    // Если ссылка в таблице ссылается не на эту же таблицу,
-                    // и целевая таблица была в исходном списке,
+                    // Если ссылка в таблице ссылается на саму себя, то эту ссылку пропустим
+                    if (fk.getTable().getName().equalsIgnoreCase(table.getName())) {
+                        continue;
+                    }
+
+                    // Если целевая таблица была в исходном списке,
                     // и целевая таблица пока отсутствует в usedLst,
                     // то таблицу пока пропускаем
-                    if (!fk.getTable().getName().equalsIgnoreCase(table.getName())
-                            && usedLst.indexOf(fk.getTable()) == -1
-                            && lst.indexOf(fk.getTable()) != -1) {
+                    if (lst.contains(fk.getTable()) && !usedLst.contains(fk.getTable())) {
                         willAdd = false;
                         break;
                     }
                 }
 
-                //
+                // Таблица ссылается только на кого-либо из уже отсортированных (usedLst)
                 if (willAdd) {
-                    // Таблица ссылается только на кого-либо из уже отсортированных (usedLst)
                     restLst.remove(i);
                     curLst.add(table);
                 } else {
@@ -118,7 +122,7 @@ public class UtJdx {
             curLst.sort(tableComparator);
 
             // К списку отсортированнных и использованных таблиц прибавляем список таблиц, добавленных на данной итерации
-            sortLst.addAll(curLst);
+            sortedLst.addAll(curLst);
             usedLst.addAll(curLst);
 
             //
@@ -128,45 +132,118 @@ public class UtJdx {
         }
 
         // Отсортированный список таблиц
-        return sortLst;
+        return sortedLst;
     }
 
 
     /**
-     * Возвращает список таблиц, от которых зависит tableMain (по foreign key).
+     * Возвращает список таблиц, на которые (по foreign key) ссылается table (от которых зависит table).
+     * Таблицы в результате отсортированы по зависимостям (по foreign key).
+     *
+     * @param table главная таблица (напр. Abn)
+     * @param all   найти все зависимости рекурсивно
+     * @return спискок таблиц, в которых есть ссылка на главную (используемые справочники, напр. Ulz)
      */
-    public static List<IJdxTable> getTablesDependsOn(IJdxTable tableMain, boolean all) throws Exception {
+    public static List<IJdxTable> getTablesDependsOn(IJdxTable table, boolean all) throws Exception {
         // Список таблиц
         List<IJdxTable> res = new ArrayList<>();
 
         //
-        getTablesDependsOnInternal(tableMain, all, res);
+        getTablesDependsOnInternal(table, all, res);
+
+        //
+        res = UtJdx.sortTablesByReference(res);
 
         //
         return res;
     }
 
     /**
-     * Возвращает список таблиц, которые зависят от tableMain (по foreign key).
+     * Возвращает список таблиц, которые (по foreign key) ссылаются на table (которые зависят от table).
+     * Таблицы в результате отсортированы по зависимостям (по foreign key).
+     *
+     * @param table таблица - справочник (напр. Ulz)
+     * @param all   найти все зависимости рекурсивно
+     * @return спискок таблиц, в которых есть ссылка на главную (пользователи справочника, напр. Abn)
      */
-    public static List<IJdxTable> getDependTables(IJdxDbStruct struct, IJdxTable tableMain, boolean all) throws Exception {
+    public static List<IJdxTable> getDependTables(List<IJdxTable> structTables, IJdxTable table, boolean all) throws Exception {
         // Список таблиц
         List<IJdxTable> res = new ArrayList<>();
 
         //
-        getDependTablesInternal(struct, tableMain, all, res);
+        getDependTablesInternal(structTables, table, all, res);
+
+        //
+        res = UtJdx.sortTablesByReference(res);
 
         //
         return res;
     }
 
-    private static void getDependTablesInternal(IJdxDbStruct struct, IJdxTable tableMain, boolean all, List<IJdxTable> res) {
+    /**
+     * Возвращает все ссылки на таблицу (справочник).
+     * Учитывает, что ссылок ИЗ одной таблицы на другую таблицу бывает более одной, например Abn.Ulz -> Ulz и Abn.UlzReg -> Ulz.
+     *
+     * @param table таблица - справочник (напр. Ulz)
+     * @param all   найти все зависимости рекурсивно
+     * @return Map, где для каждой зависимой таблицы (key) имеется список ссылок (value), которые ссылаются на таблицу tableName (пользователи справочника, напр. Abn)
+     */
+    public static Map<String, Collection<IJdxForeignKey>> getRefsToTable(List<IJdxTable> structTables, IJdxTable table, boolean all) {
+        Map<String, Collection<IJdxForeignKey>> res = new HashMap<>();
+
         //
-        for (IJdxTable tableRef : struct.getTables()) {
+        getRefsToTableInternal(structTables, table, all, res);
+
+        //
+        return res;
+    }
+
+    /**
+     * @return Возвращает список значений из tables, отсртированных по порядку как таблицы в structTables
+     */
+    public static List<String> getSortedKeys(List<IJdxTable> structTables, Collection<String> tables) {
+
+        // Отсортируем как в structTables
+        List<String> tablesSorted = new ArrayList<>();
+        for (IJdxTable tableStruct : structTables) {
+            String tableName = tableStruct.getName();
+            if (tables.contains(tableName)) {
+                tablesSorted.add(tableName);
+            }
+        }
+
+        return tablesSorted;
+    }
+
+    private static void getRefsToTableInternal(List<IJdxTable> structTables, IJdxTable table, boolean all, Map<String, Collection<IJdxForeignKey>> res) {
+        for (IJdxTable refTable : structTables) {
+            List<IJdxForeignKey> refTableFkList = new ArrayList<>();
+            //
+            for (IJdxForeignKey refTableFk : refTable.getForeignKeys()) {
+                if (refTableFk.getTable().getName().equals(table.getName())) {
+                    refTableFkList.add(refTableFk);
+                }
+            }
+            //
+            if (refTableFkList.size() != 0) {
+                res.put(refTable.getName(), refTableFkList);
+
+                //
+                if (all) {
+                    getRefsToTableInternal(structTables, refTable, all, res);
+                }
+            }
+
+        }
+    }
+
+    private static void getDependTablesInternal(List<IJdxTable> structTables, IJdxTable table, boolean all, List<IJdxTable> res) {
+        //
+        for (IJdxTable tableRef : structTables) {
 
             for (IJdxForeignKey fieldFk : tableRef.getForeignKeys()) {
 
-                if (tableMain == fieldFk.getTable()) {
+                if (table == fieldFk.getTable()) {
 
                     //
                     if (res.contains(tableRef)) {
@@ -178,15 +255,15 @@ public class UtJdx {
 
                     //
                     if (all) {
-                        getDependTablesInternal(struct, tableRef, all, res);
+                        getDependTablesInternal(structTables, tableRef, all, res);
                     }
                 }
             }
         }
     }
 
-    private static void getTablesDependsOnInternal(IJdxTable tableMain, boolean all, List<IJdxTable> res) {
-        for (IJdxForeignKey fieldFk : tableMain.getForeignKeys()) {
+    private static void getTablesDependsOnInternal(IJdxTable table, boolean all, List<IJdxTable> res) {
+        for (IJdxForeignKey fieldFk : table.getForeignKeys()) {
             IJdxTable tableRef = fieldFk.getTable();
 
             //

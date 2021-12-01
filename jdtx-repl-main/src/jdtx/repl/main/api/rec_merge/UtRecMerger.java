@@ -26,8 +26,8 @@ public class UtRecMerger {
      * если делать relocate/delete записи idSour в таблице tableName
      */
     public void recordsRelocateSave(String tableName, Collection<Long> recordsDelete, IJdxDataSerializer dataSerializer, RecMergeResultWriter resultWriter) throws Exception {
-        // Собираем зависимости
-        Map<String, Collection<IJdxForeignKey>> refsToTable = getRefsToTable(tableName);
+        // Собираем непосредственные зависимости
+        Map<String, Collection<IJdxForeignKey>> refsToTable = UtJdx.getRefsToTable(struct.getTables(), struct.getTable(tableName), false);
 
         // Обрабатываем зависимости
         for (String refTableName : refsToTable.keySet()) {
@@ -57,8 +57,8 @@ public class UtRecMerger {
     }
 
     public void recordsRelocateExec(String tableName, Collection<Long> recordsDelete, long etalonRecId) throws Exception {
-        // Собираем зависимости
-        Map<String, Collection<IJdxForeignKey>> refsToTable = getRefsToTable(tableName);
+        // Собираем непосредственные зависимости
+        Map<String, Collection<IJdxForeignKey>> refsToTable = UtJdx.getRefsToTable(struct.getTables(), struct.getTable(tableName), false);
 
         // Обрабатываем зависимости
         for (String refTableName : refsToTable.keySet()) {
@@ -121,34 +121,6 @@ public class UtRecMerger {
             // Удаляем
             db.execSql(sqlDelete, params);
         }
-    }
-
-    /**
-     * Учитывает, что ссылок ИЗ таблицы на другую таблицу бывает более одной.
-     *
-     * @return Список ссылок из всех таблиц, которыессылаются на таблицу tableName
-     */
-    private Map<String, Collection<IJdxForeignKey>> getRefsToTable(String tableName) {
-        Map<String, Collection<IJdxForeignKey>> res = new HashMap<>();
-
-        //
-        IJdxTable table = struct.getTable(tableName);
-
-        //
-        for (IJdxTable refTable : struct.getTables()) {
-            Collection<IJdxForeignKey> tableFkList = new ArrayList<>();
-            for (IJdxForeignKey refTableFk : refTable.getForeignKeys()) {
-                if (refTableFk.getTable().getName().equals(table.getName())) {
-                    tableFkList.add(refTableFk);
-                }
-            }
-            if (tableFkList.size() != 0) {
-                res.put(refTable.getName(), tableFkList);
-            }
-        }
-
-        //
-        return res;
     }
 
 }

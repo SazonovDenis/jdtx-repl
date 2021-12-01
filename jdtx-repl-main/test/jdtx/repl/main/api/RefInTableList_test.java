@@ -25,13 +25,13 @@ public class RefInTableList_test extends ReplDatabaseStruct_Test {
         String[] tableNamesNew = tableNamesStrNew.split(",");
         String[] tableNamesExists = tableNamesStrExists.split(",");
         //
-        Collection<IJdxTable> tableListNew = new ArrayList<>();
+        List<IJdxTable> tableListNew = new ArrayList<>();
         for (String tableName : tableNamesNew) {
             IJdxTable table = struct.getTable(tableName);
             tableListNew.add(table);
         }
         //
-        Collection<IJdxTable> tableListExists = new ArrayList<>();
+        List<IJdxTable> tableListExists = new ArrayList<>();
         for (String tableName : tableNamesExists) {
             IJdxTable table = struct.getTable(tableName);
             tableListExists.add(table);
@@ -41,7 +41,7 @@ public class RefInTableList_test extends ReplDatabaseStruct_Test {
         checkRefInTableList(tableListNew, tableListExists, struct);
     }
 
-    void checkRefInTableList(Collection<IJdxTable> tableListNew, Collection<IJdxTable> tableListExists, IJdxDbStruct struct) {
+    void checkRefInTableList(List<IJdxTable> tableListNew, List<IJdxTable> tableListExists, IJdxDbStruct struct) {
         for (IJdxTable table : tableListNew) {
             for (IJdxForeignKey fieldFk : table.getForeignKeys()) {
                 IJdxTable refTable = fieldFk.getTable();
