@@ -207,21 +207,17 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
-        ReplServiceState serviceState = UtReplService.readServiceState(db)
-        try {
-            // Останавливаем задачу и удаляем процесс
-            UtReplService.stop(false)
-            UtReplService.remove(db)
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
 
-            //
+        try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
             //
             srv.addWorkstation(wsId, name, guid, cfgPublications, cfgDecode)
         } finally {
-            UtReplService.setServiceState(db, serviceState)
+            restoreServiceState(serviceState, args)
             db.disconnect()
         }
     }
@@ -241,21 +237,17 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
-        ReplServiceState serviceState = UtReplService.readServiceState(db)
-        try {
-            // Останавливаем задачу и удаляем процесс
-            UtReplService.stop(false)
-            UtReplService.remove(db)
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
 
-            //
+        try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
             //
             srv.restoreWorkstation(wsId, cfgSsnapshot)
         } finally {
-            UtReplService.setServiceState(db, serviceState)
+            restoreServiceState(serviceState, args)
             db.disconnect()
         }
     }
@@ -271,18 +263,14 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
-        ReplServiceState serviceState = UtReplService.readServiceState(db)
-        try {
-            // Останавливаем задачу и удаляем процесс
-            UtReplService.stop(false)
-            UtReplService.remove(db)
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
 
-            //
+        try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.enableWorkstation(wsId)
         } finally {
-            UtReplService.setServiceState(db, serviceState)
+            restoreServiceState(serviceState, args)
             db.disconnect()
         }
     }
@@ -298,18 +286,14 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
-        ReplServiceState serviceState = UtReplService.readServiceState(db)
-        try {
-            // Останавливаем задачу и удаляем процесс
-            UtReplService.stop(false)
-            UtReplService.remove(db)
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
 
-            //
+        try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.disableWorkstation(wsId)
         } finally {
-            UtReplService.setServiceState(db, serviceState)
+            restoreServiceState(serviceState, args)
             db.disconnect()
         }
     }
@@ -385,13 +369,10 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
-        ReplServiceState serviceState = UtReplService.readServiceState(db)
-        try {
-            // Останавливаем задачу и удаляем процесс
-            UtReplService.stop(false)
-            UtReplService.remove(db)
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
 
+        try {
             // Рабочая станция
             JdxReplWs ws = new JdxReplWs(db)
             ws.init()
@@ -407,7 +388,7 @@ class Jdx_Ext extends ProjectExt {
             }
 
         } finally {
-            UtReplService.setServiceState(db, serviceState)
+            restoreServiceState(serviceState, args)
             db.disconnect()
         }
     }
@@ -569,13 +550,10 @@ class Jdx_Ext extends ProjectExt {
 
         //
         try {
-            ReplServiceState serviceState = UtReplService.readServiceState(db)
-            try {
-                // Останавливаем задачу и удаляем процесс
-                UtReplService.stop(false)
-                UtReplService.remove(db)
+            // Останавливаем процесс и удаляем службу
+            ReplServiceState serviceState = saveServiceState(db, args)
 
-                //
+            try {
                 JdxReplSrv srv = new JdxReplSrv(db)
                 srv.init()
 
@@ -583,7 +561,7 @@ class Jdx_Ext extends ProjectExt {
                 srv.srvSetWsMute(destinationWsId)
 
             } finally {
-                UtReplService.setServiceState(db, serviceState)
+                restoreServiceState(serviceState, args)
                 db.disconnect()
             }
         } catch (Exception e) {
@@ -602,14 +580,10 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
-        ReplServiceState serviceState = UtReplService.readServiceState(db)
-        try {
-            // Останавливаем задачу и удаляем процесс
-            UtReplService.stop(false)
-            UtReplService.remove(db)
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
 
-            //
+        try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
@@ -617,7 +591,7 @@ class Jdx_Ext extends ProjectExt {
             srv.srvSetWsUnmute(destinationWsId)
 
         } finally {
-            UtReplService.setServiceState(db, serviceState)
+            restoreServiceState(serviceState, args)
             db.disconnect()
         }
     }
@@ -636,27 +610,23 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
-        ReplServiceState serviceState = UtReplService.readServiceState(db)
-        try {
-            // Останавливаем задачу и удаляем процесс
-            UtReplService.stop(false)
-            UtReplService.remove(db)
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
 
-            //
+        try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
             // Покажем как сейчас
             srv.srvMuteState(false, 0)
 
-            // Запущенный сервис мешает
+            // Запущенный процесс мешает
             UtReplService.stop(false)
 
             // Отправим команду MUTE (первый раз)
             srv.srvMuteAll()
 
-            // Теперь нужен запущенный сервис
+            // Теперь нужен запущенный процесс
             UtReplService.start()
 
             // Ждем результат
@@ -669,13 +639,13 @@ class Jdx_Ext extends ProjectExt {
             if (doWaitAge) {
                 age = age + 1;
 
-                // Запущенный сервис мешает
+                // Запущенный процесс мешает
                 UtReplService.stop(false)
 
                 // Отправим команду
                 srv.srvMuteAll()
 
-                // Теперь нужен запущенный сервис
+                // Теперь нужен запущенный процесс
                 UtReplService.start()
 
                 // Ждем результат
@@ -683,25 +653,23 @@ class Jdx_Ext extends ProjectExt {
             }
 
         } finally {
-            UtReplService.setServiceState(db, serviceState)
+            restoreServiceState(serviceState, args)
             db.disconnect()
         }
     }
 
 
     void repl_unmute(IVariantMap args) {
+        boolean doWaitMute = !args.isValueNull("wait")
+
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
-        ReplServiceState serviceState = UtReplService.readServiceState(db)
-        try {
-            // Останавливаем задачу и удаляем процесс
-            UtReplService.stop(false)
-            UtReplService.remove(db)
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
 
-            //
+        try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
@@ -709,7 +677,7 @@ class Jdx_Ext extends ProjectExt {
             srv.srvUnmuteAll()
 
         } finally {
-            UtReplService.setServiceState(db, serviceState)
+            restoreServiceState(serviceState, args)
             db.disconnect()
         }
     }
@@ -739,14 +707,10 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
-        ReplServiceState serviceState = UtReplService.readServiceState(db)
-        try {
-            // Останавливаем задачу и удаляем процесс
-            UtReplService.stop(false)
-            UtReplService.remove(db)
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
 
-            //
+        try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
@@ -754,7 +718,7 @@ class Jdx_Ext extends ProjectExt {
             srv.srvDbStructFinish()
 
         } finally {
-            UtReplService.setServiceState(db, serviceState)
+            restoreServiceState(serviceState, args)
             db.disconnect()
         }
     }
@@ -785,14 +749,10 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
-        ReplServiceState serviceState = UtReplService.readServiceState(db)
-        try {
-            // Останавливаем задачу и удаляем процесс
-            UtReplService.stop(false)
-            UtReplService.remove(db)
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
 
-            //
+        try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
@@ -800,7 +760,7 @@ class Jdx_Ext extends ProjectExt {
             srv.srvSendCfg(cfgFileName, cfgType, destinationWsId, queName)
 
         } finally {
-            UtReplService.setServiceState(db, serviceState)
+            restoreServiceState(serviceState, args)
             db.disconnect()
         }
     }
@@ -856,14 +816,10 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
-        ReplServiceState serviceState = UtReplService.readServiceState(db)
-        try {
-            // Останавливаем задачу и удаляем процесс
-            UtReplService.stop(false)
-            UtReplService.remove(db)
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
 
-            //
+        try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
@@ -871,7 +827,7 @@ class Jdx_Ext extends ProjectExt {
             srv.srvAppUpdate(exeFileName, queName)
 
         } finally {
-            UtReplService.setServiceState(db, serviceState)
+            restoreServiceState(serviceState, args)
             db.disconnect()
         }
     }
@@ -886,14 +842,10 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
-        ReplServiceState serviceState = UtReplService.readServiceState(db)
-        try {
-            // Останавливаем задачу и удаляем процесс
-            UtReplService.stop(false)
-            UtReplService.remove(db)
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
 
-            //
+        try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
@@ -901,7 +853,7 @@ class Jdx_Ext extends ProjectExt {
             srv.srvMergeRequest(planFileName)
 
         } finally {
-            UtReplService.setServiceState(db, serviceState)
+            restoreServiceState(serviceState, args)
             db.disconnect()
         }
     }
@@ -924,14 +876,10 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
-        ReplServiceState serviceState = UtReplService.readServiceState(db)
-        try {
-            // Останавливаем задачу и удаляем процесс
-            UtReplService.stop(false)
-            UtReplService.remove(db)
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
 
-            //
+        try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
@@ -939,7 +887,7 @@ class Jdx_Ext extends ProjectExt {
             srv.srvRequestSnapshot(destinationWsId, tableNames, queName)
 
         } finally {
-            UtReplService.setServiceState(db, serviceState)
+            restoreServiceState(serviceState, args)
             db.disconnect()
         }
     }
@@ -955,14 +903,10 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
-        ReplServiceState serviceState = UtReplService.readServiceState(db)
-        try {
-            // Останавливаем задачу и удаляем процесс
-            UtReplService.stop(false)
-            UtReplService.remove(db)
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
 
-            //
+        try {
             if (destinationWsId != 0L) {
                 // Запросили для конкретной станциию
 
@@ -986,7 +930,7 @@ class Jdx_Ext extends ProjectExt {
             }
 
         } finally {
-            UtReplService.setServiceState(db, serviceState)
+            restoreServiceState(serviceState, args)
             db.disconnect()
         }
     }
@@ -999,14 +943,10 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
-        ReplServiceState serviceState = UtReplService.readServiceState(db)
-        try {
-            // Останавливаем задачу и удаляем процесс
-            UtReplService.stop(false)
-            UtReplService.remove(db)
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
 
-            //
+        try {
             try {
                 //
                 JdxReplWs ws = new JdxReplWs(db)
@@ -1020,7 +960,7 @@ class Jdx_Ext extends ProjectExt {
             }
 
         } finally {
-            UtReplService.setServiceState(db, serviceState)
+            restoreServiceState(serviceState, args)
             db.disconnect()
         }
     }
@@ -1084,9 +1024,9 @@ class Jdx_Ext extends ProjectExt {
                 db = app.service(ModelService.class).model.getDb()
                 db.connect()
 
-                // Останавливаем задачу
+                // Останавливаем процесс
                 UtReplService.stop(false)
-                // Удаляем задачу
+                // Удаляем службу
                 UtReplService.remove(db)
             } finally {
                 if (db != null && db.connected) {
@@ -1121,6 +1061,43 @@ class Jdx_Ext extends ProjectExt {
         UtGenSetup utSetup = new UtGenSetup()
         utSetup.app = app
         utSetup.gen(inFileName, outDirName)
+    }
+
+    /**
+     * Запоминаем состояние процесса и службы репликатора,
+     * останавливаем процесс и удаляем службу
+     */
+    ReplServiceState saveServiceState(Db db, IVariantMap args) {
+        ReplServiceState serviceState = null;
+
+        //
+        boolean saveServiceState = !args.isValueNull("notSaveServiceState")
+        if (saveServiceState) {
+            serviceState = UtReplService.readServiceState(db)
+
+            try {
+                // Останавливаем процесс 
+                UtReplService.remove(db)
+                // Удаляем службу
+                UtReplService.stop(false)
+            } catch (Exception e) {
+                restoreServiceState(serviceState, args)
+                throw e
+            }
+
+        }
+
+        return serviceState;
+    }
+
+    /**
+     * Восстанавливаем состояние процесса и службы репликатора по данным в replServiceState
+     */
+    void restoreServiceState(ReplServiceState replServiceState, IVariantMap args) {
+        boolean saveServiceState = !args.isValueNull("notSaveServiceState")
+        if (saveServiceState) {
+            UtReplService.setServiceState(db, replServiceState)
+        }
     }
 
 }
