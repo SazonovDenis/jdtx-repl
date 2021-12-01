@@ -176,7 +176,7 @@ repl_ws_unmute = cm("Отправить на станцию команду 'вы
 //
 repl_mute = cm("Перевести все станции в режим MUTE",
         "wait": [value: null, help: "Ожидать состояния MUTE у всех станций"],
-        "age": [value: null, help: "Запустить двойной цикл перевода в состояние MUTE"],
+        "age": [value: null, help: "Запустить двойной цикл перевода в состояние MUTE, с контролем возраста"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_mute(args)
