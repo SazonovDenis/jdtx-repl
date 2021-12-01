@@ -109,16 +109,6 @@ public class UtReplService {
         } else {
             UtRun.printRes(exitCode, res);
         }
-
-        //
-        Thread.sleep(1000);
-
-        //
-        List<ServiceInfo> taskList = UtReplService.serviceList();
-        ServiceInfo.printList(taskList);
-        //
-        Collection<ProcessInfo> processList = UtReplService.processList();
-        ProcessInfo.printList(processList);
     }
 
 
@@ -140,27 +130,17 @@ public class UtReplService {
         for (ProcessInfo processInfo : processList) {
             if (stopAll || isOurProcess(processInfo)) {
                 long processId = processInfo.getProcessId();
-                ProcessInfo.printInfo(processInfo);
+                printInfo(processInfo);
                 if (stopByProcessId(processId)) {
                     System.out.println("  Stopped, " + processId);
                 } else {
                     System.out.println("  NOT stopped, " + processId);
                 }
             } else {
-                ProcessInfo.printInfo(processInfo);
+                printInfo(processInfo);
                 System.out.println("  Skipped, " + processInfo.getProcessId() + ", " + processInfo.getProcessPath());
             }
         }
-
-        //
-        Thread.sleep(1000);
-
-        //
-        List<ServiceInfo> taskList = UtReplService.serviceList();
-        ServiceInfo.printList(taskList);
-        //
-        processList = UtReplService.processList();
-        ProcessInfo.printList(processList);
     }
 
     public static boolean isStarted() throws Exception {
@@ -173,6 +153,7 @@ public class UtReplService {
             }
         }
 
+        //
         return false;
     }
 
@@ -315,6 +296,40 @@ public class UtReplService {
             UtReplService.install(db);
             log.info("Service state set - installed");
         }
+    }
+
+    public static void printTaskList(List<ServiceInfo> serviceList) {
+        if (serviceList.size() == 0) {
+            System.out.println("No services found");
+        } else {
+            serviceList.sort(new ServiceInfoComparator());
+            //
+            String executableDirectoryPrior = "";
+            for (ServiceInfo serviceInfo : serviceList) {
+                String executableDirectory = serviceInfo.get("ExecutableDirectory");
+                if (executableDirectory.compareToIgnoreCase(executableDirectoryPrior) != 0) {
+                    executableDirectoryPrior = executableDirectory;
+                    System.out.println(executableDirectory);
+                }
+                System.out.println("  " + serviceInfo.get("ExecutableTask") + ", Last run: " + serviceInfo.get("LastStartTime") + ", " + serviceInfo.get("ServiceName"));
+            }
+        }
+    }
+
+    public static void printProcessList(Collection<ProcessInfo> processList) {
+        if (processList.size() == 0) {
+            System.out.println("No running process found");
+        } else {
+            for (ProcessInfo processInfo : processList) {
+                printInfo(processInfo);
+            }
+        }
+    }
+
+    public static void printInfo(ProcessInfo processInfo) {
+        long processId = processInfo.getProcessId();
+        String processPath = processInfo.getProcessName();
+        System.out.println("  " + processPath + ", processId: " + processId);
     }
 
 

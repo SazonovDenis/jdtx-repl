@@ -965,18 +965,38 @@ class Jdx_Ext extends ProjectExt {
 
     void repl_service_start(IVariantMap args) {
         UtReplService.start()
-    }
 
-    void repl_service_state(IVariantMap args) {
-        Collection<ServiceInfo> taskList = UtReplService.serviceList();
-        ServiceInfo.printList(taskList);
         //
-        Collection<ProcessInfo> processList = UtReplService.processList()
-        ProcessInfo.printList(processList)
+        Thread.sleep(1000)
+
+        //
+        List<ServiceInfo> taskList = UtReplService.serviceList();
+        UtReplService.printTaskList(taskList)
+        //
+        Collection<ProcessInfo> processList = UtReplService.processList();
+        UtReplService.printProcessList(processList);
     }
 
     void repl_service_stop(IVariantMap args) {
         UtReplService.stop(args.containsKey("all"))
+
+        //
+        Thread.sleep(1000)
+
+        //
+        List<ServiceInfo> taskList = UtReplService.serviceList();
+        UtReplService.printTaskList(taskList)
+        //
+        Collection<ProcessInfo> processList = UtReplService.processList();
+        UtReplService.printProcessList(processList)
+    }
+
+    void repl_service_state(IVariantMap args) {
+        Collection<ServiceInfo> taskList = UtReplService.serviceList();
+        UtReplService.printTaskList(taskList)
+        //
+        Collection<ProcessInfo> processList = UtReplService.processList()
+        UtReplService.printProcessList(processList)
     }
 
     void repl_service_install(IVariantMap args) {
@@ -1002,10 +1022,10 @@ class Jdx_Ext extends ProjectExt {
 
         //
         Collection<ServiceInfo> taskList = UtReplService.serviceList();
-        ServiceInfo.printList(taskList);
+        UtReplService.printTaskList(taskList)
         //
         Collection<ProcessInfo> processList = UtReplService.processList()
-        ProcessInfo.printList(processList)
+        UtReplService.printProcessList(processList)
     }
 
     void repl_service_remove(IVariantMap args) {
@@ -1035,10 +1055,10 @@ class Jdx_Ext extends ProjectExt {
 
         //
         Collection<ServiceInfo> taskList = UtReplService.serviceList();
-        ServiceInfo.printList(taskList);
+        UtReplService.printTaskList(taskList)
         //
         Collection<ProcessInfo> processList = UtReplService.processList()
-        ProcessInfo.printList(processList)
+        UtReplService.printProcessList(processList)
     }
 
     void gen_setup(IVariantMap args) {
@@ -1085,6 +1105,7 @@ class Jdx_Ext extends ProjectExt {
 
         }
 
+        //
         return serviceState;
     }
 

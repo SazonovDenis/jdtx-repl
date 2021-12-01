@@ -20,7 +20,7 @@ public class UtReplService_Test extends AppTestCase {
 
         //
         List<ServiceInfo> serviceList = UtReplService.serviceList();
-        ServiceInfo.printList(serviceList);
+        UtReplService.printTaskList(serviceList);
     }
 
     @Test
@@ -75,7 +75,7 @@ public class UtReplService_Test extends AppTestCase {
 
         //
         Collection<ProcessInfo> processList = UtReplService.processList();
-        ProcessInfo.printList(processList);
+        UtReplService.printProcessList(processList);
     }
 
     @Test
