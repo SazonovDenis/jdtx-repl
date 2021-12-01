@@ -78,9 +78,9 @@ public class JdxRecRelocator {
             //
             dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
 
-            // DEL - Сохранияем то, что нужно удалить
+            // DEL - Сохраняем то, что нужно удалить
             utRecMerger.recordsDeleteSave(tableName, recordsDelete, dataSerializer, recMergeResultWriter);
-            // UPD - Сохранияем то, где нужно перебить ссылки
+            // UPD - Сохраняем то, где нужно перебить ссылки
             utRecMerger.recordsRelocateSave(tableName, recordsDelete, dataSerializer, recMergeResultWriter);
 
             // Сохраняем
@@ -120,9 +120,9 @@ public class JdxRecRelocator {
         IJdxTable table = struct.getTable(tableName);
         dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
 
-        // DEL - Сохранияем то, что нужно удалить
+        // DEL - Сохраняем то, что нужно удалить
         utRecMerger.recordsDeleteSave(tableName, recordsDelete, dataSerializer, recMergeResultWriter);
-        // UPD - Сохранияем то, где нужно перебить ссылки
+        // UPD - Сохраняем то, где нужно перебить ссылки
         utRecMerger.recordsRelocateSave(tableName, recordsDelete, dataSerializer, recMergeResultWriter);
 
         // Сохраняем
