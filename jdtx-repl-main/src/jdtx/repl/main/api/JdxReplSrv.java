@@ -699,7 +699,11 @@ public class JdxReplSrv {
     }
 
 
-    public long srvMuteState(boolean doWaitMute, long muteAgeWait) throws Exception {
+    public long srvMuteState(boolean doWaitMute, boolean doWaitUnmute, long muteAgeWait) throws Exception {
+        if (doWaitMute && doWaitUnmute) {
+            throw new XError("doWaitMute && doWaitUnmute");
+        }
+
         while (true) {
             // DataStore stDisplay = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE where enabled = 1");
             // UtData.outTable(stDisplay);
@@ -708,6 +712,7 @@ public class JdxReplSrv {
             // Вычисление состояния
             long count_total = stDisplay.size();
             long countMute = 0;
+            long countUnmute = 0;
             long countWaitAge = 0;
             long muteAgeMax = 0;
             long muteAgeMin = Long.MAX_VALUE;
@@ -715,6 +720,8 @@ public class JdxReplSrv {
                 long muteAgeWs = recDisplay.getValueLong("mute_age");
                 if (muteAgeWs > 0) {
                     countMute = countMute + 1;
+                } else {
+                    countUnmute = countUnmute + 1;
                 }
                 if (muteAgeWs >= muteAgeWait) {
                     countWaitAge = countWaitAge + 1;
@@ -726,19 +733,33 @@ public class JdxReplSrv {
                     muteAgeMax = muteAgeWs;
                 }
                 //
-                if (muteAgeWait == 0) {
-                    if (muteAgeWs == 0) {
-                        recDisplay.setValue("mute_state", "Wait mute");
+                if (doWaitUnmute) {
+                    if (muteAgeWs != 0) {
+                        recDisplay.setValue("mute_state", "Wait unmute");
                     } else {
-                        recDisplay.setValue("mute_state", "Muted ok");
+                        recDisplay.setValue("mute_state", "Unmuted ok");
+                    }
+                } else if (doWaitMute) {
+                    if (muteAgeWait == 0) {
+                        if (muteAgeWs == 0) {
+                            recDisplay.setValue("mute_state", "Wait mute");
+                        } else {
+                            recDisplay.setValue("mute_state", "Muted ok");
+                        }
+                    } else {
+                        if (muteAgeWs == 0) {
+                            recDisplay.setValue("mute_state", "Wait mute");
+                        } else if (muteAgeWs < muteAgeWait) {
+                            recDisplay.setValue("mute_state", "Wait age");
+                        } else {
+                            recDisplay.setValue("mute_state", "Age ok");
+                        }
                     }
                 } else {
                     if (muteAgeWs == 0) {
-                        recDisplay.setValue("mute_state", "Wait mute");
-                    } else if (muteAgeWs < muteAgeWait) {
-                        recDisplay.setValue("mute_state", "Wait age");
+                        recDisplay.setValue("mute_state", "Unmute");
                     } else {
-                        recDisplay.setValue("mute_state", "Age ok");
+                        recDisplay.setValue("mute_state", "Mute");
                     }
                 }
             }
@@ -755,23 +776,30 @@ public class JdxReplSrv {
             }
 
             // Не делаем ожидания, если не нужно
-            if (!doWaitMute) {
+            if (!doWaitMute && !doWaitUnmute) {
+                return muteAgeMax;
+            }
+
+            // Выход из ожидания, если все UNMUTE
+            if (doWaitUnmute && countUnmute == count_total) {
                 return muteAgeMax;
             }
 
             // Выход из ожидания, если все MUTE и не нужно ждать возраста
-            if (countMute == count_total && muteAgeWait == 0) {
+            if (doWaitMute && countMute == count_total && muteAgeWait == 0) {
                 return muteAgeMax;
             }
 
             // Выход из ожидания, если если все MUTE и дождались возраста
-            if (countMute == count_total && muteAgeMin >= muteAgeWait) {
+            if (doWaitMute && countMute == count_total && muteAgeMin >= muteAgeWait) {
                 System.out.println("Wait for MUTE age done: " + muteAgeWait);
                 return muteAgeMax;
             }
 
             //
-            if (muteAgeWait == 0) {
+            if (doWaitUnmute) {
+                System.out.println("Wait for all UNMUTE");
+            } else if (muteAgeWait == 0) {
                 System.out.println("Wait for all MUTE");
             } else {
                 System.out.println("Wait for MUTE age: " + muteAgeWait + ", done: " + countWaitAge + "/" + count_total);

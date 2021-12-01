@@ -616,13 +616,25 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         srv.srvMuteAll();
     }
 
+    /**
+     * ВНИМАНИЕ! Перед запуском теста нужно:
+     * <p>
+     * 1) прогнать полный цикл репликации
+     * jdtx.repl.main.api.JdxReplWsSrv_Test#test_allSetUp_TestAll()
+     * <p>
+     * 2) запустить три клиентских и серверный процесы
+     * jdtx.repl.main.api.JdxReplWsSrv_Test#loop_srv()
+     * jdtx.repl.main.api.JdxReplWsSrv_Test#loop_1_repl()
+     * jdtx.repl.main.api.JdxReplWsSrv_Test#loop_2_repl()
+     * jdtx.repl.main.api.JdxReplWsSrv_Test#loop_3_repl()
+     */
     @Test
-    public void test_srvDbStructStateWait() throws Exception {
+    public void test_srvStateWait() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init();
 
         // Печатаем состояние MUTE
-        srv.srvMuteState(false, 0);
+        srv.srvMuteState(false, false, 0);
 
         // Всех в состояние MUTE
         srv.srvMuteAll();
@@ -630,7 +642,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         System.out.println("wait for MUTE");
         System.out.println("===");
         //
-        long waitMuteAge = srv.srvMuteState(true, 0);
+        long waitMuteAge = srv.srvMuteState(true, false, 0);
 
         // Всех в состояние MUTE с контролем возраста по предыдущему MUTE
         waitMuteAge = waitMuteAge + 1;
@@ -640,11 +652,15 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         //
         srv.srvMuteAll();
         //
-        srv.srvMuteState(true, waitMuteAge);
+        srv.srvMuteState(true, false, waitMuteAge);
         System.out.println("===");
 
         // Всех в состояние UNMUTE
         srv.srvDbStructFinish();
+
+        //
+        srv.srvMuteState(false, true, 0);
+        System.out.println("===");
     }
 
     @Test
