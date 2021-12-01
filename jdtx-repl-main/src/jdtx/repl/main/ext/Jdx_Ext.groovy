@@ -209,7 +209,6 @@ class Jdx_Ext extends ProjectExt {
 
         // Останавливаем процесс и удаляем службу
         ReplServiceState serviceState = saveServiceState(db, args)
-
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
@@ -217,7 +216,7 @@ class Jdx_Ext extends ProjectExt {
             //
             srv.addWorkstation(wsId, name, guid, cfgPublications, cfgDecode)
         } finally {
-            restoreServiceState(serviceState, args)
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -239,7 +238,6 @@ class Jdx_Ext extends ProjectExt {
 
         // Останавливаем процесс и удаляем службу
         ReplServiceState serviceState = saveServiceState(db, args)
-
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
@@ -247,7 +245,7 @@ class Jdx_Ext extends ProjectExt {
             //
             srv.restoreWorkstation(wsId, cfgSsnapshot)
         } finally {
-            restoreServiceState(serviceState, args)
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -265,12 +263,11 @@ class Jdx_Ext extends ProjectExt {
 
         // Останавливаем процесс и удаляем службу
         ReplServiceState serviceState = saveServiceState(db, args)
-
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.enableWorkstation(wsId)
         } finally {
-            restoreServiceState(serviceState, args)
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -288,12 +285,11 @@ class Jdx_Ext extends ProjectExt {
 
         // Останавливаем процесс и удаляем службу
         ReplServiceState serviceState = saveServiceState(db, args)
-
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.disableWorkstation(wsId)
         } finally {
-            restoreServiceState(serviceState, args)
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -371,7 +367,6 @@ class Jdx_Ext extends ProjectExt {
 
         // Останавливаем процесс и удаляем службу
         ReplServiceState serviceState = saveServiceState(db, args)
-
         try {
             // Рабочая станция
             JdxReplWs ws = new JdxReplWs(db)
@@ -388,7 +383,7 @@ class Jdx_Ext extends ProjectExt {
             }
 
         } finally {
-            restoreServiceState(serviceState, args)
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -552,7 +547,6 @@ class Jdx_Ext extends ProjectExt {
         try {
             // Останавливаем процесс и удаляем службу
             ReplServiceState serviceState = saveServiceState(db, args)
-
             try {
                 JdxReplSrv srv = new JdxReplSrv(db)
                 srv.init()
@@ -561,7 +555,7 @@ class Jdx_Ext extends ProjectExt {
                 srv.srvSetWsMute(destinationWsId)
 
             } finally {
-                restoreServiceState(serviceState, args)
+                restoreServiceState(serviceState, db, args)
                 db.disconnect()
             }
         } catch (Exception e) {
@@ -582,7 +576,6 @@ class Jdx_Ext extends ProjectExt {
 
         // Останавливаем процесс и удаляем службу
         ReplServiceState serviceState = saveServiceState(db, args)
-
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
@@ -591,7 +584,7 @@ class Jdx_Ext extends ProjectExt {
             srv.srvSetWsUnmute(destinationWsId)
 
         } finally {
-            restoreServiceState(serviceState, args)
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -612,13 +605,12 @@ class Jdx_Ext extends ProjectExt {
 
         // Останавливаем процесс и удаляем службу
         ReplServiceState serviceState = saveServiceState(db, args)
-
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
             // Покажем как сейчас
-            srv.srvMuteState(false, 0)
+            srv.srvMuteState(false, false, 0)
 
             // Запущенный процесс мешает
             UtReplService.stop(false)
@@ -632,7 +624,7 @@ class Jdx_Ext extends ProjectExt {
             // Ждем результат
             long age = 0
             if (doWaitMute) {
-                age = srv.srvMuteState(true, 0)
+                age = srv.srvMuteState(true, false, 0)
             }
 
             // Еще раз отправим команду MUTE и ждем результат
@@ -649,18 +641,18 @@ class Jdx_Ext extends ProjectExt {
                 UtReplService.start()
 
                 // Ждем результат
-                srv.srvMuteState(true, age)
+                srv.srvMuteState(true, false, age)
             }
 
         } finally {
-            restoreServiceState(serviceState, args)
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
 
 
     void repl_unmute(IVariantMap args) {
-        boolean doWaitMute = !args.isValueNull("wait")
+        boolean doWaitUnmute = !args.isValueNull("wait")
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -668,16 +660,29 @@ class Jdx_Ext extends ProjectExt {
 
         // Останавливаем процесс и удаляем службу
         ReplServiceState serviceState = saveServiceState(db, args)
-
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
-            //
+            // Покажем как сейчас
+            srv.srvMuteState(false, false, 0)
+
+            // Запущенный процесс мешает
+            UtReplService.stop(false)
+
+            // Отправим команду UNMUTE
             srv.srvUnmuteAll()
 
+            // Теперь нужен запущенный процесс
+            UtReplService.start()
+
+            // Ждем результат
+            if (doWaitUnmute) {
+                srv.srvMuteState(false, true, 0)
+            }
+
         } finally {
-            restoreServiceState(serviceState, args)
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -695,7 +700,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvMuteState(doWaitMute, 0)
+            srv.srvMuteState(doWaitMute, false, 0)
 
         } finally {
             db.disconnect()
@@ -709,7 +714,6 @@ class Jdx_Ext extends ProjectExt {
 
         // Останавливаем процесс и удаляем службу
         ReplServiceState serviceState = saveServiceState(db, args)
-
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
@@ -718,7 +722,7 @@ class Jdx_Ext extends ProjectExt {
             srv.srvDbStructFinish()
 
         } finally {
-            restoreServiceState(serviceState, args)
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -751,7 +755,6 @@ class Jdx_Ext extends ProjectExt {
 
         // Останавливаем процесс и удаляем службу
         ReplServiceState serviceState = saveServiceState(db, args)
-
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
@@ -760,7 +763,7 @@ class Jdx_Ext extends ProjectExt {
             srv.srvSendCfg(cfgFileName, cfgType, destinationWsId, queName)
 
         } finally {
-            restoreServiceState(serviceState, args)
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -818,7 +821,6 @@ class Jdx_Ext extends ProjectExt {
 
         // Останавливаем процесс и удаляем службу
         ReplServiceState serviceState = saveServiceState(db, args)
-
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
@@ -827,7 +829,7 @@ class Jdx_Ext extends ProjectExt {
             srv.srvAppUpdate(exeFileName, queName)
 
         } finally {
-            restoreServiceState(serviceState, args)
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -844,7 +846,6 @@ class Jdx_Ext extends ProjectExt {
 
         // Останавливаем процесс и удаляем службу
         ReplServiceState serviceState = saveServiceState(db, args)
-
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
@@ -853,7 +854,7 @@ class Jdx_Ext extends ProjectExt {
             srv.srvMergeRequest(planFileName)
 
         } finally {
-            restoreServiceState(serviceState, args)
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -878,7 +879,6 @@ class Jdx_Ext extends ProjectExt {
 
         // Останавливаем процесс и удаляем службу
         ReplServiceState serviceState = saveServiceState(db, args)
-
         try {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
@@ -887,7 +887,7 @@ class Jdx_Ext extends ProjectExt {
             srv.srvRequestSnapshot(destinationWsId, tableNames, queName)
 
         } finally {
-            restoreServiceState(serviceState, args)
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -905,7 +905,6 @@ class Jdx_Ext extends ProjectExt {
 
         // Останавливаем процесс и удаляем службу
         ReplServiceState serviceState = saveServiceState(db, args)
-
         try {
             if (destinationWsId != 0L) {
                 // Запросили для конкретной станциию
@@ -930,7 +929,7 @@ class Jdx_Ext extends ProjectExt {
             }
 
         } finally {
-            restoreServiceState(serviceState, args)
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -945,7 +944,6 @@ class Jdx_Ext extends ProjectExt {
 
         // Останавливаем процесс и удаляем службу
         ReplServiceState serviceState = saveServiceState(db, args)
-
         try {
             try {
                 //
@@ -960,7 +958,7 @@ class Jdx_Ext extends ProjectExt {
             }
 
         } finally {
-            restoreServiceState(serviceState, args)
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -1071,7 +1069,7 @@ class Jdx_Ext extends ProjectExt {
         ReplServiceState serviceState = null;
 
         //
-        boolean saveServiceState = !args.isValueNull("notSaveServiceState")
+        boolean saveServiceState = args.isValueNull("notSaveServiceState")
         if (saveServiceState) {
             serviceState = UtReplService.readServiceState(db)
 
@@ -1081,7 +1079,7 @@ class Jdx_Ext extends ProjectExt {
                 // Удаляем службу
                 UtReplService.stop(false)
             } catch (Exception e) {
-                restoreServiceState(serviceState, args)
+                restoreServiceState(serviceState, db, args)
                 throw e
             }
 
@@ -1093,8 +1091,8 @@ class Jdx_Ext extends ProjectExt {
     /**
      * Восстанавливаем состояние процесса и службы репликатора по данным в replServiceState
      */
-    void restoreServiceState(ReplServiceState replServiceState, IVariantMap args) {
-        boolean saveServiceState = !args.isValueNull("notSaveServiceState")
+    void restoreServiceState(ReplServiceState replServiceState, Db db, IVariantMap args) {
+        boolean saveServiceState = args.isValueNull("notSaveServiceState")
         if (saveServiceState) {
             UtReplService.setServiceState(db, replServiceState)
         }
