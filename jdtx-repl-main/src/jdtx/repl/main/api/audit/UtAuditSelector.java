@@ -94,8 +94,9 @@ public class UtAuditSelector {
     }
 
     void readAuditData_ByInterval(String tableName, String tableFields, long fromId, long toId, JdxReplicaWriterXml dataWriter) throws Exception {
-        IJdxTable table = struct.getTable(tableName);
+        // Таблица и поля в Serializer-е
         IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, wsId);
+        IJdxTable table = struct.getTable(tableName);
         dataSerializer.setTable(table, tableFields);
 
         // DbQuery, содержащий аудит в указанном диапазоне: id >= fromId и id <= toId

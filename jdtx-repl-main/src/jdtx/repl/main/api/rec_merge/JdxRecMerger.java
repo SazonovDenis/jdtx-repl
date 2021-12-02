@@ -190,6 +190,8 @@ public class JdxRecMerger implements IJdxRecMerger {
                 String pkFieldName = pkField.getName();
 
                 // INS - Создаем эталонную запись.
+
+                // Таблица и поля в Serializer-е
                 dataSerializer.setTable(table, tableFieldNamesStr);
                 Map<String, Object> values = dataSerializer.prepareValues(mergePlan.recordEtalon);
                 //
@@ -345,7 +347,7 @@ public class JdxRecMerger implements IJdxRecMerger {
         IJdxTable table = struct.getTable(tableName);
         IJdxField pkField = table.getPrimaryKey().get(0);
         String pkFieldName = pkField.getName();
-        //
+        // Таблица и поля в Serializer-е
         dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
         //
         GroupStrategy tableGroups = GroupsStrategyStorage.getInstance().getForTable(tableName);

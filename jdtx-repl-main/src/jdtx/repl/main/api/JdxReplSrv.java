@@ -870,6 +870,7 @@ public class JdxReplSrv {
 
         //
         for (RecMergePlan mergePlan : mergePlans) {
+            // Таблица и поля в Serializer-е
             IJdxTable table = struct.getTable(mergePlan.tableName);
             dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
 

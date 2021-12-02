@@ -186,7 +186,7 @@ public class UtAuditApplyer {
                 }
                 readerTableNamePrior = readerTableName;
 
-                //
+                // Таблица и поля в Serializer-е
                 String publicationFieldsName = UtJdx.fieldsToString(publicationRuleTable.getFields());
                 dataSerializer.setTable(table, publicationFieldsName);
 

@@ -73,10 +73,11 @@ public class UtDataSelector {
 
 
     private void flushDataToWriter(IJdxDataBinder data, String tableName, String tableFields, JdxReplicaWriterXml dataWriter) throws Exception {
+        // Таблица и поля в Serializer-е
         IJdxTable table = struct.getTable(tableName);
         dataSerializer.setTable(table, tableFields);
 
-        //
+        // Таблица во Writer-е
         dataWriter.startTable(tableName);
 
         // Данные помещаем в dataWriter
