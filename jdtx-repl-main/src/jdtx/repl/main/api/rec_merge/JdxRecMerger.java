@@ -211,11 +211,11 @@ public class JdxRecMerger implements IJdxRecMerger {
 
                 // DEL - Сохраняем то, что нужно удалить
                 if (doDelete) {
-                    utRecMerger.recordsDeleteSave(mergePlan.tableName, recordsDelete, dataSerializer, resultWriter);
+                    utRecMerger.saveRecordsTable(mergePlan.tableName, recordsDelete, resultWriter, dataSerializer);
                 }
 
                 // UPD - Сохраняем то, где нужно перебить ссылки
-                utRecMerger.recordsRelocateSave(mergePlan.tableName, recordsDelete, dataSerializer, resultWriter);
+                utRecMerger.saveRecordsRefTable(mergePlan.tableName, recordsDelete, resultWriter, dataSerializer);
 
 
                 // UPD - Перебиваем ссылки у зависимых таблиц

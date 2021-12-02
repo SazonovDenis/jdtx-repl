@@ -53,15 +53,15 @@ public class UtRepl_Depends_Test extends ReplDatabaseStruct_Test {
     public void test_getRefsToTable() throws Exception {
         System.out.println("db: " + db.getDbSource().getDatabase());
 
-        tableMainName = "Ulz";
+        tableMainName = "Lic";
         IJdxTable table = struct.getTable(tableMainName);
 
         // Собираем зависимости
-        List<IJdxTable> structTables = UtJdx.sortTablesByReference(struct.getTables());
-        Map<String, Collection<IJdxForeignKey>> refsToTable = UtJdx.getRefsToTable(structTables, table, true);
+        List<IJdxTable> structTables = struct.getTables();
+        Map<String, Collection<IJdxForeignKey>> refsToTable = UtJdx.getRefsToTable(structTables, table, false);
         List<String> refsToTableKeys = UtJdx.getSortedKeys(structTables, refsToTable.keySet());
 
-        //
+        // Печатаем зависимости
         System.out.println();
         System.out.println(table.getName());
         //

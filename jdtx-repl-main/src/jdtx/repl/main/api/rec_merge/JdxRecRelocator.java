@@ -75,13 +75,10 @@ public class JdxRecRelocator {
             RecMergeResultWriter recMergeResultWriter = new RecMergeResultWriter();
             recMergeResultWriter.open(resultFile);
 
-            //
-            dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
-
             // DEL - Сохраняем то, что нужно удалить
-            utRecMerger.recordsDeleteSave(tableName, recordsDelete, dataSerializer, recMergeResultWriter);
+            utRecMerger.saveRecordsTable(tableName, recordsDelete, recMergeResultWriter, dataSerializer);
             // UPD - Сохраняем то, где нужно перебить ссылки
-            utRecMerger.recordsRelocateSave(tableName, recordsDelete, dataSerializer, recMergeResultWriter);
+            utRecMerger.saveRecordsRefTable(tableName, recordsDelete, recMergeResultWriter, dataSerializer);
 
             // Сохраняем
             recMergeResultWriter.close();
@@ -116,14 +113,10 @@ public class JdxRecRelocator {
         RecMergeResultWriter recMergeResultWriter = new RecMergeResultWriter();
         recMergeResultWriter.open(outFile);
 
-        //
-        IJdxTable table = struct.getTable(tableName);
-        dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
-
         // DEL - Сохраняем то, что нужно удалить
-        utRecMerger.recordsDeleteSave(tableName, recordsDelete, dataSerializer, recMergeResultWriter);
+        utRecMerger.saveRecordsTable(tableName, recordsDelete, recMergeResultWriter, dataSerializer);
         // UPD - Сохраняем то, где нужно перебить ссылки
-        utRecMerger.recordsRelocateSave(tableName, recordsDelete, dataSerializer, recMergeResultWriter);
+        utRecMerger.saveRecordsRefTable(tableName, recordsDelete, recMergeResultWriter, dataSerializer);
 
         // Сохраняем
         recMergeResultWriter.close();

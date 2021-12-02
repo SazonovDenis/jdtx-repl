@@ -66,6 +66,9 @@ public class RecMergeResultWriter {
         writer.writeStartElement("table");
         writer.writeAttribute("name", tableItem.tableName);
         writer.writeAttribute("operation", String.valueOf(tableItem.tableOperation));
+        if (tableItem.info != null) {
+            writer.writeAttribute("info", tableItem.info);
+        }
         //
         currentElement_table = true;
     }

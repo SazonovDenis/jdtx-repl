@@ -47,7 +47,8 @@ public class RecMergeResultReader {
                 if (reader.getLocalName().compareToIgnoreCase("table") == 0) {
                     String tableName = reader.getAttributeValue(null, "name");
                     MergeOprType tableResultType = MergeOprType.valueOf(reader.getAttributeValue(null, "operation"));
-                    return new MergeResultTableItem(tableName, tableResultType);
+                    String info = reader.getAttributeValue(null, "info");
+                    return new MergeResultTableItem(tableName, tableResultType, info);
                 }
             }
         }

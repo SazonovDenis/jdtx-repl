@@ -9,6 +9,12 @@ import jdtx.repl.main.api.util.*;
 
 import java.util.*;
 
+//todo РЕШИЕТЬ ВОПРОС С MODE - MergeOprType.UPD
+//todo РЕШИЕТЬ ВОПРОС С MODE - MergeOprType.UPD
+//todo РЕШИЕТЬ ВОПРОС С MODE - MergeOprType.UPD
+//todo РЕШИЕТЬ ВОПРОС С MODE - MergeOprType.UPD
+//todo РЕШИЕТЬ ВОПРОС С MODE - MergeOprType.UPD
+
 public class UtRecMerger {
 
     Db db;
@@ -22,36 +28,96 @@ public class UtRecMerger {
     }
 
     /**
-     * Вытаскиват все, что нужно будет обновить (в разных таблицах),
-     * если делать relocate/delete записи idSour в таблице tableName
+     * Сохраняем все записи в зависимых таблицах, которые ссылаются на записи records из tableName.
+     * Возвращает Map <имя зависимой таблицы, набор её обновляемых/удаленных записей>.
+     *
+     * @param tableName    имя таблицы
+     * @param records      обновляемые или удаляемые записи
+     * @param resultWriter место для сохранения исходного состояния обновляемых/удаленных записей
+     * @return Набор id для каждой зависомой таблицы
      */
-    public void recordsRelocateSave(String tableName, Collection<Long> recordsDelete, IJdxDataSerializer dataSerializer, RecMergeResultWriter resultWriter) throws Exception {
+    public Map<String, Set<Long>> saveRecordsRefTable(String tableName, Collection<Long> records, RecMergeResultWriter resultWriter, IJdxDataSerializer dataSerializer) throws Exception {
+        Map<String, Set<Long>> deletedRecordsInTables = new HashMap<>();
+
         // Собираем непосредственные зависимости
         Map<String, Collection<IJdxForeignKey>> refsToTable = UtJdx.getRefsToTable(struct.getTables(), struct.getTable(tableName), false);
+        Collection<String> refsToTableKeys = refsToTable.keySet();
+        // Строго по порядку fk
+        List<String> refsToTableSorted = UtJdx.getSortedKeys(struct.getTables(), refsToTableKeys);
 
         // Обрабатываем зависимости
-        for (String refTableName : refsToTable.keySet()) {
-            Collection<IJdxForeignKey> fkList = refsToTable.get(refTableName);
-            for (IJdxForeignKey fk : fkList) {
-                String refFieldName = fk.getField().getName();
-                String sqlSelect = "select * from " + refTableName + " where " + refFieldName + " = :" + refFieldName;
+        for (String refTableName : refsToTableSorted) {
+        //for (String refTableName : refsToTableKeys) {
+            IJdxTable refTable = struct.getTable(refTableName);
+            String refTablePkFieldName = refTable.getPrimaryKey().get(0).getName();
 
-                //
-                for (long deleteRecId : recordsDelete) {
+            // Таблица и поля в Serializer-е
+            dataSerializer.setTable(refTable, UtJdx.fieldsToString(refTable.getFields()));
+
+            //
+            Collection<IJdxForeignKey> refsToTableFkList = refsToTable.get(refTableName);
+            for (IJdxForeignKey fk : refsToTableFkList) {
+                String refFkFieldName = fk.getField().getName();
+
+                // Тут собираем только id удаленных записей в таблице refTableName
+                Set<Long> deletedRecordsInTable = new HashSet<>();
+                deletedRecordsInTables.put(refTableName, deletedRecordsInTable);
+
+                // Таблица во Writer-е
+                String refInfo = "ref: " + refTableName + "." + refFkFieldName + "--" + tableName;
+                resultWriter.writeTableItem(new MergeResultTableItem(refTableName, MergeOprType.UPD, refInfo));
+
+                // Селектим из refTableName по ссылке refFkFieldName, записываем в resultWriter и deletedRecordsInTable
+                String sqlSelect = "select * from " + refTableName + " where " + refFkFieldName + " = :" + refFkFieldName;
+                for (long recordId : records) {
                     // Селектим как есть сейчас
-                    Map params = UtCnv.toMap(refFieldName, deleteRecId);
-                    DbQuery stUpdated = db.openSql(sqlSelect, params);
+                    Map params = UtCnv.toMap(refFkFieldName, recordId);
+                    DbQuery query = db.openSql(sqlSelect, params);
 
-                    // Отчитаемся
-                    resultWriter.writeTableItem(new MergeResultTableItem(refTableName, MergeOprType.UPD));
-                    while (!stUpdated.eof()) {
-                        Map<String, Object> values = stUpdated.getValues();
+                    // Записываем
+                    while (!query.eof()) {
+                        // Сохраняем всю запись в resultWriter
+                        Map<String, Object> values = query.getValues();
                         Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
                         resultWriter.writeRec(valuesStr);
+                        // Собираем только id записи
+                        long id = UtJdxData.longValueOf(valuesStr.get(refTablePkFieldName));
+                        deletedRecordsInTable.add(id);
                         //
-                        stUpdated.next();
+                        query.next();
                     }
                 }
+            }
+        }
+
+        //
+        return deletedRecordsInTables;
+    }
+
+    /**
+     * Сохраняем записи records из tableName
+     */
+    public void saveRecordsTable(String tableName, Collection<Long> records, RecMergeResultWriter resultWriter, IJdxDataSerializer dataSerializer) throws Exception {
+        // Таблица и поля в Serializer-е
+        IJdxTable table = struct.getTable(tableName);
+        dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
+        String pkFieldName = struct.getTable(tableName).getPrimaryKey().get(0).getName();
+
+        // Таблица во Writer-е
+        resultWriter.writeTableItem(new MergeResultTableItem(tableName, MergeOprType.DEL));
+
+        // Селектим из tableName и записываем в resultWriter
+        String sqlSelect = "select * from " + tableName + " where " + pkFieldName + " = :" + pkFieldName;
+        for (long deleteRecId : records) {
+            // Селектим как есть сейчас
+            Map params = UtCnv.toMap(pkFieldName, deleteRecId);
+            DataStore store = db.loadSql(sqlSelect, params);
+
+            // Сохраняем всю запись в resultWriter
+            for (DataRecord rec : store) {
+                Map<String, Object> values = rec.getValues();
+                Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
+                resultWriter.writeRec(valuesStr);
             }
         }
     }
@@ -77,32 +143,6 @@ public class UtRecMerger {
                     // Апдейтим
                     db.execSql(sqlUpdate, params);
                 }
-            }
-        }
-    }
-
-    /**
-     * Сохраняем записи recordsDelete из tableName
-     */
-    public void recordsDeleteSave(String tableName, Collection<Long> recordsDelete, IJdxDataSerializer dataSerializer, RecMergeResultWriter resultWriter) throws Exception {
-        String pkFieldName = struct.getTable(tableName).getPrimaryKey().get(0).getName();
-        String sqlSelect = "select * from " + tableName + " where " + pkFieldName + " = :" + pkFieldName;
-
-        //
-        resultWriter.writeTableItem(new MergeResultTableItem(tableName, MergeOprType.DEL));
-
-        //
-        for (long deleteRecId : recordsDelete) {
-            Map params = UtCnv.toMap(pkFieldName, deleteRecId);
-
-            // Селектим как есть сейчас
-            DataStore store = db.loadSql(sqlSelect, params);
-
-            // Отчитаемся
-            for (DataRecord rec : store) {
-                Map<String, Object> values = rec.getValues();
-                Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
-                resultWriter.writeRec(valuesStr);
             }
         }
     }

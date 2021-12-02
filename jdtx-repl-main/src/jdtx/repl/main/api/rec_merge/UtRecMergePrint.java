@@ -2,7 +2,6 @@ package jdtx.repl.main.api.rec_merge;
 
 import jandcode.dbm.data.*;
 
-import javax.xml.stream.*;
 import java.io.*;
 import java.util.*;
 
@@ -57,10 +56,17 @@ public class UtRecMergePrint {
         while (tableItem != null) {
             String tableName = tableItem.tableName;
 
-            if (tableItem.tableOperation == MergeOprType.UPD) {
-                System.out.println("Records updated in " + tableName + ":");
+            String info = tableItem.info;
+            if (info == null) {
+                info = "";
             } else {
-                System.out.println("Records deleted from " + tableName + ":");
+                info = " (" + info + ")";
+            }
+
+            if (tableItem.tableOperation == MergeOprType.UPD) {
+                System.out.println("Records updated in " + tableName + info + ":");
+            } else {
+                System.out.println("Records deleted from " + tableName + info + ":");
             }
 
             //
