@@ -215,15 +215,15 @@ public class JdxRecMerger implements IJdxRecMerger {
                 }
 
                 // UPD - Сохраняем то, где нужно перебить ссылки
-                utRecMerger.saveRecordsRefTable(mergePlan.tableName, recordsDelete, resultWriter, dataSerializer);
+                utRecMerger.saveRecordsRefTable(mergePlan.tableName, recordsDelete, resultWriter, MergeOprType.UPD, dataSerializer);
 
 
                 // UPD - Перебиваем ссылки у зависимых таблиц
-                utRecMerger.recordsRelocateExec(mergePlan.tableName, recordsDelete, etalonRecId);
+                utRecMerger.execRecordsUpdateRefs(mergePlan.tableName, recordsDelete, etalonRecId);
 
                 // DEL - Удаляем лишние (теперь уже) записи
                 if (doDelete) {
-                    utRecMerger.recordsDeleteExec(mergePlan.tableName, recordsDelete);
+                    utRecMerger.execRecordsDelete(mergePlan.tableName, recordsDelete);
                 }
 
 
@@ -307,10 +307,21 @@ public class JdxRecMerger implements IJdxRecMerger {
         long doneRecs = 0;
 
         //
-        Map<String, String> rec = resultReader.nextRec();
-        while (rec != null) {
-            Map<String, Object> params = dataSerializer.prepareValues(rec);
-            db.execSql(sql, params);
+        Map<String, String> recValuesStr = resultReader.nextRec();
+        while (recValuesStr != null) {
+            Map<String, Object> recValues = dataSerializer.prepareValues(recValuesStr);
+            try {
+                db.execSql(sql, recValues);
+            } catch (Exception e) {
+                if (!UtDbErrors.errorIs_PrimaryKeyError(e)) {
+                    log.error(e.getMessage());
+                    log.error("table: " + table.getName());
+                    log.error("oprType: " + tableOperation);
+                    log.error("recParams: " + recValues);
+                    log.error("recValuesStr: " + recValuesStr);
+                    throw e;
+                }
+            }
 
             //
             doneRecs++;
@@ -319,7 +330,7 @@ public class JdxRecMerger implements IJdxRecMerger {
             }
 
             //
-            rec = resultReader.nextRec();
+            recValuesStr = resultReader.nextRec();
         }
 
         //

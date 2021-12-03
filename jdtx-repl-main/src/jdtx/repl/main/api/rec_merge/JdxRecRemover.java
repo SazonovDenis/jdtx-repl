@@ -39,7 +39,6 @@ public class JdxRecRemover {
         //
         tableName = struct.getTable(tableName).getName();
 
-
         // Начинаем писать
         RecMergeResultWriter recMergeResultWriter = new RecMergeResultWriter();
         recMergeResultWriter.open(resultFile);
@@ -71,18 +70,16 @@ public class JdxRecRemover {
                 Collection<String> refTables = deletedRecordsInTables.keySet();
                 for (String tableNameRef : refTables) {
                     Set<Long> recordsDeleteRef = deletedRecordsInTables.get(tableNameRef);
-                    Map<String, Set<Long>> deletedRecordsInTablesRef = utRecMerger.saveRecordsRefTable(tableNameRef, recordsDeleteRef, recMergeResultWriter, dataSerializer);
+                    Map<String, Set<Long>> deletedRecordsInTablesRef = utRecMerger.saveRecordsRefTable(tableNameRef, recordsDeleteRef, recMergeResultWriter, MergeOprType.DEL, dataSerializer);
 
                     //
                     log.info("dependences for " + tableNameRef + ": " + deletedRecordsInTablesRef.keySet());
 
                     //
                     addAllListValuesInMaps(deletedRecordsInTablesCurr, deletedRecordsInTablesRef);
-                    //deletedRecordsInTablesCurr.putAll(deletedRecordsInTablesRef);
                 }
 
                 // Пополняем общий список зависимостей
-                //deletedRecordsInTablesGlobal.putAll(deletedRecordsInTablesCurr);
                 addAllListValuesInMaps(deletedRecordsInTablesGlobal, deletedRecordsInTablesCurr);
                 deletedTablesGlobal.addAll(refTables);
 
@@ -108,12 +105,12 @@ public class JdxRecRemover {
                 String tableNameRef = refsToTableSorted.get(i);
                 Set<Long> recordsDeleteRef = deletedRecordsInTablesGlobal.get(tableNameRef);
                 log.info("delete from: " + tableNameRef + " (count: " + recordsDeleteRef.size() + ")");
-                utRecMerger.recordsDeleteExec(tableNameRef, recordsDeleteRef);
+                utRecMerger.execRecordsDelete(tableNameRef, recordsDeleteRef);
             }
 
             // Удаление из основной таблицы
             log.info("delete from: " + tableName + " (count: " + recordsDelete.size() + ")");
-            utRecMerger.recordsDeleteExec(tableName, recordsDelete);
+            utRecMerger.execRecordsDelete(tableName, recordsDelete);
 
             //
             db.commit();

@@ -9,11 +9,6 @@ import jdtx.repl.main.api.util.*;
 
 import java.util.*;
 
-//todo РЕШИЕТЬ ВОПРОС С MODE - MergeOprType.UPD
-//todo РЕШИЕТЬ ВОПРОС С MODE - MergeOprType.UPD
-//todo РЕШИЕТЬ ВОПРОС С MODE - MergeOprType.UPD
-//todo РЕШИЕТЬ ВОПРОС С MODE - MergeOprType.UPD
-//todo РЕШИЕТЬ ВОПРОС С MODE - MergeOprType.UPD
 
 public class UtRecMerger {
 
@@ -36,7 +31,7 @@ public class UtRecMerger {
      * @param resultWriter место для сохранения исходного состояния обновляемых/удаленных записей
      * @return Набор id для каждой зависомой таблицы
      */
-    public Map<String, Set<Long>> saveRecordsRefTable(String tableName, Collection<Long> records, RecMergeResultWriter resultWriter, IJdxDataSerializer dataSerializer) throws Exception {
+    public Map<String, Set<Long>> saveRecordsRefTable(String tableName, Collection<Long> records, RecMergeResultWriter resultWriter, MergeOprType writerMode, IJdxDataSerializer dataSerializer) throws Exception {
         Map<String, Set<Long>> deletedRecordsInTables = new HashMap<>();
 
         // Собираем непосредственные зависимости
@@ -47,7 +42,6 @@ public class UtRecMerger {
 
         // Обрабатываем зависимости
         for (String refTableName : refsToTableSorted) {
-        //for (String refTableName : refsToTableKeys) {
             IJdxTable refTable = struct.getTable(refTableName);
             String refTablePkFieldName = refTable.getPrimaryKey().get(0).getName();
 
@@ -65,7 +59,7 @@ public class UtRecMerger {
 
                 // Таблица во Writer-е
                 String refInfo = "ref: " + refTableName + "." + refFkFieldName + "--" + tableName;
-                resultWriter.writeTableItem(new MergeResultTableItem(refTableName, MergeOprType.UPD, refInfo));
+                resultWriter.writeTableItem(new MergeResultTableItem(refTableName, writerMode, refInfo));
 
                 // Селектим из refTableName по ссылке refFkFieldName, записываем в resultWriter и deletedRecordsInTable
                 String sqlSelect = "select * from " + refTableName + " where " + refFkFieldName + " = :" + refFkFieldName;
@@ -122,7 +116,7 @@ public class UtRecMerger {
         }
     }
 
-    public void recordsRelocateExec(String tableName, Collection<Long> recordsDelete, long etalonRecId) throws Exception {
+    public void execRecordsUpdateRefs(String tableName, Collection<Long> recordsDelete, long etalonRecId) throws Exception {
         // Собираем непосредственные зависимости
         Map<String, Collection<IJdxForeignKey>> refsToTable = UtJdx.getRefsToTable(struct.getTables(), struct.getTable(tableName), false);
 
@@ -150,7 +144,7 @@ public class UtRecMerger {
     /**
      * Удаляем записи recordsDelete из tableName
      */
-    public void recordsDeleteExec(String tableName, Collection<Long> recordsDelete) throws Exception {
+    public void execRecordsDelete(String tableName, Collection<Long> recordsDelete) throws Exception {
         String pkFieldName = struct.getTable(tableName).getPrimaryKey().get(0).getName();
         String sqlDelete = "delete from " + tableName + " where " + pkFieldName + " = :" + pkFieldName;
 

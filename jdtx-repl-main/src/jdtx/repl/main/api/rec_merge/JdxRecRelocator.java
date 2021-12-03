@@ -78,17 +78,17 @@ public class JdxRecRelocator {
             // DEL - Сохраняем то, что нужно удалить
             utRecMerger.saveRecordsTable(tableName, recordsDelete, recMergeResultWriter, dataSerializer);
             // UPD - Сохраняем то, где нужно перебить ссылки
-            utRecMerger.saveRecordsRefTable(tableName, recordsDelete, recMergeResultWriter, dataSerializer);
+            utRecMerger.saveRecordsRefTable(tableName, recordsDelete, recMergeResultWriter, MergeOprType.UPD, dataSerializer);
 
             // Сохраняем
             recMergeResultWriter.close();
 
 
             // Перебиваем ссылки у зависимых таблиц с tableName.idSour на tableName.idDest
-            utRecMerger.recordsRelocateExec(tableName, recordsDelete, idDest);
+            utRecMerger.execRecordsUpdateRefs(tableName, recordsDelete, idDest);
 
             // Удаляем старую запись tableName.idSour
-            utRecMerger.recordsDeleteExec(tableName, recordsDelete);
+            utRecMerger.execRecordsDelete(tableName, recordsDelete);
 
 
             //
@@ -116,7 +116,7 @@ public class JdxRecRelocator {
         // DEL - Сохраняем то, что нужно удалить
         utRecMerger.saveRecordsTable(tableName, recordsDelete, recMergeResultWriter, dataSerializer);
         // UPD - Сохраняем то, где нужно перебить ссылки
-        utRecMerger.saveRecordsRefTable(tableName, recordsDelete, recMergeResultWriter, dataSerializer);
+        utRecMerger.saveRecordsRefTable(tableName, recordsDelete, recMergeResultWriter, MergeOprType.UPD, dataSerializer);
 
         // Сохраняем
         recMergeResultWriter.close();
