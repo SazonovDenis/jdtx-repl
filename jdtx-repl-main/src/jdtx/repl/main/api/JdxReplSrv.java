@@ -224,7 +224,7 @@ public class JdxReplSrv {
     }
 
 
-    // todo: Создание workstation идет вне транзакции - это плохо, бывали случаи прерывания
+    // todo: Создание workstation идет вне транзакции - это плохо, бывали случаи прерывания. Но тогда надо делать УДАЛЕНИЕ старых рабочих каталогов для добавляемой id
     public void addWorkstation(long wsId, String wsName, String wsGuid, String cfgPublicationsFileName, String cfgDecodeFileName) throws Exception {
         log.info("add workstation, wsId: " + wsId + ", name: " + wsName);
 
