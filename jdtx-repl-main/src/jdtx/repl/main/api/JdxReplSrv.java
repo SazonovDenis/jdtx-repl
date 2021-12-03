@@ -5,6 +5,7 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
@@ -263,6 +264,9 @@ public class JdxReplSrv {
         // Правила публикаций (фильтры) для подготовки snapshot для wsId.
         // В качестве фильтров на ИНИЦИАЛИЗАЦИОННЫЙ snapshot от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
         IPublicationRuleStorage publicationRuleWsIn = PublicationRuleStorage.loadRules(cfgPublicationsWs, struct, "in");
+
+        // Стратегии перекодировки каждой таблицы
+        RefDecodeStrategy.initInstance(cfgDecode);
 
         // Подготовим snapshot-реплику.
         // Получатель snapshot-реплики - wsId.
