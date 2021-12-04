@@ -177,6 +177,7 @@ public class JdxRecMerge_Test extends DbmTestCase {
 
         // Исполняем задачу на слияние
         File fileResults = new File("temp/result.zip");
+        fileResults.delete();
         recMerger.execMergePlan(mergePlans, fileResults);
     }
 
@@ -218,6 +219,7 @@ public class JdxRecMerge_Test extends DbmTestCase {
 
         // Исполняем задачу на слияние
         File fileResults = new File("temp/result.zip");
+        fileResults.delete();
         recMerger.execMergePlan(mergePlans, fileResults);
 
         // Печатаем результат выполнения задачи
@@ -291,6 +293,7 @@ public class JdxRecMerge_Test extends DbmTestCase {
         // Исполняем задачу на слияние
         JdxRecMerger recMerger = getJdxRecMerger();
         File fileResults = new File("temp/_" + tableName + ".result.zip");
+        fileResults.delete();
         recMerger.execMergePlan(mergePlans, fileResults);
 
         // Печатаем результат выполнения задачи
@@ -366,6 +369,7 @@ public class JdxRecMerge_Test extends DbmTestCase {
         // Исполняем задачу на слияние
         JdxRecMerger recMerger = getJdxRecMerger();
         File fileResults = new File("temp/result.zip");
+        fileResults.delete();
         recMerger.execMergePlan(mergePlans, fileResults);
 
         // Печатаем результат выполнения задачи
