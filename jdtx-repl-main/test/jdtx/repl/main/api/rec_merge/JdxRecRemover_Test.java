@@ -149,14 +149,33 @@ public class JdxRecRemover_Test extends JdxRecRelocator_Test {
         assertEquals("Запись не вернулась: ", st3_1.size(), st3_3.size());
     }
 
-    void startCmpDb(String fileName1, String fileName2, String fileName3) throws Exception {
-        String batContent = "diff " + new File(fileName1).getAbsolutePath() + " " + new File(fileName2).getAbsolutePath() + " " + new File(fileName3).getAbsolutePath();
-        File batFile = new File("temp/cmp_db.bat");
-        UtFile.saveString(batContent, batFile);
-        ProcessBuilder processBuilder = new ProcessBuilder("cmd", "/C", batFile.getAbsolutePath());
-        processBuilder.directory(batFile.getParentFile());
-        Process process = processBuilder.start();
-        process.waitFor();
+    @Test
+    public void test_removeRecCascade_ws_list() throws Exception {
+        tableName = "ws_list";
+        long idSour = 102000001;
+
+
+        //
+        System.out.println();
+        System.out.println("Удаление, table: " + tableName + ", id: " + idSour);
+        System.out.println();
+
+        //
+        IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain();
+        JdxRecRemover remover = new JdxRecRemover(db, struct, dataSerializer);
+        //
+        File outFile = new File("temp/remove_" + tableName + "_" + idSour + ".zip");
+        outFile.delete();
+        remover.removeRecCascade(tableName, idSour, outFile);
+
+
+        // Отменяем удаление
+        System.out.println();
+        System.out.println("Отменяем удаление");
+        System.out.println();
+        //
+        JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
+        recMerger.revertExec(outFile);
     }
 
     @Test
@@ -182,7 +201,17 @@ public class JdxRecRemover_Test extends JdxRecRelocator_Test {
         UtData.outTable(st3_3);
     }
 
-    private long getIdSour() throws Exception {
+    void startCmpDb(String fileName1, String fileName2, String fileName3) throws Exception {
+        String batContent = "diff " + new File(fileName1).getAbsolutePath() + " " + new File(fileName2).getAbsolutePath() + " " + new File(fileName3).getAbsolutePath();
+        File batFile = new File("temp/cmp_db.bat");
+        UtFile.saveString(batContent, batFile);
+        ProcessBuilder processBuilder = new ProcessBuilder("cmd", "/C", batFile.getAbsolutePath());
+        processBuilder.directory(batFile.getParentFile());
+        Process process = processBuilder.start();
+        process.waitFor();
+    }
+
+    long getIdSour() throws Exception {
 /*
         String sql000 = "select * from " + tableName + " where id <> 0 order by id";
         DataStore st000 = db.loadSql(sql000);
