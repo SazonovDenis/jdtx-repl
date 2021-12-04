@@ -6,6 +6,7 @@ import jandcode.utils.*;
 import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
+import org.apache.commons.logging.*;
 
 import java.util.*;
 
@@ -16,6 +17,10 @@ public class UtRecMerger {
     JdxDbUtils dbu;
     IJdxDbStruct struct;
 
+    //
+    protected static Log log = LogFactory.getLog("jdtx.UtRecMerger");
+
+    //
     public UtRecMerger(Db db, IJdxDbStruct struct) {
         this.db = db;
         this.struct = struct;
@@ -61,24 +66,38 @@ public class UtRecMerger {
                 String refInfo = "ref: " + refTableName + "." + refFkFieldName + "--" + tableName;
                 resultWriter.writeTableItem(new MergeResultTableItem(refTableName, writerMode, refInfo));
 
+                //
+                log.info("Dependes for: " + refTableName + "." + refFkFieldName + " --> " + tableName + ", records in " + refTableName + ": " + records.size());
+
                 // Селектим из refTableName по ссылке refFkFieldName, записываем в resultWriter и deletedRecordsInTable
                 String sqlSelect = "select * from " + refTableName + " where " + refFkFieldName + " = :" + refFkFieldName;
+                long n = 0;
                 for (long recordId : records) {
                     // Селектим как есть сейчас
                     Map params = UtCnv.toMap(refFkFieldName, recordId);
                     DbQuery query = db.openSql(sqlSelect, params);
 
-                    // Записываем
-                    while (!query.eof()) {
-                        // Сохраняем всю запись в resultWriter
-                        Map<String, Object> values = query.getValues();
-                        Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
-                        resultWriter.writeRec(valuesStr);
-                        // Собираем только id записи
-                        long id = UtJdxData.longValueOf(valuesStr.get(refTablePkFieldName));
-                        deletedRecordsInTable.add(id);
-                        //
-                        query.next();
+                    try {
+                        // Записываем
+                        while (!query.eof()) {
+                            // Сохраняем всю запись в resultWriter
+                            Map<String, Object> values = query.getValues();
+                            Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
+                            resultWriter.writeRec(valuesStr);
+                            // Собираем только id записи
+                            long id = UtJdxData.longValueOf(valuesStr.get(refTablePkFieldName));
+                            deletedRecordsInTable.add(id);
+                            //
+                            query.next();
+                        }
+                    } finally {
+                        query.close();
+                    }
+
+                    //
+                    n++;
+                    if (n % 1000 == 0) {
+                        log.info("  " + n + " / " + records.size() + ", found: " + deletedRecordsInTable.size());
                     }
                 }
             }
