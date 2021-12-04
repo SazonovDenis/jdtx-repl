@@ -1,5 +1,6 @@
 package jdtx.repl.main.api.rec_merge;
 
+import java.io.*;
 import java.util.*;
 
 /**
@@ -40,18 +41,18 @@ public interface IJdxRecMerger {
     /**
      * Выполнить планы (задачи) на слияние
      *
-     * @param plans        Список планов (задач) слияния.
-     * @param resultWriter Для каждой таблицы (RecMergePlan.tableName) возвращает,
-     *                     что пришлось сделать с каждой из зависимых от RecMergePlan.tableName таблиц,
-     *                     чтобы выполнить каждый план из plans.
+     * @param plans      Список планов (задач) слияния.
+     * @param resultFile Для каждой таблицы (RecMergePlan.tableName) возвращает,
+     *                   что пришлось сделать с каждой из зависимых от RecMergePlan.tableName таблиц,
+     *                   чтобы выполнить каждый план из plans.
      */
-    void execMergePlan(Collection<RecMergePlan> plans, RecMergeResultWriter resultWriter) throws Exception;
+    void execMergePlan(Collection<RecMergePlan> plans, File resultFile) throws Exception;
 
     /**
-     * Откатить слияние
+     * Откатить выполненные задачи (слияние и т.д.)
      *
-     * @param resultReader результат выполнения задач на слияние (затронутые записи)
+     * @param resultFile Результат выполнения задач на слияние (затронутые записи)
      */
-    void revertExecMergePlan(RecMergeResultReader resultReader) throws Exception;
+    void revertExec(File resultFile) throws Exception;
 
 }

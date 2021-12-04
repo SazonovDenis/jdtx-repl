@@ -1163,12 +1163,11 @@ public class JdxReplWs {
         //
         log.info("UseReplica MERGE");
 
-        //
+        // Сохраняем результат выполнения задачи
         String sWsId = UtString.padLeft(String.valueOf(wsId), 3, "0");
         String dirResult = dataRoot + "ws_" + sWsId + "/merge/" + JdxStorageFile.getNo(replica.getData().getName()) + "/";
         UtFile.cleanDir(dirResult);
-
-        //
+        File resultFile = new File(dirResult + "result.zip");
         log.info("merge result in: " + dirResult);
 
         // Распаковываем файл с задачей на слияние
@@ -1192,17 +1191,10 @@ public class JdxReplWs {
         // Исполняем задачу на слияние
         db.startTran();
         try {
-            // Сохраняем результат выполнения задачи
-            RecMergeResultWriter recMergeResultWriter = new RecMergeResultWriter();
-            recMergeResultWriter.open(new File(dirResult + "result.zip"));
-
             // Исполняем
             IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, wsId);
             JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
-            recMerger.execMergePlan(mergePlans, recMergeResultWriter);
-
-            // Сохраняем
-            recMergeResultWriter.close();
+            recMerger.execMergePlan(mergePlans, resultFile);
 
             //
             db.commit();

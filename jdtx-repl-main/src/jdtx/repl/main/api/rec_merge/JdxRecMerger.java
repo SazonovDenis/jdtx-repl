@@ -3,6 +3,7 @@ package jdtx.repl.main.api.rec_merge;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.utils.error.*;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.struct.*;
@@ -149,24 +150,18 @@ public class JdxRecMerger implements IJdxRecMerger {
     }
 
 
-    public void execMergePlan(Collection<RecMergePlan> plans, File resultFile) throws Exception {
-        // Сохраняем результат выполнения задачи
-        RecMergeResultWriter recMergeResultWriter = new RecMergeResultWriter();
-        recMergeResultWriter.open(resultFile);
-
-        // Исполняем
-        execMergePlan(plans, recMergeResultWriter);
-
-        // Сохраняем
-        recMergeResultWriter.close();
-    }
-
     @Override
-    public void execMergePlan(Collection<RecMergePlan> plans, RecMergeResultWriter resultWriter) throws Exception {
-        boolean doDelete = true;  // Жалко удалять режим, но пока не понятно, зачем он нужен практически
-
-        //
+    public void execMergePlan(Collection<RecMergePlan> plans, File resultFile) throws Exception {
         UtRecMerger utRecMerger = new UtRecMerger(db, struct);
+
+        // Не затирать существующий
+        if (resultFile.exists()) {
+            throw new XError("Result file already exists: " + resultFile.getCanonicalPath());
+        }
+
+        // Начинаем писать результат выполнения задачи
+        RecMergeResultWriter resultWriter = new RecMergeResultWriter();
+        resultWriter.open(resultFile);
 
         //
         try {
@@ -210,9 +205,7 @@ public class JdxRecMerger implements IJdxRecMerger {
                 }
 
                 // DEL - Сохраняем то, что нужно удалить
-                if (doDelete) {
-                    utRecMerger.saveRecordsTable(mergePlan.tableName, recordsDelete, resultWriter, dataSerializer);
-                }
+                utRecMerger.saveRecordsTable(mergePlan.tableName, recordsDelete, resultWriter, dataSerializer);
 
                 // UPD - Сохраняем то, где нужно перебить ссылки
                 utRecMerger.saveRecordsRefTable(mergePlan.tableName, recordsDelete, resultWriter, MergeOprType.UPD, dataSerializer);
@@ -222,9 +215,7 @@ public class JdxRecMerger implements IJdxRecMerger {
                 utRecMerger.execRecordsUpdateRefs(mergePlan.tableName, recordsDelete, etalonRecId);
 
                 // DEL - Удаляем лишние (теперь уже) записи
-                if (doDelete) {
-                    utRecMerger.execRecordsDelete(mergePlan.tableName, recordsDelete);
-                }
+                utRecMerger.execRecordsDelete(mergePlan.tableName, recordsDelete);
 
 
                 //
@@ -249,12 +240,19 @@ public class JdxRecMerger implements IJdxRecMerger {
             db.rollback();
             throw e;
         }
+
+
+        // Завершаем писать
+        resultWriter.close();
     }
 
 
     @Override
-    public void revertExecMergePlan(RecMergeResultReader resultReader) throws Exception {
-        log.info("revertExecMergePlan");
+    public void revertExec(File resultFile) throws Exception {
+        log.info("revertExec");
+
+        //
+        RecMergeResultReader resultReader = new RecMergeResultReader(new FileInputStream(resultFile));
 
         //
         try {
@@ -269,11 +267,11 @@ public class JdxRecMerger implements IJdxRecMerger {
 
 
                 //
-                log.info("revertExecMergePlan, table: " + tableName);
+                log.info("revertExec, table: " + tableName);
 
                 //
                 dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
-                long doneRecs = revertRecs(resultReader, tableItem.tableOperation, table);
+                long doneRecs = revertTableRecs(table, tableItem.tableOperation, resultReader);
 
                 //
                 log.info("  table done: " + tableName + ", total: " + doneRecs);
@@ -292,10 +290,13 @@ public class JdxRecMerger implements IJdxRecMerger {
         }
 
         //
-        log.info("revertExecMergePlan done");
+        resultReader.close();
+
+        //
+        log.info("revertExec done");
     }
 
-    private long revertRecs(RecMergeResultReader resultReader, MergeOprType tableOperation, IJdxTable table) throws Exception {
+    private long revertTableRecs(IJdxTable table, MergeOprType tableOperation, RecMergeResultReader resultReader) throws Exception {
         String sql;
         if (tableOperation == MergeOprType.UPD) {
             sql = dbu.generateSqlUpdate(table.getName(), null, null);

@@ -308,7 +308,7 @@ class Jdx_Ext extends ProjectExt {
             throw new XError("Не указан [dir] - каталоги для поиска")
         }
         String tableName = recordId.split(":")[0]
-        String recordIdStr = recordId.substring(tableName.length() + 1)
+        String recordIdRefStr = recordId.substring(tableName.length() + 1)
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -322,24 +322,24 @@ class Jdx_Ext extends ProjectExt {
 
             // Выполнение команды
             try {
-                // Преобразуем ссылку в пару ws:id
-                if (!recordIdStr.contains(":")) {
+                // Преобразуем recordId в ссылку (в пару ws:id)
+                if (!recordIdRefStr.contains(":")) {
                     // Передали просто id - превратим ее в "каноническую" форму (пару ws:id)
-                    long tableId = Long.parseLong(recordIdStr)
+                    long tableId = Long.parseLong(recordIdRefStr)
                     IRefDecoder decoder = new RefDecoder(db, ws.wsId)
                     JdxRef tableIdRef = decoder.get_ref(tableName, tableId)
-                    recordIdStr = tableIdRef.toString()
-                    println("В таблице: " + tableName + " ищем: " + recordIdStr)
+                    recordIdRefStr = tableIdRef.toString()
+                    println("В таблице: " + tableName + " ищем: " + recordIdRefStr)
                 }
 
                 // Имя файла-результата
                 if (outFileName == null || outFileName.length() == 0) {
-                    outFileName = tableName + "_" + recordIdStr.replace(":", "_") + ".zip";
+                    outFileName = tableName + "_" + recordIdRefStr.replace(":", "_") + ".zip";
                 }
 
                 // Ищем запись и формируем реплику на вставку
                 UtRepl utRepl = new UtRepl(db, ws.struct)
-                IReplica replica = utRepl.findRecordInReplicas(tableName, recordIdStr, dirsName, skipOprDel, findLastOne, outFileName)
+                IReplica replica = utRepl.findRecordInReplicas(tableName, recordIdRefStr, dirsName, skipOprDel, findLastOne, outFileName)
 
                 //
                 System.out.println("Файл с репликой - результатами поиска сформирован: " + replica.data.getAbsolutePath())

@@ -379,8 +379,7 @@ public class JdxRecMerge_Test extends DbmTestCase {
 
 
         // Отменяем слияние
-        RecMergeResultReader resultReader = new RecMergeResultReader(new FileInputStream(fileResults));
-        recMerger.revertExecMergePlan(resultReader);
+        recMerger.revertExec(fileResults);
 
 
         // Опять дубликаты есть

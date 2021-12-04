@@ -31,12 +31,17 @@ public class JdxRecRemover {
         this.dataSerializer = dataSerializer;
     }
 
-    public void removeId(String tableName, long tableId, File resultFile) throws Exception {
+    public void removeRecCascade(String tableName, long tableId, File resultFile) throws Exception {
         if (tableId == 0) {
             throw new XError("Error delete: table.id == 0");
         }
 
-        //
+        // Не затирать существующий
+        if (resultFile.exists()) {
+            throw new XError("Result file already exists: " + resultFile.getCanonicalPath());
+        }
+
+        // Для устранения проблемы UpperCase
         tableName = struct.getTable(tableName).getName();
 
         // Начинаем писать

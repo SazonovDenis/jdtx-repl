@@ -56,7 +56,7 @@ class Merge_Ext extends ProjectExt {
     void rec_merge_find(IVariantMap args) {
         String table = args.getValueString("table")
         String fields = args.getValueString("fields")
-        String file = args.getValueString("file")
+        String resultFileName = args.getValueString("file")
         String fileCfgGroup = args.getValueString("cfg_group")
         boolean useNull = args.getValueBoolean("use_null", false)
         boolean doPrintResult = args.getValueBoolean("print", false)
@@ -66,14 +66,16 @@ class Merge_Ext extends ProjectExt {
         if (UtString.empty(fields)) {
             throw new XError("Не указаны [fields] - поля для поиска")
         }
-        if (UtString.empty(file)) {
+        if (UtString.empty(resultFileName)) {
             throw new XError("Не указан [file] - файл с результатом поиска в виде задач на слияние")
         }
 
+        //
+        File resultFile = new File(resultFileName)
+
         // Не затирать существующий
-        File outFile = new File(file)
-        if (outFile.exists()) {
-            throw new XError("Файл уже существует: " + outFile.getCanonicalPath())
+        if (resultFile.exists()) {
+            throw new XError("Файл уже существует: " + resultFile.getCanonicalPath())
         }
 
         // БД
@@ -95,7 +97,6 @@ class Merge_Ext extends ProjectExt {
 
             //
             IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain()
-            //IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, ws.wsId)
             JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer)
             if (!UtString.empty(fileCfgGroup)) {
                 JSONObject cfg = UtRepl.loadAndValidateJsonFile(fileCfgGroup)
@@ -112,14 +113,16 @@ class Merge_Ext extends ProjectExt {
 
             // Сериализация
             UtRecMergePlanRW reader = new UtRecMergePlanRW()
-            reader.writePlans(mergePlans, file)
-            reader.writeDuplicates(duplicates, file + ".duplicates")
+            reader.writePlans(mergePlans, resultFileName)
+            reader.writeDuplicates(duplicates, resultFileName + ".duplicates")
 
             // Печатаем задачи на слияние
             if (doPrintResult) {
                 UtRecMergePrint.printPlans(mergePlans)
             }
 
+            //
+            System.out.println("Out file: " + resultFile.getAbsolutePath())
         } finally {
             db.disconnect()
         }
@@ -128,15 +131,22 @@ class Merge_Ext extends ProjectExt {
     /**
      */
     void rec_merge_exec(IVariantMap args) {
-        String file = args.getValueString("file")
-        if (file == null || file.length() == 0) {
+        String fileName = args.getValueString("file")
+        if (fileName == null || fileName.length() == 0) {
             throw new XError("Не указан [file] - файл с задачами на слияние")
+        }
+        //
+        String resultFileName = args.getValueString("out")
+        File resultFile
+        if (resultFileName == null || resultFileName.length() == 0) {
+            resultFile = new File(UtFile.removeExt(fileName) + ".result.zip")
+        } else {
+            resultFile = new File(resultFileName);
         }
 
         // Не затирать существующий
-        File outFile = new File(UtFile.removeExt(file) + ".result.zip")
-        if (outFile.exists()) {
-            throw new XError("Файл уже существует: " + outFile.getCanonicalPath())
+        if (resultFile.exists()) {
+            throw new XError("Файл уже существует: " + resultFile.getCanonicalPath())
         }
 
         // БД
@@ -154,11 +164,7 @@ class Merge_Ext extends ProjectExt {
 
             // Читаем задачу на слияние
             UtRecMergePlanRW reader = new UtRecMergePlanRW()
-            Collection<RecMergePlan> mergePlans = reader.readPlans(file)
-
-            // Сохраняем результат выполнения задачи
-            RecMergeResultWriter recMergeResultWriter = new RecMergeResultWriter()
-            recMergeResultWriter.open(outFile)
+            Collection<RecMergePlan> mergePlans = reader.readPlans(fileName)
 
             // Только рабочая станция знает, какая у нас wsId
             JdxReplWs ws = new JdxReplWs(db)
@@ -166,14 +172,96 @@ class Merge_Ext extends ProjectExt {
 
             //
             IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain()
-            //IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, ws.wsId)
             JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer)
 
             // Исполняем
-            recMerger.execMergePlan(mergePlans, recMergeResultWriter)
+            recMerger.execMergePlan(mergePlans, resultFile)
 
-            // Сохраняем
-            recMergeResultWriter.close()
+            //
+            System.out.println("Out file: " + resultFile.getAbsolutePath())
+        } finally {
+            db.disconnect()
+        }
+    }
+
+    /**
+     */
+    void rec_remove_cascade(IVariantMap args) {
+        String recordIdStr = args.getValueString("id")
+        if (recordIdStr == null || recordIdStr.length() == 0) {
+            throw new XError("Не указан [id] - id записи")
+        }
+        String tableName = recordIdStr.split(":")[0]
+        long recordId = UtJdxData.longValueOf(recordIdStr.substring(tableName.length() + 1))
+        //
+        String outFileName = args.getValueString("out")
+        File outFile
+        if (outFileName == null || outFileName.length() == 0) {
+            outFile = new File("remove_cascade_" + tableName + "_" + recordId + ".result.zip")
+        } else {
+            outFile = new File(outFileName);
+        }
+
+        // Не затирать существующий
+        if (outFile.exists()) {
+            throw new XError("Файл уже существует: " + outFile.getCanonicalPath())
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+        //
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
+
+        //
+        try {
+            IJdxDbStructReader structReader = new JdxDbStructReader()
+            structReader.setDb(db)
+            IJdxDbStruct struct = structReader.readDbStruct()
+
+            //
+            IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain()
+            JdxRecRemover recRemover = new JdxRecRemover(db, struct, dataSerializer)
+
+            // Исполняем
+            recRemover.removeRecCascade(tableName, recordId, outFile)
+
+            //
+            System.out.println("Out file: " + outFile.getAbsolutePath())
+        } finally {
+            db.disconnect()
+        }
+    }
+
+    /**
+     */
+    void revert_exec(IVariantMap args) {
+        String resultFileName = args.getValueString("file")
+        if (resultFileName == null || resultFileName.length() == 0) {
+            throw new XError("Не указан [file] - файл с результатом слияния")
+        }
+        File resultFile = new File(resultFileName)
+        //
+        System.out.println("Result file: " + resultFile.getAbsolutePath())
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+        //
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
+
+        //
+        try {
+            IJdxDbStructReader structReader = new JdxDbStructReader()
+            structReader.setDb(db)
+            IJdxDbStruct struct = structReader.readDbStruct()
+
+            //
+            IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain()
+            JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer)
+
+            //
+            recMerger.revertExec(resultFile)
         } finally {
             db.disconnect()
         }
@@ -193,10 +281,11 @@ class Merge_Ext extends ProjectExt {
         String outFileName = args.getValueString("outFile")
         File outFile
         if (outFileName == null || outFileName.length() == 0) {
-            outFile = new File("relocateCheck_" + tableName + "_" + idSour + ".zip")
+            outFile = new File("relocate_check_" + tableName + "_" + idSour + ".result.zip")
         } else {
             outFile = new File(outFileName)
         }
+
         // Не затирать существующий
         if (outFile.exists()) {
             throw new XError("Файл уже существует: " + outFile.getCanonicalPath())
@@ -220,7 +309,7 @@ class Merge_Ext extends ProjectExt {
             relocator.relocateIdCheck(tableName, idSour, outFile)
 
             //
-            System.out.println("OutFile: " + outFile.getAbsolutePath())
+            System.out.println("Out file: " + outFile.getAbsolutePath())
 
         } finally {
             db.disconnect()
@@ -245,10 +334,11 @@ class Merge_Ext extends ProjectExt {
         String outFileName = args.getValueString("outFile")
         File outFile
         if (outFileName == null || outFileName.length() == 0) {
-            outFile = new File("relocate_" + tableName + "_" + idSour + "_" + idDest + ".zip")
+            outFile = new File("relocate_" + tableName + "_" + idSour + "_" + idDest + ".result.zip")
         } else {
             outFile = new File(outFileName)
         }
+
         // Не затирать существующий
         if (outFile.exists()) {
             throw new XError("Файл уже существует: " + outFile.getCanonicalPath())
@@ -280,7 +370,7 @@ class Merge_Ext extends ProjectExt {
             UtData.outTable(db.loadSql("select * from " + tableName + " where id = " + idDest))
 
             //
-            System.out.println("OutFile: " + outFile.getAbsolutePath())
+            System.out.println("Out file: " + outFile.getAbsolutePath())
 
         } finally {
             db.disconnect()

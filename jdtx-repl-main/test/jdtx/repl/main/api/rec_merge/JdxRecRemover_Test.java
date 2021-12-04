@@ -9,15 +9,13 @@ import java.io.*;
 
 public class JdxRecRemover_Test extends JdxRecRelocator_Test {
 
-    @Test
-    public void test_delete() throws Exception {
-        //String tableName = "Ws_List";
-        String tableName = "Lic";
+    //String tableName = "Ws_List";
+    String tableName = "Lic";
+    long tableId = 1357;
 
-        //
-        String sql000 = "select * from " + tableName + " where id <> 0 order by id";
-        DataStore st000 = db.loadSql(sql000);
-        long idSour = st000.get(0).getValueLong("id");
+    @Test
+    public void test_removeRecCascade() throws Exception {
+        long idSour = getIdSour();
         //
         String sql001 = "select * from " + tableName + " where id <> 0 and id = " + idSour;
         String sql0 = "select id, NameF, NameI, NameO, BornDt, DocDt from Lic where id <> 0 order by id";
@@ -56,7 +54,6 @@ public class JdxRecRemover_Test extends JdxRecRelocator_Test {
         //
         System.out.println();
         System.out.println("Удаление, table: " + tableName + ", id: " + idSour);
-        UtData.outTable(st000);
         System.out.println();
 
 
@@ -65,7 +62,7 @@ public class JdxRecRemover_Test extends JdxRecRelocator_Test {
         JdxRecRemover remover = new JdxRecRemover(db, struct, dataSerializer);
         //
         File outFile = new File("temp/remove_" + tableName + "_" + idSour + ".zip");
-        remover.removeId(tableName, idSour, outFile);
+        remover.removeRecCascade(tableName, idSour, outFile);
 
 
         //
@@ -110,10 +107,8 @@ public class JdxRecRemover_Test extends JdxRecRelocator_Test {
         System.out.println("Отменяем удаление");
         System.out.println();
         // 
-        RecMergeResultReader resultReader = new RecMergeResultReader(new FileInputStream(outFile));
-        //IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain();
         JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
-        recMerger.revertExecMergePlan(resultReader);
+        recMerger.revertExec(outFile);
 
 
         //
@@ -162,6 +157,39 @@ public class JdxRecRemover_Test extends JdxRecRelocator_Test {
         processBuilder.directory(batFile.getParentFile());
         Process process = processBuilder.start();
         process.waitFor();
+    }
+
+    @Test
+    public void printDb() throws Exception {
+        long idSour = getIdSour();
+        //
+        String sql001 = "select * from " + tableName + " where id <> 0 and id = " + idSour;
+        String sql0 = "select id, NameF, NameI, NameO, BornDt, DocDt from Lic where id <> 0 order by id";
+        String sql1 = "select id as PawnChit, ChitNo, ChitDt, Lic, ws_list from PawnChit where id <> 0 order by id";
+        String sql2 = "select id, PawnChit, SubjectNo, Info from PawnChitSubject where id <> 0 order by PawnChit, SubjectNo";
+        String sql3 = "select PawnChitSubject, count(*) from ValPawnChitSubject where id <> 0 group by PawnChitSubject order by PawnChitSubject";
+        //
+        DataStore st001_3 = db.loadSql(sql001);
+        DataStore st0_3 = db.loadSql(sql0);
+        DataStore st1_3 = db.loadSql(sql1);
+        DataStore st2_3 = db.loadSql(sql2);
+        DataStore st3_3 = db.loadSql(sql3);
+        UtData.outTable(st001_3);
+        System.out.println();
+        UtData.outTable(st0_3);
+        UtData.outTable(st1_3);
+        UtData.outTable(st2_3);
+        UtData.outTable(st3_3);
+    }
+
+    private long getIdSour() throws Exception {
+/*
+        String sql000 = "select * from " + tableName + " where id <> 0 order by id";
+        DataStore st000 = db.loadSql(sql000);
+        long idSour = st000.get(0).getValueLong("id");
+        return idSour;
+*/
+        return tableId;
     }
 
 }

@@ -25,8 +25,9 @@ rec_merge_find = cm("Поиск дубликатов",
 }
 
 //
-rec_merge_exec = cm("Слияние дубликатов",
+rec_merge_exec = cm("Выполнить слияние дубликатов",
         "file": [value: null, help: "Файл с задачами на слияние"],
+        "out": [value: null, help: "Файл с результатом, например -out:\"d:/temp/ABN_10_12345.zip\""],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
     ext.rec_merge_exec(args)
@@ -38,6 +39,23 @@ rec_merge_request = cm("Разослать команду на слияние д
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_merge_request(args)
+}
+
+//
+rec_remove_cascade = cm("Удалить запись каскадно",
+        "id": [value: null, help: "Таблица и id записи, например -id:ABN:1001012345"],
+        "out": [value: null, help: "Файл с результатом, например -out:\"d:/temp/ABN_10_12345.zip\""],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
+    ext.rec_remove_cascade(args)
+}
+
+//
+revert_exec = cm("Откатить удаление/слияние",
+        "file": [value: null, help: "Файл с результатами удаления/слияния"],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
+    ext.revert_exec(args)
 }
 
 //
@@ -281,7 +299,7 @@ rec_relocate_check = cm("Перемещение pk записи - проверк
 
 //
 repl_find_record = cm("Найти последний вариант записи в репликах, сформировать отдельный файл из этих реплик",
-        "id": [value: null, help: "Таблица и полный id записи, например -id:ABN:10:12345"],
+        "id": [value: null, help: "Таблица и id записи, например -id:ABN:10:12345 или -id:ABN:1001012345"],
         "dir": [value: null, help: "Каталог с репликами для поиска, например -dir:\"d:/temp\""],
         "out": [value: null, help: "Файл с репликой-результатом, например -out:\"d:/temp/ABN_10_12345.zip\""],
         "skipDel": [value: false, help: "Пропускать реплики на удаление записи"],
