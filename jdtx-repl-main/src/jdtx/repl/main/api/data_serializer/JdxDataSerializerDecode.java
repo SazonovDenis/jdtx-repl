@@ -62,10 +62,10 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
             // Используется, если нам пришли не полные ссылки, а локальные
             if (fieldValueRef.ws_id == -1) {
                 if (wsId > 0) {
-                    fieldValueRef.ws_id = wsId;
-                    //throw new XError("prepareValue, fieldValueRef.ws_id is not set");
+                    //fieldValueRef.ws_id = wsId;
+                    throw new XError("prepareValue, fieldValueRef.ws_id == -1");
                 } else {
-                    throw new XError("prepareValue, wsIdDefault is not set");
+                    throw new XError("prepareValue, fieldValueRef.ws_id == -1, wsIdDefault is not set");
                 }
             }
             // Распаковка ссылки в long
