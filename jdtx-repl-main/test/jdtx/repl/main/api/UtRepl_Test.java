@@ -220,37 +220,12 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
     }
 
     @Test
-    public void test_findRecordInReplicas() throws Exception {
-        UtRepl utRepl = new UtRepl(db, struct);
-        String dirName = "D:/t/012/que_in_012";
-
-        IReplica replica = utRepl.findRecordInReplicas("lic", "12:1418", dirName, false, false, "temp/LIC_12_1418.zip");
-        System.out.println("File: " + replica.getData().getAbsolutePath());
-
-        IReplica replica2 = utRepl.findRecordInReplicas("lic", "1418", dirName, false, false, "temp/LIC_1418.zip");
-        System.out.println("File: " + replica2.getData().getAbsolutePath());
-    }
-
-    @Test
-    public void test_findRecordInReplicasWs3() throws Exception {
-        UtRepl utRepl = new UtRepl(db3, struct3);
-        String dirName = "D:/t/012/que_in_012";
-
-        long tableId = 1138;
-        IRefDecoder decoder = new RefDecoder(db, 12);
-        JdxRef tableIdRef = decoder.get_ref("Lic", tableId);
-        String recordIdStr = tableIdRef.toString();
-
-        IReplica replica = utRepl.findRecordInReplicas("lic", recordIdStr, dirName, false, false, "temp/lic_1138.zip");
-        System.out.println("File: " + replica.getData().getAbsolutePath());
-    }
-
-    @Test
     public void test_findRecordInReplicas_all() throws Exception {
         UtRepl utRepl = new UtRepl(null, struct);
-        String dirs = "../_test-data/_test-data_ws2/ws_002/que_in,../_test-data/_test-data_ws2/ws_002/que_in001,../_test-data/_test-data_ws2/ws_002/que_out";
+        //String dirs = "../_test-data/_test-data_ws2/ws_002/que_in,../_test-data/_test-data_ws2/ws_002/que_in001,../_test-data/_test-data_ws2/ws_002/que_out";
+        String dirs = "../_test-data/_test-data_ws2/ws_002/";
         //
-        IReplica replica2 = utRepl.findRecordInReplicas("lic", "2:1361", dirs, false, true, "temp/LIC_2_1361-last.zip");
+        IReplica replica2 = utRepl.findRecordInReplicas("lic", "2:1361", dirs, true, true, "temp/LIC_2_1361-last.zip");
         System.out.println("File: " + replica2.getData().getAbsolutePath());
         System.out.println("");
         //

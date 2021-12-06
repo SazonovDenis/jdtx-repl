@@ -648,27 +648,35 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                             long countRec = 0;
 
                             //
-                            Map<String, String> recValues = replicaReader.nextRec();
-                            while (recValues != null) {
-                                String idValueStr = recValues.get(pkFieldName);
-                                JdxRef idValueRef = JdxRef.parse(idValueStr);
+                            Map<String, String> recValuesStr = replicaReader.nextRec();
+                            while (recValuesStr != null) {
+                                String pkValueStr = recValuesStr.get(pkFieldName);
+                                JdxRef pkValue = JdxRef.parse(pkValueStr);
+
                                 // Дополнение ссылки
-                                if (idValueRef.ws_id == -1 && replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
-                                    idValueRef.ws_id = replica.getInfo().getWsId();
+                                if (pkValue.ws_id == -1) {
+                                    if (replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
+                                        pkValue.ws_id = replica.getInfo().getWsId();
+                                    } else {
+                                        log.error("pkValue.ws_id == -1");
+                                        log.error("  file: " + file.getAbsolutePath());
+                                        log.error("  recValuesStr: " + recValuesStr);
+                                        throw new XError("pkValue.ws_id == -1");
+                                    }
                                 }
 
-                                // Нашли id?
-                                if (idValueRef.equals(findRecordId)) {
-                                    int oprType = UtJdxData.intValueOf(recValues.get(UtJdx.XML_FIELD_OPR_TYPE));
+                                // Нашли нужный id?
+                                if (pkValue.equals(findRecordId)) {
+                                    int oprType = UtJdxData.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
                                     if (oprType == JdxOprType.OPR_DEL && skipOprDel) {
-                                        log.info("  record found, wsId: " + replica.getInfo().getWsId() + ", OprType == OPR_DEL, skipped");
+                                        log.info("  record found, replica.wsId: " + replica.getInfo().getWsId() + ", OprType == OPR_DEL, skipped");
                                     } else {
-                                        log.info("  record found, wsId: " + replica.getInfo().getWsId());
-                                        log.debug("  " + recValues);
+                                        log.info("  record found, replica.wsId: " + replica.getInfo().getWsId());
+                                        log.debug("  " + recValuesStr);
 
                                         // В реплике нашлась запись - сохраним данные по реплике
                                         recordsFoundInReplica = true;
-                                        replicaInfoData.add(recValues);
+                                        replicaInfoData.add(recValuesStr);
 
                                         // Сохраняем запись
                                         xmlWriter.appendRec();
@@ -682,7 +690,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                                         }
 
                                         // Запись значений
-                                        UtXml.recToWriter(recValues, UtJdx.fieldsToString(table.getFields()), xmlWriter);
+                                        UtXml.recToWriter(recValuesStr, UtJdx.fieldsToString(table.getFields()), xmlWriter);
                                     }
                                 }
 
@@ -698,7 +706,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                                 }
 
                                 //
-                                recValues = replicaReader.nextRec();
+                                recValuesStr = replicaReader.nextRec();
                             }
                         }
 
