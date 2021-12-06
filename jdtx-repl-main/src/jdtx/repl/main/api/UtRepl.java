@@ -663,6 +663,9 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                                         log.error("  recValuesStr: " + recValuesStr);
                                         throw new XError("pkValue.ws_id == -1");
                                     }
+                                    //
+                                    pkValueStr = pkValue.toString();
+                                    recValuesStr.put(pkFieldName, pkValueStr);
                                 }
 
                                 // Нашли нужный id?
