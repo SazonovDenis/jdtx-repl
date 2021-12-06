@@ -51,7 +51,7 @@ rec_remove_cascade = cm("Удалить запись каскадно",
 }
 
 //
-revert_exec = cm("Откатить удаление/слияние",
+rec_revert_exec = cm("Откатить удаление/слияние",
         "file": [value: null, help: "Файл с результатами удаления/слияния"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
