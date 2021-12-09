@@ -224,38 +224,21 @@ public class JdxReplSrv {
     }
 
 
-    // todo: Создание workstation идет вне транзакции - это плохо, бывали случаи прерывания. Но тогда надо делать УДАЛЕНИЕ старых рабочих каталогов для добавляемой id
     public void addWorkstation(long wsId, String wsName, String wsGuid, String cfgPublicationsFileName, String cfgDecodeFileName) throws Exception {
         log.info("add workstation, wsId: " + wsId + ", name: " + wsName);
 
         // ---
         // Создадим станцию
 
-        // SRV_WORKSTATION_LIST
-        Map params = UtCnv.toMap(
-                "id", wsId,
-                "name", wsName,
-                "guid", wsGuid
-        );
-        String sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST (id, name, guid) values (:id, :name, :guid)";
-        db.execSql(sql, params);
-
-        // SRV_WORKSTATION_STATE
-        sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE (id, ws_id, que_common_dispatch_done, que_in_no_done, enabled, mute_age) values (" + wsId + ", " + wsId + ", 0, 0, 0, 0)";
-        db.execSql(sql);
+        //--- todo: Создание workstation идет вне транзакции - это плохо, бывали случаи прерывания. Но тогда надо делать УДАЛЕНИЕ старых рабочих каталогов для добавляемой id--
+        //---только лишь  stateManagerSrv.setDispatchDoneQueCommon - выдает правильное сстояние, п ри аварийном прерывании - мусор!!!---
+        //сделать долгие операции подготовки и фильтрации снимка возможными БЕЗ создиния записей в БД, создавать их толтко тогда, когда снимок готов!!!
 
 
         // ---
-        // Очередь queOut001 станции (инициализационная или для системных команд)
-        JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
-        queOut001.setDataRoot(dataRoot);
-
-        // ---
-        // Настройки для станции отметим у себя и отправим на станцию.
-        // Берем сейчас из файла, а не из publicationsInList.get(wsId), т.к. новой станции еще в этом списке нет
+        // Настройки для станции берем сейчас из файла, а не из publicationsInList.get(wsId), т.к. новой станции еще в этом списке нет
         JSONObject cfgPublicationsWs = UtRepl.loadAndValidateJsonFile(cfgPublicationsFileName);
         JSONObject cfgDecode = UtRepl.loadAndValidateJsonFile(cfgDecodeFileName);
-        srvSetAndSendCfg(queOut001, wsId, cfgPublicationsWs, cfgDecode, true);
 
 
         // ---
@@ -273,53 +256,89 @@ public class JdxReplSrv {
         // Автор snapshot-реплики - при подготовке snapshot автор, строго говоря, не определен,
         // но чтобы не было ошибок, поставим в качестве автора - себя (serverWsId).
         long serverWsId = SERVER_WS_ID;
-        long wsSnapshotAge = sendReplicasSnapshot(serverWsId, wsId, publicationRuleWsIn, queOut001);
+        List<IReplica> replicasSnapshot = new ArrayList<>();
+        long wsSnapshotAge = createReplicasSnapshot(serverWsId, wsId, publicationRuleWsIn, replicasSnapshot);
 
 
-        // ---
-        // Команды на установку возраста очередей рабочей станции (начальное состояние)
-        JdxWsState wsState = new JdxWsState();
-        // Возраст очереди "in" новой рабочей станции - по возрасту очереди "in"
-        // "серверной" рабочей станции (que_in_no_done), запомненному при формировании snapshot
-        wsState.QUE_IN_NO = wsSnapshotAge;
-        wsState.QUE_IN_NO_DONE = wsSnapshotAge;
-        //
-        wsState.QUE_IN001_NO = 0L;
-        wsState.QUE_IN001_NO_DONE = 0L;
-        // Новая рабочая станция пока не имела аудита, поэтому возраст ее очереди "out" будет 0, ...
-        wsState.QUE_OUT_NO = 0L;
-        wsState.QUE_OUT_NO_DONE = 0L;
-        // ... отправка тоже ...
-        wsState.MAIL_SEND_DONE = 0L;
-        // ... и возраст аудита тоже
-        wsState.AGE = 0L;
-        // Поехали
-        wsState.MUTE = 0L;
-        //
-        UtRepl utRepl = new UtRepl(db, struct);
-        IReplica replicaSetState = utRepl.createReplicaSetWsState(wsId, wsState);
-        queOut001.push(replicaSetState);
+        db.startTran();
+        try {
+            // Очередь queOut001 станции (инициализационная или для системных команд)
+            JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
+            queOut001.setDataRoot(dataRoot);
+
+            // Добавление станции
+            Map params = UtCnv.toMap(
+                    "id", wsId,
+                    "name", wsName,
+                    "guid", wsGuid
+            );
+            String sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST (id, name, guid) values (:id, :name, :guid)";
+            db.execSql(sql, params);
+
+            //
+            sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE (id, ws_id, que_common_dispatch_done, que_in_no_done, enabled, mute_age) values (" + wsId + ", " + wsId + ", 0, 0, 0, 0)";
+            db.execSql(sql);
 
 
-        // ---
-        // Установка (на сервере) разных возрастов для новой рабочей станции (начальное состояние)
-        JdxStateManagerSrv stateManagerSrv = new JdxStateManagerSrv(db);
+            // ---
+            // Настройки для станции (отметим у себя и отправим на станцию).
+            srvSetAndSendCfg(queOut001, wsId, cfgPublicationsWs, cfgDecode, true);
 
-        // Номер отправленных реплик.
-        // Более поздние в snapshot НЕ попали и рабочая станция получит их самостоятельно.
-        stateManagerSrv.setDispatchDoneQueCommon(wsId, wsSnapshotAge);
 
-        // Номер реплик в очереди queOut000 новой станции будет совпадать с остальными станциями (так удобнее и правильнее).
-        JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
-        queOut000.setMaxNo(wsSnapshotAge);
+            // ---
+            // Помещаем snapshot-реплику для станции в очередь queOut001.
+            UtRepl ut = new UtRepl(db, struct);
+            ut.sendToQue(replicasSnapshot, queOut001);
 
-        // Нумерация отправки реплик из очереди queOut000 на эту станцию.
-        IJdxMailStateManager mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT000);
-        mailStateManager.setMailSendDone(wsSnapshotAge);
 
-        // Номер последней реплики ОТ новой рабочей станции
-        // Станция пока не имела аудита, поэтому ничего еще не отправила на сервер, поэтому 0.
-        stateManagerSrv.setWsQueInNoDone(wsId, 0);
+            // ---
+            // Команды на установку возраста очередей рабочей станции (начальное состояние)
+            JdxWsState wsState = new JdxWsState();
+            // Возраст очереди "in" новой рабочей станции - по возрасту очереди "in"
+            // "серверной" рабочей станции (que_in_no_done), запомненному при формировании snapshot
+            wsState.QUE_IN_NO = wsSnapshotAge;
+            wsState.QUE_IN_NO_DONE = wsSnapshotAge;
+            //
+            wsState.QUE_IN001_NO = 0L;
+            wsState.QUE_IN001_NO_DONE = 0L;
+            // Новая рабочая станция пока не имела аудита, поэтому возраст ее очереди "out" будет 0, ...
+            wsState.QUE_OUT_NO = 0L;
+            wsState.QUE_OUT_NO_DONE = 0L;
+            // ... отправка тоже ...
+            wsState.MAIL_SEND_DONE = 0L;
+            // ... и возраст аудита тоже
+            wsState.AGE = 0L;
+            // Поехали
+            wsState.MUTE = 0L;
+            //
+            UtRepl utRepl = new UtRepl(db, struct);
+            IReplica replicaSetState = utRepl.createReplicaSetWsState(wsId, wsState);
+            queOut001.push(replicaSetState);
+
+
+            // ---
+            // Установка (на сервере) разных возрастов для новой рабочей станции (начальное состояние)
+            JdxStateManagerSrv stateManagerSrv = new JdxStateManagerSrv(db);
+
+            // Номер отправленных реплик.
+            // Более поздние в snapshot НЕ попали и рабочая станция получит их самостоятельно.
+            stateManagerSrv.setDispatchDoneQueCommon(wsId, wsSnapshotAge);
+
+            // Номер реплик в очереди queOut000 новой станции будет совпадать с остальными станциями (так удобнее и правильнее).
+            JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
+            queOut000.setMaxNo(wsSnapshotAge);
+
+            // Нумерация отправки реплик из очереди queOut000 на эту станцию.
+            IJdxMailStateManager mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT000);
+            mailStateManager.setMailSendDone(wsSnapshotAge);
+
+            // Номер последней реплики ОТ новой рабочей станции
+            // Станция пока не имела аудита, поэтому ничего еще не отправила на сервер, поэтому 0.
+            stateManagerSrv.setWsQueInNoDone(wsId, 0);
+
+        } catch (Exception e) {
+            db.rollback();
+        }
     }
 
     /**
@@ -369,11 +388,16 @@ public class JdxReplSrv {
         IPublicationRuleStorage ruleSnapsot = PublicationRuleStorage.loadRules(cfgSnapsot, struct, "snapshot");
 
         // Подготовим snapshot-реплику.
-        // Получатель snapshot-реплики - wsId.
-        // Автор snapshot-реплики - при подготовке snapshot автор, строго говоря, не определен,
+        // Получатель - wsId.
+        // Автор - при подготовке snapshot автор, строго говоря, не определен,
         // но чтобы не было ошибок, поставим в качестве автора - себя (serverWsId).
         long serverWsId = SERVER_WS_ID;
-        long wsSnapshotAge = sendReplicasSnapshot(serverWsId, wsId, ruleSnapsot, queOut001);
+        List<IReplica> replicasSnapshot = new ArrayList<>();
+        long wsSnapshotAge = createReplicasSnapshot(serverWsId, wsId, ruleSnapsot, replicasSnapshot);
+
+        // Помещаем snapshot-реплику в очередь queOut001.
+        UtRepl ut = new UtRepl(db, struct);
+        ut.sendToQue(replicasSnapshot, queOut001);
 
 
         // ---
@@ -434,18 +458,6 @@ public class JdxReplSrv {
         // ---
         // Установка (на сервере) разных возрастов для новой рабочей станции (начальное состояние)
         // Не требуется - станция сохраняет свое состояние
-
-/**
- 1) чтение и отправка текущего состяния ("восстановительная" реплика)
-
- 1.1) проработать четкий момент "поехали", когда станция начинает не только читать,
- но и обрабатывать свой аудит и отправлять его - к этому моменту все очереди рабочей станции должны быть заданы правильно - чтобы на станции можно было безопасно вводит данные в любое время, пока идет репликация
-
- 2) прием на станции - сейчас состояние "Detected restore from backup, repair needed"
-
- 3) учесть, получение команды на восстановление на живой базе - проверять на базе рабочей станции, чтобы все номера (age, очередей) двигали станцию ТОЛьКО вперед (или вообще только из нулевого состояния), иначе ошибка
-
- */
     }
 
     private void srvSetAndSendCfg(JdxQueOut001 queOut001, long wsId, JSONObject cfgPublicationsWs, JSONObject cfgDecode, boolean sendSnapshot) throws Exception {
@@ -463,7 +475,7 @@ public class JdxReplSrv {
      * фильтруем его по правилам rulesForSnapshot,
      * и отправляем в очередь que
      */
-    private long sendReplicasSnapshot(long wsIdAuthor, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot, IJdxQue que) throws Exception {
+    private long createReplicasSnapshot(long wsIdAuthor, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot, List<IReplica> replicasRes) throws Exception {
         // Запоминаем возраст входящей очереди "серверной" рабочей станции (que_in_no_done).
         // Если мы начинаем готовить snapshot в этом возрасте, то все реплики ДО этого возраста войдут в snapshot,
         // а все реплики ПОСЛЕ этого возраста в snapshot НЕ попадут,
@@ -476,9 +488,10 @@ public class JdxReplSrv {
         // Передаем тот состав таблиц, который перечислен в правилах исходящих публикаций
         List<IJdxTable> publicationOutTables = makeOrderedFromPublicationRules(struct, rulesForSnapshot);
 
-        // Создаем snapshot-реплики, фильтруем, отправляем
+        // Создаем snapshot-реплики, фильтруем
         UtRepl ut = new UtRepl(db, struct);
-        ut.createSendSnapshotForTables(publicationOutTables, wsIdAuthor, wsIdDestination, rulesForSnapshot, false, que);
+        List<IReplica> replicasResFiltered = ut.createSnapshotForTablesFiltered(publicationOutTables, wsIdAuthor, wsIdDestination, rulesForSnapshot, false);
+        replicasRes.addAll(replicasResFiltered);
 
         //
         return wsSnapshotAge;
@@ -997,9 +1010,12 @@ public class JdxReplSrv {
         // В качестве фильтров на ОТПРАВКУ от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
         IPublicationRuleStorage publicationRule = publicationsInList.get(destinationWsId);
 
-        // Создаем снимок таблицы и кладем его в очередь queOut (разрешаем отсылать чужие записи)
+        // Создаем снимок таблицы (разрешаем отсылать чужие записи)
         UtRepl ut = new UtRepl(db, struct);
-        ut.createSendSnapshotForTables(tables, SERVER_WS_ID, destinationWsId, publicationRule, false, queOut001);
+        List<IReplica> replicasRes = ut.createSnapshotForTablesFiltered(tables, SERVER_WS_ID, destinationWsId, publicationRule, false);
+
+        // Отправляем снимок таблицы в очередь queOut
+        ut.sendToQue(replicasRes, queOut001);
     }
 
 

@@ -871,12 +871,10 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
     }
 
     /**
-     * Создаем snapsot-реплики для таблиц tables,
-     * фильруем по фильтрам,
-     * помещаем их в очередь out.
+     * Создаем snapsot-реплики для таблиц tables (фильруем по фильтрам)
      */
-    public void createSendSnapshotForTables(List<IJdxTable> tables, long wsIdAuthor, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot, boolean forbidNotOwnId, IJdxQue que) throws Exception {
-        log.info("createSendSnapshotForTables, wsAuthor: " + wsIdAuthor + ", wsAuthor: " + wsIdDestination + ", que: " + que.getBaseDir());
+    public List<IReplica> createSnapshotForTablesFiltered(List<IJdxTable> tables, long wsIdAuthor, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot, boolean forbidNotOwnId) throws Exception {
+        log.info("createSendSnapshotForTables, wsAuthor: " + wsIdAuthor + ", wsAuthor: " + wsIdDestination);
 
         // В tables будет соблюден порядок сортировки таблиц с учетом foreign key.
         // При последующем применении snapsot важен порядок.
@@ -891,7 +889,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         // Снимок делаем в рамках одной транзакции - чтобы видеть непроитворечивое состояние таблиц
         db.startTran();
         try {
-            replicasSnapshot = createSnapshotReplicas(tables, wsIdAuthor, rulesForSnapshot, forbidNotOwnId);
+            replicasSnapshot = createSnapshotForTables(tables, wsIdAuthor, rulesForSnapshot, forbidNotOwnId);
             //
             db.commit();
         } catch (Exception e) {
@@ -906,11 +904,27 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
 
 
         // ---
-        // Помещаем snapshot-реплики в очередь que.
-        // Делаем в рамках одной транзакции - чтобы либо весь снимок ущел, либо ничего
+        // Не фильтрованные реплики - удаляем файлы
+        for (IReplica replica : replicasSnapshot) {
+            replica.getData().delete();
+        }
+
+
+        //
+        return replicasSnapshotFiltered;
+    }
+
+
+    /**
+     * Помещаем реплики replicas в очередь que.
+     * Делаем в рамках одной транзакции - чтобы либо все реплики ушли, либо ничего.
+     */
+    public void sendToQue(List<IReplica> replicas, IJdxQue que) throws Exception {
+        log.info("sendToQue, que: " + que.getBaseDir());
+
         db.startTran();
         try {
-            for (IReplica replica : replicasSnapshotFiltered) {
+            for (IReplica replica : replicas) {
                 que.push(replica);
             }
             //
@@ -919,22 +933,13 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
             db.rollback(e);
             throw e;
         }
-
-
-        // ---
-        // Не фильтрованные реплики - удаляем файлы
-        for (IReplica replica : replicasSnapshot) {
-            replica.getData().delete();
-        }
     }
 
-
     /**
-     * Создаем snapsot-реплики для таблиц tables,
-     * без последующей фильтрации записей,
-     * но только для таблиц, упомянутых в publicationRules
+     * Создаем snapsot-реплики для таблиц tables (без фильтрации записей).
+     * Только для таблиц, упомянутых в publicationRules.
      */
-    private List<IReplica> createSnapshotReplicas(List<IJdxTable> tables, long selfWsId, IPublicationRuleStorage publicationRules, boolean forbidNotOwnId) throws Exception {
+    private List<IReplica> createSnapshotForTables(List<IJdxTable> tables, long selfWsId, IPublicationRuleStorage publicationRules, boolean forbidNotOwnId) throws Exception {
         List<IReplica> res = new ArrayList<>();
 
         //

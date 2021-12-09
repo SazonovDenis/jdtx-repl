@@ -923,9 +923,12 @@ class Jdx_Ext extends ProjectExt {
                 // Разложим в список
                 List<IJdxTable> tables = UtJdx.stringToTables(tableNames, ws.struct);
 
-                // Создаем снимок таблицы и кладем его в очередь queOut (разрешаем отсылать чужие записи)
-                UtRepl ut = new UtRepl(db, ws.struct);
-                ut.createSendSnapshotForTables(tables, ws.wsId, ws.wsId, ws.publicationOut, false, ws.queOut);
+                // Создаем снимок таблицы (разрешаем отсылать чужие записи)
+                UtRepl ut = new UtRepl(db, ws.struct)
+                ut.createSnapshotForTablesFiltered(tables, ws.wsId, ws.wsId, ws.publicationOut, false)
+
+                // Отправляем снимок таблицы в очередь queOut
+                ut.sendToQue(replicasRes, ws.queOut)
             }
 
         } finally {

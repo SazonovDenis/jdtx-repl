@@ -381,19 +381,24 @@ public class JdxReplWs {
         // Таким образом данные, вводимые во время подготовки аудита и snapshot-та, не попадут ни в аудит, ни в snapshot,
         // т.к. таблица аудита ЕЩЕ не видна другим транзакциям, а данные, продолжающие поступать в snapshot, УЖЕ не видны нашей транзакции.
         if (sendSnapshotForNewTables) {
+            UtRepl ut = new UtRepl(db, struct);
+            List<IReplica> replicasRes;
+
+            // Делаем выгрузку snapshot (в отдельной транзакции)
             db.startTran();
             try {
                 // Параметры (для правил публикации и фильтрации): автор и получатель реплики реплики - wsId
-                UtRepl ut = new UtRepl(db, struct);
-                ut.createSendSnapshotForTables(tablesNew, wsId, wsId, publicationOut, true, queOut);
+                replicasRes = ut.createSnapshotForTablesFiltered(tablesNew, wsId, wsId, publicationOut, true);
 
                 //
                 db.commit();
-
             } catch (Exception e) {
                 db.rollback(e);
                 throw e;
             }
+
+            // Отправляем snapshot
+            ut.sendToQue(replicasRes, queOut);
         } else {
             log.info("dbStructApplyFixed, snapshot not send");
         }
@@ -916,10 +921,13 @@ public class JdxReplWs {
             List<IJdxTable> tables = new ArrayList<>();
             tables.add(struct.getTable(tableName));
 
-            // Создаем снимок таблицы и кладем его в очередь queOut (разрешаем отсылать чужие записи)
+            // Создаем снимок таблицы (разрешаем отсылать чужие записи)
             // Параметры (для правил публикации и фильтрации): автор и получатель реплики реплики - wsId
             UtRepl ut = new UtRepl(db, struct);
-            ut.createSendSnapshotForTables(tables, wsId, wsId, publicationOut, false, queOut);
+            List<IReplica> replicasRes = ut.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut, false);
+
+            // Отправляем снимок таблицы в очередь queOut
+            ut.sendToQue(replicasRes, queOut);
 
             // Выкладывание реплики "snapshot отправлен"
             reportReplica(JdxReplicaType.SEND_SNAPSHOT_DONE);
