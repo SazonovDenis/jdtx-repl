@@ -15,7 +15,6 @@ import jdtx.repl.main.api.manager.*
 import jdtx.repl.main.api.que.*
 import jdtx.repl.main.api.replica.*
 import jdtx.repl.main.api.struct.*
-import jdtx.repl.main.api.util.*
 import jdtx.repl.main.gen.*
 import jdtx.repl.main.service.*
 import org.apache.log4j.*
@@ -907,28 +906,17 @@ class Jdx_Ext extends ProjectExt {
         ReplServiceState serviceState = saveServiceState(db, args)
         try {
             if (destinationWsId != 0L) {
-                // Запросили для конкретной станциию
-
+                // Запросили на сервере, для конкретной станциию
                 // Отправляем на станцию через сервер, в очередь QUE_OUT001
                 JdxReplSrv srv = new JdxReplSrv(db)
                 srv.init()
-
-                //
                 srv.srvSendSnapshot(destinationWsId, tableNames)
             } else {
-                // Запросили не для конкретной станции - отправляем всем в очередь QUE_COMMON
+                // Запросили с любой станции, не для конкретной станции
+                // Отправляем всем в очередь QUE_COMMON
                 JdxReplWs ws = new JdxReplWs(db)
                 ws.init()
-
-                // Разложим в список
-                List<IJdxTable> tables = UtJdx.stringToTables(tableNames, ws.struct);
-
-                // Создаем снимок таблицы (разрешаем отсылать чужие записи)
-                UtRepl ut = new UtRepl(db, ws.struct)
-                ut.createSnapshotForTablesFiltered(tables, ws.wsId, ws.wsId, ws.publicationOut, false)
-
-                // Отправляем снимок таблицы в очередь queOut
-                ut.sendToQue(replicasRes, ws.queOut)
+                ws.wsSendSnapshot(tableNames)
             }
 
         } finally {

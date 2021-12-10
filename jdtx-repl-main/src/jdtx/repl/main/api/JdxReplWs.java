@@ -1914,6 +1914,18 @@ public class JdxReplWs {
 
     }
 
+    public void wsSendSnapshot(String tableNames) throws Exception {
+        // Разложим в список
+        List<IJdxTable> tables = UtJdx.stringToTables(tableNames, struct);
+
+        // Создаем снимок таблицы (разрешаем отсылать чужие записи)
+        UtRepl ut = new UtRepl(db, struct);
+        List<IReplica> replicasRes = ut.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut, false);
+
+        // Отправляем снимок таблицы в очередь queOut
+        ut.sendToQue(replicasRes, queOut);
+    }
+
     public void debugDumpStruct(String prefix) throws Exception {
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
         struct_rw.toFile(struct, dataRoot + "temp/" + prefix + "dbStruct.actual.xml");
