@@ -873,8 +873,8 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
     /**
      * Создаем snapsot-реплики для таблиц tables (фильруем по фильтрам)
      */
-    public List<IReplica> createSnapshotForTablesFiltered(List<IJdxTable> tables, long wsIdAuthor, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot, boolean forbidNotOwnId) throws Exception {
-        log.info("createSendSnapshotForTables, wsAuthor: " + wsIdAuthor + ", wsAuthor: " + wsIdDestination);
+    public List<IReplica> createSnapshotForTablesFiltered(List<IJdxTable> tables, long selfWsId, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot, boolean forbidNotOwnId) throws Exception {
+        log.info("createSendSnapshotForTables, selfWsId: " + selfWsId + ", wsIdDestination: " + wsIdDestination);
 
         // В tables будет соблюден порядок сортировки таблиц с учетом foreign key.
         // При последующем применении snapsot важен порядок.
@@ -889,7 +889,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         // Снимок делаем в рамках одной транзакции - чтобы видеть непроитворечивое состояние таблиц
         db.startTran();
         try {
-            replicasSnapshot = createSnapshotForTables(tables, wsIdAuthor, rulesForSnapshot, forbidNotOwnId);
+            replicasSnapshot = createSnapshotForTables(tables, selfWsId, rulesForSnapshot, forbidNotOwnId);
             //
             db.commit();
         } catch (Exception e) {
@@ -900,6 +900,9 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
 
         // ---
         // Фильтруем записи в snapshot-репликах
+        // Автор snapshot-реплики, строго говоря, не определен,
+        // но чтобы не было ошибок в вычислении выражений, поставим в качестве автора -1.
+        long wsIdAuthor = -1;
         List<IReplica> replicasSnapshotFiltered = filterReplicas(replicasSnapshot, wsIdAuthor, wsIdDestination, rulesForSnapshot);
 
 
@@ -949,7 +952,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         for (IJdxTable table : tables) {
             String tableName = table.getName();
 
-            log.info("SnapshotForTables, wsAuthor: " + selfWsId + ", table: " + tableName);
+            log.info("SnapshotForTables, selfWsId: " + selfWsId + ", table: " + tableName);
 
             //
             IPublicationRule publicationTableRule = publicationRules.getPublicationRule(tableName);
@@ -965,7 +968,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         }
 
         //
-        log.info("SnapshotForTables, wsAuthor: " + selfWsId + ", done");
+        log.info("SnapshotForTables, selfWsId: " + selfWsId + ", done");
 
         //
         return res;
@@ -982,12 +985,10 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         // Фильтр записей
         IReplicaFilter filter = new ReplicaFilter();
 
+        // Фильтр, параметры: автор реплики
+        filter.getFilterParams().put("wsAuthor", String.valueOf(wsIdAuthor));
         // Фильтр, параметры: получатель реплики
         filter.getFilterParams().put("wsDestination", String.valueOf(wsIdDestination));
-        // Фильтр, параметры: автор реплики - делаем заведомо не существующее значение.
-        // При подготовке snapshot автор, строго говоря, не определен, но чтобы не было ошибок,
-        // поставим в качестве автора - себя.
-        filter.getFilterParams().put("wsAuthor", String.valueOf(wsIdAuthor));
 
         // Фильтруем записи
         for (IReplica replicaSnapshot : replicasSnapshot) {

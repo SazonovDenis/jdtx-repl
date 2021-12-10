@@ -253,8 +253,6 @@ public class JdxReplSrv {
 
         // Подготовим snapshot-реплику.
         // Получатель snapshot-реплики - wsId.
-        // Автор snapshot-реплики - при подготовке snapshot автор, строго говоря, не определен,
-        // но чтобы не было ошибок, поставим в качестве автора - себя (serverWsId).
         long serverWsId = SERVER_WS_ID;
         List<IReplica> replicasSnapshot = new ArrayList<>();
         long wsSnapshotAge = createReplicasSnapshot(serverWsId, wsId, publicationRuleWsIn, replicasSnapshot);
@@ -389,8 +387,6 @@ public class JdxReplSrv {
 
         // Подготовим snapshot-реплику.
         // Получатель - wsId.
-        // Автор - при подготовке snapshot автор, строго говоря, не определен,
-        // но чтобы не было ошибок, поставим в качестве автора - себя (serverWsId).
         long serverWsId = SERVER_WS_ID;
         List<IReplica> replicasSnapshot = new ArrayList<>();
         long wsSnapshotAge = createReplicasSnapshot(serverWsId, wsId, ruleSnapsot, replicasSnapshot);
@@ -475,7 +471,7 @@ public class JdxReplSrv {
      * фильтруем его по правилам rulesForSnapshot,
      * и отправляем в очередь que
      */
-    private long createReplicasSnapshot(long wsIdAuthor, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot, List<IReplica> replicasRes) throws Exception {
+    private long createReplicasSnapshot(long selfWsId, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot, List<IReplica> replicasRes) throws Exception {
         // Запоминаем возраст входящей очереди "серверной" рабочей станции (que_in_no_done).
         // Если мы начинаем готовить snapshot в этом возрасте, то все реплики ДО этого возраста войдут в snapshot,
         // а все реплики ПОСЛЕ этого возраста в snapshot НЕ попадут,
@@ -490,7 +486,7 @@ public class JdxReplSrv {
 
         // Создаем snapshot-реплики, фильтруем
         UtRepl ut = new UtRepl(db, struct);
-        List<IReplica> replicasResFiltered = ut.createSnapshotForTablesFiltered(publicationOutTables, wsIdAuthor, wsIdDestination, rulesForSnapshot, false);
+        List<IReplica> replicasResFiltered = ut.createSnapshotForTablesFiltered(publicationOutTables, selfWsId, wsIdDestination, rulesForSnapshot, false);
         replicasRes.addAll(replicasResFiltered);
 
         //
@@ -999,12 +995,12 @@ public class JdxReplSrv {
         ws.init();
 
 
-        // Разложим в список
-        List<IJdxTable> tables = UtJdx.stringToTables(tableNames, struct);
-
         // Очередь queOut001 станции (инициализационная или для системных команд)
         JdxQueOut001 queOut001 = new JdxQueOut001(db, destinationWsId);
         queOut001.setDataRoot(dataRoot);
+
+        // Разложим в список
+        List<IJdxTable> tables = UtJdx.stringToTables(tableNames, struct);
 
         // Правила публикаций (фильтры) для станции wsId.
         // В качестве фильтров на ОТПРАВКУ от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
