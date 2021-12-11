@@ -91,11 +91,6 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             //
-            // Только рабочая станция знает, какая у нас wsId
-            JdxReplWs ws = new JdxReplWs(db)
-            ws.init()
-
-            //
             IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain()
             JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer)
             if (!UtString.empty(fileCfgGroup)) {
@@ -165,10 +160,6 @@ class Merge_Ext extends ProjectExt {
             // Читаем задачу на слияние
             UtRecMergePlanRW reader = new UtRecMergePlanRW()
             Collection<RecMergePlan> mergePlans = reader.readPlans(fileName)
-
-            // Только рабочая станция знает, какая у нас wsId
-            JdxReplWs ws = new JdxReplWs(db)
-            ws.init()
 
             //
             IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain()
