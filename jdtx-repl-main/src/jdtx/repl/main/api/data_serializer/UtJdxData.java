@@ -115,7 +115,7 @@ public class UtJdxData {
             LocalDate vLocalDate = new LocalDate(valueStr);
             valueDateTime = vLocalDate.toDateTimeAtStartOfDay();
         } else {
-            // 2015-04-01T01:00:00.000+07:00
+            // 2015-04-01T21:54:05.000+07:00
             valueDateTime = new DateTime(valueStr);
         }
 
