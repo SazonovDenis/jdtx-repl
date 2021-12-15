@@ -1686,7 +1686,7 @@ public class JdxReplWs {
         long noSendMarked = mailStateManager.getMailSendDone();
 
         // Проверим, что помеченное на 1 меньше отправленного, и CRC одинаковое
-        boolean equal_Marked_SrvDone = false;
+        boolean normal_Marked_SrvDone = false;
         if ((noSendMarked + 1) == noSendSrvDone) {
             // Читаем информацию о реплике с сервера
             IReplicaInfo infoSrv = ((MailerHttp) mailer).getLastReplicaInfo("from");
@@ -1700,7 +1700,7 @@ public class JdxReplWs {
                 mailStateManager.setMailSendDone(noSendSrvDone);
                 log.warn("Repair mailSendDone, " + noSendMarked + " -> " + noSendSrvDone);
                 //
-                equal_Marked_SrvDone = true;
+                normal_Marked_SrvDone = true;
             }
         }
 
@@ -1715,10 +1715,10 @@ public class JdxReplWs {
         // Допускается, если не все реплики использованы (noQueIn > noQueInUsed).
         // Это бывает, если прерывается процесс применения реплик. Это не страшно, т.к. при следующем запуске применение возобновится.
         //
-        // Допускается, если noSendMarked на 1 меньше noSendSrvDone, при этом CRC реплики queOut[noSendSrvDone] одинаковая на сервере и в очереди.
+        // Допускается, если noSendMarked на 1 меньше noSendSrvDone, но при этом CRC реплики queOut[noSendSrvDone] одинаковая на сервере и в очереди.
         // Это бывает, если прерывается процесс передачи реплик на этапе отметки. Это не страшно, т.к. не говорит о подмене базы.
         boolean needRepair;
-        if ((noQueIn == -1 || noQueIn >= noQueInDir) && noQueIn >= noQueInUsed && noQueOut == noQueOutDir && (noSendMarked >= noSendSrvDone || equal_Marked_SrvDone) && !lockFile.exists()) {
+        if ((noQueIn == -1 || noQueIn >= noQueInDir) && noQueIn >= noQueInUsed && noQueOut == noQueOutDir && (noSendMarked == noSendSrvDone || normal_Marked_SrvDone) && !lockFile.exists()) {
             needRepair = false;
         } else {
             needRepair = true;
@@ -1737,6 +1737,7 @@ public class JdxReplWs {
             log.warn("  noQueOutDir: " + noQueOutDir);
             log.warn("  noSendSrvDone: " + noSendSrvDone);
             log.warn("  noSendMarked: " + noSendMarked);
+            log.warn("  normal_Marked_SrvDone: " + normal_Marked_SrvDone);
             log.warn("  lockFile: " + lockFile.exists());
             log.warn("  need repair: " + needRepair);
         }
@@ -1759,6 +1760,7 @@ public class JdxReplWs {
                     "noQueOutDir: " + noQueOutDir + ", " +
                     "noSendSrvDone: " + noSendSrvDone + ", " +
                     "noSendMarked: " + noSendMarked + ", " +
+                    "normal_Marked_SrvDone: " + normal_Marked_SrvDone + ", " +
                     "lockFile: " + lockFile.exists() + ", " +
                     "need repair: " + needRepair;
             throw new XError("Detected restore from backup, repair needed: " + errInfo);
