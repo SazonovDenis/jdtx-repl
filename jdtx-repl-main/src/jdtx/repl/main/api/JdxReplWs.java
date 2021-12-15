@@ -1718,7 +1718,12 @@ public class JdxReplWs {
         // Допускается, если noSendMarked на 1 меньше noSendSrvDone, но при этом CRC реплики queOut[noSendSrvDone] одинаковая на сервере и в очереди.
         // Это бывает, если прерывается процесс передачи реплик на этапе отметки. Это не страшно, т.к. не говорит о подмене базы.
         boolean needRepair;
-        if ((noQueIn == -1 || noQueIn >= noQueInDir) && noQueIn >= noQueInUsed && noQueOut == noQueOutDir && (noSendMarked == noSendSrvDone || normal_Marked_SrvDone) && !lockFile.exists()) {
+        if ((noQueIn == -1 || noQueIn >= noQueInDir) &&
+                (noQueIn >= noQueInUsed) &&
+                (noQueOut == noQueOutDir) &&
+                (noSendMarked == noSendSrvDone || normal_Marked_SrvDone) &&
+                !lockFile.exists()
+        ) {
             needRepair = false;
         } else {
             needRepair = true;
