@@ -446,6 +446,9 @@ public class UtJdx {
         String[] tableNamesArr = tableNames.split(",");
         for (String tableName : tableNamesArr) {
             IJdxTable table = struct.getTable(tableName);
+            if (table == null) {
+                throw new XError("Table not found in struct: " + tableName);
+            }
             tableList.add(table);
         }
         //
