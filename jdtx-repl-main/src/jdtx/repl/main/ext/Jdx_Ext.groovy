@@ -1098,6 +1098,9 @@ class Jdx_Ext extends ProjectExt {
         utSetup.gen(inFileName, outDirName)
     }
 
+
+    String param_NotSaveServiceState = "notSaveServiceState";
+
     /**
      * Запоминаем состояние процесса и службы репликатора,
      * останавливаем процесс и удаляем службу
@@ -1106,7 +1109,7 @@ class Jdx_Ext extends ProjectExt {
         ReplServiceState serviceState = null;
 
         //
-        boolean saveServiceState = args.isValueNull("notSaveServiceState")
+        boolean saveServiceState = args.isValueNull(param_NotSaveServiceState)
         if (saveServiceState) {
             serviceState = UtReplService.readServiceState(db)
 
@@ -1130,7 +1133,7 @@ class Jdx_Ext extends ProjectExt {
      * Восстанавливаем состояние процесса и службы репликатора по данным в replServiceState
      */
     void restoreServiceState(ReplServiceState replServiceState, Db db, IVariantMap args) {
-        boolean saveServiceState = args.isValueNull("notSaveServiceState")
+        boolean saveServiceState = args.isValueNull(param_NotSaveServiceState)
         if (saveServiceState) {
             UtReplService.setServiceState(db, replServiceState)
         }

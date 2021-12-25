@@ -1,12 +1,6 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.data.*;
-import jandcode.jc.*;
-import jandcode.jc.test.*;
 import jandcode.utils.variant.*;
-import jdtx.repl.main.api.rec_merge.*;
-import jdtx.repl.main.ext.*;
-import jdtx.repl.main.task.*;
 import org.junit.*;
 
 /**
@@ -93,11 +87,11 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
     }
 
     @Test
-    public void requestTableSnapshot() throws Exception {
+    public void tableSnapshotRequest() throws Exception {
         IVariantMap args = new VariantMap();
         args.put("ws", 3);
         args.put("tables", "Lic,LicDocTip");
-        extSrv.repl_request_snapshot(args);
+        extSrv.repl_snapshot_request(args);
     }
 
     @Test
