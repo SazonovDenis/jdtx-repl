@@ -1921,6 +1921,33 @@ public class JdxReplWs {
 
     }
 
+    public void wsCreateSnapshot(String tableNames, String outName) throws Exception {
+        // Разложим в список
+        List<IJdxTable> tables = UtJdx.stringToTables(tableNames, struct);
+
+        // Создаем снимок таблицы (разрешаем отсылать чужие записи)
+        UtRepl ut = new UtRepl(db, struct);
+        List<IReplica> replicasRes = ut.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut, false);
+
+        if (replicasRes.size() == 1) {
+            IReplica replica = replicasRes.get(0);
+            File resFile = new File(outName);
+            FileUtils.moveFile(replica.getData(), resFile);
+            log.info(resFile.getAbsolutePath());
+        } else {
+            // В tables будет соблюден порядок сортировки таблиц с учетом foreign key.
+            // При наиименовании файлов важен порядок.
+            tables = UtJdx.sortTablesByReference(tables);
+            //
+            for (int i = 0; i < replicasRes.size(); i++) {
+                IReplica replica = replicasRes.get(i);
+                File resFile = new File(outName + "/" + UtString.padLeft(String.valueOf(i), 3, '0') + "." + tables.get(i).getName() + ".zip");
+                FileUtils.moveFile(replica.getData(), resFile);
+                log.info(resFile.getAbsolutePath());
+            }
+        }
+    }
+
     public void wsSendSnapshot(String tableNames) throws Exception {
         // Разложим в список
         List<IJdxTable> tables = UtJdx.stringToTables(tableNames, struct);

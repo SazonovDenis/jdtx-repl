@@ -858,7 +858,7 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
-    void repl_request_snapshot(IVariantMap args) {
+    void repl_snapshot_request(IVariantMap args) {
         long destinationWsId = args.getValueLong("ws")
         String tableNames = args.getValueString("tables")
         if (destinationWsId == 0L) {
@@ -891,7 +891,33 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
-    void repl_send_snapshot(IVariantMap args) {
+    void repl_snapshot_create(IVariantMap args) {
+        String outFileName = args.getValueString("file")
+        if (outFileName == null || outFileName.length() == 0) {
+            throw new XError("Не указан [file] - Результирующий файл с репликой")
+        }
+        String tableNames = args.getValueString("tables")
+        if (tableNames == null || tableNames.length() == 0) {
+            throw new XError("Не указаны [tables] - таблицы в БД")
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
+        try {
+            JdxReplWs ws = new JdxReplWs(db)
+            ws.init()
+            ws.wsCreateSnapshot(tableNames, outFileName)
+        } finally {
+            restoreServiceState(serviceState, db, args)
+            db.disconnect()
+        }
+    }
+
+    void repl_snapshot_send(IVariantMap args) {
         long destinationWsId = args.getValueLong("ws")
         String tableNames = args.getValueString("tables")
         if (tableNames == null || tableNames.length() == 0) {

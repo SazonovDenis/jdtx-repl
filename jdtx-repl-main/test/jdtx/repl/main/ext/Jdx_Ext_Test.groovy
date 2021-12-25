@@ -1,7 +1,6 @@
 package jdtx.repl.main.ext
 
-import jandcode.dbm.*
-import jandcode.dbm.db.*
+
 import jandcode.jc.*
 import jandcode.jc.test.*
 import jandcode.utils.variant.*
@@ -114,18 +113,35 @@ class Jdx_Ext_Test extends JcTestCase {
     }
 
     @Test
-    void repl_send_snapshot_srv() {
+    void repl_snapshot_send_srv() {
         IVariantMap args = new VariantMap()
         args.put("ws", 2)
         args.put("tables", "CommentText,CommentTip,Usr,UsrGrp,UsrOtdel")
-        extSrv.repl_send_snapshot(args)
+        extSrv.repl_snapshot_send(args)
     }
 
     @Test
-    void repl_send_snapshot_ws() {
+    void repl_snapshot_send_ws() {
         IVariantMap args = new VariantMap()
         args.put("tables", "CommentText,CommentTip,Usr,UsrGrp,UsrOtdel")
-        extWs2.repl_send_snapshot(args)
+        extWs2.repl_snapshot_send(args)
+    }
+
+    @Test
+    void repl_snapshot_create_ws() {
+        IVariantMap args = new VariantMap()
+
+        args.put("file", "temp/t1")
+        args.put("tables", "CommentText,CommentTip,Usr,UsrGrp,UsrOtdel")
+        extWs2.repl_snapshot_create(args)
+
+        args.put("file", "temp/t2")
+        args.put("tables", "CommentTip,CommentText,UsrGrp,Usr,UsrOtdel")
+        extWs2.repl_snapshot_create(args)
+
+        args.put("file", "temp/PawnChitDat.zip")
+        args.put("tables", "PawnChitDat")
+        extWs2.repl_snapshot_create(args)
     }
 
 

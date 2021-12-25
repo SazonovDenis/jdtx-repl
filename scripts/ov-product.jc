@@ -159,21 +159,30 @@ repl_app_update = cm("Послать сигнал на обновление ПО
 
 
 //
-repl_request_snapshot = cm("Запрашивает shapshot таблиц с рабочей станции",
+repl_snapshot_request = cm("Запрашивает shapshot таблиц с рабочей станции",
         "ws": [value: null, help: "У какой рабочей станции запрашиваем"],
         "tables": [value: null, help: "Имена таблиц, через запятую"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    ext.repl_request_snapshot(args)
+    ext.repl_snapshot_request(args)
 }
 
 //
-repl_send_snapshot = cm("Отправляет shapshot таблиц с рабочей станции или с сервера",
-        "ws": [value: null, help: "Рабочая станция - получатель snapshot (только на сервере)"],
+repl_snapshot_send = cm("Отправляет shapshot таблиц (с рабочей станции или с сервера)",
+        "ws": [value: null, help: "Рабочая станция - получатель snapshot (указывается только на сервере)"],
         "tables": [value: null, help: "Имена таблиц, через запятую"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    ext.repl_send_snapshot(args)
+    ext.repl_snapshot_send(args)
+}
+
+//
+repl_snapshot_create = cm("Создает shapshot таблиц (на рабочей станции или на сервере)",
+        "file": [value: null, help: "Результирующий файл с репликой"],
+        "tables": [value: null, help: "Имена таблиц, через запятую"],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_snapshot_create(args)
 }
 
 //
