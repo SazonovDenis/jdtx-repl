@@ -76,7 +76,7 @@ public class UtJdxData {
             } else if (valueString.compareToIgnoreCase("null") == 0) {
                 valueDouble = valueIfNull;
             } else {
-                valueDouble = Double.valueOf(value.toString());
+                valueDouble = Double.valueOf(valueString);
             }
         }
         return valueDouble;

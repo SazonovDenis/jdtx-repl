@@ -52,17 +52,17 @@ public class UtXml {
 
         // 
         if (field.getJdxDatatype() == JdxDataType.DOUBLE) {
-            double valueDouble = UtJdxData.doubleValueOf(valueStr);
+            Double valueDouble = UtJdxData.doubleValueOf(valueStr);
             return valueDouble;
         }
 
         if (UtAuditApplyer.getDataType(field.getDbDatatype()) == DataType.INT) {
-            int valueInteger = UtJdxData.intValueOf(valueStr);
+            Integer valueInteger = UtJdxData.intValueOf(valueStr);
             return valueInteger;
         }
 
         if (UtAuditApplyer.getDataType(field.getDbDatatype()) == DataType.LONG) {
-            long valueLong = UtJdxData.longValueOf(valueStr);
+            Long valueLong = UtJdxData.longValueOf(valueStr);
             return valueLong;
         }
 

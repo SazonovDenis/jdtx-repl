@@ -1,7 +1,6 @@
 package jdtx.repl.main.api.data_serializer;
 
 import jandcode.dbm.db.*;
-import jandcode.utils.error.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.struct.*;
 
@@ -58,24 +57,19 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
         } else if (field.isPrimaryKey() || refTable != null) {
             // Это поле - ссылка
             JdxRef fieldValueRef = JdxRef.parse(fieldValueStr);
-            // Дополнение ws_id для ссылки.
-            // Используется, если нам пришли не полные ссылки, а локальные
-            if (fieldValueRef.ws_id == -1) {
-                if (wsId > 0) {
-                    //fieldValueRef.ws_id = wsId;
-                    throw new XError("prepareValue, fieldValueRef.ws_id == -1");
-                } else {
-                    throw new XError("prepareValue, fieldValueRef.ws_id == -1, wsIdDefault is not set");
-                }
-            }
-            // Распаковка ссылки в long
-            String refTableName;
-            if (field.isPrimaryKey()) {
-                refTableName = table.getName();
+            if (fieldValueRef == null) {
+                // Ссылка равна null
+                fieldValue = null;
             } else {
-                refTableName = refTable.getName();
+                // Распаковка ссылки в long
+                String refTableName;
+                if (field.isPrimaryKey()) {
+                    refTableName = table.getName();
+                } else {
+                    refTableName = refTable.getName();
+                }
+                fieldValue = decoder.get_id_own(refTableName, fieldValueRef.ws_id, fieldValueRef.value);
             }
-            fieldValue = decoder.get_id_own(refTableName, fieldValueRef.ws_id, fieldValueRef.value);
         } else {
             // Поле других типов
             fieldValue = UtXml.strToValue(fieldValueStr, field);

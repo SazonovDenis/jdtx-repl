@@ -75,13 +75,15 @@ public class RecordFilter implements IRecordFilter {
             String fieldValue = recValues.get(fieldName);
 
             //
-            if (fieldValue != null) {
+            if (fieldValue != null && fieldValue.compareToIgnoreCase("null") != 0) {
                 IJdxTable refTable = field.getRefTable();
                 if (field.isPrimaryKey() || refTable != null) {
                     // Ссылка
                     JdxRef fieldValueRef = JdxRef.parse(fieldValue);
-                    filterExpression.setVariable("RECORD_OWNER_" + fieldName, new BigDecimal(fieldValueRef.ws_id));
-                    filterExpression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValueRef.value));
+                    if (fieldValueRef != null) {
+                        filterExpression.setVariable("RECORD_OWNER_" + fieldName, new BigDecimal(fieldValueRef.ws_id));
+                        filterExpression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValueRef.value));
+                    }
                 } else if (field.getJdxDatatype() == JdxDataType.INTEGER) {
                     // Целочисленное поле
                     filterExpression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValue));

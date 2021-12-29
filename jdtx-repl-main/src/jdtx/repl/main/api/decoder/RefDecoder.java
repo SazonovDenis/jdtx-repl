@@ -142,7 +142,7 @@ public class RefDecoder implements IRefDecoder {
 
         //
         if (ws_id <= 0) {
-            throw new XError("invalid ws_id <= 0");
+            throw new XError("get_id_own, invalid ws_id <= 0");
         }
 
         // Не надо перекодировать?

@@ -9,7 +9,7 @@ public class JdxRef {
     public long value = -1;
 
     public static JdxRef parse(String val) {
-        if (val == null || val.length() == 0) {
+        if (val == null || val.length() == 0 || val.compareToIgnoreCase("null") == 0) {
             return null;
         }
 

@@ -654,7 +654,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                                 JdxRef pkValue = JdxRef.parse(pkValueStr);
 
                                 // Дополнение ссылки
-                                if (pkValue.ws_id == -1) {
+                                if (pkValue != null && pkValue.ws_id == -1) {
                                     if (replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
                                         pkValue.ws_id = replica.getInfo().getWsId();
                                     } else {
@@ -669,7 +669,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                                 }
 
                                 // Нашли нужный id?
-                                if (pkValue.equals(findRecordId)) {
+                                if (findRecordId.equals(pkValue)) {
                                     int oprType = UtJdxData.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
                                     if (oprType == JdxOprType.OPR_DEL && skipOprDel) {
                                         log.info("  record found, replica.wsId: " + replica.getInfo().getWsId() + ", OprType == OPR_DEL, skipped");
