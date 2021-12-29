@@ -321,6 +321,9 @@ class Jdx_Ext extends ProjectExt {
 
             // Выполнение команды
             try {
+                // Имя таблицы как оно есть в структуре
+                tableName = ws.struct.getTable(tableName).getName()
+
                 // Преобразуем recordId в ссылку (в пару ws:id)
                 if (!recordIdRefStr.contains(":")) {
                     // Передали просто id - превратим ее в "каноническую" форму (пару ws:id)
