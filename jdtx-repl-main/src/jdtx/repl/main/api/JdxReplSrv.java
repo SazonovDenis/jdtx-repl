@@ -258,6 +258,10 @@ public class JdxReplSrv {
         long wsSnapshotAge = createReplicasSnapshot(serverWsId, wsId, publicationRuleWsIn, replicasSnapshot);
 
 
+        //
+        log.info("add workstation, createReplicasSnapshot done, wsSnapshotAge: " + wsSnapshotAge);
+
+
         db.startTran();
         try {
             // Очередь queOut001 станции (инициализационная или для системных команд)
@@ -334,9 +338,15 @@ public class JdxReplSrv {
             // Станция пока не имела аудита, поэтому ничего еще не отправила на сервер, поэтому 0.
             stateManagerSrv.setWsQueInNoDone(wsId, 0);
 
+
+            //
+            db.commit();
         } catch (Exception e) {
             db.rollback();
         }
+
+        //
+        log.info("add workstation done, wsId: " + wsId + ", name: " + wsName);
     }
 
     /**
