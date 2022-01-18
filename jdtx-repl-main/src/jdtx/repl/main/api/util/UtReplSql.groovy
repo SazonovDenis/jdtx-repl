@@ -15,7 +15,9 @@ select
   z_z_srv_workstation_state.mute_age as mute_age
 from
   z_z_srv_workstation_list
-  join z_z_srv_workstation_state on (z_z_srv_workstation_list.id = z_z_srv_workstation_state.ws_id)
+  left join z_z_srv_workstation_state on (z_z_srv_workstation_list.id = z_z_srv_workstation_state.ws_id)
+order by
+  z_z_srv_workstation_list.id
 """
 
 }

@@ -103,7 +103,7 @@ class Jdx_Ext extends ProjectExt {
                 srv.init()
 
                 //
-                System.out.println("commonQue.baseDir: " + srv.commonQue.baseDir)
+                System.out.println("queCommon.baseDir: " + srv.queCommon.baseDir)
                 for (Object obj : srv.mailerList.entrySet()) {
                     Map.Entry entry = (Map.Entry) obj
                     MailerHttp mailer = (MailerHttp) entry.value
@@ -111,14 +111,16 @@ class Jdx_Ext extends ProjectExt {
                     System.out.println("  remoteUrl: " + mailer.remoteUrl)
                     System.out.println("  guid: " + mailer.guid)
                 }
+
+                //
+                UtRepl urRepl = new UtRepl(db, null)
+                System.out.println("srv:")
+                UtData.outTable(urRepl.getInfoSrv())
+                
             } catch (Exception e) {
                 System.out.println(e.message)
             }
 
-            //
-            UtRepl urRepl = new UtRepl(db, null)
-            System.out.println("srv:")
-            UtData.outTable(urRepl.getInfoSrv())
 
         } finally {
             db.disconnect()
