@@ -75,6 +75,7 @@
         <item name="Update_009_010_age" class="jdtx.repl.main.api.jdx_db_object.Update_009_010_age"/>
         <item name="Update_010_011_dir" class="jdtx.repl.main.api.jdx_db_object.Update_010_011_dir"/>
         <item name="Update_011_012_fill_age" class="jdtx.repl.main.api.jdx_db_object.Update_011_012_fill_age"/>
+        <item name="Update_013_014_index" class="jdtx.repl.main.api.jdx_db_object.Update_013_014_index"/>
 
     </service>
 

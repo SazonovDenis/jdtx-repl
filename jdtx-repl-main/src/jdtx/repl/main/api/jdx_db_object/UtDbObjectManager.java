@@ -13,7 +13,7 @@ import java.util.*;
 
 public class UtDbObjectManager {
 
-    public static int CURRENT_VER_DB = 13; // JadatexSync-544 - ver = 4
+    public static int CURRENT_VER_DB = 14; // JadatexSync-544 - ver = 4
 
     Db db;
 
@@ -283,16 +283,32 @@ public class UtDbObjectManager {
         }
 
         // Индекс для таблицы журнала
-        createAuditTableIndex(table);
+        createAuditTableIndex_ID(table);
+        createAuditTableIndex_OPR_DTTM(table);
     }
 
-    void createAuditTableIndex(IJdxTable table) throws Exception {
+    void createAuditTableIndex_ID(IJdxTable table) throws Exception {
+        String idxName = UtJdx.PREFIX + table.getName() + "_IDX";
         try {
-            String sql = "CREATE UNIQUE INDEX " + UtJdx.PREFIX + table.getName() + "_idx ON " + UtJdx.PREFIX + table.getName() + " (Z_ID)";
+            String sql = "CREATE UNIQUE INDEX " + idxName + " ON " + UtJdx.PREFIX + table.getName() + " (Z_ID)";
             db.execSql(sql);
         } catch (Exception e) {
             if (UtDbErrors.errorIs_GeneratorAlreadyExists(e)) {
-                log.warn("createAuditTable, index already exists, table: " + table.getName());
+                log.warn("createAuditTableIndex_ID, index already exists, index: " + idxName + ", table: " + table.getName());
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    void createAuditTableIndex_OPR_DTTM(IJdxTable table) throws Exception {
+        String idxName = UtJdx.PREFIX + table.getName() + "_DT";
+        try {
+            String sql = "CREATE UNIQUE INDEX " + idxName + " ON " + UtJdx.PREFIX + table.getName() + " (Z_OPR_DTTM)";
+            db.execSql(sql);
+        } catch (Exception e) {
+            if (UtDbErrors.errorIs_GeneratorAlreadyExists(e)) {
+                log.warn("createAuditTableIndex_OPR_DTTM, index already exists, index: " + idxName + ", table: " + table.getName());
             } else {
                 throw e;
             }

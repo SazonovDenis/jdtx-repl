@@ -23,7 +23,7 @@ public class UtTest extends UtilsTestCase {
         this.db = db;
     }
 
-    static class JdxRandom extends Random {
+    public static class JdxRandom extends Random {
         public String nextStr(int len) {
 
             String res = new DateTime().toString("HHmmss.SSS");

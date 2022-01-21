@@ -34,13 +34,13 @@ public class Update_005_006_index implements ISqlScriptExecutor {
         //
         for (IJdxTable table : struct.getTables()) {
             try {
-                objectManager.createAuditTableIndex(table);
-                log.info("createAuditTableIndex, table: " + table.getName());
+                objectManager.createAuditTableIndex_ID(table);
+                log.info("createAuditTableIndex_ID, table: " + table.getName());
             } catch (Exception e) {
                 if (UtJdxErrors.collectExceptionText(e).contains("Unknown columns in index")) {
-                    log.warn("createAuditTableIndex, table: " + table.getName() + ", message: " + e.getMessage().replace("\n", " ").replace("~", ""));
+                    log.warn("createAuditTableIndex_ID, table: " + table.getName() + ", message: " + e.getMessage().replace("\n", " ").replace("~", ""));
                 } else if (UtDbErrors.errorIs_IndexAlreadyExists(e)) {
-                    log.warn("createAuditTableIndex, table: " + table.getName() + ", IndexAlreadyExists, message: " + e.getMessage().replace("\n", " ").replace("~", ""));
+                    log.warn("createAuditTableIndex_ID, table: " + table.getName() + ", IndexAlreadyExists, message: " + e.getMessage().replace("\n", " ").replace("~", ""));
                 } else {
                     throw e;
                 }
