@@ -304,7 +304,7 @@ public class UtDbObjectManager {
     void createAuditTableIndex_OPR_DTTM(IJdxTable table) throws Exception {
         String idxName = UtJdx.PREFIX + table.getName() + "_DT";
         try {
-            String sql = "CREATE UNIQUE INDEX " + idxName + " ON " + UtJdx.PREFIX + table.getName() + " (Z_OPR_DTTM)";
+            String sql = "CREATE INDEX " + idxName + " ON " + UtJdx.PREFIX + table.getName() + " (Z_OPR_DTTM)";
             db.execSql(sql);
         } catch (Exception e) {
             if (UtDbErrors.errorIs_GeneratorAlreadyExists(e)) {
