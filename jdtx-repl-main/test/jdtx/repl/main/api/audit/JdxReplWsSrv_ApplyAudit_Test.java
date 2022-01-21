@@ -1,8 +1,9 @@
-package jdtx.repl.main.api;
+package jdtx.repl.main.api.audit;
 
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.junit.*;
@@ -10,6 +11,14 @@ import org.junit.*;
 import java.util.*;
 
 public class JdxReplWsSrv_ApplyAudit_Test extends JdxReplWsSrv_Test {
+
+
+    @Override
+    public void setUp() throws Exception {
+        rootDir = "../../ext/";
+        //
+        super.setUp();
+    }
 
     /**
      * Прогон сценария репликации: применение собственных сильно устаревших реплик
