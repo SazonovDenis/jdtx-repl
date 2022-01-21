@@ -12,6 +12,7 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
+import org.joda.time.*;
 
 import java.io.*;
 import java.util.*;
@@ -105,6 +106,11 @@ public class UtAuditApplyer {
         IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, wsId);
 
         //
+        SelfAuditDtComparer selfAuditDtComparer = new SelfAuditDtComparer(db);
+        int replicaType = dataReader.getReplicaType();
+        DateTime replicaDtTo = dataReader.getDtTo();
+
+        //
         db.startTran();
         try {
             // На время применения аудита нужно выключать триггера
@@ -168,6 +174,13 @@ public class UtAuditApplyer {
 
                     //
                     recordFilter = new RecordFilter(publicationRuleTable, tableName, filterParams);
+                }
+
+                // Для проверки, что обновляемые записи из реплики НЕ были ещё раз изменены
+                if (replicaType != JdxReplicaType.SNAPSHOT) {
+                    // Предполагается, что SNAPSHOT или IDE_MERGE просто так не присылают,
+                    // значит дело серьезное и нужно обязательно применить.
+                    selfAuditDtComparer.readSelfAuditData(tableName, replicaDtTo);
                 }
 
                 // Тут будем копить задания на DELETE для таблицы tableName, их выполняем вторым проходом.
@@ -256,30 +269,33 @@ public class UtAuditApplyer {
                             }
 
                         } else if (oprType == JdxOprType.OPR_UPD) {
-                            try {
-                                dbu.updateRec(tableName, recParams, publicationFieldsName, null);
-                            } catch (Exception e) {
-                                if (UtDbErrors.errorIs_ForeignKeyViolation(e)) {
-                                    log.error(e.getMessage());
-                                    log.error("table: " + tableName);
-                                    log.error("oprType: " + oprType);
-                                    log.error("recParams: " + recParams);
-                                    log.error("recValuesStr: " + recValuesStr);
-                                    //
-                                    JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
-                                    ee.recParams = recParams;
-                                    ee.recValues = recValuesStr;
-                                    // todo вообще, костыль страшнейший, сделан для пробуска неуместных реплик,
-                                    // которые просочились на станцию из-за кривых настроек фильтров.
-                                    // todo Убрать, когда будут сделана фильтрация по ссылкам!!!
-                                    boolean skipForeignKeyViolationUpd = jdxReplWs.appCfg.getValueBoolean("skipForeignKeyViolationUpd");
-                                    if (skipForeignKeyViolationUpd) {
-                                        log.error("skipForeignKeyViolationUpd: " + skipForeignKeyViolationUpd);
+                            // Проверяем, что обновляемая запись НЕ была ещё раз изменена
+                            if (!selfAuditDtComparer.isSelfAuditAgeAboveReplicaAge(recId)) {
+                                try {
+                                    dbu.updateRec(tableName, recParams, publicationFieldsName, null);
+                                } catch (Exception e) {
+                                    if (UtDbErrors.errorIs_ForeignKeyViolation(e)) {
+                                        log.error(e.getMessage());
+                                        log.error("table: " + tableName);
+                                        log.error("oprType: " + oprType);
+                                        log.error("recParams: " + recParams);
+                                        log.error("recValuesStr: " + recValuesStr);
+                                        //
+                                        JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
+                                        ee.recParams = recParams;
+                                        ee.recValues = recValuesStr;
+                                        // todo вообще, костыль страшнейший, сделан для пробуска неуместных реплик,
+                                        // которые просочились на станцию из-за кривых настроек фильтров.
+                                        // todo Убрать, когда будут сделана фильтрация по ссылкам!!!
+                                        boolean skipForeignKeyViolationUpd = jdxReplWs.appCfg.getValueBoolean("skipForeignKeyViolationUpd");
+                                        if (skipForeignKeyViolationUpd) {
+                                            log.error("skipForeignKeyViolationUpd: " + skipForeignKeyViolationUpd);
+                                        } else {
+                                            throw (ee);
+                                        }
                                     } else {
-                                        throw (ee);
+                                        throw (e);
                                     }
-                                } else {
-                                    throw (e);
                                 }
                             }
                         } else if (oprType == JdxOprType.OPR_DEL) {

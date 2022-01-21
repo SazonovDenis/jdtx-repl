@@ -4,6 +4,7 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.util.*;
+import org.joda.time.*;
 import org.json.simple.*;
 import org.json.simple.parser.*;
 
@@ -38,6 +39,14 @@ public class JdxReplicaReaderXml {
 
     public long getAge() {
         return replicaHeaderInfo.getAge();
+    }
+
+    public DateTime getDtFrom() {
+        return replicaHeaderInfo.getDtFrom();
+    }
+
+    public DateTime getDtTo() {
+        return replicaHeaderInfo.getDtTo();
     }
 
     public int getReplicaType() {
@@ -127,6 +136,8 @@ public class JdxReplicaReaderXml {
                     replicaInfo.setReplicaType(Integer.parseInt(reader.getAttributeValue(null, "REPLICA_TYPE")));
                     replicaInfo.setWsId(Long.parseLong(reader.getAttributeValue(null, "WS_ID")));
                     replicaInfo.setAge(Long.parseLong(reader.getAttributeValue(null, "AGE")));
+                    replicaInfo.setDtFrom(UtJdxData.dateTimeValueOf(reader.getAttributeValue(null, "DT_FROM")));
+                    replicaInfo.setDtTo(UtJdxData.dateTimeValueOf(reader.getAttributeValue(null, "DT_TO")));
                     break;
                 }
             }
