@@ -270,7 +270,9 @@ public class UtAuditApplyer {
 
                         } else if (oprType == JdxOprType.OPR_UPD) {
                             // Проверяем, что обновляемая запись НЕ была ещё раз изменена
-                            if (!selfAuditDtComparer.isSelfAuditAgeAboveReplicaAge(recId)) {
+                            if (selfAuditDtComparer.isSelfAuditAgeAboveReplicaAge(recId)) {
+                                log.info("Self audit age > replica age, record skipped, table: " + tableName + ", id: " + recId);
+                            } else {
                                 try {
                                     dbu.updateRec(tableName, recParams, publicationFieldsName, null);
                                 } catch (Exception e) {
