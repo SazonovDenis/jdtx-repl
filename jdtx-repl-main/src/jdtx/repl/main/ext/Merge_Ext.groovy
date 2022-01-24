@@ -52,6 +52,7 @@ class Merge_Ext extends ProjectExt {
     }
 
     /**
+     * Поиск дубликатов
      */
     void rec_merge_find(IVariantMap args) {
         String table = args.getValueString("table")
@@ -124,6 +125,7 @@ class Merge_Ext extends ProjectExt {
     }
 
     /**
+     * Выполнить слияние дубликатов
      */
     void rec_merge_exec(IVariantMap args) {
         String fileName = args.getValueString("file")

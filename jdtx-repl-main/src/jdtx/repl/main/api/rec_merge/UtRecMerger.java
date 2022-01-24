@@ -80,12 +80,12 @@ public class UtRecMerger {
                     try {
                         // Записываем
                         while (!query.eof()) {
-                            // Сохраняем всю запись в resultWriter
                             Map<String, Object> values = query.getValues();
+                            // Сохраняем всю запись в resultWriter
                             Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
                             resultWriter.writeRec(valuesStr);
                             // Собираем только id записи
-                            long id = UtJdxData.longValueOf(valuesStr.get(refTablePkFieldName));
+                            long id = UtJdxData.longValueOf(values.get(refTablePkFieldName));
                             deletedRecordsInTable.add(id);
                             //
                             query.next();

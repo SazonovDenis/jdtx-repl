@@ -116,7 +116,6 @@ class Jdx_Ext extends ProjectExt {
                 UtRepl urRepl = new UtRepl(db, null)
                 System.out.println("srv:")
                 UtData.outTable(urRepl.getInfoSrv())
-                
             } catch (Exception e) {
                 System.out.println(e.message)
             }
@@ -838,6 +837,9 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
+    /**
+     * Разослать план-команду на слияние дубликатов
+     */
     void repl_merge_request(IVariantMap args) {
         String planFileName = args.getValueString("file")
         if (planFileName == null || planFileName.length() == 0) {

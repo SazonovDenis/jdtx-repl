@@ -1,6 +1,7 @@
 package jdtx.repl.main.api.data_serializer;
 
 import jandcode.dbm.db.*;
+import jandcode.utils.error.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.struct.*;
 
@@ -9,11 +10,17 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
 
 
     private IRefDecoder decoder;
-    private long wsId;
 
-    public JdxDataSerializerDecode(Db db, long wsId) throws Exception {
-        this.decoder = new RefDecoder(db, wsId);
-        this.wsId = wsId;
+    /**
+     * Используется, если нам пришли не полные ссылки, а локальные.
+     * Так бываеет, например, если план был составлен локально (и все ссылки локальные),
+     * а мы готовим план для рассылки на филиалы
+     */
+    private long wsIdDefault;
+
+    public JdxDataSerializerDecode(Db db, long wsIdDefault) throws Exception {
+        this.decoder = new RefDecoder(db, wsIdDefault);
+        this.wsIdDefault = wsIdDefault;
     }
 
     public String prepareValueStr(Object fieldValue, IJdxField field) throws Exception {
@@ -61,6 +68,14 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
                 // Ссылка равна null
                 fieldValue = null;
             } else {
+                // Дополнение ws_id для ссылки, если пришла не полная ссылка, а локальная.
+                if (fieldValueRef.ws_id == -1) {
+                    if (this.wsIdDefault > 0) {
+                        fieldValueRef.ws_id = wsIdDefault;
+                    } else {
+                        throw new XError("prepareValue, fieldValueRef.ws_id == -1, wsIdDefault is not set");
+                    }
+                }
                 // Распаковка ссылки в long
                 String refTableName;
                 if (field.isPrimaryKey()) {
