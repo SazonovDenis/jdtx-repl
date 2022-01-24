@@ -1,12 +1,10 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
-import jandcode.dbm.db.*;
 import jandcode.jc.*;
 import jandcode.jc.test.*;
 import jandcode.utils.variant.*;
 import jdtx.repl.main.api.rec_merge.*;
-import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ext.*;
 import org.junit.*;
 
@@ -111,6 +109,19 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         test_allSetUp_TestAll();
     }
 
+    @Test
+    public void test_allSetUp_TestXXX() throws Exception {
+        IVariantMap args = new VariantMap();
+        args.clear();
+        args.put("file", "temp/Usr.plan.json");
+        //
+        TestExtJc jc = createExt(TestExtJc.class);
+        ProjectScript project = jc.loadProject("../ext/srv/project.jc");
+        //Merge_Ext extMerge = (Merge_Ext) project.createExt("jdtx.repl.main.ext.Merge_Ext");
+        Jdx_Ext extJdx = (Jdx_Ext) project.createExt("jdtx.repl.main.ext.Jdx_Ext");
+        extJdx.repl_merge_request(args);
+    }
+
     /**
      * Создиние дубликатов на работающей системе и их удаление
      * через команду "MERGE" репликации
@@ -122,18 +133,18 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
 
 
         // Проверяем отсутствие дубликатов на сервере
-        testMerge.assertDuplicatesExists(false, db, struct, "LicDocTip", "Name");
-        testMerge.assertDuplicatesExists(false, db, struct, "LicDocVid", "Name");
+        //testMerge.assertDuplicatesExists(false, db, struct, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db, struct, "LicDocVid", "Name");
         testMerge.assertDuplicatesExists(false, db, struct, "Usr", "Name");
 
         // Проверяем отсутствие дубликатов на ws2
-        testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocTip", "Name");
-        testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocVid", "Name");
+        //testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocVid", "Name");
         testMerge.assertDuplicatesExists(false, db2, struct2, "Usr", "Name");
 
         // Проверяем отсутствие дубликатов на ws3
-        testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocTip", "Name");
-        testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocVid", "Name");
+        //testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocVid", "Name");
         testMerge.assertDuplicatesExists(false, db3, struct3, "Usr", "Name");
 
         //
@@ -153,18 +164,18 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         System.out.println();
 
         // Проверяем отсутствие дубликатов на сервере
-        testMerge.assertDuplicatesExists(false, db, struct, "LicDocTip", "Name");
-        testMerge.assertDuplicatesExists(false, db, struct, "LicDocVid", "Name");
+        //testMerge.assertDuplicatesExists(false, db, struct, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db, struct, "LicDocVid", "Name");
         testMerge.assertDuplicatesExists(false, db, struct, "Usr", "Name");
 
         // Проверяем наличие дубликатов на ws2
-        testMerge.assertDuplicatesExists(true, db2, struct2, "LicDocTip", "Name");
-        testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocVid", "Name");
+        //testMerge.assertDuplicatesExists(true, db2, struct2, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocVid", "Name");
         testMerge.assertDuplicatesExists(true, db2, struct2, "Usr", "Name");
 
         // Проверяем наличие дубликатов на ws3
-        testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocTip", "Name");
-        testMerge.assertDuplicatesExists(true, db3, struct3, "LicDocVid", "Name");
+        //testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(true, db3, struct3, "LicDocVid", "Name");
         testMerge.assertDuplicatesExists(true, db3, struct3, "Usr", "Name");
 
         //
@@ -179,8 +190,8 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         System.out.println();
 
         // Проверяем наличие дубликатов на сервере
-        testMerge.assertDuplicatesExists(true, db, struct, "LicDocTip", "Name");
-        testMerge.assertDuplicatesExists(true, db, struct, "LicDocVid", "Name");
+        //testMerge.assertDuplicatesExists(true, db, struct, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(true, db, struct, "LicDocVid", "Name");
         testMerge.assertDuplicatesExists(true, db, struct, "Usr", "Name");
 
 
@@ -193,18 +204,18 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         System.out.println();
 
         // Проверяем отсутствие дубликатов на сервере
-        testMerge.assertDuplicatesExists(false, db, struct, "LicDocTip", "Name");
-        testMerge.assertDuplicatesExists(false, db, struct, "LicDocVid", "Name");
+        //testMerge.assertDuplicatesExists(false, db, struct, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db, struct, "LicDocVid", "Name");
         testMerge.assertDuplicatesExists(false, db, struct, "Usr", "Name");
 
         // Проверяем отсутствие дубликатов на ws2
-        testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocTip", "Name");
-        testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocVid", "Name");
+        //testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db2, struct2, "LicDocVid", "Name");
         testMerge.assertDuplicatesExists(false, db2, struct2, "Usr", "Name");
 
         // Проверяем отсутствие дубликатов на ws3
-        testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocTip", "Name");
-        testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocVid", "Name");
+        //testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocTip", "Name");
+        //testMerge.assertDuplicatesExists(false, db3, struct3, "LicDocVid", "Name");
         testMerge.assertDuplicatesExists(false, db3, struct3, "Usr", "Name");
 
 
@@ -327,7 +338,8 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
     /**
      * Поиск дубликатов и формирование плана, формируем команду MERGE для филиалов
      */
-    private void doMergeByCommand() throws Exception {
+    @Test
+    public void doMergeByCommand() throws Exception {
         JdxRecMerge_Test testMerge = new JdxRecMerge_Test();
         testMerge.setUp();
 
@@ -347,6 +359,7 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
 
         //
         IVariantMap args = new VariantMap();
+
 
         // Готовим план слияния записей
         //deletePlanFiles("temp/LicDocTip");
@@ -369,8 +382,6 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         //args.put("cfg_group", "test/etalon/field_groups.json");
         ////
         //extMerge.rec_merge_find(args);
-
-        //тест LicDocVid - в массиве???
 
         //
         deletePlanFiles("temp/Usr");
@@ -395,8 +406,8 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         //args.put("file", "temp/LicDocVid.plan.json");
         ////
         //extJdx.repl_merge_request(args);
+
         //
-        ////
         args.clear();
         args.put("file", "temp/Usr.plan.json");
         //
@@ -420,9 +431,9 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
     }
 
     private void deletePlanFiles(String filePrefix) {
-        new File(filePrefix+".plan.json").delete();
-        new File(filePrefix+".plan.json.duplicates").delete();
-        new File(filePrefix+".plan.result.zip").delete();
+        new File(filePrefix + ".plan.json").delete();
+        new File(filePrefix + ".plan.json.duplicates").delete();
+        new File(filePrefix + ".plan.result.zip").delete();
     }
 
 
