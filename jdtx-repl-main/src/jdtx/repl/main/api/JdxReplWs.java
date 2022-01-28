@@ -1447,7 +1447,7 @@ public class JdxReplWs {
         //
         long count = 0;
         for (long no = no_from; no <= no_to; no++) {
-            log.info("receive, receiving.no: " + no);
+            log.debug("receive, receiving.no: " + no);
 
             // Информация о реплике с почтового сервера
             IReplicaInfo info = mailer.getReplicaInfo(boxName, no);
@@ -1496,9 +1496,9 @@ public class JdxReplWs {
 
         //
         if (count > 0) {
-            log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
+            log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", que.name: " + ((JdxQue) que).getQueName() + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
         } else {
-            log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", receive.no: " + no_from + ", nothing to receive");
+            log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", que.name: " + ((JdxQue) que).getQueName() + ", receive.no: " + no_from + ", nothing to receive");
         }
     }
 
@@ -1679,26 +1679,26 @@ public class JdxReplWs {
 
         // ---
         // Сколько исходящих реплик фактически отправлено на сервер (спросим у почтового сервера)
-        long noSendSrvDone = mailer.getSendDone("from");
+        long noQueOutSrvSendDone = mailer.getSendDone("from");
 
         // Сколько исходящих реплик отмечено как отправленое на сервер
         JdxMailStateManagerWs mailStateManager = new JdxMailStateManagerWs(db);
-        long noSendMarked = mailStateManager.getMailSendDone();
+        long noQueOutSendMarked = mailStateManager.getMailSendDone();
 
         // Проверим, что помеченное на 1 меньше отправленного, и CRC одинаковое
         boolean normal_Marked_SrvDone = false;
-        if ((noSendMarked + 1) == noSendSrvDone) {
+        if ((noQueOutSendMarked + 1) == noQueOutSrvSendDone) {
             // Читаем информацию о реплике с сервера
             IReplicaInfo infoSrv = ((MailerHttp) mailer).getLastReplicaInfo("from");
             String crcSrv = infoSrv.getCrc();
             // Берем реплику из очереди
-            IReplica replicaWs = queOut.get(noSendSrvDone);
+            IReplica replicaWs = queOut.get(noQueOutSrvSendDone);
             // Сравниваем CRC
             if (UtJdx.equalReplicaCrc(replicaWs, crcSrv)) {
                 log.warn("Detected restore from backup, workstation and server have equal replica.no and equal replica.crc");
                 // Чиним возраст "отправлено на сервер"
-                mailStateManager.setMailSendDone(noSendSrvDone);
-                log.warn("Repair mailSendDone, " + noSendMarked + " -> " + noSendSrvDone);
+                mailStateManager.setMailSendDone(noQueOutSrvSendDone);
+                log.warn("Repair mailSendDone, " + noQueOutSendMarked + " -> " + noQueOutSrvSendDone);
                 //
                 normal_Marked_SrvDone = true;
             }
@@ -1712,16 +1712,18 @@ public class JdxReplWs {
         // Допускается, если в каталоге для QueIn меньше реплик, чем в очереди QueIn (noQueIn > noQueInDir).
         // Это бывает из-за того, что при получении собственных snapshot-реплик, мы ее не скачиваем (т.к. она нам не нужна).
         //
-        // Допускается, если не все реплики использованы (noQueIn > noQueInUsed).
-        // Это бывает, если прерывается процесс применения реплик. Это не страшно, т.к. при следующем запуске применение возобновится.
+        // Допускается, если не все входящие реплики использованы (noQueIn > noQueInUsed).
+        // Это бывает, если прерывается процесс применения реплик.
+        // Это не страшно, т.к. при следующем запуске применение возобновится.
         //
-        // Допускается, если noSendMarked на 1 меньше noSendSrvDone, но при этом CRC реплики queOut[noSendSrvDone] одинаковая на сервере и в очереди.
-        // Это бывает, если прерывается процесс передачи реплик на этапе отметки. Это не страшно, т.к. не говорит о подмене базы.
+        // Допускается, если noQueOutSendMarked на 1 меньше noQueOutSrvSendDone, но при этом CRC реплики queOut[noQueOutSrvSendDone] одинаковая на сервере и в очереди.
+        // Это бывает, если прерывается процесс передачи реплик на этапе отметки.
+        // Это не страшно, т.к. не говорит о подмене/востановлении базы.
         boolean needRepair;
         if ((noQueIn == -1 || noQueIn >= noQueInDir) &&
                 (noQueIn >= noQueInUsed) &&
                 (noQueOut == noQueOutDir) &&
-                (noSendMarked == noSendSrvDone || normal_Marked_SrvDone) &&
+                (noQueOutSendMarked == noQueOutSrvSendDone || normal_Marked_SrvDone) &&
                 !lockFile.exists()
         ) {
             needRepair = false;
@@ -1740,8 +1742,8 @@ public class JdxReplWs {
             log.warn("  noQueInUsed: " + noQueInUsed);
             log.warn("  noQueOut: " + noQueOut);
             log.warn("  noQueOutDir: " + noQueOutDir);
-            log.warn("  noSendSrvDone: " + noSendSrvDone);
-            log.warn("  noSendMarked: " + noSendMarked);
+            log.warn("  noQueOutSrvSendDone: " + noQueOutSrvSendDone);
+            log.warn("  noQueOutSendMarked: " + noQueOutSendMarked);
             log.warn("  normal_Marked_SrvDone: " + normal_Marked_SrvDone);
             log.warn("  lockFile: " + lockFile.exists());
             log.warn("  need repair: " + needRepair);
@@ -1763,8 +1765,8 @@ public class JdxReplWs {
                     "noQueInUsed: " + noQueInUsed + ", " +
                     "noQueOut: " + noQueOut + ", " +
                     "noQueOutDir: " + noQueOutDir + ", " +
-                    "noSendSrvDone: " + noSendSrvDone + ", " +
-                    "noSendMarked: " + noSendMarked + ", " +
+                    "noQueOutSrvSendDone: " + noQueOutSrvSendDone + ", " +
+                    "noQueOutSendMarked: " + noQueOutSendMarked + ", " +
                     "normal_Marked_SrvDone: " + normal_Marked_SrvDone + ", " +
                     "lockFile: " + lockFile.exists() + ", " +
                     "need repair: " + needRepair;
@@ -1897,9 +1899,9 @@ public class JdxReplWs {
         // ---
         // Если возраст "отправлено на сервер" меньше, чем фактический размер исходящей очереди -
         // чиним отметку об отправке собственных реплик.
-        if (noSendMarked < noSendSrvDone) {
-            mailStateManager.setMailSendDone(noSendSrvDone);
-            log.warn("Repair mailSendDone, " + noSendMarked + " -> " + noSendSrvDone);
+        if (noQueOutSendMarked < noQueOutSrvSendDone) {
+            mailStateManager.setMailSendDone(noQueOutSrvSendDone);
+            log.warn("Repair mailSendDone, " + noQueOutSendMarked + " -> " + noQueOutSrvSendDone);
         }
 
 

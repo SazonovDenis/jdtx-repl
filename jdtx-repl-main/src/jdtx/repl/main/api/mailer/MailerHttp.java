@@ -136,7 +136,7 @@ public class MailerHttp implements IMailer {
 
     @Override
     public void send(IReplica replica, String box, long no) throws Exception {
-        log.info("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", box: " + box + ", remoteUrl: " + remoteUrl);
+        log.debug("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", box: " + box + ", remoteUrl: " + remoteUrl);
 
         // Проверки: правильность полей реплики
         UtJdx.validateReplicaFields(replica);
@@ -217,9 +217,9 @@ public class MailerHttp implements IMailer {
 
             //
             if (sentBytes != totalBytes) {
-                log.info("mailer.send, part: " + filePart + ", sentBytes: " + sentBytes + "/" + totalBytes);
+                log.info("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", box: " + box + ", part: " + filePart + ", sentBytes: " + sentBytes + "/" + totalBytes);
             } else {
-                log.info("mailer.send, part: " + filePart + ", sentBytes: " + sentBytes);
+                log.info("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", box: " + box + ", part: " + filePart + ", sentBytes: " + sentBytes);
             }
         }
 
@@ -254,7 +254,7 @@ public class MailerHttp implements IMailer {
 
     @Override
     public IReplica receive(String box, long no) throws Exception {
-        log.info("mailer.receive, no: " + no + ", box: " + box + ", remoteUrl: " + remoteUrl);
+        log.debug("mailer.receive, no: " + no + ", box: " + box + ", remoteUrl: " + remoteUrl);
 
         // Читаем данные об очередном письме
         JSONObject resInfo = getInfo_internal(box, no);
@@ -342,9 +342,9 @@ public class MailerHttp implements IMailer {
 
             //
             if (receivedBytes != totalBytes) {
-                log.info("mailer.receive, part: " + filePart + "/" + filePartsCount + ", receivedBytes: " + receivedBytes + "/" + totalBytes);
+                log.info("mailer.receive, no: " + no + ", box: " + box + ", part: " + filePart + "/" + filePartsCount + ", receivedBytes: " + receivedBytes + "/" + totalBytes);
             } else {
-                log.info("mailer.receive, part: " + filePart + "/" + filePartsCount + ", receivedBytes: " + receivedBytes);
+                log.info("mailer.receive, no: " + no + ", box: " + box + ", part: " + filePart + "/" + filePartsCount + ", receivedBytes: " + receivedBytes);
             }
         }
 
@@ -361,7 +361,7 @@ public class MailerHttp implements IMailer {
 
     @Override
     public void delete(String box, long no) throws Exception {
-        log.info("mailer.delete, no: " + no + ", box: " + box + ", remoteUrl: " + remoteUrl);
+        log.debug("mailer.delete, no: " + no + ", box: " + box + ", remoteUrl: " + remoteUrl);
 
         //
         HttpClient httpclient = HttpClientBuilder.create().build();

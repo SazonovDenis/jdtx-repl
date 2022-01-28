@@ -78,7 +78,7 @@ public class MailerLocalFiles implements IMailer {
     }
 
     public void send(IReplica replica, String box, long no) throws Exception {
-        log.info("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", remoteDir: " + remoteDir + "/" + box);
+        log.debug("mailer.send, replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", no: " + no + ", remoteDir: " + remoteDir + "/" + box);
 
         // Проверки: правильность полей реплики
         UtJdx.validateReplicaFields(replica);
@@ -134,7 +134,7 @@ public class MailerLocalFiles implements IMailer {
 
     @Override
     public void delete(String box, long no) throws Exception {
-        log.info("mailer.delete, no: " + no + ", remoteDir: " + remoteDir + "/" + box);
+        log.debug("mailer.delete, no: " + no + ", remoteDir: " + remoteDir + "/" + box);
 
         //
         String remoteFileName = getFileName(no);
