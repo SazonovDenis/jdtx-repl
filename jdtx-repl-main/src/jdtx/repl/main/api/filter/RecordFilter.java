@@ -50,7 +50,6 @@ public class RecordFilter implements IRecordFilter {
 
         //
         if (filterExpression.eval().equals(BigDecimal.ONE)) {
-
             return true;
         } else {
             return false;
@@ -72,28 +71,40 @@ public class RecordFilter implements IRecordFilter {
         // recValues -> filterExpression.params
         for (IJdxField field : publicationRule.getFields()) {
             String fieldName = field.getName();
-            String fieldValue = recValues.get(fieldName);
+            String fieldValueStr = recValues.get(fieldName);
 
             //
-            if (fieldValue != null && fieldValue.compareToIgnoreCase("null") != 0) {
-                IJdxTable refTable = field.getRefTable();
+            IJdxTable refTable = field.getRefTable();
+            if (fieldValueStr != null && fieldValueStr.compareToIgnoreCase("null") != 0) {
                 if (field.isPrimaryKey() || refTable != null) {
                     // Ссылка
-                    JdxRef fieldValueRef = JdxRef.parse(fieldValue);
+                    JdxRef fieldValueRef = JdxRef.parse(fieldValueStr);
                     if (fieldValueRef != null) {
                         filterExpression.setVariable("RECORD_OWNER_" + fieldName, new BigDecimal(fieldValueRef.ws_id));
                         filterExpression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValueRef.value));
                     }
                 } else if (field.getJdxDatatype() == JdxDataType.INTEGER) {
                     // Целочисленное поле
-                    filterExpression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValue));
+                    filterExpression.setVariable("RECORD_" + fieldName, new BigDecimal(fieldValueStr));
                 } else {
                     // Прочие поля
-                    if (fieldValue.length() > 0) {
+                    if (fieldValueStr.length() > 0) {
                         // filterExpression.setVariable(fieldName, fieldValueStr);
                         // todo: com.udojava.evalex.Expression.isNumber ошибается для дат в строке.
                         // Пока это не важно - мы сейчас даты в фильтрах не используем
                     }
+                }
+            } else {
+                // Значения по умолчанию, чтобы корректно работало вычисление выражений
+                if (field.isPrimaryKey() || refTable != null) {
+                    // Ссылка
+                    filterExpression.setVariable("RECORD_OWNER_" + fieldName, new BigDecimal(-1));
+                    filterExpression.setVariable("RECORD_" + fieldName, new BigDecimal(-1));
+                } else if (field.getJdxDatatype() == JdxDataType.INTEGER) {
+                    // Целочисленное поле
+                    filterExpression.setVariable("RECORD_" + fieldName, new BigDecimal(-1));
+                } else {
+                    // Прочие поля
                 }
             }
         }
