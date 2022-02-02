@@ -15,3 +15,5 @@ _db-ini.rt
 _log.properties
 _product
 _lombard.systems_03
+
+jdtx-repl-main/_log.properties
