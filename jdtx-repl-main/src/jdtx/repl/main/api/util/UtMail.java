@@ -18,10 +18,13 @@ public class UtMail {
      * Передача очереди que в ящик mailer
      */
     public static void sendQueToMail(long wsId, IJdxQue que, IMailer mailer, String box, IJdxMailStateManager mailStateManager) throws Exception {
-        log.info("sendMail, wsId: " + wsId + ", box: " + box);
+        log.info("sendQueToMail, wsId: " + wsId + ", box: " + box);
 
         // Выясняем объем передачи
         UtMailSendTask sendTask = getSendTask(que, mailer, box, mailStateManager);
+
+        //
+        log.info("sendQueToMail, wsId: " + wsId + ", box: " + box + ", send: " + sendTask.sendFrom + " .. " + sendTask.sendTo);
 
         // Передаем
         long count = 0;
@@ -46,7 +49,7 @@ public class UtMail {
         // Снимем флаг просьбы станции
         if (sendTask.required) {
             mailer.setSendRequired(box, new SendRequiredInfo());
-            log.warn("Repeat send done");
+            log.warn("sendQueToMail, repeat send done");
         }
 
         // Отметим попытку записи (для отслеживания активности станции, когда нет данных для реальной передачи)
@@ -54,9 +57,9 @@ public class UtMail {
 
         //
         if (count > 0) {
-            log.info("sendMail done, wsId: " + wsId + ", box: " + box + ", send: " + sendTask.sendFrom + " .. " + sendTask.sendTo + ", done count: " + count);
+            log.info("sendQueToMail done, wsId: " + wsId + ", box: " + box + ", send: " + sendTask.sendFrom + " .. " + sendTask.sendTo + ", done count: " + count);
         } else {
-            log.info("sendMail done, wsId: " + wsId + ", box: " + box + ", send: " + sendTask.sendFrom + ", nothing done");
+            log.info("sendQueToMail done, wsId: " + wsId + ", box: " + box + ", send: " + sendTask.sendFrom + ", nothing done");
         }
     }
 
