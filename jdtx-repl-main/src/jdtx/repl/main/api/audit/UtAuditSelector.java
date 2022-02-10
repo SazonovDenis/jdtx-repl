@@ -255,8 +255,9 @@ public class UtAuditSelector {
         //
         UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
         //
+        long age_prior = age - 1;
         Map<String, Long> maxIdsFixed_From = new HashMap<>();
-        DateTime dtFrom = auditAgeManager.loadMaxIdsFixed(age - 1, maxIdsFixed_From);
+        DateTime dtFrom = auditAgeManager.loadMaxIdsFixed(age_prior, maxIdsFixed_From);
         //
         Map<String, Long> maxIdsFixed_To = new HashMap<>();
         DateTime dtTo = auditAgeManager.loadMaxIdsFixed(age, maxIdsFixed_To);
@@ -269,26 +270,26 @@ public class UtAuditSelector {
         for (IJdxTable structTable : struct.getTables()) {
             String tableName = structTable.getName();
 
+            // Не правила публикации - не анализируем аудит
             IPublicationRule publicationRule = publicationStorage.getPublicationRule(tableName);
             if (publicationRule == null) {
                 log.info("  skip table: " + tableName + ", not found in publicationStorage");
                 continue;
             }
 
-
             //
-            long z_id_from = UtJdxData.longValueOf(maxIdsFixed_From.get(tableName), 0L);
-            long z_id_to = UtJdxData.longValueOf(maxIdsFixed_To.get(tableName), 0L);
+            long z_id_age_prior = UtJdxData.longValueOf(maxIdsFixed_From.get(tableName), 0L);
+            long z_id_age = UtJdxData.longValueOf(maxIdsFixed_To.get(tableName), 0L);
 
-            // Аудит таблицы для этого возраста пуст?
-            if (z_id_from >= z_id_to) {
+            // Аудит для таблицы для перехода к возрасту age пуст?
+            if (z_id_age_prior == z_id_age) {
                 continue;
             }
 
-            // Набираем выходные данные об аудите таблицы
+            // Аудит для таблицы НЕ пуст, набираем выходные данные об аудите измененной таблицы
             Map auditInfoTable = new HashMap<>();
-            auditInfoTable.put("z_id_from", z_id_from);
-            auditInfoTable.put("z_id_to", z_id_to);
+            auditInfoTable.put("z_id_from", z_id_age_prior + 1);
+            auditInfoTable.put("z_id_to", z_id_age);
             auditInfo.put(tableName, auditInfoTable);
         }
 
