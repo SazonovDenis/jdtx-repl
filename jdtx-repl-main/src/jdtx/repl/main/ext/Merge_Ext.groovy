@@ -373,7 +373,7 @@ class Merge_Ext extends ProjectExt {
     void rec_relocate_all(IVariantMap args) {
         String tableName = args.getValueString("table")
         long idSour = args.getValueLong("sour")
-        String dirName = args.getValueString("dir")
+        String dirName = args.getValueString("outDir")
         if (tableName == null || tableName.length() == 0) {
             throw new XError("Не указана [table] - имя таблицы")
         }
@@ -400,6 +400,7 @@ class Merge_Ext extends ProjectExt {
             IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain()
             JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer)
             dirName = UtFile.unnormPath(dirName) + "/"
+            UtFile.mkdirs(dirName)
             relocator.relocateIdAll(tableName, idSour, dirName)
         } finally {
             db.disconnect()
