@@ -4,7 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
-import jdtx.repl.main.api.data_serializer.UtJdxData;
+import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.struct.*;
 
 import java.sql.*;
@@ -19,7 +19,6 @@ public class JdxDbUtils {
     Db db;
     IJdxDbStruct struct;
 
-    public static String ID_FIELD = "ID";
 
     public JdxDbUtils(Db db, IJdxDbStruct struct) {
         this.db = db;
@@ -61,6 +60,27 @@ public class JdxDbUtils {
         return 0;
     }
 
+    public static String getPkFieldName(IJdxTable table) {
+        List<IJdxField> pkList = table.getPrimaryKey();
+        if (pkList.size() == 0) {
+            throw new XError("No PK field in table: " + table.getName());
+        }
+        if (pkList.size() > 1) {
+            // todo разобраться, почему два одинаковых PK в этой базе читается
+            //////////////////////
+            // Костыль для PawnShop_alg/DB/LOMBARD2.FDB
+            //////////////////////
+            if (pkList.get(0).getName().compareToIgnoreCase(pkList.get(0).getName()) == 0) {
+                //////////////////////
+            } else {
+                throw new XError("Not one PK field in table: " + table.getName());
+            }
+        }
+        //
+        String pkFieldName = table.getPrimaryKey().get(0).getName();
+        return pkFieldName;
+    }
+
     /**
      * Генерация sql на вставку
      *
@@ -75,6 +95,7 @@ public class JdxDbUtils {
         }
         //
         IJdxTable table = struct.getTable(tableName);
+        String pkFieldName = JdxDbUtils.getPkFieldName(table);
         if (fields == null) {
             fields = table.getFields();
         }
@@ -89,7 +110,7 @@ public class JdxDbUtils {
             if (containsInList(ilist, fieldName)) {
                 continue;
             }
-            if (fieldName.equalsIgnoreCase(ID_FIELD)) {
+            if (fieldName.equalsIgnoreCase(pkFieldName)) {
                 continue;
             }
             if (cnt != 0) {
@@ -103,7 +124,7 @@ public class JdxDbUtils {
         if (cnt != 0) {
             sb.append(",");
         }
-        sb.append(ID_FIELD);
+        sb.append(pkFieldName);
         //
         cnt = 0;
         sb.append(") values (");
@@ -111,7 +132,7 @@ public class JdxDbUtils {
             if (containsInList(ilist, fieldName)) {
                 continue;
             }
-            if (fieldName.equalsIgnoreCase(ID_FIELD)) {
+            if (fieldName.equalsIgnoreCase(pkFieldName)) {
                 continue;
             }
             if (cnt != 0) {
@@ -127,7 +148,7 @@ public class JdxDbUtils {
             sb.append(",");
         }
         sb.append(":");
-        sb.append(ID_FIELD);
+        sb.append(pkFieldName);
         //
         sb.append(")");
         //
@@ -147,6 +168,7 @@ public class JdxDbUtils {
             excludeList = makeFieldsList(excludeFields);
         }
         IJdxTable table = struct.getTable(tableName);
+        String pkFieldName = JdxDbUtils.getPkFieldName(table);
         if (fields == null) {
             fields = table.getFields();
         }
@@ -162,7 +184,7 @@ public class JdxDbUtils {
             if (containsInList(excludeList, fieldName)) {
                 continue;
             }
-            if (fieldName.equalsIgnoreCase(ID_FIELD)) {
+            if (fieldName.equalsIgnoreCase(pkFieldName)) {
                 continue;
             }
             if (cnt != 0) {
@@ -176,7 +198,7 @@ public class JdxDbUtils {
             cnt++;
         }
 
-        sb.append(" where ").append(ID_FIELD).append("=").append(":").append(ID_FIELD);
+        sb.append(" where ").append(pkFieldName).append("=").append(":").append(pkFieldName);
         return sb.toString();
     }
 
@@ -188,10 +210,11 @@ public class JdxDbUtils {
      */
     public String generateSqlDelete(String tableName) {
         IJdxTable table = struct.getTable(tableName);
+        String pkFieldName = JdxDbUtils.getPkFieldName(table);
         StringBuilder sb = new StringBuilder();
         sb.append("delete from ");
         sb.append(table.getName());
-        sb.append(" where ").append(ID_FIELD).append("=").append(":").append(ID_FIELD);
+        sb.append(" where ").append(pkFieldName).append("=").append(":").append(pkFieldName);
         return sb.toString();
     }
 
@@ -292,9 +315,11 @@ public class JdxDbUtils {
 
 
     public void deleteRec(String tableName, long id) throws Exception {
+        IJdxTable table = struct.getTable(tableName);
+        String pkFieldName = JdxDbUtils.getPkFieldName(table);
         String sql = generateSqlDelete(tableName);
         Map p = new HashMapNoCase();
-        p.put(ID_FIELD, id);
+        p.put(pkFieldName, id);
         db.execSql(sql, p);
     }
 
@@ -317,12 +342,14 @@ public class JdxDbUtils {
     }
 
     public long insertRec(String tableName, Map params, String includeFields, String excludeFields) throws Exception {
+        IJdxTable table = struct.getTable(tableName);
+        String pkFieldName = JdxDbUtils.getPkFieldName(table);
         Map p = new HashMapNoCase();
         p.putAll(params);
-        Long id = UtJdxData.longValueOf(p.get(ID_FIELD));
+        Long id = UtJdxData.longValueOf(p.get(pkFieldName));
         if (id == null) {
             id = getTableNextId(tableName);
-            p.put(ID_FIELD, id);
+            p.put(pkFieldName, id);
         }
         //
         String sql = generateSqlInsert(tableName, includeFields, excludeFields);
