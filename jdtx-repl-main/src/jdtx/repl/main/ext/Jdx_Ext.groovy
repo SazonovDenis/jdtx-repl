@@ -12,6 +12,7 @@ import jdtx.repl.main.api.*
 import jdtx.repl.main.api.decoder.*
 import jdtx.repl.main.api.mailer.*
 import jdtx.repl.main.api.manager.*
+import jdtx.repl.main.api.publication.*
 import jdtx.repl.main.api.que.*
 import jdtx.repl.main.api.replica.*
 import jdtx.repl.main.api.struct.*
@@ -39,7 +40,7 @@ class Jdx_Ext extends ProjectExt {
             System.out.println("Файл log.properties или _log.properties не найден, логирование отключено")
         }
 
-        MDC.put("serviceName", "jc");
+        MDC.put("serviceName", "jc")
     }
 
     /**
@@ -63,9 +64,12 @@ class Jdx_Ext extends ProjectExt {
     void repl_info(IVariantMap args) {
         // БД
         Db db = app.service(ModelService.class).model.getDb()
-        db.connect()
+
         //
         System.out.println("База данных: " + db.getDbSource().getDatabase())
+
+        //
+        db.connect()
 
         //
         try {
@@ -121,6 +125,69 @@ class Jdx_Ext extends ProjectExt {
             }
 
 
+        } catch (Exception e) {
+            System.out.println(jdtx.repl.main.ut.Ut.getExceptionMessage(e))
+        } finally {
+            db.disconnect()
+        }
+    }
+
+
+    void repl_check(IVariantMap args) {
+        boolean doPublications = !args.isValueNull("publications")
+        boolean doTables = !args.isValueNull("tables")
+        boolean doFields = !args.isValueNull("fields")
+        String jsonFileName = args.getValueString("file")
+
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+
+        //
+        System.out.println("База данных: " + db.getDbSource().getDatabase())
+
+        //
+        db.connect()
+
+        //
+        try {
+            IJdxDbStructReader reader = new JdxDbStructReader()
+            reader.setDb(db)
+            IJdxDbStruct struct = reader.readDbStruct()
+
+            //
+            if (doTables) {
+                for (IJdxTable t : struct.getTables()) {
+                    System.out.println(t.getName())
+                    if (doFields) {
+                        for (IJdxField f : t.getFields()) {
+                            System.out.println("  " + f.getName() + " " + f.getJdxDatatype() + "[" + f.getSize() + "]" + " (" + f.getDbDatatype() + ")")
+                        }
+                    }
+                }
+                System.out.println()
+            }
+
+            //
+            if (doPublications) {
+                JSONObject cfg = UtRepl.loadAndValidateJsonFile(jsonFileName)
+
+                //
+                System.out.println("Publication: in")
+                IPublicationRuleStorage publicationIn = PublicationRuleStorage.loadRules(cfg, struct, "in")
+                JSONObject cfgPublicationRulesIn = PublicationRuleStorage.extractRulesByName(cfg, "in")
+                UtPublicationRule.checkValid(cfgPublicationRulesIn, publicationIn, struct)
+
+                //
+                System.out.println("Publication: out")
+                IPublicationRuleStorage publicationOut = PublicationRuleStorage.loadRules(cfg, struct, "out")
+                JSONObject cfgPublicationRulesOut = PublicationRuleStorage.extractRulesByName(cfg, "out")
+                UtPublicationRule.checkValid(cfgPublicationRulesOut, publicationOut, struct)
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace()
+            System.out.println(jdtx.repl.main.ut.Ut.getExceptionMessage(e))
         } finally {
             db.disconnect()
         }
@@ -337,7 +404,7 @@ class Jdx_Ext extends ProjectExt {
 
                 // Имя файла-результата
                 if (outFileName == null || outFileName.length() == 0) {
-                    outFileName = tableName + "_" + recordIdRefStr.replace(":", "_") + ".zip";
+                    outFileName = tableName + "_" + recordIdRefStr.replace(":", "_") + ".zip"
                 }
 
                 // Ищем запись и формируем реплику на вставку
@@ -632,7 +699,7 @@ class Jdx_Ext extends ProjectExt {
 
             // Еще раз отправим команду MUTE и ждем результат
             if (doWaitAge) {
-                age = age + 1;
+                age = age + 1
 
                 // Запущенный процесс мешает
                 UtReplService.stop(false)
@@ -994,11 +1061,11 @@ class Jdx_Ext extends ProjectExt {
         Thread.sleep(1000)
 
         //
-        List<ServiceInfo> taskList = UtReplService.serviceList();
+        List<ServiceInfo> taskList = UtReplService.serviceList()
         UtReplService.printTaskList(taskList)
         //
-        Collection<ProcessInfo> processList = UtReplService.processList();
-        UtReplService.printProcessList(processList);
+        Collection<ProcessInfo> processList = UtReplService.processList()
+        UtReplService.printProcessList(processList)
     }
 
     void repl_service_stop(IVariantMap args) {
@@ -1008,15 +1075,15 @@ class Jdx_Ext extends ProjectExt {
         Thread.sleep(1000)
 
         //
-        List<ServiceInfo> taskList = UtReplService.serviceList();
+        List<ServiceInfo> taskList = UtReplService.serviceList()
         UtReplService.printTaskList(taskList)
         //
-        Collection<ProcessInfo> processList = UtReplService.processList();
+        Collection<ProcessInfo> processList = UtReplService.processList()
         UtReplService.printProcessList(processList)
     }
 
     void repl_service_state(IVariantMap args) {
-        Collection<ServiceInfo> taskList = UtReplService.serviceList();
+        Collection<ServiceInfo> taskList = UtReplService.serviceList()
         UtReplService.printTaskList(taskList)
         //
         Collection<ProcessInfo> processList = UtReplService.processList()
@@ -1045,7 +1112,7 @@ class Jdx_Ext extends ProjectExt {
         }
 
         //
-        Collection<ServiceInfo> taskList = UtReplService.serviceList();
+        Collection<ServiceInfo> taskList = UtReplService.serviceList()
         UtReplService.printTaskList(taskList)
         //
         Collection<ProcessInfo> processList = UtReplService.processList()
@@ -1078,7 +1145,7 @@ class Jdx_Ext extends ProjectExt {
         }
 
         //
-        Collection<ServiceInfo> taskList = UtReplService.serviceList();
+        Collection<ServiceInfo> taskList = UtReplService.serviceList()
         UtReplService.printTaskList(taskList)
         //
         Collection<ProcessInfo> processList = UtReplService.processList()
@@ -1106,14 +1173,14 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
-    String param_NotSaveServiceState = "notSaveServiceState";
+    String param_NotSaveServiceState = "notSaveServiceState"
 
     /**
      * Запоминаем состояние процесса и службы репликатора,
      * останавливаем процесс и удаляем службу
      */
     ReplServiceState saveServiceState(Db db, IVariantMap args) {
-        ReplServiceState serviceState = null;
+        ReplServiceState serviceState = null
 
         //
         boolean saveServiceState = args.isValueNull(param_NotSaveServiceState)
@@ -1133,7 +1200,7 @@ class Jdx_Ext extends ProjectExt {
         }
 
         //
-        return serviceState;
+        return serviceState
     }
 
     /**

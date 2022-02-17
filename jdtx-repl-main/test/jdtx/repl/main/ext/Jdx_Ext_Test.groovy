@@ -38,6 +38,17 @@ class Jdx_Ext_Test extends JcTestCase {
         extWs3.repl_info(args)
     }
 
+    @Test
+    void repl_check() {
+        // ov repl-check -tables -fields -publications -file:Z:\jdtx-repl\jdtx-repl-main\test\etalon\alg\pub.json > 1.txt
+        IVariantMap args = new VariantMap()
+        //args.put("tables", true)
+        //args.put("fields", true)
+        args.put("publications", true)
+        args.put("file", "test/etalon/alg/pub.json")
+        extSrv.repl_check(args)
+    }
+
 
     @Test
     void xxx() {

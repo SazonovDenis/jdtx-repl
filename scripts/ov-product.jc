@@ -1,15 +1,23 @@
 //
 include "db-project-product"
 
+
 //
 repl_info = cm("Информация по репликации",
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    try {
-        ext.repl_info(args)
-    } catch (Exception e) {
-        e.printStackTrace()
-    }
+    ext.repl_info(args)
+}
+
+//
+repl_check = cm("Разные проверки",
+        "tables": [value: null, help: "Показать таблицы"],
+        "fields": [value: null, help: "Показать поля таблиц"],
+        "publications": [value: null, help: "Проверть файл publications"],
+        "file": [value: null, help: "Файл с конфигурацией на проверку"],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_check(args)
 }
 
 //
