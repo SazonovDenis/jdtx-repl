@@ -16,15 +16,16 @@ public class UtPublicationRule {
         List<String> res = new ArrayList<>();
 
         //
-        // JdxDbUtils.ID_FIELD пусть будет всегда спереди (необязательно, но... во-первых это красиво!)
-        res.add(JdxDbUtils.ID_FIELD);
+        // PK пусть будет всегда спереди (необязательно, но... во-первых это красиво!)
+        String pkFieldName = JdxDbUtils.getPkFieldName(table);
+        res.add(pkFieldName);
         if (publicationFields.contains("*")) {
             // Вариант "Все, кроме...", например "*,-CommentUsr"
             publicationFields = publicationFields.toUpperCase() + ","; // Добавляем "," чтобы корректно работало publicationFields.contains("-" + fieldName + ",")
             for (IJdxField fieldStruct : table.getFields()) {
                 String fieldName = fieldStruct.getName().toUpperCase();
                 //
-                if (fieldName.equalsIgnoreCase(JdxDbUtils.ID_FIELD)) {
+                if (fieldName.equalsIgnoreCase(pkFieldName)) {
                     continue;
                 }
                 //
@@ -47,7 +48,7 @@ public class UtPublicationRule {
             // Вариант "Перечислены нужные поля через запятую"
             String[] publicationFieldsArr = publicationFields.split(",");
             for (String publicationField : publicationFieldsArr) {
-                if (publicationField.equalsIgnoreCase(JdxDbUtils.ID_FIELD)) {
+                if (publicationField.equalsIgnoreCase(pkFieldName)) {
                     continue;
                 }
                 // Проверим, что в фильтре не указаны несуществующие поля
