@@ -71,6 +71,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
                 try {
                     while (rsPK.next()) {
                         String columnName = rsPK.getString("COLUMN_NAME");
+                        String pkName = rsPK.getString("PK_NAME");
                         JdxField fieldPK = (JdxField) table.getField(columnName);
                         fieldPK.setIsPrimaryKey(true);
                         table.getPrimaryKey().add(fieldPK);
@@ -175,6 +176,9 @@ public class JdxDbStructReader implements IJdxDbStructReader {
             return JdxDataType.DATETIME;
         } else if (dataType.compareToIgnoreCase("TIMESTAMP") == 0) {
             return JdxDataType.DATETIME;
+            // Firebird 2.5
+        } else if (dataType.compareToIgnoreCase("DOUBLE PRECISION") == 0) {
+            return JdxDataType.DOUBLE;
         } else {
             throw new Exception("Неизвестный тип поля: " + dbDataType);
         }
