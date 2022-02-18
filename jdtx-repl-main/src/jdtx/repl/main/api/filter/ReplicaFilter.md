@@ -52,7 +52,7 @@ RECORD_REF:PAWNCHIT.WS_LIST in (2,8) && PARAM_wsAuthor = PARAM_wsDestination
 ~~~
 
 Любая запись, должна НЕ ИМЕТЬ такой цепочки ссылок, которая приводит к нарушению условия. 
-Например, таблица OPR хоть и не имеет ссылок на WS_LIST, и даже не имеет ссылок на PAWNCHIT, но она именет ссылку на PAWNCHITSUBJECT, 
+Например, таблица OPR хоть и не имеет ссылок на WS_LIST, и даже не имеет ссылок на PAWNCHIT, но она имеет ссылку на PAWNCHITSUBJECT, 
 который имеет ссылку на PAWNCHIT.WS_LIST, и в силу этого факта запись в OPR должна подвергаться фильтрации.
 
 ![Пример](ReplucaFilter_ref.png)
