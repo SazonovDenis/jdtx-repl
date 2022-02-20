@@ -83,23 +83,23 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
         //
-        System.out.println("getAuditAgeDone: " + stateManager.getAgeQueOutDone());
+        System.out.println("getAuditAgeDone: " + stateManager.getAuditAgeDoneQueOut());
         System.out.println("getQueInNoDone: " + stateManager.getQueNoDone("in"));
 
         // ---
-        stateManager.setAgeQueOutDone(20);
+        stateManager.setAuditAgeDoneQueOut(20);
         stateManager.setQueNoDone("in", 30);
 
         //
-        System.out.println("getAuditAgeDone: " + stateManager.getAgeQueOutDone());
+        System.out.println("getAuditAgeDone: " + stateManager.getAuditAgeDoneQueOut());
         System.out.println("getQueInNoDone: " + stateManager.getQueNoDone("in"));
 
         // ---
-        stateManager.setAgeQueOutDone(920);
+        stateManager.setAuditAgeDoneQueOut(920);
         stateManager.setQueNoDone("in", 930);
 
         //
-        System.out.println("getAuditAgeDone: " + stateManager.getAgeQueOutDone());
+        System.out.println("getAuditAgeDone: " + stateManager.getAuditAgeDoneQueOut());
         System.out.println("getQueInNoDone: " + stateManager.getQueNoDone("in"));
     }
 

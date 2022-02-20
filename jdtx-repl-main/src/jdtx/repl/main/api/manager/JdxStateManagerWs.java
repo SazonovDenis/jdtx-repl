@@ -6,8 +6,6 @@ import jdtx.repl.main.api.util.*;
 
 /**
  * Состояние задач рабочей станции: отметки в БД, насколько отработаны очереди и прочее.
- * todo переименовать поле WS_STATE.que_out_no_done -> WS_STATE.age_que_out_done
- * todo или даже WS_STATE.audit_age_done - ВОЗРАСТ обработанного аудита (помещенного в исходящую очередь)
  */
 public class JdxStateManagerWs {
 
@@ -21,18 +19,18 @@ public class JdxStateManagerWs {
     /**
      * @return Возраст аудита, до которого сформирована исходящая очередь QueOut
      */
-    public long getAgeQueOutDone() throws Exception {
+    public long getAuditAgeDoneQueOut() throws Exception {
         String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_STATE";
         DataRecord rec = db.loadSql(sql).getCurRec();
-        return rec.getValueLong("que_out_no_done");
+        return rec.getValueLong("audit_age_done");
     }
 
     /**
      * Задает возраст аудита, до которого сформирована исходящая очередь QueOut
      * (заполняется при выкладывании реплики в исходящую очередь).
      */
-    public void setAgeQueOutDone(long queOutAgeDone) throws Exception {
-        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "WS_STATE set que_out_no_done = " + queOutAgeDone;
+    public void setAuditAgeDoneQueOut(long auditAgeDone) throws Exception {
+        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "WS_STATE set audit_age_done = " + auditAgeDone;
         db.execSql(sql);
     }
 

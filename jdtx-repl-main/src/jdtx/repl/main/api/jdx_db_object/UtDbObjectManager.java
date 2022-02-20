@@ -13,7 +13,7 @@ import java.util.*;
 
 public class UtDbObjectManager {
 
-    public static int CURRENT_VER_DB = 14; // JadatexSync-544 - ver = 4
+    public static int CURRENT_VER_DB = 15; // JadatexSync-544 - ver = 4
 
     Db db;
 

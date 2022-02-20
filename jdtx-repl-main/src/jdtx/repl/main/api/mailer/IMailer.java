@@ -16,21 +16,21 @@ public interface IMailer {
     /**
      * Информация о состоянии почтового ящика
      *
-     * @return Сколько писем есть на сервере (age или no) в папке box
+     * @return Сколько писем есть на сервере (no) в папке box
      */
     long getBoxState(String box) throws Exception;
 
     /**
      * Информация о фактическом состоянии почтового ящика (используется для анализа при восстановлении из бэкапа)
      *
-     * @return Какой возраст (age или no) уже есть на сервере в папке box
+     * @return Какой возраст (no) уже есть на сервере в папке box
      */
     long getSendDone(String box) throws Exception;
 
     /**
      * Информация о желаемом состоянии почтового ящика (используется для запроса повторной отправки реплик)
      *
-     * @return Начиная с какого письма (age или no) требуется отправить письма в папку box
+     * @return Начиная с какого письма (no) требуется отправить письма в папку box
      */
     SendRequiredInfo getSendRequired(String box) throws Exception;
 

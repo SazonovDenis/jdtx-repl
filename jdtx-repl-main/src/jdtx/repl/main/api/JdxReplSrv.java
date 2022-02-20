@@ -305,7 +305,7 @@ public class JdxReplSrv {
             wsState.QUE_IN001_NO_DONE = 0L;
             // Новая рабочая станция пока не имела аудита, поэтому возраст ее очереди "out" будет 0, ...
             wsState.QUE_OUT_NO = 0L;
-            wsState.QUE_OUT_NO_DONE = 0L;
+            wsState.AUDIT_AGE_DONE = 0L;
             // ... отправка тоже ...
             wsState.MAIL_SEND_DONE = 0L;
             // ... и возраст аудита тоже
@@ -418,7 +418,7 @@ public class JdxReplSrv {
 
         // Самым наглым образом установим номер реплики, разрешенной к отправке, на почтовом сервере.
         // Это нужно, чтобы станция вышла из состояния "Detected restore from backup, repair needed" и получила нашу первую реплику.
-        // В этой первой реплике возраст QUE_OUT_NO и QUE_OUT_NO_DONE будет возвращен на место, вместе с остальными возрастами.
+        // В этой первой реплике возраст QUE_OUT_NO и AUDIT_AGE_DONE будет возвращен на место, вместе с остальными возрастами.
         IMailer mailerWs = mailerList.get(wsId);
         SendRequiredInfo requiredInfo = new SendRequiredInfo();
         requiredInfo.requiredFrom = 1;
@@ -443,7 +443,7 @@ public class JdxReplSrv {
         // Возраст аудита станции из ее прошлой жизни
         long wsQueOutAge = ((JdxQueCommon) queCommon).getMaxAgeForWs(wsId);
         wsState.AGE = wsQueOutAge;
-        wsState.QUE_OUT_NO_DONE = wsQueOutAge;
+        wsState.AUDIT_AGE_DONE = wsQueOutAge;
         // Поехали
         wsState.MUTE = 0L;
 
@@ -1120,22 +1120,22 @@ public class JdxReplSrv {
                 log.info("srvHandleCommonQue, from.wsId: " + wsId);
 
                 //
-                long queDoneAge = stateManager.getWsQueInNoDone(wsId);
-                long queMaxAge = mailer.getBoxState("from");
+                long queDoneNo = stateManager.getWsQueInNoDone(wsId);
+                long queMaxNo = mailer.getBoxState("from");
 
                 //
                 long count = 0;
-                for (long age = queDoneAge + 1; age <= queMaxAge; age++) {
-                    log.info("receive, wsId: " + wsId + ", receiving.age: " + age);
+                for (long no = queDoneNo + 1; no <= queMaxNo; no++) {
+                    log.info("receive, wsId: " + wsId + ", receiving.no: " + no);
 
                     // Информацмия о реплике с почтового сервера
-                    IReplicaInfo info = mailer.getReplicaInfo("from", age);
+                    IReplicaInfo infoMailer = mailer.getReplicaInfo("from", no);
 
                     // Физически забираем данные с почтового сервера
-                    IReplica replica = mailer.receive("from", age);
+                    IReplica replica = mailer.receive("from", no);
 
                     // Проверяем целостность скачанного
-                    UtJdx.checkReplicaCrc(replica, info.getCrc());
+                    UtJdx.checkReplicaCrc(replica, infoMailer.getCrc());
 
                     // Читаем заголовок
                     JdxReplicaReaderXml.readReplicaInfo(replica);
@@ -1144,16 +1144,16 @@ public class JdxReplSrv {
                     db.startTran();
                     try {
                         // Помещаем в очередь
-                        long commonQueAge = commonQue.push(replica);
+                        long commonQueNo = commonQue.push(replica);
 
                         // Отмечаем факт скачивания
-                        stateManager.setWsQueInNoDone(wsId, age);
+                        stateManager.setWsQueInNoDone(wsId, no);
 
                         // todo: Почему для сервера - сразу ТУТ реагируем, а для станции - потом??? И почему ТУТ не проверяется адресат????
                         // Реагируем на системные реплики-сообщения
                         if (replica.getInfo().getReplicaType() == JdxReplicaType.MUTE_DONE) {
                             JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
-                            utmm.setMuteDone(wsId, commonQueAge);
+                            utmm.setMuteDone(wsId, commonQueNo);
                         }
                         //
                         if (replica.getInfo().getReplicaType() == JdxReplicaType.UNMUTE_DONE) {
@@ -1169,7 +1169,7 @@ public class JdxReplSrv {
                     }
 
                     // Удаляем с почтового сервера
-                    mailer.delete("from", age);
+                    mailer.delete("from", no);
 
                     //
                     count++;
@@ -1185,9 +1185,9 @@ public class JdxReplSrv {
 
                 //
                 if (count > 0) {
-                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.age: " + queDoneAge + " .. " + queMaxAge + ", done count: " + count);
+                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.no: " + queDoneNo + " .. " + queMaxNo + ", done count: " + count);
                 } else {
-                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.age: " + queDoneAge + ", nothing done");
+                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.no: " + queDoneNo + ", nothing done");
                 }
 
             } catch (Exception e) {
