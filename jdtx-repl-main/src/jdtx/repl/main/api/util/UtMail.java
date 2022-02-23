@@ -59,7 +59,7 @@ public class UtMail {
         if (count > 0) {
             log.info("sendQueToMail done, wsId: " + wsId + ", box: " + box + ", send: " + sendTask.sendFrom + " .. " + sendTask.sendTo + ", done count: " + count);
         } else {
-            log.info("sendQueToMail done, wsId: " + wsId + ", box: " + box + ", send: " + sendTask.sendFrom + ", nothing done");
+            log.info("sendQueToMail done, wsId: " + wsId + ", box: " + box + ", send: " + sendTask.sendTo + ", nothing done");
         }
     }
 

@@ -21,7 +21,8 @@ public class UtDbErrors {
 
     public static boolean errorIs_TableNotExists(Exception e) {
         String errText = UtJdxErrors.collectExceptionText(e);
-        if ((errText.contains("table/view") && errText.contains("does not exist")) ||
+        if ((errText.contains("table/view") && errText.contains("does not exist") ||
+                errText.contains("Table") && errText.contains("does not exist")) ||
                 errText.contains("Table unknown")) {
             return true;
         } else {
@@ -30,7 +31,9 @@ public class UtDbErrors {
     }
 
     public static boolean errorIs_GeneratorNotExists(Exception e) {
-        if (UtJdxErrors.collectExceptionText(e).contains("Generator not found")) {
+        String errText = UtJdxErrors.collectExceptionText(e);
+        if (errText.contains("Generator not found") ||
+                errText.contains("Generator") && errText.contains("not found")) {
             return true;
         } else {
             return false;
@@ -38,7 +41,9 @@ public class UtDbErrors {
     }
 
     public static boolean errorIs_TriggerNotExists(Exception e) {
-        if (UtJdxErrors.collectExceptionText(e).contains("Trigger not found")) {
+        String errText = UtJdxErrors.collectExceptionText(e);
+        if (errText.contains("Trigger not found") ||
+                errText.contains("Trigger") && errText.contains("not found")) {
             return true;
         } else {
             return false;
