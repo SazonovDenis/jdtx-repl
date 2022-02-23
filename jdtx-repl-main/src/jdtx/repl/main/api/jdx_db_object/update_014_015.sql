@@ -125,7 +125,7 @@ from
 
 
 CREATE TABLE Z_Z_srv_que_out001 (
-  id                 INTEGER NOT NULL,  
+  id                 INTEGER NOT NULL,
   destination_ws_id  INT     NOT NULL,
   destination_id     INT     NOT NULL,
   author_ws_id       INT     NOT NULL,
@@ -170,3 +170,13 @@ drop generator Z_Z_G_que_common;
 
 
 @Update_014_015_que_generators;
+
+
+
+/*
+Z_Z_SRV_WORKSTATION_STATE.que_in_no
+*/
+
+ALTER TABLE Z_Z_SRV_WORKSTATION_STATE ADD que_in_no INT NOT NULL;
+
+UPDATE Z_Z_SRV_WORKSTATION_STATE set que_in_no = que_in_no_done;

@@ -6,25 +6,32 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.util.*;
+import org.apache.commons.logging.*;
 
 
 /**
- * Очередь реплик - хранилище дублируются в БД.
- * Реализация интерфейса {@link IJdxReplicaQue}
+ * Очередь реплик - хранилище в файлах дополнительно отмечается в БД.
  */
-public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
+public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
 
     //
     Db db;
 
     String queName;
+    String queTableName;
+    String queTableGeneratorName;
 
     String stateTableName;
 
     //
+    protected static Log log = LogFactory.getLog("jdtx.JdxQue");
+
+    //
     public JdxQue(Db db, String queName, boolean stateMode) {
         this.db = db;
-        this.queName = UtQue.getTableSuffix(queName);
+        this.queName = UtQue.getQueName(queName);
+        this.queTableName = UtQue.getQueTableName(queName);
+        this.queTableGeneratorName = UtQue.getQueTableGeneratorName(queName);
         if (stateMode == UtQue.STATE_AT_SRV) {
             this.stateTableName = UtJdx.SYS_TABLE_PREFIX + "SRV_STATE";
         } else {
@@ -32,13 +39,17 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
         }
     }
 
+    /*
+     * IJdxQueNamed
+     */
+
     public String getQueName() {
         return queName;
     }
 
 
     /*
-     * JdxStorageFile
+     * IJdxStorageFile
      */
 
     @Override
@@ -65,11 +76,11 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
     }
 
     public long push(IReplica replica) throws Exception {
+        // Установка или проверка номера в очереди
+        long queNo = getReplicaQueNo(replica);
+
         // Проверки: правильность полей реплики
         validateReplica(replica);
-
-        // Генерим следующий номер - по порядку
-        long queNo = getMaxNo() + 1;
 
         // Вычисляем crc файла данных
         if (replica.getData() != null) {
@@ -85,14 +96,7 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
         // Отмечаем в БД
         db.startTran();
         try {
-            String sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "que_" + queName + " (id, ws_id, age, crc, replica_type) values (:id, :ws_id, :age, :crc, :replica_type)";
-            db.execSql(sql, UtCnv.toMap(
-                    "id", queNo,
-                    "ws_id", replica.getInfo().getWsId(),
-                    "age", replica.getInfo().getAge(),
-                    "crc", replica.getInfo().getCrc(),
-                    "replica_type", replica.getInfo().getReplicaType()
-            ));
+            pushDb(replica, queNo);
 
             //
             setMaxNo(queNo);
@@ -124,34 +128,42 @@ public class JdxQue extends JdxStorageFile implements IJdxReplicaQue {
      * Утилиты
      */
 
+    long getReplicaQueNo(IReplica replica) throws Exception {
+        // Генерим следующий номер в нашей очереди - по порядку.
+        // В самой реплике номер УЖЕ ДОЛЖЕН БЫТЬ - это тот номер, который пришел от рабочей станции, поэтому тут replica.info.no - не присваиваем
+        long queNo = getMaxNo() + 1;
+
+        //
+        return queNo;
+    }
+
+    void pushDb(IReplica replica, long queNo) throws Exception {
+        String sql = "insert into " + queTableName + " (id, author_ws_id, author_id, age, crc, replica_type) values (:id, :author_ws_id, :author_id, :age, :crc, :replica_type)";
+        db.execSql(sql, UtCnv.toMap(
+                "id", queNo,
+                "author_ws_id", replica.getInfo().getWsId(),
+                "author_id", replica.getInfo().getNo(),
+                "age", replica.getInfo().getAge(),
+                "crc", replica.getInfo().getCrc(),
+                "replica_type", replica.getInfo().getReplicaType()
+        ));
+    }
+
+    void recToReplicaInfo(DataRecord rec, IReplicaInfo info) {
+        info.setWsId(rec.getValueLong("author_ws_id"));
+        info.setNo(rec.getValueLong("author_id"));
+        info.setAge(rec.getValueLong("age"));
+        info.setCrc(rec.getValueString("crc"));
+        info.setReplicaType(rec.getValueInt("replica_type"));
+    }
+
     DataRecord loadReplicaRec(long no) throws Exception {
-        String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "que_" + queName + " where id = " + no;
+        String sql = "select * from " + queTableName + " where id = " + no;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("id") == 0) {
             throw new XError("Replica not found, queName: " + queName + ", no: " + no);
         }
         return rec;
-    }
-
-    private void recToReplicaInfo(DataRecord rec, IReplicaInfo info) {
-        info.setReplicaType(rec.getValueInt("replica_type"));
-        info.setAge(rec.getValueLong("age"));
-        info.setWsId(rec.getValueLong("ws_id"));
-        info.setCrc(rec.getValueString("crc"));
-    }
-
-
-    /**
-     * @return Последний возраст реплики в очереди, созданный рабочей станцией wsId
-     */
-    public long getMaxAgeForWs(long wsId) throws Exception {
-        String sql = "select max(age) as maxAge, count(*) as cnt from " + UtJdx.SYS_TABLE_PREFIX + "que_" + queName + " where ws_id = " + wsId;
-        DataRecord rec = db.loadSql(sql).getCurRec();
-        if (rec.getValueLong("cnt") == 0) {
-            return -1;
-        } else {
-            return rec.getValueLong("maxAge");
-        }
     }
 
 

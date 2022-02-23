@@ -1004,7 +1004,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
      * Очистка файлов, котрорые есть в каталоге, но которых нет в базе.
      * Это бывает по разным причинам.
      */
-    public static void clearTrashFiles(JdxQue que) throws Exception {
+    public static void clearTrashFiles(IJdxQue que) throws Exception {
         log.info("clearTrashFiles, que: " + que.getQueName() + ", baseDir: " + que.getBaseDir());
 
         // Сколько реплик есть в рабочем каталоге?
@@ -1022,7 +1022,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
             log.warn("clearTrashFiles, replica.no: " + trashNo);
 
             // Файл реплики
-            String actualFileName = que.getFileName(trashNo);
+            String actualFileName = JdxStorageFile.getFileName(trashNo);
             File actualFile = new File(que.getBaseDir() + actualFileName);
 
             // Переносим файл в мусорку

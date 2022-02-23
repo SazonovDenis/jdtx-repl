@@ -816,7 +816,7 @@ class Jdx_Ext extends ProjectExt {
         //
         String queName = args.getValueString("que")
         if (queName == null || queName.length() == 0) {
-            queName = UtQue.QUE_COMMON
+            queName = UtQue.SRV_QUE_COMMON
         }
 
         // БД
@@ -882,7 +882,7 @@ class Jdx_Ext extends ProjectExt {
         //
         String queName = args.getValueString("que")
         if (queName == null || queName.length() == 0) {
-            queName = UtQue.QUE_COMMON
+            queName = UtQue.SRV_QUE_COMMON
         }
 
         // БД
@@ -943,7 +943,7 @@ class Jdx_Ext extends ProjectExt {
         }
         String queName = args.getValueString("que")
         if (queName == null || queName.length() == 0) {
-            queName = UtQue.QUE_COMMON
+            queName = UtQue.SRV_QUE_COMMON
         }
 
         // БД

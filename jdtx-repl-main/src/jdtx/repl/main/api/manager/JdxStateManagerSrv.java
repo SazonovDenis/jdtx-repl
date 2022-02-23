@@ -18,8 +18,29 @@ public class JdxStateManagerSrv {
 
 
     /**
-     * @return Возраст реплики, до которого обработана
-     * входящая очередь out от рабочей станции при формировании общей очереди.
+     * @return Номер реплики, до которого получена
+     * очередь out от рабочей станции и помещена в зеркальную очереди queInSrv.
+     */
+    public long getWsQueInNoReceived(long wsId) throws Exception {
+        DataRecord rec = loadRecStateWs(wsId);
+        //
+        return rec.getValueLong("que_in_no");
+    }
+
+    /**
+     * Устанавливает номер реплики, до которого получена
+     * очередь out от рабочей станции и помещена в зеркальную очередь queInSrv.
+     */
+    public void setWsQueInNoReceived(long wsId, long queInNo) throws Exception {
+        loadRecStateWs(wsId);
+        //
+        String sqlUpd = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set que_in_no = " + queInNo + " where ws_id = " + wsId;
+        db.execSql(sqlUpd);
+    }
+
+
+    /**
+     * @return Номер реплики, до которого очередь out от рабочей станции выложена в общую очередь common
      */
     public long getWsQueInNoDone(long wsId) throws Exception {
         DataRecord rec = loadRecStateWs(wsId);
@@ -29,12 +50,12 @@ public class JdxStateManagerSrv {
 
     /**
      * Устанавливает возраст реплики, до которого обработана
-     * входящая очередь out от рабочей станции при формировании общей очереди.
+     * очередь out от рабочей станции при формировании общей очереди.
      */
-    public void setWsQueInNoDone(long wsId, long queInAgeDone) throws Exception {
+    public void setWsQueInNoDone(long wsId, long queInNoDone) throws Exception {
         loadRecStateWs(wsId);
         //
-        String sqlUpd = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set que_in_no_done = " + queInAgeDone + " where ws_id = " + wsId;
+        String sqlUpd = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set que_in_no_done = " + queInNoDone + " where ws_id = " + wsId;
         db.execSql(sqlUpd);
     }
 

@@ -20,7 +20,7 @@ public class JdxReplTaskSrv extends JdxReplTaskCustom {
     }
 
     //
-    public void doReplSession() throws Exception {
+    public void doTask() throws Exception {
         //
         log.info("Сервер");
         srv.init();
@@ -37,6 +37,16 @@ public class JdxReplTaskSrv extends JdxReplTaskCustom {
         } catch (Exception e) {
             logError(e);
             collectError("srv.srvHandleRoutineTask", e);
+        }
+
+
+        //
+        log.info("Чтение входящих очередей");
+        try {
+            srv.srvHandleQueIn();
+        } catch (Exception e) {
+            logError(e);
+            collectError("srv.srvHandleCommonQue", e);
         }
 
 

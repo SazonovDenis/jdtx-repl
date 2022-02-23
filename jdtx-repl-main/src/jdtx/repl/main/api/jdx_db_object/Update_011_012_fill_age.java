@@ -39,7 +39,7 @@ public class Update_011_012_fill_age implements ISqlScriptExecutor {
      *
      * @param auditAge - читаем для этого возраста
      */
-    public void loadMaxIds_ver011(Db db, long auditAge, Map maxIdsFixed) throws Exception {
+    private void loadMaxIds_ver011(Db db, long auditAge, Map maxIdsFixed) throws Exception {
         DataStore st = db.loadSql("select table_name, z_id as maxId from Z_Z_AGE where age = " + auditAge);
         for (DataRecord rec : st) {
             String tableName = rec.getValueString("table_name");
@@ -49,7 +49,7 @@ public class Update_011_012_fill_age implements ISqlScriptExecutor {
     }
 
 
-    public void saveMaxIds_ver012(Db db, long auditAge, DateTime dt, Map maxIdsActual) throws Exception {
+    private void saveMaxIds_ver012(Db db, long auditAge, DateTime dt, Map maxIdsActual) throws Exception {
         String sql = "insert into Z_Z_AGE_TMP(age, dt, table_ids) values (:age, :dt, :table_ids)";
         String table_ids = UtJson.toString(maxIdsActual);
         Map params = UtCnv.toMap(

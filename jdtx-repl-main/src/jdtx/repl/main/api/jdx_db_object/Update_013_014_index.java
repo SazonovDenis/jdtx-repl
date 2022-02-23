@@ -25,9 +25,9 @@ public class Update_013_014_index implements ISqlScriptExecutor {
                 log.info("createAuditTableIndex_OPR_DTTM, table: " + table.getName());
             } catch (Exception e) {
                 if (UtJdxErrors.collectExceptionText(e).contains("Unknown columns in index")) {
-                    log.warn("createAuditTableIndex_OPR_DTTM, table: " + table.getName() + ", message: " + e.getMessage().replace("\n", " ").replace("~", ""));
+                    log.debug("createAuditTableIndex_OPR_DTTM, table: " + table.getName() + ", message: " + e.getMessage().replace("\n", " ").replace("~", ""));
                 } else if (UtDbErrors.errorIs_IndexAlreadyExists(e)) {
-                    log.warn("createAuditTableIndex_OPR_DTTM, table: " + table.getName() + ", IndexAlreadyExists, message: " + e.getMessage().replace("\n", " ").replace("~", ""));
+                    log.debug("createAuditTableIndex_OPR_DTTM, table: " + table.getName() + ", IndexAlreadyExists, message: " + e.getMessage().replace("\n", " ").replace("~", ""));
                 } else {
                     throw e;
                 }

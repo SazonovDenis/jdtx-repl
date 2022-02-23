@@ -9,6 +9,11 @@ public interface IJdxReplicaQue {
 
 
     /**
+     * Проверка правильности реплики перед помещением в очередь
+     */
+    void validateReplica(IReplica replica) throws Exception;
+
+    /**
      * Поместить очередную реплику в очередь
      *
      * @return Номер реплики в очереди
@@ -16,17 +21,12 @@ public interface IJdxReplicaQue {
     long push(IReplica replica) throws Exception;
 
     /**
-     * Проверка правильности реплики перед помещением в очередь
-     */
-    void validateReplica(IReplica replica) throws Exception;
-
-    /**
-     * @return До какого номера есть реплики в хранилище
+     * @return До какого номера есть реплики в очереди
      */
     long getMaxNo() throws Exception;
 
     /**
-     * Установить счетчик номеров
+     * Установить счетчик номеров реплик
      *
      * @param maxNo Значение счетчика номеров
      */

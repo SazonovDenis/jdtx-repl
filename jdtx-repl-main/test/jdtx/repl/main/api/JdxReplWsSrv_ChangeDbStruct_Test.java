@@ -495,7 +495,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         srv.init();
 
         // ... рассылаем на рабочие станции новые правила публикаций (команда repl_send_cfg) ...
-        srv.srvSendCfg(cfg_publications, CfgType.PUBLICATIONS, 0, UtQue.QUE_COMMON);
+        srv.srvSendCfg(cfg_publications, CfgType.PUBLICATIONS, 0, UtQue.SRV_QUE_COMMON);
 
         // ... рассылаем сигнал "SET_DB_STRUCT" (команда repl_dbstruct_finish)
         test_srvDbStructFinish();

@@ -9,4 +9,6 @@ public interface IJdxStorageFile {
 
     void setDataRoot(String dataRoot);
 
+    long getMaxNoFromDir();
+
 }

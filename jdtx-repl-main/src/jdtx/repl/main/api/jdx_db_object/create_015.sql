@@ -66,12 +66,13 @@ INSERT INTO Z_Z_SRV_STATE (id) VALUES (1);
 CREATE TABLE Z_Z_SRV_WORKSTATION_STATE (
   id                       INTEGER NOT NULL,
   ws_id                    INT     NOT NULL,
-  que_common_dispatch_done INT     NOT NULL,            /* Возраст реплики, до которого реплики из queCommon разложены в queOut000 для рабочей станции */
+  que_common_dispatch_done INT     NOT NULL,            /* Номер реплики, до которого реплики из queCommon разложены в queOut000 для рабочей станции */
   que_out000_no            INT     DEFAULT 0 NOT NULL,
   que_out000_send_done     INT     DEFAULT 0 NOT NULL,
   que_out001_no            INT     DEFAULT 0 NOT NULL,
   que_out001_send_done     INT     DEFAULT 0 NOT NULL,
-  que_in_no_done           INT     NOT NULL,            /* Возраст реплики, до которого обработана входящая очередь от рабочей станции */
+  que_in_no                INT     NOT NULL,            /* Номер реплики, до которого принята очередь от рабочей станции (в серверное зеркало queInSrv) */
+  que_in_no_done           INT     NOT NULL,            /* Номер реплики, до которого обработана очередь от рабочей станции (при формировании общей очереди) */
   enabled                  INT     NOT NULL,
   mute_age                 INT     NOT NULL
 );

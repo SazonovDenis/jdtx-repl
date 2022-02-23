@@ -294,7 +294,7 @@ public class UtDbObjectManager {
             db.execSql(sql);
         } catch (Exception e) {
             if (UtDbErrors.errorIs_GeneratorAlreadyExists(e)) {
-                log.warn("createAuditTableIndex_ID, index already exists, index: " + idxName + ", table: " + table.getName());
+                log.debug("createAuditTableIndex_ID, index already exists, index: " + idxName + ", table: " + table.getName());
             } else {
                 throw e;
             }

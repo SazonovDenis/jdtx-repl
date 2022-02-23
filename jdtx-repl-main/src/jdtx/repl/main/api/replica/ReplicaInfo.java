@@ -11,6 +11,7 @@ public class ReplicaInfo implements IReplicaInfo {
 
 
     private long wsId;
+    private long no;
     private long age;
     private String crc;
     private DateTime dtFrom;
@@ -32,6 +33,14 @@ public class ReplicaInfo implements IReplicaInfo {
 
     public void setAge(long age) {
         this.age = age;
+    }
+
+    public long getNo() {
+        return no;
+    }
+
+    public void setNo(long no) {
+        this.no = no;
     }
 
     public String getCrc() {
@@ -76,6 +85,7 @@ public class ReplicaInfo implements IReplicaInfo {
 
     public void assign(IReplicaInfo src) {
         this.wsId = src.getWsId();
+        this.no = src.getNo();
         this.age = src.getAge();
         this.crc = src.getCrc();
         this.dtFrom = src.getDtFrom();
@@ -86,6 +96,7 @@ public class ReplicaInfo implements IReplicaInfo {
 
     public void fromJSONObject(JSONObject infoJson) {
         this.wsId = (long) infoJson.get("wsId");
+        this.no = (long) infoJson.get("no");
         this.age = (long) infoJson.get("age");
         this.crc = (String) infoJson.get("crc");
         this.dtFrom = UtJdxData.dateTimeValueOf((String) infoJson.get("dtFrom"));
@@ -98,6 +109,7 @@ public class ReplicaInfo implements IReplicaInfo {
         JSONObject res = new JSONObject();
         //
         res.put("wsId", wsId);
+        res.put("no", no);
         res.put("age", age);
         res.put("crc", crc);
         if (dtFrom != null) {
@@ -112,7 +124,16 @@ public class ReplicaInfo implements IReplicaInfo {
     }
 
     public String toJSONString() {
-        return "{\"wsId\": " + wsId + ", \"age\": " + age + ", \"crc\": \"" + crc + "\", \"replicaType\": " + replicaType + ", \"dbStructCrc\": \"" + dbStructCrc + "\", \"dtFrom\": \"" + dtFrom + "\", \"dtTo\": \"" + dtTo + "\"}";
+        return "{" +
+                "\"wsId\": " + wsId + "," +
+                "\"no\": " + no + "," +
+                "\"age\": " + age + "," +
+                "\"crc\": \"" + crc + "\"," +
+                "\"replicaType\": " + replicaType + "," +
+                "\"dbStructCrc\": \"" + dbStructCrc + "\"," +
+                "\"dtFrom\": \"" + dtFrom + "\"," +
+                "\"dtTo\": \"" + dtTo + "\"" +
+                "}";
     }
 
 }

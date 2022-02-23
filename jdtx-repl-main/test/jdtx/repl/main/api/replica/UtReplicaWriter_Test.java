@@ -1,5 +1,6 @@
 package jdtx.repl.main.api.replica;
 
+import jandcode.utils.*;
 import jandcode.utils.test.*;
 import org.apache.commons.io.*;
 import org.joda.time.*;
@@ -84,5 +85,12 @@ public class UtReplicaWriter_Test extends UtilsTestCase {
         testFile.delete();
         FileUtils.moveFile(replica.getData(), testFile);
     }
+
+    @Test
+    public void test_ReplicaInfo_toJSONString() throws Exception {
+        ReplicaInfo info = new ReplicaInfo();
+        UtFile.saveString(info.toJSONString(), new File("temp/info.json"));
+    }
+
 
 }

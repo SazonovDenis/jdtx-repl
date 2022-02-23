@@ -36,13 +36,16 @@ public class JdxReplSrv {
     public static long SERVER_WS_ID = 1L;
 
     // Общая очередь на сервере
-    IJdxQue queCommon;
+    IJdxQueCommon queCommon;
 
     // Почтовые ящики для чтения/отправки сообщений (для каждой рабочей станции)
     Map<Long, IMailer> mailerList;
 
     // Правила публикации (для каждой рабочей станции)
     Map<Long, IPublicationRuleStorage> publicationsInList;
+
+    // Входящие очереди-зеркала на сервере (для каждой рабочей станции)
+    Map<Long, IJdxQue> queInList;
 
     //
     Db db;
@@ -60,15 +63,6 @@ public class JdxReplSrv {
     //
     public JdxReplSrv(Db db) throws Exception {
         this.db = db;
-
-        // Общая очередь на сервере
-        queCommon = new JdxQueCommon(db, UtQue.QUE_COMMON, UtQue.STATE_AT_SRV);
-
-        // Почтовые курьеры для чтения/отправки сообщений (для каждой рабочей станции)
-        mailerList = new HashMap<>();
-
-        // Правила публикации (для каждой рабочей станции)
-        publicationsInList = new HashMap<>();
     }
 
     public IMailer getSelfMailer() {
@@ -96,13 +90,27 @@ public class JdxReplSrv {
      */
     public void srvHandleRoutineTask() throws Exception {
         // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
-        // общая очередь
-        UtRepl.clearTrashFiles((JdxQue) queCommon);
+        // Общая очередь
+        //UtRepl.clearTrashFiles((JdxQueCommon) queCommon);
 
+        //
+        DataStore wsSt = loadWsList();
+
+        // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
+        // очередь queInSrv для станции wsId (входящая очередь-зекркало)
+        for (DataRecord wsRec : wsSt) {
+            long wsId = wsRec.getValueLong("id");
+
+            //
+            JdxQueInSrv que = new JdxQueInSrv(db, wsId);
+            que.setDataRoot(dataRoot);
+
+            //
+            UtRepl.clearTrashFiles(que);
+        }
 
         // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
         // очередь Out000 для станции wsId (исходящая из сервера)
-        DataStore wsSt = loadWsList();
         for (DataRecord wsRec : wsSt) {
             long wsId = wsRec.getValueLong("id");
 
@@ -113,7 +121,6 @@ public class JdxReplSrv {
             //
             UtRepl.clearTrashFiles(que);
         }
-
 
         // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
         // очередь queOut001 для станции wsId (инициализационная или для системных команд)
@@ -168,11 +175,12 @@ public class JdxReplSrv {
             throw new XError("Invalid server ws_id: " + selfWsId);
         }
 
-        // Общая очередь
-        String queCommon_DirLocal = dataRoot + "srv/que_common/";
-        queCommon.setDataRoot(queCommon_DirLocal);
 
-        // Почтовые курьеры, правила входящих реплик - отдельные для каждой станции
+        // Правила входящих реплик, почтовые курьеры, входящие очереди-зеркала (отдельные для каждой рабочей станции)
+        publicationsInList = new HashMap<>();
+        mailerList = new HashMap<>();
+        queInList = new HashMap<>();
+        //
         DataStore wsSt = loadWsList();
         for (DataRecord wsRec : wsSt) {
             long wsId = wsRec.getValueLong("id");
@@ -199,8 +207,21 @@ public class JdxReplSrv {
             // Правила входящих реплик для рабочей станции ("in", используем при подготовке реплик)
             JSONObject cfgPublicationsWs = CfgManager.getCfgFromDataRecord(wsRec, CfgType.PUBLICATIONS);
             IPublicationRuleStorage publicationRuleWsIn = PublicationRuleStorage.loadRules(cfgPublicationsWs, structActual, "in");
+            //
             publicationsInList.put(wsId, publicationRuleWsIn);
+
+
+            // Входящие очереди-зеркала
+            JdxQueInSrv queIn = new JdxQueInSrv(db, wsId);
+            queIn.setDataRoot(dataRoot);
+            //
+            queInList.put(wsId, queIn);
         }
+
+
+        // Общая очередь на сервере
+        queCommon = new JdxQueCommon(db, UtQue.SRV_QUE_COMMON, UtQue.STATE_AT_SRV);
+        queCommon.setSrvQueIn(queInList);
 
 
         // Фильтрация структуры: убирание того, чего нет ни в одном из правил публикаций publicationIn и publicationOut
@@ -220,7 +241,7 @@ public class JdxReplSrv {
      * Сервер, инициализация окружения
      */
     public void initFirst() {
-        UtFile.mkdirs(queCommon.getBaseDir());
+        //UtFile.mkdirs(queCommon.getBaseDir());
     }
 
 
@@ -229,11 +250,6 @@ public class JdxReplSrv {
 
         // ---
         // Создадим станцию
-
-        //--- todo: Создание workstation идет вне транзакции - это плохо, бывали случаи прерывания. Но тогда надо делать УДАЛЕНИЕ старых рабочих каталогов для добавляемой id--
-        //---только лишь  stateManagerSrv.setDispatchDoneQueCommon - выдает правильное сстояние, п ри аварийном прерывании - мусор!!!---
-        //сделать долгие операции подготовки и фильтрации снимка возможными БЕЗ создиния записей в БД, создавать их толтко тогда, когда снимок готов!!!
-
 
         // ---
         // Настройки для станции берем сейчас из файла, а не из publicationsInList.get(wsId), т.к. новой станции еще в этом списке нет
@@ -278,7 +294,7 @@ public class JdxReplSrv {
             db.execSql(sql, params);
 
             //
-            sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE (id, ws_id, que_common_dispatch_done, que_in_no_done, enabled, mute_age) values (" + wsId + ", " + wsId + ", 0, 0, 0, 0)";
+            sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE (id, ws_id, que_common_dispatch_done, que_in_no, que_in_no_done, enabled, mute_age) values (" + wsId + ", " + wsId + ", 0, 0, 0, 0, 0)";
             db.execSql(sql);
 
 
@@ -331,7 +347,7 @@ public class JdxReplSrv {
             queOut000.setMaxNo(wsSnapshotAge);
 
             // Нумерация отправки реплик из очереди queOut000 на эту станцию.
-            IJdxMailStateManager mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT000);
+            IJdxMailStateManager mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT000);
             mailStateManager.setMailSendDone(wsSnapshotAge);
 
             // Номер последней реплики ОТ новой рабочей станции
@@ -343,6 +359,7 @@ public class JdxReplSrv {
             db.commit();
         } catch (Exception e) {
             db.rollback();
+            throw e;
         }
 
         //
@@ -441,7 +458,7 @@ public class JdxReplSrv {
         // ... отправка тоже ...
         wsState.MAIL_SEND_DONE = wsQueOutNo;
         // Возраст аудита станции из ее прошлой жизни
-        long wsQueOutAge = ((JdxQueCommon) queCommon).getMaxAgeForWs(wsId);
+        long wsQueOutAge = ((JdxQueCommon) queCommon).getMaxAgeForAuthorWs(wsId);
         wsState.AGE = wsQueOutAge;
         wsState.AUDIT_AGE_DONE = wsQueOutAge;
         // Поехали
@@ -534,11 +551,17 @@ public class JdxReplSrv {
     }
 
     /**
+     * Сервер: Считывание очередей рабочих станций
+     */
+    public void srvHandleQueIn() throws Exception {
+        srvHandleQueInInternal(mailerList, queInList);
+    }
+
+    /**
      * Сервер: формирование общей очереди.
-     * Считывание очередей рабочих станций и формирование общей очереди.
      */
     public void srvHandleCommonQue() throws Exception {
-        srvHandleCommonQueInternal(mailerList, queCommon);
+        srvHandleCommonQueInternal(queInList, queCommon);
     }
 
     /**
@@ -618,7 +641,7 @@ public class JdxReplSrv {
                 if (count > 0) {
                     log.info("srvReplicasDispatch done, to.wsId: " + wsId + ", out001.no: " + sendFrom + " .. " + sendTo + ", done count: " + count);
                 } else {
-                    log.info("srvReplicasDispatch done, to.wsId: " + wsId + ", out001.no: " + sendFrom + ", nothing done");
+                    log.info("srvReplicasDispatch done, to.wsId: " + wsId + ", out001.no: " + sendTo + ", nothing done");
                 }
 
             } catch (Exception e) {
@@ -645,8 +668,8 @@ public class JdxReplSrv {
             // Рассылаем
             try {
                 // Рассылаем очередь out000 (продукт обработки очереди common -> out000) на каждую станцию
-                IJdxMailStateManager mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT000);
-                JdxQueOut001 queOut000 = new JdxQueOut000(db, wsId);
+                IJdxMailStateManager mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT000);
+                JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
                 queOut000.setDataRoot(dataRoot);
                 UtMail.sendQueToMail(wsId, queOut000, mailer, "to", mailStateManager);
 
@@ -654,7 +677,7 @@ public class JdxReplSrv {
                 JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
                 queOut001.setDataRoot(dataRoot);
                 //
-                mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT001);
+                mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT001);
                 UtMail.sendQueToMail(wsId, queOut001, mailer, "to001", mailStateManager);
 
                 // Отметить состояние сервера, данные сервера (сервер отчитывается о себе для отслеживания активности сервера)
@@ -841,7 +864,7 @@ public class JdxReplSrv {
 
         // Выбор очереди - общая (queCommon) или личная для станции
         IJdxReplicaQue que;
-        if (queName.compareToIgnoreCase(UtQue.QUE_COMMON) == 0) {
+        if (queName.compareToIgnoreCase(UtQue.SRV_QUE_COMMON) == 0) {
             // Очередь queCommon (общая)
             que = queCommon;
 
@@ -853,7 +876,7 @@ public class JdxReplSrv {
 
             //
             log.info("srvAppUpdate, to ws all, QUE_COMMON");
-        } else if (queName.compareToIgnoreCase(UtQue.QUE_OUT001) == 0) {
+        } else if (queName.compareToIgnoreCase(UtQue.SRV_QUE_OUT001) == 0) {
             for (long wsId : mailerList.keySet()) {
                 // Очередь queOut001 станции (инициализационная или для системных команд)
                 JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
@@ -974,10 +997,10 @@ public class JdxReplSrv {
 
             // Выбор очереди, куда пошлем запрос - общая (queCommon) или личная для станции (queOut001)
             IJdxReplicaQue que;
-            if (queName.compareToIgnoreCase(UtQue.QUE_COMMON) == 0) {
+            if (queName.compareToIgnoreCase(UtQue.SRV_QUE_COMMON) == 0) {
                 // Очередь queCommon (общая)
                 que = queCommon;
-            } else if (queName.compareToIgnoreCase(UtQue.QUE_OUT001) == 0) {
+            } else if (queName.compareToIgnoreCase(UtQue.SRV_QUE_OUT001) == 0) {
                 // Очередь queOut001 станции (инициализационная или для системных команд)
                 JdxQueOut001 queOut001 = new JdxQueOut001(db, destinationWsId);
                 queOut001.setDataRoot(dataRoot);
@@ -1059,10 +1082,10 @@ public class JdxReplSrv {
 
         // Выбор очереди - общая (queCommon) или личная для станции
         IJdxReplicaQue que;
-        if (queName.compareToIgnoreCase(UtQue.QUE_COMMON) == 0) {
+        if (queName.compareToIgnoreCase(UtQue.SRV_QUE_COMMON) == 0) {
             // Очередь queCommon (общая)
             que = queCommon;
-        } else if (queName.compareToIgnoreCase(UtQue.QUE_OUT001) == 0) {
+        } else if (queName.compareToIgnoreCase(UtQue.SRV_QUE_OUT001) == 0) {
             // Очередь queOut001 станции (инициализационная или для системных команд)
             JdxQueOut001 queOut001 = new JdxQueOut001(db, destinationWsId);
             queOut001.setDataRoot(dataRoot);
@@ -1104,23 +1127,20 @@ public class JdxReplSrv {
 
 
     /**
-     * Сервер: считывание очередей рабочих станций и формирование общей очереди
-     * <p>
-     * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
-     * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
+     * Сервер: считывание из mailer очередей рабочих станций и помещение их в очередь-зеркало на сервере
      */
-    private void srvHandleCommonQueInternal(Map<Long, IMailer> mailerList, IJdxReplicaQue commonQue) throws Exception {
+    private void srvHandleQueInInternal(Map<Long, IMailer> mailerList, Map<Long, IJdxQue> queInList) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
-        for (Map.Entry en : mailerList.entrySet()) {
-            long wsId = (long) en.getKey();
-            IMailer mailer = (IMailer) en.getValue();
+        for (long wsId : mailerList.keySet()) {
+            IMailer mailer = mailerList.get(wsId);
+            IJdxQue queInSrv = queInList.get(wsId);
 
             // Обрабатываем каждую станцию
             try {
-                log.info("srvHandleCommonQue, from.wsId: " + wsId);
+                log.info("srvHandleQueIn, from.wsId: " + wsId);
 
                 //
-                long queDoneNo = stateManager.getWsQueInNoDone(wsId);
+                long queDoneNo = stateManager.getWsQueInNoReceived(wsId);
                 long queMaxNo = mailer.getBoxState("from");
 
                 //
@@ -1137,29 +1157,17 @@ public class JdxReplSrv {
                     // Проверяем целостность скачанного
                     UtJdx.checkReplicaCrc(replica, infoMailer.getCrc());
 
-                    // Читаем заголовок
+                    // Читаем поля заголовка
                     JdxReplicaReaderXml.readReplicaInfo(replica);
 
                     // Помещаем полученные данные в общую очередь
                     db.startTran();
                     try {
                         // Помещаем в очередь
-                        long commonQueNo = commonQue.push(replica);
+                        queInSrv.push(replica);
 
                         // Отмечаем факт скачивания
-                        stateManager.setWsQueInNoDone(wsId, no);
-
-                        // todo: Почему для сервера - сразу ТУТ реагируем, а для станции - потом??? И почему ТУТ не проверяется адресат????
-                        // Реагируем на системные реплики-сообщения
-                        if (replica.getInfo().getReplicaType() == JdxReplicaType.MUTE_DONE) {
-                            JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
-                            utmm.setMuteDone(wsId, commonQueNo);
-                        }
-                        //
-                        if (replica.getInfo().getReplicaType() == JdxReplicaType.UNMUTE_DONE) {
-                            JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
-                            utmm.setUnmuteDone(wsId);
-                        }
+                        stateManager.setWsQueInNoReceived(wsId, no);
 
                         //
                         db.commit();
@@ -1185,9 +1193,85 @@ public class JdxReplSrv {
 
                 //
                 if (count > 0) {
+                    log.info("srvHandleQueIn, from.wsId: " + wsId + ", que.no: " + queDoneNo + " .. " + queMaxNo + ", done count: " + count);
+                } else {
+                    log.info("srvHandleQueIn, from.wsId: " + wsId + ", que.no: " + queMaxNo + ", nothing done");
+                }
+
+            } catch (Exception e) {
+                // Ошибка для станции - пропускаем, идем дальше
+                log.error("Error in srvHandleQueIn, from.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
+                log.error(Ut.getStackTrace(e));
+            }
+        }
+    }
+
+    /**
+     * Сервер: считывание очередей рабочих станций и формирование общей очереди
+     * <p>
+     * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
+     * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
+     */
+    private void srvHandleCommonQueInternal(Map<Long, IJdxQue> queInList, IJdxReplicaQue commonQue) throws Exception {
+        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
+        for (long wsId : queInList.keySet()) {
+            IJdxQue queIn = queInList.get(wsId);
+
+            // Обрабатываем каждую станцию
+            try {
+                log.info("srvHandleCommonQue, from.wsId: " + wsId);
+
+                //
+                long queDoneNo = stateManager.getWsQueInNoDone(wsId);
+                long queMaxNo = queIn.getMaxNo();
+
+                //
+                long count = 0;
+                for (long no = queDoneNo + 1; no <= queMaxNo; no++) {
+                    log.info("srvHandleCommonQue, wsId: " + wsId + ", queIn.no: " + no);
+
+
+                    // Помещаем полученные данные в общую очередь
+                    db.startTran();
+                    try {
+                        // Берем реплику из входящей очереди queIn
+                        IReplica replica = queIn.get(no);
+
+                        // Помещаем в очередь commonQue
+                        long commonQueNo = commonQue.push(replica);
+
+                        // Отмечаем
+                        stateManager.setWsQueInNoDone(wsId, no);
+
+                        // todo: Почему для сервера - сразу ТУТ реагируем, а для станции - потом??? И почему ТУТ не проверяется адресат????
+                        // Реагируем на системные реплики-сообщения
+                        if (replica.getInfo().getReplicaType() == JdxReplicaType.MUTE_DONE) {
+                            JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
+                            utmm.setMuteDone(wsId, commonQueNo);
+                        }
+                        //
+                        if (replica.getInfo().getReplicaType() == JdxReplicaType.UNMUTE_DONE) {
+                            JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
+                            utmm.setUnmuteDone(wsId);
+                        }
+
+                        //
+                        db.commit();
+                    } catch (Exception e) {
+                        db.rollback();
+                        throw e;
+                    }
+
+                    //
+                    count++;
+                }
+
+
+                //
+                if (count > 0) {
                     log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.no: " + queDoneNo + " .. " + queMaxNo + ", done count: " + count);
                 } else {
-                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.no: " + queDoneNo + ", nothing done");
+                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.no: " + queMaxNo + ", nothing done");
                 }
 
             } catch (Exception e) {

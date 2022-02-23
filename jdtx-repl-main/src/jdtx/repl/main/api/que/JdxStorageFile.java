@@ -20,14 +20,14 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
 
 
     //
-    protected static Log log = LogFactory.getLog("jdtx.JdxStorageFile");
-
-    //
     private static long dirSize = 1000;
 
     //
     String baseDir;
 
+
+    //
+    protected static Log log = LogFactory.getLog("jdtx.StorageFile");
 
     /*
      * IJdxStorageFile
@@ -48,6 +48,47 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
         //
         UtFile.mkdirs(getBaseDir());
     }
+
+    @Override
+    public long getMaxNoFromDir() {
+        File dirBase = new File(baseDir);
+
+        if (!dirBase.exists()) {
+            throw new XError("Dir not exists: " + dirBase.getAbsolutePath());
+        }
+
+        //
+        long idxFile = 0;
+
+        // Ищем максимальный каталог
+        String inFileMask = UtString.repeat("?", 6);
+        File[] dirs = dirBase.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
+        long idxDir = -1;
+        File dirMaxIdx = null;
+        for (File dir : dirs) {
+            if (idxDir < Long.parseLong(dir.getName())) {
+                idxDir = Long.parseLong(dir.getName());
+                dirMaxIdx = dir;
+            }
+        }
+        // Каталог dirBase пуст
+        if (dirMaxIdx == null) {
+            return idxFile;
+        }
+
+        // Ищем максимальный файл в максимальном каталоге
+        inFileMask = "*.zip";
+        File[] files = dirMaxIdx.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
+        for (File file : files) {
+            if (idxFile < getNo(file.getName())) {
+                idxFile = getNo(file.getName());
+            }
+        }
+
+        //
+        return idxFile;
+    }
+
 
     /*
      * IJdxReplicaStorage
@@ -106,45 +147,6 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
     /*
      * Утилиты
      */
-
-    public long getMaxNoFromDir() {
-        File dirBase = new File(baseDir);
-
-        if (!dirBase.exists()) {
-            throw new XError("Dir not exists: " + dirBase.getAbsolutePath());
-        }
-
-        //
-        long idxFile = 0;
-
-        // Ищем максимальный каталог
-        String inFileMask = UtString.repeat("?", 6);
-        File[] dirs = dirBase.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
-        long idxDir = -1;
-        File dirMaxIdx = null;
-        for (File dir : dirs) {
-            if (idxDir < Long.parseLong(dir.getName())) {
-                idxDir = Long.parseLong(dir.getName());
-                dirMaxIdx = dir;
-            }
-        }
-        // Каталог dirBase пуст
-        if (dirMaxIdx == null) {
-            return idxFile;
-        }
-
-        // Ищем максимальный файл в максимальном каталоге
-        inFileMask = "*.zip";
-        File[] files = dirMaxIdx.listFiles((FileFilter) new WildcardFileFilter(inFileMask, IOCase.INSENSITIVE));
-        for (File file : files) {
-            if (idxFile < getNo(file.getName())) {
-                idxFile = getNo(file.getName());
-            }
-        }
-
-        //
-        return idxFile;
-    }
 
     public static long getNo(String fileName) {
         return Long.parseLong(fileName.substring(fileName.length() - 13, fileName.length() - 4));

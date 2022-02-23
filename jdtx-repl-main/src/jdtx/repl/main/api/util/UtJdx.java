@@ -353,14 +353,19 @@ public class UtJdx {
             return;
         }
 
-        // Проверки: указан возраст данных в реплике IDE
-        if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE && replica.getInfo().getAge() <= -1) {
-            throw new XError("invalid replica.age");
+        // Проверки: указан код рабочей станции
+        if (replica.getInfo().getWsId() <= 0) {
+            throw new XError("invalid replica.wsId: " + replica.getInfo().getWsId());
         }
 
-        // Проверки: правильность кода рабочей станции
-        if (replica.getInfo().getWsId() <= 0) {
-            throw new XError("invalid replica.wsId");
+        // Проверки: указан номер реплики
+        if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE && replica.getInfo().getNo() <= 0) {
+            throw new XError("invalid replica.no: " + replica.getInfo().getNo());
+        }
+
+        // Проверки: указан возраст данных age в реплике типа IDE
+        if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE && replica.getInfo().getAge() <= 0) {
+            throw new XError("invalid replica.age: " + replica.getInfo().getAge());
         }
 
         // Проверки: обязательность файла

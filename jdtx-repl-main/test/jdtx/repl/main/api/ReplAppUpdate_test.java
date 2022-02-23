@@ -27,7 +27,7 @@ public class ReplAppUpdate_test extends JdxReplWsSrv_Test {
 
         //
         String exeFileName = "Z:/jdtx-repl/install/JadatexSync-664.exe";
-        srv.srvAppUpdate(exeFileName, UtQue.QUE_COMMON);
+        srv.srvAppUpdate(exeFileName, UtQue.SRV_QUE_COMMON);
 
         // ===
         // Цикл синхронизации ws1

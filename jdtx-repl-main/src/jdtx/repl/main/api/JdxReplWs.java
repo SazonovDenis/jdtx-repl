@@ -134,12 +134,12 @@ public class JdxReplWs {
         String mailLocalDirTmp = dataRoot + "temp/";
 
         // Читаем из общей очереди
-        queIn = new JdxQueCommon(db, UtQue.QUE_IN, UtQue.STATE_AT_WS);
+        queIn = new JdxQueInWs(db, UtQue.QUE_IN, UtQue.STATE_AT_WS);
         String queIn_DirLocal = dataRoot + "ws_" + sWsId + "/que_in";
         queIn.setDataRoot(queIn_DirLocal);
 
         // Читаем из очереди 001
-        queIn001 = new JdxQueCommon(db, UtQue.QUE_IN001, UtQue.STATE_AT_WS);
+        queIn001 = new JdxQueInWs(db, UtQue.QUE_IN001, UtQue.STATE_AT_WS);
         String queIn001_DirLocal = dataRoot + "ws_" + sWsId + "/que_in001";
         queIn001.setDataRoot(queIn001_DirLocal);
 
@@ -551,7 +551,7 @@ public class JdxReplWs {
 
 
     private ReplicaUseResult handleQue(IJdxReplicaStorage que, String queName, long queNoFrom, long queNoTo, boolean forceUse) throws Exception {
-        log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que.name: " + ((JdxQue) que).getQueName() + ", que: " + queNoFrom + " .. " + queNoTo);
+        log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", que: " + queNoFrom + " .. " + queNoTo);
 
         //
         ReplicaUseResult handleQueUseResult = new ReplicaUseResult();
@@ -654,7 +654,7 @@ public class JdxReplWs {
 
                 // Обновим "битую" реплику - заменим на нормальную
                 String actualFileName = JdxStorageFile.getFileName(no);
-                File actualFile = new File(((JdxStorageFile) que).getBaseDir() + actualFileName);
+                File actualFile = new File(((IJdxStorageFile) que).getBaseDir() + actualFileName);
                 if (actualFile.exists() && !actualFile.delete()) {
                     throw new XError("handleError_UseReplica, unable to delete bad replica: " + actualFile.getAbsolutePath());
                 }
@@ -1441,7 +1441,7 @@ public class JdxReplWs {
 
 
     void receiveInternal(IMailer mailer, String boxName, long no_from, long no_to, IJdxReplicaQue que) throws Exception {
-        log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", que.name: " + ((JdxQue) que).getQueName());
+        log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", que.name: " + ((IJdxQueNamed) que).getQueName());
 
         //
         long count = 0;
@@ -1463,6 +1463,7 @@ public class JdxReplWs {
                 replica.getInfo().setReplicaType(info.getReplicaType());
                 replica.getInfo().setWsId(info.getWsId());
                 replica.getInfo().setAge(info.getAge());
+                replica.getInfo().setNo(info.getNo());
                 //replica.getInfo().setCrc(info.getCrc()); по идее crc тоже удобнее НЕ прописывать - как сигнал, что и файла тоже нет
             } else {
                 // Физически забираем данные реплики с сервера
@@ -1495,9 +1496,9 @@ public class JdxReplWs {
 
         //
         if (count > 0) {
-            log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", que.name: " + ((JdxQue) que).getQueName() + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
+            log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
         } else {
-            log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", que.name: " + ((JdxQue) que).getQueName() + ", receive.no: " + no_from + ", nothing to receive");
+            log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", receive.no: " + no_from + ", nothing to receive");
         }
     }
 
@@ -1652,7 +1653,7 @@ public class JdxReplWs {
         long noQueIn = queIn.getMaxNo();
 
         // Сколько входящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
-        long noQueInDir = ((JdxStorageFile) queIn).getMaxNoFromDir();
+        long noQueInDir = queIn.getMaxNoFromDir();
 
         // До какого возраста обработана очередь QueIn
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
@@ -1662,7 +1663,7 @@ public class JdxReplWs {
         long noQueIn001 = queIn001.getMaxNo();
 
         // Сколько входящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
-        long noQueIn001Dir = ((JdxStorageFile) queIn001).getMaxNoFromDir();
+        long noQueIn001Dir = queIn001.getMaxNoFromDir();
 
         // До какого возраста обработана очередь QueIn001
         long noQueIn001Used = stateManager.getQueNoDone("in001");
@@ -1670,7 +1671,7 @@ public class JdxReplWs {
 
         // ---
         // Сколько исходящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
-        long noQueOutDir = ((JdxStorageFile) queOut).getMaxNoFromDir();
+        long noQueOutDir = queOut.getMaxNoFromDir();
 
         // Cколько исходящих реплик есть у нас "официально", т.е. в очереди реплик (в базе)
         long noQueOut = queOut.getMaxNo();

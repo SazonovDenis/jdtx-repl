@@ -15,6 +15,10 @@ public interface IReplicaInfo {
 
     void setWsId(long wsId);
 
+    long getNo();
+
+    void setNo(long no);
+
     long getAge();
 
     void setAge(long age);
@@ -38,6 +42,8 @@ public interface IReplicaInfo {
     String getDbStructCrc();
 
     void setDbStructCrc(String crc);
+
+    /**/
 
     void assign(IReplicaInfo info);
 
