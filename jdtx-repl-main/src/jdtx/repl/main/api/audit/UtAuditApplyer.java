@@ -41,7 +41,7 @@ public class UtAuditApplyer {
 
     public void applyReplica(IReplica replica, IPublicationRuleStorage publicationIn, Map<String, String> filterParams, boolean forceApply_ignorePublicationRules, long commitPortionMax) throws Exception {
         //
-        InputStream inputStream = null;
+        JdxReplicaFileInputStream inputStream = null;
         try {
             // Распакуем XML-файл из Zip-архива
             inputStream = JdxReplicaReaderXml.createInputStreamData(replica);
@@ -126,6 +126,10 @@ public class UtAuditApplyer {
             String readerTableNamePrior = "";
             long countPortion = 0;
             long count = 0;
+            //
+            long filePosPortion = 0;
+            long fileSize = dataReader.getInputStream().getSize();
+            //
             while (readerTableName != null) {
                 // Поиск таблицы readerTableName в структуре, только в одну сторону (из-за зависимостей)
                 int n = -1;
@@ -312,13 +316,14 @@ public class UtAuditApplyer {
                     //
                     count = count + 1;
                     if (count % 1000 == 0) {
-                        log.info("  table: " + readerTableName + ", " + count);
+                        long filePos = dataReader.getInputStream().getPos();
+                        log.info("  table: " + readerTableName + ", recs: " + count + ", bytes: " + filePos + "/" + fileSize);
                     }
                 }
 
 
                 //
-                log.info("  done: " + readerTableName + ", total: " + count);
+                log.info("  done: " + readerTableName + ", recs total: " + count);
 
 
                 //

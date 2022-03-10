@@ -49,7 +49,7 @@ public class ReplicaFilter implements IReplicaFilter {
         if (replicaInfo.getReplicaType() == JdxReplicaType.SNAPSHOT || replicaInfo.getReplicaType() == JdxReplicaType.IDE) {
 
             //
-            InputStream inputStream = null;
+            JdxReplicaFileInputStream inputStream = null;
             try {
                 // Распакуем XML-файл из Zip-архива
                 inputStream = JdxReplicaReaderXml.createInputStreamData(replicaSrc);

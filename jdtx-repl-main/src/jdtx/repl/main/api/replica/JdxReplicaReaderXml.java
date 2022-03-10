@@ -1,6 +1,5 @@
 package jdtx.repl.main.api.replica;
 
-import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.util.*;
@@ -18,11 +17,11 @@ import java.util.zip.*;
  */
 public class JdxReplicaReaderXml {
 
-    InputStream inputStream = null;
+    JdxReplicaFileInputStream inputStream = null;
     XMLStreamReader reader = null;
     IReplicaInfo replicaHeaderInfo = null;
 
-    public JdxReplicaReaderXml(InputStream inputStream) throws Exception {
+    public JdxReplicaReaderXml(JdxReplicaFileInputStream inputStream) throws Exception {
         this.inputStream = inputStream;
 
         //
@@ -31,6 +30,10 @@ public class JdxReplicaReaderXml {
 
         // Чтение заголовка - WS_ID, AGE и REPLICA_TYPE
         replicaHeaderInfo = readReplicaHeader();
+    }
+
+    public JdxReplicaFileInputStream getInputStream() {
+        return inputStream;
     }
 
     public long getWsId() {
@@ -97,13 +100,15 @@ public class JdxReplicaReaderXml {
         replica.getInfo().setDtTo(info.getDtTo());
     }
 
-    public static InputStream createInputStreamData(IReplica replica) throws IOException {
+    public static JdxReplicaFileInputStream createInputStreamData(IReplica replica) throws IOException {
         return createInputStream(replica, ".xml");
     }
 
-    public static InputStream createInputStream(IReplica replica, String dataFileMask) throws IOException {
-        InputStream contentInputStream = null;
-        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(replica.getData()));
+    public static JdxReplicaFileInputStream createInputStream(IReplica replica, String dataFileMask) throws IOException {
+        JdxReplicaFileInputStream contentInputStream = null;
+        FileInputStream inputStream = new FileInputStream(replica.getData());
+        JdxReplicaFileInputStream zipInputStream = new JdxReplicaFileInputStream(inputStream);
+
         try {
             ZipEntry entry;
             while ((entry = zipInputStream.getNextEntry()) != null) {

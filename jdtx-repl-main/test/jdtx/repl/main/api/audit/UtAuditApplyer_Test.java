@@ -2,6 +2,7 @@ package jdtx.repl.main.api.audit;
 
 import jandcode.dbm.data.*;
 import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import org.json.simple.*;
@@ -23,8 +24,8 @@ public class UtAuditApplyer_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_applyReplica() throws Exception {
-        //String zipFileName = "D:/t/000007590.zip";
-        String zipFileName = "../_test-data/000000001.zip";
+        String zipFileName = "D:/t/000119211.zip";
+        //String zipFileName = "../_test-data/000000001.zip";
         // Загружаем правила публикации
         JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/pub.json");
         JSONObject cfgIn = (JSONObject) cfg.get("full");
@@ -36,10 +37,14 @@ public class UtAuditApplyer_Test extends ReplDatabaseStruct_Test {
         replica.setData(new File(zipFileName));
 
         // Распакуем XML-файл из Zip-архива
-        InputStream inputStream = JdxReplicaReaderXml.createInputStreamData(replica);
+        JdxReplicaFileInputStream inputStream = JdxReplicaReaderXml.createInputStreamData(replica);
 
         //
         JdxReplicaReaderXml replicaReader = new JdxReplicaReaderXml(inputStream);
+
+        // Стратегии перекодировки каждой таблицы
+        JSONObject cfgDecode = UtRepl.loadAndValidateJsonFile("test/etalon/decode_strategy.json");
+        RefDecodeStrategy.initInstance(cfgDecode);
 
         // Применяем реплики
         UtAuditApplyer utaa = new UtAuditApplyer(db2, struct2, 2);

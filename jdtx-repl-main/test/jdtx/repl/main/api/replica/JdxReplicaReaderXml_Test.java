@@ -25,7 +25,8 @@ public class JdxReplicaReaderXml_Test extends ReplDatabaseStruct_Test {
     public void test_read_1() throws Exception {
         // Начинаем читать xml-файл с данными
         File testFile_1 = new File("../_test-data/test_1.xml");
-        FileInputStream stream = new FileInputStream(testFile_1);
+        FileInputStream inputStream = new FileInputStream(testFile_1);
+        JdxReplicaFileInputStream stream = new JdxReplicaFileInputStream(inputStream);
         JdxReplicaReaderXml xmlReader = new JdxReplicaReaderXml(stream);
 
         //
@@ -62,7 +63,8 @@ public class JdxReplicaReaderXml_Test extends ReplDatabaseStruct_Test {
     public void test_read_2() throws Exception {
         // Начинаем читать xml-файл с данными
         File testFile_1 = new File("../_test-data/test_2.xml");
-        FileInputStream stream = new FileInputStream(testFile_1);
+        FileInputStream inputStream = new FileInputStream(testFile_1);
+        JdxReplicaFileInputStream stream = new JdxReplicaFileInputStream(inputStream);
         JdxReplicaReaderXml xmlReader = new JdxReplicaReaderXml(stream);
 
         //

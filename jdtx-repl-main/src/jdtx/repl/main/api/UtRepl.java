@@ -619,7 +619,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                 }
 
                 //
-                InputStream inputStream = null;
+                JdxReplicaFileInputStream inputStream = null;
                 try {
                     // Распакуем XML-файл из Zip-архива
                     inputStream = JdxReplicaReaderXml.createInputStreamData(replica);
