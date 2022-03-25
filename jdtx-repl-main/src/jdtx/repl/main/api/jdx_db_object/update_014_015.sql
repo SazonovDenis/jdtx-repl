@@ -19,7 +19,7 @@ ALTER TABLE Z_Z_que_in add author_ws_id INT NOT NULL;
 
 ALTER TABLE Z_Z_que_in add author_id INT NOT NULL;
 
-update Z_Z_que_in set author_ws_id = ws_id;
+update Z_Z_que_in set author_ws_id = ws_id, author_id = -1;
 
 alter table Z_Z_que_in drop ws_id;
 
@@ -29,7 +29,7 @@ ALTER TABLE Z_Z_que_in001 add author_ws_id INT NOT NULL;
 
 ALTER TABLE Z_Z_que_in001 add author_id INT NOT NULL;
 
-update Z_Z_que_in001 set author_ws_id = ws_id;
+update Z_Z_que_in001 set author_ws_id = ws_id, author_id = -1;
 
 alter table Z_Z_que_in001 drop ws_id;
 
