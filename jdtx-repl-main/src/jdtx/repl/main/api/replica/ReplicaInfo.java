@@ -95,9 +95,9 @@ public class ReplicaInfo implements IReplicaInfo {
     }
 
     public void fromJSONObject(JSONObject infoJson) {
-        this.wsId = (long) infoJson.get("wsId");
-        this.no = (long) infoJson.get("no");
-        this.age = (long) infoJson.get("age");
+        this.wsId = UtJdxData.longValueOf(infoJson.get("wsId"), -1L);
+        this.no = UtJdxData.longValueOf(infoJson.get("no"), -1L);
+        this.age = UtJdxData.longValueOf(infoJson.get("age"), -1L);
         this.crc = (String) infoJson.get("crc");
         this.dtFrom = UtJdxData.dateTimeValueOf((String) infoJson.get("dtFrom"));
         this.dtTo = UtJdxData.dateTimeValueOf((String) infoJson.get("dtTo"));
