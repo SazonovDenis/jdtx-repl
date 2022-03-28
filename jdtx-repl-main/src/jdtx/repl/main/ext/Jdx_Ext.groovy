@@ -608,6 +608,11 @@ class Jdx_Ext extends ProjectExt {
             throw new XError("Не указан [ws] - код рабочей станции")
         }
         long destinationWsId = args.getValueLong("ws")
+        //
+        String queName = args.getValueString("que")
+        if (queName == null || queName.length() == 0) {
+            queName = UtQue.SRV_QUE_COMMON
+        }
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -622,7 +627,7 @@ class Jdx_Ext extends ProjectExt {
                 srv.init()
 
                 //
-                srv.srvSetWsMute(destinationWsId)
+                srv.srvSetWsMute(destinationWsId, queName)
 
             } finally {
                 restoreServiceState(serviceState, db, args)
@@ -639,6 +644,11 @@ class Jdx_Ext extends ProjectExt {
             throw new XError("Не указан [ws] - код рабочей станции")
         }
         long destinationWsId = args.getValueLong("ws")
+        //
+        String queName = args.getValueString("que")
+        if (queName == null || queName.length() == 0) {
+            queName = UtQue.SRV_QUE_COMMON
+        }
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -651,7 +661,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvSetWsUnmute(destinationWsId)
+            srv.srvSetWsUnmute(destinationWsId, queName)
 
         } finally {
             restoreServiceState(serviceState, db, args)

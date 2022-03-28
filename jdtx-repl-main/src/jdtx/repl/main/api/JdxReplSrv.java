@@ -697,27 +697,33 @@ public class JdxReplSrv {
     }
 
 
-    public void srvSetWsMute(long destinationWsId) throws Exception {
-        log.info("srvSetWs MUTE, destination.WsId: " + destinationWsId);
+    public void srvSetWsMute(long destinationWsId, String queName) throws Exception {
+        log.info("srvSetWs MUTE, destination.WsId: " + destinationWsId + ", que: " + queName);
+
+        // Выбор очереди
+        IJdxReplicaQue que = getQueByName(destinationWsId, queName);
 
         // Системная команда "MUTE"...
         UtRepl utRepl = new UtRepl(db, struct);
         IReplica replica = utRepl.createReplicaMute(destinationWsId);
 
-        // ... в исходящую (общую) очередь реплик
-        queCommon.push(replica);
+        // ... в выбранную очередь реплик
+        que.push(replica);
     }
 
 
-    public void srvSetWsUnmute(long destinationWsId) throws Exception {
-        log.info("srvSetWs UNMUTE, destination.WsId: " + destinationWsId);
+    public void srvSetWsUnmute(long destinationWsId, String queName) throws Exception {
+        log.info("srvSetWs UNMUTE, destination.WsId: " + destinationWsId + ", que: " + queName);
+
+        // Выбор очереди
+        IJdxReplicaQue que = getQueByName(destinationWsId, queName);
 
         // Системная команда "UNMUTE" ...
         UtRepl utRepl = new UtRepl(db, struct);
         IReplica replica = utRepl.createReplicaUnmute(destinationWsId);
 
-        // ... в исходящую (общую) очередь реплик
-        queCommon.push(replica);
+        // ... в выбранную очередь реплик
+        que.push(replica);
     }
 
 
@@ -996,18 +1002,7 @@ public class JdxReplSrv {
             log.info("srvRequestSnapshot, table: " + table.getName());
 
             // Выбор очереди, куда пошлем запрос - общая (queCommon) или личная для станции (queOut001)
-            IJdxReplicaQue que;
-            if (queName.compareToIgnoreCase(UtQue.SRV_QUE_COMMON) == 0) {
-                // Очередь queCommon (общая)
-                que = queCommon;
-            } else if (queName.compareToIgnoreCase(UtQue.SRV_QUE_OUT001) == 0) {
-                // Очередь queOut001 станции (инициализационная или для системных команд)
-                JdxQueOut001 queOut001 = new JdxQueOut001(db, destinationWsId);
-                queOut001.setDataRoot(dataRoot);
-                que = queOut001;
-            } else {
-                throw new XError("Unknown queName: " + queName);
-            }
+            IJdxReplicaQue que = getQueByName(destinationWsId, queName);
 
             // Реплика-запрос snapshot
             IReplica replica = utRepl.createReplicaWsSendSnapshot(destinationWsId, table.getName());
@@ -1078,21 +1073,10 @@ public class JdxReplSrv {
 
 
     public void srvSendCfg(String cfgFileName, String cfgType, long destinationWsId, String queName) throws Exception {
-        log.info("srvSendCfg, cfgFileName: " + new File(cfgFileName).getAbsolutePath() + ", cfgType: " + cfgType + ", destination wsId: " + destinationWsId);
+        log.info("srvSendCfg, cfgFileName: " + new File(cfgFileName).getAbsolutePath() + ", cfgType: " + cfgType + ", destination wsId: " + destinationWsId + ", que: " + queName);
 
         // Выбор очереди - общая (queCommon) или личная для станции
-        IJdxReplicaQue que;
-        if (queName.compareToIgnoreCase(UtQue.SRV_QUE_COMMON) == 0) {
-            // Очередь queCommon (общая)
-            que = queCommon;
-        } else if (queName.compareToIgnoreCase(UtQue.SRV_QUE_OUT001) == 0) {
-            // Очередь queOut001 станции (инициализационная или для системных команд)
-            JdxQueOut001 queOut001 = new JdxQueOut001(db, destinationWsId);
-            queOut001.setDataRoot(dataRoot);
-            que = queOut001;
-        } else {
-            throw new XError("Unknown queName: " + queName);
-        }
+        IJdxReplicaQue que = getQueByName(destinationWsId, queName);
 
         //
         JSONObject cfg = UtRepl.loadAndValidateJsonFile(cfgFileName);
@@ -1123,6 +1107,29 @@ public class JdxReplSrv {
             //
             throw e;
         }
+    }
+
+    /**
+     * Выбор очереди - общая (queCommon) или личная (queOut001) для станции wsId
+     */
+    private IJdxReplicaQue getQueByName(long wsId, String queName) {
+        IJdxReplicaQue que;
+
+        //
+        if (queName.compareToIgnoreCase(UtQue.SRV_QUE_COMMON) == 0) {
+            // Очередь queCommon (общая)
+            que = queCommon;
+        } else if (queName.compareToIgnoreCase(UtQue.SRV_QUE_OUT001) == 0) {
+            // Очередь queOut001 станции (инициализационная или для системных команд)
+            JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
+            queOut001.setDataRoot(dataRoot);
+            que = queOut001;
+        } else {
+            throw new XError("Unknown queName: " + queName);
+        }
+
+        //
+        return que;
     }
 
 
