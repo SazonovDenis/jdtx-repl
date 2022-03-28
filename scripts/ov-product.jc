@@ -243,16 +243,18 @@ repl_dbstruct_finish = cm("Завершить смену структуры, п�
 //
 repl_set_cfg = cm("Задать конфигурацию рабочей станции",
         "file": [value: null, help: "Конфиг-файл"],
-        "cfg": [value: null, help: "Вид конфигурации (cfg_publications|cfg_decode|cfg_ws"],
+        "cfg": [value: null, help: "Вид конфигурации (cfg_publications|cfg_decode|cfg_ws|cfg_storage"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_set_cfg(args)
 }
 
+
+
 //
 repl_send_cfg = cm("Отправить конфигурацию на рабочую станцию",
         "file": [value: null, help: "Конфиг-файл"],
-        "cfg": [value: null, help: "Вид конфигурации"],
+        "cfg": [value: null, help: "Вид конфигурации (cfg_publications|cfg_decode|cfg_ws|cfg_storage"],
         "ws": [value: null, help: "Рабочая станция-получатель"],
         "que": [value: null, help: "В какую очередь отправить команду"]
 ) {
