@@ -670,7 +670,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
 
                                 // Нашли нужный id?
                                 if (findRecordId.equals(pkValue)) {
-                                    int oprType = UtJdxData.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
+                                    JdxOprType oprType = JdxOprType.valueOf(UtJdxData.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE)));
                                     if (oprType == JdxOprType.OPR_DEL && skipOprDel) {
                                         log.info("  record found, replica.wsId: " + replica.getInfo().getWsId() + ", OprType == OPR_DEL, skipped");
                                     } else {

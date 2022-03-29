@@ -109,7 +109,7 @@ public class JdxReplicaWriterXml {
         writer.close();
     }
 
-    public void writeOprType(int oprType) throws XMLStreamException {
+    public void writeOprType(JdxOprType oprType) throws XMLStreamException {
         // <rec>
         if (!currentElement_rec) {
             throw new XMLStreamException("Not started currentElement_rec");

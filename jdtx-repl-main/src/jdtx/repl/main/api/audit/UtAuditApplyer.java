@@ -118,7 +118,7 @@ public class UtAuditApplyer {
 
 
             // Тут копим задания на DELETE для всей реплики, их выполняем вторым проходом,
-            // см. подробности в UtAuditApplyer.md
+            // Логику работы с delayedDeleteTask см. разделе "Взаимные зависимости в рамках одной реплики" (jdtx/repl/main/api/audit/UtAuditApplyer.md)
             Map<String, Collection<Long>> delayedDeleteTask = new HashMap<>();
 
             //
@@ -127,7 +127,6 @@ public class UtAuditApplyer {
             long countPortion = 0;
             long count = 0;
             //
-            long filePosPortion = 0;
             long fileSize = dataReader.getInputStream().getSize();
             //
             while (readerTableName != null) {
@@ -180,7 +179,10 @@ public class UtAuditApplyer {
                     recordFilter = new RecordFilter(publicationRuleTable, tableName, filterParams);
                 }
 
-                // Для проверки, что обновляемые записи из реплики НЕ были ещё раз изменены
+                // Для проверки, что записи, обновляемые из текущей реплики НЕ были ещё раз изменены на рабочей станции,
+                // после того, как текущая реплика была отправлена. Актуально при применении СОБСТВЕННЫХ реплик.
+                // Также возможно, если кто-то другой отредактировал запись, которую недавно редавтировали мы -
+                // тогда selfAuditDtComparer решает, какая запись будет считаться последней.
                 if (replicaType != JdxReplicaType.SNAPSHOT) {
                     // Предполагается, что SNAPSHOT или IDE_MERGE просто так не присылают,
                     // значит дело серьезное и нужно обязательно применить.
@@ -195,90 +197,86 @@ public class UtAuditApplyer {
                 }
 
                 // Перебираем записи
-                countPortion = 0;
-                if (readerTableName.compareToIgnoreCase(readerTableNamePrior) == 0) {
-                    log.info("next portion: " + readerTableName);
-                } else {
+                if (readerTableName.compareToIgnoreCase(readerTableNamePrior) != 0) {
+                    // Новая таблица - сброс счетчика записей
                     count = 0;
+                } else {
+                    // Продолжение этой же таблицы новой порцией
+                    log.info("next portion: " + readerTableName);
                 }
                 readerTableNamePrior = readerTableName;
 
-                // Таблица и поля в Serializer-е
-                String publicationFieldsName = UtJdx.fieldsToString(publicationRuleTable.getFields());
-                dataSerializer.setTable(table, publicationFieldsName);
+                // Очень важно взять поля для обновления (publicationFields) именно из правил публикации,
+                // а не все что есть в физической  таблице, т.к. именно по этим правилам готовилась реплика на сервере,
+                // при этом мог использоваться НЕ ПОЛНЫЙ набор полей. Из-за такого пропуска полей,
+                // при получении на рабочей станции СВОЕЙ реплики и попытке обновить ВСЕ поля,
+                // пропущенные поля станут null. На ДРУГИХ филиалах это не страшно, а на НАШЕЙ - данные затрутся.
+                // (Неполный набр полей используется, например, если на филиалы НЕ отправляются данные из справочников,
+                // на которые ссылается рассматриваемая таблица, например: "примечания, сделанные пользователем":
+                // сами примечания отправляем, а ССЫЛКИ на пользователей придется пропустить).
+                String publicationFields = UtJdx.fieldsToString(publicationRuleTable.getFields());
 
-                //
+                // Таблица и поля в Serializer-е
+                dataSerializer.setTable(table, publicationFields);
+
+                // Перебираем записи
                 Map<String, String> recValuesStr = dataReader.nextRec();
                 while (recValuesStr != null) {
 
                     // Перебираем записи, пропускаем те, которые не подходят под наши входящие фильтры publicationRules
                     if (recordFilter.isMach(recValuesStr)) {
 
-                        // Обеспечим не слишком огромные порции коммитов
-                        if (portionMax != 0 && countPortion >= portionMax) {
-                            countPortion = 0;
-                            //
-                            db.commit();
-                            db.startTran();
-                            //
-                            log.info("  table: " + readerTableName + ", " + count + ", commit/startTran");
-                        }
-                        countPortion++;
-
-
                         // Подготовка recParams для записи в БД - десериализация значений
                         Map<String, Object> recParams = dataSerializer.prepareValues(recValuesStr);
 
 
                         // Выполняем INS/UPD/DEL
-                        // Очень важно взять поля для обновления (publicationFieldsName) именно из правил публикации,
-                        // а не все что есть в физической  таблице, т.к. именно по этим правилам готовилась реплика на сервере,
-                        // при этом мог использоваться НЕ ПОЛНЫЙ набор полей. Из-за такого пропуска полей,
-                        // при получении на рабочей станции СВОЕЙ реплики и попытке обновить ВСЕ поля,
-                        // пропущенные поля станут null. На ДРУГИХ филиалах это не страшно, а на НАШЕЙ - данные затрутся.
-                        // (Неполный набр полей используется, например, если на филиалы НЕ отправляются данные из справочников,
-                        // на которые ссылается рассматриваемая таблица, например: "примечания, сделанные пользователем":
-                        // сами примечания отправляем, а ССЫЛКИ на пользователей придется пропустить).
-                        int oprType = UtJdxData.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
+                        JdxOprType oprType = JdxOprType.valueOf(UtJdxData.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE)));
                         long recId = (Long) recParams.get(pkFieldName);
                         if (oprType == JdxOprType.OPR_INS) {
-                            try {
-                                // Отменим удаление этой записи на втором проходе
-                                delayedDeleteTaskForTable.remove(recId);
-                                //
-                                insertOrUpdate(dbu, tableName, recParams, publicationFieldsName);
-                            } catch (Exception e) {
-                                if (UtDbErrors.errorIs_ForeignKeyViolation(e)) {
-                                    log.error(e.getMessage());
-                                    log.error("table: " + tableName);
-                                    log.error("oprType: " + oprType);
-                                    log.error("recParams: " + recParams);
-                                    log.error("recValuesStr: " + recValuesStr);
+                            // Отменим удаление этой записи на втором проходе
+                            delayedDeleteTaskForTable.remove(recId);
+
+                            // Проверяем, что обновляемая запись НЕ была ещё раз изменена
+                            if (selfAuditDtComparer.isSelfAuditAgeAboveReplicaAge(recId)) {
+                                log.info("Self audit age > replica age, record skipped, oprType: " + oprType + ", table: " + tableName + ", id: " + recId);
+                            } else {
+                                try {
                                     //
-                                    JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
-                                    ee.recParams = recParams;
-                                    ee.recValues = recValuesStr;
-                                    // todo вообще, костыль страшнейший, сделан для пропуска неуместных реплик,
-                                    // которые просочились на станцию из-за кривых настроек фильтров.
-                                    // todo Убрать, когда будут сделана фильтрация по ссылкам!!!
-                                    boolean skipForeignKeyViolationIns = jdxReplWs.appCfg.getValueBoolean("skipForeignKeyViolationIns");
-                                    if (skipForeignKeyViolationIns) {
-                                        log.error("skipForeignKeyViolationIns: " + skipForeignKeyViolationIns);
+                                    insertOrUpdate(dbu, tableName, recParams, publicationFields);
+                                } catch (Exception e) {
+                                    if (UtDbErrors.errorIs_ForeignKeyViolation(e)) {
+                                        log.error(e.getMessage());
+                                        log.error("table: " + tableName);
+                                        log.error("oprType: " + oprType);
+                                        log.error("recParams: " + recParams);
+                                        log.error("recValuesStr: " + recValuesStr);
+                                        //
+                                        JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
+                                        ee.recParams = recParams;
+                                        ee.recValues = recValuesStr;
+                                        // todo вообще, костыль страшнейший, сделан для пропуска неуместных реплик,
+                                        // которые просочились на станцию из-за кривых настроек фильтров.
+                                        // todo Убрать, когда будут сделана фильтрация по ссылкам!!!
+                                        boolean skipForeignKeyViolationIns = jdxReplWs.appCfg.getValueBoolean("skipForeignKeyViolationIns");
+                                        if (skipForeignKeyViolationIns) {
+                                            log.error("skipForeignKeyViolationIns: " + skipForeignKeyViolationIns);
+                                        } else {
+                                            throw (ee);
+                                        }
                                     } else {
-                                        throw (ee);
+                                        throw (e);
                                     }
-                                } else {
-                                    throw (e);
                                 }
                             }
 
                         } else if (oprType == JdxOprType.OPR_UPD) {
                             // Проверяем, что обновляемая запись НЕ была ещё раз изменена
                             if (selfAuditDtComparer.isSelfAuditAgeAboveReplicaAge(recId)) {
-                                log.info("Self audit age > replica age, record skipped, table: " + tableName + ", id: " + recId);
+                                log.info("Self audit age > replica age, record skipped, oprType: " + oprType + ", table: " + tableName + ", id: " + recId);
                             } else {
                                 try {
-                                    dbu.updateRec(tableName, recParams, publicationFieldsName, null);
+                                    dbu.updateRec(tableName, recParams, publicationFields, null);
                                 } catch (Exception e) {
                                     if (UtDbErrors.errorIs_ForeignKeyViolation(e)) {
                                         log.error(e.getMessage());
@@ -313,6 +311,17 @@ public class UtAuditApplyer {
                     //
                     recValuesStr = dataReader.nextRec();
 
+                    // Обеспечим не слишком огромные порции коммитов
+                    countPortion++;
+                    if (portionMax != 0 && countPortion >= portionMax) {
+                        countPortion = 0;
+                        //
+                        db.commit();
+                        db.startTran();
+                        //
+                        log.info("  table: " + readerTableName + ", " + count + ", commit/startTran");
+                    }
+
                     //
                     count = count + 1;
                     if (count % 1000 == 0) {
@@ -332,7 +341,6 @@ public class UtAuditApplyer {
 
 
             // Ворой проход - выполнение удаления отложенных
-            // log.info("applyReplica, delayed delete");
             for (int i = tables.size() - 1; i >= 0; i--) {
                 IJdxTable table = tables.get(i);
                 String tableName = table.getName();
