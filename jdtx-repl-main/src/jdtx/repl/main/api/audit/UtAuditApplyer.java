@@ -231,7 +231,7 @@ public class UtAuditApplyer {
 
 
                         // Выполняем INS/UPD/DEL
-                        JdxOprType oprType = JdxOprType.valueOf(UtJdxData.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE)));
+                        JdxOprType oprType = JdxOprType.valueOfStr(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
                         long recId = (Long) recParams.get(pkFieldName);
                         if (oprType == JdxOprType.OPR_INS) {
                             // Отменим удаление этой записи на втором проходе

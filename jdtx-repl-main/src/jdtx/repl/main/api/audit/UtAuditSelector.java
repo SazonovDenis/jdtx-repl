@@ -129,7 +129,7 @@ public class UtAuditSelector {
                         dataWriter.appendRec();
 
                         // Тип операции
-                        int oprType = (int) values.get(UtJdx.SQL_FIELD_OPR_TYPE);
+                        JdxOprType oprType = JdxOprType.valueOfStr(String.valueOf(values.get(UtJdx.SQL_FIELD_OPR_TYPE)));
                         dataWriter.writeOprType(oprType);
 
                         // Тело записи (с перекодировкой ссылок)

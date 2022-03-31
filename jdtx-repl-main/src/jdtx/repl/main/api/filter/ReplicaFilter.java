@@ -112,7 +112,7 @@ public class ReplicaFilter implements IReplicaFilter {
                 Map<String, String> recValuesStr = dataReader.nextRec();
                 //
                 while (recValuesStr != null) {
-                    int oprType = UtJdxData.intValueOf(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
+                    JdxOprType oprType = JdxOprType.valueOfStr(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
 
                     //
                     if (recordFilter.isMach(recValuesStr)) {
