@@ -83,7 +83,7 @@ insert into Z_Z_SRV_QUE_COMMON
 select
   id,
   ws_id as author_ws_id,
-  -1 as author_id,
+  -id as author_id,
   age,
   crc,
   replica_type
@@ -107,6 +107,8 @@ ALTER TABLE Z_Z_srv_que_out000 ADD CONSTRAINT pk_Z_Z_srv_que_out000 PRIMARY KEY 
 
 CREATE UNIQUE INDEX Z_Z_srv_que_out000_idx ON Z_Z_srv_que_out000 (destination_ws_id, destination_id);
 
+CREATE UNIQUE INDEX Z_Z_srv_que_out000_idx1 ON Z_Z_srv_que_out000 (author_ws_id, author_id);
+
 CREATE generator Z_Z_G_srv_que_out000;
 
 insert into Z_Z_SRV_QUE_OUT000
@@ -115,7 +117,7 @@ select
   destination_ws_id,
   destination_no as destination_id,
   ws_id as author_ws_id,
-  -1 as author_id,
+  -id as author_id,
   age,
   crc,
   replica_type
@@ -139,6 +141,8 @@ ALTER TABLE Z_Z_srv_que_out001 ADD CONSTRAINT pk_Z_Z_srv_que_out001 PRIMARY KEY 
 
 CREATE UNIQUE INDEX Z_Z_srv_que_out001_idx ON Z_Z_srv_que_out001 (destination_ws_id, destination_id);
 
+CREATE UNIQUE INDEX Z_Z_srv_que_out001_idx1 ON Z_Z_srv_que_out001 (author_ws_id, author_id);
+
 CREATE generator Z_Z_G_srv_que_out001;
 
 insert into Z_Z_SRV_QUE_OUT001
@@ -147,7 +151,7 @@ select
   destination_ws_id,
   destination_no as destination_id,
   ws_id as author_ws_id,
-  -1 as author_id,
+  -id as author_id,
   age,
   crc,
   replica_type
