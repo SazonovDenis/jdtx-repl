@@ -161,13 +161,15 @@ public class JdxRecMerger implements IJdxRecMerger {
 
         // Начинаем писать результат выполнения задачи
         RecMergeResultWriter resultWriter = new RecMergeResultWriter();
-        resultWriter.open(resultFile);
 
         //
         try {
             int count = plans.size();
             int done = 0;
             int done_portion = 0;
+
+            //
+            resultWriter.open(resultFile);
 
             //
             db.startTran();
@@ -236,14 +238,16 @@ public class JdxRecMerger implements IJdxRecMerger {
 
             //
             db.commit();
+
+            // Завершаем писать
+            resultWriter.close();
         } catch (Exception e) {
             db.rollback();
+            resultWriter.close();
             throw e;
         }
 
 
-        // Завершаем писать
-        resultWriter.close();
     }
 
 
