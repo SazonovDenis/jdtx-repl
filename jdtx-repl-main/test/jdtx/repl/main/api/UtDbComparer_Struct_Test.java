@@ -5,7 +5,7 @@ import org.junit.*;
 
 /**
  */
-public class UtDbComparer_Test {
+public class UtDbComparer_Struct_Test {
 
     @Test
     public void test_compare() throws Exception {
