@@ -10,7 +10,7 @@ import org.apache.commons.logging.*;
 import java.util.*;
 
 
-// todo: сделать и  проверить сравнение BLOB
+// todo: сделать и  проверить сравнение 2LO2
 public class UtDbComparer {
 
     private static Log log = LogFactory.getLog("jdtx.UtDbComparer");
@@ -248,6 +248,13 @@ public class UtDbComparer {
                     String pkFieldValue = dataSerializer.prepareValueStr(query.getValueString(pkFieldName), pkField);
                     resTable.put(pkFieldValue, recCrc.substring(0, 16));
 
+/*
+                    if (tableName.equalsIgnoreCase("LIC")) {
+                        log.info("  Table: " + tableName + ", record: [" + pkFieldValue + "].values: " + valuesStr);
+                        log.info("  Table: " + tableName + ", record: [" + pkFieldValue + "].crc: " + recCrc);
+                    }
+*/
+
                     //
                     query.next();
 
@@ -269,37 +276,58 @@ public class UtDbComparer {
         return res;
     }
 
-    public static boolean compareDbDataCrc(Map<String, Map<String, String>> dbCrc1, Map<String, Map<String, String>> dbCrc2) {
-        boolean res = true;
+    public static void compareDbDataCrc(Map<String, Map<String, String>> dbCrc1, Map<String, Map<String, String>> dbCrc2, Map<String, Set<String>> diffCrc, Map<String, Set<String>> diffNewIn1, Map<String, Set<String>> diffNewIn2) {
+        diffCrc.clear();
+        diffNewIn1.clear();
+        diffNewIn2.clear();
 
         for (String tableName : dbCrc1.keySet()) {
             if (!dbCrc2.containsKey(tableName)) {
                 log.info("Table: " + tableName + " not found in db2");
-                res = false;
                 continue;
             }
 
             Map<String, String> resTable1 = dbCrc1.get(tableName);
             Map<String, String> resTable2 = dbCrc2.get(tableName);
 
-            for (String pkFieldValue : resTable1.keySet()) {
-                if (!resTable2.containsKey(pkFieldValue)) {
-                    log.info("Table: " + tableName + ", record: [" + pkFieldValue + "] not found in db2");
-                    res = false;
-                    continue;
-                }
+            Set<String> diffCrcTable = new HashSet<>();
+            Set<String> diffNewIn1Table = new HashSet<>();
+            Set<String> diffNewIn2Table = new HashSet<>();
 
-                String crc1 = resTable1.get(pkFieldValue);
-                String crc2 = resTable2.get(pkFieldValue);
-                if (!crc1.equalsIgnoreCase(crc2)) {
-                    log.info("Table: " + tableName + ", record: [" + pkFieldValue + "] db1.crc " + crc1 + " <> db2.crc: " + crc2);
-                    res = false;
+            // Сравниваем crc записей, встречающихся в ОБОИХ наборах
+            for (String pkFieldValue : resTable1.keySet()) {
+                if (resTable2.containsKey(pkFieldValue)) {
+                    String crc1 = resTable1.get(pkFieldValue);
+                    String crc2 = resTable2.get(pkFieldValue);
+                    if (!crc1.equalsIgnoreCase(crc2)) {
+                        log.info("Table: " + tableName + ", record: [" + pkFieldValue + "] db1.crc " + crc1 + " <> db2.crc: " + crc2);
+                        diffCrcTable.add(pkFieldValue);
+                    }
                 }
             }
 
-        }
+            // Формируем записи, встречающиеся ТОЛЬКО в базе 1
+            for (String pkFieldValue1 : resTable1.keySet()) {
+                if (!resTable2.containsKey(pkFieldValue1)) {
+                    log.info("Table: " + tableName + ", record: [" + pkFieldValue1 + "] not found in db2");
+                    diffNewIn1Table.add(pkFieldValue1);
+                }
+            }
 
-        return res;
+            // Формируем записи, встречающиеся ТОЛЬКО в базе 2
+            for (String pkFieldValue2 : resTable2.keySet()) {
+                if (!resTable1.containsKey(pkFieldValue2)) {
+                    log.info("Table: " + tableName + ", record: [" + pkFieldValue2 + "] not found in db1");
+                    diffNewIn2Table.add(pkFieldValue2);
+                }
+            }
+
+            // Результат сравнения таблицы - в общий список
+            diffCrc.put(tableName, diffCrcTable);
+            diffNewIn1.put(tableName, diffNewIn1Table);
+            diffNewIn2.put(tableName, diffNewIn2Table);
+
+        }
     }
 
 }
