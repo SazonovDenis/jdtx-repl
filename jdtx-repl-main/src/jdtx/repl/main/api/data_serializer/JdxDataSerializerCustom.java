@@ -10,7 +10,6 @@ public class JdxDataSerializerCustom implements IJdxDataSerializer {
     protected IJdxTable table = null;
     protected Collection<IJdxField> fields = null;
 
-    @Override
     public void setTable(IJdxTable table, String tableFieldNamesStr) {
         this.table = table;
         fields = new ArrayList<>();

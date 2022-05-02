@@ -1,7 +1,6 @@
 package jdtx.repl.main.api.data_serializer;
 
 import jandcode.dbm.db.*;
-import jandcode.utils.error.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.struct.*;
 
@@ -11,11 +10,7 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
 
     private IRefDecoder decoder;
 
-    /**
-     * Используется, если нам пришли не полные ссылки, а локальные.
-     * Так бываеет, например, если план был составлен локально (и все ссылки локальные),
-     * а мы готовим план для рассылки на филиалы
-     */
+    // Рабочая станция по умолчанию для десериализации  локальных ссылок.
     private long wsIdDefault;
 
     public JdxDataSerializerDecode(Db db, long wsIdDefault) throws Exception {
@@ -68,13 +63,14 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
                 // Ссылка равна null
                 fieldValue = null;
             } else {
-                // Дополнение ws_id для ссылки, если пришла не полная ссылка, а локальная.
-                if (fieldValueRef.ws_id == -1) {
-                    if (this.wsIdDefault > 0) {
-                        fieldValueRef.ws_id = wsIdDefault;
-                    } else {
-                        throw new XError("prepareValue, fieldValueRef.ws_id == -1, wsIdDefault is not set");
-                    }
+                // Сюда может прийти как глобальная (полная) ссылка,
+                // например "12:1324", так и локальная, например "101000001324".
+                // Например, так бывает, если план слияния был составлен (и сохранен в xml) локально
+                // (и поэтому все ссылки локальные), а мы хотим отправить план на филиалы
+                // (для чего нужно превратить наши ломкальные ссылки в глобальные).
+                // Выполним дополнение ws_id, если пришла локальная ссылка, а не глобальная.
+                if (fieldValueRef.isEmptyWs() && this.wsIdDefault > 0) {
+                    fieldValueRef.ws_id = wsIdDefault;
                 }
                 // Распаковка ссылки в long
                 String refTableName;
@@ -83,7 +79,7 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
                 } else {
                     refTableName = refTable.getName();
                 }
-                fieldValue = decoder.get_id_own(refTableName, fieldValueRef.ws_id, fieldValueRef.value);
+                fieldValue = decoder.get_id_local(refTableName, fieldValueRef);
             }
         } else {
             // Поле других типов

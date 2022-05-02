@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * todo: путаница в ролях RefDecoder и RefDecodeStrategy,
  * todo: кроме того, именно RefDecoder специфичен для PS, а через фабрику кастомизируется именно JdxRefDecoderService
- * todo: кроме того! static RefDecodeStrategy instance - ваще капец!
+ * todo: кроме того! static RefDecodeStrategy.instance и static initInstance() - ваще капец!
  */
 
 // todo: по коду куча вызовов "new RefDecoder()" - а зачем тогда фабрика jdtx.repl.main.api.decoder.JdxRefDecoderService?
@@ -73,13 +73,12 @@ public class RefDecodeStrategy {
 
     /**
      * @param tableName Имя таблицы
-     * @param ws_id     Рабочая станция
      * @param db_id     Значение id
-     * @return Нужно ли перекодировать id
+     * @return Нужно ли перекодировать локальный (свой собственный) id
      * <p>
      * todo: Это поведение для PS. Возможно есть более сложное поведение, тогда это должно быть перекрыто в кастомных обработчиках
      */
-    protected boolean needDecode(String tableName, long ws_id, long db_id) {
+    protected boolean needDecodeOwn(String tableName, long db_id) {
         tableName = tableName.toUpperCase();
 
         //

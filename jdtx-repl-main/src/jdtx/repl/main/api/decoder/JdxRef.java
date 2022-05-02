@@ -1,12 +1,29 @@
 package jdtx.repl.main.api.decoder;
 
 /**
- * Значение типа "ссылка" в виде пары: код рабочей станции + значение ссылки
+ * Значение типа "ссылка".
+ * Реализовано в виде пары: код рабочей станции + значение ссылки
  */
 public class JdxRef {
 
-    public long ws_id = -1;
+    private static long EMPTY_VALUE = Long.MAX_VALUE;
+
+    public long ws_id = EMPTY_VALUE;
     public long value = -1;
+
+    public JdxRef() {
+        super();
+    }
+
+    public JdxRef(long ws_id, long value) {
+        super();
+        this.ws_id = ws_id;
+        this.value = value;
+    }
+
+    public boolean isEmptyWs() {
+        return this.ws_id == EMPTY_VALUE;
+    }
 
     public static JdxRef parse(String val) {
         if (val == null || val.length() == 0 || val.compareToIgnoreCase("null") == 0) {
@@ -26,8 +43,9 @@ public class JdxRef {
         return ref;
     }
 
+    @Override
     public String toString() {
-        if (ws_id == -1) {
+        if (isEmptyWs()) {
             return String.valueOf(value);
         } else {
             return ws_id + ":" + value;

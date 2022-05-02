@@ -88,30 +88,30 @@ public class RefDecoder implements IRefDecoder {
     // IRefDecoder
     // ------------------------------------------
 
-    public boolean is_own_id(String tableName, long own_id) {
-        if (own_id <= get_max_own_id()) {
+    public boolean is_own_id(String tableName, long id) {
+        if (id <= get_max_own_id()) {
             return true;
         } else {
             return false;
         }
     }
 
-    public JdxRef get_ref(String tableName, long own_id) throws Exception {
+    public JdxRef get_ref(String tableName, long id_local) throws Exception {
         tableName = tableName.toUpperCase();
 
         //
         JdxRef ref = new JdxRef();
 
-        // Это наша id?
-        if (is_own_id(tableName, own_id)) {
-            ref.ws_id = this.self_ws_id;
-            ref.value = own_id;
+        // По правилам - надо перекодировать эту локальную id?
+        if (!needDecodeStrategy(tableName, id_local)) {
+            ref.value = id_local;
             return ref;
         }
-        // Не надо перекодировать?
-        if (!needDecode(tableName, -1, own_id)) {
+
+        // Это уже наша собственная id?
+        if (is_own_id(tableName, id_local)) {
             ref.ws_id = this.self_ws_id;
-            ref.value = own_id;
+            ref.value = id_local;
             return ref;
         }
 
@@ -119,17 +119,17 @@ public class RefDecoder implements IRefDecoder {
         Map<Long, RefDecoderSlot> slotToWs = findOrAdd1(slotToWsList, tableName);
 
         // Номер нашего слота для нашей id
-        long own_slot_no = own_id / SLOT_SIZE;
+        long own_slot_no = id_local / SLOT_SIZE;
 
         // Ищем наш слот
         RefDecoderSlot sl = slotToWs.get(own_slot_no);
         if (sl == null) {
-            throw new XError("Trying to decode id, than was not inserted, id: " + own_id + ", table: " + tableName + ", ws_id: " + this.self_ws_id);
+            throw new XError("RefDecoder.get_ref: trying to decode id, than was not inserted, table: " + tableName + ", ws_id: " + this.self_ws_id + ", id: " + id_local);
         }
 
         // По нашему номеру слота определяем ws_id и ws_slot_no
         long ws_slot_no = sl.ws_slot_no;
-        long id = ws_slot_no * SLOT_SIZE + own_id % SLOT_SIZE;
+        long id = ws_slot_no * SLOT_SIZE + id_local % SLOT_SIZE;
 
         //
         ref.ws_id = sl.ws_id;
@@ -137,21 +137,28 @@ public class RefDecoder implements IRefDecoder {
         return ref;
     }
 
-    public long get_id_own(String tableName, long ws_id, long id) throws Exception {
+    public long get_id_local(String tableName, JdxRef ref) throws Exception {
         tableName = tableName.toUpperCase();
 
-        //
-        if (ws_id <= 0) {
-            throw new XError("get_id_own, invalid ws_id <= 0");
+        // Не надо перекодировать?
+
+        // Собственные id - не перекодируем
+        if (ref.ws_id == this.self_ws_id) {
+            return ref.value;
         }
 
-        // Не надо перекодировать?
-        if (!needDecode(tableName, ws_id, id)) {
-            return id;
+        // Стратегии перекодировки запрещают - не пререкодируем
+        if (!needDecodeStrategy(tableName, ref.value)) {
+            return ref.value;
+        }
+
+        // Нужна перекодировка, а рабочая станция не указана
+        if (ref.ws_id <= 0) {
+            throw new XError("RefDecoder.get_id_own: id is need to decode, but ws_id is invalid, table: " + tableName + ", ws_id: " + ref.ws_id + ", id: " + ref.value);
         }
 
         // Пробуем перекодировку чужой id имеющемися слотами
-        long own_id = find_id_own_internal(tableName, ws_id, id);
+        long own_id = find_id_by_slot(tableName, ref);
         if (own_id != -1) {
             return own_id;
         }
@@ -165,8 +172,8 @@ public class RefDecoder implements IRefDecoder {
 
         // Создаем новый слот
         RefDecoderSlot sl = new RefDecoderSlot();
-        sl.ws_id = ws_id;
-        sl.ws_slot_no = id / SLOT_SIZE;
+        sl.ws_id = ref.ws_id;
+        sl.ws_slot_no = ref.value / SLOT_SIZE;
 
         // Создаем новый слот
         long own_slot_no = calcNextOwnSlotNo(tableName);
@@ -181,7 +188,7 @@ public class RefDecoder implements IRefDecoder {
 
         // ---
         // Перекодировка чужой id через слот
-        own_id = own_slot_no * SLOT_SIZE + id % SLOT_SIZE;
+        own_id = own_slot_no * SLOT_SIZE + ref.value % SLOT_SIZE;
 
 
         // ---
@@ -198,16 +205,10 @@ public class RefDecoder implements IRefDecoder {
     }
 
     /**
-     * @return Нужно ли перекодировать
+     * @return Нужно ли перекодировать по стратегии перекодировки
      */
-    protected boolean needDecode(String tableName, long ws_id, long db_id) {
-        // Свои id не перекодируем
-        if (ws_id == this.self_ws_id) {
-            return false;
-        }
-
-        // Стратегии перекодировки заданы
-        return RefDecodeStrategy.getInstance().needDecode(tableName, ws_id, db_id);
+    protected boolean needDecodeStrategy(String tableName, long db_id) {
+        return RefDecodeStrategy.getInstance().needDecodeOwn(tableName, db_id);
     }
 
 
@@ -230,18 +231,17 @@ public class RefDecoder implements IRefDecoder {
     }
 
 
-    private long find_id_own_internal(String tableName, long ws_id, long id) throws Exception {
-        if (!needDecode(tableName, ws_id, id)) {
-            return id;
-        }
-
+    /**
+     * Перекодировка id через слоты, загруженные в кэше
+     */
+    private long find_id_by_slot(String tableName, JdxRef ref) throws Exception {
         // Берем слоты для таблицы
         Map<RefDecoderSlot, Long> wsToSlot = findOrAdd2(wsToSlotList, tableName);
 
         //
         RefDecoderSlot sl = new RefDecoderSlot();
-        sl.ws_id = ws_id;
-        sl.ws_slot_no = id / SLOT_SIZE;
+        sl.ws_id = ref.ws_id;
+        sl.ws_slot_no = ref.value / SLOT_SIZE;
 
         // Ищем наш слот
         Long own_slot_no = wsToSlot.get(sl);
@@ -251,7 +251,7 @@ public class RefDecoder implements IRefDecoder {
         }
 
         // Перекодировка через слот
-        return own_slot_no * SLOT_SIZE + id % SLOT_SIZE;
+        return own_slot_no * SLOT_SIZE + ref.value % SLOT_SIZE;
     }
 
     // Записываем новый слот в БД

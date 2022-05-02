@@ -41,43 +41,43 @@ public class RefDecoderCheck_Test extends ReplDatabaseStruct_Test {
         //
         System.out.println();
         //
-        assertEquals(false, strategy.needDecode("Lic".toUpperCase(), 1, 0L));
-        assertEquals(true, strategy.needDecode("Lic".toUpperCase(), 1, 10L));
-        assertEquals(true, strategy.needDecode("Lic".toUpperCase(), 1, 1000L));
-        assertEquals(true, strategy.needDecode("Lic".toUpperCase(), 1, 1001L));
+        assertEquals(false, strategy.needDecodeOwn("Lic".toUpperCase(), 0L));
+        assertEquals(true, strategy.needDecodeOwn("Lic".toUpperCase(), 10L));
+        assertEquals(true, strategy.needDecodeOwn("Lic".toUpperCase(), 1000L));
+        assertEquals(true, strategy.needDecodeOwn("Lic".toUpperCase(), 1001L));
         //
-        assertEquals(false, strategy.needDecode("Lic".toLowerCase(), 1, 0L));
-        assertEquals(true, strategy.needDecode("Lic".toLowerCase(), 1, 10L));
-        assertEquals(true, strategy.needDecode("Lic".toLowerCase(), 1, 1000L));
-        assertEquals(true, strategy.needDecode("Lic".toLowerCase(), 1, 1001L));
+        assertEquals(false, strategy.needDecodeOwn("Lic".toLowerCase(), 0L));
+        assertEquals(true, strategy.needDecodeOwn("Lic".toLowerCase(), 10L));
+        assertEquals(true, strategy.needDecodeOwn("Lic".toLowerCase(), 1000L));
+        assertEquals(true, strategy.needDecodeOwn("Lic".toLowerCase(), 1001L));
 
         //
-        assertEquals(false, strategy.needDecode("CommentTip".toUpperCase(), 1, 0L));
-        assertEquals(false, strategy.needDecode("CommentTip".toUpperCase(), 1, 10L));
-        assertEquals(true, strategy.needDecode("CommentTip".toUpperCase(), 1, 1000L));
-        assertEquals(true, strategy.needDecode("CommentTip".toUpperCase(), 1, 1001L));
+        assertEquals(false, strategy.needDecodeOwn("CommentTip".toUpperCase(), 0L));
+        assertEquals(false, strategy.needDecodeOwn("CommentTip".toUpperCase(), 10L));
+        assertEquals(true, strategy.needDecodeOwn("CommentTip".toUpperCase(), 1000L));
+        assertEquals(true, strategy.needDecodeOwn("CommentTip".toUpperCase(), 1001L));
         //
-        assertEquals(false, strategy.needDecode("CommentTip".toLowerCase(), 1, 0L));
-        assertEquals(false, strategy.needDecode("CommentTip".toLowerCase(), 1, 10L));
-        assertEquals(true, strategy.needDecode("CommentTip".toLowerCase(), 1, 1000L));
-        assertEquals(true, strategy.needDecode("CommentTip".toLowerCase(), 1, 1001L));
+        assertEquals(false, strategy.needDecodeOwn("CommentTip".toLowerCase(), 0L));
+        assertEquals(false, strategy.needDecodeOwn("CommentTip".toLowerCase(), 10L));
+        assertEquals(true, strategy.needDecodeOwn("CommentTip".toLowerCase(), 1000L));
+        assertEquals(true, strategy.needDecodeOwn("CommentTip".toLowerCase(), 1001L));
 
         //
-        assertEquals(false, strategy.needDecode("DataTip".toUpperCase(), 1, 0L));
-        assertEquals(false, strategy.needDecode("DataTip".toUpperCase(), 1, 10L));
-        assertEquals(false, strategy.needDecode("DataTip".toUpperCase(), 1, 1000L));
-        assertEquals(false, strategy.needDecode("DataTip".toUpperCase(), 1, 1001L));
+        assertEquals(false, strategy.needDecodeOwn("DataTip".toUpperCase(), 0L));
+        assertEquals(false, strategy.needDecodeOwn("DataTip".toUpperCase(), 10L));
+        assertEquals(false, strategy.needDecodeOwn("DataTip".toUpperCase(), 1000L));
+        assertEquals(false, strategy.needDecodeOwn("DataTip".toUpperCase(), 1001L));
         //
-        assertEquals(false, strategy.needDecode("DataTip".toLowerCase(), 1, 0L));
-        assertEquals(false, strategy.needDecode("DataTip".toLowerCase(), 1, 10L));
-        assertEquals(false, strategy.needDecode("DataTip".toLowerCase(), 1, 1000L));
-        assertEquals(false, strategy.needDecode("DataTip".toLowerCase(), 1, 1001L));
+        assertEquals(false, strategy.needDecodeOwn("DataTip".toLowerCase(), 0L));
+        assertEquals(false, strategy.needDecodeOwn("DataTip".toLowerCase(), 10L));
+        assertEquals(false, strategy.needDecodeOwn("DataTip".toLowerCase(), 1000L));
+        assertEquals(false, strategy.needDecodeOwn("DataTip".toLowerCase(), 1001L));
 
         //
-        System.out.println(strategy.needDecode("DataTip_Qaz", 1, 0L));
-        System.out.println(strategy.needDecode("DataTip_Qaz", 1, 10L));
-        System.out.println(strategy.needDecode("DataTip_Qaz", 1, 1000L));
-        System.out.println(strategy.needDecode("DataTip_Qaz", 1, 1001L));
+        System.out.println(strategy.needDecodeOwn("DataTip_Qaz", 0L));
+        System.out.println(strategy.needDecodeOwn("DataTip_Qaz", 10L));
+        System.out.println(strategy.needDecodeOwn("DataTip_Qaz", 1000L));
+        System.out.println(strategy.needDecodeOwn("DataTip_Qaz", 1001L));
     }
 
 }

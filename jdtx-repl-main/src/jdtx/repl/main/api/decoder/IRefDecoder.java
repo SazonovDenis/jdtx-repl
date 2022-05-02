@@ -8,27 +8,26 @@ package jdtx.repl.main.api.decoder;
 public interface IRefDecoder {
 
     /**
-     * Превращает id от рабочей станции ws_id в свою id
+     * Превращает глобальную ссылку (id от рабочей станции ws_id) в свою локальную id
      *
      * @param tableName имя таблицы
-     * @param ws_id     код рабочей станции
-     * @param id        id на этой рабочей станции
-     * @return id на нашей станции
+     * @param ref       глобальная ссылка
+     * @return локальная id на нашей станции
      */
-    long get_id_own(String tableName, long ws_id, long id) throws Exception;
+    long get_id_local(String tableName, JdxRef ref) throws Exception;
 
     /**
-     * Превращает свою id в пару: код рабочей станции + id на этой станции
+     * Превращает свою (локальную) id в глобальную ссылку (пару: код рабочей станции (владельца записи) + id на этой станции)
      *
      * @param tableName имя таблицы
-     * @param own_id    id на нашей рабочей станции
-     * @return объект JdxRef: код рабочей станции (владельца записи) + id на этой станции (владельца записи)
+     * @param id_local  id на нашей рабочей станции
+     * @return глобальная ссылка (пара: код рабочей станции (владельца записи) + id на этой станции)
      */
-    JdxRef get_ref(String tableName, long own_id) throws Exception;
+    JdxRef get_ref(String tableName, long id_local) throws Exception;
 
     /**
      * Является ли эта id созданной на нашей рабочей станции
      */
-    boolean is_own_id(String tableName, long own_id);
+    boolean is_own_id(String tableName, long id);
 
 }

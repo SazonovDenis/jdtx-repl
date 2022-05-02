@@ -654,14 +654,14 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                                 JdxRef pkValue = JdxRef.parse(pkValueStr);
 
                                 // Дополнение ссылки
-                                if (pkValue != null && pkValue.ws_id == -1) {
+                                if (pkValue != null && pkValue.isEmptyWs()) {
                                     if (replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
                                         pkValue.ws_id = replica.getInfo().getWsId();
                                     } else {
-                                        log.error("pkValue.ws_id == -1");
+                                        log.error("pkValue.isEmptyWs");
                                         log.error("  file: " + file.getAbsolutePath());
                                         log.error("  recValuesStr: " + recValuesStr);
-                                        throw new XError("pkValue.ws_id == -1");
+                                        throw new XError("pkValue.isEmptyWs");
                                     }
                                     //
                                     pkValueStr = pkValue.toString();
