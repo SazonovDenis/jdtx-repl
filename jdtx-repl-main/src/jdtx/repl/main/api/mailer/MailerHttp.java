@@ -73,21 +73,29 @@ public class MailerHttp implements IMailer {
 
     @Override
     public long getBoxState(String box) throws Exception {
-        JSONObject res = getState_internal(box);
+        JSONObject res = getData("files", box);
         JSONObject files = (JSONObject) res.get("files");
         return UtJdxData.longValueOf(files.get("max"));
     }
 
     @Override
     public long getSendDone(String box) throws Exception {
-        JSONObject resState = getState_internal(box);
-        JSONObject last_info = (JSONObject) resState.get("last_info");
-        long no = UtJdxData.longValueOf(last_info.getOrDefault("no", 0));
+        JSONObject res = getData("last.info", box);
+        JSONObject data = (JSONObject) res.get("data");
+        long no = UtJdxData.longValueOf(data.getOrDefault("no", 0));
         return no;
     }
 
     @Override
-    public SendRequiredInfo getSendRequired(String box) throws Exception {
+    public long getReceiveDone(String box) throws Exception {
+        JSONObject res = getData("last.read", box);
+        JSONObject data = (JSONObject) res.get("data");
+        long no = UtJdxData.longValueOf(data.getOrDefault("no", 0));
+        return no;
+    }
+
+    @Override
+    public RequiredInfo getSendRequired(String box) throws Exception {
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
@@ -106,14 +114,16 @@ public class MailerHttp implements IMailer {
 
         //
         JSONObject required = (JSONObject) res.get("required");
-        SendRequiredInfo requiredInfo = new SendRequiredInfo(required);
+        RequiredInfo requiredInfo = new RequiredInfo(required);
 
         //
         return requiredInfo;
     }
 
     @Override
-    public void setSendRequired(String box, SendRequiredInfo requiredInfo) throws Exception {
+    public void setSendRequired(String box, RequiredInfo requiredInfo) throws Exception {
+        log.info("mailer.setSendRequired, box: " + box + ", " + requiredInfo.toString() + ", remoteUrl: " + remoteUrl);
+
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
@@ -122,6 +132,7 @@ public class MailerHttp implements IMailer {
         info.put("requiredFrom", requiredInfo.requiredFrom);
         info.put("requiredTo", requiredInfo.requiredTo);
         info.put("recreate", requiredInfo.recreate);
+        info.put("executor", requiredInfo.executor);
         HttpGet httpGet = createHttpGet("repl_set_send_required", info);
 
         //
@@ -229,6 +240,7 @@ public class MailerHttp implements IMailer {
         info.setReplicaType(replica.getInfo().getReplicaType());
         info.setDbStructCrc(replica.getInfo().getDbStructCrc());
         info.setWsId(replica.getInfo().getWsId());
+        info.setNo(replica.getInfo().getNo());
         info.setAge(replica.getInfo().getAge());
         info.setDtFrom(replica.getInfo().getDtFrom());
         info.setDtTo(replica.getInfo().getDtTo());
@@ -338,14 +350,17 @@ public class MailerHttp implements IMailer {
             receivedBytes = receivedBytes + buff.length;
 
             //
-            //log.debug("response.entity.contentLength: " + entity.getContentLength());
-
-            //
-            if (receivedBytes != totalBytes) {
-                log.info("mailer.receive, no: " + no + ", box: " + box + ", part: " + filePart + "/" + filePartsCount + ", receivedBytes: " + receivedBytes + "/" + totalBytes);
-            } else {
-                log.info("mailer.receive, no: " + no + ", box: " + box + ", part: " + filePart + "/" + filePartsCount + ", receivedBytes: " + receivedBytes);
+            String filePart_str = "";
+            if (filePartsCount > 1) {
+                filePart_str = ", part: " + filePart + "/" + filePartsCount;
             }
+            String receivedBytes_str;
+            if (receivedBytes != totalBytes) {
+                receivedBytes_str = receivedBytes + "/" + totalBytes;
+            } else {
+                receivedBytes_str = String.valueOf(receivedBytes);
+            }
+            log.info("mailer.receive, no: " + no + ", box: " + box + filePart_str + ", receivedBytes: " + receivedBytes_str);
         }
 
         //
@@ -354,6 +369,10 @@ public class MailerHttp implements IMailer {
 
         //
         replica.getInfo().fromJSONObject(file_info);
+
+        // Проверяем целостность скачанного
+        String crc = (String) file_info.get("crc");
+        UtJdx.checkReplicaCrc(replica, crc);
 
         //
         return replica;
@@ -387,28 +406,6 @@ public class MailerHttp implements IMailer {
      * Утилиты
      */
 
-    JSONObject getState_internal(String box) throws Exception {
-        HttpClient httpclient = HttpClientBuilder.create().build();
-
-        //
-        Map info = new HashMap<>();
-        info.put("box", box);
-        HttpGet httpGet = createHttpGet("repl_get_state", info);
-
-        //
-        HttpResponse response = httpclient.execute(httpGet);
-
-        //
-        handleHttpErrors(response);
-
-        //
-        JSONObject res = parseHttpResponse(response);
-
-        //
-        return res;
-    }
-
-
     JSONObject getInfo_internal(String box, long no) throws Exception {
         return getInfo_internal(box, no, true);
     }
@@ -441,8 +438,8 @@ public class MailerHttp implements IMailer {
     }
 
     public IReplicaInfo getLastReplicaInfo(String box) throws Exception {
-        JSONObject resInfo = getData("last.info", box);
-        JSONObject data = (JSONObject) resInfo.get("data");
+        JSONObject res = getData("last.info", box);
+        JSONObject data = (JSONObject) res.get("data");
         IReplicaInfo info = new ReplicaInfo();
         info.fromJSONObject(data);
         return info;
@@ -576,8 +573,14 @@ public class MailerHttp implements IMailer {
         log.info("checkMailBox, url: " + remoteUrl);
         log.info("checkMailBox, guid: " + guid + ", box: " + box);
 
-        // Обращение getState_internal ящика доказывает его нормальную работу
-        getState_internal(box);
+        // Успешное обращение к getData ящика доказывает его нормальную работу
+        getData("files", box);
+        getData("ping.read", box);
+        getData("ping.write", box);
+        getData("last.info", box);
+        getData("last.read", box);
+        getData("last.write", box);
+        getData("required.info", box);
     }
 
 

@@ -26,11 +26,6 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
         super(db, queName, stateMode);
     }
 
-    public void setSrvQueIn(Map<Long, IJdxQue> srvQueInList) {
-        this.srvQueInList = srvQueInList;
-    }
-
-
     /*
      * IJdxReplicaStorage
      */
@@ -81,6 +76,28 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
         long queWsMaxNo = getMaxNoForAuthorWs(replicaWsId);
         if (queWsMaxNo != -1 && replicaNo != queWsMaxNo + 1) {
             throw new XError("invalid replica.no: " + replicaNo + ", que.no: " + queWsMaxNo + ", replica.wsId: " + replicaWsId + ", que.name: " + queName);
+        }
+    }
+
+
+    /*
+     * IJdxQueCommon
+     */
+
+    @Override
+    public void setSrvQueIn(Map<Long, IJdxQue> srvQueInList) {
+        this.srvQueInList = srvQueInList;
+    }
+
+
+    @Override
+    public long getNoByAuthorNo(long authorNo, long wsId) throws Exception {
+        String sql = "select id from " + queTableName + " where author_ws_id = " + wsId + " and author_id = " + authorNo;
+        DataRecord rec = db.loadSql(sql).getCurRec();
+        if (rec.getValueLong("id") <= 0) {
+            throw new XError("Replica number not found in queCommon, authorWs: " + wsId + ", authorNo: " + authorNo);
+        } else {
+            return rec.getValueLong("id");
         }
     }
 

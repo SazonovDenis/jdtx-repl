@@ -108,7 +108,7 @@ public class UtDataSelector {
             dataWriter.appendRec();
 
             // Тип операции
-            dataWriter.writeOprType(JdxOprType.OPR_INS);
+            dataWriter.writeOprType(JdxOprType.INS);
 
             // Тело записи
             Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);

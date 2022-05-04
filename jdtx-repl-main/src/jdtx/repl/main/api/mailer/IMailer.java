@@ -28,16 +28,23 @@ public interface IMailer {
     long getSendDone(String box) throws Exception;
 
     /**
+     * Информация о фактическом состоянии почтового ящика (используется для анализа при восстановлении из бэкапа)
+     *
+     * @return Какой возраст (no) нами прочитан с сервера в папке box
+     */
+    long getReceiveDone(String box) throws Exception;
+
+    /**
      * Информация о желаемом состоянии почтового ящика (используется для запроса повторной отправки реплик)
      *
      * @return Начиная с какого письма (no) требуется отправить письма в папку box
      */
-    SendRequiredInfo getSendRequired(String box) throws Exception;
+    RequiredInfo getSendRequired(String box) throws Exception;
 
     /**
      * Сбросить информацию о желаемом состоянии почтового ящика
      */
-    void setSendRequired(String box, SendRequiredInfo requiredInfo) throws Exception;
+    void setSendRequired(String box, RequiredInfo requiredInfo) throws Exception;
 
     /**
      * Отправка реплики
@@ -63,7 +70,7 @@ public interface IMailer {
 
 
     /**
-     * Отметить (сообщить) произвольные данные (для отслеживания состояния, ошибок и т.п.)
+     * Отметить (сообщить серверу) произвольные данные (для отслеживания состояния, ошибок и т.п.)
      */
     void setData(Map data, String name, String box) throws Exception;
 

@@ -105,9 +105,9 @@ CREATE TABLE Z_Z_srv_que_out000 (
 
 ALTER TABLE Z_Z_srv_que_out000 ADD CONSTRAINT pk_Z_Z_srv_que_out000 PRIMARY KEY (id);
 
-CREATE UNIQUE INDEX Z_Z_srv_que_out000_idx ON Z_Z_srv_que_out000 (destination_ws_id, destination_id);
+CREATE UNIQUE INDEX Z_Z_srv_que_out000_idx1 ON Z_Z_srv_que_out000 (destination_ws_id, destination_id);
 
-CREATE UNIQUE INDEX Z_Z_srv_que_out000_idx1 ON Z_Z_srv_que_out000 (author_ws_id, author_id);
+CREATE UNIQUE INDEX Z_Z_srv_que_out000_idx2 ON Z_Z_srv_que_out000 (destination_ws_id, author_ws_id, author_id);
 
 CREATE generator Z_Z_G_srv_que_out000;
 
@@ -139,9 +139,12 @@ CREATE TABLE Z_Z_srv_que_out001 (
 
 ALTER TABLE Z_Z_srv_que_out001 ADD CONSTRAINT pk_Z_Z_srv_que_out001 PRIMARY KEY (id);
 
-CREATE UNIQUE INDEX Z_Z_srv_que_out001_idx ON Z_Z_srv_que_out001 (destination_ws_id, destination_id);
+CREATE UNIQUE INDEX Z_Z_srv_que_out001_idx1 ON Z_Z_srv_que_out001 (destination_ws_id, destination_id);
 
-CREATE UNIQUE INDEX Z_Z_srv_que_out001_idx1 ON Z_Z_srv_que_out001 (author_ws_id, author_id);
+-- Индекс author_ws_id+author_id для очереди out001 не нужен, т.к. в нее мы можем положить реплиики,
+-- которые НЕ пришли из других очередей, следовательно у них может быть НЕ УКАЗАНО значение author_id
+-- Также может быть не указано значение author_ws_id - для серверных команд.
+--CREATE UNIQUE INDEX Z_Z_srv_que_out001_idx2 ON Z_Z_srv_que_out001 (destination_ws_id, author_ws_id, author_id)
 
 CREATE generator Z_Z_G_srv_que_out001;
 

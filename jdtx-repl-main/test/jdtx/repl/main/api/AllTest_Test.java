@@ -12,13 +12,13 @@ public class AllTest_Test extends AppTestCase {
     @Test
     public void test_0() throws Exception {
         // Прогон базового сценария репликации, полная двусторонняя репликация
-        JdxReplWsSrv_Test test5 = new JdxReplWsSrv_Test();
-        test5.setUp();
-        test5.test_allSetUp_TestAll();
+        JdxReplWsSrv_Test test0 = new JdxReplWsSrv_Test();
+        test0.setUp();
+        test0.test_allSetUp_TestAll();
         // С фильтрами
-        test5 = new JdxReplWsSrv_Test();
-        test5.setUp();
-        test5.test_allSetUp_TestAll_filter();
+        test0 = new JdxReplWsSrv_Test();
+        test0.setUp();
+        test0.test_allSetUp_TestAll_filter();
 
         // Прогон сценария репликации: добавление рабочей станции после того, как остальные уже поработали некоторое время
         JdxReplWsSrv_AddWs_Test test2 = new JdxReplWsSrv_AddWs_Test();
@@ -34,19 +34,29 @@ public class AllTest_Test extends AppTestCase {
         test1.setUp();
         test1.test_Restore_06_Run();
 
-        // Прогон сценария репликации: восстановление утраченной базы рабочей станции по данным с сервера
-        JdxReplWsSrv_RestoreWsFromSrv_Test test6 = new JdxReplWsSrv_RestoreWsFromSrv_Test();
+        // Проверка восстановления репликации рабочей станции при полной потере базы и репликационных каталогов, по данным с сервера.
+        JdxReplWsSrv_RestoreWs_FromSrv_Test test6 = new JdxReplWsSrv_RestoreWs_FromSrv_Test();
         test6.setUp();
-        test6.test_All();
+        test6.test_DirDB_srv();
         // С фильтрами
-        test6 = new JdxReplWsSrv_RestoreWsFromSrv_Test();
+        test6 = new JdxReplWsSrv_RestoreWs_FromSrv_Test();
         test6.setUp();
         test6.test_All_filter();
 
+        // Проверка восстановления репликации рабочей станции при восстановлении базы из бэкапа
+        JdxReplWsSrv_RestoreWs_DbRestore_test test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+        // Проверка восстановления репликации при сохранении каталогов
+        test7.setUp();
+        test7.test_DB();
+        // Проверка восстановления репликации при потере репликационных каталогов
+        test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+        test7.setUp();
+        test7.test_DirDB();
+
         //
-        JdxReplWsSrv_DeleteCascade_Test test0 = new JdxReplWsSrv_DeleteCascade_Test();
-        test0.setUp();
-        test0.test_allSetUp_CascadeDel();
+        JdxReplWsSrv_DeleteCascade_Test test5 = new JdxReplWsSrv_DeleteCascade_Test();
+        test5.setUp();
+        test5.test_allSetUp_CascadeDel();
 
         //
         JdxReplWsSrv_FailedInsertUpdate_Test test3 = new JdxReplWsSrv_FailedInsertUpdate_Test();
@@ -69,11 +79,6 @@ public class AllTest_Test extends AppTestCase {
         test4 = new JdxReplWsSrv_ChangeDbStruct_Test();
         test4.setUp();
         test4.test_ModifyDbStruct();
-
-        // Проверка ремонта базы при восстановлении из бэкапа
-        JdxReplWsSrv_DatabaseRestore_test test7 = new JdxReplWsSrv_DatabaseRestore_test();
-        test7.test_DatabaseRestore_step1();
-        test7.test_DatabaseRestore_step2();
 
         // Все тесты JdxRecMerge_Test
         JdxRecMerge_Test testMerge = new JdxRecMerge_Test();

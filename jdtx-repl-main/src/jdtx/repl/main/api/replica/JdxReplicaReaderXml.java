@@ -28,7 +28,7 @@ public class JdxReplicaReaderXml {
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         reader = xmlInputFactory.createXMLStreamReader(inputStream, "utf-8");
 
-        // Чтение заголовка - WS_ID, AGE и REPLICA_TYPE
+        // Чтение заголовка - значений REPLICA_TYPE, WS_ID, AGE, DT_FROM и DT_TO
         replicaHeaderInfo = readReplicaHeader();
     }
 
@@ -78,6 +78,9 @@ public class JdxReplicaReaderXml {
         inputStream.close();
     }
 
+    /**
+     * Заглядывает внутрь файла реплики, заполняет данные из dat.info
+     */
     public static void readReplicaInfo(IReplica replica) throws Exception {
         ReplicaInfo info = new ReplicaInfo();
         InputStream stream = createInputStream(replica, ".info");
@@ -91,7 +94,7 @@ public class JdxReplicaReaderXml {
             stream.close();
         }
 
-        // Тут CRC реплики НЕ забираем!!! Его в .info не может быть
+        // Значения CRC и NO реплики НЕ устанавливаем, т.к. этих значений в .info не может быть - они НЕИЗВЕСТНЫ на момент формирования реплики
         replica.getInfo().setReplicaType(info.getReplicaType());
         replica.getInfo().setDbStructCrc(info.getDbStructCrc());
         replica.getInfo().setWsId(info.getWsId());
@@ -133,7 +136,8 @@ public class JdxReplicaReaderXml {
     private IReplicaInfo readReplicaHeader() throws XMLStreamException {
         IReplicaInfo replicaInfo = new ReplicaInfo();
 
-        // Чтение заголовка - WS_ID, AGE и REPLICA_TYPE
+        // Чтение заголовка - REPLICA_TYPE, WS_ID, AGE, DT_FROM и DT_TO
+        // Значения CRC и NO реплики НЕ устанавливаем, т.к. этих значений в .info не может быть - они НЕИЗВЕСТНЫ на момент формирования реплики
         while (reader.hasNext()) {
             int event = reader.next();
             if (event == XMLStreamConstants.START_ELEMENT) {

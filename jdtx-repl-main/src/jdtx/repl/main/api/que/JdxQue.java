@@ -142,8 +142,8 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
         db.execSql(sql, UtCnv.toMap(
                 "id", queNo,
                 "author_ws_id", replica.getInfo().getWsId(),
-                "author_id", replica.getInfo().getNo(),
                 "age", replica.getInfo().getAge(),
+                "author_id", replica.getInfo().getNo(),
                 "crc", replica.getInfo().getCrc(),
                 "replica_type", replica.getInfo().getReplicaType()
         ));
@@ -151,8 +151,8 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
 
     void recToReplicaInfo(DataRecord rec, IReplicaInfo info) {
         info.setWsId(rec.getValueLong("author_ws_id"));
-        info.setNo(rec.getValueLong("author_id"));
         info.setAge(rec.getValueLong("age"));
+        info.setNo(rec.getValueLong("author_id"));
         info.setCrc(rec.getValueString("crc"));
         info.setReplicaType(rec.getValueInt("replica_type"));
     }

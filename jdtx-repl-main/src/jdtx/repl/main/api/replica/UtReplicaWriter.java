@@ -111,7 +111,9 @@ public class UtReplicaWriter {
      */
 
     /**
-     * Возвращает временный файл для реплики
+     * Создает временный файл для реплики
+     *
+     * @return временный файл для реплики
      */
     public static File createTempFileReplica(IReplica replica) throws IOException {
         String fileNameTemplate = UtString.padLeft(String.valueOf(replica.getInfo().getWsId()), 3, '0') + "-" + UtString.padLeft(String.valueOf(replica.getInfo().getAge()), 9, '0');

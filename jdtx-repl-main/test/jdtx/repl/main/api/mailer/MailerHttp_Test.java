@@ -359,18 +359,52 @@ public class MailerHttp_Test extends AppTestCase {
 
     @Test
     public void test_getState() throws Exception {
-        JSONObject res0 = ((MailerHttp) mailer).getState_internal("to");
-        System.out.println("ping_read: " + res0.get("ping_read"));
-        System.out.println("ping_write: " + res0.get("ping_write"));
+        String box = "to";
+        System.out.println("box: " + box);
+
 
         //
-        mailer.setData(null, "ping.write", "to");
-        mailer.setData(null, "ping.read", "to");
+        printState(box);
+        System.out.println();
 
         //
-        JSONObject res1 = ((MailerHttp) mailer).getState_internal("to");
-        System.out.println("ping_read: " + res1.get("ping_read"));
-        System.out.println("ping_write: " + res1.get("ping_write"));
+        mailer.setData(null, "ping.write", box);
+        mailer.setData(null, "ping.read", box);
+
+        //
+        printState(box);
+        System.out.println();
+
+
+        //
+        box = "from";
+        System.out.println("box: " + box);
+
+
+        //
+        printState(box);
+        System.out.println();
+
+        //
+        mailer.setData(null, "ping.write", box);
+        mailer.setData(null, "ping.read", box);
+
+        //
+        printState(box);
+    }
+
+    private void printState(String box) throws Exception {
+        JSONObject res_files = mailer.getData("files", box);
+        JSONObject res_ping_read = mailer.getData("ping.read", box);
+        JSONObject res_ping_write = mailer.getData("ping.write", box);
+        JSONObject res_last_info = mailer.getData("last.info", box);
+        JSONObject res_required_info = mailer.getData("required.info", box);
+        //
+        System.out.println("files: " + res_files);
+        System.out.println("ping_read: " + res_ping_read);
+        System.out.println("ping_write: " + res_ping_write);
+        System.out.println("last_info: " + res_last_info);
+        System.out.println("required_info: " + res_required_info);
     }
 
 
@@ -391,43 +425,65 @@ public class MailerHttp_Test extends AppTestCase {
 
 
     @Test
+    public void test_ReceiveDone() throws Exception {
+        long receiveDone_from = mailer.getReceiveDone("from");
+        long receiveDone_to001 = mailer.getReceiveDone("to001");
+        long receiveDone_to = mailer.getReceiveDone("to");
+        System.out.println("receive from: " + receiveDone_from);
+        System.out.println("receive to001: " + receiveDone_to001);
+        System.out.println("receive to: " + receiveDone_to);
+        System.out.println();
+        long sendDone_from = mailer.getSendDone("from");
+        long sendDone_to001 = mailer.getSendDone("to001");
+        long sendDone_to = mailer.getSendDone("to");
+        System.out.println("send from: " + sendDone_from);
+        System.out.println("send to001: " + sendDone_to001);
+        System.out.println("send to: " + sendDone_to);
+    }
+
+    @Test
     public void test_required() throws Exception {
-        SendRequiredInfo requiredInfo0 = mailer.getSendRequired("from");
+        RequiredInfo requiredInfo0 = mailer.getSendRequired("from");
         System.out.println("requiredFrom: " + requiredInfo0.requiredFrom);
         System.out.println("requiredTo: " + requiredInfo0.requiredTo);
         System.out.println("recreate: " + requiredInfo0.recreate);
         System.out.println();
 
         // ---
-        SendRequiredInfo requiredInfo00 = new SendRequiredInfo();
+        RequiredInfo requiredInfo00 = new RequiredInfo();
         requiredInfo00.requiredFrom = 2;
         requiredInfo00.requiredTo = 4;
         requiredInfo00.recreate = true;
+        requiredInfo00.executor = RequiredInfo.EXECUTOR_SRV;
         mailer.setSendRequired("from", requiredInfo00);
         //
-        SendRequiredInfo requiredInfo1 = mailer.getSendRequired("from");
+        RequiredInfo requiredInfo1 = mailer.getSendRequired("from");
         System.out.println("requiredFrom: " + requiredInfo1.requiredFrom);
         System.out.println("requiredTo: " + requiredInfo1.requiredTo);
         System.out.println("recreate: " + requiredInfo1.recreate);
+        System.out.println("executor: " + requiredInfo1.executor);
         System.out.println();
         //
         assertEquals(2, requiredInfo1.requiredFrom);
         assertEquals(4, requiredInfo1.requiredTo);
         assertEquals(true, requiredInfo1.recreate);
+        assertEquals(RequiredInfo.EXECUTOR_SRV, requiredInfo1.executor);
 
 
         // ---
-        SendRequiredInfo requiredInfo11 = new SendRequiredInfo();
+        RequiredInfo requiredInfo11 = new RequiredInfo();
         mailer.setSendRequired("from", requiredInfo11);
         //
-        SendRequiredInfo requiredInfo2 = mailer.getSendRequired("from");
+        RequiredInfo requiredInfo2 = mailer.getSendRequired("from");
         System.out.println("requiredFrom: " + requiredInfo2.requiredFrom);
         System.out.println("requiredTo: " + requiredInfo2.requiredTo);
         System.out.println("recreate: " + requiredInfo2.recreate);
+        System.out.println("executor: " + requiredInfo2.executor);
         //
         assertEquals(-1, requiredInfo2.requiredFrom);
         assertEquals(-1, requiredInfo2.requiredTo);
         assertEquals(false, requiredInfo2.recreate);
+        assertEquals(null, requiredInfo2.executor);
     }
 
 

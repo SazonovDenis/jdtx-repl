@@ -7,7 +7,7 @@ public class JdxOprType_Test extends TestCase {
 
     @Test
     public void test_1() {
-        String oprType_1_str = String.valueOf(JdxOprType.OPR_INS);
+        String oprType_1_str = String.valueOf(JdxOprType.INS);
         System.out.println("oprType_1: " + oprType_1_str);
 
         JdxOprType oprType_2 = JdxOprType.valueOfInt(1);

@@ -108,12 +108,12 @@ class Jdx_Ext extends ProjectExt {
 
                 //
                 System.out.println("queCommon.baseDir: " + srv.queCommon.baseDir)
-                for (Object obj : srv.mailerList.entrySet()) {
-                    Map.Entry entry = (Map.Entry) obj
-                    MailerHttp mailer = (MailerHttp) entry.value
-                    System.out.println("mailer.wsId: " + entry.key)
-                    System.out.println("  remoteUrl: " + mailer.remoteUrl)
-                    System.out.println("  guid: " + mailer.guid)
+                for (Map.Entry<Long, IMailer> en : srv.mailerList.entrySet()) {
+                    long wsId = en.getKey()
+                    MailerHttp wsMailer = en.getValue()
+                    System.out.println("mailer.wsId: " + wsId)
+                    System.out.println("  remoteUrl: " + wsMailer.remoteUrl)
+                    System.out.println("  guid: " + wsMailer.guid)
                 }
 
                 //
@@ -570,16 +570,16 @@ class Jdx_Ext extends ProjectExt {
 
             //
             String[] boxes = ["from", "to001", "to"]
-            for (Map.Entry en : srv.mailerList.entrySet()) {
-                long wsId = (long) en.getKey()
+            for (Map.Entry<Long, IMailer> en : srv.mailerList.entrySet()) {
+                long wsId = en.getKey()
+                MailerHttp wsMailer = (MailerHttp) en.getValue()
 
                 for (String box : boxes) {
-                    MailerHttp mailer = (MailerHttp) en.getValue()
                     try {
                         if (doCreate) {
-                            mailer.createMailBox(box)
+                            wsMailer.createMailBox(box)
                         } else {
-                            mailer.checkMailBox(box)
+                            wsMailer.checkMailBox(box)
                         }
                         System.out.println("wsId: " + wsId + ", box: " + box + " - ok")
                     } catch (Exception e) {

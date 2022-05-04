@@ -122,12 +122,12 @@ public class UtAuditApplyer {
             Map<String, Collection<Long>> delayedDeleteTask = new HashMap<>();
 
             //
-            String readerTableName = dataReader.nextTable();
-            String readerTableNamePrior = "";
+            long fileSize = dataReader.getInputStream().getSize();
             long countPortion = 0;
             long count = 0;
             //
-            long fileSize = dataReader.getInputStream().getSize();
+            String readerTableName = dataReader.nextTable();
+            String readerTableNamePrior = "";
             //
             while (readerTableName != null) {
                 // Поиск таблицы readerTableName в структуре, только в одну сторону (из-за зависимостей)
@@ -233,7 +233,7 @@ public class UtAuditApplyer {
                         // Выполняем INS/UPD/DEL
                         JdxOprType oprType = JdxOprType.valueOfStr(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
                         long recId = (Long) recParams.get(pkFieldName);
-                        if (oprType == JdxOprType.OPR_INS) {
+                        if (oprType == JdxOprType.INS) {
                             // Отменим удаление этой записи на втором проходе
                             delayedDeleteTaskForTable.remove(recId);
 
@@ -270,7 +270,7 @@ public class UtAuditApplyer {
                                 }
                             }
 
-                        } else if (oprType == JdxOprType.OPR_UPD) {
+                        } else if (oprType == JdxOprType.UPD) {
                             // Проверяем, что обновляемая запись НЕ была ещё раз изменена
                             if (selfAuditDtComparer.isSelfAuditAgeAboveReplicaAge(recId)) {
                                 log.info("Self audit age > replica age, record skipped, oprType: " + oprType + ", table: " + tableName + ", id: " + recId);
@@ -302,7 +302,7 @@ public class UtAuditApplyer {
                                     }
                                 }
                             }
-                        } else if (oprType == JdxOprType.OPR_DEL) {
+                        } else if (oprType == JdxOprType.DEL) {
                             // Отложим удаление на второй проход
                             delayedDeleteTaskForTable.add(recId);
                         }

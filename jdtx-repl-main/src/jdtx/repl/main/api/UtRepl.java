@@ -241,7 +241,7 @@ public class UtRepl {
         xmlWriter.appendRec();
 
         // Тип операции
-        xmlWriter.writeOprType(JdxOprType.OPR_INS);
+        xmlWriter.writeOprType(JdxOprType.INS);
 
         // Тело записи
         IJdxTable table = struct.getTable(tableName);
@@ -671,7 +671,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                                 // Нашли нужный id?
                                 if (findRecordId.equals(pkValue)) {
                                     JdxOprType oprType = JdxOprType.valueOfStr(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
-                                    if (oprType == JdxOprType.OPR_DEL && skipOprDel) {
+                                    if (oprType == JdxOprType.DEL && skipOprDel) {
                                         log.info("  record found, replica.wsId: " + replica.getInfo().getWsId() + ", OprType == OPR_DEL, skipped");
                                     } else {
                                         log.info("  record found, replica.wsId: " + replica.getInfo().getWsId());
@@ -687,7 +687,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                                         // Если ищем только последнюю запись - пусть она попадет в реплику как INS
                                         // (так удобнее потом "применять" реплику с командной строки)
                                         if (findLastOne) {
-                                            xmlWriter.writeOprType(JdxOprType.OPR_INS);
+                                            xmlWriter.writeOprType(JdxOprType.INS);
                                         } else {
                                             xmlWriter.writeOprType(oprType);
                                         }

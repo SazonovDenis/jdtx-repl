@@ -68,12 +68,17 @@ public class MailerLocalFiles implements IMailer {
     }
 
     @Override
-    public SendRequiredInfo getSendRequired(String box) throws Exception {
+    public long getReceiveDone(String box) throws Exception {
+        return 0;
+    }
+
+    @Override
+    public RequiredInfo getSendRequired(String box) throws Exception {
         return null;
     }
 
     @Override
-    public void setSendRequired(String box, SendRequiredInfo requiredInfo) throws Exception {
+    public void setSendRequired(String box, RequiredInfo requiredInfo) throws Exception {
 
     }
 

@@ -437,9 +437,10 @@ public class JdxReplSrv {
         // Это нужно, чтобы станция вышла из состояния "Detected restore from backup, repair needed" и получила нашу первую реплику.
         // В этой первой реплике возраст QUE_OUT_NO и AUDIT_AGE_DONE будет возвращен на место, вместе с остальными возрастами.
         IMailer mailerWs = mailerList.get(wsId);
-        SendRequiredInfo requiredInfo = new SendRequiredInfo();
+        RequiredInfo requiredInfo = new RequiredInfo();
         requiredInfo.requiredFrom = 1;
         requiredInfo.requiredTo = 1;
+        requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
         mailerWs.setSendRequired("to001", requiredInfo);
 
 
@@ -475,6 +476,7 @@ public class JdxReplSrv {
         // На этот раз это номер, соответсвующий имеющимся репликам в out001.
         requiredInfo.requiredFrom = ageQueOut001Ws + 1;
         requiredInfo.requiredTo = -1;
+        requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
         mailerWs.setSendRequired("to001", requiredInfo);
 
 
@@ -574,8 +576,7 @@ public class JdxReplSrv {
         // Все что у нас есть на раздачу
         long commonQueMaxNo = queCommon.getMaxNo();
 
-        for (Map.Entry en : mailerList.entrySet()) {
-            long wsId = (long) en.getKey();
+        for (long wsId : mailerList.keySet()) {
 
             //
             log.info("srvReplicasDispatch, to.wsId: " + wsId);
@@ -660,10 +661,10 @@ public class JdxReplSrv {
     /**
      * Рассылка реплик в ящики каждой рабочей станции
      */
-    public void srvReplicasSendMail() throws Exception {
-        for (Map.Entry en : mailerList.entrySet()) {
-            long wsId = (long) en.getKey();
-            IMailer mailer = (IMailer) en.getValue();
+    public void srvReplicasSend() throws Exception {
+        for (Map.Entry<Long, IMailer> en : mailerList.entrySet()) {
+            long wsId = en.getKey();
+            IMailer wsMailer = en.getValue();
 
             // Рассылаем
             try {
@@ -671,25 +672,59 @@ public class JdxReplSrv {
                 IJdxMailStateManager mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT000);
                 JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
                 queOut000.setDataRoot(dataRoot);
-                UtMail.sendQueToMail(wsId, queOut000, mailer, "to", mailStateManager);
+                UtMail.sendQueToMail_State(wsId, queOut000, wsMailer, "to", mailStateManager);
 
                 // Рассылаем очередь queOut001 на каждую станцию
+                mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT001);
                 JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
                 queOut001.setDataRoot(dataRoot);
-                //
-                mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT001);
-                UtMail.sendQueToMail(wsId, queOut001, mailer, "to001", mailStateManager);
+                UtMail.sendQueToMail_State(wsId, queOut001, wsMailer, "to001", mailStateManager);
 
                 // Отметить состояние сервера, данные сервера (сервер отчитывается о себе для отслеживания активности сервера)
                 // todo: не переложить отметку ли в sendQueToMail?
                 Map info = getInfoSrv();
-                mailer.setData(info, "srv.info", null);
+                wsMailer.setData(info, "srv.info", null);
 
             } catch (Exception e) {
                 // Ошибка для станции - пропускаем, идем дальше
                 errorCollector.collectError("srvReplicasSendMail, to.wsId: " + wsId, e);
                 //
                 log.error("Error in srvReplicasSendMail, to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
+                log.error(Ut.getStackTrace(e));
+            }
+
+        }
+    }
+
+
+    /**
+     * Рассылка реплик с сервера, по требованию
+     */
+    public void replicasSend_Requied() throws Exception {
+        for (Map.Entry<Long, IMailer> en : mailerList.entrySet()) {
+            long wsId = en.getKey();
+            IMailer wsMailer = en.getValue();
+
+            try {
+                // ws.from <- srv.common
+                String box = "from";
+                UtMail.sendQueToMail_Required_QueCommon(wsId, queCommon, wsMailer, box, RequiredInfo.EXECUTOR_SRV);
+
+                // ws.to <- srv.out
+                JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
+                queOut000.setDataRoot(dataRoot);
+                UtMail.sendQueToMail_Required(wsId, queOut000, wsMailer, "to", RequiredInfo.EXECUTOR_SRV);
+
+                // ws.to001 <- srv.out001
+                JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
+                queOut001.setDataRoot(dataRoot);
+                UtMail.sendQueToMail_Required(wsId, queOut001, wsMailer, "to001", RequiredInfo.EXECUTOR_SRV);
+
+            } catch (Exception e) {
+                // Ошибка для станции - пропускаем, идем дальше
+                errorCollector.collectError("srvMailRequest, to.wsId: " + wsId, e);
+                //
+                log.error("Error in srvMailRequest, to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
                 log.error(Ut.getStackTrace(e));
             }
 
@@ -1155,14 +1190,8 @@ public class JdxReplSrv {
                 for (long no = queDoneNo + 1; no <= queMaxNo; no++) {
                     log.info("receive, wsId: " + wsId + ", receiving.no: " + no);
 
-                    // Информацмия о реплике с почтового сервера
-                    IReplicaInfo infoMailer = mailer.getReplicaInfo("from", no);
-
                     // Физически забираем данные с почтового сервера
                     IReplica replica = mailer.receive("from", no);
-
-                    // Проверяем целостность скачанного
-                    UtJdx.checkReplicaCrc(replica, infoMailer.getCrc());
 
                     // Читаем поля заголовка
                     JdxReplicaReaderXml.readReplicaInfo(replica);
@@ -1250,8 +1279,7 @@ public class JdxReplSrv {
                         // Отмечаем
                         stateManager.setWsQueInNoDone(wsId, no);
 
-                        // todo: Почему для сервера - сразу ТУТ реагируем, а для станции - потом??? И почему ТУТ не проверяется адресат????
-                        // Реагируем на системные реплики-сообщения
+                        // Станция прислала отчет об изменении своего состояния - отмечаем состояние станции в серверных таблицах
                         if (replica.getInfo().getReplicaType() == JdxReplicaType.MUTE_DONE) {
                             JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
                             utmm.setMuteDone(wsId, commonQueNo);

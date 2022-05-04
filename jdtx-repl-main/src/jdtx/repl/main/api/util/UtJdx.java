@@ -372,7 +372,7 @@ public class UtJdx {
         File replicaFile = replica.getData();
         if (replicaFile == null && replica.getInfo().getReplicaType() != JdxReplicaType.SNAPSHOT) {
             // Разрещаем только SNAPSHOT быть без файла, т.к. свои собственные snapshot-реплики, поступающие в queIn,
-            // можно не скачивать (и в дальнейшем не применять)
+            // можно не скачивать (и в дальнейшем не применять), вот их могли и не скачивать
             throw new XError("invalid replica.file: is null");
         }
 

@@ -140,6 +140,8 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
         File actualFile = new File(baseDir + actualFileName);
         replica.setData(actualFile);
         //
+        replica.getInfo().setNo(no);
+        //
         return replica;
     }
 

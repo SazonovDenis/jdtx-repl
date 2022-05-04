@@ -8,6 +8,8 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
+import java.util.*;
+
 
 /**
  * Исходящая очередь queOut000 и queOut001 на сервере для КАЖДОЙ рабочей станции.
@@ -83,9 +85,7 @@ public abstract class JdxQueOutSrv extends JdxQue implements IJdxQue {
         JdxDbUtils dbu = new JdxDbUtils(db, null);
         long id = dbu.getNextGenerator(queTableGeneratorName);
         //
-        String sql = "insert into " + queTableName + " (id, destination_ws_id, destination_id, author_ws_id, author_id, age, crc, replica_type) values (:id, :destination_ws_id, :destination_id, :author_ws_id, :author_id, :age, :crc, :replica_type)";
-        //
-        db.execSql(sql, UtCnv.toMap(
+        Map params = UtCnv.toMap(
                 "id", id,
                 "destination_ws_id", destinationWsId,
                 "destination_id", queNo,
@@ -95,7 +95,11 @@ public abstract class JdxQueOutSrv extends JdxQue implements IJdxQue {
                 "age", replica.getInfo().getAge(),
                 "crc", replica.getInfo().getCrc(),
                 "replica_type", replica.getInfo().getReplicaType()
-        ));
+        );
+
+        //
+        String sql = "insert into " + queTableName + " (id, destination_ws_id, destination_id, author_ws_id, author_id, age, crc, replica_type) values (:id, :destination_ws_id, :destination_id, :author_ws_id, :author_id, :age, :crc, :replica_type)";
+        db.execSql(sql, params);
     }
 
     @Override

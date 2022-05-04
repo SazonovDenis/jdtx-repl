@@ -16,6 +16,21 @@ public class UtJdxData {
         return doubleValueOf(value, null);
     }
 
+    public static String stringValueOf(Object value, String valueIfNull) {
+        String valueString;
+        if (value == null) {
+            valueString = valueIfNull;
+        } else {
+            valueString = value.toString();
+            if (valueString.length() == 0) {
+                valueString = valueIfNull;
+            } else if (valueString.compareToIgnoreCase("null") == 0) {
+                valueString = valueIfNull;
+            }
+        }
+        return valueString;
+    }
+
     public static Long longValueOf(Object value, Long valueIfNull) {
         Long valueLong;
         if (value == null) {

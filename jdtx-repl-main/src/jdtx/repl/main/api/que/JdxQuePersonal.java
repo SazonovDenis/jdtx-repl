@@ -57,13 +57,15 @@ public class JdxQuePersonal extends JdxQue implements IJdxQue {
 
     @Override
     long getReplicaQueNo(IReplica replica) throws Exception {
-        // Исходно в реплике не должно быть номера
-        if (replica.getInfo().getNo() != 0) {
-            throw new XError("Replica.no already set, replica.no: " + replica.getInfo().getNo());
-        }
-
         // Генерим следующий номер - по порядку
         long queNo = getMaxNo() + 1;
+
+        // Исходно в реплике не должно быть номера или номер в реплике должен совпадать с очередным номером в очереди.
+        // Номер не заполнен - при штатном формировании исходящей очереди.
+        // Номер уже заполнен - при восстановлении исходящей очереди реплик из папки (во время repairAfterBackupRestore).
+        if (replica.getInfo().getNo() != 0 && queNo != replica.getInfo().getNo()) {
+            throw new XError("Replica.no already set, replica.no: " + replica.getInfo().getNo() + ", expected que.no: " + queNo);
+        }
 
         // Проставляем номер
         replica.getInfo().setNo(queNo);

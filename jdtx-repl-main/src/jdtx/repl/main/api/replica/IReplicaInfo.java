@@ -15,13 +15,13 @@ public interface IReplicaInfo {
 
     void setWsId(long wsId);
 
-    long getNo();
-
-    void setNo(long no);
-
     long getAge();
 
     void setAge(long age);
+
+    long getNo();
+
+    void setNo(long no);
 
     String getCrc();
 

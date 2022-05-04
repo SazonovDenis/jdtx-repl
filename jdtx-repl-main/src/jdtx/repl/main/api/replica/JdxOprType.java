@@ -4,13 +4,14 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 
 /**
- * Виды операций в реплике (IDE)
+ * Виды операций в реплике (IDE).
+ * Десериализация поддерживается как из строки "INS", "UPD", "DEL", так и из строки "1", "2", "3"
  */
 public enum JdxOprType {
 
-    OPR_INS(1),
-    OPR_UPD(2),
-    OPR_DEL(3);
+    INS(1),
+    UPD(2),
+    DEL(3);
 
     int value;
 

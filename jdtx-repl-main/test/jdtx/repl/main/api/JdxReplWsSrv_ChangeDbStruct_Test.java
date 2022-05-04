@@ -206,7 +206,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws2.init();
 
         // Получаем входящие реплики
-        ws2.receive();
+        ws2.replicasReceive();
         // Применяем входящие реплики
         ws2.handleQueIn();
         //
@@ -249,7 +249,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws2.init();
 
         // Получаем входящие реплики
-        ws2.receive();
+        ws2.replicasReceive();
         // Применяем входящие реплики
         ws2.handleQueIn();
         //
