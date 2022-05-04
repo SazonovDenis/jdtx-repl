@@ -233,7 +233,7 @@ public class UtAuditSelector {
                 UtJdx.SQL_FIELD_OPR_TYPE + ", \n" +
                 UtJdx.PREFIX + "opr_dttm, \n" +
                 UtJdx.AUDIT_TABLE_PREFIX + tableName + "." + pkFieldName + ", \n" +
-                "(case when " + UtJdx.SQL_FIELD_OPR_TYPE + " in (" + JdxOprType.OPR_INS + "," + JdxOprType.OPR_UPD + ") and " + tableName + "." + pkFieldName + " is null then 1 else 0 end) z_skip, \n" +
+                "(case when " + UtJdx.SQL_FIELD_OPR_TYPE + " in (" + JdxOprType.INS.getValue() + "," + JdxOprType.UPD.getValue() + ") and " + tableName + "." + pkFieldName + " is null then 1 else 0 end) z_skip, \n" +
                 tableFieldsAlias + "\n" +
                 " from " + UtJdx.AUDIT_TABLE_PREFIX + tableName + "\n" +
                 " left join " + tableName + " on (" + UtJdx.AUDIT_TABLE_PREFIX + tableName + "." + pkFieldName + " = " + tableName + "." + pkFieldName + ") \n" +
