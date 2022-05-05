@@ -44,6 +44,10 @@ public class JdxReplicaReaderXml {
         return replicaHeaderInfo.getAge();
     }
 
+    public long getNo() {
+        return replicaHeaderInfo.getNo();
+    }
+
     public DateTime getDtFrom() {
         return replicaHeaderInfo.getDtFrom();
     }

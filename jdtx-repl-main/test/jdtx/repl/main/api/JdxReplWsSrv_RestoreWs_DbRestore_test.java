@@ -124,6 +124,48 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         assertDbNotEquals_1_2_3();
     }
 
+    @Test
+    public void test_DatabaseRestore_stepRepair() throws Exception {
+        // Ремонт
+        JdxReplWs ws = new JdxReplWs(db2);
+        ws.init();
+
+        // Первая попытка ремонта
+        System.out.println();
+        System.out.println("Первая попытка ремонта");
+        try {
+            ws.repairAfterBackupRestore(true, false);
+        } catch (Exception e) {
+            System.out.println("Первая попытка ремонта: " + e.getMessage());
+        }
+
+
+        // Сервер ответит на просьбы о повторной отправке
+        System.out.println();
+        System.out.println("Сервер ответит на просьбы о повторной отправке");
+        test_srv_doReplSession();
+
+
+        // Последняя попытка ремонта
+        System.out.println();
+        System.out.println("Последняя попытка ремонта");
+        ws.repairAfterBackupRestore(true, false);
+
+
+        // Финальная синхронизация
+        System.out.println();
+        System.out.println("Финальная синхронизация");
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+
+
+        // Cинхронизация должна пройти нормально
+        assertDbEquals_1_2_3();
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
+        new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
+    }
+
     private void doSetUp_doNolmalLife_BeforeFail() throws Exception {
         // Создание репликации
         allSetUp();
@@ -134,6 +176,12 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         sync_http_1_2_3();
 
 
+        // Проверим исходную синхронность после инициализации
+        System.out.println("Базы должны быть в синхронном состоянии");
+        assertDbEquals_1_2_3();
+
+
+        // ---
         // Изменения в базах
         test_ws1_makeChange_Unimportant();
         test_ws2_makeChange();
@@ -143,9 +191,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         sync_http_1_2_3();
 
 
-        // ---
-        // Проверим исходную синхронность
-        System.out.println("Базы в синхронном состоянии");
+        // Проверим исходную синхронность после изменений
+        System.out.println("Базы должны быть в синхронном состоянии");
         assertDbEquals_1_2_3();
 
 
@@ -191,40 +238,6 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         JdxReplWs ws2 = new JdxReplWs(db2);
         ws2.init();
         ws2.handleSelfAudit();
-    }
-
-
-    private void test_DatabaseRestore_stepRepair() throws Exception {
-        // Ремонт
-        JdxReplWs ws = new JdxReplWs(db2);
-        ws.init();
-
-        // Первая попытка ремонта
-        try {
-            ws.repairAfterBackupRestore(true, false);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-
-        // Сервер ответит на просьбы о повторной отправке
-        test_srv_doReplSession();
-
-
-        // Последняя попытка ремонта
-        ws.repairAfterBackupRestore(true, false);
-
-
-        // Синхронизация
-        sync_http_1_2_3();
-        sync_http_1_2_3();
-        sync_http_1_2_3();
-
-        //
-        System.out.println("Cинхронизация прошла нормально");
-        assertDbEquals_1_2_3();
-        do_DumpTables(db, db2, db3, struct, struct2, struct3);
-        new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
     }
 
 }
