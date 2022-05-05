@@ -26,24 +26,24 @@ public class SelfAuditDtComparer {
     /**
      * Кэшируем порцию собственного аудита
      *
-     * @param tableName   для этой таблицы
-     * @param replicaDtTo берем возраст, старше этого
+     * @param tableName для этой таблицы
+     * @param dt        берем возраст, старше этого
      */
-    public void readSelfAuditData(String tableName, DateTime replicaDtTo) throws Exception {
+    public void readSelfAuditData(String tableName, DateTime dt) throws Exception {
         this.tableName = tableName;
-        this.replicaDtTo = replicaDtTo;
+        this.replicaDtTo = dt;
         this.selfAuditData = new HashMap<>();
 
-        // Читаем изменения из аудита, сделанные ПОСЛЕ даты replicaDtTo
+        // Читаем изменения из аудита, сделанные ПОСЛЕ даты dt
         String sql = "select * from " + UtJdx.AUDIT_TABLE_PREFIX + tableName + " where Z_OPR_DTTM > :replicaDt order by Z_OPR_DTTM";
-        DbQuery query = db.openSql(sql, UtCnv.toMap("replicaDt", replicaDtTo));
+        DbQuery query = db.openSql(sql, UtCnv.toMap("replicaDt", dt));
 
         // Кэшируем
         try {
             while (!query.eof()) {
-                DateTime dt = query.getValueDateTime("Z_OPR_DTTM");
+                DateTime dtAudit = query.getValueDateTime("Z_OPR_DTTM");
                 long id = query.getValueLong("ID");
-                selfAuditData.put(id, dt);
+                selfAuditData.put(id, dtAudit);
                 //
                 query.next();
             }

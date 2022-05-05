@@ -214,11 +214,8 @@ public class UtDbComparer {
             String tableName = table.getName();
 
             //
-            //log.info("table: " + tableName);
-
-            //
             if (table.getPrimaryKey().size() == 0) {
-                log.info("table: " + tableName + " has no PK");
+                //log.info("table: " + tableName + " has no PK");
                 continue;
             }
 
@@ -248,25 +245,18 @@ public class UtDbComparer {
                     String pkFieldValue = dataSerializer.prepareValueStr(query.getValueString(pkFieldName), pkField);
                     resTable.put(pkFieldValue, recCrc.substring(0, 16));
 
-/*
-                    if (tableName.equalsIgnoreCase("LIC")) {
-                        log.info("  Table: " + tableName + ", record: [" + pkFieldValue + "].values: " + valuesStr);
-                        log.info("  Table: " + tableName + ", record: [" + pkFieldValue + "].crc: " + recCrc);
-                    }
-*/
-
                     //
                     query.next();
 
                     //
                     count++;
                     if (count % 1000 == 0) {
-                        log.info("readData: " + tableName + ", " + count);
+                        //log.info("readData: " + tableName + ", " + count);
                     }
                 }
 
                 //
-                log.info("readData done: " + tableName + ", " + count);
+                //log.info("readData done: " + tableName + ", " + count);
             } finally {
                 query.close();
             }
