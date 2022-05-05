@@ -129,9 +129,12 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
      */
 
     long getReplicaQueNo(IReplica replica) throws Exception {
-        // Генерим следующий номер в нашей очереди - по порядку.
-        // В самой реплике номер УЖЕ ДОЛЖЕН БЫТЬ - это тот номер, который пришел от рабочей станции, поэтому тут replica.info.no - не присваиваем
+        // Генерим следующий номер в НАШЕЙ очереди - по порядку.
         long queNo = getMaxNo() + 1;
+
+        // В самой реплике номер либо УЖЕ ДОЛЖЕН БЫТЬ (тот номер, который пришел от рабочей станции),
+        // либо его тут не нужно (это реплика системная от сервера),
+        // поэтому тут значение replica.info.no - не присваиваем (проверку делает validateReplicaFields)
 
         //
         return queNo;

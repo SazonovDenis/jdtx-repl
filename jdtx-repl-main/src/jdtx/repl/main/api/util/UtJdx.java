@@ -358,9 +358,9 @@ public class UtJdx {
             throw new XError("invalid replica.wsId: " + replica.getInfo().getWsId());
         }
 
-        // Проверки: указан номер реплики
+        // Проверки: указан номер реплики, если он там нужен
         if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE && replica.getInfo().getNo() <= 0) {
-            throw new XError("invalid replica.no: " + replica.getInfo().getNo());
+            throw new XError("replica info.no is not set, no: " + replica.getInfo().getNo());
         }
 
         // Проверки: указан возраст данных age в реплике типа IDE

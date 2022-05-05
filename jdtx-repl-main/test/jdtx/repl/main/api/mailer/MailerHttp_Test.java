@@ -397,7 +397,7 @@ public class MailerHttp_Test extends AppTestCase {
         JSONObject res_files = mailer.getData("files", box);
         JSONObject res_ping_read = mailer.getData("ping.read", box);
         JSONObject res_ping_write = mailer.getData("ping.write", box);
-        JSONObject res_last_info = mailer.getData("last.info", box);
+        JSONObject res_last_info = mailer.getData("last.dat.info", box);
         JSONObject res_required_info = mailer.getData("required.info", box);
         //
         System.out.println("files: " + res_files);
@@ -498,7 +498,7 @@ public class MailerHttp_Test extends AppTestCase {
 
     @Test
     public void test_getData() throws Exception {
-        String name = "last.info";
+        String name = "last.dat.info";
         String box = "to";
         //
         JSONObject lastInfo = mailer.getData(name, box);

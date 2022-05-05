@@ -67,8 +67,11 @@ public abstract class JdxQueOutSrv extends JdxQue implements IJdxQue {
 
     long getReplicaQueNo(IReplica replica) throws Exception {
         // Генерим следующий номер в нашей очереди - по порядку.
-        // В самой реплике номер УЖЕ ДОЛЖЕН БЫТЬ - это тот номер, который пришел от рабочей станции, поэтому тут replica.info.no - не присваиваем
         long queNo = getMaxNo() + 1;
+
+        // В самой реплике номер либо УЖЕ ДОЛЖЕН БЫТЬ (тот номер, который пришел от рабочей станции),
+        // либо его тут не нужно (это реплика системная от сервера),
+        // поэтому тут значение replica.info.no - не присваиваем (проверку делает validateReplicaFields)
 
         // Проверки: правильность номеров реплик от рабочей станции wsId - обязательно монотонное возрастание номера replica.no
         long queWsMaxNo = getMaxNoForDestinationWs(destinationWsId);

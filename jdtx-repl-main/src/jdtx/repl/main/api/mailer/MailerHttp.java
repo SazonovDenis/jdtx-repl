@@ -80,7 +80,7 @@ public class MailerHttp implements IMailer {
 
     @Override
     public long getSendDone(String box) throws Exception {
-        JSONObject res = getData("last.info", box);
+        JSONObject res = getData("last.write", box);
         JSONObject data = (JSONObject) res.get("data");
         long no = UtJdxData.longValueOf(data.getOrDefault("no", 0));
         return no;
@@ -438,7 +438,7 @@ public class MailerHttp implements IMailer {
     }
 
     public IReplicaInfo getLastReplicaInfo(String box) throws Exception {
-        JSONObject res = getData("last.info", box);
+        JSONObject res = getData("last.dat.info", box);
         JSONObject data = (JSONObject) res.get("data");
         IReplicaInfo info = new ReplicaInfo();
         info.fromJSONObject(data);
@@ -450,12 +450,11 @@ public class MailerHttp implements IMailer {
 
         HttpPost post = createHttpPost("repl_send_commit");
 
-        //
+        // Дополним replica.info техническими данными
         JSONObject infoJson = info.toJSONObject();
         infoJson.put("protocolVersion", REPL_PROTOCOL_VERSION);
         infoJson.put("partsCount", partsCount);
         infoJson.put("totalBytes", totalBytes);
-        infoJson.put("no", no);
 
         //
         StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
@@ -577,7 +576,7 @@ public class MailerHttp implements IMailer {
         getData("files", box);
         getData("ping.read", box);
         getData("ping.write", box);
-        getData("last.info", box);
+        getData("last.dat.info", box);
         getData("last.read", box);
         getData("last.write", box);
         getData("required.info", box);

@@ -251,7 +251,7 @@ public class UtMail {
         long srv_no = mailer.getSendDone(box);
         if (sendFrom < srv_no) {
             // Отправка сильно отстает от сервера
-            throw new XError("invalid replica.no, send.no: " + sendFrom + ", srv.no: " + srv_no + ", server is forward");
+            throw new XError("invalid replica.no, box: " + box + ", send.no: " + sendFrom + ", srv.no: " + srv_no + ", server is forward");
         } else if (sendFrom == srv_no && srv_no != 0) {
             // Отправка одинакова с сервером
             IReplicaInfo fileInfo = ((MailerHttp) mailer).getLastReplicaInfo(box);
@@ -259,13 +259,13 @@ public class UtMail {
             // Если последнее письмо совпадает - то считаем это недоразумением ит игнорируем.
             IReplica replica = que.get(sendFrom);
             if (!UtJdx.equalReplicaCrc(replica, crc)) {
-                throw new XError("invalid replica.no, send.no: " + sendFrom + ", srv.no: " + srv_no + ", workstation and server have equal replica.no, but different replica.crc");
+                throw new XError("invalid replica.no, box: " + box + ", send.no: " + sendFrom + ", srv.no: " + srv_no + ", workstation and server have equal replica.no, but different replica.crc");
             } else {
-                log.warn("mailer.send, already sent replica.no: " + sendFrom + ", workstation and server have equal replica.no and equal replica.crc");
+                log.warn("mailer.send, already sent box: " + box + ", replica.no: " + sendFrom + ", workstation and server have equal replica.no and equal replica.crc");
             }
         } else if (sendFrom > srv_no + 1 && srv_no != 0) {
             // Отправка сильно опережает сервер
-            throw new XError("invalid replica.no, send.no: " + sendFrom + ", srv.no: " + srv_no + ", workstation is forward");
+            throw new XError("invalid replica.no, box: " + box + ", send.no: " + sendFrom + ", srv.no: " + srv_no + ", workstation is forward");
         }
 
         //

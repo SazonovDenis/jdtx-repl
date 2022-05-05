@@ -9,16 +9,22 @@ import org.json.simple.*;
 public interface IReplicaInfo {
 
     /**
-     * @return Станция-автор реплики
+     * Станция-автор реплики
      */
     long getWsId();
 
     void setWsId(long wsId);
 
+    /**
+     * Возраст базы у автора реплики
+     */
     long getAge();
 
     void setAge(long age);
 
+    /**
+     * Номер реплики у автора, монотонно растет для автора
+     */
     long getNo();
 
     void setNo(long no);
