@@ -1692,7 +1692,6 @@ public class JdxReplWs {
 
     /**
      * Выявить ситуацию "станцию восстановили из бэкапа" и починить ее
-     * todo: НЕ обрабатывает ситуацию "в очереди реплики есть, а в каталоге их нет (пропали файлы)"
      */
     public void repairAfterBackupRestore(boolean doRepair, boolean doPrint) throws Exception {
         // ---
@@ -2031,10 +2030,33 @@ public class JdxReplWs {
         // Среди входящих есть и НАШИ СОБСТВЕННЫЕ реплики, важно их применить именно сейчас, когда начат ремонт.
         // Иначе при применении входящей очереди в рамках обработки общего задания - не будет вызван ремонт генераторов,
         // а из-за наличия во входящей очереди НАШИХ СОБСТВЕННЫХ потерянных данных - генераторы перейдут в нецелостное состояние.
-        ReplicaUseResult useResult_QueIn = handleQueIn(true);
+        handleQueIn(true);
 
-        // Отслеживаем наш последний возраст, встретившийся в репликах
-        long lastOwnAgeUsed = useResult_QueIn.lastOwnAgeUsed;
+        // Проверяем, что все применили
+        noQueInUsed = stateManager.getQueNoDone("in");
+        if (noQueInUsed != queIn.getMaxNo()) {
+            throw new XError("Use queIn - que is not completely used, noQueInUsed: " + noQueInUsed + ", queIn.getMaxNo: " + queIn.getMaxNo());
+        }
+
+
+        // ---
+        // Отслеживаем наш последний возраст age, встретившийся в НАШИХ СОБСТВЕННЫХ репликах при примененнии QueIn.
+        // Ремонт отметки возраста ИСПОЛЬЗОВАННОГО аудита делаем именно по нему
+        long lastOwnAgeUsed = -1;
+        long no00 = queIn.getMaxNo();
+        while (true) {
+            IReplica replica = queIn.get(no00);
+            //
+            if (replica.getInfo().getWsId() == wsId) {
+                if (replica.getInfo().getAge() > 0) {
+                    lastOwnAgeUsed = replica.getInfo().getAge();
+                    break;
+                }
+            }
+
+            //
+            no00 = no00 - 1;
+        }
 
 
         // ---
@@ -2048,15 +2070,12 @@ public class JdxReplWs {
             // Извлекаем собственную реплику из закромов queOut
             IReplica replica = queOut.get(no1);
 
-            //
+            // Отслеживаем наш последний возраст age, встретившийся в НАШИХ СОБСТВЕННЫХ репликах при примененнии QueOut.
             JdxReplicaReaderXml.readReplicaInfo(replica);
             long age = replica.getInfo().getAge();
-
-            // Отслеживаем наш последний возраст, встретившийся в репликах
             if (age > lastOwnAgeUsed) {
                 lastOwnAgeUsed = age;
             }
-
 
             // Пробуем применить собственную реплику
             ReplicaUseResult useResult = useReplicaInternal(replica, true);
@@ -2096,8 +2115,8 @@ public class JdxReplWs {
 
 
         // ---
-        // Чиним отметку возраста аудита.
-        // После применения собственных реплик состояние "возраст age" для рабочей станции все ещё содержит устаревшее состояние.
+        // Чиним отметку возраста аудита ("возраст age" для таблиц аудита).
+        // После применения собственных реплик из очереди QueIn отметка все ещё содержит устаревшее состояние.
         UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
         long ageNow = auditAgeManager.getAuditAge();
         if (ageNow < lastOwnAgeUsed) {
@@ -2107,20 +2126,21 @@ public class JdxReplWs {
 
 
         // ---
+        // Чиним отметку возраста ИСПОЛЬЗОВАННОГО аудита (до какого возраста аудит отмечен как выложенный в очередь QueOut).
+        // После применения собственных реплик из очереди QueIn отметка все ещё содержит устаревшее состояние.
+        long ageQueOutDoneNow = stateManager.getAuditAgeDoneQueOut();
+        if (ageQueOutDoneNow < lastOwnAgeUsed) {
+            stateManager.setAuditAgeDoneQueOut(lastOwnAgeUsed);
+            log.warn("Repair ageQueOutDone, " + ageQueOutDoneNow + " -> " + lastOwnAgeUsed);
+        }
+
+
+        // ---
         // Если возраст "отправлено на сервер" меньше, чем фактический размер исходящей очереди -
         // чиним отметку об отправке собственных реплик.
         if (noQueOutSendMarked < noQueOutSendSrv) {
             mailStateManager.setMailSendDone(noQueOutSendSrv);
             log.warn("Repair mailSendDone, " + noQueOutSendMarked + " -> " + noQueOutSendSrv);
-        }
-
-
-        // ---
-        // До какого возраста аудит отмечен как выложенный в очередь QueOut
-        long ageQueOutDoneNow = stateManager.getAuditAgeDoneQueOut();
-        if (ageQueOutDoneNow < lastOwnAgeUsed) {
-            stateManager.setAuditAgeDoneQueOut(lastOwnAgeUsed);
-            log.warn("Repair ageQueOutDone, " + ageQueOutDoneNow + " -> " + lastOwnAgeUsed);
         }
 
 

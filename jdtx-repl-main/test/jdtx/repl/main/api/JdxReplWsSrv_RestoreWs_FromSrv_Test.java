@@ -9,8 +9,8 @@ import org.junit.*;
 import java.io.*;
 
 /**
- * Проверка восстановления репликации рабочей станции
- * при полной потере базы и репликационных каталогов, по данным с сервера.
+ * Проверка восстановления рабочей станции
+ * по данным с сервера.
  */
 public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_Test {
 
@@ -23,6 +23,12 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
     }
 
 
+    /**
+     * Проверка восстановления репликации рабочей станции
+     * при полной потере базы и репликационных каталогов, по данным с сервера.
+     * test_DatabaseRestore_stepRuin - провоцирует ошибку,
+     * test_DatabaseRestore_stepRepair - исправляет ее
+     */
     @Test
     public void test_DirDB_srv() throws Exception {
         test_DatabaseRestore_stepRuin();

@@ -5,7 +5,7 @@ import org.junit.*;
 import java.io.*;
 
 /**
- * Проверка восстановления репликации рабочей станции
+ * Проверка восстановления рабочей станции
  * при восстановлении базы/папок из бэкапа
  */
 public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreWs_Test {
