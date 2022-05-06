@@ -10,10 +10,10 @@ import org.apache.commons.logging.*;
 /**
  * BgTask - рабочая станция
  */
-public class WsBgTask extends BgTask {
+public class BgTaskWsRepl extends BgTask {
 
 
-    private static Log log = LogFactory.getLog("jdtx.WsBgTask");
+    private static Log log = LogFactory.getLog("jdtx.BgTaskWsRepl");
 
     //
     public boolean runImmediate;
@@ -26,7 +26,7 @@ public class WsBgTask extends BgTask {
         //
         try {
             log.info("Рабочая станция");
-            step_ws();
+            step();
         } catch (Exception e) {
             log.error(Ut.getExceptionMessage(e));
             log.error(Ut.getStackTrace(e));
@@ -35,7 +35,7 @@ public class WsBgTask extends BgTask {
 
 
     //
-    private void step_ws() throws Exception {
+    private void step() throws Exception {
         ModelService app = getApp().service(ModelService.class);
         Db db = app.getModel().getDb();
         db.connect();
@@ -44,9 +44,9 @@ public class WsBgTask extends BgTask {
         try {
             JdxReplWs ws = new JdxReplWs(db);
             //
-            JdxReplTaskWs replTask = new JdxReplTaskWs(ws);
+            JdxTaskWsRepl replTask = new JdxTaskWsRepl(ws);
             //
-            replTask.doReplSession();
+            replTask.doTask();
         } finally {
             db.disconnect();
         }

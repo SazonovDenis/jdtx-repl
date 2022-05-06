@@ -7,27 +7,27 @@ import org.apache.commons.logging.*;
 /**
  * Выполняет шаги "сеанс репликации" для рабочей станции.
  */
-public class JdxReplTaskWs extends JdxReplTaskCustom {
+public class JdxTaskWsRepl extends JdxTaskCustom {
 
     //
     JdxReplWs ws;
 
     //
-    public JdxReplTaskWs(JdxReplWs ws) {
+    public JdxTaskWsRepl(JdxReplWs ws) {
         this.ws = ws;
         ws.errorCollector = errorCollector;
         log = LogFactory.getLog("jdtx.JdxReplTaskWs");
     }
 
     //
-    public void doReplSession() throws Exception {
+    public void doTask() throws Exception {
         //
         logInfo("Рабочая станция");
         ws.init();
         logInfo("Рабочая станция, wsId: " + ws.getWsId());
 
         // Проверка версии приложения, обновление при необходимости
-        ws.checkAppUpdate();
+        ws.doAppUpdate();
 
         //
         logInfo("Проверяем аварийную ситуацию");
@@ -59,7 +59,7 @@ public class JdxReplTaskWs extends JdxReplTaskCustom {
         //
         logInfo("Отправляем свои реплики");
         try {
-            ws.send();
+            ws.replicasSend();
         } catch (Exception e) {
             logError(e);
             collectError("ws.send", e);
@@ -68,7 +68,7 @@ public class JdxReplTaskWs extends JdxReplTaskCustom {
         //
         logInfo("Забираем входящие реплики");
         try {
-            ws.receive();
+            ws.replicasReceive();
         } catch (Exception e) {
             logError(e);
             collectError("ws.receive", e);

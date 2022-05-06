@@ -38,22 +38,41 @@
 
         <choicer name="JdxTaskPriorityChoicer" class="jdtx.repl.main.task.JdxTaskPriorityChoicer"/>
 
-        <!-- Рабочая станция -->
-        <bgtask name="ws"
-                class="jdtx.repl.main.task.WsBgTask"
-                delay="100"
-                period="600000"
-                enabled="false"
-                __cfgFileName="cfg.json"
-        />
-
         <!-- Сервер -->
         <bgtask name="server"
-                class="jdtx.repl.main.task.SrvBgTask"
-                delay="100"
-                period="600000"
+                class="jdtx.repl.main.task.BgTaskSrvRepl"
+                delay="1000"
+                period="500000"
                 enabled="false"
-                __cfgFileName="cfg.json"
+        />
+
+        <bgtask name="server.Mail"
+                class="jdtx.repl.main.task.BgTaskSrvMail"
+                delay="2000"
+                period="500000"
+                enabled="false"
+        />
+
+        <bgtask name="server.MailRequest"
+                class="jdtx.repl.main.task.BgTaskSrvMailRequest"
+                delay="3000"
+                period="500000"
+                enabled="false"
+        />
+
+        <!-- Рабочая станция -->
+        <bgtask name="ws"
+                class="jdtx.repl.main.task.BgTaskWsRepl"
+                delay="1000"
+                period="500000"
+                enabled="false"
+        />
+
+        <bgtask name="ws.MailRequest"
+                class="jdtx.repl.main.task.BgTaskWsMailRequest"
+                delay="2000"
+                period="500000"
+                enabled="false"
         />
 
     </service>
@@ -76,7 +95,8 @@
         <item name="Update_010_011_dir" class="jdtx.repl.main.api.jdx_db_object.Update_010_011_dir"/>
         <item name="Update_011_012_fill_age" class="jdtx.repl.main.api.jdx_db_object.Update_011_012_fill_age"/>
         <item name="Update_013_014_index" class="jdtx.repl.main.api.jdx_db_object.Update_013_014_index"/>
-        <item name="Update_014_015_que_generators" class="jdtx.repl.main.api.jdx_db_object.Update_014_015_que_generators"/>
+        <item name="Update_014_015_que_generators"
+              class="jdtx.repl.main.api.jdx_db_object.Update_014_015_que_generators"/>
 
     </service>
 

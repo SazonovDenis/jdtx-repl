@@ -13,7 +13,7 @@ public class JdxTaskPriorityChoicer extends BgTasksChoicer {
     public BgTask choiceNextTask(Collection<BgTask> tasks, Collection<BgTask> runnedTask) throws Exception {
         for (BgTask x : tasks) {
             if (x.getName().equals("ws")) {
-                if (((WsBgTask) x).runImmediate == true) {
+                if (((BgTaskWsRepl) x).runImmediate == true) {
                     return x;
                 }
             }

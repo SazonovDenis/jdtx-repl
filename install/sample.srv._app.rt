@@ -5,15 +5,30 @@
 
         <!-- Сервер -->
         <bgtask name="server"
+                period="10000"
+                enabled="true"
+        />
+
+        <bgtask name="server.Mail"
                 period="50000"
                 enabled="true"
-                />
+        />
+
+        <bgtask name="server.MailRequest"
+                period="120000"
+                enabled="true"
+        />
 
         <!-- Рабочая станция -->
         <bgtask name="ws"
-                period="60000"
+                period="100000"
                 enabled="true"
-                />
+        />
+
+        <bgtask name="ws.MailRequest"
+                period="130000"
+                enabled="true"
+        />
 
     </service>
 

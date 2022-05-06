@@ -5,15 +5,15 @@ import jdtx.repl.main.api.mailer.*;
 import org.apache.commons.logging.*;
 
 /**
- * Выполняет шаги "сеанс обработки реплик" для сервера.
+ * Выполняет шаги "обработка реплик" для сервера.
  */
-public class JdxReplTaskSrv extends JdxReplTaskCustom {
+public class JdxTaskSrvRepl extends JdxTaskCustom {
 
     //
     JdxReplSrv srv;
 
     //
-    public JdxReplTaskSrv(JdxReplSrv srv) {
+    public JdxTaskSrvRepl(JdxReplSrv srv) {
         this.srv = srv;
         srv.errorCollector = errorCollector;
         log = LogFactory.getLog("jdtx.JdxReplTaskSrv");
@@ -22,11 +22,11 @@ public class JdxReplTaskSrv extends JdxReplTaskCustom {
     //
     public void doTask() throws Exception {
         //
-        log.info("Сервер");
+        log.info("Сервер, обработка реплик");
         srv.init();
 
 
-        // Проверка версии приложения
+        // Проверка версии приложения (без обновления)
         srv.checkAppUpdate();
 
 
@@ -37,16 +37,6 @@ public class JdxReplTaskSrv extends JdxReplTaskCustom {
         } catch (Exception e) {
             logError(e);
             collectError("srv.srvHandleRoutineTask", e);
-        }
-
-
-        //
-        log.info("Чтение входящих очередей");
-        try {
-            srv.srvHandleQueIn();
-        } catch (Exception e) {
-            logError(e);
-            collectError("srv.srvHandleCommonQue", e);
         }
 
 
@@ -71,23 +61,13 @@ public class JdxReplTaskSrv extends JdxReplTaskCustom {
 
 
         //
-        log.info("Рассылка реплик");
-        try {
-            srv.srvReplicasSendMail();
-        } catch (Exception e) {
-            logError(e);
-            collectError("srv.srvReplicasSendMail", e);
-        }
-
-
-        //
         IMailer mailer = srv.getSelfMailer();
         logInfo("Отправка ошибок");
         sendErrors(mailer, "srv.errors");
 
 
         //
-        log.info("Сервер завершен");
+        log.info("Сервер, обработка реплик завершена");
     }
 
 }

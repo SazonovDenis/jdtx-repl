@@ -7,7 +7,7 @@ import org.apache.commons.logging.*;
 
 import java.util.*;
 
-public class JdxReplTaskCustom {
+public abstract class JdxTaskCustom {
 
 
     //
@@ -16,7 +16,7 @@ public class JdxReplTaskCustom {
     JdxErrorCollector errorCollector;
 
 
-    public JdxReplTaskCustom() {
+    public JdxTaskCustom() {
         errorCollector = new JdxErrorCollector();
     }
 

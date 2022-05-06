@@ -3,17 +3,16 @@
 
     <service name="jandcode.bgtasks.BgTasksService">
 
-        <!-- Сервер -->
-        <bgtask name="server"
-                period="50000"
-                enabled="false"
-                />
-
         <!-- Рабочая станция -->
         <bgtask name="ws"
-                period="120000"
+                period="100000"
                 enabled="true"
-                />
+        />
+
+        <bgtask name="ws.MailRequest"
+                period="130000"
+                enabled="true"
+        />
 
     </service>
 

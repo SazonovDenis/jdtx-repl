@@ -8,18 +8,18 @@ import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
 
 /**
- * BgTask - сервер
+ * Task - сервер, рассылка писем
  */
-public class SrvBgTask extends BgTask {
+public class BgTaskSrvMail extends BgTask {
 
     //
-    private static Log log = LogFactory.getLog("jdtx.SrvBgTask");
+    private static Log log = LogFactory.getLog("jdtx.BgTaskSrvMail");
 
     //
     public void run() throws Exception {
         try {
             log.info("Сервер");
-            step_server();
+            step();
         } catch (Exception e) {
             log.error(Ut.getExceptionMessage(e));
             log.error(Ut.getStackTrace(e));
@@ -28,7 +28,7 @@ public class SrvBgTask extends BgTask {
 
 
     //
-    private void step_server() throws Exception {
+    private void step() throws Exception {
         ModelService app = getApp().service(ModelService.class);
         Db db = app.getModel().getDb();
         db.connect();
@@ -37,9 +37,9 @@ public class SrvBgTask extends BgTask {
         try {
             JdxReplSrv srv = new JdxReplSrv(db);
             //
-            JdxReplTaskSrv replTask = new JdxReplTaskSrv(srv);
+            JdxTaskSrvRepl replTask = new JdxTaskSrvRepl(srv);
             //
-            replTask.doReplSession();
+            replTask.doTask();
         } finally {
             db.disconnect();
         }

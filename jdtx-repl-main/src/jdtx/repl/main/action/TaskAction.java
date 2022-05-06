@@ -6,7 +6,7 @@ import jandcode.bgtasks.BgTasksService;
 import jandcode.utils.UtCnv;
 import jandcode.web.UtJson;
 import jandcode.web.WebAction;
-import jdtx.repl.main.task.WsBgTask;
+import jdtx.repl.main.task.BgTaskWsRepl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -35,14 +35,14 @@ public class TaskAction extends WebAction {
         //
         for (BgTask task : ti.getQue()) {
             if (task.getName().equals("ws")) {
-                ((WsBgTask) task).runImmediate = true;
+                ((BgTaskWsRepl) task).runImmediate = true;
             }
         }
 
         //
         for (BgTask task : ti.getRunned()) {
             if (task.getName().equals("ws")) {
-                ((WsBgTask) task).runImmediate = true;
+                ((BgTaskWsRepl) task).runImmediate = true;
             }
         }
 

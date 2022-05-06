@@ -21,14 +21,27 @@
         <bgtask name="server"
                 period="10000"
                 enabled="false"
-                __cfgFileName="#{path}/cfg/srv.json"
+        />
+
+        <bgtask name="server.Mail"
+                period="50000"
+                enabled="false"
+        />
+
+        <bgtask name="server.MailRequest"
+                period="120000"
+                enabled="false"
         />
 
         <!-- Рабочая станция -->
         <bgtask name="ws"
-                period="60000"
-                enabled="false"
-                __cfgFileName="#{path}/cfg/ws.json"
+                period="100000"
+                enabled="true"
+        />
+
+        <bgtask name="ws.MailRequest"
+                period="130000"
+                enabled="true"
         />
 
     </service>
