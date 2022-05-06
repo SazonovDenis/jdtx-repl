@@ -41,7 +41,7 @@ public class MailerHttp implements IMailer {
     public static final int HTTP_FILE_MAX_SIZE = 1024 * 1024 * 32;
     //int HTTP_FILE_MAX_SIZE = 512;
 
-    public static final String REPL_PROTOCOL_VERSION = "03";
+    public static final String REPL_PROTOCOL_VERSION = "04";
 
 
     @Override
@@ -274,10 +274,7 @@ public class MailerHttp implements IMailer {
 
         // Проверим протокол репликатора, с помощью которого было отправлено письмо
         String protocolVersion = (String) file_info.get("protocolVersion");
-        if (protocolVersion.compareToIgnoreCase("02") == 0 && REPL_PROTOCOL_VERSION.compareToIgnoreCase("03") == 0) {
-            // Нормальное сочетание
-        } else if (protocolVersion.compareToIgnoreCase(REPL_PROTOCOL_VERSION) != 0) {
-            // Версия протокола не совпадает
+        if (protocolVersion.compareToIgnoreCase(REPL_PROTOCOL_VERSION) != 0) {
             throw new XError("mailer.receive, protocolVersion.expected: " + REPL_PROTOCOL_VERSION + ", actual: " + protocolVersion);
         }
 
