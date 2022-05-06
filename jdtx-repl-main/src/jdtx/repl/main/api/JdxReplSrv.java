@@ -553,17 +553,152 @@ public class JdxReplSrv {
     }
 
     /**
-     * Сервер: Считывание очередей рабочих станций
+     * Сервер: считывание из mailer очередей рабочих станций и помещение их в очередь-зеркало на сервере
      */
     public void srvHandleQueIn() throws Exception {
-        srvHandleQueInInternal(mailerList, queInList);
+        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
+        for (long wsId : mailerList.keySet()) {
+            IMailer mailer = mailerList.get(wsId);
+            IJdxQue queInSrv = queInList.get(wsId);
+
+            // Обрабатываем каждую станцию
+            try {
+                log.info("srvHandleQueIn, from.wsId: " + wsId);
+
+                //
+                long queDoneNo = stateManager.getWsQueInNoReceived(wsId);
+                long queMaxNo = mailer.getBoxState("from");
+
+                //
+                long count = 0;
+                for (long no = queDoneNo + 1; no <= queMaxNo; no++) {
+                    log.info("receive, wsId: " + wsId + ", receiving.no: " + no);
+
+                    // Физически забираем данные с почтового сервера
+                    IReplica replica = mailer.receive("from", no);
+
+                    // Читаем поля заголовка
+                    JdxReplicaReaderXml.readReplicaInfo(replica);
+
+                    // Помещаем полученные данные в общую очередь
+                    db.startTran();
+                    try {
+                        // Помещаем в очередь
+                        queInSrv.push(replica);
+
+                        // Отмечаем факт скачивания
+                        stateManager.setWsQueInNoReceived(wsId, no);
+
+                        //
+                        db.commit();
+                    } catch (Exception e) {
+                        db.rollback();
+                        throw e;
+                    }
+
+                    // Удаляем с почтового сервера
+                    mailer.delete("from", no);
+
+                    //
+                    count++;
+                }
+
+
+                // Отметить попытку чтения (для отслеживания активности станции, когда нет данных для реальной передачи)
+                mailer.setData(null, "ping.read", "from");
+                // Отметить состояние сервера, данные сервера (сервер отчитывается о себе для отслеживания активности сервера)
+                Map info = getInfoSrv();
+                mailer.setData(info, "srv.info", null);
+
+
+                //
+                if (count > 0) {
+                    log.info("srvHandleQueIn, from.wsId: " + wsId + ", que.no: " + queDoneNo + " .. " + queMaxNo + ", done count: " + count);
+                } else {
+                    log.info("srvHandleQueIn, from.wsId: " + wsId + ", que.no: " + queMaxNo + ", nothing done");
+                }
+
+            } catch (Exception e) {
+                // Ошибка для станции - пропускаем, идем дальше
+                log.error("Error in srvHandleQueIn, from.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
+                log.error(Ut.getStackTrace(e));
+            }
+        }
     }
 
     /**
-     * Сервер: формирование общей очереди.
+     * Сервер: считывание очередей рабочих станций и формирование общей очереди
+     * <p>
+     * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
+     * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
      */
     public void srvHandleCommonQue() throws Exception {
-        srvHandleCommonQueInternal(queInList, queCommon);
+        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
+        for (long wsId : queInList.keySet()) {
+            IJdxQue queIn = queInList.get(wsId);
+
+            // Обрабатываем каждую станцию
+            try {
+                log.info("srvHandleCommonQue, from.wsId: " + wsId);
+
+                //
+                long queDoneNo = stateManager.getWsQueInNoDone(wsId);
+                long queMaxNo = queIn.getMaxNo();
+
+                //
+                long count = 0;
+                for (long no = queDoneNo + 1; no <= queMaxNo; no++) {
+                    log.info("srvHandleCommonQue, wsId: " + wsId + ", queIn.no: " + no);
+
+
+                    // Помещаем полученные данные в общую очередь
+                    db.startTran();
+                    try {
+                        // Берем реплику из входящей очереди queIn
+                        IReplica replica = queIn.get(no);
+
+                        // Помещаем в очередь queCommon
+                        long commonQueNo = queCommon.push(replica);
+
+                        // Отмечаем
+                        stateManager.setWsQueInNoDone(wsId, no);
+
+                        // Станция прислала отчет об изменении своего состояния - отмечаем состояние станции в серверных таблицах
+                        if (replica.getInfo().getReplicaType() == JdxReplicaType.MUTE_DONE) {
+                            JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
+                            utmm.setMuteDone(wsId, commonQueNo);
+                        }
+                        //
+                        if (replica.getInfo().getReplicaType() == JdxReplicaType.UNMUTE_DONE) {
+                            JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
+                            utmm.setUnmuteDone(wsId);
+                        }
+
+                        //
+                        db.commit();
+                    } catch (Exception e) {
+                        db.rollback();
+                        throw e;
+                    }
+
+                    //
+                    count++;
+                }
+
+
+                //
+                if (count > 0) {
+                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.no: " + queDoneNo + " .. " + queMaxNo + ", done count: " + count);
+                } else {
+                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.no: " + queMaxNo + ", nothing done");
+                }
+
+            } catch (Exception e) {
+                // Ошибка для станции - пропускаем, идем дальше
+                log.error("Error in srvHandleCommonQue, from.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
+                log.error(Ut.getStackTrace(e));
+            }
+        }
     }
 
     /**
@@ -1167,155 +1302,6 @@ public class JdxReplSrv {
         return que;
     }
 
-
-    /**
-     * Сервер: считывание из mailer очередей рабочих станций и помещение их в очередь-зеркало на сервере
-     */
-    private void srvHandleQueInInternal(Map<Long, IMailer> mailerList, Map<Long, IJdxQue> queInList) throws Exception {
-        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
-        for (long wsId : mailerList.keySet()) {
-            IMailer mailer = mailerList.get(wsId);
-            IJdxQue queInSrv = queInList.get(wsId);
-
-            // Обрабатываем каждую станцию
-            try {
-                log.info("srvHandleQueIn, from.wsId: " + wsId);
-
-                //
-                long queDoneNo = stateManager.getWsQueInNoReceived(wsId);
-                long queMaxNo = mailer.getBoxState("from");
-
-                //
-                long count = 0;
-                for (long no = queDoneNo + 1; no <= queMaxNo; no++) {
-                    log.info("receive, wsId: " + wsId + ", receiving.no: " + no);
-
-                    // Физически забираем данные с почтового сервера
-                    IReplica replica = mailer.receive("from", no);
-
-                    // Читаем поля заголовка
-                    JdxReplicaReaderXml.readReplicaInfo(replica);
-
-                    // Помещаем полученные данные в общую очередь
-                    db.startTran();
-                    try {
-                        // Помещаем в очередь
-                        queInSrv.push(replica);
-
-                        // Отмечаем факт скачивания
-                        stateManager.setWsQueInNoReceived(wsId, no);
-
-                        //
-                        db.commit();
-                    } catch (Exception e) {
-                        db.rollback();
-                        throw e;
-                    }
-
-                    // Удаляем с почтового сервера
-                    mailer.delete("from", no);
-
-                    //
-                    count++;
-                }
-
-
-                // Отметить попытку чтения (для отслеживания активности станции, когда нет данных для реальной передачи)
-                mailer.setData(null, "ping.read", "from");
-                // Отметить состояние сервера, данные сервера (сервер отчитывается о себе для отслеживания активности сервера)
-                Map info = getInfoSrv();
-                mailer.setData(info, "srv.info", null);
-
-
-                //
-                if (count > 0) {
-                    log.info("srvHandleQueIn, from.wsId: " + wsId + ", que.no: " + queDoneNo + " .. " + queMaxNo + ", done count: " + count);
-                } else {
-                    log.info("srvHandleQueIn, from.wsId: " + wsId + ", que.no: " + queMaxNo + ", nothing done");
-                }
-
-            } catch (Exception e) {
-                // Ошибка для станции - пропускаем, идем дальше
-                log.error("Error in srvHandleQueIn, from.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
-                log.error(Ut.getStackTrace(e));
-            }
-        }
-    }
-
-    /**
-     * Сервер: считывание очередей рабочих станций и формирование общей очереди
-     * <p>
-     * Из очереди личных реплик и очередей, входящих от других рабочих станций, формирует единую очередь.
-     * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
-     */
-    private void srvHandleCommonQueInternal(Map<Long, IJdxQue> queInList, IJdxReplicaQue commonQue) throws Exception {
-        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
-        for (long wsId : queInList.keySet()) {
-            IJdxQue queIn = queInList.get(wsId);
-
-            // Обрабатываем каждую станцию
-            try {
-                log.info("srvHandleCommonQue, from.wsId: " + wsId);
-
-                //
-                long queDoneNo = stateManager.getWsQueInNoDone(wsId);
-                long queMaxNo = queIn.getMaxNo();
-
-                //
-                long count = 0;
-                for (long no = queDoneNo + 1; no <= queMaxNo; no++) {
-                    log.info("srvHandleCommonQue, wsId: " + wsId + ", queIn.no: " + no);
-
-
-                    // Помещаем полученные данные в общую очередь
-                    db.startTran();
-                    try {
-                        // Берем реплику из входящей очереди queIn
-                        IReplica replica = queIn.get(no);
-
-                        // Помещаем в очередь commonQue
-                        long commonQueNo = commonQue.push(replica);
-
-                        // Отмечаем
-                        stateManager.setWsQueInNoDone(wsId, no);
-
-                        // Станция прислала отчет об изменении своего состояния - отмечаем состояние станции в серверных таблицах
-                        if (replica.getInfo().getReplicaType() == JdxReplicaType.MUTE_DONE) {
-                            JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
-                            utmm.setMuteDone(wsId, commonQueNo);
-                        }
-                        //
-                        if (replica.getInfo().getReplicaType() == JdxReplicaType.UNMUTE_DONE) {
-                            JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
-                            utmm.setUnmuteDone(wsId);
-                        }
-
-                        //
-                        db.commit();
-                    } catch (Exception e) {
-                        db.rollback();
-                        throw e;
-                    }
-
-                    //
-                    count++;
-                }
-
-
-                //
-                if (count > 0) {
-                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.no: " + queDoneNo + " .. " + queMaxNo + ", done count: " + count);
-                } else {
-                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.no: " + queMaxNo + ", nothing done");
-                }
-
-            } catch (Exception e) {
-                // Ошибка для станции - пропускаем, идем дальше
-                log.error("Error in srvHandleCommonQue, from.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
-                log.error(Ut.getStackTrace(e));
-            }
-        }
-    }
 
     private Map getInfoSrv() {
         return null;
