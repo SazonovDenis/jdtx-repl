@@ -4,7 +4,7 @@
 
 #define OutputDir "Z:\jdtx-repl\install"
 #define SourceDir "Z:\jdtx-repl\"
-#define SourceDirJre "C:\jdk1.8.0_45\jre\"
+#define SourceDirJre "D:\jdk1.8.0_45\jre\"
 
 
 
