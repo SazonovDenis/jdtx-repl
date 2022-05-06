@@ -1000,11 +1000,17 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_srv_doReplSession() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
+        //
+        JdxTaskSrvMail mailTask = new JdxTaskSrvMail(srv);
+        mailTask.doTask();
+        //
         JdxTaskSrvRepl replTask = new JdxTaskSrvRepl(srv);
         replTask.doTask();
         //
-        JdxTaskSrvMailRequest mailTask = new JdxTaskSrvMailRequest(srv);
         mailTask.doTask();
+        //
+        JdxTaskSrvMailRequest mailTaskRequest = new JdxTaskSrvMailRequest(srv);
+        mailTaskRequest.doTask();
     }
 
     /* todo Разобраться с репликацией через папку - сейчас полностью сломано
