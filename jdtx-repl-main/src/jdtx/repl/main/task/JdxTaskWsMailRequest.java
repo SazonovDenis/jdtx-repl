@@ -44,7 +44,7 @@ public class JdxTaskWsMailRequest extends JdxTaskCustom {
         //
         logInfo("Отправка ошибок");
         IMailer mailer = ws.getMailer();
-        sendErrors(mailer, "ws.errors");
+        sendErrors(mailer, "ws.errors.mailRequest");
 
 
         //
