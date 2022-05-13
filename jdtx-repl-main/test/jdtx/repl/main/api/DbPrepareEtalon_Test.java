@@ -69,39 +69,80 @@ public class DbPrepareEtalon_Test extends AppTestCase {
         db5.disconnect();
 
         //
-        doConnectAll();
+        connectAll();
 
         //
         doDisconnectAll();
     }
 
-    void doConnectAll() throws Exception {
-        db.connect();
-        System.out.println("db1.connect()");
-        db2.connect();
-        System.out.println("db2.connect()");
-        db3.connect();
-        System.out.println("db3.connect()");
-        db5.connect();
-        System.out.println("db5.connect()");
+    void connectAll() throws Exception {
+        connectAll(true);
+    }
+
+    void connectAll(boolean doRaise) throws Exception {
+        doConnect(db, doRaise);
+        doConnect(db2, doRaise);
+        doConnect(db3, doRaise);
+        doConnect(db5, doRaise);
+    }
+
+    private void doConnect(Db db, boolean doRaise) throws Exception {
+        try {
+            db.connect();
+            System.out.println("db.connect: " + db.getDbSource().getDatabase());
+        } catch (Exception e) {
+            if (doRaise) {
+                throw e;
+            }
+
+            System.out.println("db.connect: " + e.getMessage());
+        }
     }
 
     void doDisconnectAll() throws Exception {
-        db.disconnect();
-        System.out.println("db1.disconnect()");
-        db2.disconnect();
-        System.out.println("db2.disconnect()");
-        db3.disconnect();
-        System.out.println("db3.disconnect()");
-        db5.disconnect();
-        System.out.println("db5.disconnect()");
+        doDisconnectAll(false);
     }
 
-    void doDisconnectAllForce() throws Exception {
-        db.disconnectForce();
-        db2.disconnectForce();
-        db3.disconnectForce();
-        db5.disconnectForce();
+    void doDisconnectAll(boolean doRaise) throws Exception {
+        doDisconnect(db, doRaise);
+        doDisconnect(db2, doRaise);
+        doDisconnect(db3, doRaise);
+        doDisconnect(db5, doRaise);
+    }
+
+    private void doDisconnect(Db db, boolean doRaise) throws Exception {
+        try {
+            db.disconnect();
+            System.out.println("db.disconnect: " + db.getDbSource().getDatabase());
+        } catch (Exception e) {
+            if (doRaise) {
+                throw e;
+            }
+            System.out.println("db.disconnect: " + e.getMessage());
+        }
+    }
+
+    void disconnectAllForce() throws Exception {
+        disconnectAllForce(false);
+    }
+
+    void disconnectAllForce(boolean doRaise) throws Exception {
+        disconnectForce(db, doRaise);
+        disconnectForce(db2, doRaise);
+        disconnectForce(db3, doRaise);
+        disconnectForce(db5, doRaise);
+    }
+
+    private void disconnectForce(Db db, boolean doRaise) throws Exception {
+        try {
+            db.disconnectForce();
+            System.out.println("db.disconnectForce: " + db.getDbSource().getDatabase());
+        } catch (Exception e) {
+            if (doRaise) {
+                throw e;
+            }
+            System.out.println("db.disconnectForce: " + e.getMessage());
+        }
     }
 
 

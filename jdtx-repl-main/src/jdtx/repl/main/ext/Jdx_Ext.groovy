@@ -234,13 +234,13 @@ class Jdx_Ext extends ProjectExt {
             // Создаем окружение для рабочей станции
             JdxReplWs ws = new JdxReplWs(db)
             ws.init()
-            ws.initFirst()
+            ws.firstSetup()
 
             // Создаем окружение для сервера
             if (wsId == JdxReplSrv.SERVER_WS_ID) {
                 JdxReplSrv srv = new JdxReplSrv(db)
                 srv.init()
-                srv.initFirst()
+                srv.firstSetup()
             }
         } finally {
             db.disconnect()

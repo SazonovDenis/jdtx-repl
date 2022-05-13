@@ -184,7 +184,6 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         // Обмен
         sync_http_1_2_3();
         sync_http_1_2_3();
-        sync_http_1_2_3();
 
         //
         System.out.println();

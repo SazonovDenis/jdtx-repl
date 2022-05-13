@@ -43,7 +43,6 @@ public class JdxReplWsSrv_FailedInsertUpdate_Test extends JdxReplWsSrv_Test {
         // Окончательная синхронизация
         sync_http_1_2_3();
         sync_http_1_2_3();
-        sync_http_1_2_3();
 
         // Станции синхронизированы
         System.out.println("Станции синхронизированы");

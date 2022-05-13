@@ -88,7 +88,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Loop_Test extends JdxReplWsSrv_ChangeDb
                 modifyDbStruct_internal(db3);
                 TimeUnit.SECONDS.sleep(waitInterval_SECONDS);
                 //
-                reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
+                reloadDbStructAll(); // Чтобы тестовые фунции работали с новой структурой
 
 
                 // =======================================

@@ -4,9 +4,6 @@ import jandcode.utils.variant.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import org.junit.*;
 
-import java.io.*;
-import java.util.zip.*;
-
 /**
  * Набор тестов для проверки после смены версии БД (или значительного изменения приложения).
  * До начала рефакторинга:
@@ -85,7 +82,7 @@ public class JdxReplWsSrv_Verdb_Test extends JdxReplWsSrv_Test {
      * Восстанавливаем состояние тестового каталога и баз из архива
      */
     void doRestore_06() throws Exception {
-        doDisconnectAllForce();
+        disconnectAllForce();
         clearAllTestData();
         // Рабочие каталоги
         UtTest.doUnzipDir("test/jdtx/repl/main/api/JdxReplWsSrv_Verdb_Test.06.zip", "../");
@@ -94,7 +91,7 @@ public class JdxReplWsSrv_Verdb_Test extends JdxReplWsSrv_Test {
         args.put("create", true);
         assertEquals("Ящики не созданы", true, extSrv.repl_mail_check(args));
         //
-        doConnectAll();
+        connectAll();
     }
 
 

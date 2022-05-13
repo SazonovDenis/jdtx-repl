@@ -251,7 +251,7 @@ public class UtDbComparer {
                     //
                     count++;
                     if (count % 1000 == 0) {
-                        //log.info("readData: " + tableName + ", " + count);
+                        log.info("readData: " + tableName + ", " + count);
                     }
                 }
 
@@ -272,13 +272,14 @@ public class UtDbComparer {
         diffNewIn2.clear();
 
         for (String tableName : dbCrc1.keySet()) {
+            Map<String, String> resTable1 = dbCrc1.get(tableName);
+            Map<String, String> resTable2;
             if (!dbCrc2.containsKey(tableName)) {
                 log.info("Table: " + tableName + " not found in db2");
-                continue;
+                resTable2 = new HashMap<>();
+            } else {
+                resTable2 = dbCrc2.get(tableName);
             }
-
-            Map<String, String> resTable1 = dbCrc1.get(tableName);
-            Map<String, String> resTable2 = dbCrc2.get(tableName);
 
             Set<String> diffCrcTable = new HashSet<>();
             Set<String> diffNewIn1Table = new HashSet<>();
@@ -290,7 +291,7 @@ public class UtDbComparer {
                     String crc1 = resTable1.get(pkFieldValue);
                     String crc2 = resTable2.get(pkFieldValue);
                     if (!crc1.equalsIgnoreCase(crc2)) {
-                        log.info("Table: " + tableName + ", record: [" + pkFieldValue + "] db1.crc " + crc1 + " <> db2.crc: " + crc2);
+                        //log.info("Table: " + tableName + ", record: [" + pkFieldValue + "] db1.crc " + crc1 + " <> db2.crc: " + crc2);
                         diffCrcTable.add(pkFieldValue);
                     }
                 }
@@ -299,7 +300,7 @@ public class UtDbComparer {
             // Формируем записи, встречающиеся ТОЛЬКО в базе 1
             for (String pkFieldValue1 : resTable1.keySet()) {
                 if (!resTable2.containsKey(pkFieldValue1)) {
-                    log.info("Table: " + tableName + ", record: [" + pkFieldValue1 + "] not found in db2");
+                    //log.info("Table: " + tableName + ", record: [" + pkFieldValue1 + "] not found in db2");
                     diffNewIn1Table.add(pkFieldValue1);
                 }
             }
@@ -307,7 +308,7 @@ public class UtDbComparer {
             // Формируем записи, встречающиеся ТОЛЬКО в базе 2
             for (String pkFieldValue2 : resTable2.keySet()) {
                 if (!resTable1.containsKey(pkFieldValue2)) {
-                    log.info("Table: " + tableName + ", record: [" + pkFieldValue2 + "] not found in db1");
+                    //log.info("Table: " + tableName + ", record: [" + pkFieldValue2 + "] not found in db1");
                     diffNewIn2Table.add(pkFieldValue2);
                 }
             }
@@ -316,7 +317,6 @@ public class UtDbComparer {
             diffCrc.put(tableName, diffCrcTable);
             diffNewIn1.put(tableName, diffNewIn1Table);
             diffNewIn2.put(tableName, diffNewIn2Table);
-
         }
     }
 

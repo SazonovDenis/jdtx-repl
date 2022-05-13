@@ -27,6 +27,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      */
     @Test
     public void test_Mute_Unmute() throws Exception {
+        // Создаем репликацию (ws1, ws2, ws3)
         allSetUp();
         sync_http_1_2_3();
         sync_http_1_2_3();
@@ -208,7 +209,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Получаем входящие реплики
         ws2.replicasReceive();
         // Применяем входящие реплики
-        ws2.handleQueIn();
+        ws2.handleAllQueIn();
         //
         queInNoDone2 = stateManager_ws2.getQueNoDone("in");
 
@@ -251,7 +252,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Получаем входящие реплики
         ws2.replicasReceive();
         // Применяем входящие реплики
-        ws2.handleQueIn();
+        ws2.handleAllQueIn();
         //
         queInNoDone2 = stateManager_ws2.getQueNoDone("in");
 
@@ -272,6 +273,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      */
     @Test
     public void test_No_HandleSelfAudit() throws Exception {
+        // Создаем репликацию (ws1, ws2, ws3)
         allSetUp();
         sync_http_1_2_3();
         sync_http_1_2_3();
@@ -367,6 +369,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      */
     @Test
     public void test_ModifyDbStruct() throws Exception {
+        // Создаем репликацию (ws1, ws2, ws3)
         allSetUp();
         sync_http_1_2_3();
         sync_http_1_2_3();
@@ -508,7 +511,6 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Цикл синхронизации
         sync_http_1_2_3();
         sync_http_1_2_3();
-        sync_http_1_2_3();
 
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
         UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
@@ -551,7 +553,6 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         assert_handleSelfAudit_true(db3);
 
         // Цикл синхронизации
-        sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();
 
@@ -737,7 +738,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     }
 
     public void do_DumpTables(Db db, Db db2, Db db3, IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct struct3) throws Exception {
-        reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
+        reloadDbStructAll(); // Чтобы тестовые фунции работали с новой структурой
         super.do_DumpTables(db, db2, db3, struct1, struct2, struct3);
     }
 

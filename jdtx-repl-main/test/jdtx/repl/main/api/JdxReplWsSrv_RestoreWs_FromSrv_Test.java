@@ -7,6 +7,7 @@ import org.apache.commons.io.*;
 import org.junit.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  * Проверка восстановления рабочей станции
@@ -25,7 +26,7 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
 
     /**
      * Проверка восстановления репликации рабочей станции
-     * при полной потере базы и репликационных каталогов, по данным с сервера.
+     * при полной потере базы рабочей станции и её репликационных каталогов, по данным с сервера.
      * test_DatabaseRestore_stepRuin - провоцирует ошибку,
      * test_DatabaseRestore_stepRepair - исправляет ее
      */
@@ -58,29 +59,22 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
 
         // ---
         // Проверим исходную синхронность
-        System.out.println("Базы в синхронном состоянии");
-        assertDbEquals_1_2_3();
-        //do_DumpTables(db, db2, db3, struct, struct2, struct3);
-        //new File("../_test-data/csv").renameTo(new File("../_test-data/csv1"));
+        System.out.println("Базы должны быть в синхронном состоянии");
+        assertDbEquals(db, db2);
+        assertDbEquals(db, db3);
 
 
         // ---
         // Аварийное событие:
         // стираем текущую рабочую базу ws3 и ее рабочий каталог
-        doDelete_DirDb(db3);
+        System.out.println("Аварийное событие");
+        doDeleteDir(db3);
+        doDeleteDb(db3);
 
 
         // ---
         // Жизнь после аварии
-
-        // Попытка синхронизации (неудачная для ws2)
-        sync_http_1_2_3();
-        sync_http_1_2_3();
-
-        //
-        System.out.println("Попытка синхронизации была неудачная");
-        //do_DumpTables(db, db2, db3, struct, struct2, struct3);
-        assertDbNotEquals_1_2_3();
+        // ... не делаем - ясно, что не получится
     }
 
     @Test
@@ -94,7 +88,7 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         //
         System.out.println("Эталонная база скопирована [" + dbNameDest + "]");
         //
-        doConnectAll();
+        connectAll();
 
 
         // ---
@@ -106,13 +100,25 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         args.put("file", cfg_json_ws);
         extWs3.repl_create(args);
 
-        // Подаем команду "repair" для рабочей станции
-        test_repairAfterBackupRestore_ws3();
 
         // ---
         // Сладко ли работается воскрешенной рабочей станции?
         sync_http_1_2_3();
 
+        //
+        System.out.println("Попытка синхронизации была неудачная");
+        assertDbEquals(db, db2);
+        assertDbNotEquals(db, db3);
+
+
+        // ---
+        // Начальная попытка ремонта
+        System.out.println();
+        System.out.println("Начальная попытка ремонта");
+        doStepRepair(db3, false);
+
+
+        // тест равенства баз - с конфигом "карта равенства"
 
         // ---
         // Подаем команду для подготовки snaphot (на сервере)
@@ -123,17 +129,31 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
 
 
         // ---
+        // Первая попытка ремонта (ожидание от сервера)
+        System.out.println();
+        System.out.println("Первая попытка ремонта (ожидание от сервера)");
+        doStepRepair(db3, false);
+
+        // Сервер ответит на просьбы о повторной отправке
+        System.out.println();
+        System.out.println("Сервер ответит на просьбы о повторной отправке");
+        test_srv_doReplSession();
+
+        // Последняя попытка ремонта
+        System.out.println();
+        System.out.println("Последняя попытка ремонта");
+        doStepRepair(db3, true);
+
+
+        // ---
         // Сладко ли работается воскрешенной и РЕАНИМИРОВАННОЙ рабочей станции?
-        sync_http_1_2_3();
-        sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();
 
         // Проверим синхронность после восстановления
         System.out.println("Cинхронизация прошла нормально");
-        assertDbEquals_1_2_3();
-        //do_DumpTables(db, db2, db3, struct, struct2, struct3);
-        //new File("../_test-data/csv").renameTo(new File("../_test-data/csv2"));
+        assertDbEquals(db, db2);
+        assertDbEquals(db, db3);
 
         // --- Работаем после восстановления
         test_AllHttp();
@@ -141,7 +161,9 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
 
         // Проверим синхронность после работы
         System.out.println("Cинхронизация прошла нормально");
-        assertDbEquals_1_2_3();
+        assertDbEquals(db, db2);
+        assertDbEquals(db, db3);
+        //
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
         new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
     }
@@ -158,13 +180,6 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         cfg_json_snapshot = "test/etalon/publication_lic_152_ws.json"; // <-- cfg_json_snapshot эта натройка почему то все ломае
         //cfg_json_snapshot = "test/etalon/publication_lic_152_snapshot.json";
         test_DirDB_srv();
-    }
-
-    @Test
-    public void test_repairAfterBackupRestore_ws3() throws Exception {
-        JdxReplWs ws = new JdxReplWs(db3);
-        ws.init();
-        ws.repairAfterBackupRestore(true, false);
     }
 
     @Test

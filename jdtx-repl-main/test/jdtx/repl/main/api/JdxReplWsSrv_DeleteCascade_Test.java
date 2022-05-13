@@ -127,7 +127,6 @@ public class JdxReplWsSrv_DeleteCascade_Test extends JdxReplWsSrv_Test {
         // Синхронизация после вставки
         sync_http_1_2_3();
         sync_http_1_2_3();
-        sync_http_1_2_3();
 
 
         // ---
@@ -164,7 +163,6 @@ public class JdxReplWsSrv_DeleteCascade_Test extends JdxReplWsSrv_Test {
         // Синхронизация после удаления чужих на ws2 и ws3
         sync_http_1_2_3();
         sync_http_1_2_3();
-        sync_http_1_2_3();
 
 
         // ---
@@ -197,7 +195,6 @@ public class JdxReplWsSrv_DeleteCascade_Test extends JdxReplWsSrv_Test {
 
         // ---
         // Синхронизация после удаления своих на ws2
-        sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();
 

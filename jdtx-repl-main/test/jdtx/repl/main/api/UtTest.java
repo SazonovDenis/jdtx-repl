@@ -3,6 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.utils.io.*;
 import jandcode.utils.test.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
@@ -160,6 +161,24 @@ public class UtTest extends UtilsTestCase {
                 "CommentText", "LicInsWs:" + ws_id + "-" + rnd.nextStr(14)
         );
         dbu.insertRec("commentText", params);
+    }
+
+    public void makeChange_AddUlz(IJdxDbStruct struct, long ws_id) throws Exception {
+        JdxRandom rnd = new JdxRandom();
+        rnd.setSeed(getDbSeed());
+        JdxDbUtils dbu = new JdxDbUtils(db, struct);
+
+        //
+        long id_region = db.loadSql("select min(id) id from region where id > 0 and id < 2000").getCurRec().getValueLong("id");
+
+        // --- Ulz
+        long id_Ulz = dbu.getNextGenerator("g_ulz");
+        dbu.insertRec("ulz", UtCnv.toMap(
+                "id", id_Ulz,
+                "region", id_region,
+                "ulzTip", 2,
+                "name", "InsWs:" + ws_id + "-" + rnd.nextStr(14)
+        ));
     }
 
     public void makeChange(IJdxDbStruct struct, long ws_id) throws Exception {
@@ -516,6 +535,59 @@ public class UtTest extends UtilsTestCase {
         // Фиксация возраста
         //age = utRepl.markAuditAge();
         //System.out.println("age: " + age);
+    }
+
+    public static void doZipDir(String dir, String outFileName) throws IOException {
+        DirScannerLocal scanner = new DirScannerLocal();
+        scanner.setRecursive(true);
+        scanner.setRootDir(dir);
+        scanner.scan();
+
+        int buffSize = 1024 * 10;
+        byte[] buffer = new byte[buffSize];
+
+
+        try (
+                FileOutputStream outputStream = new FileOutputStream(outFileName);
+                ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
+        ) {
+            for (File fIn : scanner.getFiles()) {
+
+                StopWatch sw = new StopWatch();
+                sw.start();
+
+                String inFilename = fIn.getPath();
+                FileInputStream inputStream = new FileInputStream(inFilename);
+                System.out.println(inFilename);
+
+                // ---
+                ZipEntry zipEntry = new ZipEntry(fIn.getName());
+                zipOutputStream.putNextEntry(zipEntry);
+
+                //
+                long done = 0;
+                long done_printed = 0;
+                while (inputStream.available() > 0) {
+                    int n = inputStream.read(buffer);
+                    zipOutputStream.write(buffer, 0, n);
+                    done = done + n;
+                    //
+                    if (done - done_printed > 1024 * 1024 * 10) {
+                        done_printed = done;
+                        System.out.print("\r" + done / 1024 + " Kb");
+                    }
+                }
+
+                // закрываем текущую запись для новой записи
+                zipOutputStream.closeEntry();
+
+                //
+                System.out.println("\r" + done / 1024 + " Kb done");
+                sw.stop();
+
+            }
+        }
+
     }
 
     public static void doUnzipDir(String zipFilePath, String destDir) throws IOException {

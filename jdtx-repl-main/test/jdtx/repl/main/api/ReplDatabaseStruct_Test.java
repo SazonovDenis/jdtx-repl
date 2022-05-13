@@ -10,6 +10,7 @@ import org.junit.*;
 import java.util.*;
 
 /**
+ *
  */
 public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
 
@@ -30,37 +31,42 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
 
 
         //
-        db.connect();
-        db2.connect();
-        db3.connect();
-        db5.connect();
+        connectAll(false);
 
 
-        // ---
-        // Чтение структур
-        reloadStruct_forTest();
+        //
+        reloadDbStructAll(false);
 
 
-        // ---
         // Чтобы были
         UtFile.mkdirs("temp");
     }
 
-    // Чтение структур
-    public void reloadStruct_forTest() throws Exception {
-        IJdxDbStructReader reader = new JdxDbStructReader();
-        //
-        reader.setDb(db);
-        struct = reader.readDbStruct();
-        //
-        reader.setDb(db2);
-        struct2 = reader.readDbStruct();
-        //
-        reader.setDb(db3);
-        struct3 = reader.readDbStruct();
-        //
-        reader.setDb(db5);
-        struct5 = reader.readDbStruct();
+    // Чтение структур всех баз
+    public void reloadDbStructAll() throws Exception {
+        reloadDbStructAll(true);
+    }
+
+    public void reloadDbStructAll(boolean doRaise) throws Exception {
+        struct = loadStruct(db, doRaise);
+        struct2 = loadStruct(db2, doRaise);
+        struct3 = loadStruct(db3, doRaise);
+        struct5 = loadStruct(db5, doRaise);
+    }
+
+    private IJdxDbStruct loadStruct(Db db, boolean doRaise) throws Exception {
+        IJdxDbStruct struct = null;
+        try {
+            IJdxDbStructReader reader = new JdxDbStructReader();
+            reader.setDb(db);
+            struct = reader.readDbStruct();
+        } catch (Exception e) {
+            if (doRaise) {
+                throw e;
+            }
+            System.out.println("db.connect: " + e.getMessage());
+        }
+        return struct;
     }
 
     @Test

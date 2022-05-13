@@ -2,7 +2,6 @@ package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
 import jandcode.utils.*;
-import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.io.*;
@@ -140,7 +139,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
             test_ws3_makeChange();
             // Попытка репликации, с имитацией отсутствия связи
             ws3.handleSelfAudit();
-            ws3.handleQueIn();
+            ws3.handleAllQueIn();
         }
 
         // Цикл синхронизации только со станцией 3

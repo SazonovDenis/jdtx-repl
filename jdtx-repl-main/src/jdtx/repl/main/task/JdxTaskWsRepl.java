@@ -77,7 +77,7 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
         //
         logInfo("Применяем входящие реплики");
         try {
-            ws.handleQueIn();
+            ws.handleAllQueIn();
         } catch (Exception e) {
             logError(e);
             collectError("ws.handleQueIn", e);

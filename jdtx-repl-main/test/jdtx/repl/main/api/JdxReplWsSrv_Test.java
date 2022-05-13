@@ -61,7 +61,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_AllHttp();
 
         //
-        assertDbEquals_1_2_3();
+        assertDbEquals(db, db2);
+        assertDbEquals(db, db3);
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
@@ -97,10 +98,11 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void allSetUp() throws Exception {
-        doDisconnectAllForce();
+        disconnectAllForce();
         clearAllTestData();
         doPrepareEtalon();
-        doConnectAll();
+        connectAll();
+        reloadDbStructAll();
 
         //
         IVariantMap args = new VariantMap();
@@ -342,8 +344,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         //
         sync_http_1_2_3();
         sync_http_1_2_3();
-        sync_http_1_2_3();
-        sync_http_1_2_3();
     }
 
 /*
@@ -468,17 +468,17 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws5_doReplSession();
     }
 
-    void assertDbEquals_1_2_3() throws Exception {
-        System.out.println("dbSrv");
+    void assertDbEquals(Db db, Db db2) throws Exception {
+        System.out.println("compare A: " + db.getDbSource().getDatabase());
+        System.out.println("     vs B: " + db2.getDbSource().getDatabase());
+
+        //
+        System.out.println("db A");
         Map<String, Map<String, String>> dbCrcSrv = loadWsDbDataCrc(db);
         System.out.println();
 
-        System.out.println("db2");
+        System.out.println("db B");
         Map<String, Map<String, String>> dbCrcWs2 = loadWsDbDataCrc(db2);
-        System.out.println();
-
-        System.out.println("db3");
-        Map<String, Map<String, String>> dbCrcWs3 = loadWsDbDataCrc(db3);
         System.out.println();
 
         //
@@ -486,7 +486,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         Map<String, Set<String>> diffNewIn1 = new HashMap<>();
         Map<String, Set<String>> diffNewIn2 = new HashMap<>();
 
-        System.out.println("dbSrv vs dbWs2");
+        //
         UtDbComparer.compareDbDataCrc(dbCrcSrv, dbCrcWs2, diffCrc, diffNewIn1, diffNewIn2);
         //
         assertEquals(true, diffCrc.get("USRLOG").size() == 0);
@@ -534,30 +534,19 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         assertEquals(true, diffNewIn2.get("REGIONTIP").size() == 0);
         //
         System.out.println();
-
-        System.out.println("dbSrv vs dbWs3");
-        UtDbComparer.compareDbDataCrc(dbCrcSrv, dbCrcWs3, diffCrc, diffNewIn1, diffNewIn2);
-        System.out.println();
-
-        System.out.println("dbWs2 vs dbWs3");
-        UtDbComparer.compareDbDataCrc(dbCrcWs2, dbCrcWs3, diffCrc, diffNewIn1, diffNewIn2);
-        System.out.println();
-
-        //do_DumpTables(db, db2, db3, struct, struct2, struct3);
-        //new File("../_test-data/csv").renameTo(new File("../_test-data/csv1"));
     }
 
-    void assertDbNotEquals_1_2_3() throws Exception {
-        System.out.println("dbSrv");
+    void assertDbNotEquals(Db db, Db db2) throws Exception {
+        System.out.println("compare A: " + db.getDbSource().getDatabase());
+        System.out.println("     vs B: " + db2.getDbSource().getDatabase());
+
+        //
+        System.out.println("db A");
         Map<String, Map<String, String>> dbCrcSrv = loadWsDbDataCrc(db);
         System.out.println();
 
-        System.out.println("db2");
+        System.out.println("db B");
         Map<String, Map<String, String>> dbCrcWs2 = loadWsDbDataCrc(db2);
-        System.out.println();
-
-        System.out.println("db3");
-        Map<String, Map<String, String>> dbCrcWs3 = loadWsDbDataCrc(db3);
         System.out.println();
 
         //
@@ -565,65 +554,43 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         Map<String, Set<String>> diffNewIn1 = new HashMap<>();
         Map<String, Set<String>> diffNewIn2 = new HashMap<>();
 
-        System.out.println("dbSrv vs dbWs2");
+        //
         UtDbComparer.compareDbDataCrc(dbCrcSrv, dbCrcWs2, diffCrc, diffNewIn1, diffNewIn2);
         //
-        assertEquals(true, diffCrc.get("USRLOG").size() != 0);
-        assertEquals(true, diffNewIn1.get("USRLOG").size() != 0);
-        assertEquals(true, diffNewIn2.get("USRLOG").size() == 0);
+        assertEquals(true, diffCrc.get("USRLOG").size() == 0);
+        assertEquals(true, diffNewIn1.get("USRLOG").size() != 0 || diffNewIn2.get("USRLOG").size() != 0);
         //
         assertEquals(true, diffCrc.get("PAWNCHIT").size() == 0);
-        assertEquals(true, diffNewIn1.get("PAWNCHIT").size() == 0);
-        assertEquals(true, diffNewIn2.get("PAWNCHIT").size() == 0);
+        assertEquals(true, diffNewIn1.get("PAWNCHIT").size() != 0 || diffNewIn2.get("PAWNCHIT").size() != 0);
         //
         assertEquals(true, diffCrc.get("PAWNCHITSUBJECT").size() == 0);
-        assertEquals(true, diffNewIn1.get("PAWNCHITSUBJECT").size() == 0);
-        assertEquals(true, diffNewIn2.get("PAWNCHITSUBJECT").size() == 0);
+        assertEquals(true, diffNewIn1.get("PAWNCHITSUBJECT").size() != 0 || diffNewIn2.get("PAWNCHITSUBJECT").size() != 0);
         //
         //assertEquals(true, diffCrc.get("COMMENTTEXT").size() != 0);
-        assertEquals(true, diffNewIn1.get("COMMENTTEXT").size() != 0);
-        assertEquals(true, diffNewIn2.get("COMMENTTEXT").size() != 0);
+        assertEquals(true, diffNewIn1.get("COMMENTTEXT").size() != 0 || diffNewIn2.get("COMMENTTEXT").size() != 0);
         //
-        assertEquals(true, diffCrc.get("COMMENTTIP").size() == 0);
-        assertEquals(true, diffNewIn1.get("COMMENTTIP").size() == 0);
-        assertEquals(true, diffNewIn2.get("COMMENTTIP").size() == 0);
+        //assertEquals(true, diffCrc.get("COMMENTTIP").size() == 0);
+        //assertEquals(true, diffNewIn1.get("COMMENTTIP").size() == 0);
+        //assertEquals(true, diffNewIn2.get("COMMENTTIP").size() == 0);
         //
-        assertEquals(true, diffCrc.get("LIC").size() != 0);
-        assertEquals(true, diffNewIn1.get("LIC").size() != 0);
-        assertEquals(true, diffNewIn2.get("LIC").size() != 0);
+        assertEquals(true, diffCrc.get("LIC").size() != 0 || diffNewIn1.get("LIC").size() != 0 || diffNewIn2.get("LIC").size() != 0);
         //
         assertEquals(true, diffCrc.get("LICDOCVID").size() == 0);
-        assertEquals(true, diffNewIn1.get("LICDOCVID").size() == 0);
-        assertEquals(true, diffNewIn2.get("LICDOCVID").size() == 0);
+        assertEquals(true, diffNewIn1.get("LICDOCVID").size() != 0 || diffNewIn2.get("LICDOCVID").size() != 0);
         //
         assertEquals(true, diffCrc.get("LICDOCTIP").size() == 0);
-        assertEquals(true, diffNewIn1.get("LICDOCTIP").size() == 0);
-        assertEquals(true, diffNewIn2.get("LICDOCTIP").size() == 0);
+        assertEquals(true, diffNewIn1.get("LICDOCTIP").size() != 0 || diffNewIn2.get("LICDOCTIP").size() != 0);
         //
         //assertEquals(true, diffCrc.get("ULZ").size() == 0); todo не долждно быть изменений записи, только Ins
-        assertEquals(true, diffNewIn1.get("ULZ").size() != 0);
-        assertEquals(true, diffNewIn2.get("ULZ").size() == 0);
+        assertEquals(true, diffNewIn1.get("ULZ").size() != 0 || diffNewIn2.get("ULZ").size() != 0);
         //
         //assertEquals(true, diffCrc.get("REGION").size() != 0);
-        assertEquals(true, diffNewIn1.get("REGION").size() != 0);
-        assertEquals(true, diffNewIn2.get("REGION").size() == 0);
+        assertEquals(true, diffNewIn1.get("REGION").size() != 0 || diffNewIn2.get("REGION").size() != 0);
         //
         assertEquals(true, diffCrc.get("REGIONTIP").size() == 0);
-        assertEquals(true, diffNewIn1.get("REGIONTIP").size() == 0);
-        assertEquals(true, diffNewIn2.get("REGIONTIP").size() == 0);
+        assertEquals(true, diffNewIn1.get("REGIONTIP").size() != 0 || diffNewIn2.get("REGIONTIP").size() != 0);
         //
         System.out.println();
-
-        System.out.println("dbSrv vs dbWs3");
-        UtDbComparer.compareDbDataCrc(dbCrcSrv, dbCrcWs3, diffCrc, diffNewIn1, diffNewIn2);
-        System.out.println();
-
-        System.out.println("dbWs2 vs dbWs3");
-        UtDbComparer.compareDbDataCrc(dbCrcWs2, dbCrcWs3, diffCrc, diffNewIn1, diffNewIn2);
-        System.out.println();
-
-        //do_DumpTables(db, db2, db3, struct, struct2, struct3);
-        //new File("../_test-data/csv").renameTo(new File("../_test-data/csv1"));
     }
 
     void do_DumpTables(Db db1, Db db2, Db db3, IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct struct3) throws Exception {
@@ -1091,7 +1058,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_loop_1_change() throws Exception {
         while (true) {
             try {
-                reloadStruct_forTest();
+                reloadDbStructAll();
                 test_ws1_makeChange_Unimportant();
                 TimeUnit.SECONDS.sleep(5);
             } catch (Exception e) {
@@ -1109,7 +1076,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void loop_2_change() throws Exception {
         while (true) {
             try {
-                reloadStruct_forTest();
+                reloadDbStructAll();
                 test_ws2_makeChange();
                 TimeUnit.SECONDS.sleep(5);
             } catch (Exception e) {
@@ -1127,7 +1094,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void loop_3_change() throws Exception {
         while (true) {
             try {
-                reloadStruct_forTest();
+                reloadDbStructAll();
                 test_ws3_makeChange();
                 TimeUnit.SECONDS.sleep(5);
             } catch (Exception e) {

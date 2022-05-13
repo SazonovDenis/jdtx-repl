@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import jandcode.utils.*;
 import org.junit.*;
 
 import java.io.*;
@@ -9,7 +10,6 @@ import java.io.*;
  * при восстановлении базы/папок из бэкапа
  */
 public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreWs_Test {
-
 
     /**
      * Проверка восстановления репликации рабочей станции
@@ -48,34 +48,13 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         // Аварийное событие
 
         // Восстановление из "бэкапа" базы для ws2
-        doRestore(extWs2);
+        System.out.println("Аварийное событие");
+        doRestoreDB(db2);
 
 
         // ---
         // Жизнь после аварии
-
-        // Попытка синхронизации (неудачная для ws2)
-        sync_http_1_2_3();
-        sync_http_1_2_3();
-
-        //
-        System.out.println("Попытка синхронизации была неудачная");
-        //do_DumpTables(db, db2, db3, struct, struct2, struct3);
-        assertDbNotEquals_1_2_3();
-
-        // Изменения в базах
-        test_ws1_makeChange_Unimportant();
-        test_ws2_makeChange();
-        test_ws3_makeChange();
-
-        // Попытка синхронизации (неудачная для ws2)
-        sync_http_1_2_3();
-        sync_http_1_2_3();
-
-        //
-        System.out.println("Попытка синхронизации была неудачная");
-        //do_DumpTables(db, db2, db3, struct, struct2, struct3);
-        assertDbNotEquals_1_2_3();
+        doLife_AfterFail();
     }
 
     @Test
@@ -89,55 +68,26 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
         // ---
         // Аварийные события:
+        System.out.println("Аварийные события");
 
         // Восстановление из "бэкапа" базы для ws2
-        doRestore(extWs2);
+        doRestoreDB(db2);
 
         // Удаление рабочих каталогов для ws2
-        doDelete_Dir(db2);
+        doDeleteDir(db2);
 
 
         // ---
         // Жизнь после аварии
-
-        // Попытка синхронизации (неудачная для ws2)
-        sync_http_1_2_3();
-        sync_http_1_2_3();
-
-        //
-        System.out.println("Попытка синхронизации была неудачная");
-        //do_DumpTables(db, db2, db3, struct, struct2, struct3);
-        assertDbNotEquals_1_2_3();
-
-        // Изменения в базах
-        test_ws1_makeChange_Unimportant();
-        test_ws2_makeChange();
-        test_ws3_makeChange();
-
-        // Попытка синхронизации (неудачная для ws2)
-        sync_http_1_2_3();
-        sync_http_1_2_3();
-
-        //
-        System.out.println("Попытка синхронизации была неудачная");
-        //do_DumpTables(db, db2, db3, struct, struct2, struct3);
-        assertDbNotEquals_1_2_3();
+        doLife_AfterFail();
     }
 
     @Test
     public void test_DatabaseRestore_stepRepair() throws Exception {
-        // Ремонт
-        JdxReplWs ws = new JdxReplWs(db2);
-        ws.init();
-
         // Первая попытка ремонта
         System.out.println();
         System.out.println("Первая попытка ремонта");
-        try {
-            ws.repairAfterBackupRestore(true, false);
-        } catch (Exception e) {
-            System.out.println("Первая попытка ремонта: " + e.getMessage());
-        }
+        doStepRepair(db2, false);
 
 
         // Сервер ответит на просьбы о повторной отправке
@@ -149,7 +99,7 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         // Последняя попытка ремонта
         System.out.println();
         System.out.println("Последняя попытка ремонта");
-        ws.repairAfterBackupRestore(true, false);
+        doStepRepair(db2, true);
 
 
         // Финальная синхронизация
@@ -157,16 +107,19 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         System.out.println("Финальная синхронизация");
         sync_http_1_2_3();
         sync_http_1_2_3();
-        sync_http_1_2_3();
 
 
         // Cинхронизация должна пройти нормально
-        assertDbEquals_1_2_3();
+        assertDbEquals(db, db2);
+        assertDbEquals(db, db3);
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
         new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
     }
 
     private void doSetUp_doNolmalLife_BeforeFail() throws Exception {
+        UtFile.cleanDir(backupDirName);
+        UtFile.mkdirs(backupDirName);
+
         // Создание репликации
         allSetUp();
 
@@ -178,7 +131,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
         // Проверим исходную синхронность после инициализации
         System.out.println("Базы должны быть в синхронном состоянии");
-        assertDbEquals_1_2_3();
+        assertDbEquals(db, db2);
+        assertDbEquals(db, db3);
 
 
         // ---
@@ -193,7 +147,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
         // Проверим исходную синхронность после изменений
         System.out.println("Базы должны быть в синхронном состоянии");
-        assertDbEquals_1_2_3();
+        assertDbEquals(db, db2);
+        assertDbEquals(db, db3);
 
 
         // ---
@@ -208,7 +163,7 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         }
 
         // Сохраним "бэкап" базы для ws2
-        doBackup(extWs2);
+        doBackupDB(db2);
 
 
         // ---
@@ -239,5 +194,35 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         ws2.init();
         ws2.handleSelfAudit();
     }
+
+    private void doLife_AfterFail() throws Exception {
+        // Попытка синхронизации (неудачная для ws2)
+        sync_http_1_2_3();
+
+        //
+        System.out.println("Попытка синхронизации была неудачная");
+        assertDbNotEquals(db, db2);
+        assertDbEquals(db, db3);
+
+        // Изменения в базах (добавим Ulz)
+        UtTest utTest;
+        utTest = new UtTest(db);
+        utTest.makeChange_AddUlz(struct, 1);
+
+        utTest = new UtTest(db2);
+        utTest.makeChange_AddUlz(struct2, 2);
+
+        utTest = new UtTest(db3);
+        utTest.makeChange_AddUlz(struct3, 3);
+
+        // Попытка синхронизации (неудачная для ws2)
+        sync_http_1_2_3();
+
+        //
+        System.out.println("Попытка синхронизации была неудачная");
+        assertDbNotEquals(db, db2);
+        assertDbEquals(db, db3);
+    }
+
 
 }

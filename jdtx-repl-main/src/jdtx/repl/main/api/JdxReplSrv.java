@@ -238,9 +238,9 @@ public class JdxReplSrv {
     }
 
     /**
-     * Сервер, инициализация окружения
+     * Сервер, инициализация окружения при создании репликации
      */
-    public void initFirst() {
+    public void firstSetup() {
         //UtFile.mkdirs(queCommon.getBaseDir());
     }
 

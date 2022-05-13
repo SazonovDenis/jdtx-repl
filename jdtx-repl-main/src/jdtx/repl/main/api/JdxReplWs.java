@@ -100,11 +100,6 @@ public class JdxReplWs {
     public void init() throws Exception {
         MDC.put("serviceName", "ws");
 
-        //
-        dataRoot = new File(db.getApp().getRt().getChild("app").getValueString("dataRoot")).getCanonicalPath();
-        dataRoot = UtFile.unnormPath(dataRoot) + "/";
-        log.info("dataRoot: " + dataRoot);
-
         // Проверка версии служебных структур в БД
         UtDbObjectManager ut = new UtDbObjectManager(db);
         ut.checkReplVerDb();
@@ -112,13 +107,16 @@ public class JdxReplWs {
         // Проверка, что инициализация станции прошла
         ut.checkReplDb();
 
+        // В каком каталоге работаем
+        initDataRoot();
+
+        // Читаем код нашей станции
+        readIdGuid();
+
         // Чтение структуры БД
         IJdxDbStructReader structReader = new JdxDbStructReader();
         structReader.setDb(db);
         IJdxDbStruct structActual = structReader.readDbStruct();
-
-        // Читаем код нашей станции
-        readIdGuid();
 
         // Чтение конфигурации
         CfgManager cfgManager = new CfgManager(db);
@@ -186,6 +184,17 @@ public class JdxReplWs {
     }
 
     /**
+     * В каком каталоге работаем.
+     * Оформлен как отдельный метод, чтобы можно было вызывать только его
+     */
+    public void initDataRoot() throws IOException {
+        dataRoot = new File(db.getApp().getRt().getChild("app").getValueString("dataRoot")).getCanonicalPath();
+        dataRoot = UtFile.unnormPath(dataRoot) + "/";
+        //
+        log.info("dataRoot: " + dataRoot);
+    }
+
+    /**
      * Читаем код нашей станции.
      * Оформлен как отдельный метод, чтобы можно было вызывать только его
      * из jdtx.repl.main.service.UtReplService#remove(), без инициализации и смены версии БД.
@@ -199,6 +208,8 @@ public class JdxReplWs {
         if (this.wsId == 0) {
             throw new XError("Invalid workstation.ws_id == 0");
         }
+        //
+        log.info("wsId: " + wsId);
     }
 
     private IVariantMap loadAppCfg(JSONObject app) {
@@ -217,9 +228,9 @@ public class JdxReplWs {
     }
 
     /**
-     * Рабочая станция, инициализация окружения
+     * Рабочая станция, инициализация окружения при создании репликации
      */
-    public void initFirst() {
+    public void firstSetup() {
         UtFile.mkdirs(queIn001.getBaseDir());
         UtFile.mkdirs(queIn.getBaseDir());
         UtFile.mkdirs(queOut.getBaseDir());
@@ -1322,7 +1333,7 @@ public class JdxReplWs {
     /**
      * Применяем входящие реплики из очереди
      */
-    public void handleQueIn() throws Exception {
+    public void handleAllQueIn() throws Exception {
         ReplicaUseResult useResult = handleQueIn001();
         if (useResult.doBreak) {
             // Раз просили прерваться - значит прерываемся
@@ -1701,7 +1712,21 @@ public class JdxReplWs {
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
         // ---
-        // Сколько входящих получено у нас в "официальной" очереди
+        // Очереди
+
+        // ---
+        // Cколько исходящих реплик есть у нас в очереди QueOut (в базе)
+        long noQueOut = queOut.getMaxNo();
+
+        // Сколько исходящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
+        long noQueOutDir = queOut.getMaxNoFromDir();
+
+        // Сколько исходящих реплик фактически отправлено на сервер (спросим у почтового сервера)
+        long noQueOutSendSrv = mailer.getSendDone("from");
+
+
+        // ---
+        // Сколько входящих получено у нас в очереди QueIn (в базе)
         long noQueIn = queIn.getMaxNo();
 
         // Сколько входящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
@@ -1710,9 +1735,8 @@ public class JdxReplWs {
         // До какого возраста запрашивалась очередь QueIn с сервера (спросим у почтового сервера)
         long noQueInReadSrv = mailer.getReceiveDone("to");
 
-        // До какого возраста обработана очередь QueIn
-        long noQueInUsed = stateManager.getQueNoDone("in");
 
+        // ---
         // Сколько входящих получено у нас в "официальной" очереди
         long noQueIn001 = queIn001.getMaxNo();
 
@@ -1722,24 +1746,22 @@ public class JdxReplWs {
         // До какого возраста запрашивалась очередь QueIn001 с сервера (спросим у почтового сервера)
         long noQueIn001ReadSrv = mailer.getReceiveDone("to001");
 
-        // До какого возраста обработана очередь QueIn001
-        long noQueIn001Used = stateManager.getQueNoDone("in001");
-
 
         // ---
-        // Сколько исходящих реплик есть у нас "в закромах", т.е. в рабочем каталоге?
-        long noQueOutDir = queOut.getMaxNoFromDir();
-
-        // Cколько исходящих реплик есть у нас "официально", т.е. в очереди реплик (в базе)
-        long noQueOut = queOut.getMaxNo();
-
-        // Сколько исходящих реплик фактически отправлено на сервер (спросим у почтового сервера)
-        long noQueOutSendSrv = mailer.getSendDone("from");
+        // Отметки
 
         // Сколько исходящих реплик отмечено как отправленое на сервер
         JdxMailStateManagerWs mailStateManager = new JdxMailStateManagerWs(db);
         long noQueOutSendMarked = mailStateManager.getMailSendDone();
 
+        // До какого возраста обработана очередь QueIn
+        long noQueInUsed = stateManager.getQueNoDone("in");
+
+        // До какого возраста обработана очередь QueIn001
+        long noQueIn001Used = stateManager.getQueNoDone("in001");
+
+
+        // ---
         // Отдельный случай: успели отправить, но не успели отметить.
         // Проверим, что помеченное (noQueOutSendMarked) на 1 меньше отправленного (noQueOutSendSrv),
         // но при этом CRC [noQueOutSendMarked + 1] и [noQueOutSendSrv] одинаковое
@@ -1800,12 +1822,8 @@ public class JdxReplWs {
         File lockFile = new File(dataRoot + "temp/repairBackup.lock");
 
 
-        // Допускается, если в каталоге для QueIn меньше реплик, чем в очереди QueIn (noQueIn > noQueInDir).
+        // Допускается, если в рабочем каталоге QueIn меньше реплик, чем в очереди QueIn (noQueIn > noQueInDir).
         // Это бывает из-за того, что при получении собственных snapshot-реплик, мы ее не скачиваем (т.к. она нам не нужна).
-        //
-        // Допускается, если не все входящие реплики использованы (noQueIn > noQueInUsed).
-        // Это бывает, если прерывается процесс применения реплик.
-        // Это не страшно, т.к. при следующем запуске применение возобновится.
         //
         // Допускается, если не все исходящие реплики находятся в каталоге (noQueOut > noQueOutDir).
         // Это бывает, если удален каталог с репликами.
@@ -1839,6 +1857,9 @@ public class JdxReplWs {
             needRepair = true;
         }
         if (noQueIn < noQueInUsed) {
+            // Допускается, если не все входящие реплики использованы (noQueIn > noQueInUsed).
+            // Это бывает, если прерывается процесс применения реплик.
+            // Это не страшно, т.к. при следующем запуске применение возобновится.
             log.warn("Need repair: noQueIn < noQueInUsed, noQueIn: " + noQueIn + ", noQueInUsed: " + noQueInUsed);
             //needRepair = true;
         }
@@ -1864,17 +1885,17 @@ public class JdxReplWs {
         if (needRepair || doPrint) {
             log.warn("Restore from backup: need repair: " + needRepair);
             log.warn("  self.wsId: " + wsId);
-            log.warn("  noQueIn001: " + noQueIn001);
-            log.warn("  noQueIn001Dir: " + noQueIn001Dir);
-            log.warn("  noQueIn001ReadSrv: " + noQueIn001ReadSrv);
-            log.warn("  noQueIn001Used: " + noQueIn001Used);
             log.warn("  noQueIn: " + noQueIn);
             log.warn("  noQueInDir: " + noQueInDir);
             log.warn("  noQueInReadSrv: " + noQueInReadSrv);
-            log.warn("  noQueInUsed: " + noQueInUsed);
+            log.warn("  noQueIn001: " + noQueIn001);
+            log.warn("  noQueIn001Dir: " + noQueIn001Dir);
+            log.warn("  noQueIn001ReadSrv: " + noQueIn001ReadSrv);
             log.warn("  noQueOut: " + noQueOut);
             log.warn("  noQueOutDir: " + noQueOutDir);
             log.warn("  noQueOutSendSrv: " + noQueOutSendSrv);
+            log.warn("  noQueIn001Used: " + noQueIn001Used);
+            log.warn("  noQueInUsed: " + noQueInUsed);
             log.warn("  noQueOutSendMarked: " + noQueOutSendMarked);
             log.warn("  normal_Marked_SrvSendDone: " + normal_Marked_SrvSendDone);
             log.warn("  lockFile: " + lockFile.exists());
@@ -1918,12 +1939,20 @@ public class JdxReplWs {
         // Ремонт очередей по данным из каталогов
         // ---
 
+        // Ситуация: noQueIn001 < noQueInDir001
+        // Берем входящие реплики из каталога, кладем их в свою входящую очередь (потом они будут использованы).
+        if (noQueIn001 < noQueIn001Dir) {
+            repairQueByDir(queIn001, noQueIn001, noQueIn001Dir);
+        }
+        // Теперь входная очередь QueIn001 такая
+        noQueIn001 = queIn001.getMaxNo();
+
         // Ситуация: noQueIn < noQueInDir
         // Берем входящие реплики из каталога, кладем их в свою входящую очередь (потом они будут использованы).
         if (noQueIn < noQueInDir) {
             repairQueByDir(queIn, noQueIn, noQueInDir);
         }
-        // Теперь входная очередь такая
+        // Теперь входная очередь QueIn такая
         noQueIn = queIn.getMaxNo();
 
         // Ситуация: noQueOut < noQueOutDir
@@ -1942,15 +1971,15 @@ public class JdxReplWs {
         boolean waitRepairQueBySrv = false;
 
 
-        // Читаем очереди queIn, queIn001, queOut с сервера до тех пор,
+        // Читаем очереди qqueIn001, ueIn, queIn001, queOut с сервера до тех пор,
         // пока не получим все, что получили до сбоя (реплики от noQue*** + 1 до noQue******Srv),
         // Пока чтение не закончится успехом - выкидываем ошибку (или ждем, если стоит флаг ожидания)
         do {
-            boolean repairQueBySrv_doneOk_queIn = readQueFromSrv_Interval(queIn, "to", noQueIn + 1, noQueInReadSrv);
             boolean repairQueBySrv_doneOk_queIn001 = readQueFromSrv_Interval(queIn001, "to001", noQueIn001 + 1, noQueIn001ReadSrv);
+            boolean repairQueBySrv_doneOk_queIn = readQueFromSrv_Interval(queIn, "to", noQueIn + 1, noQueInReadSrv);
             boolean repairQueBySrv_doneOk_queOut = readQueFromSrv_Interval(queOut, "from", noQueOut + 1, noQueOutSendSrv);
 
-            if (repairQueBySrv_doneOk_queIn && repairQueBySrv_doneOk_queIn001 && repairQueBySrv_doneOk_queOut) {
+            if (repairQueBySrv_doneOk_queIn001 && repairQueBySrv_doneOk_queIn && repairQueBySrv_doneOk_queOut) {
                 break;
             }
 
@@ -1962,21 +1991,15 @@ public class JdxReplWs {
 
         } while (true);
 
-        // Тут мы полностью получили то состояние очередей queIn и queIn001,
-        // которую эта база читала последней.
-        noQueIn = queIn.getMaxNo();
+        // Тут мы полностью получили то состояние очередей queIn001 и queIn, которую эта база читала последней,
+        // и такое состояние QueOut, которую эта база отправляла последней.
         noQueIn001 = queIn001.getMaxNo();
+        noQueIn = queIn.getMaxNo();
         noQueOut = queOut.getMaxNo();
 
 
         // ---
-        // Удедимся, что в queIn есть наши СОБСТВЕННЫЕ (исходящие) реплики до возраста noQueOutSendSrv
-        // Это тот возраст, который мы ранее (до сбоя) отправили на сервер.
-        // Эти собственные реплики применяем только через ОБЩУЮ очередь, т.к. queOut может быть в очень старом состоянии
-        // (например, используются справочники, которые ранее (до сбоя) поступили через QueIn, а в ремонтируемой базе их пока нет).
-        //
-        // Поскольку очередь QueIn содержит непртиворечивый поток изменений, в котором включены и наши СОБСТВЕННЫЕ реплики
-        // (т.е. те реплики, которые у нас есть в queOut), то для восстановления данных лучше применять именно поток из QueIn.
+        // Убедимся, что в queIn есть все наши СОБСТВЕННЫЕ (исходящие) реплики до возраста, который мы ранее (до сбоя) отправили на сервер (это noQueOutSendSrv).
         boolean needWait_noQueOutSendSrv;
         long no0 = queIn.getMaxNo();
         while (true) {
@@ -1995,7 +2018,8 @@ public class JdxReplWs {
             no0 = no0 - 1;
         }
 
-        // Читаем queIn с сервера до тех пор, пока не получим СОБСТВЕННУЮ реплику заказанного возраста (noQueOutSendSrv).
+        // Добиваемся того, чтобы в очереди QueIn оказались и все ранее отправленные наши СОБСТВЕННЫЕ реплики.
+        // Читаем queIn с сервера до тех пор, пока не получим собственную реплику нужного возраста (это noQueOutSendSrv)
         // Пока чтение не закончится успехом - выкидываем ошибку (или ждем, если стоит флаг ожидания)
         if (needWait_noQueOutSendSrv) {
             do {
@@ -2014,8 +2038,7 @@ public class JdxReplWs {
             } while (true);
         }
 
-        // Тут мы полностью получили то состояние очереди queIn,
-        // которое позволит отремонитровать данные.
+        // Тут мы полностью получили то состояние очереди queIn, которое позволит отремонитровать данные.
         noQueIn = queIn.getMaxNo();
 
 
@@ -2024,12 +2047,20 @@ public class JdxReplWs {
         // ---
 
 
+        // Чиним (восстанавливаем) данные на основе входящих реплик queIn, обычным handleQueIn001.
+        handleQueIn001();
+
+        // Проверяем, что все применили
+        noQueIn001Used = stateManager.getQueNoDone("in001");
+        if (noQueIn001Used != queIn001.getMaxNo()) {
+            throw new XError("Use queIn001 - que is not completely used, noQueIn001Used: " + noQueIn001Used + ", queIn001.getMaxNo: " + queIn001.getMaxNo());
+        }
+
         // ---
-        // Чиним (восстанавливаем) данные на основе входящих реплик queIn.
-        // Применяем все входящие реплики обычным handleQueIn.
         // Среди входящих есть и НАШИ СОБСТВЕННЫЕ реплики, важно их применить именно сейчас, когда начат ремонт.
-        // Иначе при применении входящей очереди в рамках обработки общего задания - не будет вызван ремонт генераторов,
+        // Иначе при применении входящей очереди в рамках обычной работы - не будет вызван ремонт генераторов,
         // а из-за наличия во входящей очереди НАШИХ СОБСТВЕННЫХ потерянных данных - генераторы перейдут в нецелостное состояние.
+        // Чиним (восстанавливаем) данные на основе входящих реплик QueIn.
         handleQueIn(true);
 
         // Проверяем, что все применили
@@ -2041,17 +2072,18 @@ public class JdxReplWs {
 
         // ---
         // Отслеживаем наш последний возраст age, встретившийся в НАШИХ СОБСТВЕННЫХ репликах при примененнии QueIn.
-        // Ремонт отметки возраста ИСПОЛЬЗОВАННОГО аудита делаем именно по нему
+        // Ремонт отметки возраста ОБРАБОТАННОГО аудита делаем именно по нему
         long lastOwnAgeUsed = -1;
         long no00 = queIn.getMaxNo();
         while (true) {
             IReplica replica = queIn.get(no00);
             //
             if (replica.getInfo().getWsId() == wsId) {
-                if (replica.getInfo().getAge() > 0) {
-                    lastOwnAgeUsed = replica.getInfo().getAge();
-                    break;
+                long age = replica.getInfo().getAge();
+                if (age > lastOwnAgeUsed) {
+                    lastOwnAgeUsed = age;
                 }
+                break;
             }
 
             //
@@ -2060,9 +2092,9 @@ public class JdxReplWs {
 
 
         // ---
-        // Теперь очередь queOut может содержать пока НЕ отправленные и ещё НЕ ПРИМЕНЕННЫЕ данные.
-        // Эти не примененные реплики надо применить прямо сейчас (а потом они отправятся штатным механизмом)
-        // Чиним (восстанавливаем) данные на основе исходящих реплик queOut.
+        // Если имеющаяся исходящая очередь старше реплик, ктороые мы еще НЕ ОТПРАВЛЯЛИ на сервер, значит исходящая очередь
+        // содержит реплики, которые мы НЕ ПРИМЕНЯЛИ в рамках ремонта данных путем применения QueIn.
+        // Чиним (восстанавливаем) данные на основе исходящей очереди QueOut.
         int count = 0;
         for (long no1 = noQueOutSendSrv + 1; no1 <= noQueOut; no1++) {
             log.warn("Use queOut, self.wsId: " + wsId + ", queOut.no: " + no1 + " (" + count + "/" + (noQueOut - noQueOutSendSrv) + ")");
@@ -2071,7 +2103,7 @@ public class JdxReplWs {
             IReplica replica = queOut.get(no1);
 
             // Отслеживаем наш последний возраст age, встретившийся в НАШИХ СОБСТВЕННЫХ репликах при примененнии QueOut.
-            JdxReplicaReaderXml.readReplicaInfo(replica);
+            // Ремонт отметки возраста ОБРАБОТАННОГО аудита делаем именно по нему
             long age = replica.getInfo().getAge();
             if (age > lastOwnAgeUsed) {
                 lastOwnAgeUsed = age;
@@ -2107,32 +2139,17 @@ public class JdxReplWs {
         // Можно чинить генераторы, отметки разных возрастов и т.п.
         // ---
 
+
         // ---
+        // После применения собственных реплик генераторы находятся в устаревшем состоянии.
         // Чиним генераторы.
-        // После применения собственных реплик генераторы находятся в устаревшем сосоянии.
         PkGenerator pkGenerator = new PkGenerator_PS(db, struct);
         pkGenerator.repairGenerators();
 
 
         // ---
-        // Чиним отметку возраста аудита ("возраст age" для таблиц аудита).
-        // После применения собственных реплик из очереди QueIn отметка все ещё содержит устаревшее состояние.
-        UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
-        long ageNow = auditAgeManager.getAuditAge();
-        if (ageNow < lastOwnAgeUsed) {
-            auditAgeManager.setAuditAge(lastOwnAgeUsed);
-            log.warn("Repair auditAge, " + ageNow + " -> " + lastOwnAgeUsed);
-        }
-
-
+        // Чиним отметки
         // ---
-        // Чиним отметку возраста ИСПОЛЬЗОВАННОГО аудита (до какого возраста аудит отмечен как выложенный в очередь QueOut).
-        // После применения собственных реплик из очереди QueIn отметка все ещё содержит устаревшее состояние.
-        long ageQueOutDoneNow = stateManager.getAuditAgeDoneQueOut();
-        if (ageQueOutDoneNow < lastOwnAgeUsed) {
-            stateManager.setAuditAgeDoneQueOut(lastOwnAgeUsed);
-            log.warn("Repair ageQueOutDone, " + ageQueOutDoneNow + " -> " + lastOwnAgeUsed);
-        }
 
 
         // ---
@@ -2145,20 +2162,37 @@ public class JdxReplWs {
 
 
         // ---
-        // Запрашиваем повторную отправку в queIn и queIn001 того, что мы, возможно, забирали с сервера в "прошлой жизни"
-        // RequiredInfo requiredInfo = new RequiredInfo();
-        // requiredInfo.requiredFrom = noQueIn + 1;
-        // requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
-        // mailer.setSendRequired("to", requiredInfo);
-        // //
-        // requiredInfo.requiredFrom = noQueIn001 + 1;
-        // requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
-        // mailer.setSendRequired("to001", requiredInfo);
+        // До какого возраста обработана очередь QueIn (noQueInUsed) - нет необходимости чинить,
+        // т.к. она уже сдвинута вызовом handleQueIn
 
 
         // ---
-        // Убираем отметку.
-        // После этой отметки ремонт считается завершенным.
+        // Исправление отметок аудита
+        // ---
+
+        // После ремонта данных применением собственных реплик из очередей QueIn и QueOut
+        // аудит таблиц пуст, а отметка возраста аудита ("возраст age" для таблиц аудита) все ещё содержит устаревшее состояние.
+        // Чиним отметку возраста аудита.
+        UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
+        long ageNow = auditAgeManager.getAuditAge();
+        if (ageNow < lastOwnAgeUsed) {
+            auditAgeManager.setAuditAge(lastOwnAgeUsed);
+            log.warn("Repair auditAge, " + ageNow + " -> " + lastOwnAgeUsed);
+        }
+
+        // После применения собственных реплик из очередей QueIn и QueOut отметка возраста ОБРАБОТАННОГО аудита
+        // (до какого возраста аудит отмечен как выложенный в очередь QueOut) все ещё содержит устаревшее состояние.
+        // Чиним отметку возраста обработанного аудита.
+        long ageQueOutDoneNow = stateManager.getAuditAgeDoneQueOut();
+        if (ageQueOutDoneNow < lastOwnAgeUsed) {
+            stateManager.setAuditAgeDoneQueOut(lastOwnAgeUsed);
+            log.warn("Repair ageQueOutDone, " + ageQueOutDoneNow + " -> " + lastOwnAgeUsed);
+        }
+
+
+        // ---
+        // Убираем отметку "ремонт начат".
+        // После этого ремонт считается завершенным.
         if (!lockFile.delete()) {
             throw new XError("Can`t delete lock: " + lockFile);
         }
