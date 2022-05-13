@@ -106,6 +106,7 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         cfg_json_decode = "../install/cfg/decode_strategy_194.json";
         cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
         cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
+        equalExpected = expectedEqual_filterLic;
         test_allSetUp_TestAll();
     }
 

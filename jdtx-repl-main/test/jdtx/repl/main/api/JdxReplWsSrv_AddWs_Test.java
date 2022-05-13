@@ -77,6 +77,7 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
     public void test_allSetUp_TestAll_filter() throws Exception {
         cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
         cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
+        equalExpected = expectedEqual_filterLic;
         test_all();
     }
 

@@ -7,7 +7,6 @@ import org.apache.commons.io.*;
 import org.junit.*;
 
 import java.io.*;
-import java.util.*;
 
 /**
  * Проверка восстановления рабочей станции
@@ -60,8 +59,8 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         // ---
         // Проверим исходную синхронность
         System.out.println("Базы должны быть в синхронном состоянии");
-        assertDbEquals(db, db2);
-        assertDbEquals(db, db3);
+        assertDbEquals(db, db2, equalExpected);
+        assertDbEquals(db, db3, equalExpected);
 
 
         // ---
@@ -107,8 +106,8 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
 
         //
         System.out.println("Попытка синхронизации была неудачная");
-        assertDbEquals(db, db2);
-        assertDbNotEquals(db, db3);
+        assertDbEquals(db, db2, equalExpected);
+        assertDbEquals(db, db3, expectedNotEqual_2isEmpty);
 
 
         // ---
@@ -152,8 +151,8 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
 
         // Проверим синхронность после восстановления
         System.out.println("Cинхронизация прошла нормально");
-        assertDbEquals(db, db2);
-        assertDbEquals(db, db3);
+        assertDbEquals(db, db2, equalExpected);
+        assertDbEquals(db, db3, equalExpected);
 
         // --- Работаем после восстановления
         test_AllHttp();
@@ -161,8 +160,8 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
 
         // Проверим синхронность после работы
         System.out.println("Cинхронизация прошла нормально");
-        assertDbEquals(db, db2);
-        assertDbEquals(db, db3);
+        assertDbEquals(db, db2, equalExpected);
+        assertDbEquals(db, db3, equalExpected);
         //
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
         new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
@@ -179,6 +178,7 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
         cfg_json_snapshot = "test/etalon/publication_lic_152_ws.json"; // <-- cfg_json_snapshot эта натройка почему то все ломае
         //cfg_json_snapshot = "test/etalon/publication_lic_152_snapshot.json";
+        equalExpected = expectedEqual_filterLic;
         test_DirDB_srv();
     }
 

@@ -3,6 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.struct.*;
 import org.junit.*;
@@ -85,18 +86,127 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
         UtData.outTable(st5);
     }
 
+
     public Map<String, Map<String, String>> loadWsDbDataCrc(Db db) throws Exception {
-        // Создаем и инициализируем станции ради правильного вызова RefDecodeStrategy.initInstance()
+        // Создаем и инициализируем станции ради
+        //  - правильного вызова RefDecodeStrategy.initInstance()
+        //  - ws.struct и ws.wsId
         JdxReplWs ws = new JdxReplWs(db);
         ws.init();
-        IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, ws.getWsId());
 
-        // Ищем разницу
+        //
+        IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, ws.wsId);
+
+        // Собираем отмечаток crc записей таблиц
         Map<String, Map<String, String>> dbCrc = UtDbComparer.getDbDataCrc(db, ws.struct, dataSerializer);
 
         //
         return dbCrc;
     }
 
+    void assertDbEquals(Db db, Db db2, Map<String, String> comparePattern) throws Exception {
+        boolean bad = false;
+
+        System.out.println("compare: " + db.getDbSource().getDatabase());
+        System.out.println("     vs: " + db2.getDbSource().getDatabase());
+
+        //
+        //System.out.println("db A");
+        Map<String, Map<String, String>> dbCrcSrv = loadWsDbDataCrc(db);
+        //System.out.println();
+
+        //System.out.println("db B");
+        Map<String, Map<String, String>> dbCrcWs2 = loadWsDbDataCrc(db2);
+        //System.out.println();
+
+        //
+        Map<String, Set<String>> diffCrc = new HashMap<>();
+        Map<String, Set<String>> diffNewIn1 = new HashMap<>();
+        Map<String, Set<String>> diffNewIn2 = new HashMap<>();
+        UtDbComparer.compareDbDataCrc(dbCrcSrv, dbCrcWs2, diffCrc, diffNewIn1, diffNewIn2);
+
+        // Сравним разницу между базами с ожиданием
+        for (String tableName : comparePattern.keySet()) {
+            Set<String> result_diffCrc = diffCrc.get(tableName);
+            Set<String> result_diffNewIn1 = diffNewIn1.get(tableName);
+            Set<String> result_diffNewIn2 = diffNewIn2.get(tableName);
+
+            String tableExpectedResult = comparePattern.get(tableName);
+            char expectedCrc = tableExpectedResult.charAt(0);
+            char expectedNewIn1 = tableExpectedResult.charAt(1);
+            char expectedNewIn2 = tableExpectedResult.charAt(2);
+
+            switch (expectedCrc) {
+                case '0': {
+                    if (result_diffCrc.size() != 0) {
+                        bad = true;
+                        System.out.println(tableName + ", found crc");
+                        for (String recStr : result_diffCrc) {
+                            System.out.println("  " + recStr);
+                        }
+                    }
+                    break;
+                }
+                case 'X': {
+                    if (result_diffCrc.size() == 0) {
+                        bad = true;
+                        System.out.println(tableName + ": not found crc");
+                    }
+                    break;
+                }
+                default:
+                    throw new XError("Bad expected: " + expectedCrc);
+            }
+
+            switch (expectedNewIn1) {
+                case '0': {
+                    if (result_diffNewIn1.size() != 0) {
+                        bad = true;
+                        System.out.println(tableName + ", found new in 1");
+                        for (String recStr : result_diffNewIn1) {
+                            System.out.println("  " + recStr);
+                        }
+                    }
+                    break;
+                }
+                case 'X': {
+                    if (result_diffNewIn1.size() == 0) {
+                        bad = true;
+                        System.out.println(tableName + ": not found new in 1");
+                    }
+                    break;
+                }
+                default:
+                    throw new XError("Bad expected: " + expectedNewIn1);
+            }
+
+            switch (expectedNewIn2) {
+                case '0': {
+                    if (result_diffNewIn2.size() != 0) {
+                        bad = true;
+                        System.out.println(tableName + ", found new in 2");
+                        for (String recStr : result_diffNewIn2) {
+                            System.out.println("  " + recStr);
+                        }
+                    }
+                    break;
+                }
+                case 'X': {
+                    if (result_diffNewIn2.size() == 0) {
+                        bad = true;
+                        System.out.println(tableName + ": not found new in 2");
+                    }
+                    break;
+                }
+                default:
+                    throw new XError("Bad expected: " + expectedNewIn2);
+            }
+        }
+
+        //
+        if (bad) {
+            assertEquals("Обнаружена разница", false, bad);
+        }
+    }
 
 }

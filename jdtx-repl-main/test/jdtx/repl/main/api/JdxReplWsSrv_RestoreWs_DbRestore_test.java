@@ -110,8 +110,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
 
         // Cинхронизация должна пройти нормально
-        assertDbEquals(db, db2);
-        assertDbEquals(db, db3);
+        assertDbEquals(db, db2, equalExpected);
+        assertDbEquals(db, db3, equalExpected);
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
         new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
     }
@@ -131,8 +131,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
         // Проверим исходную синхронность после инициализации
         System.out.println("Базы должны быть в синхронном состоянии");
-        assertDbEquals(db, db2);
-        assertDbEquals(db, db3);
+        assertDbEquals(db, db2, expectedEqual_full);
+        assertDbEquals(db, db3, expectedEqual_full);
 
 
         // ---
@@ -147,8 +147,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
         // Проверим исходную синхронность после изменений
         System.out.println("Базы должны быть в синхронном состоянии");
-        assertDbEquals(db, db2);
-        assertDbEquals(db, db3);
+        assertDbEquals(db, db2, equalExpected);
+        assertDbEquals(db, db3, equalExpected);
 
 
         // ---
@@ -201,8 +201,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
         //
         System.out.println("Попытка синхронизации была неудачная");
-        assertDbNotEquals(db, db2);
-        assertDbEquals(db, db3);
+        assertDbEquals(db, db2, expectedNotEqual);
+        assertDbEquals(db, db3, equalExpected);
 
         // Изменения в базах (добавим Ulz)
         UtTest utTest;
@@ -220,8 +220,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
         //
         System.out.println("Попытка синхронизации была неудачная");
-        assertDbNotEquals(db, db2);
-        assertDbEquals(db, db3);
+        assertDbEquals(db, db2, expectedNotEqual);
+        assertDbEquals(db, db3, equalExpected);
     }
 
 
