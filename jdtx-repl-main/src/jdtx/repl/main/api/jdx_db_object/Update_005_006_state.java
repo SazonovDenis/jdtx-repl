@@ -65,8 +65,8 @@ public class Update_005_006_state implements ISqlScriptExecutor {
         // que_out000_no
         // ---
 
-        DataStore ds = db.loadSql("select * from Z_Z_STATE_WS");
-        UtData.outTable(ds);
+        //DataStore ds = db.loadSql("select * from Z_Z_STATE_WS");
+        //UtData.outTable(ds);
 
         // Ранее que_common_dispatch_done всегда совпадал с возрастом рассылки,
         // т.к. que_common_dispatch_done отмечалась после рассылки на все филиалы

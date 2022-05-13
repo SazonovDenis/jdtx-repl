@@ -60,7 +60,7 @@ public class DatabaseStructManager {
         byte[] bytes = struct_rw.getBytes(struct);
         db.execSql("update " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO set " + structCode + " = :struct", UtCnv.toMap("struct", bytes));
         //
-        log.info("setDbStruct: " + structCode);
+        log.info("setDbStruct: " + structCode + ", struct tables count: " + struct.getTables().size());
     }
 
 }
