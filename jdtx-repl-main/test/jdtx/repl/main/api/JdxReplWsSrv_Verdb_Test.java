@@ -85,7 +85,7 @@ public class JdxReplWsSrv_Verdb_Test extends JdxReplWsSrv_Test {
         disconnectAllForce();
         clearAllTestData();
         // Рабочие каталоги
-        UtTest.doUnzipDir("test/jdtx/repl/main/api/JdxReplWsSrv_Verdb_Test.06.zip", "../");
+        UtZip.doUnzipDir("test/jdtx/repl/main/api/JdxReplWsSrv_Verdb_Test.06.zip", "../");
         // Создаем ящики рабочих станций
         IVariantMap args = new VariantMap();
         args.put("create", true);
