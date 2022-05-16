@@ -9,6 +9,7 @@ import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
+import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.que.*;
@@ -1041,5 +1042,69 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         return UtString.padLeft(String.valueOf(no), 9, '0') + "-" + dt.toString("YYYY.MM.dd_HH.mm.ss.SSS") + ".zip";
     }
 
+    public void handleError_BadReplica(IJdxQue que, long no, IMailer mailer, Exception exceptionUse) throws Exception {
+        if (UtJdxErrors.errorIs_replicaBadCrc(exceptionUse) || UtJdxErrors.errorIs_replicaFileNotExists(exceptionUse) || UtJdxErrors.errorIs_replicaNotFoundContent(exceptionUse)) {
+            // Какой ящик ответит нам за реплику?
+            String box;
+            String queName = que.getQueName();
+            switch (queName) {
+                case UtQue.QUE_IN:
+                    box = "to";
+                    break;
+                case UtQue.QUE_IN001:
+                    box = "to001";
+                    break;
+                default:
+                    throw new XError("handleError_UseReplica, unknown mailer.box for que.name: " + queName);
+            }
+
+            try {
+                // Проверим, есть ли такая реплика в ящике (еще осталась или запросили на предыдущем цикле)
+                log.info("handleError_UseReplica, try replica receive, replica.no: " + no + ", box: " + box);
+
+                // Скачиваем
+                IReplica replica = mailer.receive(box, no);
+
+                // Читаем заголовок
+                JdxReplicaReaderXml.readReplicaInfo(replica);
+
+                // Обновим "битую" реплику - заменим на нормальную
+                String actualFileName = JdxStorageFile.getFileName(no);
+                File actualFile = new File(que.getBaseDir() + actualFileName);
+                if (actualFile.exists() && !actualFile.delete()) {
+                    throw new XError("handleError_UseReplica, unable to delete bad replica: " + actualFile.getAbsolutePath());
+                }
+                //
+                que.put(replica, no);
+
+                // Удаляем с почтового сервера
+                mailer.delete(box, no);
+
+                //
+                log.info("handleError_UseReplica, replica receive done");
+                throw new XError("handleError_UseReplica, replica receive done, replica.no: " + no + ", box: " + box);
+            } catch (Exception exceptionMail) {
+                if (UtJdxErrors.errorIs_MailerReplicaNotFound(exceptionMail)) {
+                    log.info("handleError_UseReplica, try request replica: " + no + ", box: " + box);
+                    // Реплику еще не просили - попросим прислать
+                    RequiredInfo requiredInfo = new RequiredInfo();
+                    requiredInfo.requiredFrom = no;
+                    requiredInfo.requiredTo = no;
+                    requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
+                    // Просим
+                    mailer.setSendRequired(box, requiredInfo);
+
+                    //
+                    log.info("handleError_UseReplica, request done");
+                    throw new XError("handleError_UseReplica, request done, replica.no: " + no + ", box: " + box);
+                } else {
+                    throw exceptionMail;
+                }
+            }
+
+        } else {
+            throw exceptionUse;
+        }
+    }
 
 }

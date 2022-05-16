@@ -6,7 +6,7 @@ import java.util.*;
  * Общая очередь реплик.
  * Формируется из набора входящих очередей от рабочих станций.
  */
-public interface IJdxQueCommon extends IJdxReplicaStorage, IJdxReplicaQue {
+public interface IJdxQueCommon extends IJdxQue {
 
     /**
      * Задать набор входящих очередей рабочих станций.

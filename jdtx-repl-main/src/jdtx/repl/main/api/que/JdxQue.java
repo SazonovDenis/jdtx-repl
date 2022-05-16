@@ -8,6 +8,8 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
+import static jdtx.repl.main.api.util.UtJdxErrors.*;
+
 
 /**
  * Очередь реплик - хранилище в файлах дополнительно отмечается в БД.
@@ -164,7 +166,7 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
         String sql = "select * from " + queTableName + " where id = " + no;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("id") == 0) {
-            throw new XError("Replica not found, queName: " + queName + ", no: " + no);
+            throw new XError(message_replicaNotFound + ", queName: " + queName + ", no: " + no);
         }
         return rec;
     }

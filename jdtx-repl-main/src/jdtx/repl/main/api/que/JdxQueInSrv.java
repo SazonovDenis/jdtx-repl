@@ -9,6 +9,8 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
+import static jdtx.repl.main.api.util.UtJdxErrors.*;
+
 /**
  * Входящая очередь queIn на сервере для КАЖДОЙ рабочей станции.
  * Важно: для queIn одна физическая таблица содержит реплики на несколько станций, каждая станция - независимо.
@@ -87,7 +89,7 @@ public class JdxQueInSrv extends JdxQue {
         String sql = "select * " + sqlFromWhere + " and author_id = " + no;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("id") == 0) {
-            throw new XError("Replica not found, this.authorWsId: " + this.authorWsId + ", queName: " + queName + ", no: " + no);
+            throw new XError(message_replicaNotFound + ", queName: " + queName + ", no: " + no + ", this.authorWsId: " + this.authorWsId);
         }
         return rec;
     }

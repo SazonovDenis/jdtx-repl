@@ -13,8 +13,9 @@ public class UtJdxErrors {
     public static String message_replicaBadCrc = "replica.file.crc <> replica.info.crc";
     public static String message_replicaFileNotExists = "replica.file not exists";
     public static String message_replicaNotFoundContent = "Not found content in replica";
+    public static String message_replicaNotFound = "Replica not found";
 
-    public static boolean errorIs_replicaUsedBadCrc(Exception e) {
+    public static boolean errorIs_replicaBadCrc(Exception e) {
         return collectExceptionText(e).contains(message_replicaBadCrc);
     }
 
@@ -27,7 +28,7 @@ public class UtJdxErrors {
     }
 
     public static boolean errorIs_MailerReplicaNotFound(Exception e) {
-        return collectExceptionText(e).contains("Replica not found");
+        return collectExceptionText(e).contains(message_replicaNotFound);
     }
 
 }

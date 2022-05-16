@@ -742,10 +742,21 @@ public class JdxReplSrv {
                     log.info("srvReplicasDispatch, to.wsId: " + wsId + ", no: " + no + ", " + count + "/" + countToDo);
 
                     // Берем реплику из queCommon
-                    IReplica replica = queCommon.get(no);
+                    IReplica replica;
+                    try {
+                        // Берем реплику
+                        replica = queCommon.get(no);
 
-                    // Читаем заголовок
-                    JdxReplicaReaderXml.readReplicaInfo(replica);
+                        // Читаем заголовок
+                        JdxReplicaReaderXml.readReplicaInfo(replica);
+                    } catch (Exception e) {
+                        // Пробуем что-то сделать с проблемой реплики в очереди
+                        IMailer mailer = mailerList.get(wsId);
+                        UtRepl ut = new UtRepl(db, struct);
+                        ut.handleError_BadReplica(queCommon, no, mailer, e);
+                        //
+                        throw e;
+                    }
 
                     // Параметры (для правил публикации): автор реплики
                     filter.getFilterParams().put("wsAuthor", String.valueOf(replica.getInfo().getWsId()));
@@ -783,7 +794,6 @@ public class JdxReplSrv {
             } catch (Exception e) {
                 // Ошибка для станции - пропускаем, идем дальше
                 errorCollector.collectError("srvReplicasDispatch, to.wsId: " + wsId, e);
-                //
                 //
                 log.error("Error in srvReplicasDispatch, to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
                 log.error(Ut.getStackTrace(e));

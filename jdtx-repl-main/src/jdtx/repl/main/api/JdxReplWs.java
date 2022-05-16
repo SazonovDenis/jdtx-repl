@@ -570,7 +570,8 @@ public class JdxReplWs {
     }
 
 
-    private ReplicaUseResult handleQue(IJdxReplicaStorage que, String queName, long queNoFrom, long queNoTo, boolean forceUse) throws Exception {
+    private ReplicaUseResult handleQue(IJdxQue que, long queNoFrom, long queNoTo, boolean forceUse) throws Exception {
+        String queName = que.getQueName();
         log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", que: " + queNoFrom + " .. " + queNoTo);
 
         //
@@ -585,16 +586,20 @@ public class JdxReplWs {
             log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que.no: " + no + " (count: " + count + "/" + (queNoTo - queNoFrom) + ")");
 
             //
-            IReplica replica = que.get(no);
-
-            // Пробуем применить реплику
             ReplicaUseResult replicaUseResult;
             try {
+                // Берем реплику из очереди
+                IReplica replica = que.get(no);
+
+                // Пробуем применить реплику
                 replicaUseResult = useReplicaInternal(replica, forceUse);
             } catch (Exception e) {
-                // Пробуем что-то сделать с проблемой применения реплики
+                //
                 log.error("handleQue: " + e.getMessage());
-                handleError_UseReplica(que, queName, no, mailer, e);
+                // Пробуем что-то сделать с проблемой применения реплики
+                UtRepl ut = new UtRepl(db, struct);
+                ut.handleError_BadReplica(que, no, mailer, e);
+                //
                 break;
             }
 
@@ -611,7 +616,7 @@ public class JdxReplWs {
             if (replicaUseResult.replicaUsed) {
                 // Отметим применение реплики
                 // Отметку двигаем только вперёд. Это важно учитывать, т.к. бывает ситуация "восстановление базы станции по данным с сервера",
-                // в рамках которых может прийти реплика на изменение возраста очередей.
+                // в рамках которых может прийти реплика на изменение возраста очередей, а отметку назад двигать не надо.
                 long queDoneNow = stateManager.getQueNoDone(queName);
                 if (no > queDoneNow) {
                     stateManager.setQueNoDone(queName, no);
@@ -645,69 +650,6 @@ public class JdxReplWs {
 
         //
         return handleQueUseResult;
-    }
-
-    private void handleError_UseReplica(IJdxReplicaStorage que, String queName, long no, IMailer mailer, Exception exceptionUse) throws Exception {
-        if (UtJdxErrors.errorIs_replicaUsedBadCrc(exceptionUse) || UtJdxErrors.errorIs_replicaFileNotExists(exceptionUse) || UtJdxErrors.errorIs_replicaNotFoundContent(exceptionUse)) {
-            String box;
-            switch (queName) {
-                case UtQue.QUE_IN:
-                    box = "to";
-                    break;
-                case UtQue.QUE_IN001:
-                    box = "to001";
-                    break;
-                default:
-                    throw new XError("handleUseError, unknown mailer.box for que.name: " + queName);
-            }
-
-            try {
-                // Проверим, есть ли такая реплика в ящике (еще осталась или запросили на предыдущем цикле)
-                log.info("handleError_UseReplica, try replica receive, replica.no: " + no + ", box: " + box);
-
-                // Скачиваем
-                IReplica replica = mailer.receive(box, no);
-
-                // Читаем заголовок
-                JdxReplicaReaderXml.readReplicaInfo(replica);
-
-                // Обновим "битую" реплику - заменим на нормальную
-                String actualFileName = JdxStorageFile.getFileName(no);
-                File actualFile = new File(((IJdxStorageFile) que).getBaseDir() + actualFileName);
-                if (actualFile.exists() && !actualFile.delete()) {
-                    throw new XError("handleError_UseReplica, unable to delete bad replica: " + actualFile.getAbsolutePath());
-                }
-                //
-                que.put(replica, no);
-
-                // Удаляем с почтового сервера
-                mailer.delete(box, no);
-
-                //
-                log.info("handleError_UseReplica, replica receive done");
-                throw new XError("handleError_UseReplica, replica receive done, replica.no: " + no + ", box: " + box);
-            } catch (Exception exceptionMail) {
-                if (UtJdxErrors.errorIs_MailerReplicaNotFound(exceptionMail)) {
-                    log.info("handleError_UseReplica, try request replica: " + no + ", box: " + box);
-                    // Реплику еще не просили - попросим прислать
-                    RequiredInfo requiredInfo = new RequiredInfo();
-                    requiredInfo.requiredFrom = no;
-                    requiredInfo.requiredTo = no;
-                    requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
-                    // Просим
-                    mailer.setSendRequired(box, requiredInfo);
-
-                    //
-                    log.info("handleError_UseReplica, request done");
-                    throw new XError("handleError_UseReplica, request done, replica.no: " + no + ", box: " + box);
-                } else {
-                    throw exceptionMail;
-                }
-            }
-
-        } else {
-            throw exceptionUse;
-        }
     }
 
     public ReplicaUseResult useReplicaFile(File f) throws Exception {
@@ -1346,14 +1288,14 @@ public class JdxReplWs {
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         long queInNoDone = stateManager.getQueNoDone("in");
         long queInNoAvailable = queIn.getMaxNo();
-        return handleQue(queIn, "in", queInNoDone + 1, queInNoAvailable, forceUse);
+        return handleQue(queIn, queInNoDone + 1, queInNoAvailable, forceUse);
     }
 
     private ReplicaUseResult handleQueIn001() throws Exception {
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         long queInNoDone = stateManager.getQueNoDone("in001");
         long queInNoAvailable = queIn001.getMaxNo();
-        return handleQue(queIn001, "in001", queInNoDone + 1, queInNoAvailable, false);
+        return handleQue(queIn001, queInNoDone + 1, queInNoAvailable, false);
     }
 
     private String loadStringFromSream(InputStream stream) throws Exception {

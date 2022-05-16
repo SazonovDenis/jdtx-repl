@@ -10,6 +10,8 @@ import org.apache.commons.logging.*;
 
 import java.util.*;
 
+import static jdtx.repl.main.api.util.UtJdxErrors.*;
+
 
 /**
  * Исходящая очередь queOut000 и queOut001 на сервере для КАЖДОЙ рабочей станции.
@@ -112,7 +114,7 @@ public abstract class JdxQueOutSrv extends JdxQue implements IJdxQue {
         String sql = "select * " + sqlFromWhere + " and destination_id = " + no;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("id") == 0) {
-            throw new XError("Replica not found, this.destinationWsId: " + this.destinationWsId + ", queName: " + queName + ", no: " + no);
+            throw new XError(message_replicaNotFound + ", queName: " + queName + ", no: " + no + ", this.destinationWsId: " + this.destinationWsId);
         }
         return rec;
     }
