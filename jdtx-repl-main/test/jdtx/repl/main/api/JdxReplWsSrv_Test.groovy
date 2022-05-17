@@ -98,7 +98,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
             "LICDOCVID"      : "000",
             "LICDOCTIP"      : "000",
             "REGIONTIP"      : "000",
-            "ULZ"            : "0X0",
+            "ULZ"            : "?X0",
             "REGION"         : "0X0",
     ]
 

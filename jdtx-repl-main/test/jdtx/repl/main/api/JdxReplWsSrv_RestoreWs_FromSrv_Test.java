@@ -22,7 +22,6 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         cfg_json_snapshot = "test/etalon/publication_full_152_snapshot.json";
     }
 
-
     /**
      * Проверка восстановления репликации рабочей станции
      * при полной потере базы рабочей станции и её репликационных каталогов, по данным с сервера.

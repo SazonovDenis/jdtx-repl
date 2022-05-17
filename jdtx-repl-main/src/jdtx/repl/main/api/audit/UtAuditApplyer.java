@@ -59,18 +59,15 @@ public class UtAuditApplyer {
                     boolean autoUseRepairReplica = jdxReplWs.appCfg.getValueBoolean("autoUseRepairReplica");
                     if (autoUseRepairReplica) {
                         log.warn("==================================");
-                        log.warn("==================================");
-                        log.warn("==================================");
                         log.warn("Восстанавливаем записи из временной реплики: " + replicaRepairFile.getAbsolutePath());
                         ReplicaUseResult useResult = jdxReplWs.useReplicaFile(replicaRepairFile);
                         if (!useResult.replicaUsed) {
                             log.error("Временная реплика не использована: " + replicaRepairFile.getAbsolutePath());
                         }
-                        if (replicaRepairFile.delete()) {
-                            log.info("Файл временной реплики удален");
-                        } else {
+                        if (!replicaRepairFile.delete()) {
                             log.error("Файл временной реплики не удалось удалить");
                         }
+                        log.warn("==================================");
                     } else {
                         log.warn("autoUseRepairReplica: " + autoUseRepairReplica);
                     }

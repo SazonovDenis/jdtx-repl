@@ -6,84 +6,234 @@ import org.junit.*;
 import java.io.*;
 
 /**
- * Проверка восстановления рабочей станции
- * при восстановлении базы/папок из бэкапа
+ * Проверка восстановления репликации рабочей станции при восстановлении базы/папок из бэкапа.
+ * <p>
+ * Шаг test_DatabaseRestore_stepRepair - исправляет ошибку
  */
 public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreWs_Test {
 
-    /**
-     * Проверка восстановления репликации рабочей станции
-     * при восстановлении базы из бэкапа, но при сохранении репликационных каталогов
-     * test_DatabaseRestore_stepRuinDB - провоцирует ошибку,
-     * test_DatabaseRestore_stepRepair - исправляет ее
-     */
-    @Test
-    public void test_DB() throws Exception {
-        test_DatabaseRestore_stepRuinDB();
-        test_DatabaseRestore_stepRepair();
-    }
 
     /**
-     * Проверка восстановления репликации рабочей станции
-     * при восстановлении базы из бэкапа и потере репликационных каталогов
-     * test_DatabaseRestore_stepRuinDirDB - провоцирует ошибку,
-     * test_DatabaseRestore_stepRepair - исправляет ее
+     * Проверка при восстановлении устаревшей базы из бэкапа,
+     * но при сохранении репликационных каталогов
      */
     @Test
-    public void test_DirDB() throws Exception {
-        test_DatabaseRestore_stepRuinDirDB();
-        test_DatabaseRestore_stepRepair();
-    }
-
-    @Test
-    public void test_DatabaseRestore_stepRuinDB() throws Exception {
+    public void test_Db1() throws Exception {
         // ---
-        // Создание репликации
-        // Работаем как обычно
-        // Изменения в базах и синхронизация
+        // Создание репликации, обычная работа - изменения в базах и синхронизация
         doSetUp_doNolmalLife_BeforeFail();
 
 
         // ---
         // Аварийное событие
-
-        // Восстановление из "бэкапа" базы для ws2
         System.out.println("Аварийное событие");
-        doRestoreDB(db2);
+
+        // Восстановление старого состояния БД
+        doRestoreDB(db2, "1");
 
 
         // ---
         // Жизнь после аварии
         doLife_AfterFail();
+
+        // ---
+        // Восстановление после аварии и проверка
+        doRepair();
     }
 
+
+    /**
+     * Проверка при восстановлении устаревшей базы из бэкапа,
+     * но при сохранении репликационных каталогов
+     */
     @Test
-    public void test_DatabaseRestore_stepRuinDirDB() throws Exception {
+    public void test_Db2() throws Exception {
         // ---
-        // Создание репликации
-        // Обычная работа: изменения в базах и синхронизация -
-        // получаем синхронные базы
+        // Создание репликации, обычная работа - изменения в базах и синхронизация
         doSetUp_doNolmalLife_BeforeFail();
 
 
         // ---
-        // Аварийные события:
-        System.out.println("Аварийные события");
+        // Аварийное событие
+        System.out.println("Аварийное событие");
 
-        // Восстановление из "бэкапа" базы для ws2
-        doRestoreDB(db2);
+        // Восстановление старого состояния БД
+        doRestoreDB(db2, "2");
 
-        // Удаление рабочих каталогов для ws2
+
+        // ---
+        // Жизнь после аварии
+        doLife_AfterFail();
+
+        // ---
+        // Восстановление после аварии и проверка
+        doRepair();
+    }
+
+
+    /**
+     * Проверка при сохранении базы,
+     * но при устаревшем состоянии репликационных каталогов
+     */
+    @Test
+    public void test_Dir1() throws Exception {
+        // ---
+        // Создание репликации, обычная работа - изменения в базах и синхронизация
+        doSetUp_doNolmalLife_BeforeFail();
+
+
+        // ---
+        // Аварийное событие
+        System.out.println("Аварийное событие");
+
+        // Восстановление строго состояния каталогов
+        doRestoreDir(db2, "1");
+
+
+        // ---
+        // Жизнь после аварии
+        doLife_AfterFail();
+
+        // ---
+        // Восстановление после аварии и проверка
+        doRepair();
+    }
+
+
+    /**
+     * Проверка при сохранении базы,
+     * но при полной потере репликационных каталогов,
+     */
+    @Test
+    public void test_DirClean() throws Exception {
+        // ---
+        // Создание репликации, обычная работа - изменения в базах и синхронизация
+        doSetUp_doNolmalLife_BeforeFail();
+
+
+        // ---
+        // Аварийное событие
+        System.out.println("Аварийное событие");
+
+        // Полная потеря рабочих каталогов для ws2
         doDeleteDir(db2);
 
 
         // ---
         // Жизнь после аварии
         doLife_AfterFail();
+
+        // ---
+        // Восстановление после аварии и проверка
+        doRepair();
     }
+
+
+    /**
+     * Проверка при восстановлении устаревшей базы из бэкапа,
+     * и при устаревшем состоянии репликационных каталогов,
+     * при этом база более старая, чем каталоги
+     */
+    @Test
+    public void test_Db1_Dir2() throws Exception {
+        // ---
+        // Создание репликации, обычная работа - изменения в базах и синхронизация
+        doSetUp_doNolmalLife_BeforeFail();
+
+
+        // ---
+        // Аварийные события
+        System.out.println("Аварийные события");
+
+        // Восстановление старого состояния БД
+        doRestoreDB(db2, "1");
+
+        // Восстановление строго состояния каталогов
+        doRestoreDir(db2, "2");
+
+
+        // ---
+        // Жизнь после аварии
+        doLife_AfterFail();
+
+        // ---
+        // Восстановление после аварии и проверка
+        doRepair();
+    }
+
+
+    /**
+     * Проверка при восстановлении устаревшей базы из бэкапа,
+     * и при устаревшем состоянии репликационных каталогов,
+     * при этом каталоги более старые, чем база
+     */
+    @Test
+    public void test_Db2_Dir1() throws Exception {
+        // ---
+        // Создание репликации, обычная работа - изменения в базах и синхронизация
+        doSetUp_doNolmalLife_BeforeFail();
+
+
+        // ---
+        // Аварийные события
+        System.out.println("Аварийные события");
+
+        // Восстановление старого состояния БД
+        doRestoreDB(db2, "2");
+
+        // Восстановление строго состояния каталогов
+        doRestoreDir(db2, "1");
+
+
+        // ---
+        // Жизнь после аварии
+        doLife_AfterFail();
+
+        // ---
+        // Восстановление после аварии и проверка
+        doRepair();
+    }
+
+
+    /**
+     * Проверка при восстановлении устаревшей базы из бэкапа,
+     * и полной потере репликационных каталогов
+     */
+    @Test
+    public void test_Db1_DirClean() throws Exception {
+        // ---
+        // Создание репликации, обычная работа - изменения в базах и синхронизация
+        doSetUp_doNolmalLife_BeforeFail();
+
+
+        // ---
+        // Аварийные события
+        System.out.println("Аварийные события");
+
+        // Восстановление старого состояния БД
+        doRestoreDB(db2, "1");
+
+        // Полная потеря рабочих каталогов для ws2
+        doDeleteDir(db2);
+
+
+        // ---
+        // Жизнь после аварии
+        doLife_AfterFail();
+
+        // ---
+        // Восстановление после аварии и проверка
+        doRepair();
+    }
+
 
     @Test
     public void test_DatabaseRestore_stepRepair() throws Exception {
+        doRepair();
+    }
+
+
+    private void doRepair() throws Exception {
         // Первая попытка ремонта
         System.out.println();
         System.out.println("Первая попытка ремонта");
@@ -116,9 +266,13 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
     }
 
+
+    // Создание репликации,
+    // обычная работа - изменения в базах и синхронизация
+    // По дороге создаем две контрольных точки
     private void doSetUp_doNolmalLife_BeforeFail() throws Exception {
-        UtFile.cleanDir(backupDirName);
         UtFile.mkdirs(backupDirName);
+        UtFile.cleanDir(backupDirName);
 
         // Создание репликации
         allSetUp();
@@ -151,49 +305,65 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         assertDbEquals(db, db3, equalExpected);
 
 
-        // ---
-        // Изменения в базах и сохранение "бэкапа" базы ws2 -
-        // в бэкапе будет необработанный аудит
+        // В бэкапе будет исходное состояние
+        doBackupDB(db2, "");
+        doBackupDir(db2, "");
 
-        // Изменения в базах
-        for (int i = 0; i <= 3; i++) {
+
+        // Изменения в базах, частичная синхронизация
+        doNolmalLife_Step();
+
+        // Сохраним "бэкап" базы и папок для ws2
+        doBackupDB(db2, "1");
+        doBackupDir(db2, "1");
+
+
+        // Изменения в базах, частичная синхронизация
+        doNolmalLife_Step();
+
+        // Сохраним "бэкап" базы и папок для ws2
+        doBackupDB(db2, "2");
+        doBackupDir(db2, "2");
+    }
+
+
+    // Изменения в базах, синхронизация,
+    // снова изменения в базах, "неполная" синхронизация ws2 -
+    // реплики останутся только в очереди (папке) ws2 (но НЕ отправлены на сервер)
+    private void doNolmalLife_Step() throws Exception {
+        // Изменения в базах, синхронизация
+        for (int i = 0; i <= 2; i++) {
             test_ws1_makeChange_Unimportant();
             test_ws2_makeChange();
             test_ws3_makeChange();
-        }
 
-        // Сохраним "бэкап" базы для ws2
-        doBackupDB(db2);
-
-
-        // ---
-        // Изменения в базах и синхронизация ws2 -
-        // на сервер попадут измения старше "бэкапа"
-        for (int i = 0; i <= 3; i++) {
-            // Изменения в базах
-            test_ws1_makeChange_Unimportant();
-            test_ws2_makeChange();
-            test_ws3_makeChange();
-
-            // Синхронизация
+            //
+            sync_http_1_2_3();
             sync_http_1_2_3();
         }
 
-
-        // ---
-        // Изменения в базах и "неполная" синхронизация ws2 -
-        // в папках останутся измения старше "бэкапа", и старше, чем отправлено на сервер
-
         // Изменения в базах
-        test_ws1_makeChange_Unimportant();
-        test_ws2_makeChange();
-        test_ws3_makeChange();
+        for (int i = 0; i <= 2; i++) {
+            test_ws1_makeChange_Unimportant();
+            test_ws2_makeChange();
+            test_ws3_makeChange();
+        }
 
-        // "Неполная" синхронизация ws2
+        // "Неполная" синхронизация ws2 -
+        // реплики останутся только в очередях (папках) ws2 (но НЕ отправлены на сервер)
         JdxReplWs ws2 = new JdxReplWs(db2);
         ws2.init();
         ws2.handleSelfAudit();
+
+        // Изменения в базах -
+        // реплики останутся только в аудите
+        for (int i = 0; i <= 2; i++) {
+            test_ws1_makeChange_Unimportant();
+            test_ws2_makeChange();
+            test_ws3_makeChange();
+        }
     }
+
 
     private void doLife_AfterFail() throws Exception {
         // Попытка синхронизации (неудачная для ws2)

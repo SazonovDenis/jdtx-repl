@@ -16,7 +16,14 @@ public class UtZip {
     protected static Log log = LogFactory.getLog("UtZip");
 
 
-    public static void doZipFiles(Collection<File> files, File destFile) throws IOException {
+    public static void doZipFiles(Collection<File> files, File rootDir, File destFile) throws Exception {
+        String rootDirName = rootDir.getCanonicalPath();
+        int rootDirNameLen = rootDirName.length();
+
+        //
+        log.info("Zip dir: " + rootDirName + " to file: " + destFile.getCanonicalPath());
+
+        //
         int buffSize = 1024 * 10;
         byte[] buffer = new byte[buffSize];
 
@@ -28,12 +35,17 @@ public class UtZip {
                 //StopWatch sw = new StopWatch();
                 //sw.start();
 
-                String inFilename = file.getPath();
-                FileInputStream inputStream = new FileInputStream(inFilename);
-                log.info(inFilename);
+                String fileName = file.getCanonicalPath();
+                FileInputStream inputStream = new FileInputStream(fileName);
+                log.info(fileName);
+
+                if (!fileName.startsWith(rootDirName)) {
+                    throw new Exception("file name: " + fileName + " not startsWith: " + rootDirName);
+                }
+                String fileNameInZip = fileName.substring(rootDirNameLen + 1);
 
                 // ---
-                ZipEntry zipEntry = new ZipEntry(file.getName());
+                ZipEntry zipEntry = new ZipEntry(fileNameInZip);
                 zipOutputStream.putNextEntry(zipEntry);
 
                 //
@@ -64,14 +76,14 @@ public class UtZip {
     }
 
 
-    public static void doZipDir(String dirName, String destFileName) throws IOException {
+    public static void doZipDir(String dirName, String destFileName) throws Exception {
         DirScannerLocal scanner = new DirScannerLocal();
         scanner.setRecursive(true);
         scanner.setRootDir(dirName);
         scanner.scan();
 
         File destFile = new File(destFileName);
-        doZipFiles(scanner.getFiles(), destFile);
+        doZipFiles(scanner.getFiles(), new File(dirName), destFile);
     }
 
 

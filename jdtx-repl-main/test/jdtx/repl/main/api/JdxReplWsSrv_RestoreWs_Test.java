@@ -16,11 +16,14 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
 
     String backupDirName = "temp/backup/";
 
-    String dirName;
-    String dbFileName;
-    String backupFileName;
-    File dbFile;
-    File backupFile;
+    String workDirName;
+    String workDbName;
+    String dbBackupName;
+    String dirBackupName;
+    File workDirFile;
+    File workDbFile;
+    File dbBackupFile;
+    File dirBackupFile;
 
     @Test
     public void test_assertDbEquals_1_2_3() throws Exception {
@@ -54,16 +57,21 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         assertDbEquals(db, db3, expectedNotEqual);
     }
 
-    void initWsInfo(Db db) throws Exception {
+    void initWsInfo(Db db, String suffix) throws Exception {
         JdxReplWs ws = new JdxReplWs(db);
         ws.readIdGuid();
-        String sWsId = "ws_" + UtString.padLeft(String.valueOf(ws.wsId), 3, "0");
+        String wsIdStr = "ws_" + UtString.padLeft(String.valueOf(ws.wsId), 3, "0");
         ws.initDataRoot();
-        dirName = ws.dataRoot + sWsId;
-        dbFileName = db.getDbSource().getDatabase();
-        backupFileName = backupDirName + "db_" + sWsId + ".bak";
-        dbFile = new File(dbFileName);
-        backupFile = new File(backupFileName);
+        //
+        workDirName = ws.dataRoot + wsIdStr;
+        workDbName = db.getDbSource().getDatabase();
+        dbBackupName = backupDirName + "db_" + wsIdStr + suffix + ".bak";
+        dirBackupName = backupDirName + "dir_" + wsIdStr + suffix + ".bak";
+        //
+        workDirFile = new File(workDirName);
+        workDbFile = new File(workDbName);
+        dbBackupFile = new File(dbBackupName);
+        dirBackupFile = new File(dirBackupName);
     }
 
 
@@ -86,93 +94,93 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
     }
 
     void doDeleteDir(Db db) throws Exception {
-        initWsInfo(db);
+        initWsInfo(db, "");
 
         //
         doDisconnectAll();
 
         //
-        System.out.println("Удаляем содержимое: " + dirName + "(" + (new File(dirName).getAbsolutePath()) + ")");
-        UtFile.cleanDir(dirName);
-        FileUtils.forceDelete(new File(dirName));
+        System.out.println("Удаляем содержимое: " + workDirName + "(" + workDirFile.getAbsolutePath() + ")");
+        UtFile.cleanDir(workDirName);
+        FileUtils.forceDelete(workDirFile);
 
         //
         connectAll();
     }
 
     void doDeleteDb(Db db) throws Exception {
-        initWsInfo(db);
+        initWsInfo(db, "");
 
         //
         doDisconnectAll();
 
         //
-        System.out.println("Удаляем: " + dbFileName + "(" + (dbFile.getAbsolutePath()) + ")");
-        FileUtils.forceDelete(dbFile);
+        System.out.println("Удаляем: " + workDbName + "(" + (workDbFile.getAbsolutePath()) + ")");
+        FileUtils.forceDelete(workDbFile);
 
         //
         connectAll(false);
     }
 
-    void doBackupDB(Db db) throws Exception {
-        initWsInfo(db);
+    void doBackupDB(Db db, String suffix) throws Exception {
+        initWsInfo(db, suffix);
 
         //
         doDisconnectAll();
 
         //
-        if (backupFile.exists()) {
-            throw new XError("backupFile exists: " + backupFile);
+        if (dbBackupFile.exists()) {
+            throw new XError("backupFile exists: " + dbBackupFile);
         }
         //
-        FileUtils.copyFile(dbFile, backupFile);
+        FileUtils.copyFile(workDbFile, dbBackupFile);
 
         //
         connectAll();
     }
 
-    void doRestoreDB(Db db) throws Exception {
-        initWsInfo(db);
+    void doRestoreDB(Db db, String suffix) throws Exception {
+        initWsInfo(db, suffix);
 
         //
         doDisconnectAll();
 
         //
-        FileUtils.forceDelete(dbFile);
-        FileUtils.copyFile(backupFile, dbFile);
+        FileUtils.forceDelete(workDbFile);
+        FileUtils.copyFile(dbBackupFile, workDbFile);
 
         //
         connectAll();
     }
 
-    void doBackupDir(Db db) throws Exception {
-        initWsInfo(db);
+    void doBackupDir(Db db, String suffix) throws Exception {
+        initWsInfo(db, suffix);
 
         //
         doDisconnectAll();
 
         //
-        if (backupFile.exists()) {
-            throw new XError("backupFile exists: " + backupFile);
+        if (dirBackupFile.exists()) {
+            throw new XError("backupFile exists: " + dirBackupFile);
         }
 
         //
-        UtTest.doZipDir(dirName, backupFileName);
+        UtZip.doZipDir(workDirName, dirBackupName);
 
         //
         connectAll();
     }
 
 
-    void doRestoreDir(Db db) throws Exception {
-        initWsInfo(db);
+    void doRestoreDir(Db db, String suffix) throws Exception {
+        initWsInfo(db, suffix);
 
         //
         doDisconnectAll();
 
         //
-        UtFile.cleanDir(dirName);
-        UtTest.doUnzipDir(backupFileName, dirName);
+        UtFile.cleanDir(workDirName);
+        UtZip.doUnzipDir(dirBackupName, workDirName);
 
         //
         connectAll();

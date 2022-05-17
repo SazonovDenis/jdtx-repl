@@ -43,15 +43,30 @@ public class AllTest_Test extends AppTestCase {
         test6.setUp();
         test6.test_All_filter();
 
-        // Проверка восстановления репликации рабочей станции при восстановлении базы из бэкапа
+        //  Проверка восстановления репликации рабочей станции при восстановлении базы/папок из бэкапа.
         JdxReplWsSrv_RestoreWs_DbRestore_test test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
-        // Проверка восстановления репликации при сохранении каталогов
         test7.setUp();
-        test7.test_DB();
-        // Проверка восстановления репликации при потере репликационных каталогов
+        test7.test_Db1();
+        //
         test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
         test7.setUp();
-        test7.test_DirDB();
+        test7.test_Dir1();
+        //
+        test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+        test7.setUp();
+        test7.test_DirClean();
+        //
+        test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+        test7.setUp();
+        test7.test_Db1_Dir2();
+        //
+        test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+        test7.setUp();
+        test7.test_Db2_Dir1();
+        //
+        test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+        test7.setUp();
+        test7.test_Db1_DirClean();
 
         //
         JdxReplWsSrv_DeleteCascade_Test test5 = new JdxReplWsSrv_DeleteCascade_Test();

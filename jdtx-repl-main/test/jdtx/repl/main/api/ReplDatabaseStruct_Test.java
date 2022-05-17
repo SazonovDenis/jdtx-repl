@@ -154,6 +154,9 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
                     }
                     break;
                 }
+                case '?': {
+                    break;
+                }
                 default:
                     throw new XError("Bad expected: " + expectedCrc);
             }
@@ -176,6 +179,9 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
                     }
                     break;
                 }
+                case '?': {
+                    break;
+                }
                 default:
                     throw new XError("Bad expected: " + expectedNewIn1);
             }
@@ -196,6 +202,9 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
                         bad = true;
                         System.out.println(tableName + ": not found new in 2");
                     }
+                    break;
+                }
+                case '?': {
                     break;
                 }
                 default:
