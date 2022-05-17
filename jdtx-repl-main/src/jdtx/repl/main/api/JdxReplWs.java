@@ -1869,8 +1869,7 @@ public class JdxReplWs {
             throw new XError("Detected restore from backup, repair needed: " + errInfo);
         }
 
-        log.warn("==================================");
-        log.warn("==================================");
+        log.warn("================================");
         log.warn("Restore from backup: start repair");
 
         // ---
@@ -2145,8 +2144,7 @@ public class JdxReplWs {
 
         //
         log.warn("Restore from backup: repair done");
-        log.warn("==================================");
-        log.warn("==================================");
+        log.warn("--------------------------------");
     }
 
     /**

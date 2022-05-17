@@ -54,11 +54,14 @@ public class UtAuditApplyer {
                 applyReplicaReader(replicaReader, publicationIn, filterParams, forceApply_ignorePublicationRules, commitPortionMax);
             } catch (Exception e) {
                 if (e instanceof JdxForeignKeyViolationException) {
-                    File replicaRepairFile = jdxReplWs.handleFailedInsertUpdateRef((JdxForeignKeyViolationException) e);
                     // todo крайне криво - транзакция же ждет!!!
+                    log.warn("==================================");
+                    JdxForeignKeyViolationException eFk = (JdxForeignKeyViolationException) e;
+                    log.warn("Обработка ошибки foreignKey, table: " + eFk.tableName + ", values: " + eFk.recValues);
+                    //
+                    File replicaRepairFile = jdxReplWs.handleFailedInsertUpdateRef(eFk);
                     boolean autoUseRepairReplica = jdxReplWs.appCfg.getValueBoolean("autoUseRepairReplica");
                     if (autoUseRepairReplica) {
-                        log.warn("==================================");
                         log.warn("Восстанавливаем записи из временной реплики: " + replicaRepairFile.getAbsolutePath());
                         ReplicaUseResult useResult = jdxReplWs.useReplicaFile(replicaRepairFile);
                         if (!useResult.replicaUsed) {
@@ -67,10 +70,10 @@ public class UtAuditApplyer {
                         if (!replicaRepairFile.delete()) {
                             log.error("Файл временной реплики не удалось удалить");
                         }
-                        log.warn("==================================");
                     } else {
-                        log.warn("autoUseRepairReplica: " + autoUseRepairReplica);
+                        log.warn("Обработка ошибки не выполнена, autoUseRepairReplica: " + autoUseRepairReplica);
                     }
+                    log.warn("--------------------------------");
                 }
                 throw (e);
             }
@@ -250,6 +253,7 @@ public class UtAuditApplyer {
                                         log.error("recValuesStr: " + recValuesStr);
                                         //
                                         JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
+                                        ee.tableName = tableName;
                                         ee.recParams = recParams;
                                         ee.recValues = recValuesStr;
                                         // todo вообще, костыль страшнейший, сделан для пропуска неуместных реплик,
@@ -283,6 +287,7 @@ public class UtAuditApplyer {
                                         log.error("recValuesStr: " + recValuesStr);
                                         //
                                         JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
+                                        ee.tableName = tableName;
                                         ee.recParams = recParams;
                                         ee.recValues = recValuesStr;
                                         // todo вообще, костыль страшнейший, сделан для пробуска неуместных реплик,

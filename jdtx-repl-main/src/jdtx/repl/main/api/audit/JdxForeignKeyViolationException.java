@@ -4,10 +4,11 @@ import java.util.*;
 
 public class JdxForeignKeyViolationException extends Exception {
 
-    public Map recValues;
-    public Map recParams;
+    public String tableName;
+    public Map<String, String> recValues;
+    public Map<String, Object> recParams;
 
-    public JdxForeignKeyViolationException(Exception e){
+    public JdxForeignKeyViolationException(Exception e) {
         super(e);
     }
 
