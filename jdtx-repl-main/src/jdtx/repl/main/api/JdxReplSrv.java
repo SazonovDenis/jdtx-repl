@@ -812,7 +812,7 @@ public class JdxReplSrv {
 
 
     /**
-     * Рассылка реплик в ящики каждой рабочей станции
+     * Рассылка реплик в ящики каждой рабочей станции, штатная
      */
     public void srvReplicasSend() throws Exception {
         for (Map.Entry<Long, IMailer> en : mailerList.entrySet()) {
@@ -866,12 +866,20 @@ public class JdxReplSrv {
                 // ws.to <- srv.out
                 JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
                 queOut000.setDataRoot(dataRoot);
-                UtMail.sendQueToMail_Required(wsId, queOut000, wsMailer, "to", RequiredInfo.EXECUTOR_SRV);
+                // Выясняем, что запросили передать
+                RequiredInfo requiredInfo000 = wsMailer.getSendRequired("to");
+                MailSendTask sendTask000 = UtMail.getRequiredSendTask(queOut000, requiredInfo000, RequiredInfo.EXECUTOR_SRV);
+                // Отправляем из очереди, что запросили
+                UtMail.sendQueToMail_Required(sendTask000, wsId, queOut000, wsMailer, "to");
 
                 // ws.to001 <- srv.out001
                 JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
                 queOut001.setDataRoot(dataRoot);
-                UtMail.sendQueToMail_Required(wsId, queOut001, wsMailer, "to001", RequiredInfo.EXECUTOR_SRV);
+                // Выясняем, что запросили передать
+                RequiredInfo requiredInfo001 = wsMailer.getSendRequired("to001");
+                MailSendTask sendTask001 = UtMail.getRequiredSendTask(queOut001, requiredInfo001, RequiredInfo.EXECUTOR_SRV);
+                // Отправляем из очереди, что запросили
+                UtMail.sendQueToMail_Required(sendTask001, wsId, queOut001, wsMailer, "to001");
 
             } catch (Exception e) {
                 // Ошибка для станции - пропускаем, идем дальше

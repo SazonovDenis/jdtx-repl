@@ -25,7 +25,7 @@ public class RequiredInfo {
         executor = UtJdxData.stringValueOf(required.get("executor"), null);
     }
 
-    public void clone(RequiredInfo requiredInfo) {
+    public void assign(RequiredInfo requiredInfo) {
         this.requiredFrom = requiredInfo.requiredFrom;
         this.requiredTo = requiredInfo.requiredTo;
         this.recreate = requiredInfo.recreate;

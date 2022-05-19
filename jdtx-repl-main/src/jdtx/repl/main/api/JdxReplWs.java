@@ -532,41 +532,44 @@ public class JdxReplWs {
 
 
     /**
-     * Пересоздает реплику заново.
-     * todo Пока не используется, на будещее
+     * Пересоздает реплику из очереди queOut, заменяет существующую на вновь созданную.
      *
-     * @param age Для какого возраста
+     * @param no Номер реплики в очереди queOut
      * @return Пересозданная реплика
      */
-    public IReplica recreateQueOutReplicaAge(long age) throws Exception {
-        log.info("recreateQueOutReplica, age: " + age);
+    public IReplica recreateQueOutReplica(long no) throws Exception {
+        log.info("recreateQueOutReplica, no: " + no);
 
-        // Можем пересозать только по аудиту JdxReplicaType.IDE
-        IReplicaInfo replicaInfo = queOut.get(age).getInfo();
+        // Смотрим старую реплику
+        IReplica replicaOriginal = queOut.get(no);
+        File replicaOriginalFile = replicaOriginal.getData();
+
+        // По аудиту можем пересозать только реплику типа JdxReplicaType.IDE
+        IReplicaInfo replicaInfo = replicaOriginal.getInfo();
         if (replicaInfo.getReplicaType() != JdxReplicaType.IDE) {
-            throw new XError("Реплику невозможно пересоздать, age:" + age + ", replicaType: " + replicaInfo.getReplicaType());
+            throw new XError("Реплику этого типа невозможно пересоздать, replica.no:" + no + ", replica.type: " + replicaInfo.getReplicaType());
         }
-
 
         // Формируем реплику заново
         UtAuditSelector auditSelector = new UtAuditSelector(db, struct, wsId);
-        IReplica replicaRecreated = auditSelector.createReplicaFromAudit(publicationOut, age);
-
-        // Копируем реплику на место старой
-        IReplica replicaOriginal = queOut.get(age);
-        File replicaOriginalFile = replicaOriginal.getData();
-
-        log.info("Original replica file: " + replicaOriginalFile.getAbsolutePath());
-        log.info("Original replica size: " + replicaOriginalFile.length());
-        log.info("Recreated replica file: " + replicaRecreated.getData().getAbsolutePath());
-        log.info("Recreated replica size: " + replicaRecreated.getData().length());
-
-        FileUtils.forceDelete(replicaOriginalFile);
-        FileUtils.copyFile(replicaRecreated.getData(), replicaOriginalFile);
-        FileUtils.forceDelete(replicaRecreated.getData());
+        IReplica replicaRecreated = auditSelector.createReplicaFromAudit(publicationOut, no);
 
         //
-        return replicaOriginal;
+        log.info("Original replica");
+        log.info("  file: " + replicaOriginalFile.getAbsolutePath());
+        log.info("  size: " + replicaOriginalFile.length());
+        log.info("  crc: " + UtJdx.getMd5File(replicaOriginalFile));
+        log.info("Recreated replica");
+        log.info("  file: " + replicaRecreated.getData().getAbsolutePath());
+        log.info("  size: " + replicaRecreated.getData().length());
+        log.info("  crc: " + UtJdx.getMd5File(replicaRecreated.getData()));
+
+        // Копируем содержимое новой реплики на место старой
+        FileUtils.forceDelete(replicaOriginalFile);
+        queOut.put(replicaRecreated, no);
+
+        //
+        return replicaRecreated;
     }
 
 
@@ -1519,14 +1522,34 @@ public class JdxReplWs {
     }
 
 
+    /**
+     * Отправка реплик с рабочей станции, штатная
+     */
     public void replicasSend() throws Exception {
         JdxMailStateManagerWs stateManager = new JdxMailStateManagerWs(db);
         UtMail.sendQueToMail_State(wsId, queOut, mailer, "from", stateManager);
     }
 
 
+    /**
+     * Отправка реплик с рабочей станции, по требованию.
+     * Пересоздает реплики, если запросили.
+     */
     public void replicasSend_Required() throws Exception {
-        UtMail.sendQueToMail_Required(wsId, queOut, mailer, "from", RequiredInfo.EXECUTOR_WS);
+        // Выясняем, что запросили передать
+        RequiredInfo requiredInfo = mailer.getSendRequired("from");
+        MailSendTask sendTask = UtMail.getRequiredSendTask(queOut, requiredInfo, RequiredInfo.EXECUTOR_WS);
+
+        // Нужно реплики формировать заново?
+        if (sendTask != null && sendTask.recreate) {
+            // Формируем заново
+            for (long no = sendTask.sendFrom; no <= sendTask.sendTo; no++) {
+                recreateQueOutReplica(no);
+            }
+        }
+
+        // Отправляем из очереди, что запросили
+        UtMail.sendQueToMail_Required(sendTask, wsId, queOut, mailer, "from");
     }
 
 

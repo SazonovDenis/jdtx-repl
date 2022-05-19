@@ -37,13 +37,13 @@ public class UtAuditSelector {
 
 
     /**
-     * Собрать аудит и подготовить реплику по правилам публикации publicationStorage для возраста age.
+     * Собрать аудит и подготовить реплику по правилам публикации publicationRules для возраста age.
      */
-    public IReplica createReplicaFromAudit(IPublicationRuleStorage publicationStorage, long age) throws Exception {
+    public IReplica createReplicaFromAudit(IPublicationRuleStorage publicationRules, long age) throws Exception {
         log.info("createReplicaFromAudit, wsId: " + wsId + ", age: " + age);
 
         // Для выборки из аудита - узнаем интервалы id в таблицах аудита
-        Map auditInfo = loadAutitIntervals(publicationStorage, age);
+        Map auditInfo = loadAutitIntervals(publicationRules, age);
 
         //
         IReplica replica = new ReplicaFile();
@@ -63,9 +63,9 @@ public class UtAuditSelector {
 
         // Забираем аудит по порядку сортировки таблиц в struct
         for (IJdxTable structTable : struct.getTables()) {
-            IPublicationRule publicationRule = publicationStorage.getPublicationRule(structTable.getName());
+            IPublicationRule publicationRule = publicationRules.getPublicationRule(structTable.getName());
             if (publicationRule == null) {
-                log.info("  skip table: " + structTable.getName() + ", not found in publicationStorage");
+                log.info("  skip table: " + structTable.getName() + ", not found in publicationRules");
                 continue;
             }
             //

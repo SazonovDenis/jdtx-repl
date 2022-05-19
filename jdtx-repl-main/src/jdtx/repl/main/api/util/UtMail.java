@@ -41,9 +41,8 @@ public class UtMail {
             replicasToSend.put(no, replica);
         }
 
-
         // Передаем
-        UtMail.sendReplicasToMail(sendTask, sendInfo, null, replicasToSend, wsId, mailer, box, mailStateManager);
+        UtMail.sendReplicasToMail(sendTask, sendInfo, replicasToSend, wsId, mailer, box, mailStateManager);
     }
 
 
@@ -51,22 +50,12 @@ public class UtMail {
      * Передача запрошенного диапазона
      * из очереди que через mailer в ящик box
      */
-    public static void sendQueToMail_Required(long wsId, IJdxQue que, IMailer wsMailer, String box, String executor) throws Exception {
+    public static void sendQueToMail_Required(MailSendTask sendTask, long wsId, IJdxQue que, IMailer wsMailer, String box) throws Exception {
         log.info("sendQueToMail_Required, wsId: " + wsId + ", que: " + que.getQueName() + ", box: " + box);
 
-        // Выясняем, что запросили передать
-        RequiredInfo requiredInfo = new RequiredInfo();
-        MailSendTask sendTask = UtMail.getSendTask_Required(que, wsMailer, box, requiredInfo);
-
         // Есть что запросили передать?
-        if (sendTask.sendFrom == -1) {
-            log.info("Nothing required, skip");
-            return;
-        }
-
-        // От кого запросили передать? Если не от сервера, значит выполнит рабочая станция.
-        if (!executor.equalsIgnoreCase(requiredInfo.executor)) {
-            log.info("Requirerd executor: " + requiredInfo.executor + ", self.executor: " + executor + ", skip");
+        if (sendTask == null) {
+            log.info("sendQueToMail_Required: nothing required, skip");
             return;
         }
 
@@ -85,7 +74,7 @@ public class UtMail {
         }
 
         // Передаем
-        UtMail.sendReplicasToMail(sendTask, null, requiredInfo, replicasToSend, wsId, wsMailer, box, null);
+        UtMail.sendReplicasToMail(sendTask, null, replicasToSend, wsId, wsMailer, box, null);
     }
 
 
@@ -93,29 +82,24 @@ public class UtMail {
      * Передача запрошенного диапазона
      * из общей очереди queCommon через mailer в ящик box
      */
-    public static void sendQueToMail_Required_QueCommon(long wsId, IJdxQueCommon queCommon, IMailer wsMailer, String box, String executor) throws Exception {
+    public static void sendQueToMail_Required_QueCommon(long wsId, IJdxQueCommon queCommon, IMailer wsMailer, String box, String currentExecutor) throws Exception {
         log.info("sendQueToMail_Required_QueCommon, wsId: " + wsId + ", box: " + box);
 
-        // Выясняем, что запросили передавать
-        RequiredInfo requiredInfo = new RequiredInfo();
-        MailSendTask sendTask = UtMail.getSendTask_Required(queCommon, wsMailer, box, requiredInfo);
+        // Выясняем, что запросили передать
+        RequiredInfo requiredInfo = wsMailer.getSendRequired(box);
+        MailSendTask sendTask = UtMail.getRequiredSendTask(queCommon, requiredInfo, currentExecutor);
 
         // Есть что запросили передать?
-        if (sendTask.sendFrom == -1) {
-            log.info("Nothing required, skip");
-            return;
-        }
-
-        // От кого запросили передать? Если не от сервера, значит выполнит рабочая станция
-        if (!executor.equalsIgnoreCase(requiredInfo.executor)) {
-            log.info("Requirerd executor: " + requiredInfo.executor + ", self.executor: " + executor + ", skip");
+        if (sendTask == null) {
+            log.info("sendQueToMail_Required_QueCommon: nothing required, skip");
             return;
         }
 
         // Собираем реплики, которые запросили
         SortedMap<Long, IReplica> replicasToSend = new TreeMap<>();
         for (long no = sendTask.sendFrom; no <= sendTask.sendTo; no++) {
-            // Выясняем номер реплики no в очереди queCommon
+            // Сейчас номер no - это номер автора в ящике box.
+            // Выясняем noCommon - номер реплики no в очереди queCommon.
             long noCommon = queCommon.getNoByAuthorNo(no, wsId);
 
             // Берем реплику из очереди
@@ -130,14 +114,14 @@ public class UtMail {
         }
 
         // Передаем
-        UtMail.sendReplicasToMail(sendTask, null, requiredInfo, replicasToSend, wsId, wsMailer, box, null);
+        UtMail.sendReplicasToMail(sendTask, null, replicasToSend, wsId, wsMailer, box, null);
     }
 
 
     /**
      * Передача списка реплик replicasToSend через mailer в ящик box
      */
-    private static void sendReplicasToMail(MailSendTask sendTask, MailSendInfo sendInfo, RequiredInfo requiredInfo, Map<Long, IReplica> replicasToSend, long wsId, IMailer mailer, String box, IJdxMailStateManager mailStateManager) throws Exception {
+    private static void sendReplicasToMail(MailSendTask sendTask, MailSendInfo sendInfo, Map<Long, IReplica> replicasToSend, long wsId, IMailer mailer, String box, IJdxMailStateManager mailStateManager) throws Exception {
         log.info("sendReplicasToMail, wsId: " + wsId + ", box: " + box + ", send: " + sendTask.sendFrom + " .. " + sendTask.sendTo);
 
         // Передаем
@@ -155,13 +139,16 @@ public class UtMail {
             }
 
             // Двигаем флаг просьбы станции (если просили повторную передачу)
-            if (requiredInfo != null && no >= requiredInfo.requiredFrom) {
-                RequiredInfo requiredInfoNew = new RequiredInfo();
-                requiredInfoNew.clone(requiredInfo);
-                // Двигаем флаг, как будто просили следующую - чтобы после сбоя продолжить с тогго же места
-                requiredInfoNew.requiredFrom = no + 1;
-                //
-                mailer.setSendRequired(box, requiredInfoNew);
+            if (sendTask.required && no >= sendTask.sendFrom) {
+                RequiredInfo requiredInfo = new RequiredInfo();
+                requiredInfo.requiredFrom = sendTask.sendFrom;
+                requiredInfo.requiredTo = sendTask.sendTo;
+                requiredInfo.recreate = sendTask.recreate;
+                requiredInfo.executor = sendTask.executor;
+                // Двигаем флаг, как будто просили следующую - чтобы после сбоя продолжить с того же места
+                requiredInfo.requiredFrom = no + 1;
+                // Отмечаем на сервере
+                mailer.setSendRequired(box, requiredInfo);
                 log.warn("sendReplicasToMail, repeat send step, no: " + no);
             }
 
@@ -172,8 +159,8 @@ public class UtMail {
             count = count + 1;
         }
 
-        // Снимем флаг просьбы станции
-        if (requiredInfo != null) {
+        // Снимем флаг просьбы станции (если просили повторную передачу)
+        if (sendTask.required) {
             mailer.setSendRequired(box, new RequiredInfo());
             log.warn("sendReplicasToMail, repeat send done");
         }
@@ -191,35 +178,34 @@ public class UtMail {
 
 
     /**
-     * Выясняем объем передач, по требованию
+     * Выясняем объем передачи по требованию
      */
-    private static MailSendTask getSendTask_Required(IJdxReplicaQue que, IMailer mailer, String box, RequiredInfo requiredInfo) throws Exception {
-        MailSendTask sendTask = new MailSendTask();
-
-        // Выясняем объем передачи: узнаем, сколько просит станция
-        RequiredInfo requiredInfoSrv = mailer.getSendRequired(box);
+    public static MailSendTask getRequiredSendTask(IJdxReplicaQue que, RequiredInfo requiredInfo, String currentExecutor) throws Exception {
+        log.warn("Required: " + requiredInfo);
 
         // НЕ попросили повторную отправку
-        if (requiredInfoSrv.requiredFrom == -1) {
-            return sendTask;
+        if (requiredInfo.requiredFrom == -1) {
+            return null;
+        }
+
+        // Кого просили передать? Если не currentExecutor, значит выполнит кто-то другой.
+        if (!currentExecutor.equalsIgnoreCase(requiredInfo.executor)) {
+            log.info("Requirerd.executor: " + requiredInfo.executor + ", current.executor: " + currentExecutor + ", no send task");
+            return null;
         }
 
         // Попросили повторную отправку
-        sendTask.sendFrom = requiredInfoSrv.requiredFrom;
+        MailSendTask sendTask = new MailSendTask();
+        sendTask.required = true;
+        sendTask.sendFrom = requiredInfo.requiredFrom;
+        sendTask.sendTo = requiredInfo.requiredTo;
+        sendTask.recreate = requiredInfo.recreate;
+        sendTask.executor = requiredInfo.executor;
 
-        //
-        if (requiredInfoSrv.requiredTo != -1) {
-            // Как просили
-            sendTask.sendTo = requiredInfoSrv.requiredTo;
-            log.warn("Repeat send required, from: " + requiredInfoSrv.requiredFrom + ", to: " + requiredInfoSrv.requiredTo + ", recreate: " + requiredInfoSrv.recreate);
-        } else {
-            // Зададим сами (до последней, что у нас есть на раздачу)
+        // Конец диапазона не указан - зададим сами (до последней реплики, что есть в очереди que)
+        if (requiredInfo.requiredTo == -1) {
             sendTask.sendTo = que.getMaxNo();
-            log.warn("Repeat send required, from: " + requiredInfoSrv.requiredFrom + ", recreate: " + requiredInfoSrv.recreate);
         }
-
-        //
-        requiredInfo.clone(requiredInfoSrv);
 
         //
         return sendTask;
@@ -230,6 +216,7 @@ public class UtMail {
      */
     private static MailSendTask getSendTask_State(IJdxQue que, IMailer mailer, String box, IJdxMailStateManager mailStateManager, MailSendInfo sendInfo) throws Exception {
         MailSendTask sendTask = new MailSendTask();
+        sendTask.required = false;
 
         // Узнаем, сколько есть у нас
         long queNo = que.getMaxNo();

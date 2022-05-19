@@ -242,16 +242,16 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         ws2.handleSelfAudit();
 
         //
-        long age = ws2.queOut.getMaxNo();
-        System.out.println("age: " + age);
+        long no = ws2.queOut.getMaxNo();
+        System.out.println("no: " + no);
 
         // Нынешний вариант реплики
-        IReplica replica0 = ws2.queOut.get(age);
+        IReplica replica0 = ws2.queOut.get(no);
 
         // Копируем для анализа
         System.out.println("Original replica file: " + replica0.getData().getAbsolutePath());
         System.out.println("Original file size: " + replica0.getData().length());
-        File newReplicaFile0 = new File("../_test-data/" + ws2.getWsId() + "." + +age + ".original.zip");
+        File newReplicaFile0 = new File("../_test-data/" + ws2.getWsId() + "." + no + ".original.zip");
         FileUtils.copyFile(replica0.getData(), newReplicaFile0);
 
         // Портим файл реплики
@@ -260,16 +260,16 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         // Копируем для анализа
         System.out.println("Damaged replica file: " + replica0.getData().getAbsolutePath());
         System.out.println("Damaged file size: " + replica0.getData().length());
-        File newReplicaFile1 = new File("../_test-data/" + ws2.getWsId() + "." + +age + ".damaged.zip");
+        File newReplicaFile1 = new File("../_test-data/" + ws2.getWsId() + "." + no + ".damaged.zip");
         FileUtils.copyFile(replica0.getData(), newReplicaFile1);
 
         // Чиним файл реплики
-        IReplica replica1 = ws2.recreateQueOutReplicaAge(age);
+        IReplica replica1 = ws2.recreateQueOutReplica(no);
         //
         System.out.println("Recreated replica file: " + replica0.getData().getAbsolutePath());
         System.out.println("Recreated file size: " + replica0.getData().length());
         // Копируем для анализа
-        File newReplicaFile2 = new File("../_test-data/" + ws2.getWsId() + "." + +age + ".new.zip");
+        File newReplicaFile2 = new File("../_test-data/" + ws2.getWsId() + "." + no + ".new.zip");
         FileUtils.copyFile(replica1.getData(), newReplicaFile2);
 
         //
@@ -289,11 +289,11 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
         // Чиним файл реплики
         try {
-            long age = 10;
-            ws2.recreateQueOutReplicaAge(age);
-            throw new Exception("Реплика этого типа не должна пересоздаться");
+            long no = 10;
+            ws2.recreateQueOutReplica(no);
+            throw new Exception("Реплику этого типа невозможно пересоздать");
         } catch (Exception e) {
-            if (e.getMessage().contains("Реплика этого типа не должна пересоздаться")) {
+            if (e.getMessage().contains("Реплику этого типа невозможно пересоздать")) {
                 throw e;
             }
         }
