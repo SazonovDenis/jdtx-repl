@@ -1597,7 +1597,7 @@ public class JdxReplWs {
         // Если в одной реплике много ошибочных записей, то искать можно только один раз,
         // иначе на каждую ссылку будет выполнятся поиск, что затянет выкидывание ошибки
         if (outReplicaFile.exists()) {
-            log.error("Файл с временной репликой - результатами поиска уже есть: " + outReplicaFile.getAbsolutePath());
+            log.error("Файл с репликой - результатами поиска уже есть: " + outReplicaFile.getAbsolutePath());
             return outReplicaFile;
         }
 
@@ -1612,7 +1612,7 @@ public class JdxReplWs {
         IReplica replica = utRepl.findRecordInReplicas(refTableName, refTableId, dirs, true, true, outReplicaFile.getAbsolutePath());
 
         //
-        log.error("Файл с временной репликой - результатами поиска сформирован: " + replica.getData().getAbsolutePath());
+        log.error("Файл с репликой - результатами поиска сформирован: " + replica.getData().getAbsolutePath());
 
         //
         return outReplicaFile;

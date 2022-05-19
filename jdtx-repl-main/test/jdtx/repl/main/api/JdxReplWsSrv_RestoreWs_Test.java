@@ -27,34 +27,34 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
 
     @Test
     public void test_assertDbEquals_1_2_3() throws Exception {
-        assertDbEquals(db, db2, equalExpected);
-        assertDbEquals(db, db3, equalExpected);
+        compareDb(db, db2, equalExpected);
+        compareDb(db, db3, equalExpected);
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
     @Test
     public void test_assertDbEquals_1_2() throws Exception {
-        assertDbEquals(db, db2, equalExpected);
+        compareDb(db, db2, equalExpected);
     }
 
     @Test
     public void test_assertDbEquals_full_1_2() throws Exception {
-        assertDbEquals(db, db2, expectedEqual_full);
+        compareDb(db, db2, expectedEqual_full);
     }
 
     @Test
     public void test_assertDbEquals_1_3() throws Exception {
-        assertDbEquals(db, db3, equalExpected);
+        compareDb(db, db3, equalExpected);
     }
 
     @Test
     public void test_assertDbNotEquals_1_2() throws Exception {
-        assertDbEquals(db, db2, expectedNotEqual);
+        compareDb(db, db2, expectedNotEqual);
     }
 
     @Test
     public void test_assertDbNotEquals_1_3() throws Exception {
-        assertDbEquals(db, db3, expectedNotEqual);
+        compareDb(db, db3, expectedNotEqual);
     }
 
     void initWsInfo(Db db, String suffix) throws Exception {

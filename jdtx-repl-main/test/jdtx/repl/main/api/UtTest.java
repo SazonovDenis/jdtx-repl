@@ -3,15 +3,13 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
-import jandcode.utils.io.*;
 import jandcode.utils.test.*;
+import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.joda.time.*;
 
-import java.io.*;
 import java.util.*;
-import java.util.zip.*;
 
 /**
  *
@@ -131,6 +129,15 @@ public class UtTest extends UtilsTestCase {
                 "NameF",
                 "NameI,NameO,bornDt,rnn,licDocTip,docNo,docSer,liCdocVid,docDt,region,ulz,dom,kv,tel,info"
         );
+    }
+
+    public void test_srv_make001() throws Exception {
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init();
+
+        //
+        srv.srvRequestSnapshot(2, "UlzTip,Usr", UtQue.SRV_QUE_OUT001);
+        srv.srvRequestSnapshot(3, "UlzTip,Usr", UtQue.SRV_QUE_OUT001);
     }
 
     public void makeChange_CommentTip(IJdxDbStruct struct, long ws_id) throws Exception {

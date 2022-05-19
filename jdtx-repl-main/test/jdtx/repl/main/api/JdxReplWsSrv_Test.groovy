@@ -134,8 +134,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_AllHttp()
 
         //
-        assertDbEquals(db, db2, expectedEqual_noFilter)
-        assertDbEquals(db, db3, expectedEqual_noFilter)
+        compareDb(db, db2, expectedEqual_noFilter)
+        compareDb(db, db3, expectedEqual_noFilter)
         do_DumpTables(db, db2, db3, struct, struct2, struct3)
     }
 
@@ -439,6 +439,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void sync_http_1_2_3() throws Exception {
+        test_srv_doReplSession()
+
         test_ws1_doReplSession()
         test_ws2_doReplSession()
         test_ws3_doReplSession()
@@ -451,6 +453,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     public void sync_http_1_2() throws Exception {
+        test_srv_doReplSession()
+
         test_ws1_doReplSession()
         test_ws2_doReplSession()
 
@@ -461,6 +465,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     public void sync_http_1_3() throws Exception {
+        test_srv_doReplSession()
+
         test_ws1_doReplSession()
         test_ws3_doReplSession()
 
@@ -477,12 +483,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     public void sync_http_2() throws Exception {
+        test_srv_doReplSession()
         test_ws2_doReplSession()
         test_srv_doReplSession()
         test_ws2_doReplSession()
     }
 
     public void sync_http_3() throws Exception {
+        test_srv_doReplSession()
         test_ws3_doReplSession()
         test_srv_doReplSession()
         test_ws3_doReplSession()
@@ -530,6 +538,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void sync_http_1_2_3_5() throws Exception {
+        test_srv_doReplSession()
+
         test_ws1_doReplSession()
         test_ws2_doReplSession()
         test_ws3_doReplSession()
@@ -764,6 +774,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_ws1_makeChange_Unimportant() throws Exception {
         UtTest utTest = new UtTest(db)
         utTest.makeChangeUnimportant(struct, 1)
+    }
+
+    @Test
+    public void test_srv_make001() throws Exception {
+        UtTest utTest = new UtTest(db)
+        utTest.test_srv_make001()
     }
 
     @Test

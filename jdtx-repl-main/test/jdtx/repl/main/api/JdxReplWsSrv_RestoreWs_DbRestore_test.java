@@ -29,7 +29,7 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         System.out.println("Аварийное событие");
 
         // Восстановление старого состояния БД
-        doRestoreDB(db2, "1");
+        doRestoreDB(db2, "_1");
 
 
         // ---
@@ -58,7 +58,7 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         System.out.println("Аварийное событие");
 
         // Восстановление старого состояния БД
-        doRestoreDB(db2, "2");
+        doRestoreDB(db2, "_2");
 
 
         // ---
@@ -87,7 +87,7 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         System.out.println("Аварийное событие");
 
         // Восстановление строго состояния каталогов
-        doRestoreDir(db2, "1");
+        doRestoreDir(db2, "_1");
 
 
         // ---
@@ -146,10 +146,10 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         System.out.println("Аварийные события");
 
         // Восстановление старого состояния БД
-        doRestoreDB(db2, "1");
+        doRestoreDB(db2, "_1");
 
         // Восстановление строго состояния каталогов
-        doRestoreDir(db2, "2");
+        doRestoreDir(db2, "_2");
 
 
         // ---
@@ -179,10 +179,10 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         System.out.println("Аварийные события");
 
         // Восстановление старого состояния БД
-        doRestoreDB(db2, "2");
+        doRestoreDB(db2, "_2");
 
         // Восстановление строго состояния каталогов
-        doRestoreDir(db2, "1");
+        doRestoreDir(db2, "_1");
 
 
         // ---
@@ -211,7 +211,7 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         System.out.println("Аварийные события");
 
         // Восстановление старого состояния БД
-        doRestoreDB(db2, "1");
+        doRestoreDB(db2, "_1");
 
         // Полная потеря рабочих каталогов для ws2
         doDeleteDir(db2);
@@ -227,17 +227,21 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
     }
 
 
+/*
     @Test
     public void test_DatabaseRestore_stepRepair() throws Exception {
         doRepair();
     }
+*/
 
 
     private void doRepair() throws Exception {
         // Первая попытка ремонта
         System.out.println();
         System.out.println("Первая попытка ремонта");
-        doStepRepair(db2, false);
+
+        // Разница должна быть
+        compareDb(db, db2, expectedNotEqual);
 
 
         // Сервер ответит на просьбы о повторной отправке
@@ -249,6 +253,9 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         // Последняя попытка ремонта
         System.out.println();
         System.out.println("Последняя попытка ремонта");
+        doStepRepair(db2, false);
+        doStepRepair(db2, false);
+        doStepRepair(db2, false);
         doStepRepair(db2, true);
 
 
@@ -260,8 +267,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
 
         // Cинхронизация должна пройти нормально
-        assertDbEquals(db, db2, equalExpected);
-        assertDbEquals(db, db3, equalExpected);
+        compareDb(db, db2, equalExpected);
+        compareDb(db, db3, equalExpected);
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
         new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
     }
@@ -285,8 +292,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
         // Проверим исходную синхронность после инициализации
         System.out.println("Базы должны быть в синхронном состоянии");
-        assertDbEquals(db, db2, expectedEqual_full);
-        assertDbEquals(db, db3, expectedEqual_full);
+        compareDb(db, db2, expectedEqual_full);
+        compareDb(db, db3, expectedEqual_full);
 
 
         // ---
@@ -294,6 +301,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         test_ws1_makeChange_Unimportant();
         test_ws2_makeChange();
         test_ws3_makeChange();
+        // Немного нагрузим 001
+        test_srv_make001();
 
         // Синхронизация
         sync_http_1_2_3();
@@ -301,8 +310,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
         // Проверим исходную синхронность после изменений
         System.out.println("Базы должны быть в синхронном состоянии");
-        assertDbEquals(db, db2, equalExpected);
-        assertDbEquals(db, db3, equalExpected);
+        compareDb(db, db2, equalExpected);
+        compareDb(db, db3, equalExpected);
 
 
         // В бэкапе будет исходное состояние
@@ -314,16 +323,16 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         doNolmalLife_Step();
 
         // Сохраним "бэкап" базы и папок для ws2
-        doBackupDB(db2, "1");
-        doBackupDir(db2, "1");
+        doBackupDB(db2, "_1");
+        doBackupDir(db2, "_1");
 
 
         // Изменения в базах, частичная синхронизация
         doNolmalLife_Step();
 
         // Сохраним "бэкап" базы и папок для ws2
-        doBackupDB(db2, "2");
-        doBackupDir(db2, "2");
+        doBackupDB(db2, "_2");
+        doBackupDir(db2, "_2");
     }
 
 
@@ -371,8 +380,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
         //
         System.out.println("Попытка синхронизации была неудачная");
-        assertDbEquals(db, db2, expectedNotEqual);
-        assertDbEquals(db, db3, equalExpected);
+        compareDb(db, db2, expectedNotEqual);
+        compareDb(db, db3, equalExpected);
 
         // Изменения в базах (добавим Ulz)
         UtTest utTest;
@@ -390,8 +399,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
         //
         System.out.println("Попытка синхронизации была неудачная");
-        assertDbEquals(db, db2, expectedNotEqual);
-        assertDbEquals(db, db3, equalExpected);
+        compareDb(db, db2, expectedNotEqual);
+        compareDb(db, db3, equalExpected);
     }
 
 

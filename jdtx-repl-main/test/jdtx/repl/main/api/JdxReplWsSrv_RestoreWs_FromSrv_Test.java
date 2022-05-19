@@ -58,8 +58,8 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         // ---
         // Проверим исходную синхронность
         System.out.println("Базы должны быть в синхронном состоянии");
-        assertDbEquals(db, db2, equalExpected);
-        assertDbEquals(db, db3, equalExpected);
+        compareDb(db, db2, equalExpected);
+        compareDb(db, db3, equalExpected);
 
 
         // ---
@@ -105,8 +105,8 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
 
         //
         System.out.println("Попытка синхронизации была неудачная");
-        assertDbEquals(db, db2, equalExpected);
-        assertDbEquals(db, db3, expectedNotEqual_2isEmpty);
+        compareDb(db, db2, equalExpected);
+        compareDb(db, db3, expectedNotEqual_2isEmpty);
 
 
         // ---
@@ -150,8 +150,8 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
 
         // Проверим синхронность после восстановления
         System.out.println("Cинхронизация прошла нормально");
-        assertDbEquals(db, db2, equalExpected);
-        assertDbEquals(db, db3, equalExpected);
+        compareDb(db, db2, equalExpected);
+        compareDb(db, db3, equalExpected);
 
         // --- Работаем после восстановления
         test_AllHttp();
@@ -159,8 +159,8 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
 
         // Проверим синхронность после работы
         System.out.println("Cинхронизация прошла нормально");
-        assertDbEquals(db, db2, equalExpected);
-        assertDbEquals(db, db3, equalExpected);
+        compareDb(db, db2, equalExpected);
+        compareDb(db, db3, equalExpected);
         //
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
         new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));

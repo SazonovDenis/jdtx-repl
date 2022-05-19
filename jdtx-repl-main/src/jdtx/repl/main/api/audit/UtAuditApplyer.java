@@ -57,18 +57,21 @@ public class UtAuditApplyer {
                     // todo крайне криво - транзакция же ждет!!!
                     log.warn("==================================");
                     JdxForeignKeyViolationException eFk = (JdxForeignKeyViolationException) e;
-                    log.warn("Обработка ошибки foreignKey, table: " + eFk.tableName + ", values: " + eFk.recValues);
-                    //
+                    log.warn("Обработка ошибки foreignKey: " + e.getMessage());
+                    log.warn("table: " + eFk.tableName);
+                    log.warn("oprType: " + eFk.oprType);
+                    log.warn("recParams: " + eFk.recParams);
+                    log.warn("recValuesStr: " + eFk.recValues);
                     File replicaRepairFile = jdxReplWs.handleFailedInsertUpdateRef(eFk);
                     boolean autoUseRepairReplica = jdxReplWs.appCfg.getValueBoolean("autoUseRepairReplica");
                     if (autoUseRepairReplica) {
-                        log.warn("Восстанавливаем записи из временной реплики: " + replicaRepairFile.getAbsolutePath());
+                        log.warn("Восстанавливаем записи из результатов поиска: " + replicaRepairFile.getAbsolutePath());
                         ReplicaUseResult useResult = jdxReplWs.useReplicaFile(replicaRepairFile);
                         if (!useResult.replicaUsed) {
-                            log.error("Временная реплика не использована: " + replicaRepairFile.getAbsolutePath());
+                            log.error("Реплика с результатами поиска не использована: " + replicaRepairFile.getAbsolutePath());
                         }
                         if (!replicaRepairFile.delete()) {
-                            log.error("Файл временной реплики не удалось удалить");
+                            log.error("Файл реплики с результатами поиска не удалось удалить");
                         }
                     } else {
                         log.warn("Обработка ошибки не выполнена, autoUseRepairReplica: " + autoUseRepairReplica);
@@ -246,21 +249,21 @@ public class UtAuditApplyer {
                                     insertOrUpdate(dbu, tableName, recParams, publicationFields);
                                 } catch (Exception e) {
                                     if (UtDbErrors.errorIs_ForeignKeyViolation(e)) {
-                                        log.error(e.getMessage());
-                                        log.error("table: " + tableName);
-                                        log.error("oprType: " + oprType);
-                                        log.error("recParams: " + recParams);
-                                        log.error("recValuesStr: " + recValuesStr);
-                                        //
                                         JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
                                         ee.tableName = tableName;
+                                        ee.oprType = oprType;
                                         ee.recParams = recParams;
                                         ee.recValues = recValuesStr;
                                         // todo вообще, костыль страшнейший, сделан для пропуска неуместных реплик,
                                         // которые просочились на станцию из-за кривых настроек фильтров.
-                                        // todo Убрать, когда будут сделана фильтрация по ссылкам!!!
+                                        // todo Убрать skipForeignKeyViolationIns, когда будут сделана фильтрация по ссылкам!!!
                                         boolean skipForeignKeyViolationIns = jdxReplWs.appCfg.getValueBoolean("skipForeignKeyViolationIns");
                                         if (skipForeignKeyViolationIns) {
+                                            log.error(e.getMessage());
+                                            log.error("table: " + tableName);
+                                            log.error("oprType: " + oprType);
+                                            log.error("recParams: " + recParams);
+                                            log.error("recValuesStr: " + recValuesStr);
                                             log.error("skipForeignKeyViolationIns: " + skipForeignKeyViolationIns);
                                         } else {
                                             throw (ee);
@@ -280,21 +283,21 @@ public class UtAuditApplyer {
                                     dbu.updateRec(tableName, recParams, publicationFields, null);
                                 } catch (Exception e) {
                                     if (UtDbErrors.errorIs_ForeignKeyViolation(e)) {
-                                        log.error(e.getMessage());
-                                        log.error("table: " + tableName);
-                                        log.error("oprType: " + oprType);
-                                        log.error("recParams: " + recParams);
-                                        log.error("recValuesStr: " + recValuesStr);
-                                        //
                                         JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
                                         ee.tableName = tableName;
+                                        ee.oprType = oprType;
                                         ee.recParams = recParams;
                                         ee.recValues = recValuesStr;
                                         // todo вообще, костыль страшнейший, сделан для пробуска неуместных реплик,
                                         // которые просочились на станцию из-за кривых настроек фильтров.
-                                        // todo Убрать, когда будут сделана фильтрация по ссылкам!!!
+                                        // todo Убрать skipForeignKeyViolationIns, когда будут сделана фильтрация по ссылкам!!!
                                         boolean skipForeignKeyViolationUpd = jdxReplWs.appCfg.getValueBoolean("skipForeignKeyViolationUpd");
                                         if (skipForeignKeyViolationUpd) {
+                                            log.error(e.getMessage());
+                                            log.error("table: " + tableName);
+                                            log.error("oprType: " + oprType);
+                                            log.error("recParams: " + recParams);
+                                            log.error("recValuesStr: " + recValuesStr);
                                             log.error("skipForeignKeyViolationUpd: " + skipForeignKeyViolationUpd);
                                         } else {
                                             throw (ee);

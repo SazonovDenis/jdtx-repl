@@ -104,7 +104,7 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
         return dbCrc;
     }
 
-    void assertDbEquals(Db db, Db db2, Map<String, String> comparePattern) throws Exception {
+    void compareDb(Db db, Db db2, Map<String, String> compareResultExpected) throws Exception {
         boolean bad = false;
 
         System.out.println("compare: " + db.getDbSource().getDatabase());
@@ -126,12 +126,12 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
         UtDbComparer.compareDbDataCrc(dbCrcSrv, dbCrcWs2, diffCrc, diffNewIn1, diffNewIn2);
 
         // Сравним разницу между базами с ожиданием
-        for (String tableName : comparePattern.keySet()) {
+        for (String tableName : compareResultExpected.keySet()) {
             Set<String> result_diffCrc = diffCrc.get(tableName);
             Set<String> result_diffNewIn1 = diffNewIn1.get(tableName);
             Set<String> result_diffNewIn2 = diffNewIn2.get(tableName);
 
-            String tableExpectedResult = comparePattern.get(tableName);
+            String tableExpectedResult = compareResultExpected.get(tableName);
             char expectedCrc = tableExpectedResult.charAt(0);
             char expectedNewIn1 = tableExpectedResult.charAt(1);
             char expectedNewIn2 = tableExpectedResult.charAt(2);
