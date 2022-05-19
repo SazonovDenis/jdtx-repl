@@ -22,8 +22,8 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
     public IJdxDbStruct struct5;
 
 
+    @Override
     public void setUp() throws Exception {
-        //
         super.setUp();
 
         //
@@ -41,6 +41,14 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
 
         // Чтобы были
         UtFile.mkdirs("temp");
+    }
+
+    @Override
+    public void tearDown() throws Exception {
+        super.tearDown();
+
+        // Отключение от БД при завершении теста - важно при пакетном запуске тестов
+        disconnectAllForce();
     }
 
     // Чтение структур всех баз
