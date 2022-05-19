@@ -741,28 +741,36 @@ public class JdxReplSrv {
                 for (long no = sendFrom; no <= sendTo; no++) {
                     log.info("srvReplicasDispatch, to.wsId: " + wsId + ", no: " + no + ", " + count + "/" + countToDo);
 
-                    // Берем реплику из queCommon
-                    IReplica replica;
+                    // Фильтруем данные из реплики
+                    IReplica replicaForWs;
+                    IReplica replica = null;
                     try {
-                        // Берем реплику
+                        // Берем реплику из queCommon
                         replica = queCommon.get(no);
 
                         // Читаем заголовок
                         JdxReplicaReaderXml.readReplicaInfo(replica);
+
+                        // Параметры (для правил публикации): автор реплики
+                        filter.getFilterParams().put("wsAuthor", String.valueOf(replica.getInfo().getWsId()));
+
+                        // Преобразовываем по правилам публикаций (фильтрам)
+                        replicaForWs = filter.convertReplicaForWs(replica, publicationRule);
+
                     } catch (Exception e) {
                         // Пробуем что-то сделать с проблемой реплики в очереди
                         IMailer mailer = mailerList.get(wsId);
                         UtRepl ut = new UtRepl(db, struct);
                         ut.handleError_BadReplica(queCommon, no, mailer, e);
                         //
-                        throw e;
+                        String replicaInfo;
+                        if (replica != null) {
+                            replicaInfo = "replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", replica.no: " + replica.getInfo().getNo();
+                        } else {
+                            replicaInfo = "no replica.info";
+                        }
+                        throw new XError("queCommon.no: " + no + ", " + replicaInfo + ", error: " + e.getMessage());
                     }
-
-                    // Параметры (для правил публикации): автор реплики
-                    filter.getFilterParams().put("wsAuthor", String.valueOf(replica.getInfo().getWsId()));
-
-                    // Преобразовываем по правилам публикаций (фильтрам)
-                    IReplica replicaForWs = filter.convertReplicaForWs(replica, publicationRule);
 
                     //
                     db.startTran();
