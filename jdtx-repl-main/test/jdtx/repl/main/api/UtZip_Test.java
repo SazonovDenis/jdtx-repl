@@ -1,6 +1,8 @@
 package jdtx.repl.main.api;
 
+import jandcode.utils.*;
 import jandcode.utils.test.*;
+import org.apache.commons.io.*;
 import org.junit.*;
 
 import java.io.*;
@@ -34,6 +36,30 @@ public class UtZip_Test extends UtilsTestCase {
     @Test
     public void test_doUnzipDir() throws Exception {
         UtZip.doUnzipDir("../_test-data/test.zip", "../_test-data/test.zip.dir/");
+    }
+
+    @Test
+    public void test_ZipDeleteUnzip() throws Exception {
+        String dirName = "../_test-data/_test-data_ws2";
+        String zipName = "../_test-data/test.zip";
+
+        File zipFile = new File(zipName);
+        File dirFile = new File(dirName);
+
+        if (zipFile.exists() && !zipFile.delete()) {
+            throw new Exception("zipFile not deleted");
+        }
+
+        UtZip.doZipDir(dirName, zipName);
+
+        UtFile.cleanDir(dirName);
+        FileUtils.forceDelete(dirFile);
+
+        UtZip.doUnzipDir(zipName, dirName);
+
+        if (!zipFile.delete()) {
+            throw new Exception("zipFile not deleted");
+        }
     }
 
     @Test

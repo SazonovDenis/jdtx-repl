@@ -32,46 +32,48 @@ public class UtZip {
                 ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
         ) {
             for (File file : files) {
-                //StopWatch sw = new StopWatch();
-                //sw.start();
-
                 String fileName = file.getCanonicalPath();
-                FileInputStream inputStream = new FileInputStream(fileName);
                 log.info(fileName);
 
-                if (!fileName.startsWith(rootDirName)) {
-                    throw new Exception("file name: " + fileName + " not startsWith: " + rootDirName);
-                }
-                String fileNameInZip = fileName.substring(rootDirNameLen + 1);
+                try (
+                        FileInputStream inputStream = new FileInputStream(fileName);
+                ) {
 
-                // ---
-                ZipEntry zipEntry = new ZipEntry(fileNameInZip);
-                zipOutputStream.putNextEntry(zipEntry);
+                    if (!fileName.startsWith(rootDirName)) {
+                        throw new Exception("file name: " + fileName + " not startsWith: " + rootDirName);
+                    }
+                    String fileNameInZip = fileName.substring(rootDirNameLen + 1);
 
-                //
-                long countDone = 0;
-                long done_printed = 0;
-                while (inputStream.available() > 0) {
-                    int count = inputStream.read(buffer);
-                    zipOutputStream.write(buffer, 0, count);
-                    countDone = countDone + count;
+                    // ---
+                    ZipEntry zipEntry = new ZipEntry(fileNameInZip);
+                    zipOutputStream.putNextEntry(zipEntry);
+
                     //
-                    if (countDone - done_printed > 1024 * 1024 * 10) {
-                        done_printed = countDone;
-                        log.info(countDone / 1024 + " Kb");
+                    long countDone = 0;
+                    long done_printed = 0;
+                    while (inputStream.available() > 0) {
+                        int count = inputStream.read(buffer);
+                        zipOutputStream.write(buffer, 0, count);
+                        countDone = countDone + count;
+                        //
+                        if (countDone - done_printed > 1024 * 1024 * 10) {
+                            done_printed = countDone;
+                            log.info(countDone / 1024 + " Kb");
+                        }
+                    }
+
+                    // закрываем текущую запись для новой записи
+                    zipOutputStream.closeEntry();
+
+                    //
+                    if (done_printed != 0) {
+                        log.info(countDone / 1024 + " Kb done");
                     }
                 }
-
-                // закрываем текущую запись для новой записи
-                zipOutputStream.closeEntry();
-
-                //
-                if (done_printed != 0) {
-                    log.info(countDone / 1024 + " Kb done");
-                }
-                //sw.stop();
-
             }
+
+            // Заканчиваем запись в в zip-архив
+            zipOutputStream.finish();
         }
     }
 
