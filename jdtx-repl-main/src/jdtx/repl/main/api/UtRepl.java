@@ -654,21 +654,6 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                                 String pkValueStr = recValuesStr.get(pkFieldName);
                                 JdxRef pkValue = JdxRef.parse(pkValueStr);
 
-                                // Дополнение ссылки
-                                if (pkValue != null && pkValue.isEmptyWs()) {
-                                    if (replica.getInfo().getReplicaType() == JdxReplicaType.SNAPSHOT) {
-                                        pkValue.ws_id = replica.getInfo().getWsId();
-                                    } else {
-                                        log.error("pkValue.isEmptyWs");
-                                        log.error("  file: " + file.getAbsolutePath());
-                                        log.error("  recValuesStr: " + recValuesStr);
-                                        throw new XError("pkValue.isEmptyWs");
-                                    }
-                                    //
-                                    pkValueStr = pkValue.toString();
-                                    recValuesStr.put(pkFieldName, pkValueStr);
-                                }
-
                                 // Нашли нужный id?
                                 if (findRecordId.equals(pkValue)) {
                                     JdxOprType oprType = JdxOprType.valueOfStr(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
