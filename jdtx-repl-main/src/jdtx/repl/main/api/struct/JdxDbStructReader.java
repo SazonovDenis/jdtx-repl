@@ -56,11 +56,13 @@ public class JdxDbStructReader implements IJdxDbStructReader {
                         String columnName = rsColumns.getString("COLUMN_NAME");
                         String columnType = rsColumns.getString("TYPE_NAME");
                         int columnSize = rsColumns.getInt("COLUMN_SIZE");
+                        boolean isNullable = rsColumns.getBoolean("NULLABLE");
 
                         field.setName(columnName);
                         field.setDbDatatype(columnType);
                         field.setJdxDatatype(dbDatatypeToJdxDatatype(columnType));
                         field.setSize(columnSize);
+                        field.setIsNullable(isNullable);
                     }
                 } finally {
                     rsColumns.close();

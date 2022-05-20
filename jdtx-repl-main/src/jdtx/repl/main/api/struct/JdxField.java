@@ -6,6 +6,7 @@ public class JdxField implements IJdxField {
     JdxDataType jdxType;
     int size;
     boolean isPrimaryKey;
+    boolean isNullable;
     IJdxTable refTable;
 
     public String getName() {
@@ -28,6 +29,10 @@ public class JdxField implements IJdxField {
         return this.isPrimaryKey;
     }
 
+    public boolean isNullable() {
+        return this.isNullable;
+    }
+
     public IJdxTable getRefTable() {
         return this.refTable;
     }
@@ -39,12 +44,17 @@ public class JdxField implements IJdxField {
         f1.setJdxDatatype(this.getJdxDatatype());
         f1.setSize(this.getSize());
         f1.setIsPrimaryKey(this.isPrimaryKey);
+        f1.setIsNullable(this.isNullable);
         f1.setRefTable(this.refTable);
         return f1;
     }
 
     public void setIsPrimaryKey(boolean isPrimaryKey) {
         this.isPrimaryKey = isPrimaryKey;
+    }
+
+    public void setIsNullable(boolean isNullable) {
+        this.isNullable = isNullable;
     }
 
     public void setRefTable(IJdxTable refTable) {

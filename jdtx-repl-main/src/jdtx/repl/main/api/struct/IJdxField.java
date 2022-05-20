@@ -16,7 +16,7 @@ public interface IJdxField {
     String getDbDatatype();
 
     /**
-     * @return Тип поля из числа JdxDataType
+     * @return Тип поля из перечня JdxDataType
      */
     JdxDataType getJdxDatatype();
 
@@ -25,6 +25,11 @@ public interface IJdxField {
     // todo: IJdxTable.getPrimaryKey подразумевает несколько полей в составе PrimaryKey,
     // а тут реализовано, как будто PrimaryKey всегда одно поле. Это верно для ТБД и PS, но в общем не это так.
     boolean isPrimaryKey();
+
+    /**
+     * @return Допустимы ли NULL значения
+     */
+    boolean isNullable();
 
     IJdxTable getRefTable();
 
