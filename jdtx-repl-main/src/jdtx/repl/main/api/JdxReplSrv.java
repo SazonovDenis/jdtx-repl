@@ -567,11 +567,11 @@ public class JdxReplSrv {
 
                 //
                 long queDoneNo = stateManager.getWsQueInNoReceived(wsId);
-                long queMaxNo = mailer.getBoxState("from");
+                long mailMaxNo = mailer.getBoxState("from");
 
                 //
                 long count = 0;
-                for (long no = queDoneNo + 1; no <= queMaxNo; no++) {
+                for (long no = queDoneNo + 1; no <= mailMaxNo; no++) {
                     log.info("receive, wsId: " + wsId + ", receiving.no: " + no);
 
                     // Физически забираем данные с почтового сервера
@@ -613,9 +613,9 @@ public class JdxReplSrv {
 
                 //
                 if (count > 0) {
-                    log.info("srvHandleQueIn, from.wsId: " + wsId + ", que.no: " + queDoneNo + " .. " + queMaxNo + ", done count: " + count);
+                    log.info("srvHandleQueIn, from.wsId: " + wsId + ", que.no: " + (queDoneNo + 1) + " .. " + mailMaxNo + ", done count: " + count);
                 } else {
-                    log.info("srvHandleQueIn, from.wsId: " + wsId + ", que.no: " + queMaxNo + ", nothing done");
+                    log.info("srvHandleQueIn, from.wsId: " + wsId + ", que.no: " + mailMaxNo + ", nothing done");
                 }
 
             } catch (Exception e) {
