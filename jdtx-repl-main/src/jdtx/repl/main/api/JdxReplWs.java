@@ -1481,6 +1481,7 @@ public class JdxReplWs {
     /**
      * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано
      */
+/*
     @Deprecated
     public void sendToDir(String cfgFileName, String mailDir, long age_from, long age_to, boolean doMarkDone) throws Exception {
         // Готовим локальный мейлер
@@ -1520,6 +1521,7 @@ public class JdxReplWs {
         // Физически отправляем данные
         // sendInternal(mailerLocal, age_from, age_to, doMarkDone); // Заменен на UtMail.sendQueToMail
     }
+*/
 
 
     /**
@@ -1610,7 +1612,7 @@ public class JdxReplWs {
         String refTableName = refTable.getName();
         String refTableFieldName = foreignKey.getTableField().getName();
         //
-        String refTableId = (String) e.recValues.get(thisTableRefFieldName);
+        String refTableId = e.recValues.get(thisTableRefFieldName);
 
         //
         log.error("Searching foreign key: " + thisTableName + "." + thisTableRefFieldName + " -> " + refTableName + "." + refTableFieldName + ", foreign key: " + refTableId);

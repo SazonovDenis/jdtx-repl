@@ -230,6 +230,9 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         //
         IReplica replica0 = utRepl.findRecordInReplicas("lic", "2:1361", dirs, false, false, "temp/LIC_2_1361.zip");
         System.out.println("File: " + replica0.getData().getAbsolutePath());
+        //
+        IReplica replica1 = utRepl.findRecordInReplicas("lic", "0", dirs, false, false, "temp/LIC_0.zip");
+        System.out.println("File: " + replica1.getData().getAbsolutePath());
     }
 
     @Test
