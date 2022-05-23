@@ -48,15 +48,9 @@ public class UtDbObjectManager {
     }
 
     public void checkReplVerDb() throws Exception {
-        // Версия в исходном состоянии
-        int ver = 0;
-        int ver_step = 0;
-
-        // --- Читаем версию БД
+        // --- Проверяем, что можно прочитать версию БД
         try {
-            DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "verdb").getCurRec();
-            ver = rec.getValueInt("ver");
-            ver_step = rec.getValueInt("ver_step");
+            db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "verdb").getCurRec();
         } catch (Exception e) {
             if (UtDbErrors.errorIs_TableNotExists(e)) {
                 // Создаем таблицу verdb
@@ -69,20 +63,25 @@ public class UtDbObjectManager {
             }
         }
 
-        // --- Проверяем версию, что не больше разрешенной
-        if (ver > CURRENT_VER_DB || (ver == CURRENT_VER_DB && ver_step != 0)) {
-            throw new XError("Версия базы больше разрешенной, текущая: " + ver + "." + ver_step + ", разрешенная: " + CURRENT_VER_DB + ".0");
-        }
+        // --- Запрещаем другим читать и менять версию
+        lockDb();
 
-        // --- Обновляем версию
-        int ver_to = CURRENT_VER_DB;
-        int ver_i = ver;
-        if (ver_i < ver_to) {
-            // Запрещаем другим менять версию
-            lockDb();
+        // --- Читаем и, если нужно, обновляем версию
+        try {
+            // Читаем версию БД
+            DataRecord rec = db.loadSql("select ver, ver_step from " + UtJdx.SYS_TABLE_PREFIX + "verdb").getCurRec();
+            int ver = rec.getValueInt("ver");
+            int ver_step = rec.getValueInt("ver_step");
 
-            // Обновляем
-            try {
+            // Проверяем версию, что не больше разрешенной
+            if (ver > CURRENT_VER_DB || (ver == CURRENT_VER_DB && ver_step != 0)) {
+                throw new XError("Версия базы больше разрешенной, текущая: " + ver + "." + ver_step + ", разрешенная: " + CURRENT_VER_DB + ".0");
+            }
+
+            // Обновляем версию
+            int ver_to = CURRENT_VER_DB;
+            int ver_i = ver;
+            if (ver_i < ver_to) {
                 while (ver_i < ver_to) {
                     log.info("Смена версии: " + ver_i + "." + ver_step + " -> " + (ver_i + 1) + ".0");
 
@@ -121,19 +120,22 @@ public class UtDbObjectManager {
                     //
                     log.info("Смена версии до: " + ver_i + "." + ver_step + " - ok");
                 }
-            } finally {
-                // Снимаем блокировку
-                unlockDb();
             }
+
+        } finally {
+            // Снимаем блокировку
+            unlockDb();
         }
+
     }
 
     public void lockDb() throws Exception {
         if (lockFlag != null) {
-            throw new XError("Database already locked");
+            throw new XError("Database already locked by current thread");
         }
 
         //
+        log.info("Wait for lock database: " + db.getDbSource().getDatabase());
         lockFlag = db.openSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "verdb for update with lock");
 
         //
@@ -142,7 +144,7 @@ public class UtDbObjectManager {
 
     public void unlockDb() throws Exception {
         if (lockFlag == null) {
-            throw new XError("Database is not locked");
+            throw new XError("Database is not locked by current thread");
         }
 
         //
