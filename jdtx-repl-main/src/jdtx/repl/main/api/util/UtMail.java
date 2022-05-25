@@ -134,7 +134,7 @@ public class UtMail {
             mailer.send(replica, box, no);
 
             // Отметим отправку очередного номера реплики (если отметка двигается вперед)
-            if (sendInfo != null && no > sendInfo.mailLastSendNo) {
+            if (sendInfo != null && no > sendInfo.lastSendNoMarked) {
                 mailStateManager.setMailSendDone(no);
             }
 
@@ -211,6 +211,7 @@ public class UtMail {
         return sendTask;
     }
 
+
     /**
      * Выясняем объем передач, по состоянию очереди
      */
@@ -219,52 +220,78 @@ public class UtMail {
         sendTask.required = false;
 
         // Узнаем, сколько есть у нас
-        long queNo = que.getMaxNo();
-        // Узнаем, какая последняя отправленная
-        long mailLastSendNo = mailStateManager.getMailSendDone();
+        long noQue = que.getMaxNo();
+        // Узнаем, какая последняя отправленная помечена
+        long noQueSendMarked = mailStateManager.getMailSendDone();
+        // Сколько реплик фактически отправлено на сервер (спросим у почтового сервера)
+        long noQueSendSrv = mailer.getSendDone(box);
 
-        //
-        long sendFrom;
-        long sendTo;
+        // Проверка и ремонт отметки "отправлено на сервер"
+        repairSendTaskBySrvState(noQueSendMarked, noQueSendSrv, que, mailer, box, mailStateManager);
 
         // Зададим от последней отправленной до последней, что у нас есть на раздачу
-        sendFrom = mailLastSendNo + 1;
-        sendTo = queNo;
-
-        // todo проверка "не отправляли ли ранее такую реплику?" дублируется
-        // Проверки: не отправляли ли ранее такую реплику?
-        // Защита от ситуации "восстановление БД из бэкапа", а также
-        // защита от ситуации "после переноса рабочей станции на старом компьютере проснулась старая копия рабочей станции"
-        long srv_no = mailer.getSendDone(box);
-        if (sendFrom < srv_no) {
-            // Отправка сильно отстает от сервера
-            throw new XError("invalid replica.no, box: " + box + ", send.no: " + sendFrom + ", srv.no: " + srv_no + ", server is forward");
-        } else if (sendFrom == srv_no && srv_no != 0) {
-            // Отправка одинакова с сервером
-            IReplicaInfo fileInfo = ((MailerHttp) mailer).getLastReplicaInfo(box);
-            String crc = fileInfo.getCrc();
-            // Если последнее письмо совпадает - то считаем это недоразумением ит игнорируем.
-            IReplica replica = que.get(sendFrom);
-            if (!UtJdx.equalReplicaCrc(replica, crc)) {
-                throw new XError("invalid replica.no, box: " + box + ", send.no: " + sendFrom + ", srv.no: " + srv_no + ", workstation and server have equal replica.no, but different replica.crc");
-            } else {
-                log.warn("mailer.send, already sent box: " + box + ", replica.no: " + sendFrom + ", workstation and server have equal replica.no and equal replica.crc");
-            }
-        } else if (sendFrom > srv_no + 1 && srv_no != 0) {
-            // Отправка сильно опережает сервер
-            throw new XError("invalid replica.no, box: " + box + ", send.no: " + sendFrom + ", srv.no: " + srv_no + ", workstation is forward");
-        }
+        sendTask.sendFrom = noQueSendMarked + 1;
+        sendTask.sendTo = noQue;
 
         //
-        sendTask.sendFrom = sendFrom;
-        sendTask.sendTo = sendTo;
-
-        //
-        sendInfo.mailLastSendNo = mailLastSendNo;
+        sendInfo.lastSendNoMarked = noQueSendMarked;
 
         //
         return sendTask;
     }
 
+
+    /**
+     * Проверка и ремонт отметки "отправлено на сервер": не отправляли ли ранее такую реплику?
+     * Защита от ситуации "восстановление БД из бэкапа", а также
+     * защита от ситуации "после переноса рабочей станции на старом компьютере проснулась старая копия рабочей станции"
+     */
+    public static void repairSendTaskBySrvState(long noQueSendMarked, long noQueSendSrv, IJdxQue que, IMailer mailer, String box, IJdxMailStateManager mailStateManager) throws Exception {
+        String queName = que.getQueName();
+
+        if (noQueSendMarked == noQueSendSrv) {
+            // Отметка совпадает с состоянием сервера
+            // Ничего делать не надо
+            return;
+        }
+
+        //
+        log.warn("Need repair marked, que: " + queName + ", box: " + box + ", noQueSendMarked: " + noQueSendMarked + ", noQueSendSrv: " + noQueSendSrv);
+
+        //
+        if (noQueSendMarked > noQueSendSrv) {
+            // Отметка опережает сервер
+            throw new XError("Unable to repair marked, noQueSendMarked > noQueSendSrv");
+        } else if ((noQueSendMarked + 1) == noQueSendSrv) {
+            // Помеченное (noQueSendMarked) на 1 меньше отправленного (noQueSendSrv)
+            // Сравним CRC реплики в очереди и последнего отправленнного письма на сервере.
+
+            // Читаем информацию о последней реплике с сервера
+            IReplicaInfo replicaInfoSrv = ((MailerHttp) mailer).getLastReplicaInfo(box);
+            String crcSrv = replicaInfoSrv.getCrc();
+
+            // Берем реплику из очереди
+            IReplica replicaWs = que.get(noQueSendSrv);
+
+            // Сравниваем CRC реплики и последнего письма.
+            if (UtJdx.equalReplicaCrc(replicaWs, crcSrv)) {
+                // Реплика совпадает с последним письмом - считаем это недоразумением:
+                // успели отправить, но не успели отметить.
+                // Это бывает, если прерывается процесс передачи реплик на этапе отметки.
+                log.warn("Last replica already sent");
+                // Просто исправляем отметку "отправлено на сервер".
+                mailStateManager.setMailSendDone(noQueSendSrv);
+                log.warn("Repair marked, setMailSendDone, " + noQueSendMarked + " -> " + noQueSendSrv);
+            } else {
+                // Реплика НЕ совпадает с последним письмом - это ошибка
+                throw new XError("Unable to repair marked, ws.replica.crc <> mail.replica.crc, ws.replica.crc: " + replicaWs.getInfo().getCrc() + ", mail.replica.crc: " + crcSrv);
+            }
+        } else {
+            // Отметка сильно отстает от сервера.
+            // В отличие от процедуры ремонта repairAfterBackupRestore тут не передвигаем вперед.
+            throw new XError("Unable to repair marked, noQueSendMarked << noQueSendSrv");
+        }
+    }
+    
 
 }

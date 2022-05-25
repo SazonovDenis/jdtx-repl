@@ -2,6 +2,6 @@ package jdtx.repl.main.api.mailer;
 
 public class MailSendInfo {
 
-    public long mailLastSendNo;
+    public long lastSendNoMarked;
 
 }

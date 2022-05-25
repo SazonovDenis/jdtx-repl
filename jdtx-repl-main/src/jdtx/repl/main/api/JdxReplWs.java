@@ -1669,9 +1669,13 @@ public class JdxReplWs {
     }
 
     /**
-     * Выявить ситуацию "станцию восстановили из бэкапа" и починить ее
+     * Выявить ситуацию "станцию восстановили из бэкапа" и починить ее.
+     *
+     * @param doRepair              Запускать ремонт при обнаружении неисправности.
+     * @param doPrintIfNeedNoRepair Нужно ли печатать состояние, если нет неисправности.
+     * @throws Exception если обнаружена неисправность надо чинить, но чинить не просили.
      */
-    public void repairAfterBackupRestore(boolean doRepair, boolean doPrint) throws Exception {
+    public void repairAfterBackupRestore(boolean doRepair, boolean doPrintIfNeedNoRepair) throws Exception {
         // ---
         // Анализ
         // ---
@@ -1729,53 +1733,9 @@ public class JdxReplWs {
 
 
         // ---
-        // Отдельный случай: успели отправить, но не успели отметить.
-        // Проверим, что помеченное (noQueOutSendMarked) на 1 меньше отправленного (noQueOutSendSrv),
-        // но при этом CRC [noQueOutSendMarked + 1] и [noQueOutSendSrv] одинаковое
-        boolean normal_Marked_SrvSendDone = false;
-        if ((noQueOutSendMarked + 1) == noQueOutSendSrv) {
-            // Читаем информацию о последней реплике с сервера
-            IReplicaInfo infoSrv_from = ((MailerHttp) mailer).getLastReplicaInfo("from");
-            String crcSrv = infoSrv_from.getCrc();
-            // Берем реплику из очереди
-            IReplica replicaWs = queOut.get(noQueOutSendSrv);
-            // Сравниваем номер и CRC
-            if (noQueOutSendSrv == infoSrv_from.getNo() && UtJdx.equalReplicaCrc(replicaWs, crcSrv)) {
-                log.warn("Detected restore from backup, workstation and server have equal replica.no and equal replica.crc");
-                // Чиним возраст "отправлено на сервер"
-                mailStateManager.setMailSendDone(noQueOutSendSrv);
-                log.warn("Repair mailSendDone, " + noQueOutSendMarked + " -> " + noQueOutSendSrv);
-                //
-                normal_Marked_SrvSendDone = true;
-            }
-        }
+        // Есть ли отметка о начале ремонта
+        File lockFile = new File(dataRoot + "temp/repairBackup.lock");
 
-
-/*
-        // todo проверка "не отправляли ли ранее такую реплику?" дублируется
-        // Проверки: не отправляли ли ранее такую реплику?
-        // Защита от ситуации "восстановление БД из бэкапа", а также
-        // защита от ситуации "после переноса рабочей станции на старом компьютере проснулась старая копия рабочей станции"
-        long srv_no = mailer.getSendDone(box);
-        if (sendFrom < srv_no) {
-            // Отправка сильно отстает от сервера
-            throw new XError("invalid replica.no, send.no: " + sendFrom + ", srv.no: " + srv_no + ", server is forward");
-        } else if (sendFrom == srv_no && srv_no != 0) {
-            // Отправка одинакова с сервером
-            IReplicaInfo fileInfo = ((MailerHttp) mailer).getLastReplicaInfo(box);
-            String crc = fileInfo.getCrc();
-            // Если последнее письмо совпадает - то считаем это недоразумением ит игнорируем.
-            IReplica replica = que.get(sendFrom);
-            if (!UtJdx.equalReplicaCrc(replica, crc)) {
-                throw new XError("invalid replica.no, send.no: " + sendFrom + ", srv.no: " + srv_no + ", workstation and server have equal replica.no, but different replica.crc");
-            } else {
-                log.warn("mailer.send, already sent replica.no: " + sendFrom + ", workstation and server have equal replica.no and equal replica.crc");
-            }
-        } else if (sendFrom > srv_no + 1 && srv_no != 0) {
-            // Отправка сильно опережает сервер
-            throw new XError("invalid replica.no, send.no: " + sendFrom + ", srv.no: " + srv_no + ", workstation is forward");
-        }
-*/
 
 /*
         если отправили на сервер больше, чем есть у нас - значит у нас НЕ ХВАТАЕТ данных,
@@ -1783,22 +1743,11 @@ public class JdxReplWs {
                 Значит, пока мы из ВХОДЯЩЕЙ очереди не получим и не применим НАШУ последнюю реплику -ремонт не закончен
 */
 
-
-        // ---
-        // Есть ли отметка о начале ремонта
-        File lockFile = new File(dataRoot + "temp/repairBackup.lock");
-
-
         // Допускается, если в рабочем каталоге QueIn меньше реплик, чем в очереди QueIn (noQueIn > noQueInDir).
         // Это бывает из-за того, что при получении собственных snapshot-реплик, мы ее не скачиваем (т.к. она нам не нужна).
         //
         // Допускается, если не все исходящие реплики находятся в каталоге (noQueOut > noQueOutDir).
         // Это бывает, если удален каталог с репликами.
-        // Это не страшно, т.к. ??????????????????????????
-        //
-        // Допускается, если noQueOutSendMarked на 1 меньше noQueOutSendSrv, но при этом CRC реплики queOut[noQueOutSendSrv] одинаковая на сервере и в очереди.
-        // Это бывает, если прерывается процесс передачи реплик на этапе отметки.
-        // Это не страшно, т.к. не говорит о подмене/востановлении базы.
         boolean needRepair = false;
 
         if (lockFile.exists()) {
@@ -1843,13 +1792,13 @@ public class JdxReplWs {
             log.warn("Need repair: noQueOut < noQueOutSendSrv, noQueOut: " + noQueOut + ", noQueOutSendSrv: " + noQueOutSendSrv);
             needRepair = true;
         }
-        if (!normal_Marked_SrvSendDone && noQueOutSendMarked != noQueOutSendSrv) {
-            log.warn("Need repair: noQueOutSendMarked != noQueOutSendSrv, noQueOutSendMarked: " + noQueOutSendMarked + ", noQueOutSendSrv: " + noQueOutSendSrv);
+        if (noQueOutSendMarked != noQueOutSendSrv) {
+            log.warn("Need repair: QueOut.SendMarked != QueOut.SendSrv, noQueOutSendMarked: " + noQueOutSendMarked + ", noQueOutSendSrv: " + noQueOutSendSrv);
             needRepair = true;
         }
 
         //
-        if (needRepair || doPrint) {
+        if (needRepair || doPrintIfNeedNoRepair) {
             log.warn("Restore from backup: need repair: " + needRepair);
             log.warn("  self.wsId: " + wsId);
             log.warn("  noQueIn: " + noQueIn);
@@ -1861,10 +1810,9 @@ public class JdxReplWs {
             log.warn("  noQueOut: " + noQueOut);
             log.warn("  noQueOutDir: " + noQueOutDir);
             log.warn("  noQueOutSendSrv: " + noQueOutSendSrv);
+            log.warn("  noQueOutSendMarked: " + noQueOutSendMarked);
             log.warn("  noQueIn001Used: " + noQueIn001Used);
             log.warn("  noQueInUsed: " + noQueInUsed);
-            log.warn("  noQueOutSendMarked: " + noQueOutSendMarked);
-            log.warn("  normal_Marked_SrvSendDone: " + normal_Marked_SrvSendDone);
             log.warn("  lockFile: " + lockFile.exists());
         }
 
@@ -1888,7 +1836,8 @@ public class JdxReplWs {
                     "noQueOutDir: " + noQueOutDir + ", " +
                     "noQueOutSendSrv: " + noQueOutSendSrv + ", " +
                     "noQueOutSendMarked: " + noQueOutSendMarked + ", " +
-                    "normal_Marked_SrvSendDone: " + normal_Marked_SrvSendDone + ", " +
+                    "noQueIn001Used: " + noQueIn001Used + ", " +
+                    "noQueInUsed: " + noQueInUsed + ", " +
                     "lockFile: " + lockFile.exists() + ", " +
                     "need repair: " + needRepair;
             throw new XError("Detected restore from backup, repair needed: " + errInfo);
@@ -1940,7 +1889,11 @@ public class JdxReplWs {
         boolean waitRepairQueBySrv = false;
 
 
-        // Читаем очереди qqueIn001, ueIn, queIn001, queOut с сервера до тех пор,
+        // Чиним неправильные состояния:
+        //  - noQueIn001 < noQueIn001ReadSrv
+        //  - noQueIn < noQueInReadSrv
+        //  - noQueOut < noQueOutSendSrv
+        // Читаем с сервера очереди queIn001, queIn, queIn001, queOut до тех пор,
         // пока не получим все, что получили до сбоя (реплики от noQue*** + 1 до noQue******Srv),
         // Пока чтение не закончится успехом - выкидываем ошибку (или ждем, если стоит флаг ожидания)
         do {
@@ -2122,11 +2075,19 @@ public class JdxReplWs {
 
 
         // ---
-        // Если возраст "отправлено на сервер" меньше, чем фактический размер исходящей очереди -
-        // чиним отметку об отправке собственных реплик.
+        // Если отмечено "отправлено на сервер" не совпадает с фактической отправкой на сервер.
+        if (noQueOutSendMarked != noQueOutSendSrv) {
         if (noQueOutSendMarked < noQueOutSendSrv) {
+                // Отметка отстает от сервера
+                // В отличие от процедуры ремонта repairSendTaskBySrvState тут можно передвинуть вперед -
+                // ведь мы отремонтировали очередь до уровня noQueOutSendSrv.
+                // Просто исправляем отметку "отправлено на сервер".
             mailStateManager.setMailSendDone(noQueOutSendSrv);
-            log.warn("Repair mailSendDone, " + noQueOutSendMarked + " -> " + noQueOutSendSrv);
+                log.warn("Repair noQueOutSendMarked != noQueOutSendSrv, setMailSendDone, " + noQueOutSendMarked + " -> " + noQueOutSendSrv);
+            } else {
+                // Отметка опережает сервер
+                throw new XError("Unable to repair marked, noQueSendMarked > noQueSendSrv");
+            }
         }
 
 
