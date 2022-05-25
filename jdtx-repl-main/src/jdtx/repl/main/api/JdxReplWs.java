@@ -565,8 +565,8 @@ public class JdxReplWs {
         log.info("  path: " + replicaOriginalFile.getAbsolutePath());
         log.info("exists: " + replicaOriginalFile.exists());
         if (replicaOriginalFile.exists()) {
-        log.info("  size: " + replicaOriginalFile.length());
-        log.info("  crc: " + UtJdx.getMd5File(replicaOriginalFile));
+            log.info("  size: " + replicaOriginalFile.length());
+            log.info("   crc: " + UtJdx.getMd5File(replicaOriginalFile));
         }
         log.info("Recreated replica:");
         log.info("   age: " + replicaRecreated.getInfo().getAge());
@@ -574,7 +574,7 @@ public class JdxReplWs {
         log.info("Recreated replica file:");
         log.info("  path: " + replicaRecreated.getData().getAbsolutePath());
         log.info("  size: " + replicaRecreated.getData().length());
-        log.info("  crc: " + UtJdx.getMd5File(replicaRecreated.getData()));
+        log.info("   crc: " + UtJdx.getMd5File(replicaRecreated.getData()));
 
         // Копируем содержимое новой реплики на место старой
         if (replicaOriginalFile.exists() && !replicaOriginalFile.delete()) {
@@ -1751,11 +1751,11 @@ public class JdxReplWs {
         File lockFile = new File(dataRoot + "temp/repairBackup.lock");
 
 
-/*
+        /*
         если отправили на сервер больше, чем есть у нас - значит у нас НЕ ХВАТАЕТ данных,
-                которые мы отправили на сервер в прошлой жизни.
-                Значит, пока мы из ВХОДЯЩЕЙ очереди не получим и не применим НАШУ последнюю реплику -ремонт не закончен
-*/
+        которые мы отправили на сервер в прошлой жизни.
+        Значит, пока мы из ВХОДЯЩЕЙ очереди не получим и не применим НАШУ последнюю реплику - ремонт не закончен
+        */
 
         // Допускается, если в рабочем каталоге QueIn меньше реплик, чем в очереди QueIn (noQueIn > noQueInDir).
         // Это бывает из-за того, что при получении собственных snapshot-реплик, мы ее не скачиваем (т.к. она нам не нужна).
@@ -1920,7 +1920,7 @@ public class JdxReplWs {
             }
 
             if (waitRepairQueBySrv) {
-                Thread.sleep(2000);
+                Thread.sleep(5000);
             } else {
                 throw new XError("Wait for repairQueBySrv");
             }
@@ -2091,12 +2091,12 @@ public class JdxReplWs {
         // ---
         // Если отмечено "отправлено на сервер" не совпадает с фактической отправкой на сервер.
         if (noQueOutSendMarked != noQueOutSendSrv) {
-        if (noQueOutSendMarked < noQueOutSendSrv) {
+            if (noQueOutSendMarked < noQueOutSendSrv) {
                 // Отметка отстает от сервера
                 // В отличие от процедуры ремонта repairSendTaskBySrvState тут можно передвинуть вперед -
                 // ведь мы отремонтировали очередь до уровня noQueOutSendSrv.
                 // Просто исправляем отметку "отправлено на сервер".
-            mailStateManager.setMailSendDone(noQueOutSendSrv);
+                mailStateManager.setMailSendDone(noQueOutSendSrv);
                 log.warn("Repair noQueOutSendMarked != noQueOutSendSrv, setMailSendDone, " + noQueOutSendMarked + " -> " + noQueOutSendSrv);
             } else {
                 // Отметка опережает сервер
