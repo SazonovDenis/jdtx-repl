@@ -1075,16 +1075,17 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
             } catch (Exception exceptionMail) {
                 if (UtJdxErrors.errorIs_MailerReplicaNotFound(exceptionMail)) {
                     log.info("handleError_BadReplica, try request replica: " + no + ", box: " + box);
+
                     // Реплику еще не просили - попросим прислать
                     RequiredInfo requiredInfo = new RequiredInfo();
                     requiredInfo.requiredFrom = no;
                     requiredInfo.requiredTo = no;
                     requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
+
                     // Просим
                     mailer.setSendRequired(box, requiredInfo);
 
-                    //
-                    log.info("handleError_BadReplica, request done");
+                    // И ждем, а пока - ошибка
                     throw new XError("handleError_BadReplica, request done, replica.no: " + no + ", box: " + box);
                 } else {
                     throw exceptionMail;

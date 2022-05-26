@@ -25,13 +25,6 @@ public class RequiredInfo {
         executor = UtJdxData.stringValueOf(required.get("executor"), null);
     }
 
-    public void assign(RequiredInfo requiredInfo) {
-        this.requiredFrom = requiredInfo.requiredFrom;
-        this.requiredTo = requiredInfo.requiredTo;
-        this.recreate = requiredInfo.recreate;
-        this.executor = requiredInfo.executor;
-    }
-
     @Override
     public String toString() {
         if (requiredFrom == -1) {
