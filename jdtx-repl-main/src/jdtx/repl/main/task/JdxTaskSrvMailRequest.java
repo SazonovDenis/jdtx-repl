@@ -3,6 +3,7 @@ package jdtx.repl.main.task;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.mailer.*;
 import org.apache.commons.logging.*;
+import org.apache.log4j.*;
 
 /**
  * Выполняет шаг "рассылка по требованию" для сервера.
@@ -24,6 +25,9 @@ public class JdxTaskSrvMailRequest extends JdxTaskCustom {
         //
         log.info("Сервер, рассылка по требованию");
         srv.init();
+
+        //
+        MDC.put("serviceName", "srvMR");
 
 
         // Проверка версии приложения (без обновления)

@@ -122,7 +122,7 @@ public class UtMail {
      * Передача списка реплик replicasToSend через mailer в ящик box
      */
     private static void sendReplicasToMail(MailSendTask sendTask, MailSendInfo sendInfo, Map<Long, IReplica> replicasToSend, long wsId, IMailer mailer, String box, IJdxMailStateManager mailStateManager) throws Exception {
-        log.info("sendReplicasToMail, wsId: " + wsId + ", box: " + box + ", send: " + sendTask.sendFrom + " .. " + sendTask.sendTo);
+        log.info("sendReplicasToMail, wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask);
 
         // Передаем
         long count = 0;
@@ -149,7 +149,7 @@ public class UtMail {
                 requiredInfo.requiredFrom = no + 1;
                 // Отмечаем на сервере
                 mailer.setSendRequired(box, requiredInfo);
-                log.warn("sendReplicasToMail, repeat send step, no: " + no);
+                log.warn("sendReplicasToMail, required send step, no: " + no);
             }
 
             //
@@ -162,7 +162,7 @@ public class UtMail {
         // Снимем флаг просьбы станции (если просили повторную передачу)
         if (sendTask.required) {
             mailer.setSendRequired(box, new RequiredInfo());
-            log.warn("sendReplicasToMail, repeat send done");
+            log.warn("sendReplicasToMail, required send done");
         }
 
         // Отметим попытку записи (для отслеживания активности станции, когда нет данных для реальной передачи)
@@ -170,9 +170,9 @@ public class UtMail {
 
         //
         if (count > 0) {
-            log.info("sendReplicasToMail done, wsId: " + wsId + ", box: " + box + ", send: " + sendTask.sendFrom + " .. " + sendTask.sendTo + ", done count: " + count);
+            log.info("sendReplicasToMail done, wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask.sendFrom + " .. " + sendTask.sendTo + ", done count: " + count);
         } else {
-            log.info("sendReplicasToMail done, wsId: " + wsId + ", box: " + box + ", send: " + sendTask.sendTo + ", nothing done");
+            log.info("sendReplicasToMail done, wsId: " + wsId + ", box: " + box + ", nothing done");
         }
     }
 
@@ -292,6 +292,6 @@ public class UtMail {
             throw new XError("Unable to repair marked, noQueSendMarked << noQueSendSrv");
         }
     }
-    
+
 
 }
