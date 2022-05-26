@@ -360,7 +360,7 @@ public class UtJdx {
 
         // Проверки: указан номер реплики, если он там нужен
         if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE && replica.getInfo().getNo() <= 0) {
-            throw new XError("replica info.no is not set, no: " + replica.getInfo().getNo());
+            throw new XError("replica info.no is not set or invalid, no: " + replica.getInfo().getNo());
         }
 
         // Проверки: указан возраст данных age в реплике типа IDE

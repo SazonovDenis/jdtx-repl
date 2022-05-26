@@ -648,7 +648,7 @@ public class JdxReplSrv {
                 //
                 long count = 0;
                 for (long no = queDoneNo + 1; no <= queMaxNo; no++) {
-                    log.info("srvHandleCommonQue, wsId: " + wsId + ", queIn.no: " + no);
+                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", queIn.no: " + no);
 
 
                     // Помещаем полученные данные в общую очередь
