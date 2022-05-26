@@ -8,7 +8,7 @@ import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
 
 /**
- * Task - сервер, обработка реплик
+ * Фоновая задача: сервер, обработка реплик
  */
 public class BgTaskSrvRepl extends BgTask {
 
@@ -37,9 +37,9 @@ public class BgTaskSrvRepl extends BgTask {
         try {
             JdxReplSrv srv = new JdxReplSrv(db);
             //
-            JdxTaskSrvRepl replTask = new JdxTaskSrvRepl(srv);
+            JdxTaskSrvRepl task = new JdxTaskSrvRepl(srv);
             //
-            replTask.doTask();
+            task.doTask();
         } finally {
             db.disconnect();
         }

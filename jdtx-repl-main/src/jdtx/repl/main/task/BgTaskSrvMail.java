@@ -8,7 +8,7 @@ import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
 
 /**
- * Task - сервер, рассылка писем
+ * Фоновая задача: сервер, рассылка по расписанию
  */
 public class BgTaskSrvMail extends BgTask {
 
@@ -18,7 +18,7 @@ public class BgTaskSrvMail extends BgTask {
     //
     public void run() throws Exception {
         try {
-            log.info("Сервер");
+            log.info("Сервер, рассылка по расписанию");
             step();
         } catch (Exception e) {
             log.error(Ut.getExceptionMessage(e));
@@ -37,9 +37,9 @@ public class BgTaskSrvMail extends BgTask {
         try {
             JdxReplSrv srv = new JdxReplSrv(db);
             //
-            JdxTaskSrvRepl replTask = new JdxTaskSrvRepl(srv);
+            JdxTaskSrvMail task = new JdxTaskSrvMail(srv);
             //
-            replTask.doTask();
+            task.doTask();
         } finally {
             db.disconnect();
         }

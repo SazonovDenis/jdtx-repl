@@ -8,7 +8,7 @@ import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
 
 /**
- * Task, рабочая станция, рассылка писем по запросу
+ * Фоновая задача: рабочая станция, рассылка по требованию
  */
 public class BgTaskWsMailRequest extends BgTask {
 
@@ -37,9 +37,9 @@ public class BgTaskWsMailRequest extends BgTask {
         try {
             JdxReplWs ws = new JdxReplWs(db);
             //
-            JdxTaskWsMailRequest mailTask = new JdxTaskWsMailRequest(ws);
+            JdxTaskWsMailRequest task = new JdxTaskWsMailRequest(ws);
             //
-            mailTask.doTask();
+            task.doTask();
         } finally {
             db.disconnect();
         }

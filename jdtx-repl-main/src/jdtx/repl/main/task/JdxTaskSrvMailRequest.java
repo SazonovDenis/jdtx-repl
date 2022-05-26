@@ -5,7 +5,7 @@ import jdtx.repl.main.api.mailer.*;
 import org.apache.commons.logging.*;
 
 /**
- * Выполняет шаг "рассылка писем по запросу" для сервера.
+ * Выполняет шаг "рассылка по требованию" для сервера.
  */
 public class JdxTaskSrvMailRequest extends JdxTaskCustom {
 
@@ -26,12 +26,12 @@ public class JdxTaskSrvMailRequest extends JdxTaskCustom {
         srv.init();
 
 
-        // Проверка версии приложения
+        // Проверка версии приложения (без обновления)
         srv.checkAppUpdate();
 
 
         //
-        log.info("Рассылка по требованию");
+        log.info("Выполнение рассылки по требованию");
         try {
             srv.replicasSend_Requied();
         } catch (Exception e) {

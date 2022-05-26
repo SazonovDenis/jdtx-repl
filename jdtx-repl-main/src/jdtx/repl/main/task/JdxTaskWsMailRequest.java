@@ -5,7 +5,7 @@ import jdtx.repl.main.api.mailer.*;
 import org.apache.commons.logging.*;
 
 /**
- * Выполняет шаг "рассылка писем по запросу" для для рабочей станции.
+ * Выполняет шаг "рассылка по требованию" для рабочей станции.
  */
 public class JdxTaskWsMailRequest extends JdxTaskCustom {
 
@@ -22,17 +22,17 @@ public class JdxTaskWsMailRequest extends JdxTaskCustom {
     //
     public void doTask() throws Exception {
         //
-        logInfo("Рабочая станция");
+        logInfo("Рабочая станция, по требованию");
         ws.init();
         logInfo("Рабочая станция, wsId: " + ws.getWsId());
 
 
-        // Проверка версии приложения
+        // Проверка версии приложения (без обновления)
         ws.checkAppUpdate();
 
 
         //
-        log.info("Рассылка по требованию");
+        log.info("Выполнение рассылки по требованию");
         try {
             ws.replicasSend_Required();
         } catch (Exception e) {

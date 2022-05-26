@@ -5,7 +5,7 @@ import jdtx.repl.main.api.mailer.*;
 import org.apache.commons.logging.*;
 
 /**
- * Выполняет шаги "чтение и отправка почты" для сервера.
+ * Выполняет шаги "рассылка по расписанию" для сервера.
  */
 public class JdxTaskSrvMail extends JdxTaskCustom {
 
@@ -22,7 +22,7 @@ public class JdxTaskSrvMail extends JdxTaskCustom {
     //
     public void doTask() throws Exception {
         //
-        log.info("Сервер, рассылка");
+        log.info("Сервер, рассылка по расписанию");
         srv.init();
 
 
@@ -31,7 +31,7 @@ public class JdxTaskSrvMail extends JdxTaskCustom {
 
 
         //
-        log.info("Сервер, чтение входящих очередей");
+        log.info("Чтение входящих очередей");
         try {
             srv.srvHandleQueIn();
         } catch (Exception e) {
@@ -41,7 +41,7 @@ public class JdxTaskSrvMail extends JdxTaskCustom {
 
 
         //
-        log.info("Сервер, рассылка исходящих реплик");
+        log.info("Рассылка исходящих очередей");
         try {
             srv.srvReplicasSend();
         } catch (Exception e) {
@@ -57,7 +57,7 @@ public class JdxTaskSrvMail extends JdxTaskCustom {
 
 
         //
-        log.info("Сервер, рассылка завершена");
+        log.info("Сервер, рассылка по расписанию завершена");
     }
 
 }
