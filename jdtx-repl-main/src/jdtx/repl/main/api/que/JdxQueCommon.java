@@ -127,6 +127,10 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
         String sql = "select max(author_id) as maxNo, count(*) as cnt from " + queTableName + " where author_ws_id = " + wsId;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("cnt") == 0) {
+            // Очередь queCommon для этой wsId пуста
+            return -1;
+        } else if (rec.getValueLong("maxNo") < 0) {
+            // Очередь queCommon для этой wsId содержит реплики старого формата, когда реплики не содержали author_id
             return -1;
         } else {
             return rec.getValueLong("maxNo");
