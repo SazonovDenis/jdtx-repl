@@ -16,19 +16,22 @@ public interface IReplicaInfo {
     void setWsId(long wsId);
 
     /**
-     * Возраст базы у автора реплики
+     * Возраст аудита у автора реплики, для которого сформирована реплика
      */
     long getAge();
 
     void setAge(long age);
 
     /**
-     * Номер реплики у автора, монотонно растет для автора
+     * Номер реплики в исходящей очереди у автора, монотонно растет для автора
      */
     long getNo();
 
     void setNo(long no);
 
+    /**
+     * Контрольная сумма файла реплики
+     */
     String getCrc();
 
     void setCrc(String crc);
@@ -49,14 +52,12 @@ public interface IReplicaInfo {
 
     void setDbStructCrc(String crc);
 
-    /**/
-
     void assign(IReplicaInfo info);
 
     void fromJSONObject(JSONObject infoJson);
 
-    JSONObject toJSONObject();
+    JSONObject toJSONObject_withFileInfo();
 
-    String toJSONString();
+    String toJSONString_noFileInfo();
 
 }

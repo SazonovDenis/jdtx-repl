@@ -448,7 +448,8 @@ public class MailerHttp implements IMailer {
         HttpPost post = createHttpPost("repl_send_commit");
 
         // Дополним replica.info техническими данными
-        JSONObject infoJson = info.toJSONObject();
+        // Значения полей crc и no ЗАПИСЫВАЕМ, т.к. на момент отправки реплики эти значения должны быть уже ИЗВЕСТНЫ
+        JSONObject infoJson = info.toJSONObject_withFileInfo();
         infoJson.put("protocolVersion", REPL_PROTOCOL_VERSION);
         infoJson.put("partsCount", partsCount);
         infoJson.put("totalBytes", totalBytes);

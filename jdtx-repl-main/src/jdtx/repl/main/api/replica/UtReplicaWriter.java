@@ -44,7 +44,8 @@ public class UtReplicaWriter {
         // Файл "dat.info" внутри Zip-архива (заголовок с информацией о реплике, сериализация IReplicaInfo)
         ZipEntry zipEntryHead = new ZipEntry("dat.info");
         zipOutputStream.putNextEntry(zipEntryHead);
-        String json = replica.getInfo().toJSONString();
+        // Значения полей crc и no НЕ записываем, т.к. на момент формирования файла реплики эти значения НЕИЗВЕСТНЫ
+        String json = replica.getInfo().toJSONString_noFileInfo();
         zipOutputStream.write(json.getBytes("utf-8"));
         zipOutputStream.closeEntry();
     }

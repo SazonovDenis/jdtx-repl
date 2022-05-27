@@ -48,10 +48,11 @@ public class UtMail {
 
     /**
      * Передача запрошенного диапазона
+     * для рабочей станции wsId
      * из очереди que через mailer в ящик box
      */
     public static void sendQueToMail_Required(MailSendTask sendTask, long wsId, IJdxQue que, IMailer wsMailer, String box) throws Exception {
-        log.info("sendQueToMail_Required, wsId: " + wsId + ", que: " + que.getQueName() + ", box: " + box);
+        log.info("sendQueToMail_Required, destination WsId: " + wsId + ", que: " + que.getQueName() + ", box: " + box);
 
         // Есть что запросили передать?
         if (sendTask == null) {
@@ -122,7 +123,7 @@ public class UtMail {
      * Передача списка реплик replicasToSend через mailer в ящик box
      */
     private static void sendReplicasToMail(MailSendTask sendTask, MailSendInfo sendInfo, Map<Long, IReplica> replicasToSend, long wsId, IMailer mailer, String box, IJdxMailStateManager mailStateManager) throws Exception {
-        log.info("sendReplicasToMail, wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask);
+        log.info("sendReplicasToMail, destination wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask);
 
         // Передаем
         long count = 0;
@@ -149,7 +150,7 @@ public class UtMail {
                 requiredInfo.requiredFrom = no + 1;
                 // Отмечаем на сервере
                 mailer.setSendRequired(box, requiredInfo);
-                log.warn("sendReplicasToMail, required send step, no: " + no);
+                log.warn("sendReplicasToMail, move forward sendRequired, no: " + no);
             }
 
             //
@@ -162,7 +163,7 @@ public class UtMail {
         // Снимем флаг просьбы станции (если просили повторную передачу)
         if (sendTask.required) {
             mailer.setSendRequired(box, new RequiredInfo());
-            log.warn("sendReplicasToMail, required send done");
+            log.warn("sendReplicasToMail, set sendRequired: none");
         }
 
         // Отметим попытку записи (для отслеживания активности станции, когда нет данных для реальной передачи)
@@ -170,9 +171,9 @@ public class UtMail {
 
         //
         if (count > 0) {
-            log.info("sendReplicasToMail done, wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask.sendFrom + " .. " + sendTask.sendTo + ", done count: " + count);
+            log.info("sendReplicasToMail done, destination wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask.sendFrom + " .. " + sendTask.sendTo + ", done count: " + count);
         } else {
-            log.info("sendReplicasToMail done, wsId: " + wsId + ", box: " + box + ", nothing done");
+            log.info("sendReplicasToMail done, destination wsId: " + wsId + ", box: " + box + ", nothing done");
         }
     }
 

@@ -98,7 +98,8 @@ public class JdxReplicaReaderXml {
             stream.close();
         }
 
-        // Значения CRC и NO реплики НЕ устанавливаем, т.к. этих значений в .info не может быть - они НЕИЗВЕСТНЫ на момент формирования реплики
+        // Значения полей crc и no НЕ устанавливаем, т.к. этих значений в файле .info (внутри архива) не может быть -
+        // на момент формирования файла реплики эти значения НЕИЗВЕСТНЫ
         replica.getInfo().setReplicaType(info.getReplicaType());
         replica.getInfo().setDbStructCrc(info.getDbStructCrc());
         replica.getInfo().setWsId(info.getWsId());

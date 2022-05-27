@@ -89,7 +89,7 @@ public class UtReplicaWriter_Test extends UtilsTestCase {
     @Test
     public void test_ReplicaInfo_toJSONString() throws Exception {
         ReplicaInfo info = new ReplicaInfo();
-        UtFile.saveString(info.toJSONString(), new File("temp/info.json"));
+        UtFile.saveString(info.toJSONString_noFileInfo(), new File("temp/info.json"));
     }
 
 

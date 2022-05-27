@@ -105,7 +105,7 @@ public class ReplicaInfo implements IReplicaInfo {
         this.dbStructCrc = (String) infoJson.get("dbStructCrc");
     }
 
-    public JSONObject toJSONObject() {
+    public JSONObject toJSONObject_withFileInfo() {
         JSONObject res = new JSONObject();
         //
         res.put("wsId", wsId);
@@ -123,12 +123,10 @@ public class ReplicaInfo implements IReplicaInfo {
         return res;
     }
 
-    public String toJSONString() {
+    public String toJSONString_noFileInfo() {
         return "{" +
                 "\"wsId\": " + wsId + "," +
                 "\"age\": " + age + "," +
-                "\"no\": " + no + "," +
-                "\"crc\": \"" + crc + "\"," +
                 "\"replicaType\": " + replicaType + "," +
                 "\"dbStructCrc\": \"" + dbStructCrc + "\"," +
                 "\"dtFrom\": \"" + dtFrom + "\"," +
