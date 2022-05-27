@@ -589,7 +589,7 @@ public class JdxReplWs {
 
     private ReplicaUseResult handleQue(IJdxQue que, long queNoFrom, long queNoTo, boolean forceUse) throws Exception {
         String queName = que.getQueName();
-        log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", que: " + queNoFrom + " .. " + queNoTo);
+        log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que.name: " + que.getQueName() + ", que: " + queNoFrom + " .. " + queNoTo);
 
         //
         ReplicaUseResult handleQueUseResult = new ReplicaUseResult();
