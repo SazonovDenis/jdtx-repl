@@ -75,6 +75,14 @@
                 enabled="false"
         />
 
+        <!-- Отметчик -->
+        <bgtask name="logHttp"
+                class="jdtx.repl.main.task.BgTaskLogHttp"
+                delay="2000"
+                period="20000"
+                enabled="false"
+        />
+
     </service>
 
     <!-- Коннект к БД без пула -->

@@ -91,11 +91,13 @@ public class DbPrepareEtalon_Test extends AppTestCase {
             db.connect();
             System.out.println("db.connect: " + db.getDbSource().getDatabase());
         } catch (Exception e) {
+            System.out.println("db: " + (db.getDbSource().getDatabase()));
+            System.out.println("db: " + (new File(db.getDbSource().getDatabase()).getCanonicalPath()));
             if (doRaise) {
                 throw e;
+            } else {
+                System.out.println("db.connect: " + e.getMessage());
             }
-
-            System.out.println("db.connect: " + e.getMessage());
         }
     }
 

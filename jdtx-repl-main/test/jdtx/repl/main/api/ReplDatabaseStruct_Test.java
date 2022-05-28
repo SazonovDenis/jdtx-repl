@@ -8,6 +8,7 @@ import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
+import java.io.*;
 import java.util.*;
 
 /**
@@ -70,10 +71,12 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
             reader.setDb(db);
             struct = reader.readDbStruct();
         } catch (Exception e) {
+            System.out.println("db: " + (new File(db.getDbSource().getDatabase()).getCanonicalPath()));
             if (doRaise) {
                 throw e;
+            } else {
+                System.out.println("db.connect: " + e.getMessage());
             }
-            System.out.println("db.connect: " + e.getMessage());
         }
         return struct;
     }
