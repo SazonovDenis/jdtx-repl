@@ -1,26 +1,18 @@
 package jdtx.repl.main.api.log;
 
-import jandcode.app.test.*;
-import jandcode.utils.*;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.task.*;
 import org.apache.commons.logging.*;
 import org.junit.*;
 
-public class JdtxLogAppender_Test extends AppTestCase {
+public class JdtxLogAppender_Test extends DbPrepareEtalon_Test {
 
     protected static Log log = LogFactory.getLog("JdtxLogAppender_Test");
 
     public void setUp() throws Exception {
+        rootDir = "../../ext/";
         super.setUp();
-        if (UtFile.exists("../_log.properties")) {
-            UtLog.loadProperties("../_log.properties") ;
-            UtLog.logOn() ;
-        } else if (UtFile.exists("../log.properties")) {
-            UtLog.loadProperties("../log.properties") ;
-            UtLog.logOn();
-        } else {
-            throw new Exception("Файл log.properties или _log.properties не найден");
-        }
+        db.connect();
     }
 
     @Test
@@ -43,12 +35,14 @@ public class JdtxLogAppender_Test extends AppTestCase {
     public void test_BgTaskLogHttp() throws Exception {
         logOn();
 
-        BgTaskLogHttp taskLogHttp = new BgTaskLogHttp();
-        taskLogHttp.setApp(app.getApp());
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.init();
+        JdxTaskLogHttp replTask = new JdxTaskLogHttp(ws);
 
+        //
         int x = 1;
         while (x < 100) {
-            taskLogHttp.run();
+            replTask.doTask();
             //
             x = x + 1;
             //

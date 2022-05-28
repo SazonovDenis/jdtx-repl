@@ -275,6 +275,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtData.outTable(db.loadSql("select id, name, guid from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST"))
     }
 
+    @Test
+    void repl_mail_check(){
+        IVariantMap args = new VariantMap()
+        args.put("create", true)
+        assertEquals("Ящики не созданы", true, extSrv.repl_mail_check(args))
+    }
+
     /**
      * Стираем все каталоги с данными, почтой и т.п.
      */

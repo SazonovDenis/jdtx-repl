@@ -8,6 +8,16 @@ import java.time.format.*;
 
 public class JdtxLogAppender extends AppenderSkeleton {
 
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String url;
+
     private static String value;
 
     public static synchronized void setLogValue(String logValue) {
