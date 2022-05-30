@@ -3,10 +3,14 @@ package jdtx.repl.main.api;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.mailer.*;
 import org.apache.commons.io.*;
+import org.json.simple.*;
 import org.junit.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  * Базовый класс для проверки восстановления репликации рабочей станции
@@ -56,6 +60,66 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
     public void test_assertDbNotEquals_1_3() throws Exception {
         compareDb(db, db3, expectedNotEqual);
     }
+
+    @Test
+    public void setDataRepairInfo() throws Exception {
+        JdxReplWs ws = new JdxReplWs(db2);
+        ws.init();
+        IMailer mailer = ws.getMailer();
+
+        //
+        System.out.println();
+
+        //
+        JSONObject repairInfo_1 = mailer.getData("repair.info", null);
+        JSONObject repairData_1 = (JSONObject) repairInfo_1.get("data");
+        System.out.println("repairInfo_1: " + repairInfo_1);
+        boolean doRepair = UtJdxData.booleanValueOf(repairData_1.get("repair"), false);
+        System.out.println("doRepair: " + doRepair);
+
+        //
+        System.out.println();
+
+
+        //
+        Map repairInfo = new HashMap();
+        repairInfo.put("repair", true);
+        mailer.setData(repairInfo, "repair.info", null);
+
+        //
+        JSONObject repairInfo_2 = mailer.getData("repair.info", null);
+        JSONObject repairData_2 = (JSONObject) repairInfo_2.get("data");
+        doRepair = UtJdxData.booleanValueOf(repairData_2.get("repair"), false);
+        System.out.println("doRepair: " + doRepair);
+        assertEquals("doRepair", true, doRepair);
+
+
+        //
+        repairInfo.put("repair", false);
+        mailer.setData(repairInfo, "repair.info", null);
+
+        JSONObject repairInfo_3 = mailer.getData("repair.info", null);
+        JSONObject repairData_3 = (JSONObject) repairInfo_3.get("data");
+        doRepair = UtJdxData.booleanValueOf(repairData_3.get("repair"), false);
+        System.out.println("doRepair: " + doRepair);
+        assertEquals("doRepair", false, doRepair);
+
+
+        //
+        repairInfo.put("repair", true);
+        mailer.setData(repairInfo, "repair.info", null);
+
+        //
+        JSONObject repairInfo_4 = mailer.getData("repair.info", null);
+        JSONObject repairData_4 = (JSONObject) repairInfo_4.get("data");
+        doRepair = UtJdxData.booleanValueOf(repairData_4.get("repair"), false);
+        System.out.println("doRepair: " + doRepair);
+        assertEquals("doRepair", true, doRepair);
+
+        //
+        System.out.println();
+    }
+
 
     void initWsInfo(Db db, String suffix) throws Exception {
         JdxReplWs ws = new JdxReplWs(db);
