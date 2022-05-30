@@ -1,7 +1,7 @@
 package jdtx.repl.main.task;
 
 import jdtx.repl.main.api.*;
-import jdtx.repl.main.api.log.*;
+import jdtx.repl.main.log.*;
 import jdtx.repl.main.api.mailer.*;
 import org.apache.commons.logging.*;
 

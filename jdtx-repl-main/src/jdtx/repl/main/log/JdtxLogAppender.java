@@ -1,4 +1,4 @@
-package jdtx.repl.main.api.log;
+package jdtx.repl.main.log;
 
 import org.apache.log4j.*;
 import org.apache.log4j.spi.*;
