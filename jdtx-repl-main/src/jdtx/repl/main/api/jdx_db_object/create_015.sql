@@ -74,7 +74,7 @@ CREATE TABLE Z_Z_SRV_WORKSTATION_STATE (
   que_in_no                INT     NOT NULL,            /* Номер реплики, до которого принята очередь от рабочей станции (в серверное зеркало queInSrv) */
   que_in_no_done           INT     NOT NULL,            /* Номер реплики, до которого обработана очередь от рабочей станции (при формировании общей очереди) */
   enabled                  INT     NOT NULL,
-  mute_age                 INT     NOT NULL
+  mute_age                 INT     NOT NULL             /* Номер реплики в queCommon, которой станция отправила подтверждение своего состояния MUTE. Пока станция не выйдет из состояния MUTE, новых реплик в queCommon от этой станции не появится */
 );
 
 ALTER TABLE Z_Z_SRV_WORKSTATION_STATE ADD CONSTRAINT PK_Z_Z_SRV_WORKSTATION_STATE PRIMARY KEY (id);

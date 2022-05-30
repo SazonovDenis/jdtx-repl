@@ -123,7 +123,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ===
-        do_DumpTables(db, db2, db3, struct, struct2, struct3);
+        //do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
     /**
