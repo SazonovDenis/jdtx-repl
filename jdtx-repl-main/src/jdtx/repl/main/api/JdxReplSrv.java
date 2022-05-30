@@ -221,6 +221,7 @@ public class JdxReplSrv {
 
         // Общая очередь на сервере
         queCommon = new JdxQueCommon(db, UtQue.SRV_QUE_COMMON, UtQue.STATE_AT_SRV);
+        queCommon.setDataRoot(dataRoot);
         queCommon.setSrvQueIn(queInList);
 
 
@@ -658,7 +659,7 @@ public class JdxReplSrv {
                         IReplica replica = queIn.get(no);
 
                         // Помещаем в очередь queCommon
-                        long commonQueNo = queCommon.push(replica);
+                        long queCommonNo = queCommon.push(replica);
 
                         // Отмечаем
                         stateManager.setWsQueInNoDone(wsId, no);
@@ -666,7 +667,7 @@ public class JdxReplSrv {
                         // Станция прислала отчет об изменении своего состояния - отмечаем состояние станции в серверных таблицах
                         if (replica.getInfo().getReplicaType() == JdxReplicaType.MUTE_DONE) {
                             JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
-                            utmm.setMuteDone(wsId, commonQueNo);
+                            utmm.setMuteDone(wsId, queCommonNo);
                         }
                         //
                         if (replica.getInfo().getReplicaType() == JdxReplicaType.UNMUTE_DONE) {
@@ -893,8 +894,8 @@ public class JdxReplSrv {
     }
 
 
-    public void srvSetWsMute(long destinationWsId, String queName) throws Exception {
-        log.info("srvSetWs MUTE, destination.WsId: " + destinationWsId + ", que: " + queName);
+    public void srvSendWsMute(long destinationWsId, String queName) throws Exception {
+        log.info("srvSendWs MUTE, destination.WsId: " + destinationWsId + ", que: " + queName);
 
         // Выбор очереди
         IJdxReplicaQue que = getQueByName(destinationWsId, queName);
@@ -908,8 +909,8 @@ public class JdxReplSrv {
     }
 
 
-    public void srvSetWsUnmute(long destinationWsId, String queName) throws Exception {
-        log.info("srvSetWs UNMUTE, destination.WsId: " + destinationWsId + ", que: " + queName);
+    public void srvSendWsUnmute(long destinationWsId, String queName) throws Exception {
+        log.info("srvSendWs UNMUTE, destination.WsId: " + destinationWsId + ", que: " + queName);
 
         // Выбор очереди
         IJdxReplicaQue que = getQueByName(destinationWsId, queName);

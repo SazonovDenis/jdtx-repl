@@ -2,6 +2,7 @@ package jdtx.repl.main.api.que;
 
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
+import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.replica.*;
 import org.apache.commons.logging.*;
@@ -10,8 +11,8 @@ import java.util.*;
 
 /**
  * Общая очередь реплик queCommon на сервере.
- * В отличие от остальных очередей - сама реплики НЕ ХРАНИТ,
- * но при необходимости забирает их из очереди для ws, которую находит в списке srvQueInList
+ * Сама реплики может НЕ ХРАНИТЬ, но при необходимости забирает их из "зеркальной" входящей очереди для ws,
+ * которую находит в списке srvQueInList
  */
 public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
 
@@ -27,24 +28,50 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
     }
 
     /*
+     * IJdxStorageFile
+     */
+
+    @Override
+    public void setDataRoot(String dataRoot) {
+        super.setDataRoot(dataRoot + "srv/que_common");
+    }
+
+    /*
      * IJdxReplicaStorage
      */
 
     @Override
     public void put(IReplica replica, long no) throws Exception {
-        // Предполагаем, что файл уже есть в очереди srvQueIn
-        //throw new XError("Not supported: JdxQueCommon.put");
+        if (JdxReplicaType.isSysReplica(replica.getInfo().getReplicaType()) && replica.getInfo().getWsId() <= 0) {
+            // Системные реплики могут попасть в QueCommon не через очередь станций, а непосредственно с сервера.
+            // Для таких реплик сохраняем ФАЙЛ реплики в очереди QueCommon обычным образом.
+            super.put(replica, no);
+        } else {
+            // Предполагаем, что ФАЙЛ реплики остается в очереди srvQueIn,
+            // поэтому никаких действий по размещению ФАЙЛА реплики в очереди - не требуется,
+            // потребуется только помещение в саму очередь, но это делается командой push.
+            log.trace("");
+        }
     }
 
     @Override
     public IReplica get(long noQueCommon) throws Exception {
-        DataRecord rec = loadReplicaRec(noQueCommon);
-        long author_ws_id = rec.getValueLong("author_ws_id");
-        long author_id = rec.getValueLong("author_id");
+        IReplica replica;
 
         //
-        IJdxQue srvQueIn = srvQueInList.get(author_ws_id);
-        IReplica replica = srvQueIn.get(author_id);
+        DataRecord rec = loadReplicaRec(noQueCommon);
+        IReplicaInfo replicaInfo = new ReplicaInfo();
+        recToReplicaInfo(rec, replicaInfo);
+        //
+        if (JdxReplicaType.isSysReplica(replicaInfo.getReplicaType()) && replicaInfo.getWsId() <= 0) {
+            // Системные реплики могут попасть в QueCommon не через очередь станций, а непосредственно с сервера.
+            // Для таких реплик берем ФАЙЛ реплики из очереди QueCommon обычным образом.
+            replica = super.get(noQueCommon);
+        } else {
+            // Берем реплику из очереди SrvQueIn, узнаем только чья она.
+            IJdxQue srvQueIn = srvQueInList.get(replicaInfo.getWsId());
+            replica = srvQueIn.get(replicaInfo.getNo());
+        }
 
         //
         return replica;
@@ -54,6 +81,25 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
     /*
      * IJdxReplicaQue
      */
+
+    @Override
+    void pushDb(IReplica replica, long queNo) throws Exception {
+        String sql = "insert into " + queTableName + " (id, author_ws_id, author_id, age, crc, replica_type) values (:id, :author_ws_id, :author_id, :age, :crc, :replica_type)";
+        Map values = UtCnv.toMap(
+                "id", queNo,
+                "author_ws_id", replica.getInfo().getWsId(),
+                "author_id", replica.getInfo().getNo(),
+                "age", replica.getInfo().getAge(),
+                "crc", replica.getInfo().getCrc(),
+                "replica_type", replica.getInfo().getReplicaType()
+        );
+        if (replica.getInfo().getWsId() == 0) {
+            // Из-за требований уникального индекса
+            // Z_Z_srv_que_common_idx в таблице Z_Z_srv_que_common (author_ws_id + author_id)
+            values.put("author_id", -queNo);
+        }
+        db.execSql(sql, values);
+    }
 
     @Override
     public void validateReplica(IReplica replica) throws Exception {
@@ -110,12 +156,17 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
      * @return Последний возраст (age) реплики в очереди, созданный рабочей станцией wsId
      */
     public long getMaxAgeForAuthorWs(long wsId) throws Exception {
-        String sql = "select max(age) as maxAge, count(*) as cnt from " + queTableName + " where author_ws_id = " + wsId;
-        DataRecord rec = db.loadSql(sql).getCurRec();
-        if (rec.getValueLong("cnt") == 0) {
+        if (wsId == 0) {
+            // Это бывает для системных реплик, отправленных от самого сервера
             return -1;
         } else {
-            return rec.getValueLong("maxAge");
+            String sql = "select max(age) as maxAge, count(*) as cnt from " + queTableName + " where author_ws_id = " + wsId;
+            DataRecord rec = db.loadSql(sql).getCurRec();
+            if (rec.getValueLong("cnt") == 0) {
+                return -1;
+            } else {
+                return rec.getValueLong("maxAge");
+            }
         }
     }
 
@@ -124,16 +175,21 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
      * @return Последний номер (author_id) реплики в очереди, созданный рабочей станцией wsId
      */
     private long getMaxNoForAuthorWs(long wsId) throws Exception {
-        String sql = "select max(author_id) as maxNo, count(*) as cnt from " + queTableName + " where author_ws_id = " + wsId;
-        DataRecord rec = db.loadSql(sql).getCurRec();
-        if (rec.getValueLong("cnt") == 0) {
-            // Очередь queCommon для этой wsId пуста
-            return -1;
-        } else if (rec.getValueLong("maxNo") < 0) {
-            // Очередь queCommon для этой wsId содержит реплики старого формата, когда реплики не содержали author_id
+        if (wsId == 0) {
+            // Это бывает для системных реплик, отправленных от самого сервера
             return -1;
         } else {
-            return rec.getValueLong("maxNo");
+            String sql = "select max(author_id) as maxNo, count(*) as cnt from " + queTableName + " where author_ws_id = " + wsId;
+            DataRecord rec = db.loadSql(sql).getCurRec();
+            if (rec.getValueLong("cnt") == 0) {
+                // Очередь queCommon для этой wsId пуста
+                return -1;
+            } else if (rec.getValueLong("maxNo") < 0) {
+                // Очередь queCommon для этой wsId содержит реплики старого формата, когда реплики не содержали author_id
+                return -1;
+            } else {
+                return rec.getValueLong("maxNo");
+            }
         }
     }
 

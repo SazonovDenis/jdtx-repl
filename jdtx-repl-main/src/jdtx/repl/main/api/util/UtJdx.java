@@ -330,25 +330,7 @@ public class UtJdx {
         }
 
         // Реплика - системная команда?
-        if (replica.getInfo().getReplicaType() == JdxReplicaType.MUTE ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.MUTE_DONE ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.UNMUTE ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.UNMUTE_DONE ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.SET_DB_STRUCT ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.SET_DB_STRUCT_DONE ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.UPDATE_APP ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.UPDATE_APP_DONE ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.SET_CFG ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.SET_CFG_DONE ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.SET_STATE ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.REPAIR_GENERATORS ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.REPAIR_GENERATORS_DONE ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.SEND_SNAPSHOT ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.SEND_SNAPSHOT_DONE ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.MERGE ||
-                replica.getInfo().getReplicaType() == JdxReplicaType.IDE_MERGE
-
-        ) {
+        if (JdxReplicaType.isSysReplica(replica.getInfo().getReplicaType())         ) {
             // Для системных команд мы не делаем других проверок
             return;
         }
@@ -372,7 +354,7 @@ public class UtJdx {
         File replicaFile = replica.getData();
         if (replicaFile == null && replica.getInfo().getReplicaType() != JdxReplicaType.SNAPSHOT) {
             // Разрещаем только SNAPSHOT быть без файла, т.к. свои собственные snapshot-реплики, поступающие в queIn,
-            // можно не скачивать (и в дальнейшем не применять), вот их могли и не скачивать
+            // можно не скачивать (и в дальнейшем не применять), вот их могли и не скачачать и файла нет
             throw new XError("invalid replica.file: is null");
         }
 

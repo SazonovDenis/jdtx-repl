@@ -603,6 +603,8 @@ class Jdx_Ext extends ProjectExt {
         return result
     }
 
+    // todo почему нет команды, чтобы это сделать прямо на рабочей станции (с отчетом на сервер)?
+    // todo проверить, чтобы все команды по настройке станции (send***) имели аналог на самой станции (с отчетом на сервер)
     void repl_ws_mute(IVariantMap args) {
         if (args.isValueNull("ws")) {
             throw new XError("Не указан [ws] - код рабочей станции")
@@ -627,7 +629,7 @@ class Jdx_Ext extends ProjectExt {
                 srv.init()
 
                 //
-                srv.srvSetWsMute(destinationWsId, queName)
+                srv.srvSendWsMute(destinationWsId, queName)
 
             } finally {
                 restoreServiceState(serviceState, db, args)
@@ -661,7 +663,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvSetWsUnmute(destinationWsId, queName)
+            srv.srvSendWsUnmute(destinationWsId, queName)
 
         } finally {
             restoreServiceState(serviceState, db, args)
@@ -670,6 +672,7 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
+    // todo: зачем он, если есть repl-ws-mute
     void repl_mute(IVariantMap args) {
         boolean doWaitMute = !args.isValueNull("wait")
         boolean doWaitAge = !args.isValueNull("age")

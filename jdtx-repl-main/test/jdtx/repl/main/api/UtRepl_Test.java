@@ -37,7 +37,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
         // ===
         // Станция 2 MUTE
-        srv.srvSetWsMute(2, "common");
+        srv.srvSendWsMute(2, "common");
 
         // Цикл синхронизации
         sync_http_1_2_3();
@@ -51,7 +51,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
         // ===
         // Все станции MUTE
-        srv.srvSetWsMute(0, "common");
+        srv.srvSendWsMute(0, "common");
 
         // Цикл синхронизации
         sync_http_1_2_3();
@@ -65,7 +65,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
         // ===
         // Станция 3 UNMUTE
-        srv.srvSetWsUnmute(3, "common");
+        srv.srvSendWsUnmute(3, "common");
 
         // Цикл синхронизации
         sync_http_1_2_3();
@@ -79,7 +79,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
         // ===
         // Все станции UNMUTE
-        srv.srvSetWsUnmute(0, "common");
+        srv.srvSendWsUnmute(0, "common");
 
         // Цикл синхронизации
         sync_http_1_2_3();
@@ -101,7 +101,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         srv.init();
 
         //
-        srv.srvSetWsUnmute(0, "common");
+        srv.srvSendWsUnmute(0, "common");
 
         // Первичный цикл синхронизации
         sync_http_1_2_3();
@@ -118,7 +118,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
         // ===
         // Все станции MUTE
-        srv.srvSetWsMute(0, "common");
+        srv.srvSendWsMute(0, "common");
 
         // Цикл синхронизации только со станцией 2
         sync_http_1_2();
@@ -161,7 +161,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         // ===
         // Все станции MUTE - повторная команда
         System.out.println("Все станции MUTE - повторная команда");
-        srv.srvSetWsMute(0, "common");
+        srv.srvSendWsMute(0, "common");
 
 
         // ===
@@ -206,7 +206,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
         // ===
         // Все станции UNMUTE
-        srv.srvSetWsUnmute(0, "common");
+        srv.srvSendWsUnmute(0, "common");
 
         // Цикл синхронизации
         sync_http_1_2_3();

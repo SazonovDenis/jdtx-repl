@@ -34,4 +34,26 @@ public class JdxReplicaType {
     public static final int MERGE = 90;
     public static final int IDE_MERGE = 91;
 
+
+    //
+    public static boolean isSysReplica(int replicaType) {
+        return replicaType == JdxReplicaType.MUTE ||
+                replicaType == JdxReplicaType.MUTE_DONE ||
+                replicaType == JdxReplicaType.UNMUTE ||
+                replicaType == JdxReplicaType.UNMUTE_DONE ||
+                replicaType == JdxReplicaType.SET_DB_STRUCT ||
+                replicaType == JdxReplicaType.SET_DB_STRUCT_DONE ||
+                replicaType == JdxReplicaType.UPDATE_APP ||
+                replicaType == JdxReplicaType.UPDATE_APP_DONE ||
+                replicaType == JdxReplicaType.SET_CFG ||
+                replicaType == JdxReplicaType.SET_CFG_DONE ||
+                replicaType == JdxReplicaType.SET_STATE ||
+                replicaType == JdxReplicaType.REPAIR_GENERATORS ||
+                replicaType == JdxReplicaType.REPAIR_GENERATORS_DONE ||
+                replicaType == JdxReplicaType.SEND_SNAPSHOT ||
+                replicaType == JdxReplicaType.SEND_SNAPSHOT_DONE ||
+                replicaType == JdxReplicaType.MERGE ||
+                replicaType == JdxReplicaType.IDE_MERGE;
+    }
+
 }
