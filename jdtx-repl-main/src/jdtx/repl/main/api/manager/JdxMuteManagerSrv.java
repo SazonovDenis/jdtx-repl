@@ -18,12 +18,15 @@ public class JdxMuteManagerSrv {
     }
 
     /**
-     * Отметка состояния станции: MUTE.
+     * Отметка состояния станции: MUTE
+     * Также отмечается номер той реплики в общей очереди queCommon, которой станция отправила подтверждение своего состояния MUTE.
+     * Мы можем расчитывать, что пока станция не выйдет из состояния MUTE,
+     * новых больше номера commonQueNo реплик в общей очереди queCommon от этой станции не появится.
      */
-    public void setMuteDone(long wsId, long muteAge) throws Exception {
-        log.info("workstation mute done, wsId: " + wsId);
+    public void setMuteDone(long wsId, long queCommonNo) throws Exception {
+        log.info("workstation mute done, wsId: " + wsId + ", queCommonNo: " + queCommonNo);
         //
-        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set mute_age = " + muteAge + " where ws_id = " + wsId;
+        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set mute_age = " + queCommonNo + " where ws_id = " + wsId;
         db.execSql(sql);
     }
 

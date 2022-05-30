@@ -44,7 +44,7 @@ public abstract class JdxTaskCustom {
         errorCollector.collectError(info, e);
     }
 
-    void sendErrors(IMailer mailer, String name) {
+    void sendErrors(IMailer mailer, String errorName) {
         try {
             if (mailer == null) {
                 throw new XError("mailer == null");
@@ -58,7 +58,7 @@ public abstract class JdxTaskCustom {
             }
 
             //
-            mailer.setData(data, name, null);
+            mailer.setData(data, errorName, null);
         } catch (Exception e) {
             logError(e, "Отправка ошибок");
         }
