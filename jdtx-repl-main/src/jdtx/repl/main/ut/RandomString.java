@@ -13,6 +13,10 @@ public class RandomString {
         rnd = new Random(new DateTime().getMillis());
     }
 
+    public RandomString(long seed) {
+        rnd = new Random(seed);
+    }
+
     public String nextHexStr(int len) {
         byte[] x = new byte[(len / 2) + 1];
         rnd.nextBytes(x);

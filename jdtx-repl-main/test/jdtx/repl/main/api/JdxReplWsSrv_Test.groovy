@@ -829,8 +829,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         UtData.outTable(urRepl.getInfoSrv())
     }
 
-    @Test
-    public void test_ws1_doReplSession() throws Exception {
+    public void ws_doReplSession(Db db) throws Exception {
         JdxReplWs ws = new JdxReplWs(db)
         JdxTaskWsRepl replTask = new JdxTaskWsRepl(ws)
         replTask.doTask()
@@ -840,33 +839,23 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
+    public void test_ws1_doReplSession() throws Exception {
+        ws_doReplSession(db)
+    }
+
+    @Test
     public void test_ws2_doReplSession() throws Exception {
-        JdxReplWs ws = new JdxReplWs(db2)
-        JdxTaskWsRepl replTask = new JdxTaskWsRepl(ws)
-        replTask.doTask()
-        //
-        JdxTaskWsMailRequest mailTask = new JdxTaskWsMailRequest(ws)
-        mailTask.doTask()
+        ws_doReplSession(db2)
     }
 
     @Test
     public void test_ws3_doReplSession() throws Exception {
-        JdxReplWs ws = new JdxReplWs(db3)
-        JdxTaskWsRepl replTask = new JdxTaskWsRepl(ws)
-        replTask.doTask()
-        //
-        JdxTaskWsMailRequest mailTask = new JdxTaskWsMailRequest(ws)
-        mailTask.doTask()
+        ws_doReplSession(db3)
     }
 
     @Test
     public void test_ws5_doReplSession() throws Exception {
-        JdxReplWs ws = new JdxReplWs(db5)
-        JdxTaskWsRepl replTask = new JdxTaskWsRepl(ws)
-        replTask.doTask()
-        //
-        JdxTaskWsMailRequest mailTask = new JdxTaskWsMailRequest(ws)
-        mailTask.doTask()
+        ws_doReplSession(db5)
     }
 
 

@@ -10,7 +10,7 @@ public class JdtxLogAppender_Test extends DbPrepareEtalon_Test {
     protected static Log log = LogFactory.getLog("JdtxLogAppender_Test");
 
     public void setUp() throws Exception {
-        rootDir = "../../ext/";
+        rootDir = "../ext/";
         super.setUp();
         db.connect();
     }
@@ -32,17 +32,19 @@ public class JdtxLogAppender_Test extends DbPrepareEtalon_Test {
     }
 
     @Test
-    public void test_BgTaskLogHttp() throws Exception {
+    public void test_BgTaskLogHttp_loop() throws Exception {
         logOn();
 
+        //
         JdxReplWs ws = new JdxReplWs(db);
         ws.init();
-        JdxTaskLogHttp replTask = new JdxTaskLogHttp(ws);
+        JdxTaskLogHttp replTask = new JdxTaskLogHttp(ws.getMailer());
 
         //
         int x = 1;
         while (x < 100) {
             replTask.doTask();
+            System.out.println("replTask.doTask");
             //
             x = x + 1;
             //

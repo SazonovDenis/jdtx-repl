@@ -1,10 +1,8 @@
 package jdtx.repl.main.task;
 
 import jdtx.repl.main.api.*;
-import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.mailer.*;
 import org.apache.commons.logging.*;
-import org.json.simple.*;
 
 /**
  * Выполняет шаги "сеанс репликации" для рабочей станции.
@@ -47,14 +45,16 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
             //
             logInfo("Определение команды ремонта");
             try {
-                JSONObject repairInfo = mailer.getData("repair.info", null);
-                JSONObject repairData = (JSONObject) repairInfo.get("data");
-                boolean doRepair = UtJdxData.booleanValueOf(repairData.get("repair"), false);
-                if (doRepair) {
+                JdxDatabaseRepairInfoManager repairInfoManager = new JdxDatabaseRepairInfoManager(mailer);
+                String allowedRepairGuid = repairInfoManager.getAllowedRepairGuid();
+                //
+                String wsRepairGuid = ws.repairLockFileGiud();
+                //
+                if (wsRepairGuid != null && wsRepairGuid.equalsIgnoreCase(allowedRepairGuid)) {
                     logInfo("Получена команда ремонта");
                     ws.repairAfterBackupRestore(true, true);
                 } else {
-                    logInfo("Команда ремонта не получена");
+                    logInfo("Команда ремонта не получена, allowedRepairGuid: " + allowedRepairGuid + ", wsRepairGuid: " + wsRepairGuid);
                 }
             } catch (Exception eRepair) {
                 logError(eRepair);
