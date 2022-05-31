@@ -44,6 +44,11 @@
                 enabled="true"
         />
 
+        <!-- Отметчик -->
+        <bgtask name="logHttp"
+                period="20000"
+                enabled="true"
+        />
     </service>
 
 

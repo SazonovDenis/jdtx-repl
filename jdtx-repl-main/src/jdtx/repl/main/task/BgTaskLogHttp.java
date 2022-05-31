@@ -21,7 +21,6 @@ public class BgTaskLogHttp extends BgTask {
     //
     public void run() throws Exception {
         try {
-            // Мейлер
             JdxTaskLogHttp task = getTaskLogHttp();
             task.doTask();
         } catch (Exception e) {
@@ -32,6 +31,9 @@ public class BgTaskLogHttp extends BgTask {
     }
 
 
+    /**
+     * Возвращаем кэшированный или создаем
+     */
     private JdxTaskLogHttp getTaskLogHttp() throws Exception {
         if (taskLogHttp == null) {
             ModelService app = getApp().service(ModelService.class);
@@ -42,7 +44,7 @@ public class BgTaskLogHttp extends BgTask {
             try {
                 JdxReplWs ws = new JdxReplWs(db);
                 ws.init();
-                taskLogHttp = new JdxTaskLogHttp(ws);
+                taskLogHttp = new JdxTaskLogHttp(ws.getMailer());
             } finally {
                 db.disconnect();
             }

@@ -3,38 +3,24 @@ package jdtx.repl.main.log;
 import org.apache.log4j.*;
 import org.apache.log4j.spi.*;
 
-import java.time.*;
-import java.time.format.*;
-
 public class JdtxLogAppender extends AppenderSkeleton {
 
-    public String getUrl() {
-        return url;
+    public String getConversionPattern() {
+        return conversionPattern;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setConversionPattern(String conversionPattern) {
+        this.conversionPattern = conversionPattern;
     }
 
-    public String url;
-
-    private static String value;
-
-    public static synchronized void setLogValue(String logValue) {
-        value = logValue;
-    }
-
-    public static synchronized String getLogValue() {
-        return value;
-    }
-
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("YYYY.MM.dd HH:mm:ss,SSS");
+    public String conversionPattern;
 
     protected void append(LoggingEvent event) {
-        String s = LocalDateTime.now().format(FORMATTER) +
-                " : Thread:[" + Thread.currentThread().getName() + "] : " + event.getMessage();
-        //System.out.println("Jdtx-Log-Appender: " + s);
-        setLogValue(s);
+        PatternLayout layout = new PatternLayout(conversionPattern);
+        //
+        String s = layout.format(event);
+        //
+        JdtxLogStorage.setLogValue(s);
     }
 
     public void close() {

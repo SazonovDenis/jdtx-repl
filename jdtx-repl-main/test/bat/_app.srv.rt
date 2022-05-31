@@ -15,6 +15,12 @@
                 enabled="true"
                 />
 
+        <!-- Отметчик -->
+        <bgtask name="logHttp"
+                period="10000"
+                enabled="true"
+        />
+
     </service>
 
 </root>

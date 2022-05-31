@@ -1,8 +1,7 @@
 package jdtx.repl.main.task;
 
-import jdtx.repl.main.api.*;
-import jdtx.repl.main.log.*;
 import jdtx.repl.main.api.mailer.*;
+import jdtx.repl.main.log.*;
 import org.apache.commons.logging.*;
 
 import java.util.*;
@@ -16,18 +15,20 @@ public class JdxTaskLogHttp extends JdxTaskCustom {
     IMailer mailer;
 
     //
-    public JdxTaskLogHttp(JdxReplWs ws) {
-        mailer = ws.getMailer();
+    public JdxTaskLogHttp(IMailer mailer) {
+        this.mailer = mailer;
         log = LogFactory.getLog("jdtx.JdxTaskLogHttp");
     }
 
     //
     public void doTask() throws Exception {
+        String logValue = JdtxLogStorage.getLogValue();
+        //
+        Map data = new HashMap();
+        data.put("logValue", logValue);
+        //
         try {
-            String logValue = JdtxLogAppender.getLogValue();
-            Map data = new HashMap();
-            data.put("logValue", logValue);
-            mailer.setData(data, "log.log", "from");
+            mailer.setData(data, "log.log", null);
         } catch (Exception e) {
             log.warn(e.getMessage());
         }
