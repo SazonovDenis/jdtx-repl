@@ -13,7 +13,7 @@ import org.apache.commons.logging.*;
 public class BgTaskLogHttp extends BgTask {
 
     //
-    private static Log log = LogFactory.getLog("jdtx.BgTaskSrvMail");
+    private static Log log = LogFactory.getLog("jdtx.BgTaskLogHttp");
 
     //
     private JdxTaskLogHttp taskLogHttp = null;
