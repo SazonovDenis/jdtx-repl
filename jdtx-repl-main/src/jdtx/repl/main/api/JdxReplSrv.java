@@ -853,25 +853,34 @@ public class JdxReplSrv {
             try {
                 // ws.from <- srv.common
                 String box = "from";
-                UtMail.sendQueToMail_Required_QueCommon(wsId, queCommon, wsMailer, box, RequiredInfo.EXECUTOR_SRV);
+                // Выясняем, что запросили передать
+                IJdxMailStateManager mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.SRV_QUE_COMMON);
+                RequiredInfo requiredInfo = wsMailer.getSendRequired(box);
+                MailSendTask sendTask = UtMail.getRequiredSendTask(mailStateManager, requiredInfo, RequiredInfo.EXECUTOR_SRV);
+                // Отправляем из очереди, что запросили
+                UtMail.sendQueToMail_Required_QueCommon(sendTask, wsId, queCommon, wsMailer, box);
 
                 // ws.to <- srv.out
+                box = "to";
+                // Выясняем, что запросили передать
+                mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT000);
+                RequiredInfo requiredInfo000 = wsMailer.getSendRequired(box);
+                MailSendTask sendTask000 = UtMail.getRequiredSendTask(mailStateManager, requiredInfo000, RequiredInfo.EXECUTOR_SRV);
+                // Отправляем из очереди, что запросили
                 JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
                 queOut000.setDataRoot(dataRoot);
-                // Выясняем, что запросили передать
-                RequiredInfo requiredInfo000 = wsMailer.getSendRequired("to");
-                MailSendTask sendTask000 = UtMail.getRequiredSendTask(queOut000, requiredInfo000, RequiredInfo.EXECUTOR_SRV);
-                // Отправляем из очереди, что запросили
-                UtMail.sendQueToMail_Required(sendTask000, wsId, queOut000, wsMailer, "to");
+                UtMail.sendQueToMail_Required(sendTask000, wsId, queOut000, wsMailer, box);
 
                 // ws.to001 <- srv.out001
+                box = "to001";
+                // Выясняем, что запросили передать
+                mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT001);
+                RequiredInfo requiredInfo001 = wsMailer.getSendRequired(box);
+                MailSendTask sendTask001 = UtMail.getRequiredSendTask(mailStateManager, requiredInfo001, RequiredInfo.EXECUTOR_SRV);
+                // Отправляем из очереди, что запросили
                 JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
                 queOut001.setDataRoot(dataRoot);
-                // Выясняем, что запросили передать
-                RequiredInfo requiredInfo001 = wsMailer.getSendRequired("to001");
-                MailSendTask sendTask001 = UtMail.getRequiredSendTask(queOut001, requiredInfo001, RequiredInfo.EXECUTOR_SRV);
-                // Отправляем из очереди, что запросили
-                UtMail.sendQueToMail_Required(sendTask001, wsId, queOut001, wsMailer, "to001");
+                UtMail.sendQueToMail_Required(sendTask001, wsId, queOut001, wsMailer, box);
 
             } catch (Exception e) {
                 // Ошибка для станции - пропускаем, идем дальше

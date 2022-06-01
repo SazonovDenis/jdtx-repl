@@ -83,12 +83,8 @@ public class UtMail {
      * Передача запрошенного диапазона
      * из общей очереди queCommon через mailer в ящик box
      */
-    public static void sendQueToMail_Required_QueCommon(long wsId, IJdxQueCommon queCommon, IMailer wsMailer, String box, String currentExecutor) throws Exception {
+    public static void sendQueToMail_Required_QueCommon(MailSendTask sendTask, long wsId, IJdxQueCommon queCommon, IMailer wsMailer, String box) throws Exception {
         log.info("sendQueToMail_Required_QueCommon, wsId: " + wsId + ", box: " + box);
-
-        // Выясняем, что запросили передать
-        RequiredInfo requiredInfo = wsMailer.getSendRequired(box);
-        MailSendTask sendTask = UtMail.getRequiredSendTask(queCommon, requiredInfo, currentExecutor);
 
         // Есть что запросили передать?
         if (sendTask == null) {
@@ -181,7 +177,7 @@ public class UtMail {
     /**
      * Выясняем объем передачи по требованию
      */
-    public static MailSendTask getRequiredSendTask(IJdxReplicaQue que, RequiredInfo requiredInfo, String currentExecutor) throws Exception {
+    public static MailSendTask getRequiredSendTask(IJdxMailStateManager mailStateManager, RequiredInfo requiredInfo, String currentExecutor) throws Exception {
         log.warn("Required: " + requiredInfo);
 
         // НЕ попросили повторную отправку
@@ -203,9 +199,19 @@ public class UtMail {
         sendTask.recreate = requiredInfo.recreate;
         sendTask.executor = requiredInfo.executor;
 
-        // Конец диапазона не указан - зададим сами (до последней реплики, что есть в очереди que)
+        // Конец диапазона не указан - зададим сами, его берем до последней реплики, которая отмечена как отправленная.
+        // Берем именно возраст ранее отправленной реплики, а не все, что есть в очереди, иначе возможна ситуация,
+        // что возраст отмеченных реплик (в базе) начнет отставать от возраста последней отправки (на почтовом сервере).
+        //
+        // Это может возникнуть из-за того, что "рассылка по требованию" выполняется независимо от "рассылки по расписанию".
+        // Метку "последняя отправленная реплика" ставит именно процесс "рассылка по расписанию", и этот возраст должен
+        // соответствовать отметке "номер последнего письма" на почтовом сервере (он двигается вперед при отправке почты).
+        // Если сейчас по требованию разослать больше, чем ранее разослал процесс "рассылка по расписанию",
+        // то получится, что возраст отмеченных реплик (в базе) станет меньше возраста последней отправки (на почтовом сервере),
+        // что позже будет распознано как аварийная ситуация.
         if (requiredInfo.requiredTo == -1) {
-            sendTask.sendTo = que.getMaxNo();
+            // Узнаем, какая последняя отправленная помечена, её и берем как конец требования на отправку.
+            sendTask.sendTo = mailStateManager.getMailSendDone();
         }
 
         //

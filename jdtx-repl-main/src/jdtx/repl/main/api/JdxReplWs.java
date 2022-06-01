@@ -1438,8 +1438,8 @@ public class JdxReplWs {
         return replica;
     }
 
-    void receiveInternal(IMailer mailer, String boxName, long no_from, long no_to, IJdxReplicaQue que) throws Exception {
-        log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", que.name: " + ((IJdxQueNamed) que).getQueName());
+    void receiveInternal(IMailer mailer, String box, long no_from, long no_to, IJdxReplicaQue que) throws Exception {
+        log.info("receive, self.wsId: " + wsId + ", box: " + box + ", que.name: " + ((IJdxQueNamed) que).getQueName());
 
         //
         long count = 0;
@@ -1447,7 +1447,7 @@ public class JdxReplWs {
             log.debug("receive, receiving.no: " + no);
 
             // Информация о реплике с почтового сервера
-            IReplicaInfo info = mailer.getReplicaInfo(boxName, no);
+            IReplicaInfo info = mailer.getReplicaInfo(box, no);
 
             // Нужно ли скачивать эту реплику с сервера?
             IReplica replica;
@@ -1468,9 +1468,9 @@ public class JdxReplWs {
                 que.push(replica);
 
                 // Удаляем с почтового сервера
-                mailer.delete(boxName, no);
+                mailer.delete(box, no);
             } else {
-                receiveInternalStep(mailer, boxName, no, que);
+                receiveInternalStep(mailer, box, no, que);
             }
 
             //
@@ -1479,17 +1479,18 @@ public class JdxReplWs {
 
 
         // Отметить попытку чтения (для отслеживания активности станции, когда нет данных для реальной передачи)
-        mailer.setData(null, "ping.read", boxName);
-        // Отметить состояние рабочей станции (станция отчитывается о себе для отслеживания активности станции)
+        mailer.setData(null, "ping.read", box);
+
+        // Отметить состояние рабочей станции
         Map info = getInfoWs();
         mailer.setData(info, "ws.info", null);
 
 
         //
         if (count > 0) {
-            log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
+            log.info("receive, self.wsId: " + wsId + ", box: " + box + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
         } else {
-            log.info("receive, self.wsId: " + wsId + ", box: " + boxName + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", receive.no: " + no_from + ", nothing to receive");
+            log.info("receive, self.wsId: " + wsId + ", box: " + box + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", receive.no: " + no_from + ", nothing to receive");
         }
     }
 
@@ -1554,9 +1555,11 @@ public class JdxReplWs {
      * Пересоздает реплики, если запросили.
      */
     public void replicasSend_Required() throws Exception {
+        String box = "from";
         // Выясняем, что запросили передать
-        RequiredInfo requiredInfo = mailer.getSendRequired("from");
-        MailSendTask sendTask = UtMail.getRequiredSendTask(queOut, requiredInfo, RequiredInfo.EXECUTOR_WS);
+        IJdxMailStateManager mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT);
+        RequiredInfo requiredInfo = mailer.getSendRequired(box);
+        MailSendTask sendTask = UtMail.getRequiredSendTask(mailStateManager, requiredInfo, RequiredInfo.EXECUTOR_WS);
 
         // Нужно реплики формировать заново?
         if (sendTask != null && sendTask.recreate) {
@@ -1567,7 +1570,7 @@ public class JdxReplWs {
         }
 
         // Отправляем из очереди, что запросили
-        UtMail.sendQueToMail_Required(sendTask, wsId, queOut, mailer, "from");
+        UtMail.sendQueToMail_Required(sendTask, wsId, queOut, mailer, box);
     }
 
 
