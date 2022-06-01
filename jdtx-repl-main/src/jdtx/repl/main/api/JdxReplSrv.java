@@ -605,11 +605,8 @@ public class JdxReplSrv {
                 }
 
 
-                // Отметить попытку чтения (для отслеживания активности станции, когда нет данных для реальной передачи)
+                // Отметить попытку чтения (для отслеживания активности сервера, когда нет данных для реальной передачи)
                 mailer.setData(null, "ping.read", "from");
-                // Отметить состояние сервера, данные сервера (сервер отчитывается о себе для отслеживания активности сервера)
-                Map info = getInfoSrv();
-                mailer.setData(info, "srv.info", null);
 
 
                 //
@@ -833,12 +830,6 @@ public class JdxReplSrv {
                 JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
                 queOut001.setDataRoot(dataRoot);
                 UtMail.sendQueToMail_State(wsId, queOut001, wsMailer, "to001", mailStateManager);
-
-                // Отметить состояние сервера, данные сервера (сервер отчитывается о себе для отслеживания активности сервера)
-                // todo: не переложить отметку ли в sendQueToMail?
-                Map info = getInfoSrv();
-                wsMailer.setData(info, "srv.info", null);
-
             } catch (Exception e) {
                 // Ошибка для станции - пропускаем, идем дальше
                 errorCollector.collectError("srvReplicasSendMail, to.wsId: " + wsId, e);
