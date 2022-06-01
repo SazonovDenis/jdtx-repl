@@ -790,7 +790,7 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
-    void repl_dbstruct_finish(IVariantMap args) {
+    void repl_set_dbstruct(IVariantMap args) {
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -802,7 +802,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvDbStructFinish()
+            srv.srvSetDbStruct()
 
         } finally {
             restoreServiceState(serviceState, db, args)

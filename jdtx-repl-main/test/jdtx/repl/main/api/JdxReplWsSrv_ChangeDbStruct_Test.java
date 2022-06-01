@@ -97,7 +97,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ===
         // Завершаем (на сервере) смену версии БД - рассылаем сигнал "всем говорить"
-        test_srvDbStructFinish();
+        test_srvSetDbStruct_Unmute();
 
         //
         test_ws1_makeChange_Unimportant();
@@ -500,8 +500,9 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // ... рассылаем на рабочие станции новые правила публикаций (команда repl_send_cfg) ...
         srv.srvSendCfg(cfg_publications, CfgType.PUBLICATIONS, 0, UtQue.SRV_QUE_COMMON);
 
-        // ... рассылаем сигнал "SET_DB_STRUCT" (команда repl_dbstruct_finish)
-        test_srvDbStructFinish();
+        // ... рассылаем сигнал "SET_DB_STRUCT" (команда repl_set_dbstruct)
+        // ... рассылаем сигнал "UNMUTE" (команда repl_unmute)
+        test_srvSetDbStruct_Unmute();
 
         //
         test_ws1_makeChange_Unimportant();
@@ -657,7 +658,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         System.out.println("===");
 
         // Всех в состояние UNMUTE
-        srv.srvDbStructFinish();
+        srv.srvUnmuteAll();
 
         //
         srv.srvMuteState(false, true, 0);
@@ -665,12 +666,15 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     }
 
     @Test
-    public void test_srvDbStructFinish() throws Exception {
+    public void test_srvSetDbStruct_Unmute() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init();
 
         //
-        srv.srvDbStructFinish();
+        srv.srvSetDbStruct();
+
+        //
+        srv.srvUnmuteAll();
     }
 
     /**

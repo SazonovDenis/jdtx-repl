@@ -234,9 +234,11 @@ repl_mute_state = cm("Показать состояние MUTE у рабочих
 
 
 //
-repl_dbstruct_finish = cm("Завершить смену структуры, первести все станции в режим UNMUTE") {
+repl_set_dbstruct = cm("Отправить команду 'принять структуру' на все станции",
+        "sendSnapshot": [value: null, help: "Отправить ли snapshot для тех новых таблиц, которые появились в структуре"]
+) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    ext.repl_dbstruct_finish(args)
+    ext.repl_set_dbstruct(args)
 }
 
 

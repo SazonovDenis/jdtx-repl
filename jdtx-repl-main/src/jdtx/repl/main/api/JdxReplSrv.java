@@ -493,7 +493,7 @@ public class JdxReplSrv {
         //
         srvSetAndSendCfgInternal(queOut001, cfgDecode, CfgType.DECODE, wsId);
         //
-        srvDbStructFinishInternal(queOut001, sendSnapshot);
+        srvSetDbStructInternal(queOut001, sendSnapshot);
     }
 
     /**
@@ -1231,30 +1231,23 @@ public class JdxReplSrv {
     }
 
 
-    public void srvDbStructFinish() throws Exception {
-        log.info("srvDbStructFinish");
+    public void srvSetDbStruct() throws Exception {
+        log.info("srvSetDbStruct");
 
         // Системные команды в общую исходящую очередь реплик
-        srvDbStructFinishInternal(queCommon, true);
+        srvSetDbStructInternal(queCommon, true);
     }
 
 
     /**
      * Системные команды в очередь que
      */
-    private void srvDbStructFinishInternal(IJdxReplicaQue que, boolean sendSnapshot) throws Exception {
+    private void srvSetDbStructInternal(IJdxReplicaQue que, boolean sendSnapshot) throws Exception {
         IReplica replica;
         UtRepl utRepl = new UtRepl(db, struct);
 
-
         // Системная команда "SET_DB_STRUCT"...
         replica = utRepl.createReplicaSetDbStruct(sendSnapshot);
-        // ...в очередь
-        que.push(replica);
-
-
-        // Системная команда "UNMUTE" ...
-        replica = utRepl.createReplicaUnmute(0);
         // ...в очередь
         que.push(replica);
     }

@@ -94,7 +94,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Loop_Test extends JdxReplWsSrv_ChangeDb
                 // =======================================
                 //
                 System.out.println("Формируем сигнал 'всем говорить'");
-                test_srvDbStructFinish();
+                test_srvSetDbStruct_Unmute();
 
                 //
                 UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
