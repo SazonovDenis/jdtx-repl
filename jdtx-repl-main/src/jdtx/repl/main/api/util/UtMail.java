@@ -154,7 +154,7 @@ public class UtMail {
             }
 
             //
-            log.info("sendReplicasToMail, no: " + no + "/" + replicasToSend.size());
+            log.info("sendReplicasToMail, destination wsId: " + wsId + ", box: " + box + ", no: " + no + ", " + count + "/" + replicasToSend.size());
 
             //
             count = count + 1;
