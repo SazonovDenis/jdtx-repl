@@ -22,10 +22,10 @@ public class JdxTaskLogHttp extends JdxTaskCustom {
 
     //
     public void doTask() throws Exception {
-        String logValue = JdtxLogStorage.getLogValue();
+        Map<String, String> logValues = JdtxLogStorage.getLogValues();
         //
         Map data = new HashMap();
-        data.put("logValue", logValue);
+        data.put("logValues", logValues);
         //
         try {
             mailer.setData(data, "log.log", null);

@@ -17,10 +17,17 @@ public class JdtxLogAppender extends AppenderSkeleton {
 
     protected void append(LoggingEvent event) {
         PatternLayout layout = new PatternLayout(conversionPattern);
+        String value = layout.format(event);
+        value = value.trim();
+
         //
-        String s = layout.format(event);
+        String key = event.getProperty("serviceName");
+        if (key == null) {
+            key = "default";
+        }
+
         //
-        JdtxLogStorage.setLogValue(s);
+        JdtxLogStorage.setLogValue(key, value);
     }
 
     public void close() {

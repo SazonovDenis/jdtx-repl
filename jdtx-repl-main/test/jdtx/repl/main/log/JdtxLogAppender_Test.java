@@ -38,15 +38,22 @@ public class JdtxLogAppender_Test extends DbPrepareEtalon_Test {
         //
         JdxReplWs ws = new JdxReplWs(db);
         ws.init();
-        JdxTaskLogHttp replTask = new JdxTaskLogHttp(ws.getMailer());
+        //
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init();
+
+        //
+        JdxTaskLogHttp task = new JdxTaskLogHttp(ws.getMailer());
 
         //
         int x = 1;
         while (x < 100) {
-            replTask.doTask();
-            System.out.println("replTask.doTask");
+            task.doTask();
+            System.out.println("JdxTaskLogHttp.doTask");
+
             //
             x = x + 1;
+
             //
             Thread.sleep(1000);
         }
