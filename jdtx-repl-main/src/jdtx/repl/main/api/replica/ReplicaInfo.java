@@ -101,7 +101,7 @@ public class ReplicaInfo implements IReplicaInfo {
         this.crc = (String) infoJson.get("crc");
         this.dtFrom = UtJdxData.dateTimeValueOf((String) infoJson.get("dtFrom"));
         this.dtTo = UtJdxData.dateTimeValueOf((String) infoJson.get("dtTo"));
-        this.replicaType = UtJdxData.intValueOf(infoJson.get("replicaType"));
+        this.replicaType = UtJdxData.intValueOf(infoJson.get("replicaType"), -1);
         this.dbStructCrc = (String) infoJson.get("dbStructCrc");
     }
 

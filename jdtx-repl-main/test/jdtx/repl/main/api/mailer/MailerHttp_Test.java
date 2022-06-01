@@ -513,14 +513,55 @@ public class MailerHttp_Test extends AppTestCase {
     public void test_getLastReplicaInfo() throws Exception {
         String box = "to";
         //
-        IReplicaInfo lastInfo = ((MailerHttp) mailer).getLastReplicaInfo(box);
+        System.out.println();
+        System.out.println("mailer.guid: " + ((MailerHttp) mailer).guid);
+        System.out.println("mailer.remoteUrl: " + ((MailerHttp) mailer).remoteUrl);
         //
-        System.out.println("Res: " + lastInfo);
-        System.out.println("Crc: " + lastInfo.getCrc());
-        System.out.println("Age: " + lastInfo.getAge());
-        System.out.println("WsId: " + lastInfo.getWsId());
-        System.out.println("DtFrom: " + lastInfo.getDtFrom());
-        System.out.println("DtTo: " + lastInfo.getDtTo());
+        IReplicaInfo replicaInfo = ((MailerHttp) mailer).getLastReplicaInfo(box);
+        //
+        System.out.println();
+        System.out.println("replicaSrv:");
+        System.out.println("lastInfo: " + replicaInfo);
+        System.out.println("Crc: " + replicaInfo.getCrc());
+        System.out.println("DbStructCrc: " + replicaInfo.getDbStructCrc());
+        System.out.println("Age: " + replicaInfo.getAge());
+        System.out.println("WsId: " + replicaInfo.getWsId());
+        System.out.println("DtFrom: " + replicaInfo.getDtFrom());
+        System.out.println("DtTo: " + replicaInfo.getDtTo());
+
+        //
+        // Читаем С СЕРВЕРА информацию о реплике, которую последней отправили на сервер
+        String crcSrv = replicaInfo.getCrc();
+
+        // Берем ИЗ СВОЕЙ очереди ту реплику, которую последней отправили на сервер
+        String fileName = "../_test-data/_test-data_srv/srv/que_in_ws_001/000000/000000001.zip";
+        File fileReplica = new File(fileName);
+        IReplica replicaWs = new ReplicaFile();
+        replicaWs.setData(fileReplica);
+        JdxReplicaReaderXml.readReplicaInfo(replicaWs);
+
+        // Вычисляем crc файла данных
+        String crcFile = UtJdx.getMd5File(replicaWs.getData());
+        replicaWs.getInfo().setCrc(crcFile);
+
+        //
+        System.out.println();
+        System.out.println("replicaWs:");
+        System.out.println("lastInfo: " + replicaWs.getInfo());
+        System.out.println("Crc: " + replicaWs.getInfo().getCrc());
+        System.out.println("DbStructCrc: " + replicaWs.getInfo().getDbStructCrc());
+        System.out.println("Age: " + replicaWs.getInfo().getAge());
+        System.out.println("WsId: " + replicaWs.getInfo().getWsId());
+        System.out.println("DtFrom: " + replicaWs.getInfo().getDtFrom());
+        System.out.println("DtTo: " + replicaWs.getInfo().getDtTo());
+
+        // Сравниваем CRC реплик
+        System.out.println();
+        if (UtJdx.equalReplicaCrc(replicaWs, crcSrv)) {
+            System.out.println("Equal ReplicaCrc");
+        } else {
+            System.out.println("Not equal ReplicaCrc");
+        }
     }
 
     @Test
