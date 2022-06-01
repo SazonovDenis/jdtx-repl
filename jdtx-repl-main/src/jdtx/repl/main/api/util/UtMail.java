@@ -287,9 +287,9 @@ public class UtMail {
                 throw new XError("Unable to repair marked, ws.replica.crc <> mail.replica.crc, ws.replica.crc: " + replicaWs.getInfo().getCrc() + ", mail.replica.crc: " + crcSrv);
             }
         } else {
-            // Отметка сильно отстает от сервера.
+            // Отметка noQueSendMarked сильно отстает от сервера noQueSendSrv.
             // В отличие от процедуры ремонта repairAfterBackupRestore тут не передвигаем вперед.
-            throw new XError("Unable to repair marked, noQueSendMarked << noQueSendSrv");
+            throw new XError("Unable to repair marked, noQueSendMarked < noQueSendSrv");
         }
     }
 

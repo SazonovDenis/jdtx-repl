@@ -1738,7 +1738,7 @@ public class JdxReplWs {
      *
      * @param doRepair              Запускать ремонт при обнаружении неисправности.
      * @param doPrintIfNeedNoRepair Нужно ли печатать состояние, если нет неисправности.
-     * @throws Exception если обнаружена неисправность надо чинить, но чинить не просили.
+     * @throws Exception если обнаружена неисправность (надо чинить), но чинить не просили.
      */
     public void repairAfterBackupRestore(boolean doRepair, boolean doPrintIfNeedNoRepair) throws Exception {
         // ---
