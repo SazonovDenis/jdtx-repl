@@ -244,7 +244,7 @@ begin
   begin
     Exec(ExpandConstant('jc.bat'), 'repl-service-stop' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-stop.log', ExpandConstant('{app}'), SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode);
     Exec(ExpandConstant('jc.bat'), 'repl-service-stop' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-stop.log', ExpandConstant('{app}'), SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode);
-    Exec(ExpandConstant('jc.bat'), 'repl-service-remove' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-remove.log', ExpandConstant('{app}'), SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode);
+    //Exec(ExpandConstant('jc.bat'), 'repl-service-remove' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-remove.log', ExpandConstant('{app}'), SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode);
   end;
 
 
