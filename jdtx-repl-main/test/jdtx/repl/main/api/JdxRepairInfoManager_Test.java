@@ -7,7 +7,7 @@ import org.junit.*;
 /**
  *
  */
-public class JdxDatabaseRepairInfoManager_Test extends DbPrepareEtalon_Test {
+public class JdxRepairInfoManager_Test extends DbPrepareEtalon_Test {
 
 
     @Override
@@ -26,7 +26,7 @@ public class JdxDatabaseRepairInfoManager_Test extends DbPrepareEtalon_Test {
         System.out.println();
 
         //
-        JdxDatabaseRepairInfoManager repairInfoManager = new JdxDatabaseRepairInfoManager(mailer);
+        JdxRepairInfoManager repairInfoManager = new JdxRepairInfoManager(mailer);
 
         //
         String allowedRepairGuid = repairInfoManager.getAllowedRepairGuid();

@@ -19,14 +19,14 @@ public class JdxReplWs_repairLockFile_Test extends DbPrepareEtalon_Test {
 
         //
         ws.repairLockFileDelete();
-        assertEquals(false, ws.repairLockFile().exists());
+        assertEquals(false, ws.getRepairLockFile().exists());
 
         //
         System.out.println("repairLockFile Create");
 
         //
         ws.repairLockFileCreate();
-        assertEquals(true, ws.repairLockFile().exists());
+        assertEquals(true, ws.getRepairLockFile().exists());
 
         //
         System.out.println("repairLockFileRead: " + ws.repairLockFileRead());
@@ -51,7 +51,7 @@ public class JdxReplWs_repairLockFile_Test extends DbPrepareEtalon_Test {
         ws.repairLockFileDelete();
 
         //
-        assertEquals(false, ws.repairLockFile().exists());
+        assertEquals(false, ws.getRepairLockFile().exists());
         System.out.println("repairLockFileRead: " + ws.repairLockFileRead());
         System.out.println("repairLockFileGiud: " + ws.repairLockFileGiud());
         assertEquals(true, ws.repairLockFileRead() == null);

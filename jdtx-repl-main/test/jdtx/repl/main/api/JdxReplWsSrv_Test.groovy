@@ -33,73 +33,73 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public Map<String, String> equalExpected
 
     public Map<String, String> expectedEqual_full = [
-            "USRLOG"         : "0X0",
-            "PAWNCHIT"       : "000",
-            "PAWNCHITSUBJECT": "000",
-            "COMMENTTEXT"    : "000",
-            "COMMENTTIP"     : "000",
-            "LIC"            : "000",
-            "LICDOCVID"      : "000",
-            "LICDOCTIP"      : "000",
-            "REGIONTIP"      : "000",
-            "ULZ"            : "000",
-            "REGION"         : "000",
+            "USRLOG"         : "NYN",
+            "PAWNCHIT"       : "NNN",
+            "PAWNCHITSUBJECT": "NNN",
+            "COMMENTTEXT"    : "NNN",
+            "COMMENTTIP"     : "NNN",
+            "LIC"            : "NNN",
+            "LICDOCVID"      : "NNN",
+            "LICDOCTIP"      : "NNN",
+            "REGIONTIP"      : "NNN",
+            "ULZ"            : "NNN",
+            "REGION"         : "NNN",
     ]
 
     public Map<String, String> expectedEqual_noFilter = [
-            "USRLOG"         : "0X0",
-            "PAWNCHIT"       : "000",
-            "PAWNCHITSUBJECT": "000",
-            "COMMENTTEXT"    : "000",
-            "COMMENTTIP"     : "000",
-            "LIC"            : "000",
-            "LICDOCVID"      : "000",
-            "LICDOCTIP"      : "000",
-            "REGIONTIP"      : "000",
-            "ULZ"            : "000",
-            "REGION"         : "000",
+            "USRLOG"         : "NYN",
+            "PAWNCHIT"       : "NNN",
+            "PAWNCHITSUBJECT": "NNN",
+            "COMMENTTEXT"    : "NNN",
+            "COMMENTTIP"     : "NNN",
+            "LIC"            : "NNN",
+            "LICDOCVID"      : "NNN",
+            "LICDOCTIP"      : "NNN",
+            "REGIONTIP"      : "NNN",
+            "ULZ"            : "NNN",
+            "REGION"         : "NNN",
     ]
 
     public Map<String, String> expectedEqual_filterLic = [
-            "USRLOG"         : "0X0",
-            "PAWNCHIT"       : "000",
-            "PAWNCHITSUBJECT": "000",
-            "COMMENTTEXT"    : "0X0",
-            "COMMENTTIP"     : "000",
-            "LIC"            : "000",
-            "LICDOCVID"      : "000",
-            "LICDOCTIP"      : "000",
-            "REGIONTIP"      : "000",
-            "ULZ"            : "000",
-            "REGION"         : "000",
+            "USRLOG"         : "NYN",
+            "PAWNCHIT"       : "NNN",
+            "PAWNCHITSUBJECT": "NNN",
+            "COMMENTTEXT"    : "NYN",
+            "COMMENTTIP"     : "NNN",
+            "LIC"            : "NNN",
+            "LICDOCVID"      : "NNN",
+            "LICDOCTIP"      : "NNN",
+            "REGIONTIP"      : "NNN",
+            "ULZ"            : "NNN",
+            "REGION"         : "NNN",
     ]
 
     public Map<String, String> expectedNotEqual_2isEmpty = [
-            "USRLOG"         : "0X0",
-            "PAWNCHIT"       : "0X0",
-            "PAWNCHITSUBJECT": "0X0",
-            "COMMENTTEXT"    : "0X0",
-            "COMMENTTIP"     : "0X0",
-            "LIC"            : "0X0",
-            "LICDOCVID"      : "0X0",
-            "LICDOCTIP"      : "0X0",
-            "REGIONTIP"      : "0X0",
-            "ULZ"            : "0X0",
-            "REGION"         : "0X0",
+            "USRLOG"         : "NYN",
+            "PAWNCHIT"       : "NYN",
+            "PAWNCHITSUBJECT": "NYN",
+            "COMMENTTEXT"    : "NYN",
+            "COMMENTTIP"     : "NYN",
+            "LIC"            : "NYN",
+            "LICDOCVID"      : "NYN",
+            "LICDOCTIP"      : "NYN",
+            "REGIONTIP"      : "NYN",
+            "ULZ"            : "NYN",
+            "REGION"         : "NYN",
     ]
 
     public Map<String, String> expectedNotEqual = [
-            "USRLOG"         : "XX0",
-            "PAWNCHIT"       : "000",
-            "PAWNCHITSUBJECT": "000",
-            "COMMENTTEXT"    : "0XX",
-            "COMMENTTIP"     : "000",
-            "LIC"            : "XXX",
-            "LICDOCVID"      : "000",
-            "LICDOCTIP"      : "000",
-            "REGIONTIP"      : "000",
-            "ULZ"            : "?X0",
-            "REGION"         : "0X0",
+            "USRLOG"         : "YYN",
+            "PAWNCHIT"       : "NNN",
+            "PAWNCHITSUBJECT": "NNN",
+            "COMMENTTEXT"    : "NYY",
+            "COMMENTTIP"     : "NNN",
+            "LIC"            : "YYY",
+            "LICDOCVID"      : "NNN",
+            "LICDOCTIP"      : "NNN",
+            "REGIONTIP"      : "NNN",
+            "ULZ"            : "?YN",
+            "REGION"         : "NYN",
     ]
 
 
@@ -987,16 +987,16 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_srv_doReplSession() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db)
-        //
         JdxTaskSrvMail mailTask = new JdxTaskSrvMail(srv)
+        JdxTaskSrvRepl replTask = new JdxTaskSrvRepl(srv)
+        JdxTaskSrvMailRequest mailTaskRequest = new JdxTaskSrvMailRequest(srv)
+        //
         mailTask.doTask()
         //
-        JdxTaskSrvRepl replTask = new JdxTaskSrvRepl(srv)
         replTask.doTask()
         //
         mailTask.doTask()
         //
-        JdxTaskSrvMailRequest mailTaskRequest = new JdxTaskSrvMailRequest(srv)
         mailTaskRequest.doTask()
     }
 

@@ -148,7 +148,7 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
             char expectedNewIn2 = tableExpectedResult.charAt(2);
 
             switch (expectedCrc) {
-                case '0': {
+                case 'N': {
                     if (result_diffCrc.size() != 0) {
                         bad = true;
                         System.out.println(tableName + ", found crc");
@@ -158,7 +158,7 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
                     }
                     break;
                 }
-                case 'X': {
+                case 'Y': {
                     if (result_diffCrc.size() == 0) {
                         bad = true;
                         System.out.println(tableName + ": not found crc");
@@ -169,11 +169,11 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
                     break;
                 }
                 default:
-                    throw new XError("Bad expected: " + expectedCrc);
+                    throw new XError("Bad expected symbol: " + expectedCrc);
             }
 
             switch (expectedNewIn1) {
-                case '0': {
+                case 'N': {
                     if (result_diffNewIn1.size() != 0) {
                         bad = true;
                         System.out.println(tableName + ", found new in 1");
@@ -183,7 +183,7 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
                     }
                     break;
                 }
-                case 'X': {
+                case 'Y': {
                     if (result_diffNewIn1.size() == 0) {
                         bad = true;
                         System.out.println(tableName + ": not found new in 1");
@@ -194,11 +194,11 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
                     break;
                 }
                 default:
-                    throw new XError("Bad expected: " + expectedNewIn1);
+                    throw new XError("Bad expected symbol: " + expectedNewIn1);
             }
 
             switch (expectedNewIn2) {
-                case '0': {
+                case 'N': {
                     if (result_diffNewIn2.size() != 0) {
                         bad = true;
                         System.out.println(tableName + ", found new in 2");
@@ -208,7 +208,7 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
                     }
                     break;
                 }
-                case 'X': {
+                case 'Y': {
                     if (result_diffNewIn2.size() == 0) {
                         bad = true;
                         System.out.println(tableName + ": not found new in 2");
@@ -219,7 +219,7 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
                     break;
                 }
                 default:
-                    throw new XError("Bad expected: " + expectedNewIn2);
+                    throw new XError("Bad expected symbol: " + expectedNewIn2);
             }
         }
 

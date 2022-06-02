@@ -6,11 +6,11 @@ import org.json.simple.*;
 
 import java.util.*;
 
-public class JdxDatabaseRepairInfoManager {
+public class JdxRepairInfoManager {
 
     private final IMailer mailer;
 
-    public JdxDatabaseRepairInfoManager(IMailer mailer) {
+    public JdxRepairInfoManager(IMailer mailer) {
         this.mailer = mailer;
     }
 

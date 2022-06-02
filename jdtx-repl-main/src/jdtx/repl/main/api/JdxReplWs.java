@@ -1687,13 +1687,13 @@ public class JdxReplWs {
         log.warn("Repair que: " + que.getQueName() + ", self.wsId: " + wsId + ", que: " + (noQue + 1) + " .. " + noQueDir + ", done count: " + count);
     }
 
-    File repairLockFile() {
+    File getRepairLockFile() {
         File lockFile = new File(dataRoot + "temp/repairBackup.lock");
         return lockFile;
     }
 
     void repairLockFileCreate() throws Exception {
-        File lockFile = repairLockFile();
+        File lockFile = getRepairLockFile();
 
         if (lockFile.exists()) {
             throw new XError("lockFile already exists: " + repairLockFileRead());
@@ -1707,7 +1707,7 @@ public class JdxReplWs {
     }
 
     void repairLockFileDelete() {
-        File lockFile = repairLockFile();
+        File lockFile = getRepairLockFile();
 
         if (lockFile.exists() && !lockFile.delete()) {
             throw new XError("Can`t delete lockFile: " + lockFile);
@@ -1715,19 +1715,19 @@ public class JdxReplWs {
     }
 
     String repairLockFileRead() throws Exception {
-        File lockFile = repairLockFile();
+        File lockFile = getRepairLockFile();
         if (lockFile.exists()) {
-            return UtFile.loadString(repairLockFile());
+            return UtFile.loadString(getRepairLockFile());
         } else {
             return null;
         }
     }
 
     public String repairLockFileGiud() throws Exception {
-        File lockFile = repairLockFile();
+        File lockFile = getRepairLockFile();
         if (lockFile.exists()) {
             Map lockFileMap = new HashMap();
-            String lockFileStr = UtFile.loadString(repairLockFile());
+            String lockFileStr = UtFile.loadString(getRepairLockFile());
             lockFileStr = lockFileStr.substring(1, lockFileStr.length() - 1);
             UtCnv.toMap(lockFileMap, lockFileStr, ",", "=");
             return (String) lockFileMap.get("guid");
@@ -1802,7 +1802,7 @@ public class JdxReplWs {
 
         // ---
         // Есть ли отметка о начале ремонта
-        File lockFile = repairLockFile();
+        File lockFile = getRepairLockFile();
 
 
         /*
