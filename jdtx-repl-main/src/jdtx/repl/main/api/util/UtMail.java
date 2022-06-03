@@ -119,7 +119,7 @@ public class UtMail {
      * Передача списка реплик replicasToSend через mailer в ящик box
      */
     private static void sendReplicasToMail(MailSendTask sendTask, MailSendInfo sendInfo, Map<Long, IReplica> replicasToSend, long wsId, IMailer mailer, String box, IJdxMailStateManager mailStateManager) throws Exception {
-        log.info("sendReplicasToMail, destination wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask);
+        log.info("sendReplicasToMail, destination wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask + ", count: " + replicasToSend.size());
 
         // Передаем
         long count = 0;
@@ -178,7 +178,7 @@ public class UtMail {
      * Выясняем объем передачи по требованию
      */
     public static MailSendTask getRequiredSendTask(IJdxMailStateManager mailStateManager, RequiredInfo requiredInfo, String currentExecutor) throws Exception {
-        log.warn("Required: " + requiredInfo);
+        log.info("Required: " + requiredInfo);
 
         // НЕ попросили повторную отправку
         if (requiredInfo.requiredFrom == -1) {
