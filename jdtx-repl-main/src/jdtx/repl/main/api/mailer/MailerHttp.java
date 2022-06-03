@@ -87,7 +87,11 @@ public class MailerHttp implements IMailer {
         if (completelySend) {
             return no;
         } else {
-            return no - 1;
+            if (no == 0) {
+                return no;
+            } else {
+                return no - 1;
+            }
         }
     }
 
