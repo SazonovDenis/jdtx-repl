@@ -82,8 +82,13 @@ public class MailerHttp implements IMailer {
     public long getSendDone(String box) throws Exception {
         JSONObject res = getData("last.write", box);
         JSONObject data = (JSONObject) res.get("data");
-        long no = UtJdxData.longValueOf(data.getOrDefault("no", 0));
-        return no;
+        boolean completelySend = UtJdxData.booleanValueOf(data.get("all"), false);
+        long no = UtJdxData.longValueOf(data.get("no"), 0L);
+        if (completelySend) {
+            return no;
+        } else {
+            return no - 1;
+        }
     }
 
     @Override
