@@ -1481,6 +1481,7 @@ public class JdxReplWs {
         // Отметить попытку чтения (для отслеживания активности станции, когда нет данных для реальной передачи)
         mailer.setData(null, "ping.read", box);
 
+
         // Отметить состояние рабочей станции
         Map info = getInfoWs();
         mailer.setData(info, "ws.info", null);
