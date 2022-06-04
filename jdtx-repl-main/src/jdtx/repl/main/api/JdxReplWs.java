@@ -1758,6 +1758,7 @@ public class JdxReplWs {
         // ---
         // Есть ли отметка о начале ремонта
         JdxRepairLockFileManager repairLockFileManager = new JdxRepairLockFileManager(getDataRoot());
+        JdxRepairInfoManager repairInfoManager = new JdxRepairInfoManager(mailer);
         //
         File lockFile = repairLockFileManager.getRepairLockFile();
 
@@ -1851,6 +1852,7 @@ public class JdxReplWs {
         // Отметим, что проблема обнаружена. После этой отметки ремонт считается НАЧАТЫМ, но НЕ ЗАВЕРШЕННЫМ.
         if (needRepair && !lockFile.exists()) {
             repairLockFileManager.repairLockFileCreate();
+            repairInfoManager.setRequestRepair(repairLockFileManager.repairLockFileGiud());
         }
 
         //
@@ -2150,6 +2152,7 @@ public class JdxReplWs {
         // Убираем отметку "ремонт начат".
         // После этого ремонт считается завершенным.
         repairLockFileManager.repairLockFileDelete();
+        repairInfoManager.setNoRepair();
 
         //
         log.warn("Restore from backup: repair done");
