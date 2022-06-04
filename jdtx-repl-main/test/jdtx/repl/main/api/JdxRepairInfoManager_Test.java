@@ -1,6 +1,7 @@
 package jdtx.repl.main.api;
 
 import jdtx.repl.main.api.mailer.*;
+import jdtx.repl.main.api.repair.*;
 import jdtx.repl.main.ut.*;
 import org.junit.*;
 

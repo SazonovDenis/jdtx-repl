@@ -3,6 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.repair.*;
 import org.apache.commons.io.*;
 import org.junit.*;
 
@@ -77,6 +78,29 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
 
 
     /**
+     * Сделаем вид, что мы с сервера отдали команду "можно ремонтировать",
+     * т.е. создали файл "repair.info" в почтовом каталоге рабочей станции.
+     * Теперь внутри процесса репликации отработает repairAfterBackupRestore с запуском ремонта.
+     */
+    public void checkNeedRepair_doAllowRepair(Db db) throws Exception {
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.init();
+        //
+        JdxRepairInfoManager repairInfoManager = new JdxRepairInfoManager(ws.getMailer());
+        JdxRepairLockFileManager repairLockFileManager = new JdxRepairLockFileManager(ws.getDataRoot());
+
+        // Если рабочая станция обнаружила проблему - то она сформирует giud ремонта
+        String wsRepairGuid = repairLockFileManager.repairLockFileGiud();
+
+        //
+        assertEquals("Рабочая станция не обнаружила необходимость ремонта", true, wsRepairGuid != null);
+        assertEquals(true, wsRepairGuid.length() > 0);
+
+        //
+        repairInfoManager.setRepairAllowed(wsRepairGuid);
+    }
+
+    /**
      * Попытка ремонта
      */
     public void doStepRepair(Db db, boolean doRaise) throws Exception {
@@ -85,15 +109,6 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
 
         //
         try {
-            String wsRepairGuid = ws.repairLockFileGiud();
-
-            // Сделаем вид, что мы отдали команду "пожно ремонтировать",
-            // т.е. создали файл "repair.info" в почтовом каталоге.
-            JdxDatabaseRepairInfoManager repairInfoManager = new JdxDatabaseRepairInfoManager(ws.getMailer());
-            repairInfoManager.setRepairAllowed(wsRepairGuid);
-
-            // Теперь repairAfterBackupRestore внутри процесса репликации отработает с РЕМОНТОМ,
-            // вызов ws.repairAfterBackupRestore уже не понадобится.
             ws_doReplSession(db);
         } catch (Exception e) {
             if (doRaise) {

@@ -17,15 +17,14 @@ import jdtx.repl.main.api.pk_generator.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.rec_merge.*;
+import jdtx.repl.main.api.repair.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import jdtx.repl.main.task.*;
-import jdtx.repl.main.ut.*;
 import org.apache.commons.io.*;
 import org.apache.commons.logging.*;
 import org.apache.log4j.*;
-import org.joda.time.*;
 import org.json.simple.*;
 
 import java.io.*;
@@ -89,6 +88,10 @@ public class JdxReplWs {
 
     public String getWsGuid() {
         return wsGuid;
+    }
+
+    public String getDataRoot() {
+        return     dataRoot;
     }
 
     public IMailer getMailer() {
@@ -1688,55 +1691,6 @@ public class JdxReplWs {
         log.warn("Repair que: " + que.getQueName() + ", self.wsId: " + wsId + ", que: " + (noQue + 1) + " .. " + noQueDir + ", done count: " + count);
     }
 
-    File getRepairLockFile() {
-        File lockFile = new File(dataRoot + "temp/repairBackup.lock");
-        return lockFile;
-    }
-
-    void repairLockFileCreate() throws Exception {
-        File lockFile = getRepairLockFile();
-
-        if (lockFile.exists()) {
-            throw new XError("lockFile already exists: " + repairLockFileRead());
-        }
-
-        RandomString rnd = new RandomString();
-        String guid = rnd.nextHexStr(16);
-        String dt = String.valueOf(new DateTime());
-        Map lockFileMap = UtCnv.toMap("dt", dt, "guid", guid);
-        UtFile.saveString(UtCnv.toString(lockFileMap), lockFile);
-    }
-
-    void repairLockFileDelete() {
-        File lockFile = getRepairLockFile();
-
-        if (lockFile.exists() && !lockFile.delete()) {
-            throw new XError("Can`t delete lockFile: " + lockFile);
-        }
-    }
-
-    String repairLockFileRead() throws Exception {
-        File lockFile = getRepairLockFile();
-        if (lockFile.exists()) {
-            return UtFile.loadString(getRepairLockFile());
-        } else {
-            return null;
-        }
-    }
-
-    public String repairLockFileGiud() throws Exception {
-        File lockFile = getRepairLockFile();
-        if (lockFile.exists()) {
-            Map lockFileMap = new HashMap();
-            String lockFileStr = UtFile.loadString(getRepairLockFile());
-            lockFileStr = lockFileStr.substring(1, lockFileStr.length() - 1);
-            UtCnv.toMap(lockFileMap, lockFileStr, ",", "=");
-            return (String) lockFileMap.get("guid");
-        } else {
-            return null;
-        }
-    }
-
     /**
      * Выявить ситуацию "станцию восстановили из бэкапа" и починить ее.
      *
@@ -1803,7 +1757,9 @@ public class JdxReplWs {
 
         // ---
         // Есть ли отметка о начале ремонта
-        File lockFile = getRepairLockFile();
+        JdxRepairLockFileManager repairLockFileManager = new JdxRepairLockFileManager(getDataRoot());
+        //
+        File lockFile = repairLockFileManager.getRepairLockFile();
 
 
         /*
@@ -1882,7 +1838,7 @@ public class JdxReplWs {
             log.warn("  noQueOutSendMarked: " + noQueOutSendMarked);
             log.warn("  noQueIn001Used: " + noQueIn001Used);
             log.warn("  noQueInUsed: " + noQueInUsed);
-            log.warn("  lockFile: " + repairLockFileRead());
+            log.warn("  lockFile: " + repairLockFileManager.repairLockFileRead());
         }
 
         //
@@ -1894,7 +1850,7 @@ public class JdxReplWs {
         // ---
         // Отметим, что проблема обнаружена. После этой отметки ремонт считается НАЧАТЫМ, но НЕ ЗАВЕРШЕННЫМ.
         if (needRepair && !lockFile.exists()) {
-            repairLockFileCreate();
+            repairLockFileManager.repairLockFileCreate();
         }
 
         //
@@ -1914,7 +1870,7 @@ public class JdxReplWs {
                     "noQueOutSendMarked: " + noQueOutSendMarked + ", " +
                     "noQueIn001Used: " + noQueIn001Used + ", " +
                     "noQueInUsed: " + noQueInUsed + ", " +
-                    "lockFile: " + repairLockFileRead() + ", " +
+                    "lockFile: " + repairLockFileManager.repairLockFileRead() + ", " +
                     "need repair: " + needRepair;
             throw new XError("Detected restore from backup, repair needed: " + errInfo);
         }
@@ -2193,8 +2149,7 @@ public class JdxReplWs {
         // ---
         // Убираем отметку "ремонт начат".
         // После этого ремонт считается завершенным.
-        repairLockFileDelete();
-
+        repairLockFileManager.repairLockFileDelete();
 
         //
         log.warn("Restore from backup: repair done");

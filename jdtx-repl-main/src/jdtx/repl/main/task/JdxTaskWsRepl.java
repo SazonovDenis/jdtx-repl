@@ -2,6 +2,7 @@ package jdtx.repl.main.task;
 
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.mailer.*;
+import jdtx.repl.main.api.repair.*;
 import org.apache.commons.logging.*;
 
 /**
@@ -46,9 +47,10 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
             logInfo("Определение команды ремонта");
             try {
                 JdxRepairInfoManager repairInfoManager = new JdxRepairInfoManager(mailer);
-                String allowedRepairGuid = repairInfoManager.getAllowedRepairGuid();
+                JdxRepairLockFileManager repairLockFileManager = new JdxRepairLockFileManager(ws.getDataRoot());
                 //
-                String wsRepairGuid = ws.repairLockFileGiud();
+                String allowedRepairGuid = repairInfoManager.getAllowedRepairGuid();
+                String wsRepairGuid = repairLockFileManager.repairLockFileGiud();
                 //
                 if (wsRepairGuid != null && wsRepairGuid.equalsIgnoreCase(allowedRepairGuid)) {
                     logInfo("Получена команда ремонта");
