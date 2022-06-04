@@ -19,15 +19,16 @@ public class JdxRepairInfoManager_Test extends DbPrepareEtalon_Test {
 
     @Test
     public void setDataRepairInfo() throws Exception {
-        JdxReplWs ws = new JdxReplWs(db2);
-        ws.init();
-        IMailer mailer = ws.getMailer();
+        JdxReplWs ws2 = new JdxReplWs(db2);
+        ws2.init();
+        IMailer mailer = ws2.getMailer();
 
         //
         System.out.println();
 
         //
         JdxRepairInfoManager repairInfoManager = new JdxRepairInfoManager(mailer);
+
 
         //
         String allowedRepairGuid = repairInfoManager.getAllowedRepairGuid();
@@ -41,6 +42,9 @@ public class JdxRepairInfoManager_Test extends DbPrepareEtalon_Test {
         String guid_0 = (new RandomString(12345)).nextHexStr(16);
         String guid_1 = (new RandomString(67890)).nextHexStr(16);
         assertEquals(false, guid_1.equalsIgnoreCase(guid_0));
+
+        //
+        repairInfoManager.setRequestRepair(guid_1);
 
         //
         repairInfoManager.setRepairAllowed(guid_0);

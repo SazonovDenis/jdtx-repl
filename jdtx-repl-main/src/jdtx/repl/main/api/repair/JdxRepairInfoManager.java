@@ -2,6 +2,7 @@ package jdtx.repl.main.api.repair;
 
 import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.mailer.*;
+import org.joda.time.*;
 import org.json.simple.*;
 
 import java.util.*;
@@ -22,6 +23,7 @@ public class JdxRepairInfoManager {
     public void setRequestRepair(String repairGuid) throws Exception {
         Map repairInfo = new HashMap();
         repairInfo.put("guid", repairGuid);
+        repairInfo.put("dt", new DateTime());
         mailer.setData(repairInfo, "repair.info", null);
     }
 
@@ -40,8 +42,9 @@ public class JdxRepairInfoManager {
      */
     public void setRepairAllowed(String repairGuid) throws Exception {
         Map repairInfo = new HashMap();
-        repairInfo.put("repair", true);
+        repairInfo.put("allowed", true);
         repairInfo.put("guid", repairGuid);
+        repairInfo.put("dt", new DateTime());
         mailer.setData(repairInfo, "repair.info", null);
     }
 
@@ -53,7 +56,7 @@ public class JdxRepairInfoManager {
     public String getAllowedRepairGuid() throws Exception {
         JSONObject repairInfo = mailer.getData("repair.info", null);
         JSONObject repairData = (JSONObject) repairInfo.get("data");
-        boolean doRepair = UtJdxData.booleanValueOf(repairData.get("repair"), false);
+        boolean doRepair = UtJdxData.booleanValueOf(repairData.get("allowed"), false);
         String srvRepairGuid = UtJdxData.stringValueOf(repairData.get("guid"), null);
         if (doRepair) {
             return srvRepairGuid;
