@@ -10,11 +10,15 @@ public class UtJdxErrors {
         return errText;
     }
 
+    public static String message_replicaNotFound = "Replica not found";
     public static String message_replicaBadCrc = "replica.file.crc <> replica.info.crc";
     public static String message_replicaFileNotExists = "replica.file not exists";
     public static String message_replicaNotFoundContent = "Not found content in replica";
-    public static String message_replicaNotFound = "Replica not found";
     public static String message_replicaZipError = "ZipException: invalid stored block lengths";
+
+    public static boolean errorIs_MailerReplicaNotFound(Exception e) {
+        return collectExceptionText(e).contains(message_replicaNotFound);
+    }
 
     public static boolean errorIs_replicaBadCrc(Exception e) {
         return collectExceptionText(e).contains(message_replicaBadCrc);
@@ -24,16 +28,20 @@ public class UtJdxErrors {
         return collectExceptionText(e).contains(message_replicaFileNotExists);
     }
 
-    public static boolean errorIs_replicaNotFoundContent(Exception e) {
+    public static boolean errorIs_replicaFileNotFoundContent(Exception e) {
         return collectExceptionText(e).contains(message_replicaNotFoundContent);
     }
 
-    public static boolean errorIs_MailerReplicaNotFound(Exception e) {
-        return collectExceptionText(e).contains(message_replicaNotFound);
+    public static boolean errorIs_replicaFileZipError(Exception e) {
+        return collectExceptionText(e).contains(message_replicaZipError);
     }
 
-    public static boolean errorIs_replicaZipError(Exception e) {
-        return collectExceptionText(e).contains(message_replicaZipError);
+    public static boolean errorIs_replicaFile(Exception e) {
+        return (errorIs_replicaBadCrc(e) ||
+                errorIs_replicaFileNotExists(e) ||
+                errorIs_replicaFileNotFoundContent(e) ||
+                errorIs_replicaFileZipError(e)
+        );
     }
 
 }

@@ -265,10 +265,12 @@ public class UtMail {
         log.warn("Need repair marked, que: " + que.getQueName() + ", box: " + box + ", noQueSendMarked: " + noQueSendMarked + ", noQueSendSrv: " + noQueSendSrv);
 
         //
-        if (noQueSendMarked > noQueSendSrv) {
-            // Отметка опережает сервер
+        if (noQueSendMarked > noQueSendSrv && noQueSendSrv != 0) {
+            // Отметка опережает сервер (а сервер уже какое то время работал)
             throw new XError("Unable to repair marked, noQueSendMarked > noQueSendSrv");
-        } else if (noQueSendMarked == (noQueSendSrv - 1)) {
+        }
+
+        if (noQueSendMarked == (noQueSendSrv - 1)) {
             // Помеченное (noQueSendMarked) на 1 меньше отправленного (noQueSendSrv)
             // Сравним CRC реплик: в своей очереди и последнего отправленнного письма на сервере.
 
@@ -295,6 +297,8 @@ public class UtMail {
         } else {
             // Отметка noQueSendMarked сильно отстает от сервера noQueSendSrv.
             // В отличие от процедуры ремонта repairAfterBackupRestore тут не передвигаем вперед.
+
+            // Это ошибка, не чинится
             throw new XError("Unable to repair marked, noQueSendMarked < noQueSendSrv");
         }
     }

@@ -62,9 +62,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     public Map<String, String> expectedEqual_filterLic = [
             "USRLOG"         : "NYN",
-            "PAWNCHIT"       : "NNN",
-            "PAWNCHITSUBJECT": "NNN",
-            "COMMENTTEXT"    : "NYN",
+            "PAWNCHIT"       : "N?N",
+            "PAWNCHITSUBJECT": "N?N",
+            "COMMENTTEXT"    : "N?N",
             "COMMENTTIP"     : "NNN",
             "LIC"            : "NNN",
             "LICDOCVID"      : "NNN",
@@ -134,8 +134,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_AllHttp()
 
         //
-        compareDb(db, db2, expectedEqual_noFilter)
-        compareDb(db, db3, expectedEqual_noFilter)
+        compareDb(db, db2, equalExpected)
+        compareDb(db, db3, equalExpected)
         do_DumpTables(db, db2, db3, struct, struct2, struct3)
     }
 
@@ -148,7 +148,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         cfg_json_decode = "../install/cfg/decode_strategy_194.json"
         cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json"
         cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json"
-        equalExpected = expectedEqual_filterLic;
+        equalExpected = expectedEqual_filterLic
 
         // Создание репликации, прогон тестов
         test_allSetUp_TestAll()
@@ -162,7 +162,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         cfg_json_decode = "../install/cfg/decode_strategy_194.json"
         cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json"
         cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json"
-        equalExpected = expectedEqual_filterLic;
+        equalExpected = expectedEqual_filterLic
 
         // Прогон тестов
         test_AllHttp()

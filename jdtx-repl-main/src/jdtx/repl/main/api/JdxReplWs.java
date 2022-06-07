@@ -616,13 +616,32 @@ public class JdxReplWs {
                 // Пробуем применить реплику
                 replicaUseResult = useReplicaInternal(replica, forceUse);
             } catch (Exception e) {
-                //
-                log.error("handleQue: " + e.getMessage());
-                // Пробуем что-то сделать с проблемой применения реплики
-                UtRepl ut = new UtRepl(db, struct);
-                ut.handleError_BadReplica(que, no, mailer, e);
-                //
+                if (UtJdxErrors.errorIs_replicaFile(e)) {
+                log.error("handleQue, error: " + e.getMessage());
+
+                    // Запросим реплику и починим очередь, когда дождемся ответа
+                    String box;
+                    switch (queName) {
+                        case UtQue.QUE_IN:
+                            box = "to";
                 break;
+                        case UtQue.QUE_IN001:
+                            box = "to001";
+                            break;
+                        default:
+                            throw new XError("handleQue, unknown mailer.box for que.name: " + queName);
+                    }
+                    IReplica replicaNew = UtRepl.requestReplica(mailer, box, no, RequiredInfo.EXECUTOR_SRV);
+
+                    // Обновим "битую" реплику в очереди - заменим на нормальную
+                    que.remove(no);
+                    que.put(replicaNew, no);
+
+                    // Ждем следующего цикла, а пока - ошибка
+                    throw new XError("handleQue, requestReplica done, wait for next iteration, queName: " + queName + ", replica.no: " + no);
+                } else {
+                    throw e;
+                }
             }
 
             if (replicaUseResult.replicaUsed) {

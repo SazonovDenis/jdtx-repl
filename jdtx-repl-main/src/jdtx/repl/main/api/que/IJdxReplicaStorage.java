@@ -13,6 +13,12 @@ public interface IJdxReplicaStorage {
     void put(IReplica replica, long no) throws Exception;
 
     /**
+     * Удалить из хранилища по номеру
+     * @param no Номер удаляемой реплики
+     */
+    void remove(long no) throws Exception;
+
+    /**
      * @param no Номер реплики
      * @return Реплика по номеру
      */

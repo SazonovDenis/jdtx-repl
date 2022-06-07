@@ -559,7 +559,7 @@ public class JdxReplSrv {
     public void srvHandleQueIn() throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
         for (long wsId : mailerList.keySet()) {
-            IMailer mailer = mailerList.get(wsId);
+            IMailer mailerWs = mailerList.get(wsId);
             IJdxQue queInSrv = queInList.get(wsId);
 
             // Обрабатываем каждую станцию
@@ -568,7 +568,7 @@ public class JdxReplSrv {
 
                 //
                 long queDoneNo = stateManager.getWsQueInNoReceived(wsId);
-                long mailMaxNo = mailer.getBoxState("from");
+                long mailMaxNo = mailerWs.getBoxState("from");
 
                 //
                 long count = 0;
@@ -576,7 +576,7 @@ public class JdxReplSrv {
                     log.info("receive, wsId: " + wsId + ", receiving.no: " + no);
 
                     // Физически забираем данные с почтового сервера
-                    IReplica replica = mailer.receive("from", no);
+                    IReplica replica = mailerWs.receive("from", no);
 
                     // Читаем поля заголовка
                     JdxReplicaReaderXml.readReplicaInfo(replica);
@@ -598,7 +598,7 @@ public class JdxReplSrv {
                     }
 
                     // Удаляем с почтового сервера
-                    mailer.delete("from", no);
+                    mailerWs.delete("from", no);
 
                     //
                     count++;
@@ -606,7 +606,7 @@ public class JdxReplSrv {
 
 
                 // Отметить попытку чтения (для отслеживания активности сервера, когда нет данных для реальной передачи)
-                mailer.setData(null, "ping.read", "from");
+                mailerWs.setData(null, "ping.read", "from");
 
 
                 //
@@ -633,7 +633,7 @@ public class JdxReplSrv {
     public void srvHandleCommonQue() throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
         for (long wsId : queInList.keySet()) {
-            IJdxQue queIn = queInList.get(wsId);
+            IJdxQue queInSrv = queInList.get(wsId);
 
             // Обрабатываем каждую станцию
             try {
@@ -641,24 +641,25 @@ public class JdxReplSrv {
 
                 //
                 long queDoneNo = stateManager.getWsQueInNoDone(wsId);
-                long queMaxNo = queIn.getMaxNo();
+                long queMaxNo = queInSrv.getMaxNo();
 
                 //
                 long count = 0;
                 for (long no = queDoneNo + 1; no <= queMaxNo; no++) {
-                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", queIn.no: " + no);
+                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", queInSrv.no: " + no);
 
 
                     // Помещаем полученные данные в общую очередь
                     db.startTran();
+                    IReplica replica = null;
                     try {
-                        // Берем реплику из входящей очереди queIn
-                        IReplica replica = queIn.get(no);
+                        // Берем реплику из входящей очереди queInSrv
+                        replica = queInSrv.get(no);
 
                         // Помещаем в очередь queCommon
                         long queCommonNo = queCommon.push(replica);
 
-                        // Отмечаем
+                        // Отмечаем, что реплика обработана
                         stateManager.setWsQueInNoDone(wsId, no);
 
                         // Станция прислала отчет об изменении своего состояния - отмечаем состояние станции в серверных таблицах
@@ -676,7 +677,24 @@ public class JdxReplSrv {
                         db.commit();
                     } catch (Exception e) {
                         db.rollback();
-                        throw e;
+
+                        //
+                        if (UtJdxErrors.errorIs_replicaFile(e)) {
+                        // Пробуем что-то сделать с проблемой реплики в очереди
+                            log.error("srvHandleCommonQue, error: " + e.getMessage());
+
+                            // Запросим реплику и починим очередь, когда дождемся ответа
+                            IReplica replicaNew = UtRepl.requestReplica(mailerList.get(wsId), "from", no, RequiredInfo.EXECUTOR_WS);
+
+                            // Обновим "битую" реплику в очереди - заменим на нормальную
+                            queInSrv.remove(no);
+                            queInSrv.put(replicaNew, no);
+
+                            // Ждем следующего цикла, а пока - ошибка
+                            throw new XError("srvHandleCommonQue, requestReplica done, wait for next iteration, queName: " + queInSrv.getQueName() + " , replica.no: " + no);
+                        } else {
+                            throw e;
+                        }
                     }
 
                     //
@@ -758,18 +776,30 @@ public class JdxReplSrv {
                         replicaForWs = filter.convertReplicaForWs(replica, publicationRule);
 
                     } catch (Exception e) {
-                        // Пробуем что-то сделать с проблемой реплики в очереди
-                        IMailer mailer = mailerList.get(wsId);
-                        UtRepl ut = new UtRepl(db, struct);
-                        ut.handleError_BadReplica(queCommon, no, mailer, e);
+
+                        if (UtJdxErrors.errorIs_replicaFile(e)) {
                         //
+                        log.error("srvReplicasDispatch, error: " + e.getMessage());
+                        // Пробуем что-то сделать с проблемой реплики в очереди
+                            /* todo С номерами реплики из queCommon не все так просто -
+                                невозможно просто запросить у queCommon нет прямого соттветствия для ящика,
+                                тут нужно выяснить, какая станция отвечает,
+                                ктоме того, иногда реплики физически находятся в Common, а иногда - в queInSrv
+                        IMailer mailerWs = mailerList.get(wsId);
+                        UtRepl ut = new UtRepl(db, struct);
+                        ut.handleError_BadReplica(queCommon, no, mailerWs, e);
+                            */
+                        // А пока - ошибка
                         String replicaInfo;
                         if (replica != null) {
                             replicaInfo = "replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", replica.no: " + replica.getInfo().getNo();
                         } else {
                             replicaInfo = "no replica.info";
                         }
-                        throw new XError("queCommon.no: " + no + ", " + replicaInfo + ", error: " + e.getMessage());
+                        throw new XError("srvReplicasDispatch, queCommon.no: " + no + ", " + replicaInfo + ", error: " + e.getMessage());
+                        } else {
+                            throw e;
+                        }
                     }
 
                     //
