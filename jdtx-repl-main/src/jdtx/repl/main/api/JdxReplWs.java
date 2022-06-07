@@ -1949,7 +1949,7 @@ public class JdxReplWs {
 
 
         // ---
-        // Убедимся, что в queIn есть все наши СОБСТВЕННЫЕ (исходящие) реплики до возраста, который мы ранее (до сбоя) отправили на сервер (это noQueOutSendSrv).
+        // Убедимся, что в queIn есть все наши СОБСТВЕННЫЕ (исходящие) реплики до того возраста, который мы ранее (до сбоя) отправили на сервер (это noQueOutSendSrv).
         boolean needWait_noQueOutSendSrv;
         long no0 = queIn.getMaxNo();
         while (true) {

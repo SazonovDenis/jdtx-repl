@@ -64,7 +64,7 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
             }
 
             //
-            logInfo("Рабочая станция прервана");
+            //logInfo("Рабочая станция прервана");
             return;
         }
 
