@@ -114,7 +114,7 @@ public abstract class JdxQueOutSrv extends JdxQue implements IJdxQue {
         String sql = "select * " + sqlFromWhere + " and destination_id = " + no;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("id") == 0) {
-            throw new XError(message_replicaNotFound + ", queName: " + queName + ", no: " + no + ", this.destinationWsId: " + this.destinationWsId);
+            throw new XError(message_replicaRecordNotFound + ", queName: " + queName + ", no: " + no + ", this.destinationWsId: " + this.destinationWsId);
         }
         return rec;
     }

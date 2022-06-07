@@ -89,7 +89,7 @@ public class JdxQueInSrv extends JdxQue {
         String sql = "select * " + sqlFromWhere + " and author_id = " + no;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("id") == 0) {
-            throw new XError(message_replicaNotFound + ", queName: " + queName + ", no: " + no + ", this.authorWsId: " + this.authorWsId);
+            throw new XError(message_replicaRecordNotFound + ", queName: " + queName + ", no: " + no + ", this.authorWsId: " + this.authorWsId);
         }
         return rec;
     }

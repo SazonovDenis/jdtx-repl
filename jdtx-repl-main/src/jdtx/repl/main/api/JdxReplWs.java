@@ -619,7 +619,7 @@ public class JdxReplWs {
                 if (UtJdxErrors.errorIs_replicaFile(e)) {
                 log.error("handleQue, error: " + e.getMessage());
 
-                    // Запросим реплику и починим очередь, когда дождемся ответа
+                    // По имени очереди выясним, какой ящик ответит нам за реплику
                     String box;
                     switch (queName) {
                         case UtQue.QUE_IN:
@@ -631,6 +631,8 @@ public class JdxReplWs {
                         default:
                             throw new XError("handleQue, unknown mailer.box for que.name: " + queName);
                     }
+
+                    // Запросим реплику и починим очередь, когда дождемся ответа
                     IReplica replicaNew = UtRepl.requestReplica(mailer, box, no, RequiredInfo.EXECUTOR_SRV);
 
                     // Обновим "битую" реплику в очереди - заменим на нормальную
@@ -1220,7 +1222,7 @@ public class JdxReplWs {
         // Проверим crc реплики
         if (!isReplicaSelfSnapshot(replica.getInfo())) {
             if (!replica.getData().exists()) {
-                throw new XError("useReplicaInternal: " + UtJdxErrors.message_replicaFileNotExists);
+                throw new XError("useReplicaInternal: " + UtJdxErrors.message_replicaDataFileNotExists);
             }
             //
             String crcFile = UtJdx.getMd5File(replica.getData());

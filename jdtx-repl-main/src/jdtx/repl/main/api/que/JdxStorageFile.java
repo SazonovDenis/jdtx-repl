@@ -134,8 +134,11 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
 
     @Override
     public void remove(long no) throws Exception {
+        log.info("Remove replica from storage, no: " + no + ", baseDir: " + baseDir);
+        //
         String actualFileName = JdxStorageFile.getFileName(no);
         File actualFile = new File(baseDir + actualFileName);
+        //
         if (actualFile.exists() && !actualFile.delete()) {
             throw new XError("Unable to remove replica: " + actualFile.getAbsolutePath());
         }

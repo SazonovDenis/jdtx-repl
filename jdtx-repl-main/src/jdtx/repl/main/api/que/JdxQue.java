@@ -166,7 +166,7 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
         String sql = "select * from " + queTableName + " where id = " + no;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("id") == 0) {
-            throw new XError(message_replicaNotFound + ", queName: " + queName + ", no: " + no);
+            throw new XError(message_replicaRecordNotFound + ", queName: " + queName + ", no: " + no);
         }
         return rec;
     }

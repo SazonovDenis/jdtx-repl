@@ -1044,7 +1044,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
             //
             return replica;
         } catch (Exception exceptionMail) {
-            if (UtJdxErrors.errorIs_MailerReplicaNotFound(exceptionMail)) {
+            if (UtJdxErrors.errorIs_replicaMailNotFound(exceptionMail)) {
                 log.info("requestReplica, try request replica: " + no + ", box: " + box + ", executor: " + executor);
 
                 // Реплику еще не просили - попросим прислать
@@ -1061,76 +1061,6 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
             } else {
                 throw exceptionMail;
             }
-        }
-    }
-
-    public void handleError_BadReplica(IJdxQue que, long no, IMailer mailer, Exception exceptionUse) throws Exception {
-        if (UtJdxErrors.errorIs_replicaBadCrc(exceptionUse) ||
-                UtJdxErrors.errorIs_replicaFileNotExists(exceptionUse) ||
-                UtJdxErrors.errorIs_replicaNotFoundContent(exceptionUse) ||
-                UtJdxErrors.errorIs_replicaZipError(exceptionUse)
-        ) {
-            // Какой ящик ответит нам за реплику?
-            String box;
-            String queName = que.getQueName();
-            switch (queName) {
-                case UtQue.QUE_IN:
-                    box = "to";
-                    break;
-                case UtQue.QUE_IN001:
-                    box = "to001";
-                    break;
-                default:
-                    throw new XError("handleError_BadReplica, unknown mailer.box for que.name: " + queName);
-            }
-
-            try {
-                // Проверим, есть ли такая реплика в ящике (еще осталась или запросили на предыдущем цикле)
-                log.info("handleError_BadReplica, try replica receive, replica.no: " + no + ", box: " + box);
-
-                // Скачиваем
-                IReplica replica = mailer.receive(box, no);
-
-                // Читаем заголовок
-                JdxReplicaReaderXml.readReplicaInfo(replica);
-
-                // Обновим "битую" реплику - заменим на нормальную
-                String actualFileName = JdxStorageFile.getFileName(no);
-                File actualFile = new File(que.getBaseDir() + actualFileName);
-                if (actualFile.exists() && !actualFile.delete()) {
-                    throw new XError("handleError_BadReplica, unable to delete bad replica: " + actualFile.getAbsolutePath());
-                }
-                //
-                que.put(replica, no);
-
-                // Удаляем с почтового сервера
-                mailer.delete(box, no);
-
-                //
-                log.info("handleError_BadReplica, replica receive done");
-                throw new XError("handleError_BadReplica, replica receive done, replica.no: " + no + ", box: " + box);
-            } catch (Exception exceptionMail) {
-                if (UtJdxErrors.errorIs_MailerReplicaNotFound(exceptionMail)) {
-                    log.info("handleError_BadReplica, try request replica: " + no + ", box: " + box);
-
-                    // Реплику еще не просили - попросим прислать
-                    RequiredInfo requiredInfo = new RequiredInfo();
-                    requiredInfo.requiredFrom = no;
-                    requiredInfo.requiredTo = no;
-                    requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
-
-                    // Просим
-                    mailer.setSendRequired(box, requiredInfo);
-
-                    // И ждем, а пока - ошибка
-                    throw new XError("handleError_BadReplica, request done, replica.no: " + no + ", box: " + box);
-                } else {
-                    throw exceptionMail;
-                }
-            }
-
-        } else {
-            throw exceptionUse;
         }
     }
 
