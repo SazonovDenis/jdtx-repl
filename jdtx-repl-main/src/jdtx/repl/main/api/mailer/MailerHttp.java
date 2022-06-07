@@ -133,6 +133,10 @@ public class MailerHttp implements IMailer {
     public void setSendRequired(String box, RequiredInfo requiredInfo) throws Exception {
         log.info("mailer.setSendRequired, box: " + box + ", " + requiredInfo.toString() + ", remoteUrl: " + remoteUrl);
 
+        //
+        validateRequiredInfo(requiredInfo);
+
+        //
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
@@ -152,6 +156,15 @@ public class MailerHttp implements IMailer {
 
         //
         parseHttpResponse(response);
+    }
+
+    private void validateRequiredInfo(RequiredInfo requiredInfo) {
+        if (requiredInfo.requiredFrom != -1 && requiredInfo.executor == null) {
+            throw new XError("requiredInfo.executor == null");
+        }
+        if (requiredInfo.requiredTo != -1 && requiredInfo.requiredTo > requiredInfo.requiredFrom) {
+            throw new XError("requiredInfo.requiredTo > requiredInfo.requiredFrom");
+        }
     }
 
     @Override
