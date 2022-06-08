@@ -162,7 +162,7 @@ public class MailerHttp implements IMailer {
         if (requiredInfo.requiredFrom != -1 && requiredInfo.executor == null) {
             throw new XError("requiredInfo.executor == null");
         }
-        if (requiredInfo.requiredTo != -1 && requiredInfo.requiredTo > requiredInfo.requiredFrom) {
+        if (requiredInfo.requiredTo != -1 && requiredInfo.requiredFrom > requiredInfo.requiredTo) {
             throw new XError("requiredInfo.requiredTo > requiredInfo.requiredFrom");
         }
     }
