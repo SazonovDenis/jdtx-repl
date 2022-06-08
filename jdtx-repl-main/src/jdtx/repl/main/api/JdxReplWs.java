@@ -1908,24 +1908,36 @@ public class JdxReplWs {
 
         // Ситуация: noQueIn001 < noQueInDir001
         // Берем входящие реплики из каталога, кладем их в свою входящую очередь (потом они будут использованы).
+        try {
         if (noQueIn001 < noQueIn001Dir) {
             repairQueByDir(queIn001, noQueIn001, noQueIn001Dir);
+        }
+        } catch (Exception e) {
+            log.error("repairQueByDir: queIn001, error: " + e.getMessage());
         }
         // Теперь входная очередь QueIn001 такая
         noQueIn001 = queIn001.getMaxNo();
 
         // Ситуация: noQueIn < noQueInDir
         // Берем входящие реплики из каталога, кладем их в свою входящую очередь (потом они будут использованы).
+        try {
         if (noQueIn < noQueInDir) {
             repairQueByDir(queIn, noQueIn, noQueInDir);
+        }
+        } catch (Exception e) {
+            log.error("repairQueByDir: queIn, error: " + e.getMessage());
         }
         // Теперь входная очередь QueIn такая
         noQueIn = queIn.getMaxNo();
 
         // Ситуация: noQueOut < noQueOutDir
         // Берем исходящие реплики из каталога, кладем их в свою исходящую очередь.
+        try {
         if (noQueOut < noQueOutDir) {
             repairQueByDir(queOut, noQueOut, noQueOutDir);
+        }
+        } catch (Exception e) {
+            log.error("repairQueByDir: queOut, error: " + e.getMessage());
         }
         // Теперь исходящая очередь такая
         noQueOut = queOut.getMaxNo();
