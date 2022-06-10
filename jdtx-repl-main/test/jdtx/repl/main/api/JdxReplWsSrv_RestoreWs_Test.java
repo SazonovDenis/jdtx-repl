@@ -4,6 +4,7 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.repair.*;
+import jdtx.repl.main.task.*;
 import org.apache.commons.io.*;
 import org.junit.*;
 
@@ -86,7 +87,6 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         JdxReplWs ws = new JdxReplWs(db);
         ws.init();
         //
-        JdxRepairInfoManager repairInfoManager = new JdxRepairInfoManager(ws.getMailer());
         JdxRepairLockFileManager repairLockFileManager = new JdxRepairLockFileManager(ws.getDataRoot());
 
         // Если рабочая станция обнаружила проблему - то она сформирует giud ремонта
@@ -97,6 +97,7 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         assertEquals(true, wsRepairGuid.length() > 0);
 
         //
+        JdxRepairInfoManager repairInfoManager = new JdxRepairInfoManager(ws.getMailer());
         repairInfoManager.setRepairAllowed(wsRepairGuid);
     }
 

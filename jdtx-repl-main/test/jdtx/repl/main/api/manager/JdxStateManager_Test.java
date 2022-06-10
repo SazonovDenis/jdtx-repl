@@ -106,31 +106,31 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_StateManagerMailWs() throws Exception {
-        JdxMailStateManagerWs stateMailManager = new JdxMailStateManagerWs(db);
+        JdxMailSendStateManagerWs mailStateManager = new JdxMailSendStateManagerWs(db);
 
         //
-        System.out.println("mailSendDone: " + stateMailManager.getMailSendDone());
-        System.out.println("mailSendDone: " + stateMailManager.getMailSendDone());
-        System.out.println("mailSendDone: " + stateMailManager.getMailSendDone());
+        System.out.println("mailSendDone: " + mailStateManager.getMailSendDone());
+        System.out.println("mailSendDone: " + mailStateManager.getMailSendDone());
+        System.out.println("mailSendDone: " + mailStateManager.getMailSendDone());
 
         // ---
-        stateMailManager.setMailSendDone(720);
-        stateMailManager.setMailSendDone(730);
-        stateMailManager.setMailSendDone(740);
+        mailStateManager.setMailSendDone(720);
+        mailStateManager.setMailSendDone(730);
+        mailStateManager.setMailSendDone(740);
 
         //
-        System.out.println("mailSendDone: " + stateMailManager.getMailSendDone());
-        System.out.println("mailSendDone: " + stateMailManager.getMailSendDone());
-        System.out.println("mailSendDone: " + stateMailManager.getMailSendDone());
+        System.out.println("mailSendDone: " + mailStateManager.getMailSendDone());
+        System.out.println("mailSendDone: " + mailStateManager.getMailSendDone());
+        System.out.println("mailSendDone: " + mailStateManager.getMailSendDone());
 
         // ---
-        stateMailManager.setMailSendDone(701);
-        stateMailManager.setMailSendDone(701);
+        mailStateManager.setMailSendDone(701);
+        mailStateManager.setMailSendDone(701);
 
         //
-        System.out.println("mailSendDone: " + stateMailManager.getMailSendDone());
-        System.out.println("mailSendDone: " + stateMailManager.getMailSendDone());
-        System.out.println("mailSendDone: " + stateMailManager.getMailSendDone());
+        System.out.println("mailSendDone: " + mailStateManager.getMailSendDone());
+        System.out.println("mailSendDone: " + mailStateManager.getMailSendDone());
+        System.out.println("mailSendDone: " + mailStateManager.getMailSendDone());
     }
 
 
