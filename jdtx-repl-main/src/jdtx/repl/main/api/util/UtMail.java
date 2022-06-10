@@ -20,7 +20,7 @@ public class UtMail {
      * Передача того, что не еще передано
      * из очереди que через mailer в ящик box
      */
-    public static void sendQueToMail_State(long wsId, IJdxQue que, IMailer mailer, String box, IJdxMailStateManager mailStateManager) throws Exception {
+    public static void sendQueToMail_State(long wsId, IJdxQue que, IMailer mailer, String box, IJdxMailSendStateManager mailStateManager) throws Exception {
         log.debug("sendQueToMail_State, wsId: " + wsId + ", que: " + que.getQueName() + ", box: " + box);
 
         // Выясняем объем передачи
@@ -118,7 +118,7 @@ public class UtMail {
     /**
      * Передача списка реплик replicasToSend через mailer в ящик box
      */
-    private static void sendReplicasToMail(MailSendTask sendTask, MailSendInfo sendInfo, Map<Long, IReplica> replicasToSend, long wsId, IMailer mailer, String box, IJdxMailStateManager mailStateManager) throws Exception {
+    private static void sendReplicasToMail(MailSendTask sendTask, MailSendInfo sendInfo, Map<Long, IReplica> replicasToSend, long wsId, IMailer mailer, String box, IJdxMailSendStateManager mailStateManager) throws Exception {
         log.info("sendReplicasToMail, destination wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask + ", count: " + replicasToSend.size());
 
         // Передаем
@@ -177,7 +177,7 @@ public class UtMail {
     /**
      * Выясняем объем передачи по требованию
      */
-    public static MailSendTask getRequiredSendTask(IJdxMailStateManager mailStateManager, RequiredInfo requiredInfo, String currentExecutor) throws Exception {
+    public static MailSendTask getRequiredSendTask(IJdxMailSendStateManager mailStateManager, RequiredInfo requiredInfo, String currentExecutor) throws Exception {
         log.info("Required: " + requiredInfo);
 
         // НЕ попросили повторную отправку
@@ -222,7 +222,7 @@ public class UtMail {
     /**
      * Выясняем объем передач, по состоянию очереди
      */
-    private static MailSendTask getSendTask_State(IJdxQue que, IMailer mailer, String box, IJdxMailStateManager mailStateManager, MailSendInfo sendInfo) throws Exception {
+    private static MailSendTask getSendTask_State(IJdxQue que, IMailer mailer, String box, IJdxMailSendStateManager mailStateManager, MailSendInfo sendInfo) throws Exception {
         MailSendTask sendTask = new MailSendTask();
         sendTask.required = false;
 
@@ -251,7 +251,7 @@ public class UtMail {
      * Защита от ситуации "восстановление БД из бэкапа", а также
      * защита от ситуации "после переноса рабочей станции на старом компьютере проснулась старая копия рабочей станции"
      */
-    public static void repairSendTaskBySrvState(long noQueSendMarked, IJdxQue que, IMailer mailer, String box, IJdxMailStateManager mailStateManager) throws Exception {
+    public static void repairSendTaskBySrvState(long noQueSendMarked, IJdxQue que, IMailer mailer, String box, IJdxMailSendStateManager mailStateManager) throws Exception {
         // Сколько реплик фактически отправлено на сервер (спросим у почтового сервера)
         long noQueSendSrv = mailer.getSendDone(box);
 

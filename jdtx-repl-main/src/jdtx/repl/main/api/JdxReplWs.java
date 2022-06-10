@@ -838,7 +838,7 @@ public class JdxReplWs {
                 }
 
                 // --- MAIL_SEND_DONE
-                JdxMailStateManagerWs mailStateManagerWs = new JdxMailStateManagerWs(db);
+                JdxMailSendStateManagerWs mailStateManagerWs = new JdxMailSendStateManagerWs(db);
                 long mailSendDoneNow = mailStateManagerWs.getMailSendDone();
                 if (wsState.MAIL_SEND_DONE > mailSendDoneNow) {
                     mailStateManagerWs.setMailSendDone(wsState.MAIL_SEND_DONE);
@@ -1445,9 +1445,9 @@ public class JdxReplWs {
     }
 
 
-    IReplica receiveInternalStep(IMailer mailer, String boxName, long no, IJdxReplicaQue que) throws Exception {
+    IReplica receiveInternalStep(IMailer mailer, String box, long no, IJdxReplicaQue que) throws Exception {
         // Физически забираем данные реплики с сервера
-        IReplica replica = mailer.receive(boxName, no);
+        IReplica replica = mailer.receive(box, no);
 
         // Читаем заголовок
         JdxReplicaReaderXml.readReplicaInfo(replica);
@@ -1456,7 +1456,7 @@ public class JdxReplWs {
         que.push(replica);
 
         // Удаляем с почтового сервера
-        mailer.delete(boxName, no);
+        mailer.delete(box, no);
 
         //
         return replica;
@@ -1570,7 +1570,7 @@ public class JdxReplWs {
      * Отправка реплик с рабочей станции, штатная
      */
     public void replicasSend() throws Exception {
-        JdxMailStateManagerWs stateManager = new JdxMailStateManagerWs(db);
+        JdxMailSendStateManagerWs stateManager = new JdxMailSendStateManagerWs(db);
         UtMail.sendQueToMail_State(wsId, queOut, mailer, "from", stateManager);
     }
 
@@ -1582,7 +1582,7 @@ public class JdxReplWs {
     public void replicasSend_Required() throws Exception {
         String box = "from";
         // Выясняем, что запросили передать
-        IJdxMailStateManager mailStateManager = new JdxMailStateManagerSrv(db, wsId, UtQue.QUE_OUT);
+        IJdxMailSendStateManager mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.QUE_OUT);
         RequiredInfo requiredInfo = mailer.getSendRequired(box);
         MailSendTask sendTask = UtMail.getRequiredSendTask(mailStateManager, requiredInfo, RequiredInfo.EXECUTOR_WS);
 
@@ -1605,7 +1605,7 @@ public class JdxReplWs {
         //
         UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-        JdxMailStateManagerWs stateMailManager = new JdxMailStateManagerWs(db);
+        JdxMailSendStateManagerWs stateMailManager = new JdxMailSendStateManagerWs(db);
         JdxMuteManagerWs utmm = new JdxMuteManagerWs(db);
 
         //
@@ -1766,7 +1766,7 @@ public class JdxReplWs {
         // Отметки
 
         // Сколько исходящих реплик отмечено как отправленое на сервер
-        JdxMailStateManagerWs mailStateManager = new JdxMailStateManagerWs(db);
+        JdxMailSendStateManagerWs mailStateManager = new JdxMailSendStateManagerWs(db);
         long noQueOutSendMarked = mailStateManager.getMailSendDone();
 
         // До какого возраста обработана очередь QueIn

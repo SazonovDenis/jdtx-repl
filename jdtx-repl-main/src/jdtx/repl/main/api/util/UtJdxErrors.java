@@ -42,6 +42,9 @@ public class UtJdxErrors {
         return collectExceptionText(e).contains(message_replicaNotFoundContent);
     }
 
+    /**
+     * @return true, если физическая проблема с файлом
+     */
     public static boolean errorIs_replicaFile(Exception e) {
         return (errorIs_replicaFileNotFound(e) ||
                 errorIs_replicaFileNotExists(e) ||

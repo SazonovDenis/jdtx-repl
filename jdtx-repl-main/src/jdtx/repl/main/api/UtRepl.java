@@ -1028,9 +1028,9 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
     }
 
     public static IReplica requestReplica(IMailer mailer, String box, long no, String executor) throws Exception {
-        // Проверим, есть ли такая реплика в ящике (еще осталась или запросили на предыдущем цикле)
         log.info("requestReplica, try replica receive, replica.no: " + no + ", box: " + box + ", executor: " + executor);
 
+        // Проверим, есть ли такая реплика в ящике (еще осталась или запросили на предыдущем цикле)
         try {
             // Скачиваем
             IReplica replica = mailer.receive(box, no);

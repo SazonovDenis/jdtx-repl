@@ -8,11 +8,11 @@ import jdtx.repl.main.api.util.*;
  * Состояние почты: отметка, насколько отправлена почта - рабочая станция.
  * Реализация для рабочей станции отмечает только свою очередь out.
  */
-public class JdxMailStateManagerWs implements IJdxMailStateManager {
+public class JdxMailSendStateManagerWs implements IJdxMailSendStateManager {
 
     private Db db;
 
-    public JdxMailStateManagerWs(Db db) {
+    public JdxMailSendStateManagerWs(Db db) {
         this.db = db;
     }
 
