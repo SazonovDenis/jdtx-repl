@@ -135,18 +135,20 @@ public class UtMail {
                 mailStateManager.setMailSendDone(no);
             }
 
-            // Двигаем флаг просьбы станции (если просили повторную передачу)
-            if (sendTask.required && no >= sendTask.sendFrom) {
-                RequiredInfo requiredInfo = new RequiredInfo();
-                requiredInfo.requiredFrom = sendTask.sendFrom;
-                requiredInfo.requiredTo = sendTask.sendTo;
-                requiredInfo.recreate = sendTask.recreate;
-                requiredInfo.executor = sendTask.executor;
-                // Двигаем флаг, как будто просили следующую - чтобы после сбоя продолжить с того же места
-                requiredInfo.requiredFrom = no + 1;
-                // Отмечаем на сервере
-                mailer.setSendRequired(box, requiredInfo);
-                log.warn("sendReplicasToMail, move forward sendRequired, no: " + no);
+            // Двигаем вперед запрошенный номер (если просили повторную передачу)
+            if (sendTask.required) {
+                // Двигаем номер так, чтобы он двигался только вперед от sendTask.sendFrom, и чтобы не уехать за sendTask.sendTo
+                if (no >= sendTask.sendFrom && no < sendTask.sendTo) {
+                    RequiredInfo requiredInfo = new RequiredInfo();
+                    // Двигаем номер вперед так, чтобы в случае сбоя продолжить после номера, который уже передали
+                    requiredInfo.requiredFrom = no + 1;
+                    requiredInfo.requiredTo = sendTask.sendTo;
+                    requiredInfo.recreate = sendTask.recreate;
+                    requiredInfo.executor = sendTask.executor;
+                    // Отмечаем на сервере
+                    mailer.setSendRequired(box, requiredInfo);
+                    log.warn("sendReplicasToMail, move forward sendRequired, no: " + no);
+                }
             }
 
             //
