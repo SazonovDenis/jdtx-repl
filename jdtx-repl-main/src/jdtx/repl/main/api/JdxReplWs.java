@@ -1811,8 +1811,15 @@ public class JdxReplWs {
             //needRepair = true;
         }
         if (noQueIn001 < noQueIn001ReadSrv) {
+            // Если отличия только на одно письмо - то проверим, осталась ли само письмо
+            if (noQueIn001 == (noQueIn001ReadSrv - 1) && isReplicaInBox("to001", noQueIn001ReadSrv)) {
+                // Письмо на месте - просто прервалось чтение - не ошибка, возобновим чтение с нужного места
+                log.info("Need repair: noQueIn001 < noQueIn001ReadSrv, noQueIn001: " + noQueIn001 + ", noQueIn001ReadSrv: " + noQueIn001ReadSrv);
+                //needRepair = true;
+            } else {
             log.warn("Need repair: noQueIn001 < noQueIn001ReadSrv, noQueIn001: " + noQueIn001 + ", noQueIn001ReadSrv: " + noQueIn001ReadSrv);
             needRepair = true;
+        }
         }
 
         if (noQueIn != -1 && noQueIn < noQueInDir) {
@@ -1823,12 +1830,19 @@ public class JdxReplWs {
             // Допускается, если не все входящие реплики использованы (noQueIn > noQueInUsed).
             // Это бывает, если прерывается процесс применения реплик.
             // Это не страшно, т.к. при следующем запуске применение возобновится.
-            log.warn("Need repair: noQueIn < noQueInUsed, noQueIn: " + noQueIn + ", noQueInUsed: " + noQueInUsed);
+            log.info("Need repair: noQueIn < noQueInUsed, noQueIn: " + noQueIn + ", noQueInUsed: " + noQueInUsed);
             //needRepair = true;
         }
         if (noQueIn < noQueInReadSrv) {
+            // Если отличия только на одно письмо - то проверим, осталась ли само письмо
+            if (noQueIn == (noQueInReadSrv - 1) && isReplicaInBox("to", noQueInReadSrv)) {
+                // Письмо на месте - просто прервалось чтение - не ошибка, возобновим чтение с нужного места
+                log.info("Need repair: noQueIn < noQueInReadSrv, noQueIn: " + noQueIn + ", noQueInReadSrv: " + noQueInReadSrv);
+                //needRepair = true;
+            } else {
             log.warn("Need repair: noQueIn < noQueInReadSrv, noQueIn: " + noQueIn + ", noQueInReadSrv: " + noQueInReadSrv);
             needRepair = true;
+        }
         }
 
         if (noQueOut < noQueOutDir) {
@@ -2190,6 +2204,19 @@ public class JdxReplWs {
         //
         log.warn("Restore from backup: repair done");
         log.warn("--------------------------------");
+    }
+
+    private boolean isReplicaInBox(String box, long no) throws Exception {
+        try {
+            IReplicaInfo ri = mailer.getReplicaInfo(box, no);
+            return true;
+        } catch (Exception e) {
+            if (UtJdxErrors.errorIs_replicaMailNotFound(e)) {
+                return false;
+            } else {
+                throw e;
+            }
+        }
     }
 
     /**
