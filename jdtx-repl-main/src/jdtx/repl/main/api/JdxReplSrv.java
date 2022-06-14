@@ -618,6 +618,8 @@ public class JdxReplSrv {
 
             } catch (Exception e) {
                 // Ошибка для станции - пропускаем, идем дальше
+                errorCollector.collectError("srvHandleQueIn", e);
+                //
                 log.error("Error in srvHandleQueIn, from.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
                 log.error(Ut.getStackTrace(e));
             }
