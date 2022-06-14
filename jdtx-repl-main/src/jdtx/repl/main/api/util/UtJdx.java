@@ -330,7 +330,7 @@ public class UtJdx {
         }
 
         // Реплика - системная команда?
-        if (JdxReplicaType.isSysReplica(replica.getInfo().getReplicaType())         ) {
+        if (JdxReplicaType.isSysReplica(replica.getInfo().getReplicaType())) {
             // Для системных команд мы не делаем других проверок
             return;
         }
@@ -361,16 +361,16 @@ public class UtJdx {
     }
 
     /**
-     * Проверяет целостность файла в реплике, сравнивая crc самого файла с указанным crc
-     * Выкидывет exception если crc файла не совпадают
+     * Проверяет целостность файла в реплике, сравнивая crc самого файла с указанным crcExpected.
+     * Выкидывет exception если crc файла и crcExpected не совпадают.
      */
-    public static void checkReplicaCrc(IReplica replica, String crc) throws Exception {
+    public static void checkReplicaCrc(IReplica replica, String crcExpected) throws Exception {
         String crcFile = UtJdx.getMd5File(replica.getData());
-        if (!equalCrc(crcFile, crc)) {
+        if (!equalCrc(crcFile, crcExpected)) {
             // Неправильно скачанный файл - удаляем, чтобы потом начать снова
             replica.getData().delete();
             // Ошибка
-            throw new XError("receive.replica.crc <> info.crc, file.crc: " + crcFile + ", crc: " + crc + ", file: " + replica.getData());
+            throw new XError("receive.replica.crc <> info.crc, file.crc: " + crcFile + ", expected.crc: " + crcExpected + ", file: " + replica.getData());
         }
     }
 

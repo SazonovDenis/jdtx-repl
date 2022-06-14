@@ -390,8 +390,8 @@ public class MailerHttp implements IMailer {
         replica.getInfo().fromJSONObject(file_info);
 
         // Проверяем целостность скачанного
-        String crc = (String) file_info.get("crc");
-        UtJdx.checkReplicaCrc(replica, crc);
+        String crcInfo = (String) file_info.get("crc");
+        UtJdx.checkReplicaCrc(replica, crcInfo);
 
         //
         return replica;
