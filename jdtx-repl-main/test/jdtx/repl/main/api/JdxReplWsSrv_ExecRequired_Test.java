@@ -62,6 +62,9 @@ public class JdxReplWsSrv_ExecRequired_Test extends JdxReplWsSrv_Test {
         mailer_ws3.delete("to", 10000);
     }
 
+    /**
+     * Проверяем рассылку по требованию
+     */
     @Test
     public void test_doRequired() throws Exception {
         //
@@ -75,11 +78,11 @@ public class JdxReplWsSrv_ExecRequired_Test extends JdxReplWsSrv_Test {
         long no_ws2_to = mailer_ws2.getSendDone("to");
         System.out.println("ws: " + ws2.getWsId() + ", sendDone from: " + no_ws2_from);
         System.out.println("ws: " + ws2.getWsId() + ", sendDone to: " + no_ws2_to);
-        assertEquals(no_ws2_from, +ws2.queOut.getMaxNo());
-        assertEquals(no_ws2_to, +ws2.queIn.getMaxNo());
+        assertEquals(no_ws2_from, ws2.queOut.getMaxNo());
+        assertEquals(no_ws2_to, ws2.queIn.getMaxNo());
 
         //
-        doRequiredWs(ws2, no_ws2_from, no_ws2_to);
+        doRequiredWs(ws2, no_ws2_from, no_ws2_to, 3);
 
         //
         System.out.println();
@@ -87,7 +90,7 @@ public class JdxReplWsSrv_ExecRequired_Test extends JdxReplWsSrv_Test {
         System.out.println();
 
         //
-        doRequiredWs(ws2, 1, 1);
+        doRequiredWs(ws2, 1, 1, 0);
     }
 
     /**
@@ -212,15 +215,15 @@ public class JdxReplWsSrv_ExecRequired_Test extends JdxReplWsSrv_Test {
         assertEquals(0L, files.get("max"));
     }
 
-    private void doRequiredWs(JdxReplWs ws, long no_from, long no_to) throws Exception {
+    private void doRequiredWs(JdxReplWs ws, long no_box_from, long no_box_to, int count) throws Exception {
         IMailer mailer = ws.getMailer();
 
         //
         System.out.println();
 
         // Проверим, что нет ничего
-        checkBoxEmpty(mailer, "from", no_from);
-        checkBoxEmpty(mailer, "to", no_to);
+        checkBoxEmpty(mailer, "from", no_box_from);
+        checkBoxEmpty(mailer, "to", no_box_to);
         System.out.println();
 
         // Покажем состояние rquired
@@ -236,12 +239,12 @@ public class JdxReplWsSrv_ExecRequired_Test extends JdxReplWsSrv_Test {
 
         //
         RequiredInfo required_from = new RequiredInfo();
-        required_from.requiredFrom = no_from;
-        required_from.requiredTo = no_from;
+        required_from.requiredFrom = no_box_from - count;
+        required_from.requiredTo = no_box_from;
         //
         RequiredInfo required_to = new RequiredInfo();
-        required_to.requiredFrom = no_to;
-        required_to.requiredTo = no_to;
+        required_to.requiredFrom = no_box_to - count;
+        required_to.requiredTo = no_box_to;
 
         // Запросим from со станции ws
         // (правильно)
@@ -275,14 +278,14 @@ public class JdxReplWsSrv_ExecRequired_Test extends JdxReplWsSrv_Test {
         System.out.println();
 
         // Проверим, что в ящиках
-        checkBoxNotEmpty(ws.queOut, mailer, "from", no_from);
-        checkBoxEmpty(mailer, "to", no_to);
+        checkBoxNotEmpty(ws.queOut, mailer, "from", no_box_from);
+        checkBoxEmpty(mailer, "to", no_box_to);
         System.out.println();
 
         //
         cleanMail();
-        checkBoxEmpty(mailer, "from", no_from);
-        checkBoxEmpty(mailer, "to", no_to);
+        checkBoxEmpty(mailer, "from", no_box_from);
+        checkBoxEmpty(mailer, "to", no_box_to);
 
 
         // ---
@@ -320,30 +323,30 @@ public class JdxReplWsSrv_ExecRequired_Test extends JdxReplWsSrv_Test {
         System.out.println();
 
         // Проверим, что в ящиках
-        checkBoxNotEmpty(ws.queOut, mailer, "from", no_from);
-        checkBoxNotEmpty(ws.queIn, mailer, "to", no_to);
+        checkBoxNotEmpty(ws.queOut, mailer, "from", no_box_from);
+        checkBoxNotEmpty(ws.queIn, mailer, "to", no_box_to);
     }
 
     void showRequired() throws Exception {
-        RequiredInfo ws1_from = ws1.getMailer().getSendRequired("from");
-        RequiredInfo ws1_to = ws1.getMailer().getSendRequired("to");
-        RequiredInfo ws1_to001 = ws1.getMailer().getSendRequired("to001");
-        RequiredInfo ws2_from = ws2.getMailer().getSendRequired("from");
-        RequiredInfo ws2_to = ws2.getMailer().getSendRequired("to");
-        RequiredInfo ws2_to001 = ws2.getMailer().getSendRequired("to001");
-        RequiredInfo ws3_from = ws3.getMailer().getSendRequired("from");
-        RequiredInfo ws3_to = ws3.getMailer().getSendRequired("to");
-        RequiredInfo ws3_to001 = ws3.getMailer().getSendRequired("to001");
+        RequiredInfo ws1_box_from = ws1.getMailer().getSendRequired("from");
+        RequiredInfo ws1_box_to = ws1.getMailer().getSendRequired("to");
+        RequiredInfo ws1_box_to001 = ws1.getMailer().getSendRequired("to001");
+        RequiredInfo ws2_box_from = ws2.getMailer().getSendRequired("from");
+        RequiredInfo ws2_box_to = ws2.getMailer().getSendRequired("to");
+        RequiredInfo ws2_box_to001 = ws2.getMailer().getSendRequired("to001");
+        RequiredInfo ws3_box_from = ws3.getMailer().getSendRequired("from");
+        RequiredInfo ws3_box_to = ws3.getMailer().getSendRequired("to");
+        RequiredInfo ws3_box_to001 = ws3.getMailer().getSendRequired("to001");
 
-        System.out.println("ws1.from: " + ws1_from);
-        System.out.println("      to: " + ws1_to);
-        System.out.println("   to001: " + ws1_to001);
-        System.out.println("ws2.from: " + ws2_from);
-        System.out.println("      to: " + ws2_to);
-        System.out.println("   to001: " + ws2_to001);
-        System.out.println("ws3.from: " + ws3_from);
-        System.out.println("      to: " + ws3_to);
-        System.out.println("   to001: " + ws3_to001);
+        System.out.println("ws1, box from: " + ws1_box_from);
+        System.out.println("       box to: " + ws1_box_to);
+        System.out.println("    box to001: " + ws1_box_to001);
+        System.out.println("ws2, box from: " + ws2_box_from);
+        System.out.println("       box to: " + ws2_box_to);
+        System.out.println("    box to001: " + ws2_box_to001);
+        System.out.println("ws3, box from: " + ws3_box_from);
+        System.out.println("       box to: " + ws3_box_to);
+        System.out.println("    box to001: " + ws3_box_to001);
     }
 
     private void doSendRequiredWs(JdxReplWs ws) throws Exception {
@@ -356,11 +359,11 @@ public class JdxReplWsSrv_ExecRequired_Test extends JdxReplWsSrv_Test {
         srv.replicasSend_Requied();
     }
 
-    private void checkRquiredInfo(JdxReplWs ws, boolean rquiredFrom, boolean rquiredTo) throws Exception {
+    private void checkRquiredInfo(JdxReplWs ws, boolean isRequired_box_from, boolean isRequired_box_to) throws Exception {
         RequiredInfo requiredFrom = ws.getMailer().getSendRequired("from");
         RequiredInfo requiredTo = ws.getMailer().getSendRequired("to");
-        assertEquals(rquiredFrom, requiredFrom.requiredFrom != -1);
-        assertEquals(rquiredTo, requiredTo.requiredTo != -1);
+        assertEquals(isRequired_box_from, requiredFrom.requiredFrom != -1);
+        assertEquals(isRequired_box_to, requiredTo.requiredTo != -1);
     }
 
     private void checkBoxEmpty(IMailer mailer, String box, long no) throws Exception {

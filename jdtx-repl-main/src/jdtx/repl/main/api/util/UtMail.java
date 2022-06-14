@@ -137,7 +137,7 @@ public class UtMail {
 
             // Двигаем вперед запрошенный номер (если просили повторную передачу)
             if (sendTask.required) {
-                // Двигаем номер так, чтобы он двигался только вперед от sendTask.sendFrom, и чтобы не уехать за sendTask.sendTo
+                // Двигаем номер так, чтобы он двигался только вперед от sendTask.sendFrom, и чтобы не стал больше sendTask.sendTo
                 if (no >= sendTask.sendFrom && no < sendTask.sendTo) {
                     RequiredInfo requiredInfo = new RequiredInfo();
                     // Двигаем номер вперед так, чтобы в случае сбоя продолжить после номера, который уже передали
