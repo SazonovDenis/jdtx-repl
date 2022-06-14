@@ -160,10 +160,10 @@ public class MailerHttp implements IMailer {
 
     private void validateRequiredInfo(RequiredInfo requiredInfo) {
         if (requiredInfo.requiredFrom != -1 && requiredInfo.executor == null) {
-            throw new XError("requiredInfo.executor == null");
+            throw new XError("validateRequiredInfo: requiredInfo.executor == null");
         }
         if (requiredInfo.requiredTo != -1 && requiredInfo.requiredFrom > requiredInfo.requiredTo) {
-            throw new XError("requiredInfo.requiredTo > requiredInfo.requiredFrom");
+            throw new XError("validateRequiredInfo: requiredInfo.requiredTo > requiredInfo.requiredFrom");
         }
     }
 
