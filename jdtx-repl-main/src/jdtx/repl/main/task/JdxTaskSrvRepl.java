@@ -33,7 +33,7 @@ public class JdxTaskSrvRepl extends JdxTaskCustom {
         //
         log.info("Предварительные шаги");
         try {
-            srv.srvHandleRoutineTask();
+            srv.srvHandleRoutineTaskOut();
         } catch (Exception e) {
             logError(e);
             collectError("srv.srvHandleRoutineTask", e);

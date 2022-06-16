@@ -35,6 +35,16 @@ public class JdxTaskSrvMail extends JdxTaskCustom {
 
 
         //
+        log.info("Предварительные шаги");
+        try {
+            srv.srvHandleRoutineTaskIn();
+        } catch (Exception e) {
+            logError(e);
+            collectError("srv.srvHandleRoutineTaskIn", e);
+        }
+
+
+        //
         log.info("Чтение входящих очередей");
         try {
             srv.srvHandleQueIn();

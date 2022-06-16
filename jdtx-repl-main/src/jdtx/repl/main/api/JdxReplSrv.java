@@ -86,34 +86,39 @@ public class JdxReplSrv {
     }
 
     /**
-     * Сервер, задачи по уходу за сервером
+     * Сервер, задачи по уходу за сервером,
+     * для, задействованных в задаче чтения со станций.
      */
-    public void srvHandleRoutineTask() throws Exception {
-        // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
-        // Общая очередь
-        //UtRepl.clearTrashFiles((JdxQueCommon) queCommon);
-
-        //
+    public void srvHandleRoutineTaskIn() throws Exception {
         DataStore wsSt = loadWsList();
+        Set<Long> wsList = UtData.uniqueValues(wsSt, "id");
 
         // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
-        // очередь queInSrv для станции wsId (входящая очередь-зекркало)
-        for (DataRecord wsRec : wsSt) {
-            long wsId = wsRec.getValueLong("id");
-
-            //
+        // очередь queInSrv для станции wsId (входящие очереди-зеркала)
+        for (Long wsId : wsList) {
             JdxQueInSrv que = new JdxQueInSrv(db, wsId);
             que.setDataRoot(dataRoot);
 
             //
             UtRepl.clearTrashFiles(que);
         }
+    }
+
+    /**
+     * Сервер, задачи по уходу за сервером,
+     * для очередей, задействованных в задаче формирования исходящих очередей для станций.
+     */
+    public void srvHandleRoutineTaskOut() throws Exception {
+        DataStore wsSt = loadWsList();
+        Set<Long> wsList = UtData.uniqueValues(wsSt, "id");
+
+        // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
+        // Общая очередь
+        UtRepl.clearTrashFiles(queCommon);
 
         // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
         // очередь Out000 для станции wsId (исходящая из сервера)
-        for (DataRecord wsRec : wsSt) {
-            long wsId = wsRec.getValueLong("id");
-
+        for (Long wsId : wsList) {
             // Исходящая очередь Out000 для станции wsId
             JdxQueOut000 que = new JdxQueOut000(db, wsId);
             que.setDataRoot(dataRoot);
@@ -124,10 +129,7 @@ public class JdxReplSrv {
 
         // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
         // очередь queOut001 для станции wsId (инициализационная или для системных команд)
-        for (DataRecord wsRec : wsSt) {
-            long wsId = wsRec.getValueLong("id");
-
-            //
+        for (Long wsId : wsList) {
             JdxQueOut001 que = new JdxQueOut001(db, wsId);
             que.setDataRoot(dataRoot);
 
