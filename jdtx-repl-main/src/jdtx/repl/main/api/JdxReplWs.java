@@ -1807,13 +1807,16 @@ public class JdxReplWs {
             needRepair = true;
         }
         if (noQueIn001 < noQueIn001Used) {
+            // Допускается, если не все входящие реплики использованы (noQueIn > noQueInUsed).
+            // Это бывает, если прерывается процесс применения реплик.
+            // Это не страшно, т.к. при следующем запуске применение возобновится.
             log.warn("Need repair: noQueIn001 < noQueIn001Used, noQueIn001: " + noQueIn001 + ", noQueIn001Used: " + noQueIn001Used);
-            //needRepair = true;
         }
         if (noQueIn001 < noQueIn001ReadSrv) {
             // Если отличия только на одно письмо - то проверим, осталась ли само письмо
             if (noQueIn001 == (noQueIn001ReadSrv - 1) && isReplicaInBox("to001", noQueIn001ReadSrv)) {
-                // Письмо на месте - просто прервалось чтение - не ошибка, возобновим чтение с нужного места
+                // Письмо на месте, значит просто прервался цикл: чтение с почты - запись в очередь.
+                // Это не ошибка, возобновим чтение с нужного места
                 log.info("Need repair: noQueIn001 < noQueIn001ReadSrv, noQueIn001: " + noQueIn001 + ", noQueIn001ReadSrv: " + noQueIn001ReadSrv);
                 //needRepair = true;
             } else {
@@ -1831,12 +1834,12 @@ public class JdxReplWs {
             // Это бывает, если прерывается процесс применения реплик.
             // Это не страшно, т.к. при следующем запуске применение возобновится.
             log.info("Need repair: noQueIn < noQueInUsed, noQueIn: " + noQueIn + ", noQueInUsed: " + noQueInUsed);
-            //needRepair = true;
         }
         if (noQueIn < noQueInReadSrv) {
             // Если отличия только на одно письмо - то проверим, осталась ли само письмо
             if (noQueIn == (noQueInReadSrv - 1) && isReplicaInBox("to", noQueInReadSrv)) {
-                // Письмо на месте - просто прервалось чтение - не ошибка, возобновим чтение с нужного места
+                // Письмо на месте, значит просто прервался цикл: чтение с почты - запись в очередь.
+                // Это не ошибка, возобновим чтение с нужного места
                 log.info("Need repair: noQueIn < noQueInReadSrv, noQueIn: " + noQueIn + ", noQueInReadSrv: " + noQueInReadSrv);
                 //needRepair = true;
             } else {
@@ -2089,7 +2092,7 @@ public class JdxReplWs {
 
 
         // ---
-        // Если имеющаяся исходящая очередь старше реплик, ктороые мы еще НЕ ОТПРАВЛЯЛИ на сервер, значит исходящая очередь
+        // Если имеющаяся исходящая очередь старше реплик, которые мы еще НЕ ОТПРАВЛЯЛИ на сервер, значит исходящая очередь
         // содержит реплики, которые мы НЕ ПРИМЕНЯЛИ в рамках ремонта данных путем применения QueIn.
         // Чиним (восстанавливаем) данные на основе исходящей очереди QueOut.
         int count = 0;
@@ -2178,10 +2181,10 @@ public class JdxReplWs {
         // После ремонта данных применением собственных реплик из очередей QueIn и QueOut
         // аудит таблиц пуст, а отметка возраста аудита ("возраст age" для таблиц аудита) все ещё содержит устаревшее состояние.
         // Чиним отметку возраста аудита.
-        UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
-        long ageNow = auditAgeManager.getAuditAge();
+        UtAuditAgeManager auditManager = new UtAuditAgeManager(db, struct);
+        long ageNow = auditManager.getAuditAge();
         if (ageNow < lastOwnAgeUsed) {
-            auditAgeManager.setAuditAge(lastOwnAgeUsed);
+            auditManager.setAuditAge(lastOwnAgeUsed);
             log.warn("Repair auditAge, " + ageNow + " -> " + lastOwnAgeUsed);
         }
 
