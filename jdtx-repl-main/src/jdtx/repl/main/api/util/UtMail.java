@@ -33,7 +33,7 @@ public class UtMail {
             // Берем реплику из очереди
             IReplica replica = que.get(no);
 
-            // Читаем заголовок реплики (чтобы replica.info полностью заполнился) -
+            // Читаем заголовок реплики чтобы replica.info полностью заполнился -
             // эта информация сообщается на сервер при отправке
             JdxReplicaReaderXml.readReplicaInfo(replica);
 
