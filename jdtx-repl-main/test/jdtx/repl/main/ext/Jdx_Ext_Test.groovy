@@ -94,6 +94,16 @@ class Jdx_Ext_Test extends JcTestCase {
     }
 
     @Test
+    void repl_replica_request() {
+        IVariantMap args = new VariantMap()
+        //args.put("ws", 2)
+        args.put("box", "from")
+        args.put("executor", "srv")
+        args.put("from", 777)
+        extWs2.repl_replica_request(args)
+    }
+
+    @Test
     void repl_service_state() {
         IVariantMap args = new VariantMap()
         extSrv.repl_service_state(args)

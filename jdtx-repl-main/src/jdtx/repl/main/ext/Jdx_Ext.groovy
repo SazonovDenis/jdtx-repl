@@ -423,6 +423,91 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
+    void repl_replica_request(IVariantMap args) {
+        long wsId = args.getValueLong("ws", 0)
+        //
+        long no_from
+        long no_to
+        if (!args.isValueNull("from")) {
+            no_from = args.getValueLong("from", 0)
+            if (!args.isValueNull("to")) {
+                no_to = args.getValueLong("to", 0)
+            } else {
+                no_to = -1
+            }
+        } else {
+            no_from = args.getValueLong("no", 0)
+            no_to = args.getValueLong("no", 0)
+        }
+        if (!args.isValueNull("no")) {
+            throw new XError("Не нужно указывать параметр no, если указаны параметры from, to")
+        }
+
+        //
+        String executor = args.getValueString("executor")
+        //
+        String box = args.getValueString("box")
+        //
+        boolean recreate = args.get("recreate", false)
+
+        //
+        if (no_from == 0 || no_to == 0) {
+            throw new XError("Не указан номер реплики [no|from|from,to]")
+        }
+        if (executor == null || executor.length() == 0) {
+            throw new XError("Не указан [executor] - исполнитель [srv|ws]")
+        }
+        if (box == null || box.length() == 0) {
+            throw new XError("Не указан [box] - ящик")
+        }
+
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        try {
+
+            // Выполнение команды
+            try {
+                IMailer mailer
+
+                if (wsId == 0) {
+                    // Рабочая станция и её mailer
+                    JdxReplWs ws = new JdxReplWs(db)
+                    ws.init()
+                    //
+                    mailer = ws.getMailer()
+                } else {
+                    // Сервер и его mailer-ы
+                    JdxReplSrv srv = new JdxReplSrv(db)
+                    srv.init()
+                    mailer = srv.mailerList.get(wsId)
+                }
+
+                // Запрос
+                RequiredInfo requiredInfo = new RequiredInfo()
+                requiredInfo.requiredFrom = no_from
+                requiredInfo.requiredTo = no_to
+                requiredInfo.executor = executor
+                requiredInfo.recreate = recreate
+
+                // Отправляем
+                mailer.setSendRequired(box, requiredInfo)
+
+                //
+                System.out.println("Запрос отправлен: " + requiredInfo)
+            } catch (Exception e) {
+                e.printStackTrace()
+                throw e
+            }
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
     void repl_replica_use(IVariantMap args) {
         String replicaFileName = args.getValueString("file")
         //

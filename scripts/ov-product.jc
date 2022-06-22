@@ -271,6 +271,19 @@ repl_repair_backup = cm("Исправить репликацию после во
     ext.repl_repair_backup(args)
 }
 
+//
+repl_replica_request = cm("Запросить реплику со станции в ящик",
+        "ws": [value: null, help: "Рабочая станция, в чей ящик отправляем запрос (для сервера, на рабочей станции не указывается)"],
+        "box": [value: null, help: "Ящик, в который отправляем запрос (from|to|to001)"],
+        "no": [value: null, help: "Номер реплики"],
+        "from": [value: null, help: "Начальный номер реплики"],
+        "to": [value: null, help: "Конечный номер реплики"],
+        "executor": [value: null, help: "Исполнитель запроса (srv|ws)"],
+        "recreate": [help: "Нужно ли переcоздать реплику (если исполнитель - ws)"],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_replica_request(args)
+}
 
 //
 repl_replica_use = cm("Применить реплику из файла",
