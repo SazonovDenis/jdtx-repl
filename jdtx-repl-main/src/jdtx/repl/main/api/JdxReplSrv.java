@@ -91,11 +91,13 @@ public class JdxReplSrv {
      */
     public void srvHandleRoutineTaskIn() throws Exception {
         DataStore wsSt = loadWsList();
-        Set<Long> wsList = UtData.uniqueValues(wsSt, "id");
+        Set wsList = UtData.uniqueValues(wsSt, "id");
 
         // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
         // очередь queInSrv для станции wsId (входящие очереди-зеркала)
-        for (Long wsId : wsList) {
+        for (Object wsIdObj : wsList) {
+            long wsId = UtJdxData.longValueOf(wsIdObj);
+
             JdxQueInSrv que = new JdxQueInSrv(db, wsId);
             que.setDataRoot(dataRoot);
 
@@ -110,7 +112,7 @@ public class JdxReplSrv {
      */
     public void srvHandleRoutineTaskOut() throws Exception {
         DataStore wsSt = loadWsList();
-        Set<Long> wsList = UtData.uniqueValues(wsSt, "id");
+        Set wsList = UtData.uniqueValues(wsSt, "id");
 
         // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
         // Общая очередь
@@ -118,7 +120,8 @@ public class JdxReplSrv {
 
         // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
         // очередь Out000 для станции wsId (исходящая из сервера)
-        for (Long wsId : wsList) {
+        for (Object wsIdObj : wsList) {
+            long wsId = UtJdxData.longValueOf(wsIdObj);
             // Исходящая очередь Out000 для станции wsId
             JdxQueOut000 que = new JdxQueOut000(db, wsId);
             que.setDataRoot(dataRoot);
@@ -129,7 +132,9 @@ public class JdxReplSrv {
 
         // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
         // очередь queOut001 для станции wsId (инициализационная или для системных команд)
-        for (Long wsId : wsList) {
+        for (Object wsIdObj : wsList) {
+            long wsId = UtJdxData.longValueOf(wsIdObj);
+            //
             JdxQueOut001 que = new JdxQueOut001(db, wsId);
             que.setDataRoot(dataRoot);
 
