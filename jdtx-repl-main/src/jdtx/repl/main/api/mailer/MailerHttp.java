@@ -159,8 +159,14 @@ public class MailerHttp implements IMailer {
     }
 
     private void validateRequiredInfo(RequiredInfo requiredInfo) {
-        if (requiredInfo.requiredFrom != -1 && requiredInfo.executor == null) {
+        if (requiredInfo.executor == null) {
             throw new XError("validateRequiredInfo: requiredInfo.executor == null");
+        }
+        if (requiredInfo.executor.compareToIgnoreCase(RequiredInfo.EXECUTOR_SRV) != 0 && requiredInfo.executor.compareToIgnoreCase(RequiredInfo.EXECUTOR_WS) != 0) {
+            throw new XError("validateRequiredInfo: requiredInfo.executor not valid");
+        }
+        if (requiredInfo.requiredFrom < 1) {
+            throw new XError("validateRequiredInfo: requiredInfo.requiredFrom < 1");
         }
         if (requiredInfo.requiredTo != -1 && requiredInfo.requiredFrom > requiredInfo.requiredTo) {
             throw new XError("validateRequiredInfo: requiredInfo.requiredTo > requiredInfo.requiredFrom");
