@@ -2072,15 +2072,15 @@ public class JdxReplWs {
         // Ремонт отметки возраста ОБРАБОТАННОГО аудита делаем именно по нему
         long lastOwnAgeUsed = -1;
         long no00 = queIn.getMaxNo();
-        while (true) {
+        while (no00 > 0) {
             IReplica replica = queIn.get(no00);
             //
             if (replica.getInfo().getWsId() == wsId) {
                 long age = replica.getInfo().getAge();
-                if (age > lastOwnAgeUsed) {
+                if (age != -1 && age > lastOwnAgeUsed) {
                     lastOwnAgeUsed = age;
-                }
                 break;
+            }
             }
 
             //
@@ -2102,7 +2102,7 @@ public class JdxReplWs {
             // Отслеживаем наш последний возраст age, встретившийся в НАШИХ СОБСТВЕННЫХ репликах при примененнии QueOut.
             // Ремонт отметки возраста ОБРАБОТАННОГО аудита делаем именно по нему
             long age = replica.getInfo().getAge();
-            if (age > lastOwnAgeUsed) {
+            if (age != -1 && age > lastOwnAgeUsed) {
                 lastOwnAgeUsed = age;
             }
 
