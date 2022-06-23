@@ -547,7 +547,6 @@ public class JdxReplWs {
 
         // Смотрим старую реплику
         IReplica replicaOriginal = queOut.get(no);
-        File replicaOriginalFile = replicaOriginal.getData();
 
         // По аудиту можем пересозать только реплику типа JdxReplicaType.IDE
         IReplicaInfo replicaInfo = replicaOriginal.getInfo();
@@ -559,32 +558,8 @@ public class JdxReplWs {
         // Формируем реплику заново
         UtAuditSelector auditSelector = new UtAuditSelector(db, struct, wsId);
         IReplica replicaRecreated = auditSelector.createReplicaFromAudit(publicationOut, age);
-        // Номер no присвавается только при JdxQuePersonal.push, при пересоздании берем уже готовый
-        replicaRecreated.getInfo().setNo(no);
 
         //
-        log.info("Original replica:");
-        log.info("   age: " + replicaOriginal.getInfo().getAge());
-        log.info("    no: " + replicaOriginal.getInfo().getNo());
-        log.info("Original replica file:");
-        log.info("  path: " + replicaOriginalFile.getAbsolutePath());
-        log.info("exists: " + replicaOriginalFile.exists());
-        if (replicaOriginalFile.exists()) {
-            log.info("  size: " + replicaOriginalFile.length());
-            log.info("   crc: " + UtJdx.getMd5File(replicaOriginalFile));
-        }
-        log.info("Recreated replica:");
-        log.info("   age: " + replicaRecreated.getInfo().getAge());
-        log.info("    no: " + replicaRecreated.getInfo().getNo());
-        log.info("Recreated replica file:");
-        log.info("  path: " + replicaRecreated.getData().getAbsolutePath());
-        log.info("  size: " + replicaRecreated.getData().length());
-        log.info("   crc: " + UtJdx.getMd5File(replicaRecreated.getData()));
-
-        // Копируем содержимое новой реплики на место старой
-        if (replicaOriginalFile.exists() && !replicaOriginalFile.delete()) {
-            throw new IOException("Unable to delete file: " + replicaOriginalFile.getAbsolutePath());
-        }
         queOut.put(replicaRecreated, no);
 
         //

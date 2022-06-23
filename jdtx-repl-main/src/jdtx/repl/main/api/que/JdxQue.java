@@ -8,6 +8,8 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
+import java.io.*;
+
 import static jdtx.repl.main.api.util.UtJdxErrors.*;
 
 
@@ -73,10 +75,59 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
      * IJdxReplicaQue
      */
 
+    @Override
     public void validateReplica(IReplica replica) throws Exception {
         UtJdx.validateReplicaFields(replica);
     }
 
+    @Override
+    public void put(IReplica replica, long no) throws Exception {
+        // Обновляем сущесвующую реплику?
+        if (no <= getMaxNo()) {
+            // Номер no присвавается только при JdxQuePersonal.push, при пересоздании берем уже готовый
+            replica.getInfo().setNo(no);
+            replica.getInfo().setCrc(UtJdx.getMd5File(replica.getData()));
+
+            // Старая и новая реплика
+            IReplica replicaOriginal = get(no);
+            File replicaOriginalFile = replicaOriginal.getData();
+
+            //
+            log.info("Original replica:");
+            infoReplica(replicaOriginal);
+            log.info("Recreated replica:");
+            infoReplica(replica);
+
+            // Копируем содержимое новой реплики на место старой
+            if (replicaOriginalFile.exists() && !replicaOriginalFile.delete()) {
+                throw new IOException("Unable to delete file: " + replicaOriginalFile.getAbsolutePath());
+            }
+
+            //
+            super.put(replica, no);
+
+            // Обновляем crc в БД
+            updateCrc(replica, no);
+        } else {
+            super.put(replica, no);
+        }
+    }
+
+    private void infoReplica(IReplica replica) throws Exception {
+        File replicaFile = replica.getData();
+        log.info("   age: " + replica.getInfo().getAge());
+        log.info("    no: " + replica.getInfo().getNo());
+        log.info("   crc: " + replica.getInfo().getCrc());
+        log.info("  file:");
+        log.info("  path: " + replicaFile.getAbsolutePath());
+        log.info("exists: " + replicaFile.exists());
+        if (replicaFile.exists()) {
+            log.info("  size: " + replicaFile.length());
+            log.info("   crc: " + UtJdx.getMd5File(replicaFile));
+        }
+    }
+
+    @Override
     public long push(IReplica replica) throws Exception {
         // Установка или проверка номера в очереди
         long queNo = getReplicaQueNo(replica);
@@ -151,6 +202,14 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
                 "age", replica.getInfo().getAge(),
                 "crc", replica.getInfo().getCrc(),
                 "replica_type", replica.getInfo().getReplicaType()
+        ));
+    }
+
+    void updateCrc(IReplica replica, long queNo) throws Exception {
+        String sql = "update " + queTableName + " set crc = :crc where id = :id";
+        db.execSql(sql, UtCnv.toMap(
+                "id", queNo,
+                "crc", replica.getInfo().getCrc()
         ));
     }
 
