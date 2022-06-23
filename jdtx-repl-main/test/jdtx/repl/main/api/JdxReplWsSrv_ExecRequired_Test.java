@@ -4,6 +4,7 @@ import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.util.*;
+import jdtx.repl.main.task.*;
 import org.json.simple.*;
 import org.junit.*;
 
@@ -28,15 +29,19 @@ public class JdxReplWsSrv_ExecRequired_Test extends JdxReplWsSrv_Test {
         super.setUp();
 
         srv = new JdxReplSrv(db);
+        srv.errorCollector = new JdxErrorCollector();
         srv.init();
 
         ws1 = new JdxReplWs(db);
+        ws1.errorCollector = new JdxErrorCollector();
         ws1.init();
 
         ws2 = new JdxReplWs(db2);
+        ws2.errorCollector = new JdxErrorCollector();
         ws2.init();
 
         ws3 = new JdxReplWs(db3);
+        ws3.errorCollector = new JdxErrorCollector();
         ws3.init();
 
         mailer_ws1 = ws1.getMailer();

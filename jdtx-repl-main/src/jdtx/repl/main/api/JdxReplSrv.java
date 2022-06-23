@@ -878,7 +878,6 @@ public class JdxReplSrv {
                 log.error("Error in srvReplicasSendMail, to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
                 log.error(Ut.getStackTrace(e));
             }
-
         }
     }
 
@@ -892,16 +891,18 @@ public class JdxReplSrv {
             IMailer wsMailer = en.getValue();
 
             try {
-                // ws.from <- srv.common
+                // ws.from <- srv.common (станция потеряла свою собственную почту)
                 String box = "from";
                 // Выясняем, что запросили передать
-                IJdxMailSendStateManager mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.SRV_QUE_COMMON);
                 RequiredInfo requiredInfo = wsMailer.getSendRequired(box);
-                MailSendTask sendTask = UtMail.getRequiredSendTask(mailStateManager, requiredInfo, RequiredInfo.EXECUTOR_SRV);
+                MailSendTask sendTask = UtMail.getRequiredSendTask(null, requiredInfo, RequiredInfo.EXECUTOR_SRV);
                 // Отправляем из очереди, что запросили
                 UtMail.sendQueToMail_Required_QueCommon(sendTask, wsId, queCommon, wsMailer, box);
 
-                // ws.to <- srv.out
+                //
+                IJdxMailSendStateManager mailStateManager;
+
+                // ws.to <- srv.out (станция пропустила передачу с сервера)
                 box = "to";
                 // Выясняем, что запросили передать
                 mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT000);
@@ -912,7 +913,7 @@ public class JdxReplSrv {
                 queOut000.setDataRoot(dataRoot);
                 UtMail.sendQueToMail_Required(sendTask000, wsId, queOut000, wsMailer, box, mailStateManager);
 
-                // ws.to001 <- srv.out001
+                // ws.to001 <- srv.out001 (станция пропустила передачу с сервера)
                 box = "to001";
                 // Выясняем, что запросили передать
                 mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT001);

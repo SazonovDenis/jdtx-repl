@@ -110,7 +110,8 @@ public class UtMail {
             replicasToSend.put(no, replica);
         }
 
-        // Передаем
+        // Отправляем почту.
+        // Не передаем mailStateManager, т.к. при рассылке из queCommon нам не нужно делать отметку - это рассылка в норме не выполняется вообще.
         UtMail.sendReplicasToMail(sendTask, replicasToSend, wsId, wsMailer, box, null);
     }
 
@@ -122,7 +123,10 @@ public class UtMail {
         log.info("sendReplicasToMail, destination wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask + ", count: " + replicasToSend.size());
 
         // Узнаем, какой номер помечен как отправленный
-        long lastNoMailSendMarked = mailStateManager.getMailSendDone();
+        long lastNoMailSendMarked = -1;
+        if (mailStateManager != null) {
+            lastNoMailSendMarked = mailStateManager.getMailSendDone();
+        }
 
         // Передаем
         long count = 0;
@@ -134,7 +138,7 @@ public class UtMail {
             mailer.send(replica, box, no);
 
             // Отметим отправку очередного номера реплики (если отметка двигается вперед)
-            if (no > lastNoMailSendMarked) {
+            if (mailStateManager != null && no > lastNoMailSendMarked) {
                 mailStateManager.setMailSendDone(no);
             }
 
@@ -215,8 +219,13 @@ public class UtMail {
         // то получится, что возраст отмеченных реплик (в базе) станет меньше возраста последней отправки (на почтовом сервере),
         // что позже будет распознано как аварийная ситуация.
         if (requiredInfo.requiredTo == -1) {
-            // Узнаем, какая последняя отправленная помечена, её и берем как конец требования на отправку.
-            sendTask.sendTo = mailStateManager.getMailSendDone();
+            if (mailStateManager != null) {
+                // Узнаем, какая последняя отправленная помечена, её и берем как конец требования на отправку.
+                sendTask.sendTo = mailStateManager.getMailSendDone();
+            } else {
+                // Если не передали mailStateManager, то нужно просить точный диапазон самомостоятельно
+                throw new XError("getRequiredSendTask: required.requiredTo == -1 && mailStateManager == null");
+            }
         }
 
         //
