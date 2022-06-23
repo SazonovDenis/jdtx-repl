@@ -104,6 +104,13 @@ class Jdx_Ext_Test extends JcTestCase {
     }
 
     @Test
+    void repl_allow_repair() {
+        IVariantMap args = new VariantMap()
+        args.put("ws", 2)
+        extSrv.repl_allow_repair(args)
+    }
+
+    @Test
     void repl_service_state() {
         IVariantMap args = new VariantMap()
         extSrv.repl_service_state(args)

@@ -14,6 +14,7 @@ import jdtx.repl.main.api.mailer.*
 import jdtx.repl.main.api.manager.*
 import jdtx.repl.main.api.publication.*
 import jdtx.repl.main.api.que.*
+import jdtx.repl.main.api.repair.*
 import jdtx.repl.main.api.replica.*
 import jdtx.repl.main.api.struct.*
 import jdtx.repl.main.gen.*
@@ -502,6 +503,40 @@ class Jdx_Ext extends ProjectExt {
                 e.printStackTrace()
                 throw e
             }
+
+        } finally {
+            db.disconnect()
+        }
+    }
+
+    void repl_allow_repair(IVariantMap args) {
+        long wsId = args.getValueLong("ws")
+        if (wsId == 0L) {
+            throw new XError("Не указан [ws] - код рабочей станции")
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        try {
+            // Сервер и его mailer-ы
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init()
+            IMailer mailer = srv.mailerList.get(wsId)
+
+            // Узнаем giud ремонта
+            JdxRepairInfoManager repairInfoManager = new JdxRepairInfoManager(mailer)
+            String wsRepairGuid = repairInfoManager.getRepairGuid()
+
+            //
+            if (wsRepairGuid == null) {
+                throw new XError("Рабочая станция не запрашивала разрешение на ремонт")
+            }
+
+            // Разрешиаем
+            repairInfoManager.setRepairAllowed(wsRepairGuid)
 
         } finally {
             db.disconnect()

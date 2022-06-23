@@ -293,6 +293,14 @@ repl_replica_use = cm("Применить реплику из файла",
     ext.repl_replica_use(args)
 }
 
+//
+repl_allow_repair = cm("Разрешить рабочей станции станци выполнить процедуру ремонта",
+        "ws": [value: null, help: "Рабочая станция"],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_allow_repair(args)
+}
+
 
 //
 rec_relocate = cm("Перемещение pk записи",

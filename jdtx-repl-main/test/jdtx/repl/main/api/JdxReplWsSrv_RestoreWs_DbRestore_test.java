@@ -298,6 +298,7 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
     }
 
     void doRepair(Map<String, String> expectedBeforeRepair) throws Exception {
+        // Разрешим ремонт
         checkNeedRepair_doAllowRepair(db2);
 
         // Первая попытка ремонта

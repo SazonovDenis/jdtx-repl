@@ -3,7 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
-import jdtx.repl.main.api.repair.*;
+import jandcode.utils.variant.*;
 import jdtx.repl.main.task.*;
 import org.apache.commons.io.*;
 import org.junit.*;
@@ -91,19 +91,10 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         JdxTaskWsRepl replTask = new JdxTaskWsRepl(ws);
         replTask.doTask();
 
-        //
-        JdxRepairLockFileManager repairLockFileManager = new JdxRepairLockFileManager(ws.getDataRoot());
-
-        // Если рабочая станция обнаружила проблему - то она сформирует giud ремонта
-        String wsRepairGuid = repairLockFileManager.repairLockFileGiud();
-
-        //
-        assertEquals("Рабочая станция не обнаружила необходимость ремонта", true, wsRepairGuid != null);
-        assertEquals(true, wsRepairGuid.length() > 0);
-
-        //
-        JdxRepairInfoManager repairInfoManager = new JdxRepairInfoManager(ws.getMailer());
-        repairInfoManager.setRepairAllowed(wsRepairGuid);
+        // Разрешим ремонт
+        IVariantMap args = new VariantMap();
+        args.put("ws", ws.wsId);
+        extSrv.repl_allow_repair(args);
     }
 
     /**
