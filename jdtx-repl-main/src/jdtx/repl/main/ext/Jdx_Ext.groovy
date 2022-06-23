@@ -426,6 +426,9 @@ class Jdx_Ext extends ProjectExt {
     void repl_replica_request(IVariantMap args) {
         long wsId = args.getValueLong("ws", 0)
         //
+        if (!args.isValueNull("from") && !args.isValueNull("no")) {
+            throw new XError("Не нужно указывать параметр [no], если указаны параметры [from, to]")
+        }
         long no_from
         long no_to
         if (!args.isValueNull("from")) {
@@ -438,9 +441,6 @@ class Jdx_Ext extends ProjectExt {
         } else {
             no_from = args.getValueLong("no", 0)
             no_to = args.getValueLong("no", 0)
-        }
-        if (!args.isValueNull("no")) {
-            throw new XError("Не нужно указывать параметр no, если указаны параметры from, to")
         }
 
         //
