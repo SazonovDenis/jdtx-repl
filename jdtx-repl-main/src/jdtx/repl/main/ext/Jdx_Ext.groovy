@@ -532,12 +532,14 @@ class Jdx_Ext extends ProjectExt {
 
             //
             if (wsRepairGuid == null) {
-                throw new XError("Рабочая станция не запрашивала разрешение на ремонт")
+                throw new XError("Рабочая станция [" + wsId + "] не запрашивала разрешение на ремонт")
             }
 
             // Разрешиаем
             repairInfoManager.setRepairAllowed(wsRepairGuid)
 
+            //
+            println("Ремонт разрешен, ws: " + wsId + ", guid: " + wsRepairGuid)
         } finally {
             db.disconnect()
         }
