@@ -97,14 +97,15 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         // Жизнь после аварии
         doLife_AfterFail();
 
+
         // ---
         // Жизнь после аварии - идет нормально, без необходимости ремонта,
         // нужно лишь запросить пересоздание реплики
         long from_no = 151; // todo: этот номер определяет человег, взглянув на проблему в мониоринге. Хорошо бы в тестах определять номер автоматом
         doRequest(from_no);
-        //doNolmalLife_Step(1);
 
 
+        // ---
         // Финальная синхронизация
         System.out.println();
         System.out.println("Финальная синхронизация");
@@ -144,14 +145,15 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         // Жизнь после аварии
         doLife_AfterFail();
 
+
         // ---
         // Жизнь после аварии - идет нормально, без необходимости ремонта,
         // нужно лишь запросить пересоздание реплики
         long from_no = 151; // todo: этот номер определяет человег, взглянув на проблему в мониоринге. Хорошо бы в тестах определять номер автоматом
         doRequest(from_no);
-        //doNolmalLife_Step(1);
 
 
+        // ---
         // Финальная синхронизация
         System.out.println();
         System.out.println("Финальная синхронизация");
