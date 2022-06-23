@@ -89,17 +89,17 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     ]
 
     public Map<String, String> expectedNotEqual = [
-            "USRLOG"         : "YYN",
+            "USRLOG"         : "YY?",
             "PAWNCHIT"       : "NNN",
             "PAWNCHITSUBJECT": "NNN",
-            "COMMENTTEXT"    : "NYY",
+            "COMMENTTEXT"    : "N?Y",
             "COMMENTTIP"     : "NNN",
             "LIC"            : "YYY",
             "LICDOCVID"      : "NNN",
             "LICDOCTIP"      : "NNN",
             "REGIONTIP"      : "NNN",
-            "ULZ"            : "?YN",
-            "REGION"         : "NYN",
+            "ULZ"            : "???",
+            "REGION"         : "N??",
     ]
 
 

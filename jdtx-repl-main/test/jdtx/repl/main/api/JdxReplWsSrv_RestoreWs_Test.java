@@ -86,6 +86,11 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
     public void checkNeedRepair_doAllowRepair(Db db) throws Exception {
         JdxReplWs ws = new JdxReplWs(db);
         ws.init();
+
+        // Дадим станции возможность обнаружить проблему
+        JdxTaskWsRepl replTask = new JdxTaskWsRepl(ws);
+        replTask.doTask();
+
         //
         JdxRepairLockFileManager repairLockFileManager = new JdxRepairLockFileManager(ws.getDataRoot());
 
@@ -197,6 +202,30 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         connectAll();
     }
 
+    void doBackupMail(Db db, String suffix) throws Exception {
+        initWsInfo(db, suffix);
+
+        //
+        dirBackupName = backupDirName + "mail" + suffix + ".bak";
+        dirBackupFile = new File(dirBackupName);
+        //
+        String mailDirName = workDirFile.getParentFile().getParentFile().getParentFile().getCanonicalPath() + "/_lombard.systems_04/";
+        File mailDirFile = new File(mailDirName);
+
+        //
+        doDisconnectAll();
+
+        //
+        if (dirBackupFile.exists()) {
+            throw new XError("backupFile exists: " + dirBackupFile);
+        }
+
+        //
+        UtZip.doZipDir(mailDirName, dirBackupName);
+
+        //
+        connectAll();
+    }
 
     void doRestoreDir(Db db, String suffix) throws Exception {
         initWsInfo(db, suffix);
@@ -207,6 +236,27 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         //
         UtFile.cleanDir(workDirName);
         UtZip.doUnzipDir(dirBackupName, workDirName);
+
+        //
+        connectAll();
+    }
+
+    void doRestoreMail(Db db, String suffix) throws Exception {
+        initWsInfo(db, suffix);
+
+        //
+        dirBackupName = backupDirName + "mail" + suffix + ".bak";
+        dirBackupFile = new File(dirBackupName);
+        //
+        String mailDirName = workDirFile.getParentFile().getParentFile().getParentFile().getCanonicalPath() + "/_lombard.systems_04/";
+        File mailDirFile = new File(mailDirName);
+
+        //
+        doDisconnectAll();
+
+        //
+        UtFile.cleanDir(mailDirName);
+        UtZip.doUnzipDir(dirBackupName, mailDirName);
 
         //
         connectAll();

@@ -1,9 +1,11 @@
 package jdtx.repl.main.api;
 
 import jandcode.utils.*;
+import jandcode.utils.variant.*;
 import org.junit.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  * Проверка восстановления репликации рабочей станции при восстановлении базы/папок из бэкапа.
@@ -12,6 +14,7 @@ import java.io.*;
  */
 public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreWs_Test {
 
+    boolean doNolmalLifeBromBackup = false;
 
     /**
      * Проверка при восстановлении устаревшей базы из бэкапа,
@@ -95,14 +98,32 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         doLife_AfterFail();
 
         // ---
-        // Восстановление после аварии и проверка
-        doRepair();
+        // Жизнь после аварии - идет нормально, без необходимости ремонта,
+        // нужно лишь запросить пересоздание реплики
+        long from_no = 151; // todo: этот номер определяет человег, взглянув на проблему в мониоринге. Хорошо бы в тестах определять номер автоматом
+        doRequest(from_no);
+        //doNolmalLife_Step(1);
+
+
+        // Финальная синхронизация
+        System.out.println();
+        System.out.println("Финальная синхронизация");
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+
+
+        // Cинхронизация должна пройти нормально
+        compareDb(db, db2, equalExpected);
+        compareDb(db, db3, equalExpected);
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
+        new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
     }
 
 
     /**
      * Проверка при сохранении базы,
-     * но при полной потере репликационных каталогов,
+     * но при полной потере репликационных каталогов
      */
     @Test
     public void test_DirClean() throws Exception {
@@ -124,8 +145,26 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         doLife_AfterFail();
 
         // ---
-        // Восстановление после аварии и проверка
-        doRepair();
+        // Жизнь после аварии - идет нормально, без необходимости ремонта,
+        // нужно лишь запросить пересоздание реплики
+        long from_no = 151; // todo: этот номер определяет человег, взглянув на проблему в мониоринге. Хорошо бы в тестах определять номер автоматом
+        doRequest(from_no);
+        //doNolmalLife_Step(1);
+
+
+        // Финальная синхронизация
+        System.out.println();
+        System.out.println("Финальная синхронизация");
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+
+
+        // Cинхронизация должна пройти нормально
+        compareDb(db, db2, equalExpected);
+        compareDb(db, db3, equalExpected);
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
+        new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
     }
 
 
@@ -161,7 +200,6 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         doRepair();
     }
 
-
     /**
      * Проверка при восстановлении устаревшей базы из бэкапа,
      * и при устаревшем состоянии репликационных каталогов,
@@ -173,7 +211,6 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         // Создание репликации, обычная работа - изменения в базах и синхронизация
         doSetUp_doNolmalLife_BeforeFail();
 
-
         // ---
         // Аварийные события
         System.out.println("Аварийные события");
@@ -183,7 +220,6 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
         // Восстановление строго состояния каталогов
         doRestoreDir(db2, "_1");
-
 
         // ---
         // Жизнь после аварии
@@ -226,22 +262,51 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         doRepair();
     }
 
-
-/*
-    @Test
-    public void test_DatabaseRestore_stepRepair() throws Exception {
-        doRepair();
+    public void doRepair() throws Exception {
+        doRepair(expectedNotEqual);
     }
-*/
 
+    public void doBackupNolmalLife() throws Exception {
+        // Сохраним "бэкап" базы и папок для всех
+        doBackupDB(db, "_all");
+        doBackupDir(db, "_all");
+        doBackupDB(db2, "_all");
+        doBackupDir(db2, "_all");
+        doBackupDB(db3, "_all");
+        doBackupDir(db3, "_all");
+        // Сохраним почтовый каталог
+        doBackupMail(db, "_all");
+    }
 
-    private void doRepair() throws Exception {
+    public void doRestoreFromNolmalLife() throws Exception {
+        doRestoreDB(db, "_all");
+        doRestoreDir(db, "_all");
+        doRestoreDB(db2, "_all");
+        doRestoreDir(db2, "_all");
+        doRestoreDB(db3, "_all");
+        doRestoreDir(db3, "_all");
+        doRestoreMail(db, "_all");
+    }
+
+    private void doRequest(long from_no) {
+        IVariantMap args = new VariantMap();
+        args.put("box", "from");
+        args.put("executor", "ws");
+        args.put("recreate", true);
+        args.put("no", from_no);
+        extWs2.repl_replica_request(args);
+    }
+
+    void doRepair(Map<String, String> expectedBeforeRepair) throws Exception {
+        checkNeedRepair_doAllowRepair(db2);
+
         // Первая попытка ремонта
         System.out.println();
         System.out.println("Первая попытка ремонта");
+        doStepRepair(db2, false);
 
         // Разница должна быть
-        compareDb(db, db2, expectedNotEqual);
+        compareDb(db, db2, expectedBeforeRepair);
 
 
         // Сервер ответит на просьбы о повторной отправке
@@ -278,6 +343,11 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
     // обычная работа - изменения в базах и синхронизация
     // По дороге создаем две контрольных точки
     private void doSetUp_doNolmalLife_BeforeFail() throws Exception {
+        if (doNolmalLifeBromBackup) {
+            doRestoreFromNolmalLife();
+            return;
+        }
+
         UtFile.mkdirs(backupDirName);
         UtFile.cleanDir(backupDirName);
 
@@ -314,37 +384,54 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         compareDb(db, db3, equalExpected);
 
 
+        // ---
         // В бэкапе будет исходное состояние
         doBackupDB(db2, "");
         doBackupDir(db2, "");
 
 
+        // ---
         // Изменения в базах, частичная синхронизация
-        doNolmalLife_Step();
+        doNolmalLife_Step(3);
 
         // Сохраним "бэкап" базы и папок для ws2
         doBackupDB(db2, "_1");
         doBackupDir(db2, "_1");
 
 
+        // ---
         // Изменения в базах, частичная синхронизация
-        doNolmalLife_Step();
+        doNolmalLife_Step(3);
 
         // Сохраним "бэкап" базы и папок для ws2
         doBackupDB(db2, "_2");
         doBackupDir(db2, "_2");
+
+
+        // ---
+        // Изменения в базах, частичная синхронизация
+        doNolmalLife_Step(3);
+
+        // ---
+        // Для ускорения повторных тестов.
+        // Для использования выставить doNolmalLifeBromBackup = true
+        doBackupNolmalLife();
     }
 
 
     // Изменения в базах, синхронизация,
     // снова изменения в базах, "неполная" синхронизация ws2 -
     // реплики останутся только в очереди (папке) ws2 (но НЕ отправлены на сервер)
-    private void doNolmalLife_Step() throws Exception {
+    private void doNolmalLife_Step(int stepCount) throws Exception {
         // Изменения в базах, синхронизация
-        for (int i = 0; i <= 2; i++) {
+        for (int i = 0; i < stepCount; i++) {
+            // Станции
             test_ws1_makeChange_Unimportant();
             test_ws2_makeChange();
             test_ws3_makeChange();
+
+            // Немного нагрузим 001
+            test_srv_make001();
 
             //
             sync_http_1_2_3();
@@ -352,10 +439,14 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         }
 
         // Изменения в базах
-        for (int i = 0; i <= 2; i++) {
+        for (int i = 0; i < stepCount; i++) {
+            // Станции
             test_ws1_makeChange_Unimportant();
             test_ws2_makeChange();
             test_ws3_makeChange();
+
+            // Немного нагрузим 001
+            test_srv_make001();
         }
 
         // "Неполная" синхронизация ws2 -
@@ -373,7 +464,6 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         }
     }
 
-
     private void doLife_AfterFail() throws Exception {
         // Попытка синхронизации (неудачная для ws2)
         sync_http_1_2_3();
@@ -381,7 +471,6 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         //
         System.out.println("Попытка синхронизации была неудачная");
         compareDb(db, db2, expectedNotEqual);
-        compareDb(db, db3, equalExpected);
 
         // Изменения в базах (добавим Ulz)
         UtTest utTest;
@@ -400,8 +489,34 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         //
         System.out.println("Попытка синхронизации была неудачная");
         compareDb(db, db2, expectedNotEqual);
-        compareDb(db, db3, equalExpected);
     }
 
+    @Test
+    public void test_All() throws Exception {
+        //  Проверка восстановления репликации рабочей станции при восстановлении базы/папок из бэкапа.
+        JdxReplWsSrv_RestoreWs_DbRestore_test test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+        test7.setUp();
+        test7.test_Db1();
+        //
+        test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+        test7.setUp();
+        test7.test_Dir1();
+        //
+        test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+        test7.setUp();
+        test7.test_DirClean();
+        //
+        test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+        test7.setUp();
+        test7.test_Db1_Dir2();
+        //
+        test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+        test7.setUp();
+        test7.test_Db2_Dir1();
+        //
+        test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+        test7.setUp();
+        test7.test_Db1_DirClean();
+    }
 
 }
