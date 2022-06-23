@@ -347,6 +347,9 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
     // По дороге создаем две контрольных точки
     private void doSetUp_doNolmalLife_BeforeFail() throws Exception {
         if (doNolmalLifeBromBackup) {
+            System.out.println("-------------");
+            System.out.println("Делаем doSetUp_doNolmalLife_BeforeFail из ранее созданной копии");
+            System.out.println("-------------");
             doRestoreFromNolmalLife();
             return;
         }
