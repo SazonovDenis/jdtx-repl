@@ -82,7 +82,7 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
 
     @Override
     public void put(IReplica replica, long no) throws Exception {
-        // Обновляем сущесвующую реплику?
+        // Обновляем существующую реплику?
         if (no <= getMaxNo()) {
             // Номер no присвавается только при JdxQuePersonal.push, при пересоздании берем уже готовый
             replica.getInfo().setNo(no);
@@ -93,9 +93,9 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
             File replicaOriginalFile = replicaOriginal.getData();
 
             //
-            log.info("Original replica:");
+            log.info("--- original replica:");
             infoReplica(replicaOriginal);
-            log.info("Recreated replica:");
+            log.info("--- recreated replica:");
             infoReplica(replica);
 
             // Копируем содержимое новой реплики на место старой
@@ -107,7 +107,7 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
             super.put(replica, no);
 
             // Обновляем crc в БД
-            updateCrc(replica, no);
+            updateCrc(no, replica.getInfo().getCrc());
         } else {
             super.put(replica, no);
         }
@@ -205,11 +205,11 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
         ));
     }
 
-    void updateCrc(IReplica replica, long queNo) throws Exception {
+    void updateCrc(long queNo, String crc) throws Exception {
         String sql = "update " + queTableName + " set crc = :crc where id = :id";
         db.execSql(sql, UtCnv.toMap(
                 "id", queNo,
-                "crc", replica.getInfo().getCrc()
+                "crc", crc
         ));
     }
 
