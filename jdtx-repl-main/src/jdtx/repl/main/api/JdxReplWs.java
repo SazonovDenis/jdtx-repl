@@ -1582,7 +1582,7 @@ public class JdxReplWs {
     public void replicasSend_Required() throws Exception {
         String box = "from";
         // Выясняем, что запросили передать
-        IJdxMailSendStateManager mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.QUE_OUT);
+        IJdxMailSendStateManager mailStateManager = new JdxMailSendStateManagerWs(db);
         RequiredInfo requiredInfo = mailer.getSendRequired(box);
         MailSendTask sendTask = UtMail.getRequiredSendTask(mailStateManager, requiredInfo, RequiredInfo.EXECUTOR_WS);
 
@@ -1595,7 +1595,7 @@ public class JdxReplWs {
         }
 
         // Отправляем из очереди, что запросили
-        UtMail.sendQueToMail_Required(sendTask, wsId, queOut, mailer, box);
+        UtMail.sendQueToMail_Required(sendTask, wsId, queOut, mailer, box, mailStateManager);
     }
 
 

@@ -24,8 +24,7 @@ public class UtMail {
         log.debug("sendQueToMail_State, wsId: " + wsId + ", que: " + que.getQueName() + ", box: " + box);
 
         // Выясняем объем передачи
-        MailSendInfo sendInfo = new MailSendInfo();
-        MailSendTask sendTask = getSendTask_State(que, mailer, box, mailStateManager, sendInfo);
+        MailSendTask sendTask = getSendTask_State(que, mailer, box, mailStateManager);
 
         // Собираем реплики, которые запросили
         SortedMap<Long, IReplica> replicasToSend = new TreeMap<>();
@@ -42,7 +41,7 @@ public class UtMail {
         }
 
         // Передаем
-        UtMail.sendReplicasToMail(sendTask, sendInfo, replicasToSend, wsId, mailer, box, mailStateManager);
+        UtMail.sendReplicasToMail(sendTask, replicasToSend, wsId, mailer, box, mailStateManager);
     }
 
 
@@ -51,7 +50,7 @@ public class UtMail {
      * для рабочей станции wsId
      * из очереди que через mailer в ящик box
      */
-    public static void sendQueToMail_Required(MailSendTask sendTask, long wsId, IJdxQue que, IMailer wsMailer, String box) throws Exception {
+    public static void sendQueToMail_Required(MailSendTask sendTask, long wsId, IJdxQue que, IMailer wsMailer, String box, IJdxMailSendStateManager mailStateManager) throws Exception {
         log.info("sendQueToMail_Required, destination WsId: " + wsId + ", que: " + que.getQueName() + ", box: " + box);
 
         // Есть что запросили передать?
@@ -75,13 +74,14 @@ public class UtMail {
         }
 
         // Передаем
-        UtMail.sendReplicasToMail(sendTask, null, replicasToSend, wsId, wsMailer, box, null);
+        UtMail.sendReplicasToMail(sendTask, replicasToSend, wsId, wsMailer, box, mailStateManager);
     }
 
 
     /**
      * Передача запрошенного диапазона
-     * из общей очереди queCommon через mailer в ящик box
+     * из общей очереди queCommon через mailer в ящик box.
+     * Выполняется на сервере.
      */
     public static void sendQueToMail_Required_QueCommon(MailSendTask sendTask, long wsId, IJdxQueCommon queCommon, IMailer wsMailer, String box) throws Exception {
         log.info("sendQueToMail_Required_QueCommon, wsId: " + wsId + ", box: " + box);
@@ -111,15 +111,18 @@ public class UtMail {
         }
 
         // Передаем
-        UtMail.sendReplicasToMail(sendTask, null, replicasToSend, wsId, wsMailer, box, null);
+        UtMail.sendReplicasToMail(sendTask, replicasToSend, wsId, wsMailer, box, null);
     }
 
 
     /**
      * Передача списка реплик replicasToSend через mailer в ящик box
      */
-    private static void sendReplicasToMail(MailSendTask sendTask, MailSendInfo sendInfo, Map<Long, IReplica> replicasToSend, long wsId, IMailer mailer, String box, IJdxMailSendStateManager mailStateManager) throws Exception {
+    private static void sendReplicasToMail(MailSendTask sendTask, Map<Long, IReplica> replicasToSend, long wsId, IMailer mailer, String box, IJdxMailSendStateManager mailStateManager) throws Exception {
         log.info("sendReplicasToMail, destination wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask + ", count: " + replicasToSend.size());
+
+        // Узнаем, какой номер помечен как отправленный
+        long lastNoMailSendMarked = mailStateManager.getMailSendDone();
 
         // Передаем
         long count = 0;
@@ -131,7 +134,7 @@ public class UtMail {
             mailer.send(replica, box, no);
 
             // Отметим отправку очередного номера реплики (если отметка двигается вперед)
-            if (sendInfo != null && no > sendInfo.lastSendNoMarked) {
+            if (no > lastNoMailSendMarked) {
                 mailStateManager.setMailSendDone(no);
             }
 
@@ -207,7 +210,7 @@ public class UtMail {
         //
         // Это может возникнуть из-за того, что "рассылка по требованию" выполняется независимо от "рассылки по расписанию".
         // Метку "последняя отправленная реплика" ставит именно процесс "рассылка по расписанию", и этот возраст должен
-        // соответствовать отметке "номер последнего письма" на почтовом сервере (он двигается вперед при отправке почты).
+        // соответствовать отметке "номер последнего письма" на почтовом сервере (он двигается вперед при отправке новой почты).
         // Если сейчас по требованию разослать больше, чем ранее разослал процесс "рассылка по расписанию",
         // то получится, что возраст отмеченных реплик (в базе) станет меньше возраста последней отправки (на почтовом сервере),
         // что позже будет распознано как аварийная ситуация.
@@ -224,24 +227,21 @@ public class UtMail {
     /**
      * Выясняем объем передач, по состоянию очереди
      */
-    private static MailSendTask getSendTask_State(IJdxQue que, IMailer mailer, String box, IJdxMailSendStateManager mailStateManager, MailSendInfo sendInfo) throws Exception {
+    private static MailSendTask getSendTask_State(IJdxQue que, IMailer mailer, String box, IJdxMailSendStateManager mailStateManager) throws Exception {
         MailSendTask sendTask = new MailSendTask();
         sendTask.required = false;
 
         // Узнаем, сколько есть у нас
         long noQue = que.getMaxNo();
         // Узнаем, какая последняя отправленная помечена
-        long noQueSendMarked = mailStateManager.getMailSendDone();
+        long lastNoMailSendMarked = mailStateManager.getMailSendDone();
 
         // Проверка и ремонт отметки "отправлено на сервер"
-        repairSendTaskBySrvState(noQueSendMarked, que, mailer, box, mailStateManager);
+        repairSendTaskBySrvState(lastNoMailSendMarked, que, mailer, box, mailStateManager);
 
         // Зададим от последней отправленной до последней, что у нас есть на раздачу
-        sendTask.sendFrom = noQueSendMarked + 1;
+        sendTask.sendFrom = lastNoMailSendMarked + 1;
         sendTask.sendTo = noQue;
-
-        //
-        sendInfo.lastSendNoMarked = noQueSendMarked;
 
         //
         return sendTask;

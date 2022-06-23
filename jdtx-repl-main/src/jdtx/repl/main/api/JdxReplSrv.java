@@ -910,7 +910,7 @@ public class JdxReplSrv {
                 // Отправляем из очереди, что запросили
                 JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
                 queOut000.setDataRoot(dataRoot);
-                UtMail.sendQueToMail_Required(sendTask000, wsId, queOut000, wsMailer, box);
+                UtMail.sendQueToMail_Required(sendTask000, wsId, queOut000, wsMailer, box, mailStateManager);
 
                 // ws.to001 <- srv.out001
                 box = "to001";
@@ -921,7 +921,7 @@ public class JdxReplSrv {
                 // Отправляем из очереди, что запросили
                 JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
                 queOut001.setDataRoot(dataRoot);
-                UtMail.sendQueToMail_Required(sendTask001, wsId, queOut001, wsMailer, box);
+                UtMail.sendQueToMail_Required(sendTask001, wsId, queOut001, wsMailer, box, mailStateManager);
 
             } catch (Exception e) {
                 // Ошибка для станции - пропускаем, идем дальше
