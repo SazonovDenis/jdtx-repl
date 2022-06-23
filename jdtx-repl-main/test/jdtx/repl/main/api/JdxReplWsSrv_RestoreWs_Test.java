@@ -18,6 +18,7 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
 
     String backupDirName = "temp/backup/";
 
+    String tempDirName;
     String workDirName;
     String workDbName;
     String dbBackupName;
@@ -66,6 +67,7 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         String wsIdStr = "ws_" + UtString.padLeft(String.valueOf(ws.wsId), 3, "0");
         ws.initDataRoot();
         //
+        tempDirName = ws.dataRoot + "temp/";
         workDirName = ws.dataRoot + wsIdStr;
         workDbName = db.getDbSource().getDatabase();
         dbBackupName = backupDirName + "db_" + wsIdStr + suffix + ".bak";
@@ -161,20 +163,6 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         connectAll();
     }
 
-    void doRestoreDB(Db db, String suffix) throws Exception {
-        initWsInfo(db, suffix);
-
-        //
-        doDisconnectAll();
-
-        //
-        FileUtils.forceDelete(workDbFile);
-        FileUtils.copyFile(dbBackupFile, workDbFile);
-
-        //
-        connectAll();
-    }
-
     void doBackupDir(Db db, String suffix) throws Exception {
         initWsInfo(db, suffix);
 
@@ -218,6 +206,20 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         connectAll();
     }
 
+    void doRestoreDB(Db db, String suffix) throws Exception {
+        initWsInfo(db, suffix);
+
+        //
+        doDisconnectAll();
+
+        //
+        FileUtils.forceDelete(workDbFile);
+        FileUtils.copyFile(dbBackupFile, workDbFile);
+
+        //
+        connectAll();
+    }
+
     void doRestoreDir(Db db, String suffix) throws Exception {
         initWsInfo(db, suffix);
 
@@ -227,6 +229,8 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         //
         UtFile.cleanDir(workDirName);
         UtZip.doUnzipDir(dirBackupName, workDirName);
+        //
+        UtFile.cleanDir(tempDirName);
 
         //
         connectAll();
