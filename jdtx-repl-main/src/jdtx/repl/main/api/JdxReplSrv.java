@@ -44,7 +44,8 @@ public class JdxReplSrv {
     // Правила публикации (для каждой рабочей станции)
     Map<Long, IPublicationRuleStorage> publicationsInList;
 
-    // Входящие очереди-зеркала на сервере (для каждой рабочей станции)
+    // Входящие очереди-зеркала на сервере (для каждой рабочей станции).
+    // Нужны отдельным списком ради передачи в QueCommon.
     Map<Long, IJdxQue> queInList;
 
     //
@@ -97,11 +98,7 @@ public class JdxReplSrv {
         // очередь queInSrv для станции wsId (входящие очереди-зеркала)
         for (Object wsIdObj : wsList) {
             long wsId = UtJdxData.longValueOf(wsIdObj);
-
-            JdxQueInSrv que = new JdxQueInSrv(db, wsId);
-            que.setDataRoot(dataRoot);
-
-            //
+            IJdxQue que = queInList.get(wsId);
             UtRepl.clearTrashFiles(que);
         }
     }
