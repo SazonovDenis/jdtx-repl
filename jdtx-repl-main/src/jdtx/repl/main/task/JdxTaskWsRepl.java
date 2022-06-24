@@ -31,6 +31,15 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
         ws.doAppUpdate();
 
         //
+        log.info("Предварительные шаги");
+        try {
+            ws.wsHandleRoutineTaskIn();
+        } catch (Exception e) {
+            logError(e);
+            collectError("ws.wsHandleRoutineTaskIn", e);
+        }
+
+        //
         logInfo("Проверяем аварийную ситуацию");
         try {
             ws.repairAfterBackupRestore(false, false);

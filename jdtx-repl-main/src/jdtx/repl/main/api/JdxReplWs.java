@@ -1688,6 +1688,16 @@ public class JdxReplWs {
     }
 
     /**
+     * Рабочая станция, задачи по уходу за станцией.
+     * Для очередей, задействованных в задаче чтения с сервера.
+     */
+    public void wsHandleRoutineTaskIn() throws Exception {
+        // Очистка файлов, котрорые есть в каталоге, но которых нет в базе
+        UtRepl.clearTrashFiles(queIn);
+        UtRepl.clearTrashFiles(queIn001);
+    }
+
+    /**
      * Выявить ситуацию "станцию восстановили из бэкапа" и починить ее.
      *
      * @param doRepair              Запускать ремонт при обнаружении неисправности.
