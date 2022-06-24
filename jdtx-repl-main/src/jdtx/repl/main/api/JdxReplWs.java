@@ -1790,10 +1790,10 @@ public class JdxReplWs {
         if (noQueIn001 < noQueIn001ReadSrv) {
             // Если отличия только на одно письмо - то проверим, осталась ли само письмо
             if (noQueIn001 == (noQueIn001ReadSrv - 1) && isReplicaInBox("to001", noQueIn001ReadSrv)) {
-                // Письмо на месте, значит просто прервался цикл: чтение с почты - запись в очередь.
-                // Это не ошибка, возобновим чтение с нужного места
+                // Письмо на месте - не считаем ситуацию аварийной.
+                // Это бывает, если прервался цикл: чтение с почты - запись в файл - запись в очередь в БД - удаление письма.
+                // Это не ошибка, возобновим чтение с нужного места.
                 log.info("Need repair: noQueIn001 < noQueIn001ReadSrv, noQueIn001: " + noQueIn001 + ", noQueIn001ReadSrv: " + noQueIn001ReadSrv);
-                //needRepair = true;
             } else {
             log.warn("Need repair: noQueIn001 < noQueIn001ReadSrv, noQueIn001: " + noQueIn001 + ", noQueIn001ReadSrv: " + noQueIn001ReadSrv);
             needRepair = true;
@@ -1813,10 +1813,10 @@ public class JdxReplWs {
         if (noQueIn < noQueInReadSrv) {
             // Если отличия только на одно письмо - то проверим, осталась ли само письмо
             if (noQueIn == (noQueInReadSrv - 1) && isReplicaInBox("to", noQueInReadSrv)) {
-                // Письмо на месте, значит просто прервался цикл: чтение с почты - запись в очередь.
-                // Это не ошибка, возобновим чтение с нужного места
+                // Письмо на месте - не считаем ситуацию аварийной.
+                // Это бывает, если прервался цикл: чтение с почты - запись в файл - запись в очередь в БД - удаление письма.
+                // Это не ошибка, возобновим чтение с нужного места.
                 log.info("Need repair: noQueIn < noQueInReadSrv, noQueIn: " + noQueIn + ", noQueInReadSrv: " + noQueInReadSrv);
-                //needRepair = true;
             } else {
             log.warn("Need repair: noQueIn < noQueInReadSrv, noQueIn: " + noQueIn + ", noQueInReadSrv: " + noQueInReadSrv);
             needRepair = true;

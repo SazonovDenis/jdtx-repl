@@ -87,7 +87,7 @@ public class JdxReplSrv {
 
     /**
      * Сервер, задачи по уходу за сервером,
-     * для, задействованных в задаче чтения со станций.
+     * для очередей, задействованных в задаче чтения со станций.
      */
     public void srvHandleRoutineTaskIn() throws Exception {
         DataStore wsSt = loadWsList();
