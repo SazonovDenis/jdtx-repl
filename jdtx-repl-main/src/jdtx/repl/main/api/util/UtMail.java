@@ -120,7 +120,7 @@ public class UtMail {
      * Передача списка реплик replicasToSend через mailer в ящик box
      */
     private static void sendReplicasToMail(MailSendTask sendTask, Map<Long, IReplica> replicasToSend, long wsId, IMailer mailer, String box, IJdxMailSendStateManager mailStateManager) throws Exception {
-        log.info("sendReplicasToMail, destination wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask + ", count: " + replicasToSend.size());
+        log.info("sendReplicasToMail, wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask + ", count: " + replicasToSend.size());
 
         // Узнаем, какой номер помечен как отправленный
         long lastNoMailSendMarked = -1;
@@ -159,7 +159,7 @@ public class UtMail {
             }
 
             //
-            log.info("sendReplicasToMail, destination wsId: " + wsId + ", box: " + box + ", no: " + no + ", " + count + "/" + replicasToSend.size());
+            log.info("sendReplicasToMail, wsId: " + wsId + ", box: " + box + ", no: " + no + ", " + count + "/" + replicasToSend.size());
 
             //
             count = count + 1;
@@ -176,9 +176,9 @@ public class UtMail {
 
         //
         if (count > 0) {
-            log.info("sendReplicasToMail done, destination wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask.sendFrom + " .. " + sendTask.sendTo + ", done count: " + count);
+            log.info("sendReplicasToMail done, wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask.sendFrom + " .. " + sendTask.sendTo + ", done count: " + count);
         } else {
-            log.info("sendReplicasToMail done, destination wsId: " + wsId + ", box: " + box + ", nothing done");
+            log.info("sendReplicasToMail done, wsId: " + wsId + ", box: " + box + ", nothing done");
         }
     }
 

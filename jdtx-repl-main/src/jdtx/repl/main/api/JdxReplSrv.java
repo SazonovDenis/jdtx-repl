@@ -687,7 +687,7 @@ public class JdxReplSrv {
                         //
                         if (UtJdxErrors.errorIs_replicaFile(e)) {
                         // Пробуем что-то сделать с проблемой реплики в очереди
-                            log.error("srvHandleCommonQue, error: " + e.getMessage());
+                            log.error("srvHandleCommonQue, wsId: " + wsId + ", error: " + e.getMessage());
 
                             // Запросим реплику и починим очередь, когда дождемся ответа
                             IReplica replicaNew = UtRepl.requestReplica(mailerList.get(wsId), "from", no, RequiredInfo.EXECUTOR_WS);
@@ -697,7 +697,7 @@ public class JdxReplSrv {
                             queInSrv.put(replicaNew, no);
 
                             // Ждем следующего цикла, а пока - ошибка
-                            throw new XError("srvHandleCommonQue, requestReplica done, wait for next iteration, queName: " + queInSrv.getQueName() + " , replica.no: " + no);
+                            throw new XError("srvHandleCommonQue, requestReplica done, wait for next iteration, wsId: " + wsId + ", queName: " + queInSrv.getQueName() + " , replica.no: " + no);
                         } else {
                             throw e;
                         }
