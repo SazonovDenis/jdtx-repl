@@ -2149,7 +2149,7 @@ public class JdxReplWs {
                 log.warn("Repair noQueOutSendMarked != noQueOutSendSrv, setMailSendDone, " + noQueOutSendMarked + " -> " + noQueOutSendSrv);
             } else {
                 // Отметка опережает сервер
-                throw new XError("Unable to repair marked, noQueSendMarked > noQueSendSrv");
+                throw new XError("Unable to repair marked, noQueSendMarked > noQueSendSrv, noQueOutSendMarked: " + noQueOutSendMarked + ", noQueOutSendSrv: " + noQueOutSendSrv);
             }
         }
 

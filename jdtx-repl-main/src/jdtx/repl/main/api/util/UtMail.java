@@ -277,8 +277,8 @@ public class UtMail {
 
         //
         if (noQueSendMarked > noQueSendSrv && noQueSendSrv != 0) {
-            // Отметка опережает сервер (а сервер уже какое то время работал)
-            throw new XError("Unable to repair marked, noQueSendMarked > noQueSendSrv");
+            // Отметка опережает сервер (а сервер уже какое-то время работал)
+            throw new XError("Unable to repair marked, noQueSendMarked > noQueSendSrv, que: " + que.getQueName() + ", box: " + box + ", noQueSendMarked: " + noQueSendMarked + ", noQueSendSrv: " + noQueSendSrv);
         }
 
         if (noQueSendMarked == (noQueSendSrv - 1)) {
