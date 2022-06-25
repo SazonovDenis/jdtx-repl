@@ -654,19 +654,19 @@ public class JdxReplSrv {
                 for (long no = queDoneNo + 1; no <= queMaxNo; no++) {
                     log.info("srvHandleCommonQue, from.wsId: " + wsId + ", queInSrv.no: " + no);
 
-
-                    // Помещаем полученные данные в общую очередь
+                    // Обработка входящих очередей
                     db.startTran();
-                    IReplica replica = null;
                     try {
+                        // --- Формируем общую очередь queCommon
+
                         // Берем реплику из входящей очереди queInSrv
-                        replica = queInSrv.get(no);
+                        IReplica replica = queInSrv.get(no);
 
                         // Помещаем в очередь queCommon
                         long queCommonNo = queCommon.push(replica);
 
-                        // Отмечаем, что реплика обработана
-                        stateManager.setWsQueInNoDone(wsId, no);
+
+                        // --- Специальные реакции на реплики
 
                         // Станция прислала отчет об изменении своего состояния - отмечаем состояние станции в серверных таблицах
                         if (replica.getInfo().getReplicaType() == JdxReplicaType.MUTE_DONE) {
@@ -678,6 +678,10 @@ public class JdxReplSrv {
                             JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
                             utmm.setUnmuteDone(wsId);
                         }
+
+
+                        // --- Отмечаем, что реплика обработана
+                        stateManager.setWsQueInNoDone(wsId, no);
 
                         //
                         db.commit();
