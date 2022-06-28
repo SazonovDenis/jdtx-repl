@@ -1,6 +1,5 @@
 package jdtx.repl.main.api
 
-
 import jandcode.bgtasks.*
 import jandcode.dbm.data.*
 import jandcode.dbm.db.*
@@ -14,6 +13,7 @@ import jdtx.repl.main.task.*
 import jdtx.repl.main.ut.*
 import org.apache.commons.io.*
 import org.junit.*
+import org.junit.rules.*
 
 import java.util.concurrent.*
 
@@ -21,6 +21,8 @@ import java.util.concurrent.*
 
 public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
+    @Rule
+    public TestName testName = new TestName();
 
     String json_srv
     String json_ws
@@ -134,9 +136,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_AllHttp()
 
         //
+        do_DumpTables(db, db2, db3, struct, struct2, struct3, "test_baseReplication")
         compareDb(db, db2, equalExpected)
         compareDb(db, db3, equalExpected)
-        do_DumpTables(db, db2, db3, struct, struct2, struct3)
     }
 
 
@@ -276,7 +278,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    void repl_mail_check(){
+    void repl_mail_check() {
         IVariantMap args = new VariantMap()
         args.put("create", true)
         assertEquals("Ящики не созданы", true, extSrv.repl_mail_check(args))
@@ -543,6 +545,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         do_DumpTables(db, db2, db5, struct, struct2, struct5)
     }
 
+    public void do_DumpTables_1_2_3(String title) throws Exception {
+        do_DumpTables(db, db2, db3, struct, struct2, struct3, title)
+    }
+
+    public void do_DumpTables_1_2_5(String title) throws Exception {
+        do_DumpTables(db, db2, db5, struct, struct2, struct5, title)
+    }
+
     @Test
     public void sync_http_1_2_3_5() throws Exception {
         test_srv_doReplSession()
@@ -729,12 +739,17 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         String struct_t_XXX3 = dump_table_new_created(db3, struct3)
 
         //
+        String title = testName.getMethodName()
+        String titleStr0 = "===== " + title + " =====" + "\n\n"
+        String titleStr1 = "\n\n" + "===== " + title + " ====="
+
+        //
         String fileName1 = "../_test-data/csv/" + db1name + "-all.csv"
         String fileName2 = "../_test-data/csv/" + db2name + "-all.csv"
         String fileName3 = "../_test-data/csv/" + db3name + "-all.csv"
-        UtFile.saveString(svr1.save().toString() + "\n\n" + svr1_ctx.save().toString() + "\n\n" + svr1_ctt.save().toString() + "\n\n" + svr1_r.save().toString() + "\n\n" + struct_t_XXX1 + "\n\n" + svr1_bt.save().toString(), new File(fileName1))
-        UtFile.saveString(svr2.save().toString() + "\n\n" + svr2_ctx.save().toString() + "\n\n" + svr2_ctt.save().toString() + "\n\n" + svr2_r.save().toString() + "\n\n" + struct_t_XXX2 + "\n\n" + svr2_bt.save().toString(), new File(fileName2))
-        UtFile.saveString(svr3.save().toString() + "\n\n" + svr3_ctx.save().toString() + "\n\n" + svr3_ctt.save().toString() + "\n\n" + svr3_r.save().toString() + "\n\n" + struct_t_XXX3 + "\n\n" + svr3_bt.save().toString(), new File(fileName3))
+        UtFile.saveString(titleStr0 + svr1.save().toString() + "\n\n" + svr1_ctx.save().toString() + "\n\n" + svr1_ctt.save().toString() + "\n\n" + svr1_r.save().toString() + "\n\n" + struct_t_XXX1 + "\n\n" + svr1_bt.save().toString() + titleStr1, new File(fileName1))
+        UtFile.saveString(titleStr0 + svr2.save().toString() + "\n\n" + svr2_ctx.save().toString() + "\n\n" + svr2_ctt.save().toString() + "\n\n" + svr2_r.save().toString() + "\n\n" + struct_t_XXX2 + "\n\n" + svr2_bt.save().toString() + titleStr1, new File(fileName2))
+        UtFile.saveString(titleStr0 + svr3.save().toString() + "\n\n" + svr3_ctx.save().toString() + "\n\n" + svr3_ctt.save().toString() + "\n\n" + svr3_r.save().toString() + "\n\n" + struct_t_XXX3 + "\n\n" + svr3_bt.save().toString() + titleStr1, new File(fileName3))
 
         //
         startCmpDb(fileName1, fileName2, fileName3)

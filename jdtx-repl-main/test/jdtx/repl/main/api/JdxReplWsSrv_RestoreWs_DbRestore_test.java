@@ -115,9 +115,9 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
 
         // Cинхронизация должна пройти нормально
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
         compareDb(db, db2, equalExpected);
         compareDb(db, db3, equalExpected);
-        do_DumpTables(db, db2, db3, struct, struct2, struct3);
         new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
     }
 
@@ -165,9 +165,9 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
 
         // Cинхронизация должна пройти нормально
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
         compareDb(db, db2, equalExpected);
         compareDb(db, db3, equalExpected);
-        do_DumpTables(db, db2, db3, struct, struct2, struct3);
         new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
     }
 
@@ -337,9 +337,9 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
 
         // Cинхронизация должна пройти нормально
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
         compareDb(db, db2, equalExpected);
         compareDb(db, db3, equalExpected);
-        do_DumpTables(db, db2, db3, struct, struct2, struct3);
         new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
     }
 

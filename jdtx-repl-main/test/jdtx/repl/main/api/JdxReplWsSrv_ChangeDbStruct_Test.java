@@ -120,10 +120,6 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
         UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
         assertEquals(3, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
-
-
-        // ===
-        //do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
     /**
@@ -377,9 +373,9 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         //
         test_modifyDbStruct();
         //
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
         compareDb(db, db2, equalExpected);
         compareDb(db, db3, equalExpected);
-        test_DumpTables_1_2_3();
     }
 
     /**
@@ -397,9 +393,9 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         test_modifyDbStruct();
         test_modifyDbStruct();
         //
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
         compareDb(db, db2, equalExpected);
         compareDb(db, db3, equalExpected);
-        test_DumpTables_1_2_3();
     }
 
     /**
