@@ -7,8 +7,8 @@ public class RequiredInfo {
 
     public long requiredFrom = -1;
     public long requiredTo = -1;
-    public boolean recreate = false;
     public String executor = null;
+    public boolean recreate = false;
 
     public static String EXECUTOR_WS = "ws";
     public static String EXECUTOR_SRV = "srv";
@@ -21,8 +21,8 @@ public class RequiredInfo {
         super();
         requiredFrom = UtJdxData.longValueOf(required.get("requiredFrom"), -1L);
         requiredTo = UtJdxData.longValueOf(required.get("requiredTo"), -1L);
-        recreate = UtJdxData.booleanValueOf(required.get("recreate"), false);
         executor = UtJdxData.stringValueOf(required.get("executor"), null);
+        recreate = UtJdxData.booleanValueOf(required.get("recreate"), false);
     }
 
     @Override

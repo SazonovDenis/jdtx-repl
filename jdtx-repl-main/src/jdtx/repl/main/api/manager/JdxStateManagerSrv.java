@@ -28,7 +28,7 @@ public class JdxStateManagerSrv {
     }
 
     /**
-     * Устанавливает номер реплики, до которого получена
+     * Отмечает номер реплики, до которого получена
      * очередь out от рабочей станции и помещена в зеркальную очередь queInSrv.
      */
     public void setWsQueInNoReceived(long wsId, long queInNo) throws Exception {

@@ -10,7 +10,7 @@ public class UtJdxErrors {
         return errText;
     }
 
-    public static String message_replicaMailBoxNotFound = "Replica not found";
+    public static String message_replicaMailNotFound = "Replica not found, guid";
     public static String message_replicaRecordNotFound = "replica record not found";
     public static String message_fileNotFound = "java.io.FileNotFoundException";
     public static String message_replicaDataFileNotExists = "replica.file not exists";
@@ -19,7 +19,7 @@ public class UtJdxErrors {
     public static String message_replicaNotFoundContent = "not found content in replica";
 
     public static boolean errorIs_replicaMailNotFound(Exception e) {
-        return collectExceptionText(e).contains(message_replicaMailBoxNotFound);
+        return collectExceptionText(e).contains(message_replicaMailNotFound);
     }
 
     private static boolean errorIs_replicaFileNotFound(Exception e) {
