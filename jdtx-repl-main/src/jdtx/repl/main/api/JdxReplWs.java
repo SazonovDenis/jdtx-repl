@@ -76,10 +76,6 @@ public class JdxReplWs {
     //
     public JdxReplWs(Db db) throws Exception {
         this.db = db;
-
-        // Строго обязательно REPEATABLE_READ, иначе сохранение в age возраста аудита
-        // будет не синхронно с изменениями в таблицах аудита.
-        db.getConnection().setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
     }
 
     public long getWsId() {
@@ -103,6 +99,10 @@ public class JdxReplWs {
      */
     public void init() throws Exception {
         MDC.put("serviceName", "ws");
+
+        // Строго обязательно REPEATABLE_READ, иначе сохранение в age возраста аудита
+        // будет не синхронно с изменениями в таблицах аудита.
+        db.getConnection().setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
 
         // Проверка версии служебных структур в БД
         UtDbObjectManager ut = new UtDbObjectManager(db);
@@ -189,7 +189,7 @@ public class JdxReplWs {
 
     /**
      * В каком каталоге работаем.
-     * Оформлен как отдельный метод, чтобы можно было вызывать только его
+     * Оформлен как отдельный метод, чтобы можно было вызывать только его (в тестах и т.д.)
      */
     public void initDataRoot() throws IOException {
         dataRoot = new File(db.getApp().getRt().getChild("app").getValueString("dataRoot")).getCanonicalPath();

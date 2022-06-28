@@ -72,74 +72,9 @@ public class JdxReplSrv {
         return mailerList.get(wsId);
     }
 
-
-    /**
-     * Проверка версии приложения, ошибка при несовпадении.
-     * <p>
-     * Рабочая станция вседа обновляет приложение, а сервер - просто ждет пока приложение обновится.
-     * Это разделение для того, чтобы на серверной базе
-     * сервер и рабчая станция одновременно не кинулись обновлять.
-     */
-    public void checkAppUpdate() throws Exception {
-        String appRoot = new File(db.getApp().getRt().getChild("app").getValueString("appRoot")).getCanonicalPath();
-        UtAppUpdate ut = new UtAppUpdate(db, appRoot);
-        ut.checkAppUpdate(false);
-    }
-
-    /**
-     * Сервер, задачи по уходу за сервером,
-     * для очередей, задействованных в задаче чтения со станций.
-     */
-    public void srvHandleRoutineTaskIn() throws Exception {
-        DataStore wsSt = loadWsList();
-        Set wsList = UtData.uniqueValues(wsSt, "id");
-
-        // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
-        // очередь queInSrv для станции wsId (входящие очереди-зеркала)
-        for (Object wsIdObj : wsList) {
-            long wsId = UtJdxData.longValueOf(wsIdObj);
-            IJdxQue que = queInList.get(wsId);
-            UtRepl.clearTrashFiles(que);
+    public String getDataRoot() {
+        return dataRoot;
         }
-    }
-
-    /**
-     * Сервер, задачи по уходу за сервером,
-     * для очередей, задействованных в задаче формирования исходящих очередей для станций.
-     */
-    public void srvHandleRoutineTaskOut() throws Exception {
-        DataStore wsSt = loadWsList();
-        Set wsList = UtData.uniqueValues(wsSt, "id");
-
-        // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
-        // Общая очередь
-        UtRepl.clearTrashFiles(queCommon);
-
-        // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
-        // очередь Out000 для станции wsId (исходящая из сервера)
-        for (Object wsIdObj : wsList) {
-            long wsId = UtJdxData.longValueOf(wsIdObj);
-            // Исходящая очередь Out000 для станции wsId
-            JdxQueOut000 que = new JdxQueOut000(db, wsId);
-            que.setDataRoot(dataRoot);
-
-            //
-            UtRepl.clearTrashFiles(que);
-        }
-
-        // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
-        // очередь queOut001 для станции wsId (инициализационная или для системных команд)
-        for (Object wsIdObj : wsList) {
-            long wsId = UtJdxData.longValueOf(wsIdObj);
-            //
-            JdxQueOut001 que = new JdxQueOut001(db, wsId);
-            que.setDataRoot(dataRoot);
-
-            //
-            UtRepl.clearTrashFiles(que);
-        }
-    }
-
 
     /**
      * Сервер, запуск
@@ -147,17 +82,15 @@ public class JdxReplSrv {
     public void init() throws Exception {
         MDC.put("serviceName", "srv");
 
-        //
-        dataRoot = new File(db.getApp().getRt().getChild("app").getValueString("dataRoot")).getCanonicalPath();
-        dataRoot = UtFile.unnormPath(dataRoot) + "/";
-        log.info("dataRoot: " + dataRoot);
-
         // Проверка версии служебных структур в БД
         UtDbObjectManager ut = new UtDbObjectManager(db);
         ut.checkReplVerDb();
 
         // Проверка, что инициализация станции прошла
         ut.checkReplDb();
+
+        // В каком каталоге работаем
+        initDataRoot();
 
         // Чтение своей конфигурации
         CfgManager cfgManager = new CfgManager(db);
@@ -240,6 +173,83 @@ public class JdxReplSrv {
 
         // Чтобы были
         UtFile.mkdirs(dataRoot + "temp");
+    }
+
+    /**
+     * В каком каталоге работаем.
+     * Оформлен как отдельный метод, чтобы можно было вызывать только его (в тестах и т.д.)
+     */
+    public void initDataRoot() throws IOException {
+        dataRoot = new File(db.getApp().getRt().getChild("app").getValueString("dataRoot")).getCanonicalPath();
+        dataRoot = UtFile.unnormPath(dataRoot) + "/";
+        log.info("dataRoot: " + dataRoot);
+    }
+
+    /**
+     * Проверка версии приложения, ошибка при несовпадении.
+     * <p>
+     * Рабочая станция вседа обновляет приложение, а сервер - просто ждет пока приложение обновится.
+     * Это разделение для того, чтобы на серверной базе
+     * сервер и рабчая станция одновременно не кинулись обновлять.
+     */
+    public void checkAppUpdate() throws Exception {
+        String appRoot = new File(db.getApp().getRt().getChild("app").getValueString("appRoot")).getCanonicalPath();
+        UtAppUpdate ut = new UtAppUpdate(db, appRoot);
+        ut.checkAppUpdate(false);
+    }
+
+    /**
+     * Сервер, задачи по уходу за сервером,
+     * для очередей, задействованных в задаче чтения со станций.
+     */
+    public void srvHandleRoutineTaskIn() throws Exception {
+        DataStore wsSt = loadWsList();
+        Set wsList = UtData.uniqueValues(wsSt, "id");
+
+        // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
+        // очередь queInSrv для станции wsId (входящие очереди-зеркала)
+        for (Object wsIdObj : wsList) {
+            long wsId = UtJdxData.longValueOf(wsIdObj);
+            IJdxQue que = queInList.get(wsId);
+            UtRepl.clearTrashFiles(que);
+        }
+    }
+
+    /**
+     * Сервер, задачи по уходу за сервером,
+     * для очередей, задействованных в задаче формирования исходящих очередей для станций.
+     */
+    public void srvHandleRoutineTaskOut() throws Exception {
+        DataStore wsSt = loadWsList();
+        Set wsList = UtData.uniqueValues(wsSt, "id");
+
+        // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
+        // Общая очередь
+        UtRepl.clearTrashFiles(queCommon);
+
+        // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
+        // очередь Out000 для станции wsId (исходящая из сервера)
+        for (Object wsIdObj : wsList) {
+            long wsId = UtJdxData.longValueOf(wsIdObj);
+            // Исходящая очередь Out000 для станции wsId
+            JdxQueOut000 que = new JdxQueOut000(db, wsId);
+            que.setDataRoot(dataRoot);
+
+            //
+            UtRepl.clearTrashFiles(que);
+        }
+
+        // Очистка файлов, котрорые есть в каталоге, но которых нет в базе:
+        // очередь queOut001 для станции wsId (инициализационная или для системных команд)
+        for (Object wsIdObj : wsList) {
+            long wsId = UtJdxData.longValueOf(wsIdObj);
+            //
+            JdxQueOut001 que = new JdxQueOut001(db, wsId);
+            que.setDataRoot(dataRoot);
+
+            //
+            UtRepl.clearTrashFiles(que);
+        }
     }
 
     /**
