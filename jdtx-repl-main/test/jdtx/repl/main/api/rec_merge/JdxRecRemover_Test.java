@@ -238,7 +238,7 @@ public class JdxRecRemover_Test extends DbmTestCase {
         ProcessBuilder processBuilder = new ProcessBuilder("cmd", "/C", batFile.getAbsolutePath());
         processBuilder.directory(batFile.getParentFile());
         Process process = processBuilder.start();
-        process.waitFor();
+        //process.waitFor();
     }
 
     long getIdSour() throws Exception {
