@@ -2,13 +2,12 @@ package jdtx.repl.main.api;
 
 import jandcode.app.test.*;
 import org.junit.*;
-import org.junit.rules.*;
 
 /**
  * Проверка восстановления репликации рабочей станции при восстановлении базы/папок из бэкапа.
  * Врапер для запуска всех тестов jdtx.repl.main.api.JdxReplWsSrv_RestoreWs_***_test.
  */
-public class All_RestoreWsAfterDbRestore_Test extends AppTestCase {
+public class All_RestoreWs_AfterDbRestore_Test extends AppTestCase {
 
     // Для возможности делать надежный disconnectAllForce именно для экземпляра теста,
     // иначе БД не отсвобождается
@@ -21,6 +20,7 @@ public class All_RestoreWsAfterDbRestore_Test extends AppTestCase {
         test.doNolmalLifeBromBackup = false;
         test.setUp();
         test.doSetUp_doNolmalLife_BeforeFail();
+        test.disconnectAllForce();
     }
 
     @Override
@@ -103,24 +103,6 @@ public class All_RestoreWsAfterDbRestore_Test extends AppTestCase {
         test.doNolmalLifeBromBackup = true;
         test.setUp();
         test.test_Db1_DirClean();
-    }
-
-    @Test
-    public void test_DirDB_srv() throws Exception {
-        JdxReplWsSrv_RestoreWs_FromSrv_Test test = new JdxReplWsSrv_RestoreWs_FromSrv_Test();
-        this.test = test;
-        test.testName = testName;
-        test.setUp();
-        test.test_DirDB_srv();
-    }
-
-    @Test
-    public void test_DirDB_srv_filter() throws Exception {
-        JdxReplWsSrv_RestoreWs_FromSrv_Test test = new JdxReplWsSrv_RestoreWs_FromSrv_Test();
-        this.test = test;
-        test.testName = testName;
-        test.setUp();
-        test.test_DirDB_srv_filter();
     }
 
 }
