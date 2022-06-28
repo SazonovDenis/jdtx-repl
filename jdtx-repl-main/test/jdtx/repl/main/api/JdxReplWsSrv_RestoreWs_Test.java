@@ -285,16 +285,10 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         File mailDirFile = new File(mailDirName);
 
         //
-        disconnectAll();
-
-        //
         UtFile.cleanDir(mailDirName);
         UtZip.doUnzipDir(dirBackupName, mailDirName);
         //
         System.out.println("restoreMail: " + dirBackupName + " -> " + mailDirName);
-
-        //
-        connectAll();
     }
 
 
