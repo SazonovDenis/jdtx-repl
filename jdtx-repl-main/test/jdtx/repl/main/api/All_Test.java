@@ -11,6 +11,7 @@ import org.junit.runners.*;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
         All_BaseRepl_Test.class,
+        All_Mailer_Test.class,
         All_MergeCore_Test.class,
         All_MergeRepl_Test.class,
         All_RestoreWsAfterDbRestore_Test.class,
