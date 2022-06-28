@@ -1027,41 +1027,5 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         return UtString.padLeft(String.valueOf(no), 9, '0') + "-" + dt.toString("YYYY.MM.dd_HH.mm.ss.SSS") + ".zip";
     }
 
-    public static IReplica requestReplica(IMailer mailer, String box, long no, String executor) throws Exception {
-        log.info("requestReplica, try replica receive, replica.no: " + no + ", box: " + box + ", executor: " + executor);
-
-        // Проверим, есть ли такая реплика в ящике (еще осталась или запросили на предыдущем цикле)
-        try {
-            // Скачиваем
-            IReplica replica = mailer.receive(box, no);
-
-            // Читаем заголовок
-            JdxReplicaReaderXml.readReplicaInfo(replica);
-
-            //
-            log.info("requestReplica, replica receive done");
-
-            //
-            return replica;
-        } catch (Exception exceptionMail) {
-            if (UtJdxErrors.errorIs_replicaMailNotFound(exceptionMail)) {
-                log.info("requestReplica, try request replica: " + no + ", box: " + box + ", executor: " + executor);
-
-                // Реплику еще не просили - попросим прислать
-                RequiredInfo requiredInfo = new RequiredInfo();
-                requiredInfo.requiredFrom = no;
-                requiredInfo.requiredTo = no;
-                requiredInfo.executor = executor;
-
-                // Просим
-                mailer.setSendRequired(box, requiredInfo);
-
-                // И ждем, а пока - ошибка
-                throw new XError("requestReplica, request done, wait for receive, replica.no: " + no + ", box: " + box + ", executor: " + executor);
-            } else {
-                throw exceptionMail;
-            }
-        }
-    }
 
 }

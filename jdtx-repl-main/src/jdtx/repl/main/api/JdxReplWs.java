@@ -608,7 +608,11 @@ public class JdxReplWs {
                     }
 
                     // Запросим реплику и починим очередь, когда дождемся ответа
-                    IReplica replicaNew = UtRepl.requestReplica(mailer, box, no, RequiredInfo.EXECUTOR_SRV);
+                    String executor = RequiredInfo.EXECUTOR_SRV;
+                    //
+                    log.info("receiveOrRequestReplica, try replica receive, box: " + box + ", replica.no: " + no + ", executor: " + executor);
+                    IReplica replicaNew = UtMail.receiveOrRequestReplica(mailer, box, no, executor);
+                    log.info("receiveOrRequestReplica, replica receive done");
 
                     // Обновим "битую" реплику в очереди - заменим на нормальную
                     que.remove(no);
@@ -1421,10 +1425,10 @@ public class JdxReplWs {
 
 
     IReplica receiveInternalStep(IMailer mailer, String box, long no, IJdxReplicaQue que) throws Exception {
-        // Физически забираем данные реплики с сервера
-        IReplica replica = mailer.receive(box, no);
+        // Физически забираем данные с почтового сервера
+        IReplica replica = UtMail.receiveOrRequestReplica(mailer, box, no, RequiredInfo.EXECUTOR_SRV);
 
-        // Читаем заголовок
+        // Читаем поля заголовка
         JdxReplicaReaderXml.readReplicaInfo(replica);
 
         // Помещаем реплику в очередь
@@ -2214,41 +2218,33 @@ public class JdxReplWs {
      * @return =true, если все заказанные реплики прочитаны с сервера
      */
     private boolean readQueFromSrv_Interval(IJdxQue que, String box, long replicaNoFrom, long replicaNoTo) throws Exception {
-        long no = replicaNoFrom;
-        while (no <= replicaNoTo) {
-            try {
-                log.debug("readQueFromSrv_Interval, receive, que: " + que.getQueName() + ", no: " + no);
+        if (replicaNoFrom > replicaNoTo) {
+            return true;
+        }
 
-                //
-                receiveInternalStep(mailer, box, no, que);
-
-                //
-                no++;
-            } catch (Exception e) {
-                // Если надо - заказываем повторную передачу
-                RequiredInfo requiredInfoNow = mailer.getSendRequired(box);
-                if (requiredInfoNow.requiredFrom == -1 || requiredInfoNow.requiredFrom > no) {
-                    // Оказывается и не просили у сервера прислать (или просили не тот диапазон) - попросим сейчас недостающий диапазон
+        // Попросим сразу прислать всесь диапазон, который мы намерены скачивать
                     RequiredInfo requiredInfo = new RequiredInfo();
                     requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
-                    requiredInfo.requiredFrom = no;
+        requiredInfo.requiredFrom = replicaNoFrom;
                     requiredInfo.requiredTo = replicaNoTo;
                     mailer.setSendRequired(box, requiredInfo);
 
-                    // Заказали и ждем пока сервер пришлет, а пока - ошибка
-                    log.warn("readQueFromSrv_Interval, wait for repair, que: " + que.getQueName() + ", send required: " + requiredInfo);
+        // Читаем с сервера
+        long no = replicaNoFrom;
+        while (no <= replicaNoTo) {
+            try {
+                log.info("readQueFromSrv_Interval, receive, que: " + que.getQueName() + ", box: " + box + ", no: " + no);
 
                     //
-                    return false;
-                } else {
-                    // Уже просили прислать - ждем пока сервер пришлет, а пока - ошибка
-                    log.warn("readQueFromSrv_Interval, wait for required, que: " + que.getQueName() + ", wait required: " + requiredInfoNow);
+                receiveInternalStep(mailer, box, no, que);
 
                     //
+                no++;
+            } catch (Exception e) {
+                log.warn("readQueFromSrv_Interval, error: " + e.getMessage());
                     return false;
                 }
             }
-        }
 
         //
         return true;
@@ -2265,7 +2261,7 @@ public class JdxReplWs {
         long no = replicaNoFrom;
         while (lastSelfQueNo < requiredReplicaNo) {
             try {
-                log.debug("repairQueBySrv, receive, que: " + que.getQueName() + ", no: " + no);
+                log.info("readQueFromSrv_RepicaNo, receive, que: " + que.getQueName() + ", box: " + box + ", no: " + no);
 
                 //
                 IReplica replica = receiveInternalStep(mailer, box, no, que);
@@ -2278,26 +2274,10 @@ public class JdxReplWs {
                 //
                 no++;
             } catch (Exception e) {
-                // Если надо - заказываем повторную передачу
-                RequiredInfo requiredInfoNow = mailer.getSendRequired(box);
-                if (requiredInfoNow.requiredFrom == -1) {
-                    // Оказывается и не просили у сервера прислать - попросим сейчас все
-                    RequiredInfo requiredInfo = new RequiredInfo();
-                    requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
-                    requiredInfo.requiredFrom = no;
-                    requiredInfo.requiredTo = -1;
-                    mailer.setSendRequired(box, requiredInfo);
-
-                    // Заказали и ждем пока сервер пришлет, а пока - ошибка
-                    log.warn("readQueFromSrv_RepicaNo, wait for repair, que: " + que.getQueName() + ", send required: " + requiredInfo);
-                    return false;
-                } else {
-                    // Уже просили прислать - ждем пока сервер пришлет, а пока - ошибка
-                    log.warn("readQueFromSrv_RepicaNo, wait for required, que: " + que.getQueName() + ", wait required: " + requiredInfoNow);
+                log.warn("readQueFromSrv_RepicaNo, error: " + e.getMessage());
                     return false;
                 }
             }
-        }
 
         return true;
     }

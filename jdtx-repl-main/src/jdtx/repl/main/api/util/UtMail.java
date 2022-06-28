@@ -315,4 +315,59 @@ public class UtMail {
     }
 
 
+    /**
+     * Читаем реплику номер no из ящика box.
+     * Если она есть (осталась при штатной передаче, либо её запросили повторно на предыдущем цикле), то возвращаем ее,.
+     * если реплики не оказалосьь в ящике - запрашиваем у executor.
+     */
+    public static IReplica receiveOrRequestReplica(IMailer mailer, String box, long no, String executor) throws Exception {
+        try {
+            // Читаем реплику из ящика
+            IReplica replica = mailer.receive(box, no);
+
+            // Читаем заголовок
+            JdxReplicaReaderXml.readReplicaInfo(replica);
+
+            //
+            return replica;
+        } catch (Exception exceptionMail) {
+            // Какая-то ошибка
+            if (UtJdxErrors.errorIs_replicaMailNotFound(exceptionMail)) {
+                // Ошибка: реплики в ящике нет - запросм сами повторную передачу
+                log.error("Replica not found: " + no + ", box: " + box + ", error: " + exceptionMail.getMessage());
+
+                // Реплику еще не просили повторно?
+                RequiredInfo requiredInfoNow = mailer.getSendRequired(box);
+                if (requiredInfoNow.requiredFrom == -1 || requiredInfoNow.requiredFrom > no || (requiredInfoNow.requiredTo != -1 && requiredInfoNow.requiredTo < no)) {
+                    // Оказывается ещё не просили у executor-а прислать, или просили диапазон, который не включает в себя no -
+                    // попросим сейчас недостающий диапазон.
+                    log.info("Try set required, box: " + box + ", no: " + no + ", executor: " + executor);
+
+                    long requiredTo;
+                    if (requiredInfoNow.requiredTo != -1)
+                        requiredTo = Math.max(requiredInfoNow.requiredTo, no);
+                    else {
+                        requiredTo = no;
+                    }
+
+                    //
+                    RequiredInfo requiredInfo = new RequiredInfo();
+                    requiredInfo.executor = executor;
+                    requiredInfo.requiredFrom = no;
+                    requiredInfo.requiredTo = requiredTo;
+
+                    // Просим
+                    mailer.setSendRequired(box, requiredInfo);
+
+                    // Заказали и ждем пока executor пришлет, а пока - ошибка
+                    throw new XError("Set required done, wait for receive, box: " + box + ", send required: " + requiredInfo);
+                } else {
+                    // Уже просили прислать - ждем пока executor пришлет, а пока - ошибка
+                    throw new XError("Wait for receive, box: " + box + ", wait required: " + requiredInfoNow);
+                }
+            } else {
+                throw exceptionMail;
+            }
+        }
+    }
 }

@@ -580,10 +580,7 @@ public class JdxReplSrv {
                     log.info("receive, wsId: " + wsId + ", receiving.no: " + no);
 
                     // Физически забираем данные с почтового сервера
-                    IReplica replica = mailerWs.receive("from", no);
-
-                    // Читаем поля заголовка
-                    JdxReplicaReaderXml.readReplicaInfo(replica);
+                    IReplica replica = UtMail.receiveOrRequestReplica(mailerWs, "from", no, RequiredInfo.EXECUTOR_WS);
 
                     // Помещаем полученные данные в общую очередь
                     db.startTran();
@@ -694,7 +691,14 @@ public class JdxReplSrv {
                             log.error("srvHandleCommonQue, wsId: " + wsId + ", error: " + e.getMessage());
 
                             // Запросим реплику и починим очередь, когда дождемся ответа
-                            IReplica replicaNew = UtRepl.requestReplica(mailerList.get(wsId), "from", no, RequiredInfo.EXECUTOR_WS);
+                            IMailer mailerWs = mailerList.get(wsId);
+                            String box = "from";
+                            String executor = RequiredInfo.EXECUTOR_WS;
+                            //
+                            log.info("receiveOrRequestReplica, try replica receive, box: " + box + ", replica.no: " + no + ", executor: " + executor);
+                            IReplica replicaNew = UtMail.receiveOrRequestReplica(mailerWs, box, no, executor);
+                            log.info("receiveOrRequestReplica, replica receive done");
+
 
                             // Обновим "битую" реплику в очереди - заменим на нормальную
                             queInSrv.remove(no);
