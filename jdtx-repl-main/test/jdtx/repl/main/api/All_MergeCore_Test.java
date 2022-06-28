@@ -19,7 +19,7 @@ import org.junit.runners.*;
 public class All_MergeCore_Test extends AppTestCase {
 
     @BeforeClass
-    public static void test_baseReplication() throws Exception {
+    public static void setUpBeforeClass() throws Exception {
         // Подготовка репликационных баз и приведение их в нужное состояние
         JdxReplWsSrv_Test test = new JdxReplWsSrv_Test();
         test.setUp();

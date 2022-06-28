@@ -2,6 +2,7 @@ package jdtx.repl.main.api;
 
 import jandcode.app.test.*;
 import org.junit.*;
+import org.junit.rules.*;
 
 /**
  * Проверка восстановления репликации рабочей станции при восстановлении базы/папок из бэкапа.
@@ -38,8 +39,9 @@ public class All_RestoreWsAfterDbRestore_Test extends AppTestCase {
     public void test_Db1() throws Exception {
         JdxReplWsSrv_RestoreWs_DbRestore_test test = new JdxReplWsSrv_RestoreWs_DbRestore_test();
         this.test = test;
-        test.setUp();
+        test.testName = testName;
         test.doNolmalLifeBromBackup = true;
+        test.setUp();
         test.test_Db1();
     }
 
@@ -47,8 +49,9 @@ public class All_RestoreWsAfterDbRestore_Test extends AppTestCase {
     public void test_Db2() throws Exception {
         JdxReplWsSrv_RestoreWs_DbRestore_test test = new JdxReplWsSrv_RestoreWs_DbRestore_test();
         this.test = test;
-        test.setUp();
+        test.testName = testName;
         test.doNolmalLifeBromBackup = true;
+        test.setUp();
         test.test_Db2();
     }
 
@@ -56,8 +59,9 @@ public class All_RestoreWsAfterDbRestore_Test extends AppTestCase {
     public void test_Dir1() throws Exception {
         JdxReplWsSrv_RestoreWs_DbRestore_test test = new JdxReplWsSrv_RestoreWs_DbRestore_test();
         this.test = test;
-        test.setUp();
+        test.testName = testName;
         test.doNolmalLifeBromBackup = true;
+        test.setUp();
         test.test_Dir1();
     }
 
@@ -65,8 +69,9 @@ public class All_RestoreWsAfterDbRestore_Test extends AppTestCase {
     public void test_DirClean() throws Exception {
         JdxReplWsSrv_RestoreWs_DbRestore_test test = new JdxReplWsSrv_RestoreWs_DbRestore_test();
         this.test = test;
-        test.setUp();
+        test.testName = testName;
         test.doNolmalLifeBromBackup = true;
+        test.setUp();
         test.test_DirClean();
     }
 
@@ -74,8 +79,9 @@ public class All_RestoreWsAfterDbRestore_Test extends AppTestCase {
     public void test_Db1_Dir2() throws Exception {
         JdxReplWsSrv_RestoreWs_DbRestore_test test = new JdxReplWsSrv_RestoreWs_DbRestore_test();
         this.test = test;
-        test.setUp();
+        test.testName = testName;
         test.doNolmalLifeBromBackup = true;
+        test.setUp();
         test.test_Db1_Dir2();
     }
 
@@ -83,8 +89,9 @@ public class All_RestoreWsAfterDbRestore_Test extends AppTestCase {
     public void test_Db2_Dir1() throws Exception {
         JdxReplWsSrv_RestoreWs_DbRestore_test test = new JdxReplWsSrv_RestoreWs_DbRestore_test();
         this.test = test;
-        test.setUp();
+        test.testName = testName;
         test.doNolmalLifeBromBackup = true;
+        test.setUp();
         test.test_Db2_Dir1();
     }
 
@@ -92,8 +99,9 @@ public class All_RestoreWsAfterDbRestore_Test extends AppTestCase {
     public void test_Db1_DirClean() throws Exception {
         JdxReplWsSrv_RestoreWs_DbRestore_test test = new JdxReplWsSrv_RestoreWs_DbRestore_test();
         this.test = test;
-        test.setUp();
+        test.testName = testName;
         test.doNolmalLifeBromBackup = true;
+        test.setUp();
         test.test_Db1_DirClean();
     }
 
@@ -101,16 +109,18 @@ public class All_RestoreWsAfterDbRestore_Test extends AppTestCase {
     public void test_DirDB_srv() throws Exception {
         JdxReplWsSrv_RestoreWs_FromSrv_Test test = new JdxReplWsSrv_RestoreWs_FromSrv_Test();
         this.test = test;
+        test.testName = testName;
         test.setUp();
         test.test_DirDB_srv();
     }
 
     @Test
-    public void test_All_filter() throws Exception {
+    public void test_DirDB_srv_filter() throws Exception {
         JdxReplWsSrv_RestoreWs_FromSrv_Test test = new JdxReplWsSrv_RestoreWs_FromSrv_Test();
         this.test = test;
+        test.testName = testName;
         test.setUp();
-        test.test_All_filter();
+        test.test_DirDB_srv_filter();
     }
 
 }

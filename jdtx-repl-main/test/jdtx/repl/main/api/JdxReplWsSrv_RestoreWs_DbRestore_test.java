@@ -30,7 +30,7 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         System.out.println("Аварийное событие");
 
         // Восстановление старого состояния БД
-        doRestoreDB(db2, "_1");
+        doRestoreDB(2, "_1");
 
 
         // ---
@@ -59,7 +59,7 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         System.out.println("Аварийное событие");
 
         // Восстановление старого состояния БД
-        doRestoreDB(db2, "_2");
+        doRestoreDB(2, "_2");
 
 
         // ---
@@ -88,7 +88,7 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         System.out.println("Аварийное событие");
 
         // Восстановление строго состояния каталогов
-        doRestoreDir(db2, "_1");
+        doRestoreDir(2, "_1");
 
 
         // ---
@@ -138,7 +138,7 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         System.out.println("Аварийное событие");
 
         // Полная потеря рабочих каталогов для ws2
-        doDeleteDir(db2);
+        doDeleteDir(2);
 
 
         // ---
@@ -189,10 +189,10 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         System.out.println("Аварийные события");
 
         // Восстановление старого состояния БД
-        doRestoreDB(db2, "_1");
+        doRestoreDB(2, "_1");
 
         // Восстановление строго состояния каталогов
-        doRestoreDir(db2, "_2");
+        doRestoreDir(2, "_2");
 
 
         // ---
@@ -220,10 +220,10 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         System.out.println("Аварийные события");
 
         // Восстановление старого состояния БД
-        doRestoreDB(db2, "_2");
+        doRestoreDB(2, "_2");
 
         // Восстановление строго состояния каталогов
-        doRestoreDir(db2, "_1");
+        doRestoreDir(2, "_1");
 
         // ---
         // Жизнь после аварии
@@ -251,10 +251,10 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         System.out.println("Аварийные события");
 
         // Восстановление старого состояния БД
-        doRestoreDB(db2, "_1");
+        doRestoreDB(2, "_1");
 
         // Полная потеря рабочих каталогов для ws2
-        doDeleteDir(db2);
+        doDeleteDir(2);
 
 
         // ---
@@ -270,26 +270,47 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         doRepair(expectedNotEqual);
     }
 
+    /**
+     * Сохраним "бэкап" базы и папок для всех
+     */
+    @Test
     public void doBackupNolmalLife() throws Exception {
-        // Сохраним "бэкап" базы и папок для всех
-        doBackupDB(db, "_all");
-        doBackupDir(db, "_all");
-        doBackupDB(db2, "_all");
-        doBackupDir(db2, "_all");
-        doBackupDB(db3, "_all");
-        doBackupDir(db3, "_all");
-        // Сохраним почтовый каталог
-        doBackupMail(db, "_all");
+        // Рабочие станции
+        doBackupDB(1, "_all");
+        doBackupDir(1, "_all");
+        doBackupDB(2, "_all");
+        doBackupDir(2, "_all");
+        doBackupDB(3, "_all");
+        doBackupDir(3, "_all");
+        doBackupDB(5, "_all");
+        doBackupDir(5, "_all");
+        // Сервер
+        doBackupDir(0, "_all");
+        // Почтовый каталог
+        doBackupMail(1, "_all");
     }
 
+    @Test
     public void doRestoreFromNolmalLife() throws Exception {
-        doRestoreDB(db, "_all");
-        doRestoreDir(db, "_all");
-        doRestoreDB(db2, "_all");
-        doRestoreDir(db2, "_all");
-        doRestoreDB(db3, "_all");
-        doRestoreDir(db3, "_all");
-        doRestoreMail(db, "_all");
+        //
+        disconnectAll();
+
+        // Рабочие станции
+        doRestoreDBInternal(1, "_all");
+        doRestoreDirInternal(1, "_all");
+        doRestoreDBInternal(2, "_all");
+        doRestoreDirInternal(2, "_all");
+        doRestoreDBInternal(3, "_all");
+        doRestoreDirInternal(3, "_all");
+        doRestoreDBInternal(5, "_all");
+        doRestoreDirInternal(5, "_all");
+        // Сервер
+        doRestoreDirInternal(0, "_all");
+        // Почтовый каталог
+        doRestoreMailInternal(1, "_all");
+
+        //
+        connectAll();
     }
 
     private void doRequest(long from_no) {
@@ -353,12 +374,13 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
             System.out.println("Делаем doSetUp_doNolmalLife_BeforeFail из ранее созданной копии");
             System.out.println("-------------");
             doRestoreFromNolmalLife();
+            System.out.println("-------------");
+            System.out.println("doSetUp_doNolmalLife_BeforeFail - ok");
+            System.out.println("-------------");
             return;
         }
 
-        UtFile.mkdirs(backupDirName);
-        UtFile.cleanDir(backupDirName);
-
+        // ---
         // Создание репликации
         allSetUp();
 
@@ -366,7 +388,6 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         sync_http_1_2_3();
         sync_http_1_2_3();
         sync_http_1_2_3();
-
 
         // Проверим исходную синхронность после инициализации
         System.out.println("Базы должны быть в синхронном состоянии");
@@ -385,7 +406,6 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         // Синхронизация
         sync_http_1_2_3();
 
-
         // Проверим исходную синхронность после изменений
         System.out.println("Базы должны быть в синхронном состоянии");
         compareDb(db, db2, equalExpected);
@@ -393,9 +413,15 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
 
 
         // ---
+        // Очистим каталог от старых "бэкапов". По ходу теста каталог будет наполнятся промежуточными "бэкапами".
+        UtFile.mkdirs(backupDirName);
+        UtFile.cleanDir(backupDirName);
+
+
+        // ---
         // В бэкапе будет исходное состояние
-        doBackupDB(db2, "");
-        doBackupDir(db2, "");
+        doBackupDB(2, "");
+        doBackupDir(2, "");
 
 
         // ---
@@ -403,8 +429,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         doNolmalLife_Step(3);
 
         // Сохраним "бэкап" базы и папок для ws2
-        doBackupDB(db2, "_1");
-        doBackupDir(db2, "_1");
+        doBackupDB(2, "_1");
+        doBackupDir(2, "_1");
 
 
         // ---
@@ -412,8 +438,8 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         doNolmalLife_Step(3);
 
         // Сохраним "бэкап" базы и папок для ws2
-        doBackupDB(db2, "_2");
-        doBackupDir(db2, "_2");
+        doBackupDB(2, "_2");
+        doBackupDir(2, "_2");
 
 
         // ---

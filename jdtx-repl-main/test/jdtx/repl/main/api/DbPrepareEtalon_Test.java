@@ -11,6 +11,7 @@ import org.apache.commons.io.*;
 import org.junit.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  *
@@ -29,6 +30,8 @@ public class DbPrepareEtalon_Test extends AppTestCase {
     public Jdx_Ext extWs2;
     public Jdx_Ext extWs3;
     public Jdx_Ext extWs5;
+
+    public Map<Long, Db> dbList = new HashMap<>();
 
     protected String rootDir = "../ext/";
 
@@ -54,6 +57,12 @@ public class DbPrepareEtalon_Test extends AppTestCase {
         db2 = extWs2.getApp().service(ModelService.class).getModel().getDb();
         db3 = extWs3.getApp().service(ModelService.class).getModel().getDb();
         db5 = extWs5.getApp().service(ModelService.class).getModel().getDb();
+
+        //
+        dbList.put(1L, db);
+        dbList.put(2L, db2);
+        dbList.put(3L, db3);
+        dbList.put(5L, db5);
     }
 
     @Test
@@ -72,7 +81,7 @@ public class DbPrepareEtalon_Test extends AppTestCase {
         connectAll();
 
         //
-        doDisconnectAll();
+        disconnectAll();
     }
 
     void connectAll() throws Exception {
@@ -101,11 +110,11 @@ public class DbPrepareEtalon_Test extends AppTestCase {
         }
     }
 
-    void doDisconnectAll() throws Exception {
-        doDisconnectAll(false);
+    void disconnectAll() throws Exception {
+        disconnectAll(false);
     }
 
-    void doDisconnectAll(boolean doRaise) throws Exception {
+    void disconnectAll(boolean doRaise) throws Exception {
         doDisconnect(db, doRaise);
         doDisconnect(db2, doRaise);
         doDisconnect(db3, doRaise);

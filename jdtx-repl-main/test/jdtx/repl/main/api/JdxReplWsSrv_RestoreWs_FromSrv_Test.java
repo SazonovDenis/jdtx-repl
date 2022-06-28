@@ -34,6 +34,22 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         test_DatabaseRestore_stepRepair();
     }
 
+    /**
+     * Прогон сценария репликации: восстановление утраченной базы рабочей станции по данным с сервера,
+     * с односторонним фильтром по LIC.
+     */
+    @Test
+    public void test_DirDB_srv_filter() throws Exception {
+        cfg_json_decode = "../install/cfg/decode_strategy_194.json";
+        cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
+        cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
+        cfg_json_snapshot = "test/etalon/publication_lic_152_ws.json"; // <-- cfg_json_snapshot эта натройка почему то все ломае
+        //cfg_json_snapshot = "test/etalon/publication_lic_152_snapshot.json";
+        equalExpected = expectedEqual_filterLic;
+        //
+        test_DirDB_srv();
+    }
+
     @Test
     public void test_DatabaseRestore_stepRuin() throws Exception {
         // Создание репликации
@@ -66,8 +82,8 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         // Аварийное событие:
         // стираем текущую рабочую базу ws3 и ее рабочий каталог
         System.out.println("Аварийное событие");
-        doDeleteDir(db3);
-        doDeleteDb(db3);
+        doDeleteDir(3);
+        doDeleteDb(3);
 
 
         // ---
@@ -164,21 +180,6 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         //
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
         new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
-    }
-
-    /**
-     * Прогон сценария репликации: восстановление утраченной базы рабочей станции по данным с сервера,
-     * с односторонним фильтром по LIC.
-     */
-    @Test
-    public void test_All_filter() throws Exception {
-        cfg_json_decode = "../install/cfg/decode_strategy_194.json";
-        cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
-        cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
-        cfg_json_snapshot = "test/etalon/publication_lic_152_ws.json"; // <-- cfg_json_snapshot эта натройка почему то все ломае
-        //cfg_json_snapshot = "test/etalon/publication_lic_152_snapshot.json";
-        equalExpected = expectedEqual_filterLic;
-        test_DirDB_srv();
     }
 
     @Test
