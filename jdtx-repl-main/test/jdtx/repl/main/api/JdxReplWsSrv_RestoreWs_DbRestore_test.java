@@ -9,12 +9,10 @@ import java.util.*;
 
 /**
  * Проверка восстановления репликации рабочей станции при восстановлении базы/папок из бэкапа.
- * <p>
- * Шаг test_DatabaseRestore_stepRepair - исправляет ошибку
  */
 public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreWs_Test {
 
-    boolean doNolmalLifeBromBackup = false;
+    public boolean doNolmalLifeBromBackup = false;
 
     /**
      * Проверка при восстановлении устаревшей базы из бэкапа,
@@ -101,7 +99,9 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         // ---
         // Жизнь после аварии - идет нормально, без необходимости ремонта,
         // нужно лишь запросить пересоздание реплики
-        long from_no = 151; // todo: этот номер определяет человег, взглянув на проблему в мониоринге. Хорошо бы в тестах определять номер автоматом
+        // todo: этот номер определяет человег, взглянув на проблему в мониоринге.
+        //  Хорошо бы в тестах определять номер автоматом
+        long from_no = 151;
         doRequest(from_no);
 
 
@@ -149,7 +149,9 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         // ---
         // Жизнь после аварии - идет нормально, без необходимости ремонта,
         // нужно лишь запросить пересоздание реплики
-        long from_no = 151; // todo: этот номер определяет человег, взглянув на проблему в мониоринге. Хорошо бы в тестах определять номер автоматом
+        // todo: этот номер определяет человег, взглянув на проблему в мониоринге.
+        //  Хорошо бы в тестах определять номер автоматом
+        long from_no = 151;
         doRequest(from_no);
 
 
@@ -345,7 +347,7 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
     // Создание репликации,
     // обычная работа - изменения в базах и синхронизация
     // По дороге создаем две контрольных точки
-    private void doSetUp_doNolmalLife_BeforeFail() throws Exception {
+    void doSetUp_doNolmalLife_BeforeFail() throws Exception {
         if (doNolmalLifeBromBackup) {
             System.out.println("-------------");
             System.out.println("Делаем doSetUp_doNolmalLife_BeforeFail из ранее созданной копии");
@@ -497,32 +499,5 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         compareDb(db, db2, expectedNotEqual);
     }
 
-    @Test
-    public void test_All() throws Exception {
-        //  Проверка восстановления репликации рабочей станции при восстановлении базы/папок из бэкапа.
-        JdxReplWsSrv_RestoreWs_DbRestore_test test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
-        test7.setUp();
-        test7.test_Db1();
-        //
-        test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
-        test7.setUp();
-        test7.test_Dir1();
-        //
-        test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
-        test7.setUp();
-        test7.test_DirClean();
-        //
-        test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
-        test7.setUp();
-        test7.test_Db1_Dir2();
-        //
-        test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
-        test7.setUp();
-        test7.test_Db2_Dir1();
-        //
-        test7 = new JdxReplWsSrv_RestoreWs_DbRestore_test();
-        test7.setUp();
-        test7.test_Db1_DirClean();
-    }
 
 }

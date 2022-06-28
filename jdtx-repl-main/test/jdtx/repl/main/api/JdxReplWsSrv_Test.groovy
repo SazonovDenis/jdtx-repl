@@ -121,7 +121,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
      * Прогон базового сценария репликации: создание репликации, полная двусторонняя репликация
      */
     @Test
-    public void test_allSetUp_TestAll() throws Exception {
+    public void test_baseReplication() throws Exception {
         // Создание репликации
         allSetUp()
 
@@ -144,14 +144,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
      * Прогон базового сценария репликации: создание репликации, репликация с односторонним фильтром по LIC
      */
     @Test
-    public void test_allSetUp_TestAll_filter() throws Exception {
+    public void test_baseReplication_filter() throws Exception {
         cfg_json_decode = "../install/cfg/decode_strategy_194.json"
         cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json"
         cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json"
         equalExpected = expectedEqual_filterLic
 
         // Создание репликации, прогон тестов
-        test_allSetUp_TestAll()
+        test_baseReplication()
     }
 
     /**
@@ -747,7 +747,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ProcessBuilder processBuilder = new ProcessBuilder("cmd", "/C", batFile.getAbsolutePath())
         processBuilder.directory(batFile.getParentFile())
         Process process = processBuilder.start()
-        process.waitFor()
+        //process.waitFor()
     }
 
     private String dump_table_new_created(Db db, IJdxDbStruct struct) throws Exception {

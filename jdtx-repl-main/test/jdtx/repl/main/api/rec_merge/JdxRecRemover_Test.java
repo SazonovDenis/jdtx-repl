@@ -1,17 +1,47 @@
 package jdtx.repl.main.api.rec_merge;
 
+import jandcode.dbm.*;
 import jandcode.dbm.data.*;
+import jandcode.dbm.db.*;
+import jandcode.dbm.test.*;
+import jandcode.jc.*;
+import jandcode.jc.test.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.ext.*;
 import org.junit.*;
 
 import java.io.*;
 
-public class JdxRecRemover_Test extends JdxRecRelocator_Test {
+public class JdxRecRemover_Test extends DbmTestCase {
+
+    Db db;
+    IJdxDbStruct struct;
 
     //String tableName = "Ws_List";
     String tableName = "Lic";
     long tableId = 1357;
+
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+
+        // Утилиты Jdx_Ext
+        TestExtJc jc = createExt(TestExtJc.class);
+        ProjectScript p2 = jc.loadProject("../../ext/ws2/project.jc");
+        //
+        Jdx_Ext extWs2 = (Jdx_Ext) p2.createExt("jdtx.repl.main.ext.Jdx_Ext");
+
+        // Экземпляры db2
+        db = extWs2.getApp().service(ModelService.class).getModel().getDb();
+        db.connect();
+        System.out.println("db: " + db.getDbSource().getDatabase());
+        //
+        IJdxDbStructReader reader = new JdxDbStructReader();
+        reader.setDb(db);
+        struct = reader.readDbStruct();
+    }
 
     @Test
     public void test_removeRecCascade() throws Exception {

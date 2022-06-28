@@ -12,7 +12,7 @@ import org.junit.*;
 /**
  * Проверяем, как рабочая станциия и сервер реагируют на просьбы прислать реплики (required)
  */
-public class JdxReplWsSrv_ExecRequired_Test extends JdxReplWsSrv_Test {
+public class JdxReplWsSrv_Mailer_Required_Test extends JdxReplWsSrv_Test {
 
 
     JdxReplSrv srv;
@@ -52,19 +52,12 @@ public class JdxReplWsSrv_ExecRequired_Test extends JdxReplWsSrv_Test {
 
     @Test
     public void cleanMail() throws Exception {
-        mailer_ws1.setSendRequired("from", new RequiredInfo());
-        mailer_ws1.setSendRequired("to", new RequiredInfo());
-        mailer_ws2.setSendRequired("from", new RequiredInfo());
-        mailer_ws2.setSendRequired("to", new RequiredInfo());
-        mailer_ws3.setSendRequired("from", new RequiredInfo());
-        mailer_ws3.setSendRequired("to", new RequiredInfo());
-
-        mailer_ws1.delete("from", 10000);
-        mailer_ws1.delete("to", 10000);
-        mailer_ws2.delete("from", 10000);
-        mailer_ws2.delete("to", 10000);
-        mailer_ws3.delete("from", 10000);
-        mailer_ws3.delete("to", 10000);
+        mailer_ws1.deleteAll("from", 10000);
+        mailer_ws1.deleteAll("to", 10000);
+        mailer_ws2.deleteAll("from", 10000);
+        mailer_ws2.deleteAll("to", 10000);
+        mailer_ws3.deleteAll("from", 10000);
+        mailer_ws3.deleteAll("to", 10000);
     }
 
     /**
@@ -96,128 +89,6 @@ public class JdxReplWsSrv_ExecRequired_Test extends JdxReplWsSrv_Test {
 
         //
         doRequiredWs(ws2, 1, 1, 0);
-    }
-
-    /**
-     * Проверяем, что если установлено SendRequired,
-     * то запрошенные номера не удаляются при при вызове mailer.delete
-     */
-    @Test
-    public void test_NoDeleteIfRequired() throws Exception {
-        cleanMail();
-
-        //
-        IMailer mailerWs2 = ws2.getMailer();
-
-        // ---
-        // Проверяем, что при вызове mailer.delete
-        // из яшика удаляются все, что младше указанного номера
-
-        //
-        JSONObject files = (JSONObject) mailerWs2.getData("files", "from").get("files");
-        System.out.println();
-        System.out.println("files: " + files);
-        assertEquals(0L, files.get("min"));
-        assertEquals(0L, files.get("max"));
-
-        //
-        long count = 5;
-        long maxNo = ws2.queOut.getMaxNo();
-        long deleteNo = maxNo - 2;
-        long requiredNo = maxNo - 2;
-
-        //
-        long no = maxNo - count;
-        while (no <= maxNo) {
-            IReplica replica = ws2.queOut.get(no);
-            mailerWs2.send(replica, "from", no);
-            no = no + 1;
-        }
-
-        //
-        files = (JSONObject) mailerWs2.getData("files", "from").get("files");
-        System.out.println();
-        System.out.println("files: " + files);
-        assertEquals(maxNo - count, files.get("min"));
-        assertEquals(maxNo, files.get("max"));
-
-
-        // Удаляем не последнее
-        mailerWs2.delete("from", deleteNo);
-
-        //
-        files = (JSONObject) mailerWs2.getData("files", "from").get("files");
-        System.out.println();
-        System.out.println("files: " + files);
-        assertEquals(deleteNo + 1, files.get("min"));
-        assertEquals(maxNo, files.get("max"));
-
-
-        // Удаляем последнее
-        mailerWs2.delete("from", maxNo);
-
-        //
-        files = (JSONObject) mailerWs2.getData("files", "from").get("files");
-        System.out.println();
-        System.out.println("files: " + files);
-        assertEquals(0L, files.get("min"));
-        assertEquals(0L, files.get("max"));
-
-
-        // ---
-        // Проверяем, что если установлено SendRequired,
-        // то то запрошенные номера не удаляются при при вызове mailer.delete
-        System.out.println();
-        System.out.println("Проверяем если установлено SendRequired");
-
-        //
-        no = maxNo - count;
-        while (no <= maxNo) {
-            IReplica replica = ws2.queOut.get(no);
-            mailerWs2.send(replica, "from", no);
-            no = no + 1;
-        }
-
-        //
-        files = (JSONObject) mailerWs2.getData("files", "from").get("files");
-        System.out.println();
-        System.out.println("files: " + files);
-        assertEquals(maxNo - count, files.get("min"));
-        assertEquals(maxNo, files.get("max"));
-
-
-        // Задаем SendRequired
-        RequiredInfo required = new RequiredInfo();
-        required.requiredFrom = requiredNo;
-        required.executor = RequiredInfo.EXECUTOR_WS;
-        mailerWs2.setSendRequired("from", required);
-
-
-        // Удаляем последнее
-        mailerWs2.delete("from", maxNo);
-
-        // Удалилось НЕ до конца
-        files = (JSONObject) mailerWs2.getData("files", "from").get("files");
-        System.out.println();
-        System.out.println("files: " + files);
-        assertEquals(requiredNo, files.get("min"));
-        assertEquals(maxNo, files.get("max"));
-
-
-        // Убираем SendRequired
-        required = new RequiredInfo();
-        mailerWs2.setSendRequired("from", required);
-
-
-        // Удаляем последнее
-        mailerWs2.delete("from", maxNo);
-
-        // Удалилось до конца
-        files = (JSONObject) mailerWs2.getData("files", "from").get("files");
-        System.out.println();
-        System.out.println("files: " + files);
-        assertEquals(0L, files.get("min"));
-        assertEquals(0L, files.get("max"));
     }
 
     private void doRequiredWs(JdxReplWs ws, long no_box_from, long no_box_to, int count) throws Exception {
@@ -376,7 +247,7 @@ public class JdxReplWsSrv_ExecRequired_Test extends JdxReplWsSrv_Test {
             IReplicaInfo res = mailer.getReplicaInfo(box, no);
             throw new Exception("Test should fail, but replica found, box: " + box + ", no: " + no);
         } catch (Exception e) {
-            if (!UtJdxErrors.collectExceptionText(e).contains("Replica not found, guid")) {
+            if (!UtJdxErrors.errorIs_replicaMailNotFound(e)) {
                 throw e;
             }
             System.out.println("Replica not found, box: " + box + ", no: " + no);

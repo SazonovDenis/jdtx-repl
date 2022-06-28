@@ -39,7 +39,6 @@ public class JdxRecRelocator_Test extends DbmTestCase {
         struct = reader.readDbStruct();
     }
 
-
     @Test
     public void test_relocate() throws Exception {
         IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain();

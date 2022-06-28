@@ -26,7 +26,7 @@ public class JdxReplWsSrv_FailedInsertUpdate_Test extends JdxReplWsSrv_Test {
 
 
     @Test
-    public void test_all() throws Exception {
+    public void test_failedInsertUpdate() throws Exception {
         // ---
         // Есть проблема
         test_ProblemDelete_Show();

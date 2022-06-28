@@ -13,7 +13,7 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
      * Прогон сценария репликации: добавление рабочей станции после того, как остальные уже поработали некоторое время
      */
     @Test
-    public void test_all() throws Exception {
+    public void test_addWs() throws Exception {
         // Создаем репликацию (ws1, ws2, ws3)
         allSetUp();
         sync_http_1_2_3();
@@ -74,11 +74,11 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
      * с односторонним фильтром по LIC
      */
     @Test
-    public void test_allSetUp_TestAll_filter() throws Exception {
+    public void test_addWs_filter() throws Exception {
         cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
         cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
         equalExpected = expectedEqual_filterLic;
-        test_all();
+        test_addWs();
     }
 
     @Test

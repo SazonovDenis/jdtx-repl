@@ -102,25 +102,13 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
      * с односторонним фильтром по LIC
      */
     @Test
-    public void test_allSetUp_TestAll_filter() throws Exception {
+    public void test_SetUp_Merge_filter() throws Exception {
         cfg_json_decode = "../install/cfg/decode_strategy_194.json";
         cfg_json_publication_srv = "test/etalon/publication_lic_152_srv.json";
         cfg_json_publication_ws = "test/etalon/publication_lic_152_ws.json";
         equalExpected = expectedEqual_filterLic;
-        test_allSetUp_TestAll();
-    }
-
-    @Test
-    public void test_allSetUp_TestXXX() throws Exception {
-        IVariantMap args = new VariantMap();
-        args.clear();
-        args.put("file", "temp/Usr.plan.json");
         //
-        TestExtJc jc = createExt(TestExtJc.class);
-        ProjectScript project = jc.loadProject("../ext/srv/project.jc");
-        //Merge_Ext extMerge = (Merge_Ext) project.createExt("jdtx.repl.main.ext.Merge_Ext");
-        Jdx_Ext extJdx = (Jdx_Ext) project.createExt("jdtx.repl.main.ext.Jdx_Ext");
-        extJdx.repl_merge_request(args);
+        test_SetUp_Merge();
     }
 
     /**
@@ -338,8 +326,7 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
     /**
      * Поиск дубликатов и формирование плана, формируем команду MERGE для филиалов
      */
-    @Test
-    public void doMergeByCommand() throws Exception {
+    void doMergeByCommand() throws Exception {
         JdxRecMerge_Test testMerge = new JdxRecMerge_Test();
         testMerge.setUp();
 
