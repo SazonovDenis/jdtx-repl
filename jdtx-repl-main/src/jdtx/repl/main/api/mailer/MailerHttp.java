@@ -410,7 +410,18 @@ public class MailerHttp implements IMailer {
 
     @Override
     public void delete(String box, long no) throws Exception {
-        log.debug("mailer.delete, no: " + no + ", box: " + box + ", remoteUrl: " + remoteUrl);
+        deleteInternal(box, no, false);
+    }
+
+
+    @Override
+    public void deleteAll(String box, long no) throws Exception {
+        deleteInternal(box, no, true);
+    }
+
+
+    void deleteInternal(String box, long no, boolean deleteAllBelowNo) throws Exception {
+        log.debug("mailer.delete, no: " + no + ", box: " + box + ", delete all below: " + deleteAllBelowNo + ", remoteUrl: " + remoteUrl);
 
         //
         HttpClient httpclient = HttpClientBuilder.create().build();
@@ -419,6 +430,9 @@ public class MailerHttp implements IMailer {
         Map info = new HashMap<>();
         info.put("box", box);
         info.put("no", no);
+        if (deleteAllBelowNo) {
+            info.put("all", deleteAllBelowNo);
+        }
         HttpGet httpGet = createHttpGet("repl_delete", info);
 
         //

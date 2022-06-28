@@ -70,6 +70,12 @@ public interface IMailer {
 
 
     /**
+     * Удалить реплики (письма) из ящика до номера no включительно
+     */
+    void deleteAll(String box, long no) throws Exception;
+
+
+    /**
      * Записать на сервер произвольные данные (для отслеживания состояния, ошибок и т.п.)
      */
     void setData(Map data, String name, String box) throws Exception;

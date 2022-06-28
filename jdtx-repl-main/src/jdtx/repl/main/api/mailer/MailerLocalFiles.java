@@ -149,6 +149,10 @@ public class MailerLocalFiles implements IMailer {
         FileUtils.forceDelete(remoteFile);
     }
 
+    @Override
+    public void deleteAll(String box, long no) throws Exception {
+        //throw new XError("Not implemented");
+    }
 
     @Override
     public void setData(Map data, String name, String box) throws Exception {

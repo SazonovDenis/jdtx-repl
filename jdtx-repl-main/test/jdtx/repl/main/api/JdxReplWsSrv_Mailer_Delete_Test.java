@@ -64,7 +64,7 @@ public class JdxReplWsSrv_Mailer_Delete_Test extends JdxReplWsSrv_Test {
      * то запрошенные номера не удаляются при при вызове mailer.delete
      */
     @Test
-    public void test_NoDeleteIfNorAll() throws Exception {
+    public void test_NoDeleteIfNotAll() throws Exception {
         cleanMail();
 
         //
