@@ -66,6 +66,9 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
         test_AllHttp_5();
 
         //
+        compareDb(db, db2, equalExpected);
+        compareDb(db, db3, equalExpected);
+        compareDb(db, db5, equalExpected);
         test_DumpTables_1_2_5();
     }
 

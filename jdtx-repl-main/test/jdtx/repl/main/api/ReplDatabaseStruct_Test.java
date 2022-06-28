@@ -115,7 +115,7 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
         return dbCrc;
     }
 
-    void compareDb(Db db, Db db2, Map<String, String> compareResultExpected) throws Exception {
+    public void compareDb(Db db, Db db2, Map<String, String> compareResultExpected) throws Exception {
         boolean bad = false;
 
         System.out.println("compare: " + db.getDbSource().getDatabase());

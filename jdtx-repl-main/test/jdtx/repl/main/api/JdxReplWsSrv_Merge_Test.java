@@ -320,6 +320,8 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
 
 
         //
+        compareDb(db, db2, equalExpected);
+        compareDb(db, db3, equalExpected);
         test_DumpTables_1_2_3();
     }
 

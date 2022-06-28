@@ -35,22 +35,8 @@ public class JdxReplWsSrv_ApplyAudit_Test extends JdxReplWsSrv_Test {
         check_ApplyAudit();
 
         //
-        test_DumpTables_1_2_3();
-    }
-
-    @Test
-    public void test_ApplyAudit() throws Exception {
-        // Формирование и применение собственных сильно устаревших реплик
-        check_ApplyAudit();
-
-        //
-        test_DumpTables_1_2_3();
-    }
-
-    @Test
-    public void test_make_change() throws Exception {
-        make_change(2, db2, struct2, 201);
-        //
+        compareDb(db, db2, equalExpected);
+        compareDb(db, db3, equalExpected);
         test_DumpTables_1_2_3();
     }
 
