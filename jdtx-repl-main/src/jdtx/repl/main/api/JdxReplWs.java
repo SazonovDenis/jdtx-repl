@@ -2212,7 +2212,7 @@ public class JdxReplWs {
 
     private boolean isReplicaInBox(String box, long no) throws Exception {
         try {
-            IReplicaInfo ri = mailer.getReplicaInfo(box, no);
+            mailer.getReplicaInfo(box, no);
             return true;
         } catch (Exception e) {
             if (UtJdxErrors.errorIs_replicaMailNotFound(e)) {
