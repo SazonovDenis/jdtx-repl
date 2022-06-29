@@ -409,18 +409,18 @@ public class MailerHttp implements IMailer {
     }
 
     @Override
-    public void delete(String box, long no) throws Exception {
-        deleteInternal(box, no, false);
+    public long delete(String box, long no) throws Exception {
+        return deleteInternal(box, no, false);
     }
 
 
     @Override
-    public void deleteAll(String box, long no) throws Exception {
-        deleteInternal(box, no, true);
+    public long deleteAll(String box, long no) throws Exception {
+        return deleteInternal(box, no, true);
     }
 
 
-    void deleteInternal(String box, long no, boolean deleteAllBelowNo) throws Exception {
+    public long deleteInternal(String box, long no, boolean deleteAllBelowNo) throws Exception {
         log.debug("mailer.delete, no: " + no + ", box: " + box + ", delete all below: " + deleteAllBelowNo + ", remoteUrl: " + remoteUrl);
 
         //
@@ -442,7 +442,10 @@ public class MailerHttp implements IMailer {
         handleHttpErrors(response);
 
         //
-        parseHttpResponse(response);
+        JSONObject res = parseHttpResponse(response);
+
+        //
+        return UtJdxData.longValueOf(res.get("deleted"));
     }
 
 

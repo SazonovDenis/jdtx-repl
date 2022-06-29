@@ -113,10 +113,22 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
             collectError("ws.handleQueIn", e);
         }
 
+
+        //
+        log.info("Очистка почтовых ящиков");
+        try {
+            ws.wsCleanupMailInBox();
+        } catch (Exception e) {
+            logError(e);
+            collectError("srv.wsCleanupMailInBox", e);
+        }
+
+
         //
         logInfo("Отправка ошибок");
         IMailer mailer = ws.getMailer();
         sendErrors(mailer, "ws.errors");
+
 
         //
         logInfo("Рабочая станция завершена");

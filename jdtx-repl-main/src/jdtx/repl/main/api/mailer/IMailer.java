@@ -66,13 +66,13 @@ public interface IMailer {
     /**
      * Удалить реплику (письмо) из ящика
      */
-    void delete(String box, long no) throws Exception;
+    long delete(String box, long no) throws Exception;
 
 
     /**
      * Удалить реплики (письма) из ящика до номера no включительно
      */
-    void deleteAll(String box, long no) throws Exception;
+    long deleteAll(String box, long no) throws Exception;
 
 
     /**

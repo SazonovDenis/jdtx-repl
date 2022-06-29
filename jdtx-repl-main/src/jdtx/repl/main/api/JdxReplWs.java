@@ -1306,6 +1306,28 @@ public class JdxReplWs {
         handleQueIn(false);
     }
 
+
+    /**
+     * Удаление старых реплик в ящиках, задействованных в задаче чтения с сервера.
+     */
+    public void wsCleanupMailInBox() throws Exception {
+        String box = "to";
+        long no = queIn.getMaxNo();
+        long deleted = mailer.deleteAll(box, no);
+        if (deleted != 0) {
+            log.info("mailer.deleted, no: " + no + ", box: " + box + " deleted: " + deleted);
+        }
+
+        //
+        box = "to001";
+        no = queIn001.getMaxNo();
+        deleted = mailer.deleteAll(box, no);
+        if (deleted != 0) {
+            log.info("mailer.deleted, no: " + no + ", box: " + box + " deleted: " + deleted);
+        }
+    }
+
+
     private ReplicaUseResult handleQueIn(boolean forceUse) throws Exception {
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
         long queInNoDone = stateManager.getQueNoDone("in");
@@ -1435,7 +1457,7 @@ public class JdxReplWs {
         que.push(replica);
 
         // Удаляем с почтового сервера
-        mailer.delete(box, no);
+        //mailer.delete(box, no);
 
         //
         return replica;
@@ -1483,7 +1505,7 @@ public class JdxReplWs {
                 que.push(replica);
 
                 // Удаляем с почтового сервера
-                mailer.delete(box, no);
+                //mailer.delete(box, no);
             } else {
                 receiveInternalStep(mailer, box, no, que);
             }

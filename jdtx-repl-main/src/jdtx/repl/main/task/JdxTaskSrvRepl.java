@@ -61,6 +61,16 @@ public class JdxTaskSrvRepl extends JdxTaskCustom {
 
 
         //
+        log.info("Очистка почтовых ящиков");
+        try {
+            srv.srvCleanupMailInBox();
+        } catch (Exception e) {
+            logError(e);
+            collectError("srv.srvCleanupMailInBox", e);
+        }
+
+
+        //
         IMailer mailer = srv.getSelfMailer();
         logInfo("Отправка ошибок");
         sendErrors(mailer, "srv.errors");

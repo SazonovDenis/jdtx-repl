@@ -217,6 +217,30 @@ public class JdxReplSrv {
 
     /**
      * Сервер, задачи по уходу за сервером,
+     * удаление старых реплик в ящиках, задействованных в задаче чтения со станций.
+     */
+    public void srvCleanupMailInBox() throws Exception {
+        DataStore wsSt = loadWsList();
+        Set wsList = UtData.uniqueValues(wsSt, "id");
+
+        //
+        for (Object wsIdObj : wsList) {
+            long wsId = UtJdxData.longValueOf(wsIdObj);
+            //
+            IMailer mailer = mailerList.get(wsId);
+            IJdxQue que = queInList.get(wsId);
+            //
+            String box = "from";
+            long no = que.getMaxNo();
+            long deleted = mailer.deleteAll(box, no);
+            if (deleted != 0) {
+                log.info("mailer.deleted, no: " + no + ", box: " + box + " deleted: " + deleted + ", wsId: " + wsId);
+            }
+        }
+    }
+
+    /**
+     * Сервер, задачи по уходу за сервером,
      * для очередей, задействованных в задаче формирования исходящих очередей для станций.
      */
     public void srvHandleRoutineTaskOut() throws Exception {
@@ -609,7 +633,7 @@ public class JdxReplSrv {
                     }
 
                     // Удаляем с почтового сервера
-                    mailerWs.delete("from", no);
+                    //mailerWs.delete("from", no);
 
                     //
                     count++;

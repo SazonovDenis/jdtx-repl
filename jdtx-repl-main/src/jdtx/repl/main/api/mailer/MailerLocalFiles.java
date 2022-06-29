@@ -138,7 +138,7 @@ public class MailerLocalFiles implements IMailer {
     }
 
     @Override
-    public void delete(String box, long no) throws Exception {
+    public long delete(String box, long no) throws Exception {
         log.debug("mailer.delete, no: " + no + ", remoteDir: " + remoteDir + "/" + box);
 
         //
@@ -147,11 +147,15 @@ public class MailerLocalFiles implements IMailer {
 
         //
         FileUtils.forceDelete(remoteFile);
+
+        //
+        return 0;
     }
 
     @Override
-    public void deleteAll(String box, long no) throws Exception {
+    public long deleteAll(String box, long no) throws Exception {
         //throw new XError("Not implemented");
+        return 0;
     }
 
     @Override
