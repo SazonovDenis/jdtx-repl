@@ -1441,6 +1441,9 @@ public class JdxReplWs {
         return replica;
     }
 
+    /**
+     * Скачивает из ящика box письма в запрошенном диапазоне и помещает их в очередь que
+     */
     void receiveInternal(IMailer mailer, String box, long no_from, long no_to, IJdxReplicaQue que) throws Exception {
         log.info("receive, self.wsId: " + wsId + ", box: " + box + ", que.name: " + ((IJdxQueNamed) que).getQueName());
 
@@ -1449,8 +1452,18 @@ public class JdxReplWs {
         for (long no = no_from; no <= no_to; no++) {
             log.debug("receive, receiving.no: " + no);
 
+            IReplicaInfo info;
+            try {
             // Информация о реплике с почтового сервера
-            IReplicaInfo info = mailer.getReplicaInfo(box, no);
+                info = mailer.getReplicaInfo(box, no);
+            } catch (Exception exceptionMail) {
+                // Какая-то ошибка
+                if (UtJdxErrors.errorIs_replicaMailNotFound(exceptionMail)) {
+                    // Ошибка: реплики в ящике нет - запросм сами повторную передачу
+                    UtMail.handleReplicaMailNotFound(mailer, box, no, RequiredInfo.EXECUTOR_SRV, exceptionMail);
+                }
+                throw exceptionMail;
+            }
 
             // Нужно ли скачивать эту реплику с сервера?
             IReplica replica;
