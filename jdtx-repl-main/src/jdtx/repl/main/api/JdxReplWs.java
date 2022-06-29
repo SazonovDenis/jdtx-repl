@@ -2234,12 +2234,14 @@ public class JdxReplWs {
             return true;
         }
 
-        // Попросим сразу прислать всесь диапазон, который мы намерены скачивать
+        // Если в ящике нет того, что нам нужно - попросим сразу прислать всесь диапазон, который мы намерены скачивать
+        if (!isReplicaInBox(box, replicaNoFrom) || !isReplicaInBox(box, replicaNoTo)) {
                     RequiredInfo requiredInfo = new RequiredInfo();
                     requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
         requiredInfo.requiredFrom = replicaNoFrom;
                     requiredInfo.requiredTo = replicaNoTo;
                     mailer.setSendRequired(box, requiredInfo);
+        }
 
         // Читаем с сервера
         long no = replicaNoFrom;
@@ -2263,15 +2265,25 @@ public class JdxReplWs {
     }
 
     /**
-     * Читаем в очередь que с сервера реплики, пока не встретим СОБСТВЕННУЮ реплику с номером не менее requiredReplicaNo.
+     * Читаем в очередь que с сервера реплики, пока не встретим СОБСТВЕННУЮ реплику с номером не менее requiredReplicaSelfQueNo.
      * Если надо - заказываем у сервера повторную передачу.
      *
      * @return =true, если все заказанные реплики прочитаны с сервера
      */
-    private boolean readQueFromSrv_RepicaNo(IJdxQue que, String box, long replicaNoFrom, long requiredReplicaNo) throws Exception {
+    private boolean readQueFromSrv_RepicaNo(IJdxQue que, String box, long replicaNoFrom, long requiredReplicaSelfQueNo) throws Exception {
+        // Если в ящике нет того, что нам нужно - попросим сразу прислать всесь диапазон, который мы намерены скачивать
+        if (!isReplicaInBox(box, replicaNoFrom)) {
+            RequiredInfo requiredInfo = new RequiredInfo();
+            requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
+            requiredInfo.requiredFrom = replicaNoFrom;
+            requiredInfo.requiredTo = -1;
+            mailer.setSendRequired(box, requiredInfo);
+        }
+
+        //
         long lastSelfQueNo = 0;
         long no = replicaNoFrom;
-        while (lastSelfQueNo < requiredReplicaNo) {
+        while (lastSelfQueNo < requiredReplicaSelfQueNo) {
             try {
                 log.info("readQueFromSrv_RepicaNo, receive, que: " + que.getQueName() + ", box: " + box + ", no: " + no);
 
