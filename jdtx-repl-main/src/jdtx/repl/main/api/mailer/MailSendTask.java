@@ -14,11 +14,20 @@ public class MailSendTask {
             return "no task";
         } else if (sendFrom > sendTo) {
             return "empty";
-        } else if (sendTo > 0) {
-            return "send: " + sendFrom + " .. " + sendTo + ", recreate: " + recreate + ", executor: " + executor;
-        } else {
-            return "send: " + sendFrom + " .. " + "all" + ", recreate: " + recreate + ", executor: " + executor;
         }
+
+        String s;
+        if (sendTo > 0) {
+            s = sendFrom + " .. " + sendTo;
+        } else {
+            s = sendFrom + " .. " + "all";
+        }
+
+        if (executor != null) {
+            s = s + ", recreate: " + recreate + ", executor: " + executor;
+        }
+
+        return s;
     }
 
 }
