@@ -4,8 +4,9 @@ import jandcode.app.test.*;
 import org.junit.*;
 
 /**
+ * Предрелизные проверки - должны проходить все тесты.
  * Проверка восстановления репликации рабочей станции при восстановлении базы/папок из бэкапа.
- * Врапер для запуска всех тестов jdtx.repl.main.api.JdxReplWsSrv_RestoreWs_***_test.
+ * Врапер для запуска тестов jdtx.repl.main.api.JdxReplWsSrv_RestoreWs_***_test.
  */
 public class All_RestoreWs_AfterDbRestore_Test extends AppTestCase {
 

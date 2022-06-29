@@ -4,12 +4,14 @@ import jandcode.app.test.*;
 import org.junit.*;
 
 /**
- * Предрелизные проверки - должны проходить все тесты
+ * Предрелизные проверки - должны проходить все тесты.
+ * Удаление дубликтов, которые появились на сервере после подключения базы в систему репликации.
+ * Врапер для запуска тестов jdtx.repl.main.api.JdxReplWsSrv_Merge_Test.
  */
 public class All_MergeRepl_Test extends AppTestCase {
 
     @Test
-    // Создание репликации и удаление дубликтов, которые появились после превичного слияния
+    // Создание репликации и удаление дубликтов, которые появились после подключения базы в систему репликации
     public void test_SetUp_Merge() throws Exception {
         JdxReplWsSrv_Merge_Test test = new JdxReplWsSrv_Merge_Test();
         test.setUp();

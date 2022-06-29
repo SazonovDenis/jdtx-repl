@@ -7,7 +7,7 @@ import org.junit.runner.*;
 import org.junit.runners.*;
 
 /**
- * Предрелизные проверки - должны проходить все тесты jdtx.repl.main.api.rec_merge.***_Test
+ * Предрелизные проверки - должны проходить все тесты
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
