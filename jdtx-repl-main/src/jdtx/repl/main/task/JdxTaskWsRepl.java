@@ -121,9 +121,13 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
 
 
         //
-        log.info("Очистка почтовых ящиков");
         try {
-            ws.wsCleanupMailInBox();
+            if (errorCollector.getErrors().size() == 0) {
+                log.info("Очистка почтовых ящиков");
+                ws.wsCleanupMailInBox();
+            } else {
+                log.info("Очистка почтовых ящиков пропущена");
+            }
         } catch (Exception e) {
             logError(e);
             collectError("srv.wsCleanupMailInBox", e);
