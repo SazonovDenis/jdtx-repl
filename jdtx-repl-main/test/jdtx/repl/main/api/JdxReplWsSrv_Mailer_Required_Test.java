@@ -5,7 +5,6 @@ import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.util.*;
 import jdtx.repl.main.task.*;
-import org.json.simple.*;
 import org.junit.*;
 
 
@@ -226,7 +225,7 @@ public class JdxReplWsSrv_Mailer_Required_Test extends JdxReplWsSrv_Test {
     }
 
     private void doSendRequiredWs(JdxReplWs ws) throws Exception {
-        System.out.println("Send required, ws: " + ws.getWsId());
+        System.out.println("Send required, wsId: " + ws.getWsId());
         ws.replicasSend_Required();
     }
 

@@ -539,7 +539,7 @@ class Jdx_Ext extends ProjectExt {
             repairInfoManager.setRepairAllowed(wsRepairGuid)
 
             //
-            println("Ремонт разрешен, ws: " + wsId + ", guid: " + wsRepairGuid)
+            println("Ремонт разрешен, wsId: " + wsId + ", guid: " + wsRepairGuid)
         } finally {
             db.disconnect()
         }

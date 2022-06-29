@@ -27,8 +27,10 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
         ws.init();
         logInfo("Рабочая станция, wsId: " + ws.getWsId());
 
+
         // Проверка версии приложения, обновление при необходимости
         ws.doAppUpdate();
+
 
         //
         log.info("Предварительные шаги");
@@ -38,6 +40,7 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
             logError(e);
             collectError("ws.wsHandleRoutineTaskIn", e);
         }
+
 
         //
         logInfo("Проверяем аварийную ситуацию");
@@ -73,9 +76,9 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
             }
 
             //
-            //logInfo("Рабочая станция прервана");
             return;
         }
+
 
         //
         logInfo("Отслеживаем и обрабатываем свои изменения");
@@ -86,6 +89,7 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
             collectError("ws.handleSelfAudit", e);
         }
 
+
         //
         logInfo("Отправляем свои реплики");
         try {
@@ -95,6 +99,7 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
             collectError("ws.send", e);
         }
 
+
         //
         logInfo("Забираем входящие реплики");
         try {
@@ -103,6 +108,7 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
             logError(e);
             collectError("ws.receive", e);
         }
+
 
         //
         logInfo("Применяем входящие реплики");
