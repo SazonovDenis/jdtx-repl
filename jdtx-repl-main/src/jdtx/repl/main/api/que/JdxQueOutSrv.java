@@ -76,10 +76,8 @@ public abstract class JdxQueOutSrv extends JdxQue implements IJdxQue {
         // поэтому тут значение replica.info.no - не присваиваем (проверку делает validateReplicaFields)
 
         // Проверки: правильность номеров реплик от рабочей станции wsId - обязательно монотонное возрастание номера replica.no
-        long queWsMaxNo = getMaxNoForDestinationWs(destinationWsId);
-        if (queWsMaxNo != -1 && queNo != queWsMaxNo + 1) {
-            throw new XError("invalid replica.no: " + queNo + ", que.no: " + queWsMaxNo + ", destinationWsId: " + destinationWsId + ", que.name: " + queName);
-        }
+        // Эта проверка избыточна - есть уникальный индекс destination_ws_id+destination_id,
+        // а монотонное возрастание гарантируется нашей собственной getMaxNo()
 
         //
         return queNo;
@@ -117,19 +115,6 @@ public abstract class JdxQueOutSrv extends JdxQue implements IJdxQue {
             throw new XError(message_replicaRecordNotFound + ", queName: " + queName + ", no: " + no + ", this.destinationWsId: " + this.destinationWsId);
         }
         return rec;
-    }
-
-    /**
-     * @return Последний номер (destination_id) в очереди, предназначенный для отправки на destinationWsId
-     */
-    private long getMaxNoForDestinationWs(long wsId) throws Exception {
-        String sql = "select max(destination_id) as maxNo, count(*) as cnt from " + queTableName + " where destination_ws_id = " + wsId;
-        DataRecord rec = db.loadSql(sql).getCurRec();
-        if (rec.getValueLong("cnt") == 0) {
-            return -1;
-        } else {
-            return rec.getValueLong("maxNo");
-        }
     }
 
 
