@@ -3,6 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.replica.*;
+import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.io.*;
 import org.junit.*;
@@ -371,6 +372,29 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         files = UtRepl.findFilesInDirs(root, false);
         for (File file : files) {
             System.out.println(file);
+        }
+    }
+
+    @Test
+    public void test_createReplicaSnapshotForTable() throws Exception {
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.init();
+        //
+        UtRepl ut = new UtRepl(db, struct);
+        List<IJdxTable> tables = new ArrayList<>();
+        tables.add(struct.getTable("CommentTip"));
+
+        //
+        List<IReplica> replicasRes = ut.createSnapshotForTablesFiltered(tables, ws.wsId, ws.wsId, ws.publicationOut, false);
+
+        // Переносим файл
+        for (int i = 0; i < replicasRes.size(); i++) {
+            IReplica replica = replicasRes.get(i);
+            File actualFile = new File("temp/" + tables.get(i).getName() + ".zip");
+            actualFile.delete();
+            FileUtils.moveFile(replica.getData(), actualFile);
+            //
+            System.out.println(actualFile.getCanonicalPath());
         }
     }
 

@@ -400,8 +400,8 @@ class Jdx_Ext extends ProjectExt {
                     IRefDecoder decoder = new RefDecoder(db, ws.wsId)
                     JdxRef tableIdRef = decoder.get_ref(tableName, tableId)
                     recordIdRefStr = tableIdRef.toString()
-                    println("В таблице: " + tableName + " ищем: " + recordIdRefStr)
                 }
+                println("В таблице: " + tableName + " ищем: " + recordIdRefStr)
 
                 // Имя файла-результата
                 if (outFileName == null || outFileName.length() == 0) {
