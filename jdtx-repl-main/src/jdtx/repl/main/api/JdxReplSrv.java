@@ -903,12 +903,23 @@ public class JdxReplSrv {
                 IJdxMailSendStateManager mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT000);
                 JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
                 queOut000.setDataRoot(dataRoot);
+
+                // Проверка и ремонт отметки "отправлено в ящик на почтовый сервер"
+                UtMail.repairSendMarkedBySendDone(queOut000, wsMailer, "to", mailStateManager);
+
+                // Рассылаем очередь
                 UtMail.sendQueToMail_State(wsId, queOut000, wsMailer, "to", mailStateManager);
+
 
                 // Рассылаем очередь queOut001 на каждую станцию
                 mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT001);
                 JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
                 queOut001.setDataRoot(dataRoot);
+
+                // Проверка и ремонт отметки "отправлено в ящик на почтовый сервер"
+                UtMail.repairSendMarkedBySendDone(queOut001, wsMailer, "to001", mailStateManager);
+
+                // Рассылаем очередь
                 UtMail.sendQueToMail_State(wsId, queOut001, wsMailer, "to001", mailStateManager);
             } catch (Exception e) {
                 // Ошибка для станции - пропускаем, идем дальше

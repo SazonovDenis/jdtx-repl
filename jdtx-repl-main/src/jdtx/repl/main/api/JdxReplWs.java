@@ -87,7 +87,7 @@ public class JdxReplWs {
     }
 
     public String getDataRoot() {
-        return     dataRoot;
+        return dataRoot;
     }
 
     public IMailer getMailer() {
@@ -592,14 +592,14 @@ public class JdxReplWs {
                 replicaUseResult = useReplicaInternal(replica, forceUse);
             } catch (Exception e) {
                 if (UtJdxErrors.errorIs_replicaFile(e)) {
-                log.error("handleQue, error: " + e.getMessage());
+                    log.error("handleQue, error: " + e.getMessage());
 
                     // По имени очереди выясним, какой ящик ответит нам за реплику
                     String box;
                     switch (queName) {
                         case UtQue.QUE_IN:
                             box = "to";
-                break;
+                            break;
                         case UtQue.QUE_IN001:
                             box = "to001";
                             break;
@@ -1467,7 +1467,7 @@ public class JdxReplWs {
      * Скачивает из ящика box письма в запрошенном диапазоне и помещает их в очередь que
      */
     void receiveInternal(IMailer mailer, String box, long no_from, long no_to, IJdxReplicaQue que) throws Exception {
-        log.info("receive, self.wsId: " + wsId + ", box: " + box + ", que.name: " + ((IJdxQueNamed) que).getQueName());
+        log.info("receive, self.wsId: " + wsId + ", box: " + box + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", " + no_from + ".." + no_to);
 
         //
         long count = 0;
@@ -1476,7 +1476,7 @@ public class JdxReplWs {
 
             IReplicaInfo info;
             try {
-            // Информация о реплике с почтового сервера
+                // Информация о реплике с почтового сервера
                 info = mailer.getReplicaInfo(box, no);
             } catch (Exception exceptionMail) {
                 // Какая-то ошибка
@@ -1843,9 +1843,9 @@ public class JdxReplWs {
                 // Это не ошибка, возобновим чтение с нужного места.
                 log.info("Need repair: noQueIn001 < noQueIn001ReadSrv, noQueIn001: " + noQueIn001 + ", noQueIn001ReadSrv: " + noQueIn001ReadSrv);
             } else {
-            log.warn("Need repair: noQueIn001 < noQueIn001ReadSrv, noQueIn001: " + noQueIn001 + ", noQueIn001ReadSrv: " + noQueIn001ReadSrv);
-            needRepair = true;
-        }
+                log.warn("Need repair: noQueIn001 < noQueIn001ReadSrv, noQueIn001: " + noQueIn001 + ", noQueIn001ReadSrv: " + noQueIn001ReadSrv);
+                needRepair = true;
+            }
         }
 
         if (noQueIn != -1 && noQueIn < noQueInDir) {
@@ -1861,14 +1861,14 @@ public class JdxReplWs {
         if (noQueIn < noQueInReadSrv) {
             // Если отличия только на одно письмо - то проверим, осталась ли само письмо
             if (noQueIn == (noQueInReadSrv - 1) && isReplicaInBox("to", noQueInReadSrv)) {
-                // Письмо на месте - не считаем ситуацию аварийной.
+                // Письмо на месте - не считаем ситуацию аварийной (CRC не проверяем- бывало так, что реплику приготовили заново, ПОСЛЕ получения станцией).
                 // Это бывает, если прервался цикл: чтение с почты - запись в файл - запись в очередь в БД - удаление письма.
                 // Это не ошибка, возобновим чтение с нужного места.
                 log.info("Need repair: noQueIn < noQueInReadSrv, noQueIn: " + noQueIn + ", noQueInReadSrv: " + noQueInReadSrv);
             } else {
-            log.warn("Need repair: noQueIn < noQueInReadSrv, noQueIn: " + noQueIn + ", noQueInReadSrv: " + noQueInReadSrv);
-            needRepair = true;
-        }
+                log.warn("Need repair: noQueIn < noQueInReadSrv, noQueIn: " + noQueIn + ", noQueInReadSrv: " + noQueInReadSrv);
+                needRepair = true;
+            }
         }
 
         if (noQueOut < noQueOutDir) {
@@ -1880,8 +1880,11 @@ public class JdxReplWs {
             needRepair = true;
         }
         if (noQueOutSendMarked != noQueOutSendSrv) {
-            log.warn("Need repair: QueOut.SendMarked != QueOut.SendSrv, noQueOutSendMarked: " + noQueOutSendMarked + ", noQueOutSendSrv: " + noQueOutSendSrv);
-            needRepair = true;
+            // Проверяем ситуацию: помеченное (noQueSendMarked) на 1 письмо меньше отправленного (noQueOutSendSrv)
+            if (!UtMail.wasRepairedSendMarked(noQueOutSendMarked, noQueOutSendSrv, queOut, mailer, "from", mailStateManager)) {
+                log.warn("Need repair: QueOut.SendMarked != QueOut.SendSrv, noQueOutSendMarked: " + noQueOutSendMarked + ", noQueOutSendSrv: " + noQueOutSendSrv);
+                needRepair = true;
+            }
         }
 
         //
@@ -1949,9 +1952,9 @@ public class JdxReplWs {
         // Ситуация: noQueIn001 < noQueInDir001
         // Берем входящие реплики из каталога, кладем их в свою входящую очередь (потом они будут использованы).
         try {
-        if (noQueIn001 < noQueIn001Dir) {
-            repairQueByDir(queIn001, noQueIn001, noQueIn001Dir);
-        }
+            if (noQueIn001 < noQueIn001Dir) {
+                repairQueByDir(queIn001, noQueIn001, noQueIn001Dir);
+            }
         } catch (Exception e) {
             log.error("repairQueByDir: queIn001, error: " + e.getMessage());
         }
@@ -1961,9 +1964,9 @@ public class JdxReplWs {
         // Ситуация: noQueIn < noQueInDir
         // Берем входящие реплики из каталога, кладем их в свою входящую очередь (потом они будут использованы).
         try {
-        if (noQueIn < noQueInDir) {
-            repairQueByDir(queIn, noQueIn, noQueInDir);
-        }
+            if (noQueIn < noQueInDir) {
+                repairQueByDir(queIn, noQueIn, noQueInDir);
+            }
         } catch (Exception e) {
             log.error("repairQueByDir: queIn, error: " + e.getMessage());
         }
@@ -1973,9 +1976,9 @@ public class JdxReplWs {
         // Ситуация: noQueOut < noQueOutDir
         // Берем исходящие реплики из каталога, кладем их в свою исходящую очередь.
         try {
-        if (noQueOut < noQueOutDir) {
-            repairQueByDir(queOut, noQueOut, noQueOutDir);
-        }
+            if (noQueOut < noQueOutDir) {
+                repairQueByDir(queOut, noQueOut, noQueOutDir);
+            }
         } catch (Exception e) {
             log.error("repairQueByDir: queOut, error: " + e.getMessage());
         }
@@ -2105,8 +2108,8 @@ public class JdxReplWs {
                 long age = replica.getInfo().getAge();
                 if (age != -1 && age > lastOwnAgeUsed) {
                     lastOwnAgeUsed = age;
-                break;
-            }
+                    break;
+                }
             }
 
             //
@@ -2258,11 +2261,11 @@ public class JdxReplWs {
 
         // Если в ящике нет того, что нам нужно - попросим сразу прислать всесь диапазон, который мы намерены скачивать
         if (!isReplicaInBox(box, replicaNoFrom) || !isReplicaInBox(box, replicaNoTo)) {
-                    RequiredInfo requiredInfo = new RequiredInfo();
-                    requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
-        requiredInfo.requiredFrom = replicaNoFrom;
-                    requiredInfo.requiredTo = replicaNoTo;
-                    mailer.setSendRequired(box, requiredInfo);
+            RequiredInfo requiredInfo = new RequiredInfo();
+            requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
+            requiredInfo.requiredFrom = replicaNoFrom;
+            requiredInfo.requiredTo = replicaNoTo;
+            mailer.setSendRequired(box, requiredInfo);
         }
 
         // Читаем с сервера
@@ -2271,16 +2274,16 @@ public class JdxReplWs {
             try {
                 log.info("readQueFromSrv_Interval, receive, que: " + que.getQueName() + ", box: " + box + ", no: " + no);
 
-                    //
+                //
                 receiveInternalStep(mailer, box, no, que);
 
-                    //
+                //
                 no++;
             } catch (Exception e) {
                 log.warn("readQueFromSrv_Interval, error: " + e.getMessage());
-                    return false;
-                }
+                return false;
             }
+        }
 
         //
         return true;
@@ -2321,9 +2324,9 @@ public class JdxReplWs {
                 no++;
             } catch (Exception e) {
                 log.warn("readQueFromSrv_RepicaNo, error: " + e.getMessage());
-                    return false;
-                }
+                return false;
             }
+        }
 
         return true;
     }
