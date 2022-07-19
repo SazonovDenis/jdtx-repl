@@ -637,9 +637,6 @@ public class JdxReplSrv {
                         throw e;
                     }
 
-                    // Удаляем с почтового сервера
-                    //mailerWs.delete("from", no);
-
                     //
                     count++;
                 }
@@ -1433,12 +1430,6 @@ public class JdxReplSrv {
         //
         return que;
     }
-
-
-    private Map getInfoSrv() {
-        return null;
-    }
-
 
     /**
      * Список активных рабочих станций
