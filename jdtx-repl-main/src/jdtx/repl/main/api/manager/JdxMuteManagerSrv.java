@@ -1,7 +1,6 @@
 package jdtx.repl.main.api.manager;
 
 import jandcode.dbm.db.*;
-import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
 /**
@@ -11,10 +10,15 @@ public class JdxMuteManagerSrv {
 
     private Db db;
 
+    //
+    protected SrvWorkstationStateManager stateManager;
+
+    //
     protected static Log log = LogFactory.getLog("jdtx.MuteManagerSrv");
 
     public JdxMuteManagerSrv(Db db) {
         this.db = db;
+        stateManager = new SrvWorkstationStateManager(db);
     }
 
     /**
@@ -26,8 +30,7 @@ public class JdxMuteManagerSrv {
     public void setMuteDone(long wsId, long queCommonNo) throws Exception {
         log.info("workstation mute done, wsId: " + wsId + ", queCommonNo: " + queCommonNo);
         //
-        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set mute_age = " + queCommonNo + " where ws_id = " + wsId;
-        db.execSql(sql);
+        stateManager.setValue(wsId, "mute_age", queCommonNo);
     }
 
     /**
@@ -36,8 +39,7 @@ public class JdxMuteManagerSrv {
     public void setUnmuteDone(long wsId) throws Exception {
         log.info("workstation unmute, wsId: " + wsId);
         //
-        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set mute_age = 0 where ws_id = " + wsId;
-        db.execSql(sql);
+        stateManager.setValue(wsId, "mute_age", 0);
     }
 
 

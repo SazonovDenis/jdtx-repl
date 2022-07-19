@@ -333,9 +333,14 @@ public class JdxReplSrv {
             db.execSql(sql, params);
 
             //
-            sql = "insert into " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE (id, ws_id, que_common_dispatch_done, que_in_no, que_in_no_done, enabled, mute_age) values (" + wsId + ", " + wsId + ", 0, 0, 0, 0, 0)";
-            db.execSql(sql);
-
+            String sqlIns = "insert into " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE (id, ws_id, param_name, param_value) values (:id, :ws_id, :param_name, :param_value)";
+            long id = wsId * 1000;
+            for (String param_name : UtDbObjectManager.param_names) {
+                Map values = UtCnv.toMap("id", id, "ws_id", wsId, "param_name", param_name, "param_value", 0);
+                db.execSql(sqlIns, values);
+                //
+                id = id + 1;
+            }
 
             // ---
             // Настройки для станции (отметим у себя и отправим на станцию).
@@ -580,15 +585,15 @@ public class JdxReplSrv {
     public void enableWorkstation(long wsId) throws Exception {
         log.info("enable workstation, wsId: " + wsId);
         //
-        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set enabled = 1 where id = " + wsId;
-        db.execSql(sql);
+        SrvWorkstationStateManager stateManager = new SrvWorkstationStateManager(db);
+        stateManager.setValue(wsId, "enabled", 1);
     }
 
     public void disableWorkstation(long wsId) throws Exception {
         log.info("disable workstation, wsId: " + wsId);
         //
-        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set enabled = 0 where id = " + wsId;
-        db.execSql(sql);
+        SrvWorkstationStateManager stateManager = new SrvWorkstationStateManager(db);
+        stateManager.setValue(wsId, "enabled", 0);
     }
 
     /**
@@ -1048,7 +1053,22 @@ public class JdxReplSrv {
         while (true) {
             // DataStore stDisplay = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE where enabled = 1");
             // UtData.outTable(stDisplay);
-            DataStore stDisplay = db.loadSql("select WS_ID, QUE_IN_NO_DONE, MUTE_AGE, '' as MUTE_STATE from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE where enabled = 1");
+            String sql = "select\n" +
+                    "  WORKSTATION_LIST.id as WS_ID,\n" +
+                    "  STATE__QUE_IN_NO_DONE.param_value as QUE_IN_NO_DONE,\n" +
+                    "  STATE__MUTE_AGE.param_value as MUTE_AGE,\n" +
+                    "  '' as MUTE_STATE\n" +
+                    "from\n" +
+                    "  " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST WORKSTATION_LIST\n" +
+                    "  left join " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE STATE__ENABLED" +
+                    "    on (WORKSTATION_LIST.id = STATE__ENABLED.ws_id and STATE__ENABLED.param_name = 'enabled')\n" +
+                    "  left join " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE STATE__MUTE_AGE" +
+                    "    on (WORKSTATION_LIST.id = STATE__MUTE_AGE.ws_id and STATE__MUTE_AGE.param_name = 'mute_age')\n" +
+                    "  left join " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE STATE__QUE_IN_NO_DONE" +
+                    "    on (WORKSTATION_LIST.id = STATE__QUE_IN_NO_DONE.ws_id and STATE__QUE_IN_NO_DONE.param_name = 'que_in_no_done')\n" +
+                    "where\n" +
+                    "  STATE__ENABLED.param_value = 1";
+            DataStore stDisplay = db.loadSql(sql);
 
             // Вычисление состояния
             long count_total = stDisplay.size();
@@ -1425,12 +1445,14 @@ public class JdxReplSrv {
      */
     private DataStore loadWsList() throws Exception {
         // Берем только активные
-        String sql = "select " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST.* " +
-                "from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST " +
-                "join " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE on " +
-                "(" + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST.id = " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE.ws_id) " +
-                "where " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE.enabled = 1";
-
+        String sql = "select\n" +
+                "  WORKSTATION_LIST.*\n" +
+                "from\n" +
+                "  " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST WORKSTATION_LIST\n" +
+                "  left join " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE STATE__ENABLED" +
+                "    on (WORKSTATION_LIST.id = STATE__ENABLED.ws_id and STATE__ENABLED.param_name = 'enabled')\n" +
+                "where\n" +
+                "  STATE__ENABLED.param_value = 1";
         //
         DataStore st = db.loadSql(sql);
 

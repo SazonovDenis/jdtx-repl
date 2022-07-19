@@ -12,8 +12,11 @@ public class JdxStateManagerSrv {
 
     private Db db;
 
+    protected SrvWorkstationStateManager stateManager;
+
     public JdxStateManagerSrv(Db db) {
         this.db = db;
+        stateManager = new SrvWorkstationStateManager(db);
     }
 
 
@@ -22,9 +25,7 @@ public class JdxStateManagerSrv {
      * очередь out от рабочей станции и помещена в зеркальную очереди queInSrv.
      */
     public long getWsQueInNoReceived(long wsId) throws Exception {
-        DataRecord rec = loadRecStateWs(wsId);
-        //
-        return rec.getValueLong("que_in_no");
+        return stateManager.getValue(wsId, "que_in_no");
     }
 
     /**
@@ -32,10 +33,7 @@ public class JdxStateManagerSrv {
      * очередь out от рабочей станции и помещена в зеркальную очередь queInSrv.
      */
     public void setWsQueInNoReceived(long wsId, long queInNo) throws Exception {
-        loadRecStateWs(wsId);
-        //
-        String sqlUpd = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set que_in_no = " + queInNo + " where ws_id = " + wsId;
-        db.execSql(sqlUpd);
+        stateManager.setValue(wsId, "que_in_no", queInNo);
     }
 
 
@@ -43,9 +41,7 @@ public class JdxStateManagerSrv {
      * @return Номер реплики, до которого очередь out от рабочей станции выложена в общую очередь common
      */
     public long getWsQueInNoDone(long wsId) throws Exception {
-        DataRecord rec = loadRecStateWs(wsId);
-        //
-        return rec.getValueLong("que_in_no_done");
+        return stateManager.getValue(wsId, "que_in_no_done");
     }
 
     /**
@@ -53,10 +49,7 @@ public class JdxStateManagerSrv {
      * очередь out от рабочей станции при формировании общей очереди.
      */
     public void setWsQueInNoDone(long wsId, long queInNoDone) throws Exception {
-        loadRecStateWs(wsId);
-        //
-        String sqlUpd = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set que_in_no_done = " + queInNoDone + " where ws_id = " + wsId;
-        db.execSql(sqlUpd);
+        stateManager.setValue(wsId, "que_in_no_done", queInNoDone);
     }
 
 
@@ -65,9 +58,7 @@ public class JdxStateManagerSrv {
      * при тиражировании реплик для рабочей станции wsId.
      */
     public long getDispatchDoneQueCommon(long wsId) throws Exception {
-        DataRecord rec = loadRecStateWs(wsId);
-        //
-        return rec.getValueLong("que_common_dispatch_done");
+        return stateManager.getValue(wsId, "que_common_dispatch_done");
     }
 
     /**
@@ -75,10 +66,7 @@ public class JdxStateManagerSrv {
      * при тиражировании реплик для рабочей станции wsId.
      */
     public void setDispatchDoneQueCommon(long wsId, long queCommonNoDone) throws Exception {
-        loadRecStateWs(wsId);
-        //
-        String sqlUpd = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set que_common_dispatch_done = " + queCommonNoDone + " where ws_id = " + wsId;
-        db.execSql(sqlUpd);
+        stateManager.setValue(wsId, "que_common_dispatch_done", queCommonNoDone);
     }
 
 
@@ -86,29 +74,11 @@ public class JdxStateManagerSrv {
      * @return Отметка: до какого номера отправлена очередь queName для рабочей станции wsId
      */
     public long getMailSendDone(long wsId, String queName) throws Exception {
-        DataRecord rec = loadRecStateWs(wsId);
-        //
-        return rec.getValueLong("que_" + queName + "_send_done");
+        return stateManager.getValue(wsId, "que_" + queName + "_send_done");
     }
 
     public void setMailSendDone(long wsId, String queName, long queNoDone) throws Exception {
-        loadRecStateWs(wsId);
-        //
-        String sqlUpd = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE set que_" + queName + "_send_done = " + queNoDone + " where ws_id = " + wsId;
-        db.execSql(sqlUpd);
-    }
-
-
-    /**
-     *
-     */
-    private DataRecord loadRecStateWs(long wsId) throws Exception {
-        String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE where ws_id = " + wsId;
-        DataRecord rec = db.loadSql(sql).getCurRec();
-        if (rec.getValueLong("ws_id") == 0) {
-            throw new XError("Не найдена запись для ws_id [" + wsId + "] в " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE");
-        }
-        return rec;
+        stateManager.setValue(wsId, "que_" + queName + "_send_done", queNoDone);
     }
 
 

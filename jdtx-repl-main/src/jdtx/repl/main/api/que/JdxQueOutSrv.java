@@ -4,6 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
@@ -25,11 +26,15 @@ public abstract class JdxQueOutSrv extends JdxQue implements IJdxQue {
     protected long destinationWsId;
 
     //
+    protected SrvWorkstationStateManager stateManager;
+
+    //
     protected static Log log = LogFactory.getLog("jdtx.JdxQueOutSrv");
 
     //
     public JdxQueOutSrv(Db db, String queName, boolean stateMode) {
         super(db, queName, stateMode);
+        stateManager = new SrvWorkstationStateManager(db);
     }
 
 
@@ -51,15 +56,12 @@ public abstract class JdxQueOutSrv extends JdxQue implements IJdxQue {
 
     @Override
     public long getMaxNo() throws Exception {
-        String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE" + " where ws_id = " + destinationWsId;
-        DataRecord rec = db.loadSql(sql).getCurRec();
-        return rec.getValueLong("que_" + queName + "_no");
+        return stateManager.getValue(destinationWsId, "que_" + queName + "_no");
     }
 
     @Override
     public void setMaxNo(long queNo) throws Exception {
-        String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE" + " set que_" + queName + "_no = " + queNo + " where ws_id = " + destinationWsId;
-        db.execSql(sql);
+        stateManager.setValue(destinationWsId, "que_" + queName + "_no", queNo);
     }
 
 
