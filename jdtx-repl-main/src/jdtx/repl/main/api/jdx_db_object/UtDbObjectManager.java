@@ -13,7 +13,7 @@ import java.util.*;
 
 public class UtDbObjectManager {
 
-    public static int CURRENT_VER_DB = 15; // JadatexSync-544 - ver = 4
+    public static int CURRENT_VER_DB = 16;
 
     Db db;
 
@@ -24,6 +24,18 @@ public class UtDbObjectManager {
     }
 
     DbQuery lockFlag = null;
+
+    public static String[] param_names = {
+            "que_common_dispatch_done",
+            "que_out000_no",
+            "que_out000_send_done",
+            "que_out001_no",
+            "que_out001_send_done",
+            "que_in_no",
+            "que_in_no_done",
+            "enabled",
+            "mute_age"
+    };
 
     static Log log = LogFactory.getLog("jdtx.DbObject");
 

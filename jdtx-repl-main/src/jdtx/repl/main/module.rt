@@ -105,6 +105,8 @@
         <item name="Update_013_014_index" class="jdtx.repl.main.api.jdx_db_object.Update_013_014_index"/>
         <item name="Update_014_015_que_generators"
               class="jdtx.repl.main.api.jdx_db_object.Update_014_015_que_generators"/>
+        <item name="Update_015_016_srv_workstation_state"
+              class="jdtx.repl.main.api.jdx_db_object.Update_015_016_srv_workstation_state"/>
 
     </service>
 
