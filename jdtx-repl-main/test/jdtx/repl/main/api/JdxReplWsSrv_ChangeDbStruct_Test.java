@@ -15,89 +15,103 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
     String cfg_publications = "test/etalon/publication_struct_152.json";
 
+    private String sqlEnabledIs1 = "select\n" +
+            "  WORKSTATION_LIST.ID as WS_ID,\n" +
+            "  WORKSTATION_LIST.NAME,\n" +
+            "  WORKSTATION_LIST.GUID\n" +
+            "from\n" +
+            "  Z_Z_SRV_WORKSTATION_LIST WORKSTATION_LIST\n" +
+            "  left join Z_Z_SRV_WORKSTATION_STATE STATE__ENABLED on (WORKSTATION_LIST.id = STATE__ENABLED.ws_id and STATE__ENABLED.param_name = 'enabled')\n" +
+            "  left join Z_Z_SRV_WORKSTATION_STATE STATE__MUTE_AGE on (WORKSTATION_LIST.id = STATE__MUTE_AGE.ws_id and STATE__MUTE_AGE.param_name = 'mute_age')\n" +
+            "where\n" +
+            "  STATE__ENABLED.param_value = 1";
+    private String sqlEnabledIs1MuteIs0 = "select\n" +
+            "  WORKSTATION_LIST.ID as WS_ID,\n" +
+            "  WORKSTATION_LIST.NAME,\n" +
+            "  WORKSTATION_LIST.GUID\n" +
+            "from\n" +
+            "  Z_Z_SRV_WORKSTATION_LIST WORKSTATION_LIST\n" +
+            "  left join Z_Z_SRV_WORKSTATION_STATE STATE__ENABLED on (WORKSTATION_LIST.id = STATE__ENABLED.ws_id and STATE__ENABLED.param_name = 'enabled')\n" +
+            "  left join Z_Z_SRV_WORKSTATION_STATE STATE__MUTE_AGE on (WORKSTATION_LIST.id = STATE__MUTE_AGE.ws_id and STATE__MUTE_AGE.param_name = 'mute_age')\n" +
+            "where\n" +
+            "  STATE__ENABLED.param_value = 1 and\n" +
+            "  STATE__MUTE_AGE.param_value = 0";
+
     @Override
     public void setUp() throws Exception {
         super.setUp();
         //json_ws = "test/etalon/mail_http_ws_unidirectional.json";
     }
 
-
     /**
      * Проверка возможности холостого цикла MUTE-UNMUTE (без реального изменения структуры).
      */
     @Test
     public void test_Mute_Unmute() throws Exception {
-        // Создаем репликацию (ws1, ws2, ws3)
-        allSetUp();
-        sync_http_1_2_3();
-        sync_http_1_2_3();
-        sync_http_1_2_3();
-
-        //
-        JdxReplWs ws;
+        JdxReplWs ws1;
         JdxReplWs ws2;
         JdxReplWs ws3;
 
 
-        // ===
+        // ---
         // Проверяем, что разрешенная, фиксированная и реальная структуры совпадают на ws1, ws2 и ws3
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db);
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db2);
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db3);
         //
-        ws = new JdxReplWs(db);
-        ws.init();
+        ws1 = new JdxReplWs(db);
+        ws1.init();
         ws2 = new JdxReplWs(db2);
         ws2.init();
         ws3 = new JdxReplWs(db2);
         ws3.init();
         //
-        System.out.println("ws1 struct size: " + ws.struct.getTables().size());
-        System.out.println("ws2 struct size: " + ws2.struct.getTables().size());
-        System.out.println("ws3 struct size: " + ws3.struct.getTables().size());
+        System.out.println("ws1 struct tables count: " + ws1.struct.getTables().size());
+        System.out.println("ws2 struct tables count: " + ws2.struct.getTables().size());
+        System.out.println("ws3 struct tables count: " + ws3.struct.getTables().size());
         //
-        assertEquals("Перед тестом структура ws и ws2 должны совпадать", true, UtDbComparer.dbStructIsEqual(ws.struct, ws2.struct));
-        assertEquals("Перед тестом структура ws и ws3 должны совпадать", true, UtDbComparer.dbStructIsEqual(ws.struct, ws3.struct));
+        assertEquals("Перед тестом структура ws1 и ws2 должны совпадать", true, UtDbComparer.dbStructIsEqual(ws1.struct, ws2.struct));
+        assertEquals("Перед тестом структура ws1 и ws3 должны совпадать", true, UtDbComparer.dbStructIsEqual(ws1.struct, ws3.struct));
 
 
-        // ===
+        // ---
         // Проверяем, что все станции пока работают
-        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
-        assertEquals(3, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql(sqlEnabledIs1));
+        assertEquals(3, db.loadSql(sqlEnabledIs1MuteIs0).size());
 
 
-        // ===
+        // ---
         // Вносим изменения в данные на станциях
         test_ws1_makeChange_Unimportant();
         test_ws2_makeChange();
         test_ws3_makeChange();
 
 
-        // ===
+        // ---
         // Начинаем (на сервере) смену версии БД - формируем сигнал "всем молчать"
-        test_srvMuteAll();
+        doSrvMuteAll();
 
         // Цикл синхронизации
         sync_http_1_2_3();
         sync_http_1_2_3();
 
 
-        // ===
+        // ---
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
-        assertEquals(0, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql(sqlEnabledIs1));
+        assertEquals(0, db.loadSql(sqlEnabledIs1MuteIs0).size());
 
 
-        // ===
+        // ---
         // Убеждаемся что рабочие станции молчат (из-из запрета)
-        assert_handleSelfAudit_false(db);
-        assert_handleSelfAudit_false(db2);
-        assert_handleSelfAudit_false(db3);
+        assert_handleSelfAudit(db, false);
+        assert_handleSelfAudit(db2, false);
+        assert_handleSelfAudit(db3, false);
 
 
-        // ===
+        // ---
         // Завершаем (на сервере) смену версии БД - рассылаем сигнал "всем говорить"
-        test_srvSetDbStruct_Unmute();
+        doSrvSetDbStruct_Unmute();
 
         //
         test_ws1_makeChange_Unimportant();
@@ -109,17 +123,17 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         sync_http_1_2_3();
 
 
-        // ===
+        // ---
         // Убеждаемся что все рабочие станции говорят
-        assert_handleSelfAudit_true(db);
-        assert_handleSelfAudit_true(db2);
-        assert_handleSelfAudit_true(db3);
+        assert_handleSelfAudit(db, true);
+        assert_handleSelfAudit(db2, true);
+        assert_handleSelfAudit(db3, true);
 
 
-        // ===
+        // ---
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
-        assertEquals(3, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql(sqlEnabledIs1));
+        assertEquals(3, db.loadSql(sqlEnabledIs1MuteIs0).size());
     }
 
     /**
@@ -129,13 +143,10 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      */
     @Test
     public void test_No_ApplyReplicas() throws Exception {
-        JdxReplWs ws;
+        JdxReplWs ws1;
         JdxReplWs ws2;
-        IJdxDbStruct structActual_ws1;
-        IJdxDbStruct structFixed_ws1;
-        IJdxDbStruct structAllowed_ws1;
         //
-        DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
+        DatabaseStructManager databaseStructManager_ws1 = new DatabaseStructManager(db);
         DatabaseStructManager databaseStructManager_ws2 = new DatabaseStructManager(db2);
         //
         long queInNoDone1;
@@ -143,50 +154,45 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         JdxStateManagerWs stateManager_ws2 = new JdxStateManagerWs(db2);
 
 
-        // ===
-        // Проверяем, что разрешенная, фиксированная и реальная структуры совпадают на ws1 и ws2
+        // ---
+        // Начальные проверки
+
+        // Проверяем, что на ws1 и ws2 разрешенная, фиксированная и реальная структуры совпадают
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db);
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db2);
         //
-        ws = new JdxReplWs(db);
-        ws.init();
+        ws1 = new JdxReplWs(db);
+        ws1.init();
         ws2 = new JdxReplWs(db2);
         ws2.init();
+
+        // Проверяем, что структуры одинаковы у ws1 и ws2
+        System.out.println("ws1 tables count: " + ws1.struct.getTables().size());
+        System.out.println("ws2 tables count: " + ws2.struct.getTables().size());
         //
-        System.out.println("ws1 struct size: " + ws.struct.getTables().size());
-        System.out.println("ws2 struct size: " + ws2.struct.getTables().size());
-        //
-        assertEquals("Перед тестом структура ws и ws2 должны совпадать", true, UtDbComparer.dbStructIsEqual(ws.struct, ws2.struct));
+        assertEquals("Перед тестом структура ws1 и ws2 должны совпадать", true, UtDbComparer.dbStructIsEqual(ws1.struct, ws2.struct));
 
 
-        // ===
-        // Начинаем и завершаем изменения структуре БД ws1
+        // ---
+        // Начинаем и завершаем изменения в структуре БД ws1
 
-        // Делаем изменения структуре БД
-        test_ws1_changeDbStruct();
+        // Делаем изменения в структуре БД
+        modifyDbStruct_internal(db);
+        ws1 = new JdxReplWs(db);
+        ws1.init();
+        IJdxDbStruct structActual_ws1 = ws1.struct;
 
         // Устанавливаем "разрешенную" структуру
-        ws = new JdxReplWs(db);
-        ws.init();
-        structActual_ws1 = ws.struct;
-        databaseStructManager.setDbStructAllowed(structActual_ws1);
+        databaseStructManager_ws1.setDbStructAllowed(structActual_ws1);
 
         // Делаем фиксацию структуры
-        ws.dbStructApplyFixed(true);
+        assertEquals("Изменения для аудита", true, ws1.dbStructApplyForAudit(true));
 
-        // Проверяем, что фиксация прошла нормально
-        ws = new JdxReplWs(db);
-        ws.init();
-        //
-        structActual_ws1 = ws.struct;
-        structFixed_ws1 = databaseStructManager.getDbStructFixed();
-        structAllowed_ws1 = databaseStructManager.getDbStructAllowed();
-        //
-        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual_ws1, structAllowed_ws1));
-        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual_ws1, structFixed_ws1));
+        // Устанавливаем "фиксированную" структуру
+        databaseStructManager_ws1.setDbStructAllowed(structActual_ws1);
 
 
-        // ===
+        // ---
         // Формируем изменения данных на ws1, отправка в сеть
         test_ws1_makeChange();
         //
@@ -195,17 +201,18 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         test_srv_doReplSession();
 
 
-        // ===
+        // ---
         // Попытка принять и использовать реплики на ws2
         queInNoDone1 = stateManager_ws2.getQueNoDone("in");
+
         //
         ws2 = new JdxReplWs(db2);
         ws2.init();
-
         // Получаем входящие реплики
         ws2.replicasReceive();
         // Применяем входящие реплики
         ws2.handleAllQueIn();
+
         //
         queInNoDone2 = stateManager_ws2.getQueNoDone("in");
 
@@ -213,51 +220,42 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         assertEquals(queInNoDone1, queInNoDone2);
 
 
-        // ===
-        // Изменения структуре БД ws2
-        // Делаем изменения структуре БД
-        test_ws2_changeDbStruct();
+        // ---
+        // Начинаем и завершаем изменения в структуре БД ws2
+
+        // Делаем изменения в структуре БД
+        modifyDbStruct_internal(db2);
+        ws2 = new JdxReplWs(db2);
+        ws2.init();
+        IJdxDbStruct structActual_ws2 = ws2.struct;
 
         // Устанавливаем "разрешенную" структуру
-        ws2 = new JdxReplWs(db2);
-        ws2.init();
-        structActual_ws1 = ws2.struct;
-        databaseStructManager_ws2.setDbStructAllowed(structActual_ws1);
+        databaseStructManager_ws2.setDbStructAllowed(structActual_ws2);
 
         // Делаем фиксацию структуры
-        ws2.dbStructApplyFixed(true);
+        assertEquals("Изменения для аудита", true, ws2.dbStructApplyForAudit(true));
 
-        // Проверяем, что фиксация прошла нормально
-        ws2 = new JdxReplWs(db2);
-        ws2.init();
-        //
-        structActual_ws1 = ws2.struct;
-        structFixed_ws1 = databaseStructManager_ws2.getDbStructFixed();
-        structAllowed_ws1 = databaseStructManager_ws2.getDbStructAllowed();
-        //
-        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual_ws1, structAllowed_ws1));
-        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual_ws1, structFixed_ws1));
+        // Устанавливаем "фиксированную" структуру
+        databaseStructManager_ws2.setDbStructAllowed(structActual_ws2);
 
 
+        // ---
         // Попытка принять и использовать реплики
         queInNoDone1 = stateManager_ws2.getQueNoDone("in");
+
         //
         ws2 = new JdxReplWs(db2);
         ws2.init();
-
         // Получаем входящие реплики
         ws2.replicasReceive();
         // Применяем входящие реплики
         ws2.handleAllQueIn();
+
         //
         queInNoDone2 = stateManager_ws2.getQueNoDone("in");
 
         // Применение реплик проходит нормально
         assertNotSame(queInNoDone1, queInNoDone2);
-
-
-        // ===
-        do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
 
@@ -269,94 +267,62 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      */
     @Test
     public void test_No_HandleSelfAudit() throws Exception {
-        // Создаем репликацию (ws1, ws2, ws3)
-        allSetUp();
-        sync_http_1_2_3();
-        sync_http_1_2_3();
-        sync_http_1_2_3();
-
-        //
-        JdxReplWs ws;
-        IJdxDbStruct structActual;
-        IJdxDbStruct structFixed;
-        IJdxDbStruct structAllowed;
+        JdxReplWs ws1;
         //
         DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
 
 
-        // ===
+        // ---
         // Проверяем, что разрешенная, фиксированная и реальная структуры совпадают на ws1
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db);
 
 
-        // ===
+        // ---
         // Проверяем, что можно формировать реплики
-        assert_handleSelfAudit_true(db);
+        assert_handleSelfAudit(db, true);
 
 
-        // ===
-        // Изменения структуре БД ws1
-        test_ws1_changeDbStruct();
+        // ---
+        // Делаем изменения в структуре БД ws1
+        modifyDbStruct_internal(db);
+
+        // Читаем получившуюся структуру
+        ws1 = new JdxReplWs(db);
+        ws1.init();
+        IJdxDbStruct structActual = ws1.struct;
 
 
-        // ===
+        // ---
+        // Последовательно делаем шаги по фиксации изменения структуры,
+        // проверяем, что реплики пойдут только после завершения смены версии
+
         // Проверяем, что реплики формировать не удается
-        assert_handleSelfAudit_false(db);
+        assert_handleSelfAudit(db, false);
 
+        // Пытаемся произвести изменения для аудита
+        ws1 = new JdxReplWs(db);
+        ws1.init();
+        assertEquals("Изменения для аудита", false, ws1.dbStructApplyForAudit(true));
 
-        // ===
-        // Пытаемся сделать фиксацию структуры после изменения структуры
-        ws = new JdxReplWs(db);
-        ws.init();
-        //
-        ws.dbStructApplyFixed(true);
-
-        // Проверяем, что фиксация не удается
-        ws = new JdxReplWs(db);
-        ws.init();
-        //
-        structActual = ws.struct;
-        structFixed = databaseStructManager.getDbStructFixed();
-        structAllowed = databaseStructManager.getDbStructAllowed();
-        //
-        assertEquals(false, UtDbComparer.dbStructIsEqual(structActual, structAllowed));
-        assertEquals(false, UtDbComparer.dbStructIsEqual(structActual, structFixed));
-        assertEquals(true, UtDbComparer.dbStructIsEqual(structAllowed, structFixed));
-
-
-        // ===
         // Устанавливаем "разрешенную" структуру
         databaseStructManager.setDbStructAllowed(structActual);
 
-
-        // ===
         // Проверяем, что реплики формировать не удается
-        assert_handleSelfAudit_false(db);
+        assert_handleSelfAudit(db, false);
 
+        // Пытаемся произвести изменения для аудита
+        ws1 = new JdxReplWs(db);
+        ws1.init();
+        assertEquals("Изменения для аудита", true, ws1.dbStructApplyForAudit(true));
 
-        // ===
-        // Пытаемся сделать фиксацию структуры
-        ws.dbStructApplyFixed(true);
+        // Проверяем, что реплики формировать не удается
+        assert_handleSelfAudit(db, false);
 
-        // Проверяем, что фиксация прошла нормально
-        ws = new JdxReplWs(db);
-        ws.init();
-        //
-        structActual = ws.struct;
-        structFixed = databaseStructManager.getDbStructFixed();
-        structAllowed = databaseStructManager.getDbStructAllowed();
-        //
-        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structAllowed));
-        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structFixed));
+        // Устанавливаем "фиксированную" структуру
+        databaseStructManager.setDbStructFixed(structActual);
 
-
-        // ===
         // Проверяем, что можно формировать реплики
-        assert_handleSelfAudit_true(db);
-
-
-        // ===
-        do_DumpTables(db, db2, db3, struct, struct2, struct3);
+        assert_handleSelfAudit(db, true);
     }
 
 
@@ -365,13 +331,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      */
     @Test
     public void test_ModifyDbStruct() throws Exception {
-        // Создаем репликацию (ws1, ws2, ws3)
-        allSetUp();
-        sync_http_1_2_3();
-        sync_http_1_2_3();
-        sync_http_1_2_3();
-        //
-        test_modifyDbStruct();
+        doModifyDbStruct();
+
         //
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
         compareDb(db, db2, equalExpected);
@@ -380,18 +341,14 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
     /**
      * Инициализация и прогон полного цикла смены структуры БД,
-     * ТРИ РАЗА
+     * три раза
      */
     @Test
     public void test_modifyDbStruct_triple() throws Exception {
-        allSetUp();
-        sync_http_1_2_3();
-        sync_http_1_2_3();
-        sync_http_1_2_3();
-        //
-        test_modifyDbStruct();
-        test_modifyDbStruct();
-        test_modifyDbStruct();
+        doModifyDbStruct();
+        doModifyDbStruct();
+        doModifyDbStruct();
+
         //
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
         compareDb(db, db2, equalExpected);
@@ -401,14 +358,13 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     /**
      * Прогон полного цикла смены структуры БД
      */
-    @Test
-    public void test_modifyDbStruct() throws Exception {
+    void doModifyDbStruct() throws Exception {
         JdxReplWs ws;
         JdxReplWs ws2;
         JdxReplWs ws3;
 
 
-        // ===
+        // ---
         // Проверяем, что разрешенная, фиксированная и реальная структуры совпадают на ws1, ws2 и ws3
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db);
         assertEqualsStruct_Actual_Allowed_Fixed_ws(db2);
@@ -421,50 +377,51 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         ws3 = new JdxReplWs(db2);
         ws3.init();
         //
-        System.out.println("ws1 struct size: " + ws.struct.getTables().size());
-        System.out.println("ws2 struct size: " + ws2.struct.getTables().size());
-        System.out.println("ws3 struct size: " + ws3.struct.getTables().size());
+        System.out.println("ws1 tables count: " + ws.struct.getTables().size());
+        System.out.println("ws2 tables count: " + ws2.struct.getTables().size());
+        System.out.println("ws3 tables count: " + ws3.struct.getTables().size());
         //
         assertEquals("Перед тестом структура ws и ws2 должны совпадать", true, UtDbComparer.dbStructIsEqual(ws.struct, ws2.struct));
         assertEquals("Перед тестом структура ws и ws3 должны совпадать", true, UtDbComparer.dbStructIsEqual(ws.struct, ws3.struct));
 
 
-        // ===
+        // ---
         // Проверяем, что все станции пока работают
-        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
-        assertEquals(3, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql(sqlEnabledIs1));
+        assertEquals(3, db.loadSql(sqlEnabledIs1MuteIs0).size());
 
 
-        // ===
+        // ---
         // Вносим изменения в данные на станциях
         test_ws1_makeChange_Unimportant();
         test_ws2_makeChange();
         test_ws3_makeChange();
 
 
-        // ===
+        // ---
         // Начинаем (на сервере) смену версии БД - формируем сигнал "всем молчать"
-        test_srvMuteAll();
+        doSrvMuteAll();
 
         // Цикл синхронизации
         sync_http_1_2_3();
         sync_http_1_2_3();
+        sync_http_1_2_3();
 
 
-        // ===
+        // ---
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
-        assertEquals(0, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        UtData.outTable(db.loadSql(sqlEnabledIs1));
+        assertEquals(0, db.loadSql(sqlEnabledIs1MuteIs0).size());
 
 
-        // ===
+        // ---
         // Убеждаемся что рабочие станции молчат (из-из запрета)
-        assert_handleSelfAudit_false(db);
-        assert_handleSelfAudit_false(db2);
-        assert_handleSelfAudit_false(db3);
+        assert_handleSelfAudit(db, false);
+        assert_handleSelfAudit(db2, false);
+        assert_handleSelfAudit(db3, false);
 
 
-        // ===
+        // ---
         // Физически меняем свою структуру на сервере
         modifyDbStruct_internal(db);
 
@@ -478,14 +435,14 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         sync_http_1_2_3();
 
 
-        // ===
+        // ---
         // Убеждаемся что рабочие станции молчат (из-из запрета)
-        assert_handleSelfAudit_false(db);
-        assert_handleSelfAudit_false(db2);
-        assert_handleSelfAudit_false(db3);
+        assert_handleSelfAudit(db, false);
+        assert_handleSelfAudit(db2, false);
+        assert_handleSelfAudit(db3, false);
 
 
-        // ===
+        // ---
         // Завершаем (на сервере) смену версии БД
 
         // На сервере напрямую задаем структуру публикаций (команда repl_set_cfg)
@@ -500,9 +457,10 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // ... рассылаем на рабочие станции новые правила публикаций (команда repl_send_cfg) ...
         srv.srvSendCfg(cfg_publications, CfgType.PUBLICATIONS, 0, UtQue.SRV_QUE_COMMON);
 
+        // ... Завершаем (на сервере) смену версии БД - рассылаем сигнал "всем говорить"
         // ... рассылаем сигнал "SET_DB_STRUCT" (команда repl_set_dbstruct)
         // ... рассылаем сигнал "UNMUTE" (команда repl_unmute)
-        test_srvSetDbStruct_Unmute();
+        doSrvSetDbStruct_Unmute();
 
         //
         test_ws1_makeChange_Unimportant();
@@ -514,86 +472,56 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         sync_http_1_2_3();
 
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+        UtData.outTable(db.loadSql(sqlEnabledIs1));
         // Только сервер изменил структуру и перестал молчать, а станции еще не смогли сделать SET_DB_STRUCT,
         // потому что у них реальная структура не совпадает с разрешенной (не хватает новых таблиц TEST_TABLE_*)
-        assertEquals(1, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
+        assertEquals(1, db.loadSql(sqlEnabledIs1MuteIs0).size());
 
 
-        // ===
+        // ---
         // Убеждаемся что рабочие станции молчат (из-из запрета), а сервер нет
-        assert_handleSelfAudit_true(db);
-        assert_handleSelfAudit_false(db2);
-        assert_handleSelfAudit_false(db3);
+        assert_handleSelfAudit(db, true);
+        assert_handleSelfAudit(db2, false);
+        assert_handleSelfAudit(db3, false);
 
 
-        // ===
+        // ---
         // Физически меняем структуру на рабочих станциях ws2 и ws3
         modifyDbStruct_internal(db2);
         modifyDbStruct_internal(db3);
         //reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
 
 
-        // ===
+        // ---
         // Убеждаемся что рабочие станции молчат (из-за незафиксированности структуры), а сервер нет
-        assert_handleSelfAudit_true(db);
-        assert_handleSelfAudit_false(db2);
-        assert_handleSelfAudit_false(db3);
+        assert_handleSelfAudit(db, true);
+        assert_handleSelfAudit(db2, false);
+        assert_handleSelfAudit(db3, false);
 
 
-        // ===
+        // ---
         // Заставляем станции зафиксировать структуру
         test_ws2_doReplSession();
         test_ws3_doReplSession();
 
 
-        // ===
+        // ---
         // Убеждаемся что все рабочие станции говорят
-        assert_handleSelfAudit_true(db);
-        assert_handleSelfAudit_true(db2);
-        assert_handleSelfAudit_true(db3);
+        assert_handleSelfAudit(db, true);
+        assert_handleSelfAudit(db2, true);
+        assert_handleSelfAudit(db3, true);
 
         // Цикл синхронизации
         sync_http_1_2_3();
         sync_http_1_2_3();
+        sync_http_1_2_3();
+        sync_http_1_2_3();
 
 
-        // ===
+        // ---
         // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
-        UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
-        assertEquals(3, db.loadSql("select count(*) cnt from Z_Z_SRV_WORKSTATION_STATE where enabled = 1 and mute_age = 0").getCurRec().getValueInt("cnt"));
-
-
-        // ===
-        do_DumpTables(db, db2, db3, struct, struct2, struct3);
-    }
-
-    private void assertEqualsStruct_Actual_Allowed_Fixed_ws(Db db) throws Exception {
-        JdxReplWs ws = new JdxReplWs(db);
-        ws.init();
-        //
-        IJdxDbStruct structActual = ws.struct;
-        DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
-        IJdxDbStruct structFixed = databaseStructManager.getDbStructFixed();
-        IJdxDbStruct structAllowed = databaseStructManager.getDbStructAllowed();
-        //
-        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structAllowed));
-        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structFixed));
-    }
-
-    @Test
-    public void test_ws1_changeDbStruct() throws Exception {
-        modifyDbStruct_internal(db);
-    }
-
-    @Test
-    public void test_ws2_changeDbStruct() throws Exception {
-        modifyDbStruct_internal(db2);
-    }
-
-    @Test
-    public void test_ws3_changeDbStruct() throws Exception {
-        modifyDbStruct_internal(db3);
+        UtData.outTable(db.loadSql(sqlEnabledIs1));
+        assertEquals(3, db.loadSql(sqlEnabledIs1MuteIs0).size());
     }
 
     /**
@@ -602,20 +530,13 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     @Test
     public void test_auditAfterInsDel() throws Exception {
         UtTest utTest = new UtTest(db2);
+        utTest.setUp();
         utTest.make_Region_InsDel_0(struct2, 2);
 
         // Формирование аудита
         JdxReplWs ws = new JdxReplWs(db2);
+        ws.init();
         ws.handleSelfAudit();
-    }
-
-    @Test
-    public void test_srvMuteAll() throws Exception {
-        JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init();
-
-        //
-        srv.srvMuteAll();
     }
 
     /**
@@ -629,6 +550,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
      * jdtx.repl.main.api.JdxReplWsSrv_Test#loop_1_repl()
      * jdtx.repl.main.api.JdxReplWsSrv_Test#loop_2_repl()
      * jdtx.repl.main.api.JdxReplWsSrv_Test#loop_3_repl()
+     * jdtx.repl.main.api.JdxReplWsSrv_Test#loop_5_repl()
      */
     @Test
     public void test_srvStateWait() throws Exception {
@@ -665,8 +587,28 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         System.out.println("===");
     }
 
-    @Test
-    public void test_srvSetDbStruct_Unmute() throws Exception {
+    private void assertEqualsStruct_Actual_Allowed_Fixed_ws(Db db) throws Exception {
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.init();
+        //
+        IJdxDbStruct structActual = ws.struct;
+        DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
+        IJdxDbStruct structFixed = databaseStructManager.getDbStructFixed();
+        IJdxDbStruct structAllowed = databaseStructManager.getDbStructAllowed();
+        //
+        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structAllowed));
+        assertEquals(true, UtDbComparer.dbStructIsEqual(structActual, structFixed));
+    }
+
+    public void doSrvMuteAll() throws Exception {
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init();
+
+        //
+        srv.srvMuteAll();
+    }
+
+    public void doSrvSetDbStruct_Unmute() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init();
 
@@ -678,67 +620,31 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
     }
 
     /**
-     * Проверяем, что реплики формировать не удается
+     * Проверяем, можно или нет формировать реплики (обрабатывается ли собственный аудит)
      */
-    void assert_handleSelfAudit_false(Db db) throws Exception {
-        JdxReplWs ws;
-        long auditAge0;
-        long auditAge1;
-        long auditAge2;
-
-        //
-        ws = new JdxReplWs(db);
+    void assert_handleSelfAudit(Db db, boolean auditIsAllowed) throws Exception {
+        JdxReplWs ws = new JdxReplWs(db);
         ws.init();
         //
         UtAuditAgeManager uta = new UtAuditAgeManager(db, ws.struct);
 
-        //
-        auditAge0 = uta.getAuditAge();
+        // Исходный возраст аудита
+        long auditAge0 = uta.getAuditAge();
+
         //
         UtTest utTest = new UtTest(db);
         utTest.makeChange(ws.struct, ws.wsId);
         //
-        auditAge1 = uta.getAuditAge();
-        //
+        long auditAge1 = uta.getAuditAge();
+
+        // Возраст после обработки аудита
         ws.handleSelfAudit();
         //
-        auditAge2 = uta.getAuditAge();
+        long auditAge2 = uta.getAuditAge();
 
         //
-        assertEquals(auditAge0, auditAge1);
-        assertEquals(auditAge1, auditAge2);
-    }
-
-    /**
-     * Проверяем, что можно формировать реплики
-     */
-    void assert_handleSelfAudit_true(Db db) throws Exception {
-        JdxReplWs ws;
-        long auditAge0;
-        long auditAge1;
-        long auditAge2;
-
-        //
-        ws = new JdxReplWs(db);
-        ws.init();
-        //
-        UtAuditAgeManager uta = new UtAuditAgeManager(db, ws.struct);
-
-        //
-        auditAge0 = uta.getAuditAge();
-        //
-        UtTest utTest = new UtTest(db);
-        utTest.makeChange(ws.struct, ws.wsId);
-        //
-        auditAge1 = uta.getAuditAge();
-        //
-        ws.handleSelfAudit();
-        //
-        auditAge2 = uta.getAuditAge();
-
-        //
-        assertEquals(auditAge0, auditAge1);
-        assertNotSame(auditAge1, auditAge2);
+        assertEquals(true, auditAge0 == auditAge1);
+        assertEquals(!auditIsAllowed, auditAge1 == auditAge2);
     }
 
     public void do_DumpTables(Db db, Db db2, Db db3, IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct struct3) throws Exception {

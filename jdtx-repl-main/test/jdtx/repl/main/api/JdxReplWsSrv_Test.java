@@ -13,7 +13,6 @@ import jdtx.repl.main.task.*;
 import jdtx.repl.main.ut.*;
 import org.apache.commons.io.*;
 import org.junit.*;
-import org.junit.rules.*;
 
 import java.io.*;
 import java.util.*;
@@ -266,9 +265,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         ws3.init();
 
         //
-        ws.dbStructApplyFixed(true);
-        ws2.dbStructApplyFixed(true);
-        ws3.dbStructApplyFixed(true);
+        ws.dbStructApplyForAudit(true);
+        ws2.dbStructApplyForAudit(true);
+        ws3.dbStructApplyForAudit(true);
     }
 
     @Test
@@ -1109,6 +1108,23 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         while (true) {
             try {
                 test_ws3_doReplSession();
+            } catch (Exception e) {
+                String msg = Ut.getExceptionMessage(e);
+                if (canSkipException(msg)) {
+                    System.out.println(msg);
+                    e.printStackTrace();
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    @Test
+    public void loop_5_repl() throws Exception {
+        while (true) {
+            try {
+                test_ws5_doReplSession();
             } catch (Exception e) {
                 String msg = Ut.getExceptionMessage(e);
                 if (canSkipException(msg)) {

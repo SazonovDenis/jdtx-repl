@@ -86,36 +86,4 @@ public class All_BaseRepl_Test extends AppTestCase {
         test.test_failedInsertUpdate();
     }
 
-    @Test
-    public void test_Mute_Unmute() throws Exception {
-        JdxReplWsSrv_ChangeDbStruct_Test test = new JdxReplWsSrv_ChangeDbStruct_Test();
-        this.test = test;
-        test.setUp();
-        test.test_Mute_Unmute();
-    }
-
-    @Test
-    public void test_No_ApplyReplicas() throws Exception {
-        JdxReplWsSrv_ChangeDbStruct_Test test = new JdxReplWsSrv_ChangeDbStruct_Test();
-        this.test = test;
-        test.setUp();
-        test.test_No_ApplyReplicas();
-    }
-
-    @Test
-    public void test_No_HandleSelfAudit() throws Exception {
-        JdxReplWsSrv_ChangeDbStruct_Test test = new JdxReplWsSrv_ChangeDbStruct_Test();
-        this.test = test;
-        test.setUp();
-        test.test_No_HandleSelfAudit();
-    }
-
-    @Test
-    public void test_ModifyDbStruct() throws Exception {
-        JdxReplWsSrv_ChangeDbStruct_Test test = new JdxReplWsSrv_ChangeDbStruct_Test();
-        this.test = test;
-        test.setUp();
-        test.test_ModifyDbStruct();
-    }
-
 }

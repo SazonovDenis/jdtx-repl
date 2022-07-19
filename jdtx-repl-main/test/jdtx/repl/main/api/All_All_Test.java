@@ -5,6 +5,7 @@ import org.junit.runner.*;
 import org.junit.runners.*;
 
 /**
+ * Сборник всех тестов для проекта.
  * Предрелизные проверки - должны проходить все тесты
  */
 @RunWith(Suite.class)
@@ -15,6 +16,7 @@ import org.junit.runners.*;
         All_MergeRepl_Test.class,
         All_RestoreWs_AfterDbRestore_Test.class,
         All_RestoreWs_FromSrv_Test.class,
+        All_ChangeDbStruct_Test.class,
 })
 public class All_All_Test extends AppTestCase {
 
