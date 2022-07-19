@@ -298,14 +298,13 @@ public class JdxReplWs {
 
 
     /**
-     * Выполнение фиксации структуры:
-     * - дополнение аудита
-     * - "реальная" структура запоминается как "зафиксированная"
-     * - если нужно - отправляем snapshot для тех таблиц, которые появились в структуре
+     * Один из шагов по фиксации структуры:
+     * - дополнение аудита (удаление для исключенных и добавление для новых)
+     * - если нужно - отправляем в queOut snapshot для тех таблиц, которые появились в структуре
      *
      * @return true, если структуры были обновлены или не требуют обновления.
      */
-    public boolean dbStructApplyFixed(boolean sendSnapshotForNewTables) throws Exception {
+    public boolean dbStructApplyForAudit(boolean sendSnapshotForNewTables) throws Exception {
         log.info("dbStructApplyFixed, checking");
 
         // Читаем структуры
@@ -921,6 +920,9 @@ public class JdxReplWs {
      * Реакция на команду - задать "разрешенную" структуру БД
      */
     private void useReplica_SET_DB_STRUCT(IReplica replica, ReplicaUseResult useResult) throws Exception {
+        //
+        DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
+
         // Узнаем параметры команды: надо ли отправлять snapshot после добавления новых таблиц
         JSONObject info;
         InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
@@ -932,22 +934,20 @@ public class JdxReplWs {
         }
         boolean sendSnapshot = UtJdxData.booleanValueOf(info.get("sendSnapshot"), true);
 
-        //
-        DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
-
-        // В этой реплике - новая "разрешенная" структура
+        // В реплике - новая "разрешенная" структура
         InputStream stream = JdxReplicaReaderXml.createInputStreamData(replica);
         try {
             JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-            IJdxDbStruct struct = struct_rw.read(stream);
+            IJdxDbStruct structFromReplica = struct_rw.read(stream);
             // Запоминаем "разрешенную" структуру БД
-            databaseStructManager.setDbStructAllowed(struct);
+            databaseStructManager.setDbStructAllowed(structFromReplica);
         } finally {
             stream.close();
         }
 
-        // Проверяем серьезность измемения структуры и необходимость пересоздавать аудит
-        if (!dbStructApplyFixed(sendSnapshot)) {
+        // Проверяем серьезность измемения структуры,
+        // при необходимости - пересоздаём аудит и выкладываем snapshot в queOut (для добавленных таблиц)
+        if (!dbStructApplyForAudit(sendSnapshot)) {
             // Если пересоздать аудит не удалось (структуры не обновлены или по иным причинам),
             // то не метим реплику как использованную
             log.warn("handleQueIn, dbStructApplyFixed <> true");
