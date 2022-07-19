@@ -24,6 +24,7 @@ public class All_ChangeDbStruct_Test extends AppTestCase {
         JdxReplWsSrv_RestoreWs_DbRestore_test testForBackup = new JdxReplWsSrv_RestoreWs_DbRestore_test();
         testForBackup.setUp();
         testForBackup.doBackupNolmalLife();
+        testForBackup.disconnectAllForce();
         //
         test.disconnectAllForce();
     }
