@@ -148,7 +148,13 @@ public class UtDbObjectManager {
 
         //
         log.info("Wait for lock database: " + db.getDbSource().getDatabase());
-        lockFlag = db.openSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "verdb for update with lock");
+        try {
+            lockFlag = db.openSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "verdb for update with lock");
+        } catch (Exception e) {
+            if (e.getMessage().contains("deadlock") && e.getMessage().contains("update conflicts with concurrent update")) {
+                throw new XError("Database lock error: " + UtJdxErrors.message_failedDatabaseLock);
+            }
+        }
 
         //
         log.info("Database locked: " + db.getDbSource().getDatabase());

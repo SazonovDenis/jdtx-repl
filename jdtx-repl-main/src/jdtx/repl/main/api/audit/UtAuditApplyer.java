@@ -55,7 +55,7 @@ public class UtAuditApplyer {
             } catch (Exception e) {
                 if (e instanceof JdxForeignKeyViolationException) {
                     // todo крайне криво - транзакция же ждет!!!
-                    log.warn("==================================");
+                    log.warn("==========");
                     JdxForeignKeyViolationException eFk = (JdxForeignKeyViolationException) e;
                     log.warn("Обработка ошибки foreignKey: " + e.getMessage());
                     log.warn("table: " + eFk.tableName);
@@ -76,7 +76,7 @@ public class UtAuditApplyer {
                     } else {
                         log.warn("Обработка ошибки не выполнена, autoUseRepairReplica: " + autoUseRepairReplica);
                     }
-                    log.warn("--------------------------------");
+                    log.warn("----------");
                 }
                 throw (e);
             }

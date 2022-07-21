@@ -27,8 +27,16 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
         MDC.put("serviceName", "ws");
 
         //
-        logInfo("Рабочая станция");
-        ws.init();
+        logInfo("Рабочая станция, основной цикл");
+        try {
+            ws.init();
+        } catch (Exception e) {
+            if (UtJdxErrors.errorIs_failedDatabaseLock(e)) {
+                log.error("ws.init: " + e.getMessage());
+                return;
+            }
+            throw e;
+        }
         logInfo("Рабочая станция, wsId: " + ws.getWsId());
 
 
@@ -145,7 +153,8 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
 
 
         //
-        logInfo("Рабочая станция завершена");
+        logInfo("Рабочая станция, основной цикл завершен");
+        log.info("----------");
     }
 
 }

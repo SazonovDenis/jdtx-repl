@@ -17,6 +17,7 @@ public class UtJdxErrors {
     public static String message_replicaBadCrc = "replica.file.crc <> replica.info.crc";
     public static String message_replicaZipError = "ZipException: invalid stored block lengths";
     public static String message_replicaNotFoundContent = "not found content in replica";
+    public static String message_failedDatabaseLock = "database lock failed";
 
     public static boolean errorIs_replicaMailNotFound(Exception e) {
         return collectExceptionText(e).contains(message_replicaMailNotFound);
@@ -40,6 +41,10 @@ public class UtJdxErrors {
 
     public static boolean errorIs_replicaFileNotFoundContent(Exception e) {
         return collectExceptionText(e).contains(message_replicaNotFoundContent);
+    }
+
+    public static boolean errorIs_failedDatabaseLock(Exception e) {
+        return collectExceptionText(e).contains(message_failedDatabaseLock);
     }
 
     /**

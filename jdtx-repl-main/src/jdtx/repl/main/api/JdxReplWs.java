@@ -99,7 +99,7 @@ public class JdxReplWs {
      */
     public void init() throws Exception {
         if (MDC.get("serviceName") == null) {
-        MDC.put("serviceName", "ws");
+            MDC.put("serviceName", "ws");
         }
 
         // Строго обязательно REPEATABLE_READ, иначе сохранение в age возраста аудита
@@ -1943,7 +1943,7 @@ public class JdxReplWs {
             throw new XError("Detected restore from backup, repair needed: " + errInfo);
         }
 
-        log.warn("================================");
+        log.warn("==========");
         log.warn("Restore from backup: start repair");
 
 
@@ -2234,7 +2234,7 @@ public class JdxReplWs {
 
         //
         log.warn("Restore from backup: repair done");
-        log.warn("--------------------------------");
+        log.warn("----------");
     }
 
     private boolean isReplicaInBox(String box, long no) throws Exception {

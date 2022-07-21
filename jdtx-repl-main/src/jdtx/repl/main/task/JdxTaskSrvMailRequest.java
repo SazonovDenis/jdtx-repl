@@ -49,7 +49,8 @@ public class JdxTaskSrvMailRequest extends JdxTaskCustom {
 
 
         //
-        log.info("Рассылка по требованию завершена");
+        log.info("Сервер, рассылка по требованию завершена");
+        log.info("----------");
     }
 
 }

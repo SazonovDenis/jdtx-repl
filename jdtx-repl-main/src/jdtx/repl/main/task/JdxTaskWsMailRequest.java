@@ -26,8 +26,16 @@ public class JdxTaskWsMailRequest extends JdxTaskCustom {
         MDC.put("serviceName", "wsMR");
 
         //
-        logInfo("Рабочая станция, по требованию");
-        ws.init();
+        logInfo("Рабочая станция, рассылка по требованию");
+        try {
+            ws.init();
+        } catch (Exception e) {
+            if (UtJdxErrors.errorIs_failedDatabaseLock(e)) {
+                log.error("ws.init: " + e.getMessage());
+                return;
+            }
+            throw e;
+        }
         logInfo("Рабочая станция, wsId: " + ws.getWsId());
 
 
@@ -52,7 +60,8 @@ public class JdxTaskWsMailRequest extends JdxTaskCustom {
 
 
         //
-        log.info("Рассылка по требованию завершена");
+        log.info("Рабочая станция, рассылка по требованию завершена");
+        log.info("----------");
     }
 
 }

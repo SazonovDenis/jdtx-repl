@@ -70,7 +70,8 @@ public class JdxTaskSrvMail extends JdxTaskCustom {
 
 
         //
-        log.info("Рассылка по расписанию завершена");
+        log.info("Сервер, рассылка по расписанию завершена");
+        log.info("----------");
     }
 
 }
