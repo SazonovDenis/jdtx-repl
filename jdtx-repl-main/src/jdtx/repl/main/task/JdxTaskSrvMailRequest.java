@@ -22,13 +22,11 @@ public class JdxTaskSrvMailRequest extends JdxTaskCustom {
 
     //
     public void doTask() throws Exception {
+        MDC.put("serviceName", "srvMR");
+
         //
         log.info("Сервер, рассылка по требованию");
         srv.init();
-
-        //
-        MDC.put("serviceName", "srvMR");
-
 
         // Проверка версии приложения (без обновления)
         srv.checkAppUpdate();

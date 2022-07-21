@@ -3,6 +3,7 @@ package jdtx.repl.main.task;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.mailer.*;
 import org.apache.commons.logging.*;
+import org.apache.log4j.*;
 
 /**
  * Выполняет шаги "обработка реплик" для сервера.
@@ -21,6 +22,8 @@ public class JdxTaskSrvRepl extends JdxTaskCustom {
 
     //
     public void doTask() throws Exception {
+        MDC.put("serviceName", "srv");
+
         //
         log.info("Сервер, обработка реплик");
         srv.init();

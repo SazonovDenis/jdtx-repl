@@ -98,7 +98,9 @@ public class JdxReplWs {
      * Рабочая станция, запуск
      */
     public void init() throws Exception {
+        if (MDC.get("serviceName") == null) {
         MDC.put("serviceName", "ws");
+        }
 
         // Строго обязательно REPEATABLE_READ, иначе сохранение в age возраста аудита
         // будет не синхронно с изменениями в таблицах аудита.

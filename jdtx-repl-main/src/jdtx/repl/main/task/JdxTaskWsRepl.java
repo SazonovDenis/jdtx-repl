@@ -3,7 +3,9 @@ package jdtx.repl.main.task;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.repair.*;
+import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
+import org.apache.log4j.*;
 
 /**
  * Выполняет шаги "сеанс репликации" для рабочей станции.
@@ -22,6 +24,8 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
 
     //
     public void doTask() throws Exception {
+        MDC.put("serviceName", "ws");
+
         //
         logInfo("Рабочая станция");
         ws.init();

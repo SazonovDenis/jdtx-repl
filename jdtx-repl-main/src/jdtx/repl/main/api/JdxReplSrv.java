@@ -80,7 +80,9 @@ public class JdxReplSrv {
      * Сервер, запуск
      */
     public void init() throws Exception {
+        if (MDC.get("serviceName") == null) {
         MDC.put("serviceName", "srv");
+        }
 
         // Проверка версии служебных структур в БД
         UtDbObjectManager ut = new UtDbObjectManager(db);

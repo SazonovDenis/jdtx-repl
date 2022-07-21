@@ -2,6 +2,7 @@ package jdtx.repl.main.task;
 
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.mailer.*;
+import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 import org.apache.log4j.*;
 
@@ -22,13 +23,12 @@ public class JdxTaskWsMailRequest extends JdxTaskCustom {
 
     //
     public void doTask() throws Exception {
+        MDC.put("serviceName", "wsMR");
+
         //
         logInfo("Рабочая станция, по требованию");
         ws.init();
         logInfo("Рабочая станция, wsId: " + ws.getWsId());
-
-        //
-        MDC.put("serviceName", "wsMR");
 
 
         // Проверка версии приложения (без обновления)
