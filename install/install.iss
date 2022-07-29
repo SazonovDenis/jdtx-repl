@@ -160,65 +160,8 @@ const
   SetupMutexName = 'Jadatex.Sync';
 
 
-function CheckSetupDir(): boolean;
-var
-  s, s_head, s_tail, setupFileName, setupFileNameBat, setupDirValid, setupParamStr: string;
-  i: integer;
-  resultCode: integer;
-begin
-  Result := False;
-
-  //
-  for i:=1 to ParamCount() do
-  begin
-    s:=ParamStr(i);
-    s_head:=Copy(s, 1, 5);
-    s_tail:=Copy(s, Length(s)-3, 4);
-
-    //MsgBox('s_head: ' + s_head, mbError, MB_OK);
-    //MsgBox('s_tail: ' + s_tail, mbError, MB_OK);
-
-    if (s_head='/DIR=') and (s_tail='\web') then
-    begin
-      // Вытащим обновлялку из дистрибутива
-      ExtractTemporaryFile('543.bat');
-      setupFileNameBat:=ExpandConstant('{tmp}\543.bat');
-      //
-      setupDirValid:=Copy(s, 6, Length(s)-3-5); //setupDirValid:='C:\Users\Public\Documents\Jadatex.Sync';
-      //
-      setupFileName:=ExpandConstant('{srcexe}');
-      //
-      setupParamStr:=setupFileName+' /SILENT /repl-service-install /DIR="' + setupDirValid + '"';
-      //
-      if ShellExec('', setupFileNameBat, setupParamStr, '', SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode) then
-      begin
-        //MsgBox('Exec Ok, setupFileName: ' + setupFileNameBat + ', params: ' + setupParamStr + ', resultCode: ' + intToStr(resultCode), mbError, MB_OK);
-      end
-      else
-      begin
-        //MsgBox('Exec error, setupFileName: ' + setupFileNameBat + ', params: ' + setupParamStr + ', resultCode: ' + intToStr(resultCode), mbError, MB_OK);
-      end;
-
-      //
-      exit;
-    end;
-  end;
-
-  //
-  Result := True;
-end;
-
-
 function InitializeSetup(): Boolean;
 begin
-  // Криво написанное авто обновление 543
-  if (not CheckSetupDir()) then
-  begin
-    Result := False;
-    exit;
-  end;
-
-  
   Result := True;
   if CheckForMutexes(SetupMutexName) then
   begin
@@ -247,15 +190,6 @@ begin
     Exec(ExpandConstant('jc.bat'), 'repl-service-stop' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-stop.log', ExpandConstant('{app}'), SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode);
     Exec(ExpandConstant('jc.bat'), 'repl-service-stop' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-stop.log', ExpandConstant('{app}'), SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode);
     //Exec(ExpandConstant('jc.bat'), 'repl-service-remove' + ' >> ' + ExpandConstant('{app}') + '\jdtx.repl-service-remove.log', ExpandConstant('{app}'), SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode);
-  end;
-
-
-  // Перименуем папки старых рабочих каталогов
-  if (CurStep=ssDone) then
-  begin
-    //MsgBox('run: ' + ExpandConstant('rename.dirs.bat'), mbError, MB_OK);
-    Exec(ExpandConstant('rename.dirs.bat'), ' >> ' + ExpandConstant('{app}') + '\jdtx.rename.dirs.bat.log', ExpandConstant('{app}'), SW_SHOWMINIMIZED, ewWaitUntilTerminated, resultCode);
-    //MsgBox('run: ' + ExpandConstant('rename.dirs.bat') + ', params: ' + ExpandConstant('{app}'), mbError, MB_OK);
   end;
 
 
