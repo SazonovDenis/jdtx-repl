@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <!-- Настройки базы данных -->
+
+    <db name="default"
+        dbdriver="jdbc" 
+        jdbcDriverClass="org.firebirdsql.jdbc.FBDriver"
+        url="jdbc:firebirdsql:${host}/3050:${database}?charSet=Cp1251"
+        
+        host="localhost"
+        database="C:\Users\Public\Documents\Jadatex.PawnShop\db.gdb"
+        username="SYSDBA"
+        password="masterkey"
+    />
+
+
+</root>

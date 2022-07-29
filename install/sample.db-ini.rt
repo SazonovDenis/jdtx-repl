@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <!-- настройки базы данных -->
+
+    <db name="default"
+        dbdriver="" 
+        
+        host="localhost"
+        database=""
+        username=""
+        password=""
+    />
+                
+    <!-- перкрытие настроек -->
+    <x-include path="_db-ini.rt" required="false"/>
+
+    <!-- перкрытие настроек -->
+    <x-include path="../../db-connection.xml" required="false"/>
+
+</root>

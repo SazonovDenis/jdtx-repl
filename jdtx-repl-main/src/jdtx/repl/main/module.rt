@@ -7,6 +7,9 @@
         <depend name="jandcode.wax.core"/>
         <depend name="jandcode.wax.verdb"/>
 
+        <depend name="jandcode.dbm.db.oracle"/>
+        <depend name="kis.toolbox.postgresqldriver"/>
+
         <!-- Запуск по расписанию -->
         <depend name="jandcode.bgtasks"/>
     </x-module>

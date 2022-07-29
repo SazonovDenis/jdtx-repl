@@ -100,13 +100,15 @@ Source: install\cfg\publication_lic_194_srv.json;       DestDir: {app}\web\WEB-I
 Source: install\cfg\publication_lic_194_ws.json;        DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
 Source: install\cfg\publication_lic_194_snapshot.json;  DestDir: {app}\web\WEB-INF\cfg; Flags: ignoreversion; Components: ServerComponent
 
+
+Source: install\sample.log.properties;                  DestDir: {app}\web\WEB-INF;     Flags: ignoreversion; DestName: log.properties
+Source: install\sample.db-ini.rt;                       DestDir: {app}\web\WEB-INF;     Flags: ignoreversion; DestName: db-ini.rt
 Source: install\sample.srv._app.rt;                     DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _app.rt; Components: ServerComponent
 Source: install\sample.ws._app.rt;                      DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _app.rt; Components: ClientComponent
-Source: install\sample._db-ini.rt;                      DestDir: {app}\web\WEB-INF;     Flags: onlyifdoesntexist; DestName: _db-ini.rt
-Source: install\sample.log.properties;                  DestDir: {app}\web\WEB-INF;     Flags: ignoreversion; DestName: log.properties
+Source: install\sample.db-connection.xml;               DestDir: {app};                 Flags: onlyifdoesntexist; DestName: db-connection.xml
 
-Source: install\543.bat;                                DestDir: {app}\web\WEB-INF;     Flags: ignoreversion deleteafterinstall;
-Source: install\rename.dirs.bat;                        DestDir: {app};                 Flags: ignoreversion deleteafterinstall;
+;Source: install\543.bat;                                DestDir: {app}\web\WEB-INF;     Flags: ignoreversion deleteafterinstall;
+;Source: install\rename.dirs.bat;                        DestDir: {app};                 Flags: ignoreversion deleteafterinstall;
 
 
 
