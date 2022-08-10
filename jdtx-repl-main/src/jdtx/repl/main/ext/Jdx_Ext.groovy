@@ -725,6 +725,16 @@ class Jdx_Ext extends ProjectExt {
         return result
     }
 
+    void repl_mail_check(IVariantMap args) {
+        String guid = args.getValueString("guid")
+        String mailUrl = args.getValueString("mail")
+        //
+        if (mailUrl == null || mailUrl.length() == 0) {
+            throw new XError("Не указан [mail] - почтовый сервер")
+        }
+
+        UtMail.checkMailServer(mailUrl, guid)
+    }
     // todo почему нет команды, чтобы это сделать прямо на рабочей станции (с отчетом на сервер)?
     // todo проверить, чтобы все команды по настройке станции (send***) имели аналог на самой станции (с отчетом на сервер)
     void repl_ws_mute(IVariantMap args) {

@@ -1,11 +1,15 @@
 package jdtx.repl.main.api.util;
 
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
+import jdtx.repl.main.api.struct.*;
 import org.apache.commons.logging.*;
+import org.joda.time.*;
+import org.json.simple.*;
 
 import java.util.*;
 
@@ -421,4 +425,93 @@ public class UtMail {
         }
     }
 
+    public static void checkMailServer(String mailUrl, String guid) throws Exception {
+        // Короткая проверка
+        if (guid == null || guid.length() == 0) {
+            // Конфиг для мейлера
+            JSONObject cfgMailer = new JSONObject();
+            cfgMailer.put("url", mailUrl);
+            cfgMailer.put("guid", "-");
+            cfgMailer.put("localDirTmp", "temp/mailer");
+
+            // Мейлер
+            MailerHttp mailer = new MailerHttp();
+            mailer.init(cfgMailer);
+
+            //
+            System.out.println("------------------------------");
+            System.out.println("Check mail server...");
+            try {
+                JSONObject res = mailer.ping();
+                System.out.println("OK");
+                System.out.println(res.get("dt"));
+            } catch (Exception e) {
+                System.out.println("ERROR: " + UtJdxErrors.collectExceptionText(e));
+            }
+
+            //
+            return;
+        }
+
+        // Подробная проверка
+        Random rnd = new Random();
+        rnd.setSeed(new DateTime().getMillis());
+        long wsIdRandom = 100 + rnd.nextInt(1000);
+
+        // Конфиг для мейлера
+        JSONObject cfgMailer = new JSONObject();
+        String guidWs = guid + "/test_ws_" + wsIdRandom;
+        cfgMailer.put("url", mailUrl);
+        cfgMailer.put("guid", guidWs);
+        cfgMailer.put("localDirTmp", "temp/mailer");
+
+        // Мейлер
+        MailerHttp mailer = new MailerHttp();
+        mailer.init(cfgMailer);
+
+        //
+        System.out.println("------------------------------");
+        System.out.println("Check mail server");
+        JSONObject res = mailer.ping();
+        System.out.println("OK");
+        System.out.println(res.get("dt"));
+
+        //
+        String box = "test";
+        mailer.createMailBox(box);
+        System.out.println("createMailBox '" + box + "' - ok");
+
+        //
+        UtRepl utRepl = new UtRepl(null, new JdxDbStruct());
+        IReplica replicaSend = utRepl.createReplicaMute(wsIdRandom);
+        System.out.println("replicaSend.getInfo: " + replicaSend.getInfo().toJSONObject_withFileInfo());
+
+        //
+        mailer.send(replicaSend, box, 1);
+        System.out.println("send - ok");
+
+        //
+        IReplica replicaReceive = mailer.receive(box, 1);
+        System.out.println("receive - ok");
+
+        //
+        System.out.println("replicaReceive.getInfo: " + replicaReceive.getInfo().toJSONObject_withFileInfo());
+
+        // Успешное обращение к getData ящика доказывает его нормальную работу
+        System.out.println("files: " + mailer.getData("files", box));
+        System.out.println("ping.read: " + mailer.getData("ping.read", box));
+        System.out.println("ping.write: " + mailer.getData("ping.write", box));
+        System.out.println("last.dat.info: " + mailer.getData("last.dat.info", box));
+        System.out.println("last.read: " + mailer.getData("last.read", box));
+        System.out.println("last.write: " + mailer.getData("last.write", box));
+        System.out.println("required.info: " + mailer.getData("required.info", box));
+
+
+        //
+        mailer.delete(box, 1);
+        System.out.println("delete - ok");
+
+        //
+        System.out.println("files: " + mailer.getData("files", box));
+    }
 }

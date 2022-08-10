@@ -13,6 +13,7 @@ class Jdx_Ext_Test extends JcTestCase {
     Jdx_Ext extWs3
 
     String cfg_json_ws = "test/etalon/ws.json"
+    String mailUrl = "http://localhost/lombard.systems/repl";
 
 
     @Override
@@ -49,15 +50,41 @@ class Jdx_Ext_Test extends JcTestCase {
         extSrv.repl_check(args)
     }
 
-
     @Test
-    void xxx() {
+    void repl_create() {
         IVariantMap args = new VariantMap()
         args.put("ws", 1)
-        args.put("guid", "b5781df573ca6ee6.x-17845f2f56f4d401")
-        args.put("file", cfg_json_ws)
-
+        args.put("guid", "b5781df573ca6ee6.x")
+        args.put("mail", mailUrl);
         extSrv.repl_create(args)
+    }
+
+    @Test
+    void repl_mail_check() {
+        IVariantMap args = new VariantMap()
+        args.put("mail", mailUrl)
+        args.put("guid", "b5781df573ca6ee6.x")
+        extSrv.repl_mail_check(args)
+    }
+
+    @Test
+    void repl_mail_check_short() {
+        IVariantMap args = new VariantMap()
+
+        args.put("mail", mailUrl)
+        extSrv.repl_mail_check(args)
+
+        args.put("mail", mailUrl+"-no-url-404")
+        extSrv.repl_mail_check(args)
+
+        args.put("mail", "http://jadatex.ru/repl")
+        extSrv.repl_mail_check(args)
+
+        args.put("mail", "http://jadatex.ru/no-url-404")
+        extSrv.repl_mail_check(args)
+
+        args.put("mail", "http://no-server-123456.com")
+        extSrv.repl_mail_check(args)
     }
 
     @Test

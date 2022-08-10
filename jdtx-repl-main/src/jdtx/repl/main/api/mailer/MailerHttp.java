@@ -676,6 +676,22 @@ public class MailerHttp implements IMailer {
         parseHttpResponse(response);
     }
 
+    public JSONObject ping() throws Exception {
+        HttpClient httpclient = HttpClientBuilder.create().build();
+
+        //
+        Map params = new HashMap<>();
+        HttpGet httpGet = createHttpGet("ping", params);
+
+        //
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        handleHttpErrors(response);
+
+        //
+        return parseHttpResponse(response);
+    }
 
     private String seed() {
         return String.valueOf(Math.abs(rnd.nextLong()));
