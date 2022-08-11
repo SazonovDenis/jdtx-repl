@@ -443,8 +443,12 @@ public class UtMail {
             System.out.println("Check mail server...");
             try {
                 JSONObject res = mailer.ping();
-                System.out.println("OK");
-                System.out.println(res.get("dt"));
+                if (!String.valueOf(res.get("result")).equalsIgnoreCase("ok")) {
+                    System.out.println("ERROR: " + res.get("error"));
+                } else {
+                    System.out.println("OK");
+                    //System.out.println(res.get("dt"));
+                }
             } catch (Exception e) {
                 System.out.println("ERROR: " + UtJdxErrors.collectExceptionText(e));
             }
