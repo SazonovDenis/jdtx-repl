@@ -11,6 +11,8 @@ public class UtJdxErrors {
     }
 
     public static String message_replicaMailNotFound = "Replica not found, guid";
+    public static String message_boxAlreadyExists = "Box already exists";
+    public static String message_guidAlreadyExists = "Guid already exists";
     public static String message_replicaRecordNotFound = "replica record not found";
     public static String message_fileNotFound = "java.io.FileNotFoundException";
     public static String message_replicaDataFileNotExists = "replica.file not exists";
@@ -21,6 +23,14 @@ public class UtJdxErrors {
 
     public static boolean errorIs_replicaMailNotFound(Exception e) {
         return collectExceptionText(e).contains(message_replicaMailNotFound);
+    }
+
+    public static boolean errorIs_BoxAlreadyExists(Exception e) {
+        return collectExceptionText(e).contains(message_boxAlreadyExists);
+    }
+
+    public static boolean errorIs_GuidAlreadyExists(Exception e) {
+        return collectExceptionText(e).contains(message_guidAlreadyExists);
     }
 
     private static boolean errorIs_replicaFileNotFound(Exception e) {

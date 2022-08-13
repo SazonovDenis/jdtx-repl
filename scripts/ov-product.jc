@@ -147,16 +147,10 @@ repl_sync_srv = cm("Сеанс синхронизации для сервера 
 */
 
 //
-repl_mail_check = cm("Инициализация или проверка почты",
-        "ws": [value: 0, help: "Код рабочей станции"],
-        "create": [value: false, help: "Создать ящики для рабочей станции"],
+repl_mail_create = cm("Создать ящики для рабочих станций",
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    try {
-        ext.repl_mail_check(args)
-    } catch (Exception e) {
-        e.printStackTrace()
-    }
+    ext.repl_mail_create(args)
 }
 
 //

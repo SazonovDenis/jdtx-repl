@@ -675,11 +675,10 @@ class Jdx_Ext extends ProjectExt {
 */
 
 
-    boolean repl_mail_check(IVariantMap args) {
-        boolean doCreate = args.getValueBoolean("create")
-
-        //
+    boolean repl_mail_create(IVariantMap args) {
         boolean result = true
+
+        String pass = args.getValueString("pass")
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -691,6 +690,20 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
+            try {
+                MailerHttp srvMailer = (MailerHttp) srv.selfMailer
+                srvMailer.createGuid(srv.srvGuid, pass)
+                System.out.println("Guid: " + srv.srvGuid + " - created ok")
+            } catch (Exception e) {
+                if (!UtJdxErrors.errorIs_GuidAlreadyExists(e)) {
+                    System.out.println("Guid: " + srv.srvGuid + ", error: " + e.message)
+                    result = false
+                } else {
+                    System.out.println("Guid: " + srv.srvGuid + " - already exists")
+                }
+            }
+
+            //
             String[] boxes = ["from", "to001", "to"]
             for (Map.Entry<Long, IMailer> en : srv.mailerList.entrySet()) {
                 long wsId = en.getKey()
@@ -698,16 +711,14 @@ class Jdx_Ext extends ProjectExt {
 
                 for (String box : boxes) {
                     try {
-                        if (doCreate) {
                             wsMailer.createMailBox(box)
-                        } else {
-                            wsMailer.checkMailBox(box)
-                        }
-                        System.out.println("wsId: " + wsId + ", box: " + box + " - ok")
+                        System.out.println("wsId: " + wsId + ", box: " + box + " - created ok")
                     } catch (Exception e) {
-                        if (!e.message.contains("Box already exists")) {
+                        if (!UtJdxErrors.errorIs_BoxAlreadyExists(e)) {
                             System.out.println("wsId: " + wsId + ", box: " + box + ", error: " + e.message)
                             result = false
+                        } else {
+                            System.out.println("wsId: " + wsId + ", box: " + box + " - already exists")
                         }
                     }
 

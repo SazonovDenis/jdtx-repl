@@ -1,9 +1,11 @@
 package jdtx.repl.main.ext
 
-
 import jandcode.jc.*
 import jandcode.jc.test.*
 import jandcode.utils.variant.*
+import jdtx.repl.main.api.mailer.*
+import org.joda.time.*
+import org.json.simple.*
 import org.junit.*
 
 class Jdx_Ext_Test extends JcTestCase {
@@ -14,6 +16,8 @@ class Jdx_Ext_Test extends JcTestCase {
 
     String cfg_json_ws = "test/etalon/ws.json"
     String mailUrl = "http://localhost/lombard.systems/repl";
+    String mailGuid = "b5781df573ca6ee6.x";
+    String mailPass = "111";
 
 
     @Override
@@ -41,30 +45,27 @@ class Jdx_Ext_Test extends JcTestCase {
 
     @Test
     void repl_check() {
-        // ov repl-check -tables -fields -publications -file:Z:\jdtx-repl\jdtx-repl-main\test\etalon\alg\pub.json > 1.txt
         IVariantMap args = new VariantMap()
-        //args.put("tables", true)
-        //args.put("fields", true)
         args.put("publications", true)
         args.put("file", "test/etalon/alg/pub.json")
         extSrv.repl_check(args)
     }
 
     @Test
-    void repl_create() {
-        IVariantMap args = new VariantMap()
-        args.put("ws", 1)
-        args.put("guid", "b5781df573ca6ee6.x")
-        args.put("mail", mailUrl);
-        extSrv.repl_create(args)
-    }
-
-    @Test
     void repl_mail_check() {
         IVariantMap args = new VariantMap()
         args.put("mail", mailUrl)
-        args.put("guid", "b5781df573ca6ee6.x")
+        args.put("guid", mailGuid)
         extSrv.repl_mail_check(args)
+    }
+
+    @Test
+    void repl_mail_create() {
+        IVariantMap args = new VariantMap()
+        args.put("mail", mailUrl)
+        args.put("guid", mailGuid)
+        args.put("pass", mailPass)
+        extSrv.repl_mail_create(args)
     }
 
     @Test
@@ -74,7 +75,7 @@ class Jdx_Ext_Test extends JcTestCase {
         args.put("mail", mailUrl)
         extSrv.repl_mail_check(args)
 
-        args.put("mail", mailUrl+"-no-url-404")
+        args.put("mail", mailUrl + "-no-url-404")
         extSrv.repl_mail_check(args)
 
         args.put("mail", "http://jadatex.ru/repl")
@@ -85,6 +86,61 @@ class Jdx_Ext_Test extends JcTestCase {
 
         args.put("mail", "http://no-server-123456.com")
         extSrv.repl_mail_check(args)
+    }
+
+    @Test
+    void repl_mail_check_create_guid() {
+        //String mailUrl = "http://localhost/lombard.systems/repl1";
+
+        Random rnd = new Random();
+        rnd.setSeed(new DateTime().getMillis());
+        long wsIdRandom = 100 + rnd.nextInt(1000);
+        long guidRandom = 100 + rnd.nextInt(1000);
+
+        // Конфиг для мейлера
+        JSONObject cfgMailer = new JSONObject()
+        String guid = "test_guid_" + guidRandom
+        cfgMailer.put("guid", guid);
+        cfgMailer.put("url", mailUrl);
+        cfgMailer.put("localDirTmp", "temp/mailer");
+
+        // Мейлер
+        MailerHttp mailer = new MailerHttp();
+        mailer.init(cfgMailer);
+
+        //
+        String pass = null
+        mailer.createGuid(guid, pass)
+
+        //
+        String guidWs = guid + "/test_ws_" + wsIdRandom;
+        cfgMailer.put("guid", guidWs);
+        mailer.init(cfgMailer);
+
+        //
+        String box = "test_box";
+        mailer.createMailBox(box);
+    }
+
+    @Test
+    void repl_mail_login() {
+        String mailUrl = "http://localhost/lombard.systems/repl";
+
+        // Конфиг для мейлера
+        JSONObject cfgMailer = new JSONObject()
+        cfgMailer.put("guid", "-");
+        cfgMailer.put("url", mailUrl);
+        cfgMailer.put("localDirTmp", "temp/mailer");
+
+        // Мейлер
+        MailerHttp mailer = new MailerHttp();
+        mailer.init(cfgMailer);
+
+        //
+        String token = mailer.login("111")
+
+        //
+        println("token: " + token)
     }
 
     @Test

@@ -76,6 +76,10 @@ public class JdxReplSrv {
         return dataRoot;
         }
 
+    public String getSrvGuid() {
+        return guid;
+    }
+
     /**
      * Сервер, запуск
      */

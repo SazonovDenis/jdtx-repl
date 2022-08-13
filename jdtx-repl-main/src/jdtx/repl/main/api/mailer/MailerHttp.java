@@ -11,17 +11,21 @@ import org.apache.commons.logging.*;
 import org.apache.http.*;
 import org.apache.http.client.*;
 import org.apache.http.client.methods.*;
+import org.apache.http.client.protocol.*;
 import org.apache.http.entity.*;
 import org.apache.http.entity.mime.*;
 import org.apache.http.entity.mime.content.*;
 import org.apache.http.impl.client.*;
+import org.apache.http.impl.cookie.*;
 import org.apache.http.message.*;
+import org.apache.http.protocol.*;
 import org.apache.http.util.*;
 import org.joda.time.*;
 import org.json.simple.*;
 import org.json.simple.parser.*;
 
 import java.io.*;
+import java.net.*;
 import java.util.*;
 
 /**
@@ -60,11 +64,15 @@ public class MailerHttp implements IMailer {
             throw new XError("Invalid localDirTmp");
         }
         //
+        if (!remoteUrl.endsWith("/")) {
+            remoteUrl = remoteUrl + "/";
+        }
         remoteUrl = remoteUrl + "api." + REPL_PROTOCOL_VERSION + "/";
         //
         localDirTmp = UtFile.unnormPath(localDirTmp) + "/";
         //
         UtFile.mkdirs(localDirTmp);
+        UtFile.cleanDir(localDirTmp);
         //
         rnd = new Random();
         rnd.setSeed(new DateTime().getMillis());
@@ -584,8 +592,8 @@ public class MailerHttp implements IMailer {
                 reader.close();
             }
         } catch (Exception e) {
-            log.error("parseJson.error: " + e.getMessage());
-            log.error("parseJson.jsonStr: " + jsonStr);
+            log.error("parseJson.error: " + UtJdxErrors.collectExceptionText(e));
+            //log.error("parseJson.jsonStr: " + jsonStr);
             throw e;
         }
 
@@ -593,20 +601,87 @@ public class MailerHttp implements IMailer {
         return jsonObject;
     }
 
-    public void createMailBox(String box) throws Exception {
-        log.info("createMailBox, url: " + remoteUrl);
-        log.info("createMailBox, guid: " + guid + ", box: " + box);
+    private String getUrlDomain(String url) throws URISyntaxException {
+        URI uri = new URI(url);
+        String domain = uri.getHost();
+        return domain;
+    }
+
+    public void createGuid(String guid, String pass) throws Exception {
+        log.info("createGuid, url: " + remoteUrl + ", guid: " + guid);
+
+        // Если указан пароль - то залогинимся
+        HttpContext context = null;
+        if (pass != null) {
+            String token = login(pass);
+            context = createCookieContext(UtCnv.toMap("token", token));
+        }
 
         //
         HttpClient httpclient = HttpClientBuilder.create().build();
 
         //
-        Map info = new HashMap<>();
-        info.put("box", box);
-        HttpGet httpGet = createHttpGet("repl_create_box", info);
+        HttpPost httpPost = createHttpPost("repl_create_guid");
 
         //
-        HttpResponse response = httpclient.execute(httpGet);
+        StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
+        //
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+        builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        builder.addPart("guid", stringBody_guid);
+        HttpEntity entity = builder.build();
+        //
+        httpPost.setEntity(entity);
+
+        //
+        HttpResponse response = httpclient.execute(httpPost, context);
+
+        //
+        handleHttpErrors(response);
+
+        //
+        parseHttpResponse(response);
+    }
+
+    private HttpContext createCookieContext(Map<String, Object> values) throws URISyntaxException {
+        BasicCookieStore cookieStore = new BasicCookieStore();
+
+        for (String key : values.keySet()) {
+            BasicClientCookie cookie = new BasicClientCookie(key, String.valueOf(values.get(key)));
+            cookie.setDomain(getUrlDomain(remoteUrl));
+            cookieStore.addCookie(cookie);
+        }
+
+        HttpContext context = new BasicHttpContext();
+        context.setAttribute(HttpClientContext.COOKIE_STORE, cookieStore);
+
+        return context;
+    }
+
+
+    public void createMailBox(String box) throws Exception {
+        log.info("createMailBox, url: " + remoteUrl + ", guid: " + guid + ", box: " + box);
+
+        //
+        HttpClient httpclient = HttpClientBuilder.create().build();
+
+        //
+        HttpPost httpPost = createHttpPost("repl_create_box");
+
+        //
+        StringBody stringBody_guid = new StringBody(guid, ContentType.MULTIPART_FORM_DATA);
+        StringBody stringBody_box = new StringBody(box, ContentType.MULTIPART_FORM_DATA);
+        //
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+        builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        builder.addPart("guid", stringBody_guid);
+        builder.addPart("box", stringBody_box);
+        HttpEntity entity = builder.build();
+        //
+        httpPost.setEntity(entity);
+
+        //
+        HttpResponse response = httpclient.execute(httpPost);
 
         //
         handleHttpErrors(response);
@@ -628,6 +703,25 @@ public class MailerHttp implements IMailer {
         getData("last.read", box);
         getData("last.write", box);
         getData("required.info", box);
+    }
+
+    public String login(String password) throws Exception {
+        HttpClient httpclient = HttpClientBuilder.create().build();
+
+        //
+        Map params = new HashMap<>();
+        params.put("pass", password);
+        HttpGet httpGet = createHttpGet("login", params);
+
+        //
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        handleHttpErrors(response);
+
+        //
+        JSONObject res = parseHttpResponse(response);
+        return String.valueOf(res.get("token"));
     }
 
 

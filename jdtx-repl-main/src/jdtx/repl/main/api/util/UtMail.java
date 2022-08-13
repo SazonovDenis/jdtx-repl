@@ -439,19 +439,7 @@ public class UtMail {
             mailer.init(cfgMailer);
 
             //
-            System.out.println("------------------------------");
-            System.out.println("Check mail server...");
-            try {
-                JSONObject res = mailer.ping();
-                if (!String.valueOf(res.get("result")).equalsIgnoreCase("ok")) {
-                    System.out.println("ERROR: " + res.get("error"));
-                } else {
-                    System.out.println("OK");
-                    //System.out.println(res.get("dt"));
-                }
-            } catch (Exception e) {
-                System.out.println("ERROR: " + UtJdxErrors.collectExceptionText(e));
-            }
+            checkMailServer_ping(mailer);
 
             //
             return;
@@ -474,11 +462,7 @@ public class UtMail {
         mailer.init(cfgMailer);
 
         //
-        System.out.println("------------------------------");
-        System.out.println("Check mail server");
-        JSONObject res = mailer.ping();
-        System.out.println("OK");
-        System.out.println(res.get("dt"));
+        checkMailServer_ping(mailer);
 
         //
         String box = "test";
@@ -517,5 +501,20 @@ public class UtMail {
 
         //
         System.out.println("files: " + mailer.getData("files", box));
+    }
+
+    static void checkMailServer_ping(MailerHttp mailer) throws Exception {
+        System.out.println("------------------------------");
+        System.out.println("Check mail server...");
+        try {
+            JSONObject res = mailer.ping();
+            if (!String.valueOf(res.get("result")).equalsIgnoreCase("ok")) {
+                System.out.println("ERROR: " + res.get("error"));
+            } else {
+                System.out.println("OK");
+            }
+        } catch (Exception e) {
+            System.out.println("ERROR: " + UtJdxErrors.collectExceptionText(e));
+        }
     }
 }
