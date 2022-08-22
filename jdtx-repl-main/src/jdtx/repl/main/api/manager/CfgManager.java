@@ -94,7 +94,7 @@ public class CfgManager {
 
     public void setWsStruct(IJdxDbStruct struct, long wsId) throws Exception {
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-        String structStr = struct_rw.toString(struct, false);
+        String structStr = struct_rw.toString(struct);
         db.execSql("update " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST set db_struct = :db_struct where id = :id", UtCnv.toMap("db_struct", structStr, "id", wsId));
     }
 

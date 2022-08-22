@@ -13,13 +13,26 @@ public class JdxDbStruct_XmlRW {
     boolean doSortFieldsByName = true;
     boolean doSortTablesByName = true;
 
-    public String toString(IJdxDbStruct struct, boolean doforeignKeys) {
+    public String toString(IJdxDbStruct struct) {
         EasyXml xml = new EasyXml();
 
         //
         List<IJdxTable> tables = getStructTables(struct);
         for (IJdxTable t : tables) {
-            writeTableStruct(t, xml, doforeignKeys);
+            writeTableStruct(t, xml, false, false);
+        }
+
+        //
+        return xml.save().toString();
+    }
+
+    public String toString(IJdxDbStruct struct, boolean doforeignKeys, boolean doPrimaryKeys) {
+        EasyXml xml = new EasyXml();
+
+        //
+        List<IJdxTable> tables = getStructTables(struct);
+        for (IJdxTable t : tables) {
+            writeTableStruct(t, xml, doforeignKeys, doPrimaryKeys);
         }
 
         //
@@ -32,7 +45,7 @@ public class JdxDbStruct_XmlRW {
         //
         List<IJdxTable> tables = getStructTables(struct);
         for (IJdxTable t : tables) {
-            writeTableStruct(t, xml, true);
+            writeTableStruct(t, xml, true, true);
         }
 
         //
@@ -45,7 +58,7 @@ public class JdxDbStruct_XmlRW {
         //
         List<IJdxTable> tables = getStructTables(struct);
         for (IJdxTable t : tables) {
-            writeTableStruct(t, xml, true);
+            writeTableStruct(t, xml, true, true);
         }
 
         //
@@ -65,7 +78,7 @@ public class JdxDbStruct_XmlRW {
         return tables;
     }
 
-    private void writeTableStruct(IJdxTable table, EasyXml xml, boolean doforeignKeys) {
+    private void writeTableStruct(IJdxTable table, EasyXml xml, boolean doForeignKeys, boolean doPrimaryKeys) {
         EasyXml item_table = new EasyXml();
         xml.addChild(item_table);
 
@@ -75,17 +88,23 @@ public class JdxDbStruct_XmlRW {
 
         //
         List<IJdxField> fields;
+        List<IJdxField> primaryKey;
         List<IJdxForeignKey> foreignKeys;
         if (doSortFieldsByName) {
             fields = new ArrayList<>();
             fields.addAll(table.getFields());
             Collections.sort(fields, new JdxFieldComparator());
             //
+            primaryKey = new ArrayList<>();
+            primaryKey.addAll(table.getPrimaryKey());
+            Collections.sort(primaryKey, new JdxFieldComparator());
+            //
             foreignKeys = new ArrayList<>();
             foreignKeys.addAll(table.getForeignKeys());
             Collections.sort(foreignKeys, new JdxForeignKeyComparator());
         } else {
             fields = table.getFields();
+            primaryKey = table.getPrimaryKey();
             foreignKeys = table.getForeignKeys();
         }
 
@@ -95,11 +114,34 @@ public class JdxDbStruct_XmlRW {
         }
 
         //
-        if (doforeignKeys) {
+        if (doPrimaryKeys) {
+                writePkStruct(primaryKey, item_table);
+        }
+
+        //
+        if (doForeignKeys) {
             for (IJdxForeignKey fk : foreignKeys) {
                 writeFkStruct(fk, item_table);
             }
         }
+    }
+
+    private void writePkStruct(List<IJdxField> primaryKey, EasyXml item_table) {
+        EasyXml item_pk = new EasyXml();
+        //
+        item_pk.setName("pk");
+
+        for (IJdxField field : primaryKey) {
+            EasyXml item_field = new EasyXml();
+            //
+            item_field.setName("field");
+            item_field.setValue("@name", field.getName());
+            //
+            item_pk.addChild(item_field);
+        }
+
+        //
+        item_table.addChild(item_pk);
     }
 
     private void writeFkStruct(IJdxForeignKey fk, EasyXml item_table) {
@@ -112,7 +154,7 @@ public class JdxDbStruct_XmlRW {
         item_table.addChild(item_fk);
     }
 
-    private void writeFieldStruct(IJdxField field, EasyXml xml) {
+    private void writeFieldStruct(IJdxField field, EasyXml item_table) {
         EasyXml item_field = new EasyXml();
         //
         item_field.setName("field");
@@ -120,7 +162,7 @@ public class JdxDbStruct_XmlRW {
         item_field.setValue("@size", field.getSize());
         item_field.setValue("@dbdatatype", field.getDbDatatype());
         //
-        xml.addChild(item_field);
+        item_table.addChild(item_field);
     }
 
     public IJdxDbStruct read(String fileName) throws Exception {

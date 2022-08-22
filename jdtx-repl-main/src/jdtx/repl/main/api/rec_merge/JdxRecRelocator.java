@@ -104,7 +104,6 @@ public class JdxRecRelocator {
      * Проверяет объем изменений, необходимых для перемещения записи idSour в таблице tableName
      */
     public void relocateIdCheck(String tableName, long idSour, File outFile) throws Exception {
-        //
         UtRecMerger utRecMerger = new UtRecMerger(db, struct);
         ArrayList<Long> recordsDelete = new ArrayList<>();
         recordsDelete.add(idSour);
@@ -123,7 +122,6 @@ public class JdxRecRelocator {
     }
 
     public void relocateIdAll(String tableName, long maxPkValue, String resultDirName) throws Exception {
-        //
         System.out.println("References for table: " + tableName);
 
         // Селектим записи, подлежащие переносу (больше maxPkValue)

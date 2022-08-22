@@ -161,7 +161,7 @@ public class UtDbComparer {
      */
     public static String getDbStructCrc(IJdxDbStruct struct) {
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-        return UtString.md5Str(struct_rw.toString(struct, false));
+        return UtString.md5Str(struct_rw.toString(struct));
     }
 
     /**
@@ -172,7 +172,7 @@ public class UtDbComparer {
      */
     public static String getDbStructCrcTables(IJdxDbStruct struct) {
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-        return UtString.md5Str(struct_rw.toString(struct, false));
+        return UtString.md5Str(struct_rw.toString(struct));
     }
 
     private static boolean compareField(IJdxField f1, IJdxField f2) {

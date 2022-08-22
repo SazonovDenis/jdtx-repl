@@ -4,7 +4,7 @@ import jandcode.dbm.db.*;
 
 public interface IJdxDbStructReader {
 
-    void setDb(Db db);
+    void setDb(Db db) throws Exception;
 
     /**
      * Читаем из БД ее структуру

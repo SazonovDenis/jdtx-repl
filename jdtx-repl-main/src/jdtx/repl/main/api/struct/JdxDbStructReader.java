@@ -12,10 +12,29 @@ import java.util.*;
  */
 public class JdxDbStructReader implements IJdxDbStructReader {
 
-    Db db;
+    private Db db;
 
-    public void setDb(Db db) {
+    private IDbDatatypeManager dbDatatypeManager;
+
+    public void setDb(Db db) throws Exception {
         this.db = db;
+
+        String dbDriver = db.getDbSource().getDbDriver().getName();
+        switch (dbDriver) {
+            //case "firebird": {
+            case "jdbc": {
+                dbDatatypeManager = new DbDatatypeManager_Firebird();
+                break;
+            }
+            case "oracle": {
+                dbDatatypeManager = new DbDatatypeManager_Oracle();
+                break;
+            }
+            default: {
+                throw new Exception("Неизвестный тип базы: " + dbDriver);
+            }
+        }
+        dbDatatypeManager.setDb(db);
     }
 
 
@@ -29,83 +48,127 @@ public class JdxDbStructReader implements IJdxDbStructReader {
 
         //
         DatabaseMetaData metaData = db.getConnection().getMetaData();
+        String schema = db.getDbSource().getUsername();
+
+        // ---
+        // Таблицы
+
+        //
+        //System.out.println("tables");
+
         String[] types = {"TABLE"};
-        ResultSet rs = metaData.getTables(null, null, "%", types);
+        ResultSet rs = metaData.getTables(null, schema, "%", types);
         try {
             while (rs.next()) {
-                if (skipReplObj && rs.getString("TABLE_NAME").toLowerCase().startsWith(UtJdx.AUDIT_TABLE_PREFIX.toLowerCase())) {
+                if (skipReplObj && isReplTable(rs)) {
                     continue;
                 }
 
-                //для очередной таблицы
-                //создаем экземпляр класса
+                //
+                //System.out.println(rs.getString("TABLE_SCHEM") + " / " + rs.getString("TABLE_NAME") + ", " + rs.getString("TABLE_TYPE"));
+
+                //
+                String tableName = rs.getString("TABLE_NAME");
+
+                // Создаем экземпляр
                 JdxTable table = new JdxTable();
-                //добавляем экземпляр в список
                 structTables.add(table);
 
                 //
-                table.setName(rs.getString("TABLE_NAME"));
-
-                // --- столбцы
-                ResultSet rsColumns = metaData.getColumns(null, null, table.getName(), null);
-                try {
-                    while (rsColumns.next()) {
-                        JdxField field = new JdxField();
-                        table.getFields().add(field);
-
-                        String columnName = rsColumns.getString("COLUMN_NAME");
-                        String columnType = rsColumns.getString("TYPE_NAME");
-                        int columnSize = rsColumns.getInt("COLUMN_SIZE");
-                        boolean isNullable = rsColumns.getBoolean("NULLABLE");
-
-                        field.setName(columnName);
-                        field.setDbDatatype(columnType);
-                        field.setJdxDatatype(dbDatatypeToJdxDatatype(columnType));
-                        field.setSize(columnSize);
-                        field.setIsNullable(isNullable);
-                    }
-                } finally {
-                    rsColumns.close();
-                }
-
-                // --- первичные ключи
-                ResultSet rsPK = metaData.getPrimaryKeys(null, null, table.getName());
-                try {
-                    while (rsPK.next()) {
-                        String columnName = rsPK.getString("COLUMN_NAME");
-                        String pkName = rsPK.getString("PK_NAME");
-                        JdxField fieldPK = (JdxField) table.getField(columnName);
-                        fieldPK.setIsPrimaryKey(true);
-                        table.getPrimaryKey().add(fieldPK);
-                    }
-                } finally {
-                    rsPK.close();
-                }
+                table.setName(tableName);
             }
         } finally {
             rs.close();
         }
 
+        //
+        JdxDbStruct struct = new JdxDbStruct();
+        struct.getTables().addAll(structTables);
+
+
+        // ---
+        // Столбцы
+
+        //
+        //System.out.println("table cols");
+
+        ResultSet rsColumns = metaData.getColumns(null, schema, null, null);
+        try {
+            while (rsColumns.next()) {
+                //System.out.println(rsColumns.getString("TABLE_NAME") + "." + rsColumns.getString("COLUMN_NAME"));
+
+                //
+                String tableName = rsColumns.getString("TABLE_NAME");
+                String columnName = rsColumns.getString("COLUMN_NAME");
+                String columnType = rsColumns.getString("TYPE_NAME");
+                int columnSize = rsColumns.getInt("COLUMN_SIZE");
+                boolean isNullable = rsColumns.getBoolean("NULLABLE");
+
+                // Пополняем список полей для таблицы (table == null если tableName это не таблица, а view или что-то аналогичное)
+                IJdxTable table = struct.getTable(tableName);
+                if (table != null) {
+                    JdxField field = new JdxField();
+                    table.getFields().add(field);
+                    //
+                    field.setName(columnName);
+                    field.setDbDatatype(columnType);
+                    field.setJdxDatatype(dbDatatypeManager.dbDatatypeToJdxDatatype(columnType));
+                    field.setSize(columnSize);
+                    field.setIsNullable(isNullable);
+                }
+            }
+        } finally {
+            rsColumns.close();
+        }
+
+        //
+        //System.out.println("primary keys");
+
+        // --- Первичные ключи
+        for (IJdxTable table : structTables) {
+            ResultSet rsPK = metaData.getPrimaryKeys(null, schema, table.getName());
+            try {
+                while (rsPK.next()) {
+                    String tableName = rsPK.getString("TABLE_NAME");
+                    String columnName = rsPK.getString("COLUMN_NAME");
+                    String pkName = rsPK.getString("PK_NAME");
+
+                    // Пополняем список PK для таблицы
+                    JdxField fieldPK = (JdxField) table.getField(columnName);
+                    fieldPK.setIsPrimaryKey(true);
+                    table.getPrimaryKey().add(fieldPK);
+                }
+            } finally {
+                rsPK.close();
+            }
+        }
+
+        //
+        //System.out.println("foreign keys");
+
         // --- внешние ключи
         for (IJdxTable table : structTables) {
-            ResultSet rsFK = metaData.getImportedKeys(db.getConnection().getCatalog(), null, table.getName());
+            ResultSet rsFK = metaData.getImportedKeys(null, schema, table.getName());
             try {
                 while (rsFK.next()) {
-                    // Пополняем список ForeignKey для таблицы
-                    JdxForeignKey foreignKey = new JdxForeignKey();
-                    table.getForeignKeys().add(foreignKey);
+                    //System.out.println(table.getName() + "." + rsFK.getString("FKCOLUMN_NAME") + " > " + rsFK.getString("PKTABLE_NAME"));
 
+                    //
                     JdxTable tableFK = (JdxTable) findTable(structTables, rsFK.getString("PKTABLE_NAME"));
                     IJdxField tableFieldFK = tableFK.getField(rsFK.getString("PKCOLUMN_NAME"));
                     JdxField fieldFK = (JdxField) table.getField(rsFK.getString("FKCOLUMN_NAME"));
                     String name = rsFK.getString("FK_NAME");
 
+                    // Пополняем список ForeignKey для таблицы
+                    JdxForeignKey foreignKey = new JdxForeignKey();
+                    table.getForeignKeys().add(foreignKey);
+                    //
                     foreignKey.setName(name);
                     foreignKey.setField(fieldFK);
                     foreignKey.setTable(tableFK);
                     foreignKey.setTableField(tableFieldFK);
 
-                    // Прставляем данные, на какую таблицу смотрит ссылочное поле
+                    // Проставляем, на какую таблицу смотрит ссылочное поле
                     fieldFK.setRefTable(tableFK);
                 }
             } finally {
@@ -117,13 +180,17 @@ public class JdxDbStructReader implements IJdxDbStructReader {
         // Сортируем таблицы по зависимостям
         List<IJdxTable> structTablesSorted = UtJdx.sortTablesByReference(structTables);
 
+        // Создаем и возвращаем экземпляр JdxDbStruct
+        JdxDbStruct structRes = new JdxDbStruct();
+        structRes.getTables().addAll(structTablesSorted);
 
-        // Создаем и возвращаем экземпляр класса JdxDbStruct
-        JdxDbStruct struct = new JdxDbStruct();
-        struct.getTables().addAll(structTablesSorted);
 
         //
-        return struct;
+        return structRes;
+    }
+
+    private boolean isReplTable(ResultSet rs) throws SQLException {
+        return rs.getString("TABLE_NAME").toLowerCase().startsWith(UtJdx.AUDIT_TABLE_PREFIX.toLowerCase());
     }
 
     private IJdxTable findTable(List<IJdxTable> tables, String tableName) {
@@ -141,48 +208,6 @@ public class JdxDbStructReader implements IJdxDbStructReader {
             return true;
         } else {
             return false;
-        }
-    }
-
-    public static JdxDataType dbDatatypeToJdxDatatype(String dbDataType) throws Exception {
-        String dataType = dbDataType.toUpperCase();
-        if (dataType.compareToIgnoreCase("BLOB") == 0) {
-            return JdxDataType.BLOB;
-        } else if (dataType.compareToIgnoreCase("BLOB SUB_TYPE 0") == 0) {
-            return JdxDataType.BLOB;
-        } else if (dataType.compareToIgnoreCase("CHAR") == 0) {
-            return JdxDataType.STRING;
-        } else if (dataType.compareToIgnoreCase("CHARACTER") == 0) {
-            return JdxDataType.STRING;
-        } else if (dataType.compareToIgnoreCase("VARCHAR") == 0) {
-            return JdxDataType.STRING;
-        } else if (dataType.compareToIgnoreCase("DATE") == 0) {
-            return JdxDataType.DATETIME;
-        } else if (dataType.compareToIgnoreCase("DECIMAL") == 0) {
-            return JdxDataType.DOUBLE;
-        } else if (dataType.compareToIgnoreCase("FLOAT") == 0) {
-            return JdxDataType.DOUBLE;
-        } else if (dataType.compareToIgnoreCase("INT64") == 0) {
-            return JdxDataType.INTEGER;
-        } else if (dataType.compareToIgnoreCase("INTEGER") == 0) {
-            return JdxDataType.INTEGER;
-        } else if (dataType.compareToIgnoreCase("NCHAR") == 0) {
-            return JdxDataType.STRING;
-        } else if (dataType.compareToIgnoreCase("NUMERIC") == 0) {
-            return JdxDataType.DOUBLE;
-        } else if (dataType.compareToIgnoreCase("SMALLINT") == 0) {
-            return JdxDataType.INTEGER;
-        } else if (dataType.compareToIgnoreCase("BIGINT") == 0) {
-            return JdxDataType.INTEGER;
-        } else if (dataType.compareToIgnoreCase("TIME") == 0) {
-            return JdxDataType.DATETIME;
-        } else if (dataType.compareToIgnoreCase("TIMESTAMP") == 0) {
-            return JdxDataType.DATETIME;
-            // Firebird 2.5
-        } else if (dataType.compareToIgnoreCase("DOUBLE PRECISION") == 0) {
-            return JdxDataType.DOUBLE;
-        } else {
-            throw new Exception("Неизвестный тип поля: " + dbDataType);
         }
     }
 

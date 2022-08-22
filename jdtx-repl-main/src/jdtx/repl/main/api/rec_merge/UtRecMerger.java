@@ -32,12 +32,15 @@ public class UtRecMerger {
      * Возвращает Map <имя зависимой таблицы, набор её обновляемых/удаленных записей>.
      *
      * @param tableName    имя таблицы
-     * @param records      обновляемые или удаляемые записи
+     * @param records      обновляемые или удаляемые записи в этой таблице
      * @param resultWriter место для сохранения исходного состояния обновляемых/удаленных записей
      * @return Набор id для каждой зависомой таблицы
      */
     public Map<String, Set<Long>> saveRecordsRefTable(String tableName, Collection<Long> records, RecMergeResultWriter resultWriter, MergeOprType writerMode, IJdxDataSerializer dataSerializer) throws Exception {
         Map<String, Set<Long>> deletedRecordsInTables = new HashMap<>();
+
+        //
+        log.info("Dependences for: " + tableName + ", records: " + records.size());
 
         // Собираем непосредственные зависимости
         Map<String, Collection<IJdxForeignKey>> refsToTable = UtJdx.getRefsToTable(struct.getTables(), struct.getTable(tableName), false);
@@ -67,7 +70,7 @@ public class UtRecMerger {
                 resultWriter.writeTableItem(new MergeResultTableItem(refTableName, writerMode, refInfo));
 
                 //
-                log.info("Dependes for: " + refTableName + "." + refFkFieldName + " --> " + tableName + ", records in " + refTableName + ": " + records.size());
+                log.info("Dependence: " + refTableName + "." + refFkFieldName + " --> " + tableName);
 
                 // Селектим из refTableName по ссылке refFkFieldName, записываем в resultWriter и deletedRecordsInTable
                 String sqlSelect = "select * from " + refTableName + " where " + refFkFieldName + " = :" + refFkFieldName;
@@ -79,6 +82,7 @@ public class UtRecMerger {
 
                     try {
                         // Записываем
+                        long count = 0;
                         while (!query.eof()) {
                             Map<String, Object> values = query.getValues();
                             // Сохраняем всю запись в resultWriter
@@ -88,8 +92,13 @@ public class UtRecMerger {
                             long id = UtJdxData.longValueOf(values.get(refTablePkFieldName));
                             deletedRecordsInTable.add(id);
                             //
+                            count = count + 1;
+                            //
                             query.next();
                         }
+
+                        //
+                        log.info("  ref: " + recordId + ", records: " + count);
                     } finally {
                         query.close();
                     }
