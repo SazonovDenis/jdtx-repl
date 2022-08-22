@@ -14,8 +14,8 @@ _app.rt
 _db-ini.rt
 _log.properties
 _product
-_lombard.systems_03
-_lombard.systems_04
+_data_root
+_logs
 
 jdtx-repl-main/_log.properties
 doc/replication/*
