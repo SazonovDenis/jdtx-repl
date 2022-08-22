@@ -1,6 +1,7 @@
 package jdtx.repl.main.api;
 
 import jandcode.utils.variant.*;
+import jdtx.repl.main.api.manager.*;
 import org.junit.*;
 
 /**
@@ -27,34 +28,46 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
         //
         IVariantMap args = new VariantMap();
 
-        // Инициализируем НОВУЮ рабочую станцию (ws5)
+
+        // ---
+        // Добавляем рабочую станцию (на сервере)
         args.clear();
         args.put("ws", 5);
-        args.put("guid", "b5781df573ca6ee6.x-50d3d7a3c104ae05");
-        args.put("file", cfg_json_ws);
+        args.put("name", "ws 5");
+        extSrv.repl_add_ws(args);
+
+        // ---
+        // Создаем ящик рабочей станции
+        args.clear();
+        args.put("pass", mailPass);
+        assertEquals("Ящики не созданы", true, extSrv.repl_mail_create(args));
+
+        // ---
+        // Задаем и отправляем конфигурацию станции
+        args.clear();
+        args.put("ws", 5);
+        args.put("file", cfg_json_decode);
+        args.put("cfg", CfgType.DECODE);
+        extSrv.repl_send_cfg(args);
+        args.put("file", cfg_json_publication_ws);
+        extSrv.repl_send_struct(args);
+
+
+        // ---
+        // На НОВОЙ рабочей станции (ws5)
+
+        // ---
+        // Инициализация базы и начальный конфиг рабочей станции
+        args.clear();
+        args.put("ws", 5);
+        args.put("mail", mailUrl);
+        args.put("guid", mailGuid);
         extWs5.repl_create(args);
 
         System.out.println("---------------------------------");
 
-        // Добавляем рабочую станцию в систему
-        args.clear();
-        args.put("ws", 5);
-        args.put("name", "ws 5");
-        args.put("guid", "b5781df573ca6ee6.x-50d3d7a3c104ae05");
-        args.put("cfg_publications", cfg_json_publication_ws);
-        args.put("cfg_decode", cfg_json_decode);
-        extSrv.repl_add_ws(args);
 
-        // Активируем рабочую станцию
-        args.clear();
-        args.put("ws", 5);
-        extSrv.repl_ws_enable(args);
-
-        // Создаем ящик рабочей станции
-        args.clear();
-        args.put("create", true);
-        assertEquals("Ящики не созданы", true, extSrv.repl_mail_check(args));
-
+        // ---
         // Синхронизация
         sync_http_1_2_3_5();
         sync_http_1_2_3_5();

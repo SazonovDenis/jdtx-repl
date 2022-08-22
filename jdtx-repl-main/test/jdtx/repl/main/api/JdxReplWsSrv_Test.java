@@ -22,6 +22,10 @@ import java.util.concurrent.*;
 
 public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
+    public String mailUrl;
+    public String mailGuid;
+    public String mailPass = null;
+
     public String cfg_json_ws;
     public String cfg_json_decode;
     public String cfg_json_publication_srv;
@@ -42,6 +46,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         json_srv = "test/etalon/mail_http_srv.json";
         json_ws = "test/etalon/mail_http_ws.json";
+
+        mailUrl = "http://localhost/lombard.systems/repl";
+        mailGuid = "b5781df573ca6ee6.x";
+        mailPass = "111";
 
         cfg_json_ws = "test/etalon/ws.json";
         cfg_json_decode = "test/etalon/decode_strategy.json";
@@ -117,157 +125,109 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         IVariantMap args = new VariantMap();
 
         // ---
-        // На рабочих станциях
+        // На сервере
 
         // Инициализация баз и начальный конфиг рабочих станций
         args.clear();
         args.put("ws", 1);
-        args.put("guid", "b5781df573ca6ee6.x-17845f2f56f4d401");
-        args.put("file", cfg_json_ws);
+        args.put("name", "Сервер");
+        args.put("mail", mailUrl);
+        args.put("guid", mailGuid);
         extSrv.repl_create(args);
-
-        args.clear();
-        args.put("ws", 2);
-        args.put("guid", "b5781df573ca6ee6.x-21ba238dfc945002");
-        args.put("file", cfg_json_ws);
-        extWs2.repl_create(args);
-
-        args.clear();
-        args.put("ws", 3);
-        args.put("guid", "b5781df573ca6ee6.x-34f3cc20bea64503");
-        args.put("file", cfg_json_ws);
-        extWs3.repl_create(args);
-
-
-        // ---
-        // На сервере
 
         // Начальный конфиг сервера: напрямую задаем структуру публикаций (команда repl_set_cfg);
         args.clear();
-        args.put("file", cfg_json_publication_srv);
-        args.put("cfg", CfgType.PUBLICATIONS);
+        args.put("file", cfg_json_decode);
+        args.put("cfg", CfgType.DECODE);
         extSrv.repl_set_cfg(args);
+        args.put("file", cfg_json_publication_srv);
+        extSrv.repl_set_struct(args);
+
 
         // Добавляем рабочие станции
         args.clear();
-        args.put("ws", 1);
-        args.put("name", "Сервер");
-        args.put("guid", "b5781df573ca6ee6.x-17845f2f56f4d401");
-        args.put("cfg_publications", cfg_json_publication_srv);
-        args.put("cfg_decode", cfg_json_decode);
-        extSrv.repl_add_ws(args);
-        //
-        args.clear();
         args.put("ws", 2);
         args.put("name", "ws 2");
-        args.put("guid", "b5781df573ca6ee6.x-21ba238dfc945002");
-        args.put("cfg_publications", cfg_json_publication_ws);
-        args.put("cfg_decode", cfg_json_decode);
         extSrv.repl_add_ws(args);
         //
         args.clear();
         args.put("ws", 3);
         args.put("name", "ws 3");
-        args.put("guid", "b5781df573ca6ee6.x-34f3cc20bea64503");
-        args.put("cfg_publications", cfg_json_publication_ws);
-        args.put("cfg_decode", cfg_json_decode);
         extSrv.repl_add_ws(args);
         //
         args.clear();
         args.put("ws", 4);
         args.put("name", "ws 4");
-        args.put("guid", "b5781df573ca6ee6.x-444fed23da93ab04");
-        args.put("cfg_publications", cfg_json_publication_ws);
-        args.put("cfg_decode", cfg_json_decode);
         extSrv.repl_add_ws(args);
-
-        //
-        FileUtils.copyFile(new File("test/etalon/ws_list.json"), new File("../../lombard.systems/repl/" + MailerHttp.REPL_PROTOCOL_VERSION + "/b5781df573ca6ee6.x/ws_list.json"));
-
-        // Активируем 3 рабочие станции
-        args.clear();
-        args.put("ws", 1);
-        extSrv.repl_ws_enable(args);
         //
         args.clear();
-        args.put("ws", 2);
-        extSrv.repl_ws_enable(args);
-        //
-        args.clear();
-        args.put("ws", 3);
-        extSrv.repl_ws_enable(args);
+        args.put("ws", 4);
+        extSrv.repl_ws_disable(args);
 
 
         // Создаем ящики рабочих станций
         args.clear();
-        args.put("create", true);
-        assertEquals("Ящики не созданы", true, extSrv.repl_mail_check(args));
+        args.put("pass", mailPass);
+        assertEquals("Ящики не созданы", true, extSrv.repl_mail_create(args));
         //createBoxes_Local();
+        //
+        FileUtils.copyFile(new File("test/etalon/ws_list.json"), new File("../../lombard.systems/repl/" + MailerHttp.REPL_PROTOCOL_VERSION + "/" + mailGuid + "/ws_list.json"));
+
+
+        // ---
+        // Задаем и отправляем конфигурацию станций
+        args.clear();
+        args.put("ws", 2);
+        args.put("file", cfg_json_decode);
+        args.put("cfg", CfgType.DECODE);
+        extSrv.repl_send_cfg(args);
+        args.put("file", cfg_json_publication_ws);
+        extSrv.repl_send_struct(args);
+        //
+        args.clear();
+        args.put("ws", 3);
+        args.put("file", cfg_json_decode);
+        args.put("cfg", CfgType.DECODE);
+        extSrv.repl_send_cfg(args);
+        args.put("file", cfg_json_publication_ws);
+        extSrv.repl_send_struct(args);
+        //
+        args.clear();
+        args.put("ws", 4);
+        args.put("file", cfg_json_decode);
+        args.put("cfg", CfgType.DECODE);
+        extSrv.repl_send_cfg(args);
+        args.put("file", cfg_json_publication_ws);
+        extSrv.repl_send_struct(args);
+
+
+        // ---
+        // На рабочих станциях
+
+        // Инициализация баз и начальный конфиг рабочих станций
+        args.clear();
+        args.put("ws", 2);
+        args.put("mail", mailUrl);
+        args.put("guid", mailGuid);
+        extWs2.repl_create(args);
+        //
+        args.clear();
+        args.put("ws", 3);
+        args.put("mail", mailUrl);
+        args.put("guid", mailGuid);
+        extWs3.repl_create(args);
 
 
         // ---
         UtData.outTable(db.loadSql("select id, name, guid from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST"));
     }
 
-    void repl_mail_check() {
-        IVariantMap args = new VariantMap();
-        args.put("create", true);
-        assertEquals("Ящики не созданы", true, extSrv.repl_mail_check(args));
-    }
-
     /**
      * Стираем все каталоги с данными, почтой и т.п.
      */
     void clearAllTestData() {
-        UtFile.cleanDir("../_test-data/_test-data_srv");
-        UtFile.cleanDir("../_test-data/_test-data_ws1");
-        UtFile.cleanDir("../_test-data/_test-data_ws2");
-        UtFile.cleanDir("../_test-data/_test-data_ws3");
-        UtFile.cleanDir("../_test-data/_test-data_ws4");
-        UtFile.cleanDir("../_test-data/_test-data_ws5");
-        new File("../_test-data/_test-data_srv").delete();
-        new File("../_test-data/_test-data_ws1").delete();
-        new File("../_test-data/_test-data_ws2").delete();
-        new File("../_test-data/_test-data_ws3").delete();
-        new File("../_test-data/_test-data_ws4").delete();
-        new File("../_test-data/_test-data_ws5").delete();
-
-        UtFile.cleanDir("../_test-data/csv");
-        UtFile.cleanDir("../_test-data/csv1");
-        UtFile.cleanDir("../_test-data/csv2");
-        UtFile.cleanDir("../_test-data/csv3");
-        UtFile.cleanDir("../_test-data/mail");
-        UtFile.cleanDir("../_test-data/mail_local");
-        new File("../_test-data/csv").delete();
-        new File("../_test-data/csv1").delete();
-        new File("../_test-data/csv2").delete();
-        new File("../_test-data/csv3").delete();
-        new File("../_test-data/mail").delete();
-        new File("../_test-data/mail_local").delete();
-        try {
-            UtFile.cleanDir("../_test-data");
-        } catch (Exception e) {
-        }
-        new File("d:/temp/dbm.log").delete();
-        new File("d:/temp/jdtx.log").delete();
-        UtFile.cleanDir("../../lombard.systems/repl/" + MailerHttp.REPL_PROTOCOL_VERSION + "/b5781df573ca6ee6.x");
-    }
-
-
-    @Test
-    public void wsDbStructUpdate() throws Exception {
-        // Рабочая станция, настройка
-        JdxReplWs ws = new JdxReplWs(db);
-        ws.init();
-        JdxReplWs ws2 = new JdxReplWs(db2);
-        ws2.init();
-        JdxReplWs ws3 = new JdxReplWs(db3);
-        ws3.init();
-
-        //
-        ws.dbStructApplyForAudit(true);
-        ws2.dbStructApplyForAudit(true);
-        ws3.dbStructApplyForAudit(true);
+        UtFile.cleanDir("../_test-data");
+        UtFile.cleanDir("../_data_root");
     }
 
     @Test
@@ -282,18 +242,6 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
             wsMailer.createMailBox("to001");
             System.out.println("wsId: " + wsId + ", boxes - ok");
         }
-    }
-
-    @Test
-    public void createBoxes_Local() throws Exception {
-        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/17845f2f56f4d401/from");
-        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/17845f2f56f4d401/to");
-        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/21ba238dfc945002/from");
-        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/21ba238dfc945002/to");
-        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/34f3cc20bea64503/from");
-        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/34f3cc20bea64503/to");
-        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/444fed23da93ab04/from");
-        UtFile.cleanDir("../../lombard.systems/repl/v02/b5781df573ca6ee6.x/444fed23da93ab04/to");
     }
 
     @Test
@@ -390,6 +338,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws1_doReplSession();
         test_ws2_doReplSession();
         test_ws3_doReplSession();
+
+        test_srv_doReplSession();
     }
 
     public void sync_http_1_2() throws Exception {

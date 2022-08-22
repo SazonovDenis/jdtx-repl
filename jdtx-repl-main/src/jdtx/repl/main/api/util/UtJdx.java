@@ -372,7 +372,7 @@ public class UtJdx {
             // Неправильно скачанный файл - удаляем, чтобы потом начать снова
             replica.getData().delete();
             // Ошибка
-            throw new XError("receive.replica.crc <> info.crc, file.crc: " + crcFile + ", expected.crc: " + crcExpected + ", file: " + replica.getData());
+            throw new XError("receive.replica.crc <> info.crc, file.crc: " + crcFile + ", expected.crc: " + crcExpected + ", file: " + replica.getData().getCanonicalPath());
         }
     }
 
@@ -427,9 +427,9 @@ public class UtJdx {
 
 
     /**
-     * Разложим строку tableNames в список IJdxTable
+     * Из структуры struct отбирает таблицы из списка tableNames
      */
-    public static List<IJdxTable> stringToTables(String tableNames, IJdxDbStruct struct) {
+    public static List<IJdxTable> selectTablesByName(String tableNames, IJdxDbStruct struct) {
         List<IJdxTable> tableList = new ArrayList<>();
         //
         String[] tableNamesArr = tableNames.split(",");
@@ -442,6 +442,28 @@ public class UtJdx {
         }
         //
         return tableList;
+    }
+
+    /**
+     * Из структуры struct отбирает таблицы из списка tables по имени.
+     * Обеспечивает неповторяемость имен и порядок как в struct.
+     */
+    public static List<IJdxTable> selectTablesByName(List<IJdxTable> tables, IJdxDbStruct struct) {
+        List<IJdxTable> res = new ArrayList<>();
+
+        // Уникальные имена
+        Set<String> tableNames = new HashSet<>();
+        for (IJdxTable table : tables) {
+            tableNames.add(table.getName());
+        }
+
+        for (IJdxTable table : struct.getTables()) {
+            if (tableNames.contains(table.getName())) {
+                res.add(struct.getTable(table.getName()));
+            }
+        }
+
+        return res;
     }
 
 }

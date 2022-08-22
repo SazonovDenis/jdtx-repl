@@ -45,6 +45,9 @@ public class UtRepl {
         this.struct = struct;
     }
 
+    public static String getGuidWs(String guid, long wsId) {
+        return guid + "-" + UtString.padLeft(String.valueOf(wsId), 3, '0');
+    }
 
     /**
      * Инициализация рабочей станции:
@@ -57,9 +60,10 @@ public class UtRepl {
      * Поставить метку wsId
      */
     public void createReplication(long wsId, String guid) throws Exception {
-        // Создание базовых структур
+        // Создание базовых структур и рабочей станции
         UtDbObjectManager objectManager = new UtDbObjectManager(db);
-        objectManager.createReplBase(wsId, guid);
+        String guidWs = getGuidWs(guid, wsId);
+        objectManager.createReplBase(wsId, guidWs);
 
         // Создаем необходимые для перекодировки таблицы
         UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);
@@ -76,7 +80,7 @@ public class UtRepl {
         IJdxDbStruct structFixed = new JdxDbStruct();
         databaseStructManager.setDbStructFixed(structFixed);
 
-        // Пока в стотоянии MUTE
+        // Сразу после добавления - в стотоянии MUTE. Сервер разрешит говорить отдельной командой.
         JdxMuteManagerWs muteManager = new JdxMuteManagerWs(db);
         muteManager.muteWorkstation();
     }
@@ -258,7 +262,7 @@ public class UtRepl {
         return replica;
     }
 
-    public IReplica createReplicaSetDbStruct(boolean sendSnapshot) throws Exception {
+    public IReplica createReplicaSetDbStruct(long destinationWsId, JSONObject cfgPublications, boolean sendSnapshot) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SET_DB_STRUCT);
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
@@ -267,17 +271,20 @@ public class UtRepl {
         UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
         replicaWriter.replicaFileStart();
 
+        // ---
         // Открываем запись файла с информацией о команде
         OutputStream zipOutputStream = replicaWriter.newFileOpen("info.json");
 
         // Информация о получателе
         JSONObject cfgInfo = new JSONObject();
         cfgInfo.put("sendSnapshot", sendSnapshot);
+        cfgInfo.put("destinationWsId", destinationWsId);
         String cfgInfoStr = UtJson.toString(cfgInfo);
         StringInputStream infoStream = new StringInputStream(cfgInfoStr);
         UtFile.copyStream(infoStream, zipOutputStream);
 
 
+        // ---
         // Открываем запись файла с описанием текущей структуры БД
         zipOutputStream = replicaWriter.newFileOpen("dat.xml");
 
@@ -285,6 +292,18 @@ public class UtRepl {
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
         zipOutputStream.write(struct_rw.getBytes(struct));
 
+
+        // ---
+        // Открываем запись файла с описанием конфига
+        zipOutputStream = replicaWriter.newFileOpen("cfg.publications.json");
+
+        // Пишем содержимое конфига
+        String cfgStr = UtJson.toString(cfgPublications);
+        StringInputStream cfgStrStream = new StringInputStream(cfgStr);
+        UtFile.copyStream(cfgStrStream, zipOutputStream);
+
+
+        // ---
         // Заканчиваем формирование файла реплики
         replicaWriter.replicaFileClose();
 
@@ -397,10 +416,6 @@ public class UtRepl {
         return replica;
     }
     
-/*
-todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica*** свести к одному по аналогии с ReportReplica
-*/
-
     public IReplica createReplicaAppUpdate(String exeFileName) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.UPDATE_APP);
@@ -819,7 +834,10 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         return table.getPrimaryKey().size() == 0;
     }
 
-    static IJdxDbStruct getStructCommon(IJdxDbStruct structActual, IPublicationRuleStorage publicationIn, IPublicationRuleStorage publicationOut) throws Exception {
+    /**
+     * Фильтрация структуры: убирание того, чего нет ни в одном из правил публикаций publicationIn и publicationOut
+     */
+    public static IJdxDbStruct getStructCommon(IJdxDbStruct structActual, IPublicationRuleStorage publicationIn, IPublicationRuleStorage publicationOut) throws Exception {
         IJdxDbStruct structCommon = new JdxDbStruct();
         for (IJdxTable structTable : structActual.getTables()) {
             if (publicationIn.getPublicationRule(structTable.getName()) != null) {
@@ -835,6 +853,21 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
 
         //
         return structCommonSorted;
+    }
+
+    /**
+     * Фильтрация структуры: убирание того, чего нет ни в одном из правил публикаций cfgPublications ("in" и "out")
+     */
+    public static IJdxDbStruct filterStruct(IJdxDbStruct structFull, JSONObject cfgPublications) throws Exception {
+        // Правила публикаций
+        IPublicationRuleStorage publicationIn = PublicationRuleStorage.loadRules(cfgPublications, structFull, "in");
+        IPublicationRuleStorage publicationOut = PublicationRuleStorage.loadRules(cfgPublications, structFull, "out");
+
+        // Фильтрация структуры
+        IJdxDbStruct structFiltered = UtRepl.getStructCommon(structFull, publicationIn, publicationOut);
+
+        //
+        return structFiltered;
     }
 
     /**
@@ -858,7 +891,23 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
 
     /**
      * Создаем snapsot-реплики для таблиц tables (фильруем по фильтрам)
+     * Делаем обязательно в ОТДЕЛЬНОЙ транзакции (отдельной от изменения структуры).
+     * В некоторых СУБД (напр. Firebird) изменение структуры происходит ВНУТРИ транзакций,
+     * тогда получится, что пока делается snapshot, аудит не работает.
+     * Таким образом данные, вводимые во время подготовки аудита и snapshot-та, не попадут ни в аудит, ни в snapshot,
+     * т.к. таблица аудита ЕЩЕ не видна другим транзакциям, а данные, продолжающие поступать в snapshot, УЖЕ не видны нашей транзакции.
      */
+
+    ////////////////////////
+    ////////////////////////
+    ////////////////////////
+    ////////////////////////
+    // jdtx.repl.main.api.JdxReplWs.doStructChangesSteps: и разрешаем чужие id - ведь это не инициализация базы, они у нас точно уже есть
+    // А вот теперь - зачем теперь параметр forbidNotOwnId - ведь теперь даже при первой инициализации этот парамтер не станет true
+    // От чего защищаемся? И как Теперь защищаться?
+    ////////////////////////
+    ////////////////////////
+    ////////////////////////
     public List<IReplica> createSnapshotForTablesFiltered(List<IJdxTable> tables, long selfWsId, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot, boolean forbidNotOwnId) throws Exception {
         log.info("createSendSnapshotForTables, selfWsId: " + selfWsId + ", wsIdDestination: " + wsIdDestination);
 
@@ -908,8 +957,8 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
      * Помещаем реплики replicas в очередь que.
      * Делаем в рамках одной транзакции - чтобы либо все реплики ушли, либо ничего.
      */
-    public void sendToQue(List<IReplica> replicas, IJdxQue que) throws Exception {
-        log.info("sendToQue, que: " + que.getBaseDir());
+    public void sendToQue(List<IReplica> replicas, IJdxReplicaQue que) throws Exception {
+        log.info("sendToQue, que: " + ((IJdxQueNamed) que).getQueName());
 
         db.startTran();
         try {
@@ -932,9 +981,6 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
         List<IReplica> res = new ArrayList<>();
 
         //
-        UtRepl utRepl = new UtRepl(db, struct);
-
-        //
         for (IJdxTable table : tables) {
             String tableName = table.getName();
 
@@ -947,7 +993,7 @@ todo !!!!!!!!!!!!!!!!!!!!!!!! семейство методов createReplica***
                 log.info("SnapshotForTables, skip createSnapshot, not found in publicationRules, table: " + tableName);
             } else {
                 // Создаем snapshot-реплику
-                IReplica replicaSnapshot = utRepl.createReplicaSnapshotForTable(selfWsId, publicationTableRule, forbidNotOwnId);
+                IReplica replicaSnapshot = createReplicaSnapshotForTable(selfWsId, publicationTableRule, forbidNotOwnId);
                 res.add(replicaSnapshot);
             }
 

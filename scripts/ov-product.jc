@@ -237,11 +237,12 @@ repl_mute_state = cm("Показать состояние MUTE у рабочих
 
 
 //
-repl_set_dbstruct = cm("Отправить команду 'принять структуру' на все станции",
-        "sendSnapshot": [value: null, help: "Отправить ли snapshot для тех новых таблиц, которые появились в структуре"]
+repl_set_struct = cm("Отправить команду 'принять структуру' на все станции",
+        "file": [value: null, help: "Конфигурация репликации"],
+        "sendSnapshot": [value: null, help: "Отправить ли snapshot для новых таблиц, которые появились в структуре"]
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
-    ext.repl_set_dbstruct(args)
+    ext.repl_set_struct(args)
 }
 
 

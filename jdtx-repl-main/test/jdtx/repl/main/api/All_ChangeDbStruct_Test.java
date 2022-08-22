@@ -14,19 +14,33 @@ public class All_ChangeDbStruct_Test extends AppTestCase {
     // иначе БД не отсвобождается
     DbPrepareEtalon_Test test;
 
+    // Если нужно много раз запускать единственный метод из этого класа, то чтобы сэкономить время на подготовке бэкапа,
+    // можно установить один раз true (чтобы первый раз сделался бэкап), а потом можно установить false -
+    // тогда перед запуском метода восстановление из бэкапа будет запускаться, а долгая подготовка бэкапа - нет.
+    static boolean isClassTestMode = false;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        // Подготовка репликационных баз и приведение их в нужное состояние
-        JdxReplWsSrv_Test test = new JdxReplWsSrv_Test();
-        test.setUp();
-        test.test_baseReplication();
-        //
-        JdxReplWsSrv_RestoreWs_DbRestore_test testForBackup = new JdxReplWsSrv_RestoreWs_DbRestore_test();
-        testForBackup.setUp();
-        testForBackup.doBackupNolmalLife();
-        testForBackup.disconnectAllForce();
-        //
-        test.disconnectAllForce();
+        if (isClassTestMode) {
+            // Подготовка репликационных баз и приведение их в нужное состояние
+            JdxReplWsSrv_Test test = new JdxReplWsSrv_Test();
+            test.setUp();
+            test.test_baseReplication();
+            test.disconnectAllForce();
+
+            System.out.println("-------------");
+            System.out.println("Делаем doBackupNolmalLife");
+            System.out.println("-------------");
+
+            JdxReplWsSrv_RestoreWs_DbRestore_test testForBackup = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+            testForBackup.setUp();
+            testForBackup.doBackupNolmalLife();
+            testForBackup.disconnectAllForce();
+
+            System.out.println("-------------");
+            System.out.println("doBackupNolmalLife - ok");
+            System.out.println("-------------");
+        }
     }
 
     @Override
@@ -34,10 +48,18 @@ public class All_ChangeDbStruct_Test extends AppTestCase {
         super.setUp();
         test = null;
         //
+        System.out.println("-------------");
+        System.out.println("Делаем doRestoreFromNolmalLife из ранее созданной копии");
+        System.out.println("-------------");
+
         JdxReplWsSrv_RestoreWs_DbRestore_test testForBackup = new JdxReplWsSrv_RestoreWs_DbRestore_test();
         testForBackup.setUp();
         testForBackup.doRestoreFromNolmalLife();
         testForBackup.disconnectAllForce();
+
+        System.out.println("-------------");
+        System.out.println("doRestoreFromNolmalLife - ok");
+        System.out.println("-------------");
     }
 
     @Override

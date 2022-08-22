@@ -23,6 +23,10 @@ public class MailSendTask {
             s = sendFrom + " .. " + "all";
         }
 
+        if (required) {
+            s = s + ", required: true";
+        }
+
         if (executor != null) {
             s = s + ", recreate: " + recreate + ", executor: " + executor;
         }

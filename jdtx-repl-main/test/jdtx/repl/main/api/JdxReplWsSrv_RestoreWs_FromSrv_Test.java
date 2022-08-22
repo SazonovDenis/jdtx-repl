@@ -2,6 +2,7 @@ package jdtx.repl.main.api;
 
 import jandcode.utils.rt.*;
 import jandcode.utils.variant.*;
+import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.io.*;
 import org.junit.*;
@@ -110,8 +111,8 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         IVariantMap args = new VariantMap();
         args.clear();
         args.put("ws", 3);
-        args.put("guid", "b5781df573ca6ee6.x-34f3cc20bea64503");
-        args.put("file", cfg_json_ws);
+        args.put("mail", mailUrl);
+        args.put("guid", mailGuid);
         extWs3.repl_create(args);
 
 
@@ -186,7 +187,12 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
     public void test_restoreWorkstation_ws3() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init();
-        srv.restoreWorkstation(3, cfg_json_snapshot);
+
+        // Узнаем правила для формирования snapshot
+        IPublicationRuleStorage ruleSnapshot = srv.getCfgSnapshot(3, cfg_json_snapshot);
+
+        //
+        srv.restoreWorkstation(3, ruleSnapshot);
     }
 
 

@@ -15,78 +15,40 @@ public class UtDbComparer {
 
     private static Log log = LogFactory.getLog("jdtx.UtDbComparer");
 
-    public static boolean dbStructIsEqual(IJdxDbStruct struct1, IJdxDbStruct struct2) throws Exception {
-        IJdxDbStruct structCommon = new JdxDbStruct();
-        IJdxDbStruct structDiffNewIn1 = new JdxDbStruct();
-        IJdxDbStruct structDiffNewIn2 = new JdxDbStruct();
-        return UtDbComparer.getStructDiff(struct1, struct2, structCommon, structDiffNewIn1, structDiffNewIn2);
+    public static boolean dbStructIsEqual(IJdxDbStruct struct1, IJdxDbStruct struct2) {
+        List<IJdxTable> tablesAdded = new ArrayList<>();
+        List<IJdxTable> tablesRemoved = new ArrayList<>();
+        List<IJdxTable> tablesChanged = new ArrayList<>();
+        return UtDbComparer.getStructDiff(struct1, struct2, tablesAdded, tablesRemoved, tablesChanged);
     }
 
-    public static boolean dbStructIsEqualTables(IJdxDbStruct struct1, IJdxDbStruct struct2) throws Exception {
-        IJdxDbStruct structEqual = new JdxDbStruct();
-        IJdxDbStruct structDiffNewIn1 = new JdxDbStruct();
-        IJdxDbStruct structDiffNewIn2 = new JdxDbStruct();
-        return UtDbComparer.getStructDiffTables(struct1, struct2, structEqual, structDiffNewIn1, structDiffNewIn2);
+    public static boolean dbStructIsEqualTables(IJdxDbStruct struct1, IJdxDbStruct struct2) {
+        List<IJdxTable> tablesAdded = new ArrayList<>();
+        List<IJdxTable> tablesRemoved = new ArrayList<>();
+        return UtDbComparer.getStructDiffTables(struct1, struct2, tablesAdded, tablesRemoved);
     }
 
     /**
-     * Вычисляет разницу между двумя структурами БД (таблицы и их поля)
+     * Находит разницу между двумя структурами БД.
+     * Анализирует таблицы и их поля.
      *
-     * @param struct1          первая структура для сравнения
-     * @param struct2          вторая структура для сравнения
-     * @param structCommon     возвращает общие объекты в обеих структурах
-     * @param structDiffNewIn1 возвращает объекты (таблицы и их поля) в первой структуре, которых нет во второй
-     * @param structDiffNewIn2 возвращает объекты во второй структуре, которых нет впервой
-     * @return =true, если структуры БД одинаковые, иначе в structDiff*** возвращается разница
+     * @param struct1    первая структура (новая)
+     * @param struct2    вторая структура (старая)
+     * @param newIn1     возвращает таблицы в первой структуре, которых нет во второй
+     * @param newIn2     возвращает таблицы из второй структуры, которых нет в первой
+     * @param changedIn2 возвращает таблицы, которые отличаются в полях между первой и второй
+     * @return =true, если структуры БД одинаковые, иначе в newIn*** возвращается разница
      */
-    public static boolean getStructDiff(IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct structCommon, IJdxDbStruct structDiffNewIn1, IJdxDbStruct structDiffNewIn2) throws Exception {
-        // сравниваем таблицы из первой базы с таблицами со второй базы
-        for (IJdxTable t1 : struct1.getTables()) {
-            // таблица первой базы - находим такую же таблицу во второй базе
-            IJdxTable t2 = struct2.getTable(t1.getName());
-            // если она существует
-            if (t2 != null) {
-                JdxTable t = null;
-                // поля из первой таблицы ищем во второй таблице
-                for (IJdxField f1 : t1.getFields()) {
-                    IJdxField f2 = t2.getField(f1.getName());
-                    // если поле не существует, создаем новый экземпляр таблицы и добавляем его туда
-                    if (f2 == null) {
-                        if (t == null) {
-                            t = new JdxTable();
-                            t.setName(t1.getName());
-                        }
-                        t.getFields().add(f1);
-                    } else {
-                        // сравниваем характеристики поля
-                        if (!compareField(f1, f2)) {
-                            // если поля разные по свойствам, создаем новый экземпляр таблицы и добавляем его туда
-                            if (t == null) {
-                                t = new JdxTable();
-                                t.setName(t1.getName());
-                            }
-                            t.getFields().add(f1);
-                        }
-                    }
-                }
-                if (t != null) {
-                    structDiffNewIn1.getTables().add(t);
-                } else {
-                    structCommon.getTables().add(t1);
-                }
-            } else {
-                structDiffNewIn1.getTables().add(t1);
-            }
-        }
-
-        // сравниваем таблицы из второй базы с таблицами из первой базы
+    public static boolean getStructDiff(IJdxDbStruct struct1, IJdxDbStruct struct2, List<IJdxTable> newIn1, List<IJdxTable> newIn2, List<IJdxTable> changedIn2) {
+        // Ищем таблицы из второй базы в первой
         for (IJdxTable t2 : struct2.getTables()) {
-            // таблица второй базы - находим такую же таблицу в первой базе
+            // таблица первой базы - находим такую же таблицу во второй базе
             IJdxTable t1 = struct1.getTable(t2.getName());
-            // если она существует
+            //
             if (t1 != null) {
+                // если она существует
                 JdxTable t = null;
-                // поля из второй таблицы ищем в первой таблице
+                // поля из второй таблицы ищем в первой
                 for (IJdxField f2 : t2.getFields()) {
                     IJdxField f1 = t1.getField(f2.getName());
                     // если поле не существует, создаем новый экземпляр таблицы и добавляем его туда
@@ -98,27 +60,50 @@ public class UtDbComparer {
                         t.getFields().add(f2);
                     } else {
                         // сравниваем характеристики поля
-                        if (!compareField(f1, f2)) {
+                        if (!compareField(f2, f1)) {
                             // если поля разные по свойствам, создаем новый экземпляр таблицы и добавляем его туда
                             if (t == null) {
                                 t = new JdxTable();
-                                t.setName(t1.getName());
+                                t.setName(t2.getName());
                             }
-                            t.getFields().add(f1);
+                            t.getFields().add(f2);
                         }
                     }
                 }
-                if (t != null) {
-                    structDiffNewIn2.getTables().add(t);
+                // поля из первой таблицы ищем во второй
+                for (IJdxField f1 : t1.getFields()) {
+                    IJdxField f2 = t2.getField(f1.getName());
+                    // если поле не существует, создаем новый экземпляр таблицы и добавляем его туда
+                    if (f2 == null) {
+                        if (t == null) {
+                            t = new JdxTable();
+                            t.setName(t2.getName());
+                        }
+                        t.getFields().add(f1);
+                    }
                 }
-
+                // Найдена разница в полях - добавляем
+                if (t != null) {
+                    changedIn2.add(t);
+                }
             } else {
-                structDiffNewIn2.getTables().add(t2);
+                // если таблица НЕ существует во второй
+                newIn1.add(t2);
+            }
+        }
+
+        // Ищем таблицы из первой базы во второй
+        for (IJdxTable t1 : struct1.getTables()) {
+            // таблица первой базы - находим такую же таблицу во второй базе
+            IJdxTable t2 = struct2.getTable(t1.getName());
+            // если она не существует
+            if (t2 == null) {
+                newIn2.add(t1);
             }
         }
 
         // если структуры обеих баз не отличаются возвращаем true
-        if (structDiffNewIn1.getTables().size() == 0 && structDiffNewIn2.getTables().size() == 0) {
+        if (newIn1.size() == 0 && newIn2.size() == 0) {
             return true;
         } else {
             return false;
@@ -126,40 +111,42 @@ public class UtDbComparer {
     }
 
     /**
-     * Вычисляет разницу между двумя структурами БД (только таблицы)
+     * Находит разницу между двумя структурами БД.
+     * Анализирует только таблицы.
      *
-     * @param struct1          первая структура для сравнения
-     * @param struct2          вторая структура для сравнения
-     * @param structEqual      возвращает общие объекты в обеих структурах
-     * @param structDiffNewIn1 возвращает таблицы в первой структуре, которых нет во второй
-     * @param structDiffNewIn2 возвращает таблицы во второй структуре, которых нет впервой
-     * @return =true, если структуры БД одинаковые, иначе в structDiff*** возвращается разница
+     * @param struct1 первая структура (новая)
+     * @param struct2 вторая структура (старая)
+     * @param newIn1  возвращает таблицы в первой структуре, которых нет во второй
+     * @param newIn2  возвращает таблицы из второй структуры, которых нет в первой
+     * @return =true, если структуры БД одинаковые, иначе в newIn*** возвращается разница
      */
-    public static boolean getStructDiffTables(IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct structEqual, IJdxDbStruct structDiffNewIn1, IJdxDbStruct structDiffNewIn2) throws Exception {
-        // сравниваем таблицы из первой базы с таблицами со второй базы
-        for (IJdxTable t1 : struct1.getTables()) {
-            // таблица первой базы - находим такую же таблицу во второй базе
-            IJdxTable t2 = struct2.getTable(t1.getName());
-            //
-            if (t2 == null) {
-                structDiffNewIn1.getTables().add(t1);
-            } else {
-                structEqual.getTables().add(t1);
-            }
-        }
+    public static boolean getStructDiffTables(IJdxDbStruct struct1, IJdxDbStruct struct2, List<IJdxTable> newIn1, List<IJdxTable> newIn2) {
+        IJdxDbStruct structEqual = new JdxDbStruct();
 
-        // сравниваем таблицы из второй базы с таблицами из первой базы
+        // Ищем таблицы из второй базы в первой
         for (IJdxTable t2 : struct2.getTables()) {
-            // таблица второй базы - находим такую же таблицу в первой базе
+            // таблица первой базы - находим такую же таблицу во второй базе
             IJdxTable t1 = struct1.getTable(t2.getName());
             //
             if (t1 == null) {
-                structDiffNewIn2.getTables().add(t2);
+                newIn1.add(t2);
+            } else {
+                structEqual.getTables().add(t2);
+            }
+        }
+
+        // Ищем таблицы из первой базы во второй
+        for (IJdxTable t1 : struct1.getTables()) {
+            // таблица первой базы - находим такую же таблицу во второй базе
+            IJdxTable t2 = struct2.getTable(t1.getName());
+            // если она не существует
+            if (t2 == null) {
+                newIn2.add(t1);
             }
         }
 
         // если структуры обеих баз не отличаются возвращаем true
-        if (structDiffNewIn1.getTables().size() == 0 && structDiffNewIn2.getTables().size() == 0) {
+        if (newIn1.size() == 0 && newIn2.size() == 0) {
             return true;
         } else {
             return false;

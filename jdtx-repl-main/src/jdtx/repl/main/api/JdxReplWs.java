@@ -38,7 +38,7 @@ import java.util.*;
 public class JdxReplWs {
 
     //
-    private long MAX_COMMIT_RECS = 10000;
+    private final long MAX_COMMIT_RECS = 10000;
 
     // Правила публикации
     protected IPublicationRuleStorage publicationIn;
@@ -50,12 +50,19 @@ public class JdxReplWs {
     protected IJdxQue queOut;
 
     //
-    private Db db;
+    private final Db db;
     protected long wsId;
     protected String wsGuid;
+    /**
+     * Рабочая структура БД - только те таблицы, которые мы обрабатываем
+     */
     protected IJdxDbStruct struct;
     protected IJdxDbStruct structAllowed;
     protected IJdxDbStruct structFixed;
+    /**
+     * Полная физическая структура БД
+     */
+    protected IJdxDbStruct structFull;
     protected String databaseInfo;
 
     // Параметры приложения
@@ -71,7 +78,7 @@ public class JdxReplWs {
     public JdxErrorCollector errorCollector = null;
 
     //
-    private static Log log = LogFactory.getLog("jdtx.Workstation");
+    private static final Log log = LogFactory.getLog("jdtx.Workstation");
 
     //
     public JdxReplWs(Db db) throws Exception {
@@ -122,7 +129,7 @@ public class JdxReplWs {
         // Чтение структуры БД
         IJdxDbStructReader structReader = new JdxDbStructReader();
         structReader.setDb(db);
-        IJdxDbStruct structActual = structReader.readDbStruct();
+        structFull = structReader.readDbStruct();
 
         // Чтение конфигурации
         CfgManager cfgManager = new CfgManager(db);
@@ -167,15 +174,14 @@ public class JdxReplWs {
         RefDecodeStrategy.initInstance(cfgDecode);
 
         // Правила публикаций
-        this.publicationIn = PublicationRuleStorage.loadRules(cfgPublications, structActual, "in");
-        this.publicationOut = PublicationRuleStorage.loadRules(cfgPublications, structActual, "out");
+        publicationIn = PublicationRuleStorage.loadRules(cfgPublications, structFull, "in");
+        publicationOut = PublicationRuleStorage.loadRules(cfgPublications, structFull, "out");
 
+        // Формирование рабочей структуры:
+        // убирание того, чего нет ни в одном из правил публикаций publicationIn и publicationOut
+        struct = UtRepl.filterStruct(structFull, cfgPublications);
 
-        // Фильтрация структуры: убирание того, чего нет ни в одном из правил публикаций publicationIn и publicationOut
-        struct = UtRepl.getStructCommon(structActual, this.publicationIn, this.publicationOut);
-
-
-        //
+        // Разрешенные и фиксированные структуры
         DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
         structAllowed = databaseStructManager.getDbStructAllowed();
         structFixed = databaseStructManager.getDbStructFixed();
@@ -224,7 +230,7 @@ public class JdxReplWs {
 
         //
         if (app != null) {
-            res.put("autoUseRepairReplica", UtJdxData.booleanValueOf(app.get("autoUseRepairReplica"), false));
+            res.put("autoUseRepairReplica", UtJdxData.booleanValueOf(app.get("autoUseRepairReplica"), true));
             res.put("skipForeignKeyViolationIns", UtJdxData.booleanValueOf(app.get("skipForeignKeyViolationIns"), false));
             res.put("skipForeignKeyViolationUpd", UtJdxData.booleanValueOf(app.get("skipForeignKeyViolationUpd"), false));
         }
@@ -306,132 +312,27 @@ public class JdxReplWs {
      *
      * @return true, если структуры были обновлены или не требуют обновления.
      */
-    public boolean dbStructApplyForAudit(boolean sendSnapshotForNewTables) throws Exception {
+    public boolean canApplyNewDbStruct(IJdxDbStruct structActual, IJdxDbStruct structAllowed) throws Exception {
+/*
         log.info("dbStructApplyFixed, checking");
 
         // Читаем структуры
-        IJdxDbStruct structActual = struct;
         DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
-        IJdxDbStruct structFixed = databaseStructManager.getDbStructFixed();
+        //IJdxDbStruct structFixed = databaseStructManager.getDbStructFixed();
         IJdxDbStruct structAllowed = databaseStructManager.getDbStructAllowed();
+*/
 
         // Сравниваем
-        IJdxDbStruct structDiffCommon = new JdxDbStruct();
-        IJdxDbStruct structDiffNew = new JdxDbStruct();
-        IJdxDbStruct structDiffRemoved = new JdxDbStruct();
-        //
         boolean equal_Actual_Allowed = UtDbComparer.dbStructIsEqualTables(structActual, structAllowed);
-        boolean equal_Actual_Fixed = UtDbComparer.getStructDiffTables(structActual, structFixed, structDiffCommon, structDiffNew, structDiffRemoved);
-
-        // Нет необходимости в фиксации структуры -
-        // все структуры совпадают (до таблиц)
-        if (equal_Actual_Allowed && equal_Actual_Fixed) {
-            log.info("dbStructApplyFixed, no diff found, Actual == Allowed == Fixed");
-
-            // Для справки/отладки - структуры в файл
-            debugDumpStruct("1.");
-
-            //
-            return true;
-        }
+        //boolean equal_Actual_Fixed = UtDbComparer.dbStructIsEqualTables(structActual, structFixed);
 
         // Нет возможности фиксации структуры -
         // наша реальная не совпадает с разрешенной
         if (!equal_Actual_Allowed) {
             log.warn("dbStructApplyFixed, Actual <> Allowed");
-
-            // Для справки/отладки - структуры в файл
-            debugDumpStruct("2.");
-
             //
             return false;
         }
-
-        // Начинаем фиксацию структуры -
-        // наша реальная совпадает с разрешенной, но отличается от зафиксированной
-        log.info("dbStructApplyFixed, start");
-
-        // Обеспечиваем порядок сортировки таблиц с учетом foreign key (при применении структуры будем делать snapsot, там важен порядок)
-        List<IJdxTable> tablesNew = UtJdx.sortTablesByReference(structDiffNew.getTables());
-
-
-        // Подгоняем структуру аудита под реальную структуру
-        db.startTran();
-        try {
-            //
-            UtDbObjectManager objectManager = new UtDbObjectManager(db);
-
-            //
-            long n;
-
-            // Удаляем аудит для удаленных таблиц
-            List<IJdxTable> tablesRemoved = structDiffRemoved.getTables();
-            n = 0;
-            for (IJdxTable table : tablesRemoved) {
-                n++;
-                log.info("  dropAudit " + n + "/" + tablesRemoved.size() + " " + table.getName());
-                //
-                objectManager.dropAudit(table.getName());
-            }
-
-            // Создаем аудит для новых таблиц
-            n = 0;
-            for (IJdxTable table : tablesNew) {
-                n++;
-                log.info("  createAudit " + n + "/" + tablesNew.size() + " " + table.getName());
-
-                //
-                if (UtRepl.tableSkipRepl(table)) {
-                    log.info("  createAudit, skip not found in tableSkipRepl, table: " + table.getName());
-                    continue;
-                }
-
-                // Создание таблицы аудита
-                objectManager.createAuditTable(table);
-
-                // Создание тригеров
-                objectManager.createAuditTriggers(table);
-            }
-
-            //
-            db.commit();
-        } catch (Exception e) {
-            db.rollback(e);
-            throw e;
-        }
-
-
-        // Делаем выгрузку snapshot, обязательно в ОТДЕЛЬНОЙ транзакции (отдельной от изменения структуры).
-        // В некоторых СУБД (напр. Firebird) изменение структуры происходит ВНУТРИ транзакций,
-        // тогда получится, что пока делается snapshot, аудит не работает.
-        // Таким образом данные, вводимые во время подготовки аудита и snapshot-та, не попадут ни в аудит, ни в snapshot,
-        // т.к. таблица аудита ЕЩЕ не видна другим транзакциям, а данные, продолжающие поступать в snapshot, УЖЕ не видны нашей транзакции.
-        if (sendSnapshotForNewTables) {
-            UtRepl ut = new UtRepl(db, struct);
-            List<IReplica> replicasRes;
-
-            // Делаем выгрузку snapshot (в отдельной транзакции)
-            db.startTran();
-            try {
-                // Параметры (для правил публикации и фильтрации): автор и получатель реплики реплики - wsId
-                replicasRes = ut.createSnapshotForTablesFiltered(tablesNew, wsId, wsId, publicationOut, true);
-
-                //
-                db.commit();
-            } catch (Exception e) {
-                db.rollback(e);
-                throw e;
-            }
-
-            // Отправляем snapshot
-            ut.sendToQue(replicasRes, queOut);
-        } else {
-            log.info("dbStructApplyFixed, snapshot not send");
-        }
-
-
-        //
-        log.info("dbStructApplyFixed, complete");
 
         //
         return true;
@@ -704,6 +605,8 @@ public class JdxReplWs {
      * Реакция на команду - перевод в режим "MUTE"
      */
     private void useReplica_MUTE(IReplica replica) throws Exception {
+        log.info("useReplica_MUTE, self.wsId: " + wsId);
+
         // Узнаем получателя
         JSONObject info;
         InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
@@ -725,7 +628,7 @@ public class JdxReplWs {
             JdxMuteManagerWs muteManager = new JdxMuteManagerWs(db);
             muteManager.muteWorkstation();
 
-            // Выкладывание реплики "Я замолчал"
+            // Отчитаемся - выкладывание реплики "Я замолчал"
             reportReplica(JdxReplicaType.MUTE_DONE);
         }
     }
@@ -734,6 +637,8 @@ public class JdxReplWs {
      * Реакция на команду - отключение режима "MUTE"
      */
     private void useReplica_UNMUTE(IReplica replica) throws Exception {
+        log.info("useReplica_UNMUTE, self.wsId: " + wsId);
+
         // Узнаем получателя
         JSONObject info;
         InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
@@ -752,7 +657,7 @@ public class JdxReplWs {
             JdxMuteManagerWs muteManager = new JdxMuteManagerWs(db);
             muteManager.unmuteWorkstation();
 
-            // Отчитаемся
+            // Отчитаемся - выкладывание реплики "Я перестал молчать"
             reportReplica(JdxReplicaType.UNMUTE_DONE);
         }
     }
@@ -833,15 +738,21 @@ public class JdxReplWs {
 
                 // --- Состояние MUTE
                 JdxMuteManagerWs muteManager = new JdxMuteManagerWs(db);
-                if (wsState.MUTE == 1) {
+                if (wsState.MUTE == JdxMuteManagerWs.STATE_MUTE) {
                     // Последняя обработка собственного аудита
                     handleSelfAudit();
 
                     // Переход в состояние "Я замолчал"
                     muteManager.muteWorkstation();
+
+                    // Отчитаемся - выкладывание реплики "Я замолчал"
+                    reportReplica(JdxReplicaType.MUTE_DONE);
                 } else {
                     // Выход из состояния "Я замолчал"
                     muteManager.unmuteWorkstation();
+
+                    // Отчитаемся - выкладывание реплики "Я перестал молчать"
+                    reportReplica(JdxReplicaType.UNMUTE_DONE);
                 }
 
                 //
@@ -922,10 +833,9 @@ public class JdxReplWs {
      * Реакция на команду - задать "разрешенную" структуру БД
      */
     private void useReplica_SET_DB_STRUCT(IReplica replica, ReplicaUseResult useResult) throws Exception {
-        //
-        DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
+        log.info("useReplica_SET_DB_STRUCT, self.wsId: " + wsId);
 
-        // Узнаем параметры команды: надо ли отправлять snapshot после добавления новых таблиц
+        // В реплике - параметры команды
         JSONObject info;
         InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
         try {
@@ -934,63 +844,133 @@ public class JdxReplWs {
         } finally {
             infoStream.close();
         }
-        boolean sendSnapshot = UtJdxData.booleanValueOf(info.get("sendSnapshot"), true);
+        // Надо ли отправлять snapshot после добавления новых таблиц
+        boolean sendSnapshotForNewTables = UtJdxData.booleanValueOf(info.get("sendSnapshot"), true);
+        //
+        long destinationWsId = UtJdxData.longValueOf(info.get("destinationWsId"));
 
-        // В реплике - новая "разрешенная" структура
-        InputStream stream = JdxReplicaReaderXml.createInputStreamData(replica);
-        try {
-            JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-            IJdxDbStruct structFromReplica = struct_rw.read(stream);
-            // Запоминаем "разрешенную" структуру БД
-            databaseStructManager.setDbStructAllowed(structFromReplica);
-        } finally {
-            stream.close();
-        }
 
-        // Проверяем серьезность измемения структуры,
-        // при необходимости - пересоздаём аудит и выкладываем snapshot в queOut (для добавленных таблиц)
-        if (!dbStructApplyForAudit(sendSnapshot)) {
-            // Если пересоздать аудит не удалось (структуры не обновлены или по иным причинам),
-            // то не метим реплику как использованную
-            log.warn("handleQueIn, dbStructApplyFixed <> true");
-            useResult.replicaUsed = false;
+        // Пришла команда для нашей станции (или всем станциям)?
+        if (destinationWsId == 0 || destinationWsId == wsId) {
+
+            // В реплике - новая "разрешенная" структура
+            IJdxDbStruct structAllowedNew;
+            InputStream stream = JdxReplicaReaderXml.createInputStreamData(replica);
+            try {
+                JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+                structAllowedNew = struct_rw.read(stream);
+            } finally {
+                stream.close();
+            }
+
+            // В реплике - новая конфигурация правил публикации
+            JSONObject cfgPublicationsNew;
+            InputStream cfgStream = JdxReplicaReaderXml.createInputStream(replica, "cfg.publications.json");
+            try {
+                String cfgStr = loadStringFromSream(cfgStream);
+                cfgPublicationsNew = UtRepl.loadAndValidateJsonStr(cfgStr);
+            } finally {
+                cfgStream.close();
+            }
+            //
+            IPublicationRuleStorage publicationInNew = PublicationRuleStorage.loadRules(cfgPublicationsNew, structFull, "in");
+            IPublicationRuleStorage publicationOutNew = PublicationRuleStorage.loadRules(cfgPublicationsNew, structFull, "out");
+
+            // Формирование новой (будущей) рабочей структуры:
+            // убирание того, чего нет ни в одном из правил публикаций publicationInNew и publicationOutNew
+            IJdxDbStruct structNew = UtRepl.getStructCommon(structFull, publicationInNew, publicationOutNew);
+
+            // Устанавливаем "разрешенную" структуру БД
+            DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
+            databaseStructManager.setDbStructAllowed(structAllowedNew);
+
+            // Проверяем возможность фиксации структуры БД
+            // т.е. превращения "разрешенной" в "фиксированную"
+            if (!canApplyNewDbStruct(structNew, structAllowedNew)) {
+                log.warn("useReplica_SET_DB_STRUCT, canApplyNewDbStruct <> true");
+
+                // Для справки/отладки - структуры в файл
+                debugDumpStruct("2.structNew", structNew);
+                debugDumpStruct("2.structAllowedNew", structAllowedNew);
+
+                // Если фиксацию структуры делать нельзя (реальная структура БД не обновлена или по иным причинам),
+                // то НЕ метим реплику как использованную
+                useResult.replicaUsed = false;
+                useResult.doBreak = true;
+
+                return;
+            }
+            // Наша реальная совпадает с разрешенной, но отличается от зафиксированной
+
+            // Начинаем фиксацию структуры
+            log.info("dbStructApplyFixed, start");
+
+            // Определяем разницу между старым и новым составом таблиц, отправляемых со станции на сервер.
+            List<IJdxTable> tablesAdded = new ArrayList<>();
+            List<IJdxTable> tablesRemoved = new ArrayList<>();
+            List<IJdxTable> tablesChanged = new ArrayList<>();
+
+            // Находим разницу между старой и новой структурой
+            UtDbComparer.getStructDiff(structFixed, structAllowedNew, tablesAdded, tablesRemoved, tablesChanged);
+
+            // Находим разницу между старыми и новыми правилами публикации (правило "out" рабочей станции)
+            UtPublicationRule.getPublicationRulesDiff(structAllowedNew, publicationOut, publicationOutNew, tablesAdded, tablesRemoved, tablesChanged);
+
+            // В списках tablesAdded, tablesRemoved, tablesChanged могут встретиться повторения (мы же два раза сравнивали).
+            // Кроме того, Структура structAllowedNew, переданная на сравнение не содержат полной информации,
+            // в частности о первичных ключах, поэтому tablesAdded тоже неполная.
+            // Исправим, т.к. это важно при создании триггеров.
+            tablesAdded = UtJdx.selectTablesByName(tablesAdded, structFull);
+            tablesRemoved = UtJdx.selectTablesByName(tablesRemoved, structFull);
+            tablesChanged = UtJdx.selectTablesByName(tablesChanged, structFull);
+
+            // Выполняем применение изменения структуры:
+            //  - пересоздаём аудит (добавляем для новых и удаляем для удаленных таблиц)
+            //  - выкладываем snapshot в queOut (для добавленных и измененных таблиц)
+            doStructChangesSteps(structNew, publicationOutNew, tablesAdded, tablesRemoved, tablesChanged, sendSnapshotForNewTables);
+
+            // Обновляем конфиг cfg_publications своей рабочей станции
+            CfgManager cfgManager = new CfgManager(db);
+            cfgManager.setSelfCfg(cfgPublicationsNew, CfgType.PUBLICATIONS);
+
+            // Устанавливаем "фиксированную" структуру БД своей рабочей станции
+            databaseStructManager.setDbStructFixed(structAllowedNew);
+
+            // Выкладывание реплики "структура принята"
+            reportReplica(JdxReplicaType.SET_DB_STRUCT_DONE);
+
+            //
+            log.info("dbStructApplyFixed, complete");
+
+
+            // Смена структуры требует переинициализацию репликатора,
+            // поэтому обработка входящих реплик прерывается
             useResult.doBreak = true;
-            return;
         }
-
-        // Запоминаем текущую структуру БД как "фиксированную" структуру
-        databaseStructManager.setDbStructFixed(struct);
-
-        // Выкладывание реплики "структура принята"
-        reportReplica(JdxReplicaType.SET_DB_STRUCT_DONE);
-
-        // Перечитывание собственной structAllowed, structFixed
-        this.structAllowed = databaseStructManager.getDbStructAllowed();
-        this.structFixed = databaseStructManager.getDbStructFixed();
-
     }
 
     /**
      * Реакция на команду - "задать конфигурацию"
      */
-    private void useReplica_SET_DB_CFG(IReplica replica, ReplicaUseResult useResult) throws Exception {
-        // В этой реплике - данные о новой конфигурации
-        JSONObject cfgInfo;
+    private void useReplica_SET_CFG(IReplica replica, ReplicaUseResult useResult) throws Exception {
+        log.info("useReplica_SET_CFG, self.wsId: " + wsId);
+
+        // Параметры команды
+        JSONObject info;
         InputStream cfgInfoStream = JdxReplicaReaderXml.createInputStream(replica, "cfg.info.json");
         try {
             String cfgInfoStr = loadStringFromSream(cfgInfoStream);
-            cfgInfo = UtRepl.loadAndValidateJsonStr(cfgInfoStr);
+            info = UtRepl.loadAndValidateJsonStr(cfgInfoStr);
         } finally {
             cfgInfoStream.close();
         }
-
-        // Данные о новой конфигурации
-        long destinationWsId = UtJdxData.longValueOf(cfgInfo.get("destinationWsId"));
-        String cfgType = (String) cfgInfo.get("cfgType");
+        //
+        long destinationWsId = UtJdxData.longValueOf(info.get("destinationWsId"));
+        String cfgType = (String) info.get("cfgType");
 
         // Пришла конфигурация для нашей станции (или всем станциям)?
         if (destinationWsId == 0 || destinationWsId == wsId) {
-            // В этой реплике - новая конфигурация
+            // В реплике - новая конфигурация
             JSONObject cfg;
             InputStream cfgStream = JdxReplicaReaderXml.createInputStream(replica, "cfg.json");
             try {
@@ -1000,15 +980,97 @@ public class JdxReplWs {
                 cfgStream.close();
             }
 
-            // Обновляем конфиг в своей таблице
+            // Обновляем конфиг своей рабочей станции
             CfgManager cfgManager = new CfgManager(db);
             cfgManager.setSelfCfg(cfg, cfgType);
 
             // Выкладывание реплики "конфигурация принята"
             reportReplica(JdxReplicaType.SET_CFG_DONE);
 
-            // Обновление конфигурации требует переинициализацию репликатора, поэтому обработка входящих реплик прерывается
+
+            // Обновление конфигурации требует переинициализацию репликатора,
+            // поэтому обработка входящих реплик прерывается
             useResult.doBreak = true;
+        }
+    }
+
+    void doStructChangesSteps(IJdxDbStruct struct, IPublicationRuleStorage publicationsOut, List<IJdxTable> tablesAdded, List<IJdxTable> tablesRemoved, List<IJdxTable> tablesChanged, boolean sendSnapshotForNewTables) throws Exception {
+        // Подгоняем структуру аудита под реальную структуру.
+        // В отдельной транзакции
+        doChangeAudit(tablesAdded, tablesRemoved);
+
+        // Делаем выгрузку snapshot.
+        // Обязательно в ОТДЕЛЬНОЙ транзакции (отдельной от изменения структуры).
+        if (sendSnapshotForNewTables) {
+            List<IJdxTable> tables = new ArrayList<>();
+            tables.addAll(tablesAdded);
+            tables.addAll(tablesChanged);
+
+            // Делаем snapshot (и разрешаем чужие id - ведь это не инициализация базы, они у нас точно уже есть)
+            UtRepl ut = new UtRepl(db, struct);
+            List<IReplica> replicasRes = ut.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationsOut, false);
+
+            // Отправляем snapshot
+            ut.sendToQue(replicasRes, queOut);
+        } else {
+            log.info("dbStructApplyFixed, snapshot not send");
+        }
+    }
+
+    /**
+     * Дополнение аудита (создание журналов и триггеров) - удаление для исключенных и добавление для новых таблиц.
+     * В отдельной транзакции.
+     *
+     * @param tablesAdded   Добавленные таблицы
+     * @param tablesRemoved Удаленные таблицы
+     */
+    private void doChangeAudit(List<IJdxTable> tablesAdded, List<IJdxTable> tablesRemoved) throws Exception {
+        // В tables будет соблюден порядок сортировки таблиц с учетом foreign key.
+        // При последующем применении snapsot важен порядок.
+        tablesAdded = UtJdx.sortTablesByReference(tablesAdded);
+
+        // Актуализируем аудит
+        db.startTran();
+        try {
+            //
+            UtDbObjectManager objectManager = new UtDbObjectManager(db);
+
+            //
+            long n;
+
+            // Удаляем аудит для удаленных таблиц
+            n = 0;
+            for (IJdxTable table : tablesRemoved) {
+                n++;
+                log.info("  dropAudit " + n + "/" + tablesRemoved.size() + " " + table.getName());
+                //
+                objectManager.dropAudit(table.getName());
+            }
+
+            // Создаем аудит для новых таблиц
+            n = 0;
+            for (IJdxTable table : tablesAdded) {
+                n++;
+                log.info("  createAudit " + n + "/" + tablesAdded.size() + " " + table.getName());
+
+                //
+                if (UtRepl.tableSkipRepl(table)) {
+                    log.info("  createAudit, tableSkipRepl == true, table: " + table.getName());
+                    continue;
+                }
+
+                // Создание таблицы аудита
+                objectManager.createAuditTable(table);
+
+                // Создание тригеров
+                objectManager.createAuditTriggers(table);
+            }
+
+            //
+            db.commit();
+        } catch (Exception e) {
+            db.rollback(e);
+            throw e;
         }
     }
 
@@ -1070,10 +1132,7 @@ public class JdxReplWs {
         int replicaType = replica.getInfo().getReplicaType();
 
         // Совпадает ли реальная структура БД с разрешенной структурой
-        boolean isEqualStruct_Actual_Allowed = true;
-        if (!UtDbComparer.dbStructIsEqual(struct, structAllowed)) {
-            isEqualStruct_Actual_Allowed = false;
-        }
+        boolean isEqualStruct_Actual_Allowed = UtDbComparer.dbStructIsEqual(struct, structAllowed);
 
 
         // Реальная структура базы НЕ совпадает с разрешенной структурой
@@ -1100,12 +1159,6 @@ public class JdxReplWs {
             //
             throw new XError("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
         }
-
-        // todo: Проверим протокол репликатора, с помощью которого была подготовлена реплика
-        // String protocolVersion = (String) replica.getInfo().getProtocolVersion();
-        // if (protocolVersion.compareToIgnoreCase(REPL_PROTOCOL_VERSION) != 0) {
-        //      throw new XError("mailer.receive, protocolVersion.expected: " + REPL_PROTOCOL_VERSION + ", actual: " + protocolVersion);
-        //}
 
 
         // Режим применения собственных реплик
@@ -1259,7 +1312,7 @@ public class JdxReplWs {
             }
 
             case JdxReplicaType.SET_CFG: {
-                useReplica_SET_DB_CFG(replica, useResult);
+                useReplica_SET_CFG(replica, useResult);
                 break;
             }
 
@@ -1918,7 +1971,7 @@ public class JdxReplWs {
         // Отметим, что проблема обнаружена. После этой отметки ремонт считается НАЧАТЫМ, но НЕ ЗАВЕРШЕННЫМ.
         if (needRepair && !lockFile.exists()) {
             repairLockFileManager.repairLockFileCreate();
-            repairInfoManager.setRequestRepair(repairLockFileManager.repairLockFileGiud());
+            repairInfoManager.setRequestRepair(repairLockFileManager.repairLockFileGuid());
         }
 
         //
@@ -2034,11 +2087,7 @@ public class JdxReplWs {
             IReplica replica = queIn.get(no0);
             //
             if (replica.getInfo().getWsId() == wsId) {
-                if (noQueOutSendSrv > replica.getInfo().getNo()) {
-                    needWait_noQueOutSendSrv = true;
-                } else {
-                    needWait_noQueOutSendSrv = false;
-                }
+                needWait_noQueOutSendSrv = noQueOutSendSrv > replica.getInfo().getNo();
                 break;
             }
 
@@ -2335,12 +2384,13 @@ public class JdxReplWs {
 
     public void wsCreateSnapshot(String tableNames, String outName) throws Exception {
         // Разложим в список
-        List<IJdxTable> tables = UtJdx.stringToTables(tableNames, struct);
+        List<IJdxTable> tables = UtJdx.selectTablesByName(tableNames, struct);
 
-        // Создаем снимок таблицы (разрешаем отсылать чужие записи)
+        // Создаем снимок для таблиц (разрешаем отсылать чужие записи)
         UtRepl ut = new UtRepl(db, struct);
         List<IReplica> replicasRes = ut.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut, false);
 
+        // Отправляем снимки таблиц в файл(ы)
         if (replicasRes.size() == 1) {
             IReplica replica = replicasRes.get(0);
             File resFile = new File(outName);
@@ -2360,16 +2410,28 @@ public class JdxReplWs {
         }
     }
 
+    /**
+     * Отправляет shapshot таблиц в общую очередь queOut
+     *
+     * @param tableNames Список таблиц через запятую
+     */
     public void wsSendSnapshot(String tableNames) throws Exception {
         // Разложим в список
-        List<IJdxTable> tables = UtJdx.stringToTables(tableNames, struct);
+        List<IJdxTable> tables = UtJdx.selectTablesByName(tableNames, struct);
 
-        // Создаем снимок таблицы (разрешаем отсылать чужие записи)
+        // Создаем снимок для таблиц (разрешаем отсылать чужие записи)
         UtRepl ut = new UtRepl(db, struct);
         List<IReplica> replicasRes = ut.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut, false);
 
-        // Отправляем снимок таблицы в очередь queOut
+        // Отправляем снимки таблиц в очередь queOut
         ut.sendToQue(replicasRes, queOut);
+    }
+
+    public void debugDumpStruct(String prefix, IJdxDbStruct struct) throws Exception {
+        prefix = "ws_" + wsId + "-" + prefix;
+        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+        struct_rw.toFile(struct, dataRoot + "temp/" + prefix + ".xml");
+        UtFile.saveString(UtDbComparer.getDbStructCrcTables(struct), new File(dataRoot + "temp/" + prefix + ".crc"));
     }
 
     public void debugDumpStruct(String prefix) throws Exception {
@@ -2377,6 +2439,11 @@ public class JdxReplWs {
         struct_rw.toFile(struct, dataRoot + "temp/" + prefix + "dbStruct.actual.xml");
         struct_rw.toFile(structAllowed, dataRoot + "temp/" + prefix + "dbStruct.allowed.xml");
         struct_rw.toFile(structFixed, dataRoot + "temp/" + prefix + "dbStruct.fixed.xml");
+        struct_rw.toFile(structFull, dataRoot + "temp/" + prefix + "dbStruct.full.xml");
+        UtFile.saveString(UtDbComparer.getDbStructCrcTables(struct), new File(dataRoot + "temp/" + prefix + "dbStruct.actual.crc"));
+        UtFile.saveString(UtDbComparer.getDbStructCrcTables(structAllowed), new File(dataRoot + "temp/" + prefix + "dbStruct.allowed.crc"));
+        UtFile.saveString(UtDbComparer.getDbStructCrcTables(structFixed), new File(dataRoot + "temp/" + prefix + "dbStruct.fixed.crc"));
+        UtFile.saveString(UtDbComparer.getDbStructCrcTables(structFull), new File(dataRoot + "temp/" + prefix + "dbStruct.full.crc"));
     }
 
 }

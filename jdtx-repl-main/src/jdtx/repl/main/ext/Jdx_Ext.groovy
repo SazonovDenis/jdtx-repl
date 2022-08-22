@@ -17,6 +17,7 @@ import jdtx.repl.main.api.que.*
 import jdtx.repl.main.api.repair.*
 import jdtx.repl.main.api.replica.*
 import jdtx.repl.main.api.struct.*
+import jdtx.repl.main.api.util.*
 import jdtx.repl.main.gen.*
 import jdtx.repl.main.service.*
 import org.apache.log4j.*
@@ -196,17 +197,24 @@ class Jdx_Ext extends ProjectExt {
 
     void repl_create(IVariantMap args) {
         long wsId = args.getValueLong("ws")
+        String name = args.getValueString("name")
         String guid = args.getValueString("guid")
-        String cfgFileName = args.getValueString("file")
+        String mailUrl = args.getValueString("mail")
+        //
         if (wsId == 0L) {
             throw new XError("Не указан [ws] - код рабочей станции")
         }
+        //
         if (guid == null || guid.length() == 0) {
-            throw new XError("Не указан [guid] - guid рабочей станции")
+            throw new XError("Не указан [guid] - идентификатор репликационной сети")
         }
-        if (cfgFileName == null || cfgFileName.length() == 0) {
-            throw new XError("Не указан [file] - конфиг-файл для рабочей станции")
+        //
+        if (mailUrl == null || mailUrl.length() == 0) {
+            throw new XError("Не указан [mail] - почтовый сервер")
         }
+        // Начальный конфиг Ws
+        JSONObject cfg = new JSONObject()
+        cfg.put("url", mailUrl)
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -221,16 +229,15 @@ class Jdx_Ext extends ProjectExt {
             dbStructReader.setDb(db)
             IJdxDbStruct struct = dbStructReader.readDbStruct()
 
-            // Создаем базовые объекты
+            // Создаем базовые объекты и рабочую станцию для сервера (wsId = 1)
             UtRepl utRepl = new UtRepl(db, struct)
             utRepl.checkNotOwnId()
             utRepl.dropReplication()
             utRepl.createReplication(wsId, guid)
 
-            // Начальный конфиг Ws
-            JSONObject cfg = UtRepl.loadAndValidateJsonFile(cfgFileName)
-            CfgManager utCfg = new CfgManager(db)
-            utCfg.setSelfCfg(cfg, CfgType.WS)
+            // Записываем начальный конфиг cfg_ws рабочей станции
+            CfgManager cfgManager = new CfgManager(db)
+            cfgManager.setSelfCfg(cfg, CfgType.WS)
 
             // Создаем окружение для рабочей станции
             JdxReplWs ws = new JdxReplWs(db)
@@ -242,6 +249,9 @@ class Jdx_Ext extends ProjectExt {
                 JdxReplSrv srv = new JdxReplSrv(db)
                 srv.init()
                 srv.firstSetup()
+
+                // Добавляем рабочую станцию wsId = 1 на сервер
+                srv.addWorkstation(wsId, name /*, cfgPublications, cfgDecode*/)
             }
         } finally {
             db.disconnect()
@@ -252,23 +262,11 @@ class Jdx_Ext extends ProjectExt {
     void repl_add_ws(IVariantMap args) {
         long wsId = args.getValueLong("ws")
         String name = args.getValueString("name")
-        String guid = args.getValueString("guid")
-        String cfgPublications = args.getValueString("cfg_publications")
-        String cfgDecode = args.getValueString("cfg_decode")
         if (wsId == 0L) {
             throw new XError("Не указан [ws] - код рабочей станции")
         }
         if (name == null || name.length() == 0) {
             throw new XError("Не указано [name] - название рабочей станции")
-        }
-        if (guid == null || guid.length() == 0) {
-            throw new XError("Не указан [guid] - guid рабочей станции")
-        }
-        if (cfgPublications == null || cfgPublications.length() == 0) {
-            throw new XError("Не указан [cfg_publications] - конфиг-файл для publications рабочей станции")
-        }
-        if (cfgDecode == null || cfgDecode.length() == 0) {
-            throw new XError("Не указан [cfg_decode] - конфиг-файл для decode рабочей станции")
         }
 
         // БД
@@ -282,7 +280,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.addWorkstation(wsId, name, guid, cfgPublications, cfgDecode)
+            srv.addWorkstation(wsId, name /*, cfgPublications, cfgDecode*/)
         } finally {
             restoreServiceState(serviceState, db, args)
             db.disconnect()
@@ -292,11 +290,11 @@ class Jdx_Ext extends ProjectExt {
 
     void repl_restore_ws(IVariantMap args) {
         long wsId = args.getValueLong("ws")
-        String cfgSsnapshot = args.getValueString("cfg_snapshot")
+        String cfgSnapshotFileName = args.getValueString("cfg_snapshot")
         if (wsId == 0L) {
             throw new XError("Не указан [ws] - код рабочей станции")
         }
-        if (cfgSsnapshot == null || cfgSsnapshot.length() == 0) {
+        if (cfgSnapshotFileName == null || cfgSnapshotFileName.length() == 0) {
             throw new XError("Не указан [cfg_snapshot] - конфиг-файл для фильтрации snapshot рабочей станции")
         }
 
@@ -310,8 +308,11 @@ class Jdx_Ext extends ProjectExt {
             JdxReplSrv srv = new JdxReplSrv(db)
             srv.init()
 
+            // Узнаем правила для формирования snapshot
+            JSONObject cfgSnapshot = srv.getCfgSnapshot(wsId, cfgSnapshotFileName)
+
             //
-            srv.restoreWorkstation(wsId, cfgSsnapshot)
+            srv.restoreWorkstation(wsId, cfgSnapshot)
         } finally {
             restoreServiceState(serviceState, db, args)
             db.disconnect()
@@ -526,7 +527,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
             IMailer mailer = srv.mailerList.get(wsId)
 
-            // Узнаем giud ремонта
+            // Узнаем guid ремонта
             JdxRepairInfoManager repairInfoManager = new JdxRepairInfoManager(mailer)
             String wsRepairGuid = repairInfoManager.getRepairGuid()
 
@@ -711,7 +712,7 @@ class Jdx_Ext extends ProjectExt {
 
                 for (String box : boxes) {
                     try {
-                            wsMailer.createMailBox(box)
+                        wsMailer.createMailBox(box)
                         System.out.println("wsId: " + wsId + ", box: " + box + " - created ok")
                     } catch (Exception e) {
                         if (!UtJdxErrors.errorIs_BoxAlreadyExists(e)) {
@@ -746,8 +747,17 @@ class Jdx_Ext extends ProjectExt {
 
         UtMail.checkMailServer(mailUrl, guid)
     }
+
+    //\//////////////////////
+    //\//////////////////////
+    //\//////////////////////
+    //\//////////////////////
+    //\//////////////////////
     // todo почему нет команды, чтобы это сделать прямо на рабочей станции (с отчетом на сервер)?
     // todo проверить, чтобы все команды по настройке станции (send***) имели аналог на самой станции (с отчетом на сервер)
+    //\//////////////////////
+    //\//////////////////////
+    //\//////////////////////
     void repl_ws_mute(IVariantMap args) {
         if (args.isValueNull("ws")) {
             throw new XError("Не указан [ws] - код рабочей станции")
@@ -933,7 +943,12 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
-    void repl_set_dbstruct(IVariantMap args) {
+    void repl_set_struct(IVariantMap args) {
+        String cfgFileName = args.getValueString("file")
+        if (cfgFileName == null || cfgFileName.length() == 0) {
+            throw new XError("Не указан [file] - конфиг-файл")
+        }
+
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
@@ -945,7 +960,49 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvSetDbStruct()
+            srv.srvSetDbStruct(cfgFileName, UtQue.SRV_QUE_OUT001)
+
+        } finally {
+            restoreServiceState(serviceState, db, args)
+            db.disconnect()
+        }
+    }
+
+
+    void repl_send_struct(IVariantMap args) {
+        String cfgFileName = args.getValueString("file")
+        if (cfgFileName == null || cfgFileName.length() == 0) {
+            throw new XError("Не указан [file] - конфиг-файл")
+        }
+        //
+        long destinationWsId = args.getValueLong("ws")
+        if (destinationWsId == 0L) {
+            throw new XError("Не указан [ws] - код рабочей станции")
+        }
+        //
+        String queName = args.getValueString("que")
+        if (queName == null || queName.length() == 0) {
+            ///////////////
+            ///////////////
+            ///////////////
+            ///////////////
+            // todo ранее snapshot реплики отправлялись в que001, а она умеет нумеровать
+            // сейчас я пытаюсь отправить в коммон, а она не умеет сама нумеровать (и это правльно) - может отправлять не в common&
+            queName = UtQue.SRV_QUE_OUT001
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
+        try {
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init()
+
+            //
+            srv.srvSetAndSendDbStruct(cfgFileName, destinationWsId, queName)
 
         } finally {
             restoreServiceState(serviceState, db, args)
@@ -964,6 +1021,7 @@ class Jdx_Ext extends ProjectExt {
         if (cfgType == null || cfgType.length() == 0) {
             throw new XError("Не указан [cfg] - вид конфиг-файла")
         }
+        CfgType.validateCfgCode(cfgType)
         //
         long destinationWsId = args.getValueLong("ws")
         if (destinationWsId == 0L) {
@@ -986,7 +1044,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.srvSendCfg(cfgFileName, cfgType, destinationWsId, queName)
+            srv.srvSetAndSendCfg(cfgFileName, cfgType, destinationWsId, queName)
 
         } finally {
             restoreServiceState(serviceState, db, args)
@@ -995,6 +1053,16 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
+    ///////////////////////////////////
+    ///////////////////////////////////
+    ///////////////////////////////////
+    // Обосновать. зачем он нужен
+    ///////////////////////////////////
+    /**
+     * Используется для
+     * 1) задания конфигов серврера при инициализации репликации
+     * 1) задания конфига CfgType.WS и CfgType.DECODE станции при ее инициализации
+     */
     void repl_set_cfg(IVariantMap args) {
         String cfgFileName = args.getValueString("file")
         if (cfgFileName == null || cfgFileName.length() == 0) {
@@ -1005,6 +1073,7 @@ class Jdx_Ext extends ProjectExt {
         if (cfgType == null || cfgType.length() == 0) {
             throw new XError("Не указан [cfg] - вид конфиг-файла")
         }
+        CfgType.validateCfgCode(cfgType)
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -1012,10 +1081,10 @@ class Jdx_Ext extends ProjectExt {
 
         //
         try {
-            // Обновляем конфиг в своей таблице
+            // Обновляем конфиг своей рабочей станции
             JSONObject cfg = UtRepl.loadAndValidateJsonFile(cfgFileName)
-            CfgManager utCfg = new CfgManager(db)
-            utCfg.setSelfCfg(cfg, cfgType)
+            CfgManager cfgManager = new CfgManager(db)
+            cfgManager.setSelfCfg(cfg, cfgType)
 
         } finally {
             db.disconnect()

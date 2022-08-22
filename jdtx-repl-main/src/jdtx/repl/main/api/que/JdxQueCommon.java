@@ -4,6 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.replica.*;
 import org.apache.commons.logging.*;
 
@@ -42,8 +43,8 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
 
     @Override
     public void put(IReplica replica, long no) throws Exception {
-        if (JdxReplicaType.isSysReplica(replica.getInfo().getReplicaType()) && replica.getInfo().getWsId() <= 0) {
-            // Системные реплики могут попасть в QueCommon не через очередь станций, а непосредственно с сервера.
+        if (isServerReplica(replica.getInfo())) {
+            // Реплика, сформированная самим сервером?
             // Для таких реплик сохраняем ФАЙЛ реплики в очереди QueCommon обычным образом.
             super.put(replica, no);
         } else {
@@ -63,13 +64,14 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
         IReplicaInfo replicaInfo = new ReplicaInfo();
         recToReplicaInfo(rec, replicaInfo);
         //
-        if (JdxReplicaType.isSysReplica(replicaInfo.getReplicaType()) && replicaInfo.getWsId() <= 0) {
-            // Системные реплики могут попасть в QueCommon не через очередь станций, а непосредственно с сервера.
+        if (isServerReplica(replicaInfo)) {
+            // Реплика, сформированная самим сервером?
             // Для таких реплик берем ФАЙЛ реплики из очереди QueCommon обычным образом.
             replica = super.get(noQueCommon);
         } else {
-            // Берем реплику из очереди SrvQueIn, узнаем только чья она.
+            // Берем реплику из очереди SrvQueIn, узнаем только, какой рабочй станции она
             IJdxQue srvQueIn = srvQueInList.get(replicaInfo.getWsId());
+            // Реплику берем по её номеру.
             replica = srvQueIn.get(replicaInfo.getNo());
         }
 
@@ -93,7 +95,7 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
                 "crc", replica.getInfo().getCrc(),
                 "replica_type", replica.getInfo().getReplicaType()
         );
-        if (replica.getInfo().getWsId() == 0) {
+        if (isServerReplica(replica.getInfo())) {
             // Из-за требований уникального индекса
             // Z_Z_srv_que_common_idx в таблице Z_Z_srv_que_common (author_ws_id + author_id)
             values.put("author_id", -queNo);
@@ -105,14 +107,28 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
     public void validateReplica(IReplica replica) throws Exception {
         super.validateReplica(replica);
 
+        // Сереверная реплика - не проверяем номера
+        if (isServerReplica(replica.getInfo())) {
+            return;
+        }
+
         //
         long replicaNo = replica.getInfo().getNo();
         long replicaAge = replica.getInfo().getAge();
         long replicaWsId = replica.getInfo().getWsId();
 
-        // Проверки: правильность очередности реплик IDE от рабочей станции wsId - обязательно монотонное возрастание возраста replica.age
+        // Проверки: правильность возраста реплик IDE от рабочей станции wsId - обязательно монотонное возрастание возраста replica.age
         if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE) {
             long queWsMaxAge = getMaxAgeForAuthorWs(replicaWsId);
+            ///////////////////////
+            ///////////////////////
+            ///////////////////////
+            ///////////////////////
+            // вот это условие меня смущает притянцтостью за уши queWsMaxAge != -1
+            ///////////////////////
+            ///////////////////////
+            ///////////////////////
+            ///////////////////////
             if (queWsMaxAge != -1 && replicaAge != queWsMaxAge + 1) {
                 throw new XError("invalid replica.age: " + replicaAge + ", que.age: " + queWsMaxAge + ", replica.wsId: " + replicaWsId + ", que.name: " + queName);
             }
@@ -120,6 +136,16 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
 
         // Проверки: правильность номеров реплик от рабочей станции wsId - обязательно монотонное возрастание номера replica.no
         long queWsMaxNo = getMaxNoForAuthorWs(replicaWsId);
+        ///////////////////////
+        ///////////////////////
+        ///////////////////////
+        ///////////////////////
+        // вот это условие меня смущает притянцтостью за уши: queWsMaxNo != -1
+        // а вот это условие меня смущает лишними зависимостями: replicaWsId == JdxReplSrv.SERVER_WS_ID
+        ///////////////////////
+        ///////////////////////
+        ///////////////////////
+        ///////////////////////
         if (queWsMaxNo != -1 && replicaNo != queWsMaxNo + 1) {
             throw new XError("invalid replica.no: " + replicaNo + ", que.no: " + queWsMaxNo + ", replica.wsId: " + replicaWsId + ", que.name: " + queName);
         }
@@ -151,6 +177,17 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
     /*
      * Утилиты
      */
+
+    /**
+     * Бывают реплики, формируемые самим сервером (а не серверной рабочей станцией),
+     * например, системные реплики, а также snapshot на станции присмене версии БД
+     * попадут в QueCommon не через очередь станций, а непосредственно с сервера.
+     *
+     * @return сформированна ли реплика самим сервером
+     */
+    private boolean isServerReplica(IReplicaInfo replicaInfo) {
+        return replicaInfo.getNo() <= 0 && (replicaInfo.getWsId() <= 0 || replicaInfo.getWsId() == JdxReplSrv.SERVER_WS_ID);
+    }
 
     /**
      * @return Последний возраст (age) реплики в очереди, созданный рабочей станцией wsId

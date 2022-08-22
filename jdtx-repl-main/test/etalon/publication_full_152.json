@@ -2,9 +2,6 @@
   "in": "full",
   "out": "full",
   "full": {
-    "appupdate": {
-      "fields": "*"
-    },
     "billingvarhist": {
       "fields": "*"
     },

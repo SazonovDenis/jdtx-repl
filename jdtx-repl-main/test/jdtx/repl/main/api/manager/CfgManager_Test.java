@@ -75,12 +75,12 @@ public class CfgManager_Test extends ReplDatabaseStruct_Test {
         //
         String cfgFileName = "test/jdtx/repl/main/api/UtCfg_Marker_Test.publications.json";
         long destinationWsId = 2;
-        srv.srvSendCfg(cfgFileName, "cfg_publications", destinationWsId, UtQue.SRV_QUE_COMMON);
+        srv.srvSetAndSendCfg(cfgFileName, "cfg_publications", destinationWsId, UtQue.SRV_QUE_COMMON);
 
         //
         cfgFileName = "test/jdtx/repl/main/api/UtCfg_Marker_Test.decode_strategy.json";
         destinationWsId = 3;
-        srv.srvSendCfg(cfgFileName, "cfg_decode", destinationWsId, UtQue.SRV_QUE_OUT001);
+        srv.srvSetAndSendCfg(cfgFileName, "cfg_decode", destinationWsId, UtQue.SRV_QUE_OUT001);
     }
 
 

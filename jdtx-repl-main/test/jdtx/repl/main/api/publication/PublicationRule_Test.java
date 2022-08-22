@@ -1,6 +1,7 @@
 package jdtx.repl.main.api.publication;
 
 import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.json.simple.*;
 import org.junit.*;
@@ -150,5 +151,49 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
         UtPublicationRule.checkValid(cfgPublicationRulesOut, publicationOut, struct);
     }
 
+
+    @Test
+    public void test_getDiffRules() throws Exception {
+        JSONObject cfgA = UtRepl.loadAndValidateJsonFile("test/jdtx/repl/main/api/publication/publicationA.json");
+        JSONObject cfgB = UtRepl.loadAndValidateJsonFile("test/jdtx/repl/main/api/publication/publicationB.json");
+
+        //
+        IPublicationRuleStorage publicationOutA = PublicationRuleStorage.loadRules(cfgA, struct, "out");
+        IPublicationRuleStorage publicationOutB = PublicationRuleStorage.loadRules(cfgB, struct, "out");
+        IPublicationRuleStorage publicationInA = PublicationRuleStorage.loadRules(cfgA, struct, "in");
+        IPublicationRuleStorage publicationInB = PublicationRuleStorage.loadRules(cfgB, struct, "in");
+
+        List<IJdxTable> tablesAddedOut = new ArrayList<>();
+        List<IJdxTable> tablesRemovedOut = new ArrayList<>();
+        List<IJdxTable> tablesChangedOut = new ArrayList<>();
+        UtPublicationRule.getPublicationRulesDiff(struct, publicationOutA, publicationOutB, tablesAddedOut, tablesRemovedOut, tablesChangedOut);
+
+        List<IJdxTable> tablesAddedIn = new ArrayList<>();
+        List<IJdxTable> tablesRemovedIn = new ArrayList<>();
+        List<IJdxTable> tablesChangedIn = new ArrayList<>();
+        UtPublicationRule.getPublicationRulesDiff(struct, publicationInA, publicationInB, tablesAddedIn, tablesRemovedIn, tablesChangedIn);
+
+        // Печатаем
+        System.out.println("Added in B");
+        for (IJdxTable table : tablesAddedOut) {
+            System.out.println("  " + table.getName());
+        }
+        System.out.println("Removed in B");
+        for (IJdxTable table : tablesRemovedOut) {
+            System.out.println("  " + table.getName());
+        }
+        System.out.println("Changed in B");
+        for (IJdxTable table : tablesChangedOut) {
+            System.out.println("  " + table.getName());
+        }
+
+        assertEquals(1, tablesAddedOut.size());
+        assertEquals(2, tablesRemovedOut.size());
+        assertEquals(1, tablesChangedOut.size());
+        //
+        assertEquals(0, tablesAddedIn.size());
+        assertEquals(0, tablesRemovedIn.size());
+        assertEquals(0, tablesChangedIn.size());
+    }
 
 }

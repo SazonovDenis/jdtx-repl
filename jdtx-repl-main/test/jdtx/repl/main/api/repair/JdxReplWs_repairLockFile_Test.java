@@ -2,7 +2,6 @@ package jdtx.repl.main.api.repair;
 
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.*;
-import jdtx.repl.main.api.repair.*;
 import jdtx.repl.main.api.util.*;
 import org.joda.time.*;
 import org.junit.*;
@@ -35,11 +34,11 @@ public class JdxReplWs_repairLockFile_Test extends DbPrepareEtalon_Test {
 
         //
         System.out.println("repairLockFileRead: " + repairLockFileManager.repairLockFileRead());
-        System.out.println("repairLockFileGiud: " + repairLockFileManager.repairLockFileGiud());
+        System.out.println("repairLockFileGuid: " + repairLockFileManager.repairLockFileGuid());
         assertEquals(true, repairLockFileManager.repairLockFileRead() != null);
-        assertEquals(true, repairLockFileManager.repairLockFileGiud() != null);
+        assertEquals(true, repairLockFileManager.repairLockFileGuid() != null);
         assertEquals(true, repairLockFileManager.repairLockFileRead().contains(new DateTime().toString("YYYY-MM-dd")));
-        assertEquals(true, repairLockFileManager.repairLockFileRead().contains(repairLockFileManager.repairLockFileGiud()));
+        assertEquals(true, repairLockFileManager.repairLockFileRead().contains(repairLockFileManager.repairLockFileGuid()));
 
         //
         try {
@@ -58,9 +57,9 @@ public class JdxReplWs_repairLockFile_Test extends DbPrepareEtalon_Test {
         //
         assertEquals(false, repairLockFileManager.getRepairLockFile().exists());
         System.out.println("repairLockFileRead: " + repairLockFileManager.repairLockFileRead());
-        System.out.println("repairLockFileGiud: " + repairLockFileManager.repairLockFileGiud());
+        System.out.println("repairLockFileGuid: " + repairLockFileManager.repairLockFileGuid());
         assertEquals(true, repairLockFileManager.repairLockFileRead() == null);
-        assertEquals(true, repairLockFileManager.repairLockFileGiud() == null);
+        assertEquals(true, repairLockFileManager.repairLockFileGuid() == null);
     }
 
 

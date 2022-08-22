@@ -1,10 +1,6 @@
 {
   "snapshot": "full_no_usrlog",
   "full_no_usrlog": {
-    "appupdate": {
-      "fields": "*",
-      "filter": "false"
-    },
     "billingvarhist": {
       "fields": "*"
     },

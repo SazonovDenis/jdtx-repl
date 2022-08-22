@@ -3,7 +3,10 @@ package jdtx.repl.main.api.struct;
 import jdtx.repl.main.api.*;
 import org.junit.*;
 
+import java.util.*;
+
 /**
+ *
  */
 public class JdxDbStruct_XmlRW_Test extends ReplDatabaseStruct_Test {
 
@@ -35,19 +38,14 @@ public class JdxDbStruct_XmlRW_Test extends ReplDatabaseStruct_Test {
     @Test
     // проверим совпадение struct, struct2
     public void test_diff() throws Exception {
-        IJdxDbStruct structNoDiff = new JdxDbStruct();
-        IJdxDbStruct structDiff1 = new JdxDbStruct();
-        IJdxDbStruct structDiff2 = new JdxDbStruct();
-        UtDbComparer.getStructDiff(struct, struct2, structNoDiff, structDiff1, structDiff2);
+        List<IJdxTable> tablesAdded = new ArrayList<>();
+        List<IJdxTable> tablesRemoved = new ArrayList<>();
+        List<IJdxTable> tablesChanged = new ArrayList<>();
+        UtDbComparer.getStructDiff(struct, struct2, tablesAdded, tablesRemoved, tablesChanged);
         //
-        System.out.println(structNoDiff.getTables().size());
-        System.out.println(structDiff1.getTables().size());
-        System.out.println(structDiff2.getTables().size());
-        //
-        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-        struct_rw.toFile(structNoDiff, "../_test-data/structNoDiff.xml");
-        struct_rw.toFile(structDiff1, "../_test-data/structDiff1.xml");
-        struct_rw.toFile(structDiff2, "../_test-data/structDiff2.xml");
+        System.out.println("tablesAdded: " + tablesAdded.size());
+        System.out.println("tablesRemoved: " + tablesRemoved.size());
+        System.out.println("tablesChanged: " + tablesChanged.size());
     }
 
 

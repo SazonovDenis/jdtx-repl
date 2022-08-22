@@ -1,5 +1,6 @@
 package jdtx.repl.main.api.publication;
 
+import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
@@ -129,5 +130,39 @@ public class UtPublicationRule {
         }
     }
 
+    /**
+     * Находит разницу между двумя наборами правил
+     *
+     * @param publicationRules1 первая структура для сравнения
+     * @param publicationRules2 вторая структура для сравнения
+     * @param addded            возвращает таблицы во второй структуре (publicationRules2), которых нет в первой (publicationRules1)
+     * @param removed           возвращает таблицы в первой структуре, которых нет во второй
+     * @param changed           возвращает таблицы, которые есть в обеих, но с измененными правилами
+     */
+    public static void getPublicationRulesDiff(IJdxDbStruct struct, IPublicationRuleStorage publicationRules1, IPublicationRuleStorage publicationRules2, List<IJdxTable> addded, List<IJdxTable> removed, List<IJdxTable> changed) {
+        for (IPublicationRule publicationRule2 : publicationRules2.getPublicationRules()) {
+            IPublicationRule publicationRule1 = publicationRules1.getPublicationRule(publicationRule2.getTableName());
+            if (publicationRule1 == null) {
+                // Таблица появилась в новых правилах
+                addded.add(struct.getTable(publicationRule2.getTableName()));
+            }
+        }
+
+        for (IPublicationRule publicationRule2 : publicationRules2.getPublicationRules()) {
+            IPublicationRule publicationRule1 = publicationRules1.getPublicationRule(publicationRule2.getTableName());
+            if (publicationRule1 != null && !UtJdxData.equals(publicationRule1.getFilterExpression(), publicationRule2.getFilterExpression())) {
+                // таблица c измененным expression в новых правилах
+                changed.add(struct.getTable(publicationRule2.getTableName()));
+            }
+        }
+
+        for (IPublicationRule publicationRule1 : publicationRules1.getPublicationRules()) {
+            IPublicationRule publicationRule2 = publicationRules2.getPublicationRule(publicationRule1.getTableName());
+            if (publicationRule2 == null) {
+                // Таблица удалена в новых правилах
+                removed.add(struct.getTable(publicationRule1.getTableName()));
+            }
+        }
+    }
 
 }

@@ -74,7 +74,7 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
                 JdxRepairLockFileManager repairLockFileManager = new JdxRepairLockFileManager(ws.getDataRoot());
                 //
                 String allowedRepairGuid = repairInfoManager.getAllowedRepairGuid();
-                String wsRepairGuid = repairLockFileManager.repairLockFileGiud();
+                String wsRepairGuid = repairLockFileManager.repairLockFileGuid();
                 //
                 if (wsRepairGuid != null && wsRepairGuid.equalsIgnoreCase(allowedRepairGuid)) {
                     logInfo("Получена команда ремонта");
@@ -129,6 +129,16 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
         } catch (Exception e) {
             logError(e);
             collectError("ws.handleQueIn", e);
+        }
+
+
+        //
+        logInfo("Отправляем свои реплики (ответ на входящие)");
+        try {
+            ws.replicasSend();
+        } catch (Exception e) {
+            logError(e);
+            collectError("ws.send", e);
         }
 
 

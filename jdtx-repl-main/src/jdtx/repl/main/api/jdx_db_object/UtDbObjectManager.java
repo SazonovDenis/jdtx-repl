@@ -13,7 +13,7 @@ import java.util.*;
 
 public class UtDbObjectManager {
 
-    public static int CURRENT_VER_DB = 16;
+    public static int CURRENT_VER_DB = 17;
 
     Db db;
 
@@ -173,9 +173,11 @@ public class UtDbObjectManager {
         log.info("Database unlocked: " + db.getDbSource().getDatabase());
     }
 
+    /**
+     * Создает системные структуры и помечает рабочую станцию
+     */
     public void createReplBase(long wsId, String guid) throws Exception {
-        //
-        log.info("Создаем системные структуры, ws_id: " + wsId + ", guid: " + guid);
+        log.info("Создаем системные структуры");
 
         // Базовая структура (системные структуры)
         String sql = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/UtDbObjectManager.sql");
@@ -185,6 +187,7 @@ public class UtDbObjectManager {
         checkReplVerDb();
 
         // Метка с guid БД и номером wsId
+        log.info("Помечаем рабочую станцию, ws_id: " + wsId + ", guid: " + guid);
         sql = "update " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO set ws_id = " + wsId + ", guid = '" + guid + "'";
         db.execSql(sql);
     }
@@ -313,7 +316,7 @@ public class UtDbObjectManager {
             String sql = "CREATE UNIQUE INDEX " + idxName + " ON " + UtJdx.PREFIX + table.getName() + " (Z_ID)";
             db.execSql(sql);
         } catch (Exception e) {
-            if (UtDbErrors.errorIs_GeneratorAlreadyExists(e)) {
+            if (UtDbErrors.errorIs_IndexAlreadyExists(e)) {
                 log.debug("createAuditTableIndex_ID, index already exists, index: " + idxName + ", table: " + table.getName());
             } else {
                 throw e;
@@ -327,7 +330,7 @@ public class UtDbObjectManager {
             String sql = "CREATE INDEX " + idxName + " ON " + UtJdx.PREFIX + table.getName() + " (Z_OPR_DTTM)";
             db.execSql(sql);
         } catch (Exception e) {
-            if (UtDbErrors.errorIs_GeneratorAlreadyExists(e)) {
+            if (UtDbErrors.errorIs_IndexAlreadyExists(e)) {
                 log.warn("createAuditTableIndex_OPR_DTTM, index already exists, index: " + idxName + ", table: " + table.getName());
             } else {
                 throw e;

@@ -84,12 +84,14 @@ public class JdxReplWsSrv_Verdb_Test extends JdxReplWsSrv_Test {
     void doRestore_06() throws Exception {
         disconnectAllForce();
         clearAllTestData();
+
         // Рабочие каталоги
         UtZip.doUnzipDir("test/jdtx/repl/main/api/JdxReplWsSrv_Verdb_Test.06.zip", "../");
+
         // Создаем ящики рабочих станций
         IVariantMap args = new VariantMap();
-        args.put("create", true);
-        assertEquals("Ящики не созданы", true, extSrv.repl_mail_check(args));
+        assertEquals("Ящики не созданы", true, extSrv.repl_mail_create(args));
+
         //
         connectAll();
     }

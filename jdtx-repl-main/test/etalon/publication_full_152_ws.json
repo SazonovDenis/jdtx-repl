@@ -2,9 +2,6 @@
   "in": "full_no_usrlog",
   "out": "full",
   "full": {
-    "appupdate": {
-      "fields": "*"
-    },
     "billingvarhist": {
       "fields": "*"
     },
@@ -217,9 +214,6 @@
     }
   },
   "full_no_usrlog": {
-    "appupdate": {
-      "fields": "*"
-    },
     "billingvarhist": {
       "fields": "*"
     },

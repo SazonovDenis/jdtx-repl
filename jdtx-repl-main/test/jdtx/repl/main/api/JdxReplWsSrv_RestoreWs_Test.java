@@ -30,9 +30,9 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
 
     @Test
     public void test_assertDbEquals_1_2_3() throws Exception {
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
         compareDb(db, db2, equalExpected);
         compareDb(db, db3, equalExpected);
-        do_DumpTables(db, db2, db3, struct, struct2, struct3);
     }
 
     @Test
@@ -214,7 +214,7 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         dirBackupName = backupDirName + "mail" + suffix + ".bak";
         dirBackupFile = new File(dirBackupName);
         //
-        String mailDirName = workDirFile.getParentFile().getParentFile().getParentFile().getCanonicalPath() + "/_lombard.systems_04/";
+        String mailDirName = workDirFile.getParentFile().getParentFile().getParentFile().getCanonicalPath() + "/_data_root/";
         File mailDirFile = new File(mailDirName);
 
         //
@@ -281,7 +281,7 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         dirBackupName = backupDirName + "mail" + suffix + ".bak";
         dirBackupFile = new File(dirBackupName);
         //
-        String mailDirName = workDirFile.getParentFile().getParentFile().getParentFile().getCanonicalPath() + "/_lombard.systems_04/";
+        String mailDirName = workDirFile.getParentFile().getParentFile().getParentFile().getCanonicalPath() + "/_data_root/";
         File mailDirFile = new File(mailDirName);
 
         //

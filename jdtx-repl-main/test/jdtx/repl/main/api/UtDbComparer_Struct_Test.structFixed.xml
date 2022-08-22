@@ -11,6 +11,7 @@
         <field name="ID" size="10" dbdatatype="INTEGER"/>
         <field name="BONDKIND" size="10" dbdatatype="INTEGER"/>
         <field name="BONDFACEVALUE" size="7" dbdatatype="FLOAT"/>
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
     </table>
     <table name="CALC_DATE">
         <field name="ID" size="10" dbdatatype="INTEGER"/>
@@ -147,6 +148,8 @@
         <field name="NAME" size="200" dbdatatype="VARCHAR"/>
         <field name="REGIONTIP" size="10" dbdatatype="INTEGER"/>
         <field name="PARENT" size="10" dbdatatype="INTEGER"/>
+        <field name="DELETED" size="5" dbdatatype="SMALLINT"/>
+        <field name="SHOWINPANEL" size="10" dbdatatype="INTEGER"/>
         <fk name="FK_REGION_PARENT" field="PARENT" table="REGION"
             tablefield="ID"/>
         <fk name="FK_REGION_REGIONTIP" field="REGIONTIP" table="REGIONTIP"

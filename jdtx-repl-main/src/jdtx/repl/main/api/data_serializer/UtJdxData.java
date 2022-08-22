@@ -137,4 +137,17 @@ public class UtJdxData {
         return valueDateTime;
     }
 
+    public static boolean equals(String s1, String s2) {
+        if (s1 == null && s2 != null) {
+            return false;
+        }
+        if (s1 != null && s2 == null) {
+            return false;
+        }
+        if (s1 == null && s2 == null) {
+            return true;
+        }
+
+        return s1.equalsIgnoreCase(s2);
+    }
 }

@@ -12,7 +12,7 @@ import java.util.*;
  */
 public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreWs_Test {
 
-    public boolean doNolmalLifeBromBackup = false;
+    boolean doNolmalLifeBromBackup = false;
 
     /**
      * Проверка при восстановлении устаревшей базы из бэкапа,

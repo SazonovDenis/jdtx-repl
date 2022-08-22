@@ -9,7 +9,7 @@ import java.util.*;
 
 public class JdxRepairInfoManager {
 
-    private final IMailer mailer;
+    private IMailer mailer;
 
     public JdxRepairInfoManager(IMailer mailer) {
         this.mailer = mailer;

@@ -4,6 +4,7 @@ import jdtx.repl.main.api.*;
 import org.junit.*;
 
 /**
+ *
  */
 public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
 
@@ -29,9 +30,9 @@ public class JdxStateManager_Test extends ReplDatabaseStruct_Test {
 
         //
         JdxReplSrv srv = new JdxReplSrv(db);
-        srv.addWorkstation(wsId_1, "srv", "", cfg_json_publication_ws, cfg_json_decode);
-        srv.addWorkstation(wsId_2, "ws 2", "", cfg_json_publication_ws, cfg_json_decode);
-        srv.addWorkstation(wsId_3, "ws 3", "", cfg_json_publication_ws, cfg_json_decode);
+        srv.addWorkstation(wsId_1, "srv" /*, cfg_json_publication_ws, cfg_json_decode*/);
+        srv.addWorkstation(wsId_2, "ws 2" /*, cfg_json_publication_ws, cfg_json_decode*/);
+        srv.addWorkstation(wsId_3, "ws 3" /*, cfg_json_publication_ws, cfg_json_decode*/);
 
         //
         System.out.println("wsId_2: " + wsId_2);

@@ -54,7 +54,7 @@ public class JdxRepairLockFileManager {
         }
     }
 
-    public String repairLockFileGiud() throws Exception {
+    public String repairLockFileGuid() throws Exception {
         File lockFile = getRepairLockFile();
         if (lockFile.exists()) {
             Map lockFileMap = new HashMap();

@@ -110,6 +110,8 @@
               class="jdtx.repl.main.api.jdx_db_object.Update_014_015_que_generators"/>
         <item name="Update_015_016_srv_workstation_state"
               class="jdtx.repl.main.api.jdx_db_object.Update_015_016_srv_workstation_state"/>
+        <item name="Update_016_017_srv_workstation_list"
+              class="jdtx.repl.main.api.jdx_db_object.Update_016_017_srv_workstation_list"/>
 
     </service>
 

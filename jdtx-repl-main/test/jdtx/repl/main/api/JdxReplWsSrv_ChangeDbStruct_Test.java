@@ -15,27 +15,25 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
     String cfg_publications = "test/etalon/publication_struct_152.json";
 
-    private String sqlEnabledIs1 = "select\n" +
+    private String sqlWsList = "select\n" +
             "  WORKSTATION_LIST.ID as WS_ID,\n" +
             "  WORKSTATION_LIST.NAME,\n" +
-            "  WORKSTATION_LIST.GUID\n" +
+            "  WORKSTATION_LIST.GUID,\n" +
+            "  STATE__ENABLED.param_value as ENABLED,\n" +
+            "  STATE__MUTE_AGE.param_value as MUTE_AGE\n" +
             "from\n" +
             "  Z_Z_SRV_WORKSTATION_LIST WORKSTATION_LIST\n" +
             "  left join Z_Z_SRV_WORKSTATION_STATE STATE__ENABLED on (WORKSTATION_LIST.id = STATE__ENABLED.ws_id and STATE__ENABLED.param_name = 'enabled')\n" +
             "  left join Z_Z_SRV_WORKSTATION_STATE STATE__MUTE_AGE on (WORKSTATION_LIST.id = STATE__MUTE_AGE.ws_id and STATE__MUTE_AGE.param_name = 'mute_age')\n" +
             "where\n" +
-            "  STATE__ENABLED.param_value = 1";
-    private String sqlEnabledIs1MuteIs0 = "select\n" +
-            "  WORKSTATION_LIST.ID as WS_ID,\n" +
-            "  WORKSTATION_LIST.NAME,\n" +
-            "  WORKSTATION_LIST.GUID\n" +
-            "from\n" +
-            "  Z_Z_SRV_WORKSTATION_LIST WORKSTATION_LIST\n" +
-            "  left join Z_Z_SRV_WORKSTATION_STATE STATE__ENABLED on (WORKSTATION_LIST.id = STATE__ENABLED.ws_id and STATE__ENABLED.param_name = 'enabled')\n" +
-            "  left join Z_Z_SRV_WORKSTATION_STATE STATE__MUTE_AGE on (WORKSTATION_LIST.id = STATE__MUTE_AGE.ws_id and STATE__MUTE_AGE.param_name = 'mute_age')\n" +
-            "where\n" +
-            "  STATE__ENABLED.param_value = 1 and\n" +
-            "  STATE__MUTE_AGE.param_value = 0";
+            "  1=1\n";
+
+    private String sqlEnabledIs1 = sqlWsList +
+            "  and STATE__ENABLED.param_value = 1";
+
+    private String sqlEnabledIs1MuteIs0 = sqlWsList +
+            "  and STATE__ENABLED.param_value = 1\n" +
+            "  and STATE__MUTE_AGE.param_value = 0";
 
     @Override
     public void setUp() throws Exception {
@@ -111,7 +109,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // ---
         // Завершаем (на сервере) смену версии БД - рассылаем сигнал "всем говорить"
-        doSrvSetDbStruct_Unmute();
+        doSrv_Unmute();
 
         //
         test_ws1_makeChange_Unimportant();
@@ -178,6 +176,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
         // Делаем изменения в структуре БД
         modifyDbStruct_internal(db);
+
+        // Читаем новую структуру БД
         ws1 = new JdxReplWs(db);
         ws1.init();
         IJdxDbStruct structActual_ws1 = ws1.struct;
@@ -185,11 +185,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Устанавливаем "разрешенную" структуру
         databaseStructManager_ws1.setDbStructAllowed(structActual_ws1);
 
-        // Делаем фиксацию структуры
-        assertEquals("Изменения для аудита", true, ws1.dbStructApplyForAudit(true));
-
         // Устанавливаем "фиксированную" структуру
-        databaseStructManager_ws1.setDbStructAllowed(structActual_ws1);
+        databaseStructManager_ws1.setDbStructFixed(structActual_ws1);
 
 
         // ---
@@ -211,7 +208,11 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Получаем входящие реплики
         ws2.replicasReceive();
         // Применяем входящие реплики
-        ws2.handleAllQueIn();
+        try {
+            ws2.handleAllQueIn();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         //
         queInNoDone2 = stateManager_ws2.getQueNoDone("in");
@@ -232,11 +233,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Устанавливаем "разрешенную" структуру
         databaseStructManager_ws2.setDbStructAllowed(structActual_ws2);
 
-        // Делаем фиксацию структуры
-        assertEquals("Изменения для аудита", true, ws2.dbStructApplyForAudit(true));
-
         // Устанавливаем "фиксированную" структуру
-        databaseStructManager_ws2.setDbStructAllowed(structActual_ws2);
+        databaseStructManager_ws2.setDbStructFixed(structActual_ws2);
 
 
         // ---
@@ -299,21 +297,11 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Проверяем, что реплики формировать не удается
         assert_handleSelfAudit(db, false);
 
-        // Пытаемся произвести изменения для аудита
-        ws1 = new JdxReplWs(db);
-        ws1.init();
-        assertEquals("Изменения для аудита", false, ws1.dbStructApplyForAudit(true));
-
         // Устанавливаем "разрешенную" структуру
         databaseStructManager.setDbStructAllowed(structActual);
 
         // Проверяем, что реплики формировать не удается
         assert_handleSelfAudit(db, false);
-
-        // Пытаемся произвести изменения для аудита
-        ws1 = new JdxReplWs(db);
-        ws1.init();
-        assertEquals("Изменения для аудита", true, ws1.dbStructApplyForAudit(true));
 
         // Проверяем, что реплики формировать не удается
         assert_handleSelfAudit(db, false);
@@ -409,7 +397,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ---
-        // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
+        System.out.println("Проверяем на сервере ответ на сигнал - все должны быть MUTE");
         UtData.outTable(db.loadSql(sqlEnabledIs1));
         assertEquals(0, db.loadSql(sqlEnabledIs1MuteIs0).size());
 
@@ -446,6 +434,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         // Завершаем (на сервере) смену версии БД
 
         // На сервере напрямую задаем структуру публикаций (команда repl_set_cfg)
+        // Обновляем конфиг cfg_publications своей "серверной" рабочей станции
         JSONObject cfg = UtRepl.loadAndValidateJsonFile(cfg_publications);
         CfgManager cfgManager = new CfgManager(db);
         cfgManager.setSelfCfg(cfg, CfgType.PUBLICATIONS);
@@ -454,13 +443,23 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init();
 
-        // ... рассылаем на рабочие станции новые правила публикаций (команда repl_send_cfg) ...
-        srv.srvSendCfg(cfg_publications, CfgType.PUBLICATIONS, 0, UtQue.SRV_QUE_COMMON);
+        // ... рассылаем на рабочие станции новые правила публикаций через сигнал "SET_DB_STRUCT"
+        srv.srvSetAndSendDbStruct(cfg_publications, 1, UtQue.SRV_QUE_OUT001);
+        srv.srvSetAndSendDbStruct(cfg_publications, 2, UtQue.SRV_QUE_OUT001);
+        srv.srvSetAndSendDbStruct(cfg_publications, 3, UtQue.SRV_QUE_OUT001);
 
-        // ... Завершаем (на сервере) смену версии БД - рассылаем сигнал "всем говорить"
-        // ... рассылаем сигнал "SET_DB_STRUCT" (команда repl_set_dbstruct)
-        // ... рассылаем сигнал "UNMUTE" (команда repl_unmute)
-        doSrvSetDbStruct_Unmute();
+        // ... Завершаем (на сервере) смену версии БД - рассылаем всем сигнал "UNMUTE"
+        // Эта команда не будет обработана станциями из-за разницы dbStructCrc, пока они не примут структуру.
+        System.out.println("Рассылаем всем сигнал UNMUTE");
+        //srv.srvUnmuteAll();
+        srv.srvSendWsUnmute(1, UtQue.SRV_QUE_OUT001);
+        srv.srvSendWsUnmute(2, UtQue.SRV_QUE_OUT001);
+        srv.srvSendWsUnmute(3, UtQue.SRV_QUE_OUT001);
+
+        // ---
+        System.out.println("Проверяем, что все станции пока молчат");
+        UtData.outTable(db.loadSql(sqlEnabledIs1));
+        assertEquals(0, db.loadSql(sqlEnabledIs1MuteIs0).size());
 
         //
         test_ws1_makeChange_Unimportant();
@@ -471,42 +470,45 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         sync_http_1_2_3();
         sync_http_1_2_3();
 
-        // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
+        //
+        System.out.println("Проверяем на сервере ответ на сигнал - все должны быть MUTE, кроме сервера");
         UtData.outTable(db.loadSql(sqlEnabledIs1));
         // Только сервер изменил структуру и перестал молчать, а станции еще не смогли сделать SET_DB_STRUCT,
         // потому что у них реальная структура не совпадает с разрешенной (не хватает новых таблиц TEST_TABLE_*)
         assertEquals(1, db.loadSql(sqlEnabledIs1MuteIs0).size());
 
-
         // ---
-        // Убеждаемся что рабочие станции молчат (из-из запрета), а сервер нет
+        System.out.println("Убеждаемся что рабочие станции молчат (из-из запрета), а сервер нет");
         assert_handleSelfAudit(db, true);
         assert_handleSelfAudit(db2, false);
         assert_handleSelfAudit(db3, false);
 
 
         // ---
-        // Физически меняем структуру на рабочих станциях ws2 и ws3
+        System.out.println("Физически меняем структуру на рабочих станциях ws2 и ws3");
         modifyDbStruct_internal(db2);
         modifyDbStruct_internal(db3);
-        //reloadStruct_forTest(); // Чтобы тестовые фунции работали с новой структурой
 
 
         // ---
-        // Убеждаемся что рабочие станции молчат (из-за незафиксированности структуры), а сервер нет
+        System.out.println("Убеждаемся что рабочие станции молчат (из-за незафиксированности структуры), а сервер нет");
         assert_handleSelfAudit(db, true);
         assert_handleSelfAudit(db2, false);
         assert_handleSelfAudit(db3, false);
 
 
         // ---
-        // Заставляем станции зафиксировать структуру
+        System.out.println("Даем станции обработать команды с сервера и тем самым заставляем зафиксировать смену структуру БД");
+        System.out.println("Сработает реакция на SET_DB_STRUCT");
+        test_ws2_doReplSession();
+        test_ws3_doReplSession();
+        System.out.println("Сработает реакция на UNMUTE");
         test_ws2_doReplSession();
         test_ws3_doReplSession();
 
-
         // ---
-        // Убеждаемся что все рабочие станции говорят
+        UtData.outTable(db.loadSql(sqlEnabledIs1));
+        System.out.println("Убеждаемся что все рабочие станции говорят");
         assert_handleSelfAudit(db, true);
         assert_handleSelfAudit(db2, true);
         assert_handleSelfAudit(db3, true);
@@ -519,7 +521,8 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
 
 
         // ---
-        // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
+        // Проверяем на сервере ответы на сигнал UNMUTE - проверяем состояние MUTE у станций
+        System.out.println("Проверяем на сервере ответ на сигнал - все должны быть UNMUTE");
         UtData.outTable(db.loadSql(sqlEnabledIs1));
         assertEquals(3, db.loadSql(sqlEnabledIs1MuteIs0).size());
     }
@@ -608,12 +611,9 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         srv.srvMuteAll();
     }
 
-    public void doSrvSetDbStruct_Unmute() throws Exception {
+    public void doSrv_Unmute() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init();
-
-        //
-        srv.srvSetDbStruct();
 
         //
         srv.srvUnmuteAll();

@@ -124,7 +124,7 @@ public class UtMail {
      * Передача списка реплик replicasToSend через mailer в ящик box
      */
     private static void sendReplicasToMail(MailSendTask sendTask, Map<Long, IReplica> replicasToSend, long wsId, IMailer mailer, String box, IJdxMailSendStateManager mailStateManager) throws Exception {
-        log.info("sendReplicasToMail, wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask + ", count: " + replicasToSend.size());
+        log.info("sendReplicasToMail, wsId: " + wsId + ", box: " + box + ", count: " + replicasToSend.size() + ", sendTask: " + sendTask);
 
         // Узнаем, какой номер помечен как отправленный
         long lastNoMailSendMarked = -1;

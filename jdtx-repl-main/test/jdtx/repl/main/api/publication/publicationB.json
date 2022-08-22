@@ -1,20 +1,30 @@
 {
-  "in": "full",
-  "out": "full",
-
-  "some": {
+  "in": "in_full",
+  "out": "out_lic_only",
+  "out_lic_only": {
     "appupdate": {
       "fields": "*"
+    },
+    "commenttext": {
+      "fields": "*,-CommentUsr",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination || RECORD_PawnChit = 0"
+    },
+    "commenttip": {
+      "fields": "id,name,deleted"
+    },
+    "TariffPlanBillingVar": {
+      "fields": "*",
+      "filter": "RECORD_OWNER_ID = PARAM_wsDestination || PARAM_wsAuthor = PARAM_wsDestination"
     },
     "lic": {
       "fields": "*"
     },
-    "licdoctip": {
-      "fields": "*"
-    },
-    "licdocvid": {
-      "fields": "*"
-    },
+
+
+
+
+
+
     "region": {
       "fields": "*"
     },
@@ -26,10 +36,12 @@
     },
     "ulztip": {
       "fields": "*"
+    },
+    "usr": {
+      "fields": "*"
     }
   },
-
-  "full": {
+  "in_full": {
     "appupdate": {
       "fields": "*"
     },
@@ -55,15 +67,6 @@
       "fields": "*"
     },
     "cashsumm": {
-      "fields": "*"
-    },
-    "categoryhist": {
-      "fields": "*"
-    },
-    "categoryprice": {
-      "fields": "*"
-    },
-    "categorysubjectval": {
       "fields": "*"
     },
     "commenttext": {
@@ -201,15 +204,6 @@
     "subjecttippropert": {
       "fields": "*"
     },
-    "smsjournal": {
-      "fields": "*"
-    },
-    "smsinfo": {
-      "fields": "*"
-    },
-    "smstemplate": {
-      "fields": "*"
-    },
     "tariffplan": {
       "fields": "*"
     },
@@ -219,7 +213,10 @@
     "tariffplanpercstavka": {
       "fields": "*"
     },
-    "tariffplanref": {
+    "tariffplanreflic": {
+      "fields": "*"
+    },
+    "tariffplanrefsubjecttip": {
       "fields": "*"
     },
     "tariffplanver": {
