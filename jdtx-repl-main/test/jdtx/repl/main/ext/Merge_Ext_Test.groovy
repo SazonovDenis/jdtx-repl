@@ -101,11 +101,12 @@ class Merge_Ext_Test extends JcTestCase {
         //
         println("db: " + db.getDbSource().getHost() + ":" + db.getDbSource().getDatabase() + "@" + db.getDbSource().getUsername())
 
-        // ov rec-relocate -table:AGENT_TYPE -sour:2 -dest:200
+        // ov rec-relocate -outDir:Z:\jdtx-repl\temp -table:WELL -sour:1000,1001 -dest:3000000000000,3000000000001 >1
         IVariantMap args = new VariantMap()
         args.put("table", "WELL")
-        args.put("sour", 10000)
-        args.put("dest", 1000000)
+        args.put("outDir", "temp")
+        args.put("dest", "1000,1001")
+        args.put("sour", "3000000000000,3000000000001")
 
         //
         // System.out.println("==================")

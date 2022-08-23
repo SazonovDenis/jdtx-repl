@@ -307,10 +307,19 @@ repl_allow_repair = cm("Разрешить рабочей станции ста�
 
 
 //
+rec_relocate_check = cm("Перемещение pk записи - проверка зависимостей",
+    "table": [value: null, help: "Имя таблицы"],
+    "sour": [value: null, help: "Исходные pk"],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
+    ext.rec_relocate_check(args)
+}
+
+//
 rec_relocate = cm("Перемещение pk записи",
     "table": [value: null, help: "Имя таблицы"],
-    "sour": [value: null, help: "Исходный pk"],
-    "dest": [value: null, help: "Конечный pk"],
+    "sour": [value: null, help: "Исходные pk"],
+    "dest": [value: null, help: "Конечные pk"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
     ext.rec_relocate(args)
@@ -323,12 +332,6 @@ rec_relocate_all = cm("Перемещение pk записей, больше о
 ) {
     def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
     ext.rec_relocate_all(args)
-}
-
-//
-rec_relocate_check = cm("Перемещение pk записи - проверка зависимостей") {
-    def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
-    ext.rec_relocate_check(args)
 }
 
 

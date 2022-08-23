@@ -70,11 +70,11 @@ public class UtRecMerger {
                 resultWriter.writeTableItem(new MergeResultTableItem(refTableName, writerMode, refInfo));
 
                 //
-                log.info("Dependence: " + refTableName + "." + refFkFieldName + " --> " + tableName);
+                log.debug("Dependence: " + refTableName + "." + refFkFieldName + " --> " + tableName);
 
                 // Селектим из refTableName по ссылке refFkFieldName, записываем в resultWriter и deletedRecordsInTable
                 String sqlSelect = "select * from " + refTableName + " where " + refFkFieldName + " = :" + refFkFieldName;
-                long n = 0;
+                long countTotal = 0;
                 for (long recordId : records) {
                     // Селектим как есть сейчас
                     Map params = UtCnv.toMap(refFkFieldName, recordId);
@@ -98,19 +98,22 @@ public class UtRecMerger {
                         }
 
                         //
-                        log.info("  ref: " + recordId + ", records: " + count);
+                        log.debug("  ref: " + recordId + ", records: " + count);
                     } finally {
                         query.close();
                     }
 
                     //
-                    n++;
-                    if (n % 1000 == 0) {
-                        log.info("  " + n + " / " + records.size() + ", found: " + deletedRecordsInTable.size());
+                    countTotal++;
+                    if (countTotal % 1000 == 0) {
+                        log.info("  " + countTotal + " / " + records.size() + ", found: " + deletedRecordsInTable.size());
                     }
                 }
             }
         }
+
+        //
+        log.info("Dependences for: " + tableName + " done");
 
         //
         return deletedRecordsInTables;

@@ -269,7 +269,7 @@ class Merge_Ext extends ProjectExt {
             throw new XError("Не указана [table] - имя таблицы")
         }
         if (idSour == 0) {
-            throw new XError("Не указан [sour] - исходный pk")
+            throw new XError("Не указаны [sour] - исходные pk")
         }
         String outFileName = args.getValueString("outFile")
         File outFile
@@ -313,28 +313,27 @@ class Merge_Ext extends ProjectExt {
      */
     void rec_relocate(IVariantMap args) {
         String tableName = args.getValueString("table")
-        long idSour = args.getValueLong("sour")
-        long idDest = args.getValueLong("dest")
         if (tableName == null || tableName.length() == 0) {
             throw new XError("Не указана [table] - имя таблицы")
         }
-        if (idSour == 0) {
-            throw new XError("Не указан [sour] - исходный pk")
+        //
+        String idSourStr = args.getValueString("sour")
+        String idDestStr = args.getValueString("dest")
+        if (idSourStr == null || idSourStr.length() == 0) {
+            throw new XError("Не указаны [sour] - исходные pk")
         }
-        if (idDest == 0) {
-            throw new XError("Не указан [dest] - конечный pk")
+        if (idDestStr == null || idDestStr.length() == 0) {
+            throw new XError("Не указаны [dest] - конечные pk")
         }
-        String outFileName = args.getValueString("outFile")
-        File outFile
-        if (outFileName == null || outFileName.length() == 0) {
-            outFile = new File("relocate_" + tableName + "_" + idSour + "_" + idDest + ".result.zip")
-        } else {
-            outFile = new File(outFileName)
+        String[] idDestArr = idDestStr.split(",")
+        String[] idSourArr = idSourStr.split(",")
+        if (idDestArr.length != idSourArr.length) {
+            throw new XError("Не совпадает количество [sour] и [dest]")
         }
-
-        // Не затирать существующий
-        if (outFile.exists()) {
-            throw new XError("Файл уже существует: " + outFile.getCanonicalPath())
+        //
+        String dirName = args.getValueString("outDir")
+        if (dirName == null || dirName.length() == 0) {
+            throw new XError("Не указан [outDir] - каталог с результатом")
         }
 
         // БД
@@ -350,20 +349,37 @@ class Merge_Ext extends ProjectExt {
             IJdxDbStruct struct = structReader.readDbStruct()
 
             //
-            System.out.println("Record sour:")
-            UtData.outTable(db.loadSql("select * from " + tableName + " where id = " + idSour))
+            String pkFieldName = struct.getTable(tableName).getPrimaryKey().get(0).getName();
+            System.out.println("Records sour:")
+            UtData.outTable(db.loadSql("select * from " + tableName + " where " + pkFieldName + " in (" + idSourStr + ")"))
+
+            //
+            dirName = UtFile.unnormPath(dirName) + "/"
+            UtFile.mkdirs(dirName)
 
             //
             IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain()
             JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer)
-            relocator.relocateId(tableName, idSour, idDest, outFile)
 
             //
-            System.out.println("Record dest:")
-            UtData.outTable(db.loadSql("select * from " + tableName + " where id = " + idDest))
+            for (int i = 0; i < idSourArr.length; i++) {
+                long idSour = Long.valueOf(idSourArr[i])
+                long idDest = Long.valueOf(idDestArr[i])
+
+                //
+                File outFile = new File(dirName + "relocate_" + tableName + "_" + idSour + "_" + idDest + ".result.zip")
+                // Не затирать существующий
+                if (outFile.exists()) {
+                    throw new XError("Файл уже существует: " + outFile.getCanonicalPath())
+                }
+
+                //
+                relocator.relocateId(tableName, idSour, idDest, outFile)
+            }
 
             //
-            System.out.println("Out file: " + outFile.getAbsolutePath())
+            System.out.println("Records dest:")
+            UtData.outTable(db.loadSql("select * from " + tableName + " where " + pkFieldName + " in (" + idDestStr + ")"))
 
         } finally {
             db.disconnect()
