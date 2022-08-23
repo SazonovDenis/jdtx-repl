@@ -318,8 +318,9 @@ rec_relocate_check = cm("Перемещение pk записи - проверк
 //
 rec_relocate = cm("Перемещение pk записи",
     "table": [value: null, help: "Имя таблицы"],
-    "sour": [value: null, help: "Исходные pk"],
-    "dest": [value: null, help: "Конечные pk"],
+    "sour": [value: null, help: "Исходные primary key"],
+    "dest": [value: null, help: "Конечные primary key"],
+    "outDir": [value: null, help: "Каталог с результатом, например -dir:\"d:/temp\""],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
     ext.rec_relocate(args)
