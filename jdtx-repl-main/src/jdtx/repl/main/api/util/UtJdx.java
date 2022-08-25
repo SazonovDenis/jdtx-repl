@@ -1,5 +1,6 @@
 package jdtx.repl.main.api.util;
 
+import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.replica.*;
@@ -464,6 +465,10 @@ public class UtJdx {
         }
 
         return res;
+    }
+
+    public static String getDbInfoStr(Db db) {
+        return db.getDbSource().getDbType() + ":" + db.getDbSource().getHost() + ":" + db.getDbSource().getDatabase() + "@" + db.getDbSource().getUsername();
     }
 
 }

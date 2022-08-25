@@ -12,6 +12,7 @@ import jdtx.repl.main.api.*
 import jdtx.repl.main.api.data_serializer.*
 import jdtx.repl.main.api.rec_merge.*
 import jdtx.repl.main.api.struct.*
+import jdtx.repl.main.api.util.UtJdx
 import org.json.simple.*
 
 /**
@@ -83,7 +84,7 @@ class Merge_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
+        System.out.println("База данных: " + UtJdx.getDbInfoStr(db))
 
         //
         try {
@@ -150,7 +151,7 @@ class Merge_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
+        System.out.println("База данных: " + UtJdx.getDbInfoStr(db))
 
         //
         try {
@@ -204,7 +205,7 @@ class Merge_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
+        System.out.println("База данных: " + UtJdx.getDbInfoStr(db))
 
         //
         try {
@@ -241,7 +242,7 @@ class Merge_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
+        System.out.println("База данных: " + UtJdx.getDbInfoStr(db))
 
         //
         try {
@@ -288,7 +289,7 @@ class Merge_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
+        System.out.println("База данных: " + UtJdx.getDbInfoStr(db))
 
         //
         try {
@@ -340,7 +341,7 @@ class Merge_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
+        System.out.println("База данных: " + UtJdx.getDbInfoStr(db))
 
         //
         try {
@@ -404,7 +405,7 @@ class Merge_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
+        System.out.println("База данных: " + UtJdx.getDbInfoStr(db))
 
         //
         try {

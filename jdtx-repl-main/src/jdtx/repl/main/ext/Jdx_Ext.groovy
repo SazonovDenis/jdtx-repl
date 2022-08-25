@@ -68,7 +68,7 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
 
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
+        System.out.println("База данных: " + UtJdx.getDbInfoStr(db))
 
         //
         db.connect()
@@ -146,7 +146,7 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
 
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
+        System.out.println("База данных: " + UtJdx.getDbInfoStr(db))
 
         //
         db.connect()
@@ -220,7 +220,7 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
         //
-        System.out.println("База данных: " + db.getDbSource().getDatabase())
+        System.out.println("База данных: " + UtJdx.getDbInfoStr(db))
 
         //
         try {
