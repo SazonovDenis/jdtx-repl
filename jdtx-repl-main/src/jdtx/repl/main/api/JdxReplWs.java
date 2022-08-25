@@ -1936,7 +1936,7 @@ public class JdxReplWs {
         }
         if (noQueOutSendMarked != noQueOutSendSrv) {
             // Проверяем ситуацию: помеченное (noQueSendMarked) на 1 письмо меньше отправленного (noQueOutSendSrv)
-            if (!UtMail.wasRepairedSendMarked(noQueOutSendMarked, noQueOutSendSrv, queOut, mailer, "from", mailStateManager)) {
+            if (!UtMail.checkQueSendMarked(noQueOutSendMarked, noQueOutSendSrv, queOut, mailer, "from", mailStateManager)) {
                 log.warn("Need repair: QueOut.SendMarked != QueOut.SendSrv, noQueOutSendMarked: " + noQueOutSendMarked + ", noQueOutSendSrv: " + noQueOutSendSrv);
                 needRepair = true;
             }
