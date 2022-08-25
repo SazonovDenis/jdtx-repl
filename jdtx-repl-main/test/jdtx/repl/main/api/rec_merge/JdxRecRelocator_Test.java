@@ -6,6 +6,7 @@ import jandcode.dbm.db.*;
 import jandcode.dbm.test.*;
 import jandcode.jc.*;
 import jandcode.jc.test.*;
+import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.struct.*;
@@ -13,6 +14,7 @@ import jdtx.repl.main.ext.*;
 import org.junit.*;
 
 import java.io.*;
+import java.util.*;
 
 public class JdxRecRelocator_Test extends DbmTestCase {
 
@@ -104,6 +106,10 @@ public class JdxRecRelocator_Test extends DbmTestCase {
 
     @Test
     public void test_fail() throws Exception {
+        String tempDirName = "temp/relocate/";
+        UtFile.cleanDir(tempDirName);
+
+        //
         IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain();
         JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer);
 
@@ -121,11 +127,11 @@ public class JdxRecRelocator_Test extends DbmTestCase {
         //
         long idSour = 9998;
         long idDest = 9999;
-        File outFile = new File("temp/relocate_Lic_" + idSour + "_" + idDest + ".zip");
+        File outFile = new File(tempDirName + "relocate_Lic_" + idSour + "_" + idDest + ".zip");
         try {
             relocator.relocateId("Lic", idSour, idDest, outFile);
         } catch (Exception e) {
-            if (e.getMessage().compareToIgnoreCase("Error relocateId: idSour not found") != 0) {
+            if (!e.getMessage().contains("Error relocateId: sour id not found:")) {
                 throw e;
             }
         }
@@ -137,7 +143,7 @@ public class JdxRecRelocator_Test extends DbmTestCase {
         //
         idSour = id1;
         idDest = id1;
-        outFile = new File("temp/relocate_Lic_" + idSour + "_" + idDest + ".zip");
+        outFile = new File(tempDirName + "relocate_Lic_" + idSour + "_" + idDest + ".zip");
         try {
             relocator.relocateId("Lic", idSour, idDest, outFile);
             throw new XError("Нельзя перемещать в самого себя");
@@ -150,7 +156,7 @@ public class JdxRecRelocator_Test extends DbmTestCase {
         //
         idSour = 0;
         idDest = id1;
-        outFile = new File("temp/relocate_Lic_" + idSour + "_" + idDest + ".zip");
+        outFile = new File(tempDirName + "relocate_Lic_" + idSour + "_" + idDest + ".zip");
         try {
             relocator.relocateId("Lic", idSour, idDest, outFile);
             throw new XError("Нельзя перемещать id = 0");
@@ -164,7 +170,7 @@ public class JdxRecRelocator_Test extends DbmTestCase {
         //
         idSour = id1;
         idDest = 0;
-        outFile = new File("temp/relocate_Lic_" + idSour + "_" + idDest + ".zip");
+        outFile = new File(tempDirName + "relocate_Lic_" + idSour + "_" + idDest + ".zip");
         try {
             relocator.relocateId("Lic", idSour, idDest, outFile);
             throw new XError("Нельзя перемещать id = 0");
@@ -181,12 +187,12 @@ public class JdxRecRelocator_Test extends DbmTestCase {
         //
         idSour = id1;
         idDest = id2;
-        outFile = new File("temp/relocate_Lic_" + idSour + "_" + idDest + ".zip");
+        outFile = new File(tempDirName + "relocate_Lic_" + idSour + "_" + idDest + ".zip");
         try {
             relocator.relocateId("Lic", idSour, idDest, outFile);
             throw new XError("Нельзя перемещать в занятую");
         } catch (Exception e) {
-            if (!e.getMessage().contains("violation of PRIMARY or UNIQUE KEY constraint")) {
+            if (!e.getMessage().contains("Error relocateId: dest id already exists:")) {
                 throw e;
             }
         }
@@ -198,42 +204,98 @@ public class JdxRecRelocator_Test extends DbmTestCase {
 
 
     @Test
-    public void test_relocate_all() throws Exception {
+    public void test_relocate_range() throws Exception {
         String tableNames = "Lic,LicDocTip,LicDocVid,Ulz,UlzTip,Region,RegionTip";
+        //String tableNames = "LicDocTip,LicDocVid";
         String[] tableNamesArr = tableNames.split(",");
         //
-        int maxPkValue = 100000000;
+        long minPkValue = 1000000;
+        long maxPkValue = 100000000000L;
+        long normalPkValue = 1000;
+        //
+        String tempDirName = "temp/relocate/";
+        UtFile.cleanDir(tempDirName);
+
+        //
         IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain();
         JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer);
 
 
+        //
+        System.out.println("===========================");
+        System.out.println("До переноса:");
+        for (String tableName : tableNamesArr) {
+            String sql = "select * from " + tableName + " order by id desc";
+            DataStore st = db.loadSql(sql);
+            UtData.outTable(st, 3);
+        }
+
+
         // Создадим себе проблему
+        System.out.println();
+        System.out.println("===========================");
+        System.out.println("Перенесем некоторые записи на id > " + minPkValue);
         for (String tableName : tableNamesArr) {
             long idSour = db.loadSql("select min(id) id from " + tableName + " where id <> 0").getCurRec().getValueLong("id");
-            long idDest = maxPkValue + idSour * 2;
-            relocator.relocateId(tableName, idSour, idDest, new File("temp/1.zip"));
+            long idDest = minPkValue + idSour;
+            relocator.relocateId(tableName, idSour, idDest, new File(tempDirName + "1.zip"));
         }
         //
         for (String tableName : tableNamesArr) {
             String sql = "select * from " + tableName + " order by id desc";
             DataStore st = db.loadSql(sql);
-            UtData.outTable(st, 5);
+            UtData.outTable(st, 3);
         }
 
 
         // Героически ее решим
+        System.out.println();
+        System.out.println("===========================");
+        System.out.println("Вернем записи на id > " + normalPkValue);
         for (String tableName : tableNamesArr) {
-            relocator.relocateIdAll(tableName, maxPkValue, "temp/");
+            List<String> idsSour = new ArrayList<>();
+            List<String> idsDest = new ArrayList<>();
+            long idDestFrom = db.loadSql("select min(id) id from " + tableName + " where id >= " + normalPkValue + " and id <= " + minPkValue).getCurRec().getValueLong("id");
+            if (idDestFrom == 0) {
+                idDestFrom = normalPkValue;
+            }
+            try {
+                relocator.rec_relocate_paramsRange(tableName, minPkValue, maxPkValue, idDestFrom, idsSour, idsDest);
+            } catch (Exception e) {
+                if (!e.getMessage().contains("уже есть записи")) {
+                    throw e;
+                }
+            }
+
+            //
+            idsSour = new ArrayList<>();
+            idsDest = new ArrayList<>();
+            idDestFrom = db.loadSql("select max(id) id from " + tableName + " where id >= " + normalPkValue + " and id <= " + minPkValue).getCurRec().getValueLong("id");
+            if (idDestFrom == 0) {
+                idDestFrom = normalPkValue;
+            }
+            relocator.rec_relocate_paramsRange(tableName, minPkValue, maxPkValue, idDestFrom + 1, idsSour, idsDest);
+
+            //
+            relocator.relocateIdList(tableName, idsSour, idsDest, tempDirName);
         }
 
 
         //
         System.out.println();
+        System.out.println("===========================");
         System.out.println("Стало:");
         for (String tableName : tableNamesArr) {
             String sql = "select * from " + tableName + " order by id desc";
             DataStore st = db.loadSql(sql);
-            UtData.outTable(st, 5);
+            UtData.outTable(st, 3);
+        }
+
+        //
+        for (String tableName : tableNamesArr) {
+            String sql = "select * from " + tableName + " where id >= " + minPkValue + " order by id desc";
+            DataStore st = db.loadSql(sql);
+            assertEquals(0, st.size());
         }
     }
 

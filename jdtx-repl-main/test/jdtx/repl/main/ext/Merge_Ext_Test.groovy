@@ -4,6 +4,7 @@ import jandcode.dbm.*
 import jandcode.dbm.db.*
 import jandcode.jc.*
 import jandcode.jc.test.*
+import jandcode.utils.*
 import jandcode.utils.variant.*
 import jdtx.repl.main.api.struct.*
 import org.junit.*
@@ -11,12 +12,16 @@ import org.junit.*
 class Merge_Ext_Test extends JcTestCase {
 
 
+    Merge_Ext ext
     Merge_Ext ext1
     Merge_Ext ext2
 
     @Override
     void setUp() throws Exception {
         super.setUp()
+
+        ProjectScript project = jc.loadProject("one/project.jc")
+        ext = (Merge_Ext) project.createExt("jdtx.repl.main.ext.Merge_Ext")
 
         ProjectScript project1 = jc.loadProject("srv/project.jc")
         ext1 = (Merge_Ext) project1.createExt("jdtx.repl.main.ext.Merge_Ext")
@@ -48,24 +53,64 @@ class Merge_Ext_Test extends JcTestCase {
 
     @Test
     void relocate() {
-        Db db = ext2.getApp().service(ModelService.class).model.getDb()
+        Db db = ext.getApp().service(ModelService.class).model.getDb()
         db.connect()
+
+        String tempDirName = "temp/relocate/";
+        UtFile.cleanDir(tempDirName);
 
         //
         IVariantMap args = new VariantMap()
         args.put("table", "Lic")
         args.put("sour", 1357)
-        args.put("dest", 7777)
+        args.put("outFile", tempDirName + "relocate_check_Lic_1357.result.zip")
 
         //
-        System.out.println("==================")
         System.out.println("rec_relocate_check")
-        ext2.rec_relocate_check(args)
+        ext.rec_relocate_check(args)
 
         //
-        System.out.println("==================")
         System.out.println("rec_relocate")
-        ext2.rec_relocate(args)
+        args.put("outDir", tempDirName + "temp1")
+        args.put("sour", "1357,1358")
+        args.put("dest", "7777,7778")
+        ext.rec_relocate(args)
+
+        //
+        System.out.println("rec_relocate back")
+        args.put("outDir", tempDirName + "temp2")
+        args.put("sour", "7777,7778")
+        args.put("dest", "1357,1358")
+        ext.rec_relocate(args)
+    }
+
+    @Test
+    void relocate_range() {
+        Db db = ext.getApp().service(ModelService.class).model.getDb()
+        db.connect()
+
+        String tempDirName = "temp/relocate/";
+        UtFile.cleanDir(tempDirName);
+
+        //
+        IVariantMap args = new VariantMap()
+        args.put("table", "Lic")
+
+        //
+        System.out.println("rec_relocate range")
+        args.put("outDir", tempDirName + "temp1")
+        args.put("sourFrom", "1000")
+        args.put("sourTo", "10000")
+        args.put("destFrom", "20000")
+        ext.rec_relocate(args)
+
+        //
+        System.out.println("rec_relocate range back")
+        args.put("outDir", tempDirName + "temp2")
+        args.put("sourFrom", "20000")
+        args.put("sourTo", "99999")
+        args.put("destFrom", "1000")
+        ext.rec_relocate(args)
     }
 
     @Test
@@ -83,13 +128,8 @@ class Merge_Ext_Test extends JcTestCase {
         args.put("dest", 200)
 
         //
-        // System.out.println("==================")
-        // System.out.println("rec_relocate_check")
-        // ext2.rec_relocate_check(args)
-
-        //
-        System.out.println("==================")
         System.out.println("rec_relocate")
+        args.put("outDir", "temp")
         ext2.rec_relocate(args)
     }
 
@@ -101,7 +141,7 @@ class Merge_Ext_Test extends JcTestCase {
         //
         println("db: " + db.getDbSource().getHost() + ":" + db.getDbSource().getDatabase() + "@" + db.getDbSource().getUsername())
 
-        // ov rec-relocate -outDir:Z:\jdtx-repl\temp -table:WELL -sour:1000,1001 -dest:3000000000000,3000000000001 >1
+        // ov rec-relocate -outDir:Z:\jdtx-repl\temp -table:WELL -sour:1000,1001 -dest:3000000000000,3000000000001
         IVariantMap args = new VariantMap()
         args.put("table", "WELL")
         args.put("outDir", "temp")
@@ -109,14 +149,46 @@ class Merge_Ext_Test extends JcTestCase {
         args.put("sour", "3000000000000,3000000000001")
 
         //
-        // System.out.println("==================")
-        // System.out.println("rec_relocate_check")
-        // ext2.rec_relocate_check(args)
-
-        //
-        System.out.println("==================")
         System.out.println("rec_relocate")
         ext2.rec_relocate(args)
+    }
+
+    @Test
+    void relocate_file_TBD_AGENT_TYPE() {
+        Db db = ext.getApp().service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        println("db: " + db.getDbSource().getHost() + ":" + db.getDbSource().getDatabase() + "@" + db.getDbSource().getUsername())
+
+        // ov rec-relocate -outDir:d:\t -table:agent_type -file:D:\t\ids_agent_type.csv
+        IVariantMap args = new VariantMap()
+        args.put("table", "agent_type")
+        args.put("outDir", "d:/t")
+        args.put("file", "D:/t/ids_agent_type.csv")
+
+        //
+        System.out.println("rec_relocate - file")
+        ext.rec_relocate(args)
+    }
+
+    @Test
+    void relocate_file_TBD_WELL() {
+        Db db = ext.getApp().service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        println("db: " + db.getDbSource().getHost() + ":" + db.getDbSource().getDatabase() + "@" + db.getDbSource().getUsername())
+
+        // ov rec-relocate -outDir:d:\t -table:well -file:D:\t\ids_well.csv
+        IVariantMap args = new VariantMap()
+        args.put("table", "well")
+        args.put("outDir", "d:/t")
+        args.put("file", "D:/t/ids_well.csv")
+
+        //
+        System.out.println("rec_relocate - file")
+        ext.rec_relocate(args)
     }
 
     @Test

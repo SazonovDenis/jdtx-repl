@@ -2,7 +2,6 @@ package jdtx.repl.main.ext
 
 import jandcode.app.*
 import jandcode.dbm.*
-import jandcode.dbm.data.*
 import jandcode.dbm.db.*
 import jandcode.jc.*
 import jandcode.utils.*
@@ -12,7 +11,7 @@ import jdtx.repl.main.api.*
 import jdtx.repl.main.api.data_serializer.*
 import jdtx.repl.main.api.rec_merge.*
 import jdtx.repl.main.api.struct.*
-import jdtx.repl.main.api.util.UtJdx
+import jdtx.repl.main.api.util.*
 import org.json.simple.*
 
 /**
@@ -318,24 +317,50 @@ class Merge_Ext extends ProjectExt {
             throw new XError("Не указана [table] - имя таблицы")
         }
         //
+        String resultDirName = args.getValueString("outDir")
+        if (resultDirName == null || resultDirName.length() == 0) {
+            throw new XError("Не указан [outDir] - каталог с результами переноса")
+        }
+
+        //
+        String fileName = args.getValueString("file")
+        //
         String idSourStr = args.getValueString("sour")
         String idDestStr = args.getValueString("dest")
-        if (idSourStr == null || idSourStr.length() == 0) {
-            throw new XError("Не указаны [sour] - исходные pk")
-        }
-        if (idDestStr == null || idDestStr.length() == 0) {
-            throw new XError("Не указаны [dest] - конечные pk")
-        }
-        String[] idDestArr = idDestStr.split(",")
-        String[] idSourArr = idSourStr.split(",")
-        if (idDestArr.length != idSourArr.length) {
-            throw new XError("Не совпадает количество [sour] и [dest]")
-        }
         //
-        String dirName = args.getValueString("outDir")
-        if (dirName == null || dirName.length() == 0) {
-            throw new XError("Не указан [outDir] - каталог с результатом")
+        long idSourFrom = args.getValueLong("sourFrom")
+        long idSourTo = args.getValueLong("sourTo")
+        long idDestFrom = args.getValueLong("destFrom")
+
+        //
+        if (!args.isValueNull("file")) {
+            if (fileName == null || fileName.length() == 0) {
+                throw new XError("Не указан [file] - файл со списком исходных и конечных primary key")
+            }
+
+        } else if (!args.isValueNull("sour")) {
+            if (idSourStr == null || idSourStr.length() == 0) {
+                throw new XError("Не указаны [sour] - исходные primary key")
+            }
+            if (idDestStr == null || idDestStr.length() == 0) {
+                throw new XError("Не указаны [dest] - конечные primary key")
+            }
+
+        } else if (!args.isValueNull("sourFrom")) {
+            if (idSourFrom == 0) {
+                throw new XError("Не указан [sourFrom] - начало диапазона перемещаемых primary key")
+            }
+            if (idSourTo == 0) {
+                throw new XError("Не указан [sourTo] - конец диапазона перемещаемых primary key")
+            }
+            if (idDestFrom == 0) {
+                throw new XError("Не указан [destFrom] - начальный primary key, куда будут перенесены записи")
+            }
+
+        } else {
+            throw new XError("Не указаны диапазоны primary key. Укажите либо file, либо sour + dest, либо sourFrom + sourTo + destFrom")
         }
+
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -345,80 +370,36 @@ class Merge_Ext extends ProjectExt {
 
         //
         try {
+            resultDirName = UtFile.unnormPath(resultDirName) + "/"
+            UtFile.mkdirs(resultDirName)
+
+            //
             IJdxDbStructReader structReader = new JdxDbStructReader()
             structReader.setDb(db)
             IJdxDbStruct struct = structReader.readDbStruct()
-
             //
-            String pkFieldName = struct.getTable(tableName).getPrimaryKey().get(0).getName();
-            System.out.println("Records sour:")
-            UtData.outTable(db.loadSql("select * from " + tableName + " where " + pkFieldName + " in (" + idSourStr + ")"))
-
-            //
-            dirName = UtFile.unnormPath(dirName) + "/"
-            UtFile.mkdirs(dirName)
+            System.out.println("Таблиц в базе: " + struct.getTables().size())
 
             //
             IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain()
             JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer)
 
             //
-            for (int i = 0; i < idSourArr.length; i++) {
-                long idSour = Long.valueOf(idSourArr[i])
-                long idDest = Long.valueOf(idDestArr[i])
+            List<String> idsSour = new ArrayList<>()
+            List<String> idsDest = new ArrayList<>()
+            if (!args.isValueNull("file")) {
+                relocator.rec_relocate_paramsFile(fileName, idsSour, idsDest)
 
-                //
-                File outFile = new File(dirName + "relocate_" + tableName + "_" + idSour + "_" + idDest + ".result.zip")
-                // Не затирать существующий
-                if (outFile.exists()) {
-                    throw new XError("Файл уже существует: " + outFile.getCanonicalPath())
-                }
+            } else if (!args.isValueNull("sour")) {
+                relocator.rec_relocate_paramsStr(idSourStr, idDestStr, idsSour, idsDest)
 
-                //
-                relocator.relocateId(tableName, idSour, idDest, outFile)
+            } else if (!args.isValueNull("sourFrom")) {
+                relocator.rec_relocate_paramsRange(tableName, idSourFrom, idSourTo, idDestFrom, idsSour, idsDest)
             }
 
             //
-            System.out.println("Records dest:")
-            UtData.outTable(db.loadSql("select * from " + tableName + " where " + pkFieldName + " in (" + idDestStr + ")"))
+            relocator.relocateIdList(tableName, idsSour, idsDest, resultDirName)
 
-        } finally {
-            db.disconnect()
-        }
-    }
-
-    void rec_relocate_all(IVariantMap args) {
-        String tableName = args.getValueString("table")
-        long idSour = args.getValueLong("sour")
-        String dirName = args.getValueString("outDir")
-        if (tableName == null || tableName.length() == 0) {
-            throw new XError("Не указана [table] - имя таблицы")
-        }
-        if (idSour == 0) {
-            throw new XError("Не указан [sour] - значение pk, выше которого нужно перемещать запись")
-        }
-        if (dirName == null || dirName.length() == 0) {
-            throw new XError("Не указан [outDir] - каталог с результатом")
-        }
-
-        // БД
-        Db db = app.service(ModelService.class).model.getDb()
-        db.connect()
-        //
-        System.out.println("База данных: " + UtJdx.getDbInfoStr(db))
-
-        //
-        try {
-            IJdxDbStructReader structReader = new JdxDbStructReader()
-            structReader.setDb(db)
-            IJdxDbStruct struct = structReader.readDbStruct()
-
-            //
-            IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain()
-            JdxRecRelocator relocator = new JdxRecRelocator(db, struct, dataSerializer)
-            dirName = UtFile.unnormPath(dirName) + "/"
-            UtFile.mkdirs(dirName)
-            relocator.relocateIdAll(tableName, idSour, dirName)
         } finally {
             db.disconnect()
         }
