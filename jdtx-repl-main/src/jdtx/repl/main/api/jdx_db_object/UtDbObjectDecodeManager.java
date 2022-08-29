@@ -1,7 +1,10 @@
 package jdtx.repl.main.api.jdx_db_object;
 
 import jandcode.dbm.db.*;
-import jandcode.utils.*;
+import jandcode.web.*;
+import jdtx.repl.main.api.util.*;
+
+import java.util.*;
 
 public class UtDbObjectDecodeManager {
 
@@ -11,14 +14,21 @@ public class UtDbObjectDecodeManager {
         this.db = db;
     }
 
-    public void createRefDecodeObject() throws Exception {
-        String sql = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/UtDbObjectDecodeManager.sql");
-        UtDbObjectManager.execScript(sql, db);
+    public void createDbObject() throws Exception {
+        //String sql = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/UtDbObjectDecodeManager.sql");
+        OutBuilder builder = new OutBuilder(db.getApp());
+        Map args = new HashMap();
+        args.put("SYS_TABLE_PREFIX", UtJdx.SYS_TABLE_PREFIX);
+        args.put("SYS_GEN_PREFIX", UtJdx.SYS_GEN_PREFIX);
+        builder.outTml("res:jdtx/repl/main/api/jdx_db_object/UtDbObjectDecodeManager.oracle.sql", args, null);
+        String sql = builder.toString();
+        JdxDbUtils.execScript(sql, db);
     }
 
-    public void dropRefDecodeObject() throws Exception {
+    public void dropDbObject() throws Exception {
         String[] jdx_sys_tables = new String[]{"decode"};
-        UtDbObjectManager.dropSysTables(jdx_sys_tables, db);
+        UtDbObjectManager dbObjectManager = (UtDbObjectManager) UtDbObjectManager.createInst(db);
+        dbObjectManager.dropSysTables(jdx_sys_tables);
     }
 
 }

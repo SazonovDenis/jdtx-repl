@@ -20,9 +20,9 @@ public class SrvWorkstationStateManager_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_verdb() throws Exception {
-        UtDbObjectManager objectManager = new UtDbObjectManager(db);
+        UtDbObjectManager objectManager = (UtDbObjectManager) UtDbObjectManager.createInst(db);
         objectManager.CURRENT_VER_DB = 16;
-        objectManager.checkReplVerDb();
+        objectManager.checkVerDb();
     }
 
     @Test
@@ -35,7 +35,7 @@ public class SrvWorkstationStateManager_Test extends ReplDatabaseStruct_Test {
     public void test_setValues() throws Exception {
         SrvWorkstationStateManager manager = new SrvWorkstationStateManager(db);
 
-        String[] param_names = UtDbObjectManager.param_names;
+        String[] param_names = JdxReplSrv.ws_param_names;
 
         // Читаем сейчас
         Map<String, Long> values = new HashMap<>();

@@ -27,7 +27,6 @@ public class UtAuditApplyer {
     private long wsId;
     public JdxReplWs jdxReplWs;
 
-
     //
     protected static Log log = LogFactory.getLog("jdtx.AuditApplyer");
 
@@ -101,6 +100,7 @@ public class UtAuditApplyer {
 
         //
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
+        IUtDbErrors dbErrors = UtDbErrors.getInst(db);
 
         //
         AuditDbTriggersManager triggersManager = new AuditDbTriggersManager(db);
@@ -246,9 +246,9 @@ public class UtAuditApplyer {
                             } else {
                                 try {
                                     //
-                                    insertOrUpdate(dbu, tableName, recParams, publicationFields);
+                                    dbu.insertOrUpdate(tableName, recParams, publicationFields);
                                 } catch (Exception e) {
-                                    if (UtDbErrors.errorIs_ForeignKeyViolation(e)) {
+                                    if (dbErrors.errorIs_ForeignKeyViolation(e)) {
                                         JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
                                         ee.tableName = tableName;
                                         ee.oprType = oprType;
@@ -282,7 +282,7 @@ public class UtAuditApplyer {
                                 try {
                                     dbu.updateRec(tableName, recParams, publicationFields, null);
                                 } catch (Exception e) {
-                                    if (UtDbErrors.errorIs_ForeignKeyViolation(e)) {
+                                    if (dbErrors.errorIs_ForeignKeyViolation(e)) {
                                         JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
                                         ee.tableName = tableName;
                                         ee.oprType = oprType;
@@ -367,7 +367,7 @@ public class UtAuditApplyer {
                         dbu.deleteRec(tableName, recId);
                         count = count + 1;
                     } catch (Exception e) {
-                        if (UtDbErrors.errorIs_ForeignKeyViolation(e)) {
+                        if (dbErrors.errorIs_ForeignKeyViolation(e)) {
                             // Пропустим реплику, а ниже - выдадим в исходящую очередь наш вариант удаляемой записи
                             log.info("  table: " + tableName + ", fail to delete: " + failedDeleteList.size());
                             failedDeleteList.add(recId);
@@ -427,23 +427,6 @@ public class UtAuditApplyer {
             throw e;
         }
 
-    }
-
-
-    public static Long insertOrUpdate(JdxDbUtils dbu, String tableName, Map<String, Object> recParams, String publicationFields) throws Exception {
-        Long id = null;
-
-        try {
-            id = dbu.insertRec(tableName, recParams, publicationFields, null);
-        } catch (Exception e) {
-            if (UtDbErrors.errorIs_PrimaryKeyError(e)) {
-                dbu.updateRec(tableName, recParams, publicationFields, null);
-            } else {
-                throw e;
-            }
-        }
-
-        return id;
     }
 
     public static int getDataType(String dbDatatypeName) {

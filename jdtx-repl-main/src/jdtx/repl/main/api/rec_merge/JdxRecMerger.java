@@ -192,7 +192,7 @@ public class JdxRecMerger implements IJdxRecMerger {
                 dataSerializer.setTable(table, tableFieldNamesStr);
                 Map<String, Object> values = dataSerializer.prepareValues(mergePlan.recordEtalon);
                 //
-                Long insertedRecId = UtAuditApplyer.insertOrUpdate(dbu, mergePlan.tableName, values, tableFieldNamesStr);
+                Long insertedRecId = dbu.insertOrUpdate(mergePlan.tableName, values, tableFieldNamesStr);
                 //
                 Long etalonRecId = (Long) values.get(pkFieldName);
                 if (etalonRecId == null) {
@@ -318,7 +318,7 @@ public class JdxRecMerger implements IJdxRecMerger {
             try {
                 db.execSql(sql, recValues);
             } catch (Exception e) {
-                if (!UtDbErrors.errorIs_PrimaryKeyError(e)) {
+                if (!UtDbErrors.getInst(db).errorIs_PrimaryKeyError(e)) {
                     log.error(e.getMessage());
                     log.error("table: " + table.getName());
                     log.error("oprType: " + tableOperation);

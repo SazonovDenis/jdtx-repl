@@ -16,7 +16,7 @@ public class Update_005_006_index implements ISqlScriptExecutor {
             db.execSql("CREATE UNIQUE INDEX Z_Z_age_idx ON Z_Z_age (age, table_name)");
             log.info("CREATE INDEX Z_Z_age_idx");
         } catch (Exception e) {
-            if (UtDbErrors.errorIs_IndexAlreadyExists(e)) {
+            if (UtDbErrors.getInst(db).errorIs_IndexAlreadyExists(e)) {
                 log.warn("CREATE INDEX Z_Z_age_idx, error: " + e.getMessage().replace("\n", " ").replace("~", ""));
             } else {
                 throw e;
@@ -29,7 +29,7 @@ public class Update_005_006_index implements ISqlScriptExecutor {
         IJdxDbStruct struct = dbStructReader.readDbStruct();
 
         //
-        UtDbObjectManager objectManager = new UtDbObjectManager(db);
+        UtDbObjectManager objectManager = (UtDbObjectManager) UtDbObjectManager.createInst(db);
 
         //
         for (IJdxTable table : struct.getTables()) {
@@ -39,7 +39,7 @@ public class Update_005_006_index implements ISqlScriptExecutor {
             } catch (Exception e) {
                 if (UtJdxErrors.collectExceptionText(e).contains("Unknown columns in index")) {
                     log.debug("createAuditTableIndex_ID, table: " + table.getName() + ", message: " + e.getMessage().replace("\n", " ").replace("~", ""));
-                } else if (UtDbErrors.errorIs_IndexAlreadyExists(e)) {
+                } else if (UtDbErrors.getInst(db).errorIs_IndexAlreadyExists(e)) {
                     log.debug("createAuditTableIndex_ID, table: " + table.getName() + ", IndexAlreadyExists, message: " + e.getMessage().replace("\n", " ").replace("~", ""));
                 } else {
                     throw e;

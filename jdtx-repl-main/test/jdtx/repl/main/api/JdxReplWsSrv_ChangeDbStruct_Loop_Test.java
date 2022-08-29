@@ -2,6 +2,7 @@ package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.util.*;
 import jdtx.repl.main.ut.*;
 import org.junit.*;
 
@@ -21,7 +22,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Loop_Test extends JdxReplWsSrv_ChangeDb
             try {
                 // =======================================
                 // Проверяем, что никто не молчит
-                DataStore st = db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1");
+                DataStore st = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE where enabled = 1");
                 int muteCount = 0;
                 int noMuteCount = 0;
                 for (DataRecord rec : st) {
@@ -44,7 +45,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Loop_Test extends JdxReplWsSrv_ChangeDb
                 doSrvMuteAll();
 
                 //
-                UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+                UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE where enabled = 1"));
 
 
                 // =======================================
@@ -54,7 +55,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Loop_Test extends JdxReplWsSrv_ChangeDb
                     TimeUnit.SECONDS.sleep(waitInterval_SECONDS_short);
 
                     // Проверяем
-                    st = db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1");
+                    st = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE where enabled = 1");
                     muteCount = 0;
                     noMuteCount = 0;
                     for (DataRecord rec : st) {
@@ -97,7 +98,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Loop_Test extends JdxReplWsSrv_ChangeDb
                 doSrv_Unmute();
 
                 //
-                UtData.outTable(db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1"));
+                UtData.outTable(db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE where enabled = 1"));
 
 
                 // =======================================
@@ -107,7 +108,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Loop_Test extends JdxReplWsSrv_ChangeDb
                     TimeUnit.SECONDS.sleep(waitInterval_SECONDS_short);
 
                     // Проверяем
-                    st = db.loadSql("select * from Z_Z_SRV_WORKSTATION_STATE where enabled = 1");
+                    st = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE where enabled = 1");
                     muteCount = 0;
                     noMuteCount = 0;
                     for (DataRecord rec : st) {
@@ -142,7 +143,6 @@ public class JdxReplWsSrv_ChangeDbStruct_Loop_Test extends JdxReplWsSrv_ChangeDb
             }
         }
     }
-
 
 
 }

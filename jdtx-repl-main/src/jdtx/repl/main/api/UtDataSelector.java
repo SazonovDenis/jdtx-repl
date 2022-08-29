@@ -159,7 +159,7 @@ public class UtDataSelector {
                         "  " + tableFields + "\n" +
                         "from\n" +
                         "  " + tableFrom.getName() + "\n" +
-                        "  left join z_z_decode on (z_z_decode.table_name = '" + tableFrom.getName() + "' and z_z_decode.own_slot = (" + tableFrom.getName() + ".id / " + RefDecoder.SLOT_SIZE + "))\n" +
+                        "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefDecoder.SLOT_SIZE + "))\n" +
                         condWhere +
                         "where\n" +
                         "  " + fk.getField().getName() + " = 0\n" +
@@ -170,7 +170,7 @@ public class UtDataSelector {
                         "  1 as dummySortField, " + tableFields + "\n" +
                         "from\n" +
                         "  " + tableFrom.getName() + "\n" +
-                        "  left join z_z_decode on (z_z_decode.table_name = '" + tableFrom.getName() + "' and z_z_decode.own_slot = (" + tableFrom.getName() + ".id / " + RefDecoder.SLOT_SIZE + "))\n" +
+                        "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefDecoder.SLOT_SIZE + "))\n" +
                         "where\n" +
                         "  " + fk.getField().getName() + " <> 0\n" +
                         condWhere +
@@ -182,14 +182,14 @@ public class UtDataSelector {
         // Порядок следования записей важен даже при получении snapshot,
         // т.к. важно обеспечить правильный порядок вставки, например: триггер учитывает данные новой и ПРЕДЫДУЩЕЙ записи (см. например в PS: calc_SubjectOpr)
         return "select\n" +
-                "  z_z_decode.own_slot,\n" +
-                "  z_z_decode.ws_slot,\n" +
-                "  z_z_decode.ws_id,\n" +
-                "  (" + tableFrom.getName() + ".id - z_z_decode.own_slot * " + RefDecoder.SLOT_SIZE + ") as id_ws,\n" +
+                "  " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot,\n" +
+                "  " + UtJdx.SYS_TABLE_PREFIX + "decode.ws_slot,\n" +
+                "  " + UtJdx.SYS_TABLE_PREFIX + "decode.ws_id,\n" +
+                "  (" + tableFrom.getName() + ".id - " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot * " + RefDecoder.SLOT_SIZE + ") as id_ws,\n" +
                 "  " + tableFields + "\n" +
                 "from\n" +
                 "  " + tableFrom.getName() + "\n" +
-                "  left join z_z_decode on (z_z_decode.table_name = '" + tableFrom.getName() + "' and z_z_decode.own_slot = (" + tableFrom.getName() + ".id / " + RefDecoder.SLOT_SIZE + "))\n" +
+                "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefDecoder.SLOT_SIZE + "))\n" +
                 condWhere +
                 "order by\n" +
                 "  " + tableFrom.getPrimaryKey().get(0).getName();

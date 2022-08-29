@@ -109,7 +109,8 @@ public class UtAuditAgeManager {
         for (IJdxTable table : struct.getTables()) {
             if (!UtRepl.tableSkipRepl(table)) {
                 String tableName = table.getName();
-                DataRecord rec = db.loadSql("select max(" + UtJdx.PREFIX + "id) as maxId from " + UtJdx.AUDIT_TABLE_PREFIX + tableName).getCurRec();
+                String auditTableName = UtDbNameManager.getInst(db).getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
+                DataRecord rec = db.loadSql("select max(" + UtJdx.AUDIT_FIELD_PREFIX + "id) as maxId from " + auditTableName).getCurRec();
                 long maxId = rec.getValueLong("maxId");
                 maxIdsCurr.put(tableName, maxId);
             }

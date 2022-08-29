@@ -365,6 +365,22 @@ public class JdxDbUtils {
         return insertRec(tableName, params, null, null);
     }
 
+    public Long insertOrUpdate(String tableName, Map<String, Object> recParams, String publicationFields) throws Exception {
+        Long id = null;
+
+        try {
+            id = insertRec(tableName, recParams, publicationFields, null);
+        } catch (Exception e) {
+            if (UtDbErrors.getInst(db).errorIs_PrimaryKeyError(e)) {
+                updateRec(tableName, recParams, publicationFields, null);
+            } else {
+                throw e;
+            }
+        }
+
+        return id;
+    }
+
     /**
      * Генерация Id по правилам базы
      *
@@ -388,6 +404,15 @@ public class JdxDbUtils {
         }
         if (st.size() > 10) {
             throw new XError("Many result in sqlrec");
+        }
+    }
+
+    public static void execScript(String sqls, Db db) throws Exception {
+        String[] sqlArr = sqls.split(";");
+        for (String sql : sqlArr) {
+            if (sql.trim().length() != 0) {
+                db.execSql(sql);
+            }
         }
     }
 

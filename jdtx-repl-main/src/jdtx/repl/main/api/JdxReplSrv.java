@@ -50,7 +50,9 @@ public class JdxReplSrv {
 
     //
     Db db;
+
     private IJdxDbStruct struct;
+
     /**
      * Полная физическая структура БД
      */
@@ -62,6 +64,18 @@ public class JdxReplSrv {
 
     //
     public JdxErrorCollector errorCollector = null;
+
+    public static String[] ws_param_names = {
+            "que_common_dispatch_done",
+            "que_out000_no",
+            "que_out000_send_done",
+            "que_out001_no",
+            "que_out001_send_done",
+            "que_in_no",
+            "que_in_no_done",
+            "enabled",
+            "mute_age"
+    };
 
     //
     protected static Log log = LogFactory.getLog("jdtx.Server");
@@ -94,11 +108,11 @@ public class JdxReplSrv {
         }
 
         // Проверка версии служебных структур в БД
-        UtDbObjectManager ut = new UtDbObjectManager(db);
-        ut.checkReplVerDb();
+        IDbObjectManager ut = UtDbObjectManager.createInst(db);
+        ut.checkVerDb();
 
         // Проверка, что инициализация станции прошла
-        ut.checkReplDb();
+        ut.checkReplicationInit();
 
         // В каком каталоге работаем
         initDataRoot();
@@ -291,7 +305,7 @@ public class JdxReplSrv {
     }
 
 
-    public void addWorkstation(long wsId, String wsName /*, String cfgPublicationsFileName, String cfgDecodeFileName*/) throws Exception {
+    public void addWorkstation(long wsId, String wsName) throws Exception {
         log.info("add workstation, wsId: " + wsId + ", name: " + wsName);
 
         String srvGuid = getSrvGuid();
@@ -317,7 +331,7 @@ public class JdxReplSrv {
             // Значения параметров
             String sqlIns = "insert into " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE (id, ws_id, param_name, param_value) values (:id, :ws_id, :param_name, :param_value)";
             long id = wsId * 1000;
-            for (String param_name : UtDbObjectManager.param_names) {
+            for (String param_name : JdxReplSrv.ws_param_names) {
                 long param_value = 0;
                 if (param_name.equalsIgnoreCase("enabled")) {
                     param_value = 1;

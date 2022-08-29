@@ -60,14 +60,16 @@ public class UtRepl {
      * Поставить метку wsId
      */
     public void createReplication(long wsId, String guid) throws Exception {
+        log.info("Создаем репликационные структуры, wsId: " + wsId + ", guid: " + guid);
+
         // Создание базовых структур и рабочей станции
-        UtDbObjectManager objectManager = new UtDbObjectManager(db);
+        IDbObjectManager objectManager = UtDbObjectManager.createInst(db);
         String guidWs = getGuidWs(guid, wsId);
         objectManager.createReplBase(wsId, guidWs);
 
         // Создаем необходимые для перекодировки таблицы
         UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);
-        decodeManager.createRefDecodeObject();
+        decodeManager.createDbObject();
 
         //
         DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
@@ -90,28 +92,30 @@ public class UtRepl {
      * Удалить репликационные структуры
      */
     public void dropReplication() throws Exception {
-        UtDbObjectManager ut = new UtDbObjectManager(db);
+        log.info("Удаляем репликационные структуры");
 
         //
-        log.info("Удаляем системные объекты");
+        IDbObjectManager objectManager = UtDbObjectManager.createInst(db);
+
+        // Удаляем системные таблицы и генераторы
+        log.info("dropReplication - системные объекты");
+        objectManager.dropReplBase();
+
+        // Удаляем необходимые для перекодировки таблицы
+        log.info("dropReplication - объекты для перекодировки");
+        UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);
+        decodeManager.dropDbObject();
 
         // Удаляем связанную с каждой таблицей таблицу журнала изменений
-        log.info("dropAudit - журналы");
+        log.info("dropReplication - журналы");
         long n = 0;
         for (IJdxTable table : struct.getTables()) {
             n++;
             log.info("  dropAudit " + n + "/" + struct.getTables().size() + " " + table.getName());
             //
-            ut.dropAudit(table.getName());
+            objectManager.dropAudit(table.getName());
         }
 
-        // Удаляем системные таблицы и генераторы
-        log.info("dropAudit - системные объекты");
-        ut.dropAuditBase();
-
-        // Удаляем необходимые для перекодировки таблицы
-        UtDbObjectDecodeManager decodeManager = new UtDbObjectDecodeManager(db);
-        decodeManager.dropRefDecodeObject();
     }
 
 
@@ -415,7 +419,7 @@ public class UtRepl {
         //
         return replica;
     }
-    
+
     public IReplica createReplicaAppUpdate(String exeFileName) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.UPDATE_APP);

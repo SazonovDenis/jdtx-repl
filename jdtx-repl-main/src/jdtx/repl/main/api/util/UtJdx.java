@@ -18,11 +18,15 @@ import java.util.*;
 public class UtJdx {
 
 
-    public static final String PREFIX = "Z_";
+    public static final String PREFIX = "ZZ_";
 
     public static final String AUDIT_TABLE_PREFIX = PREFIX;
 
+    public static final String AUDIT_FIELD_PREFIX = PREFIX;
+
     public static final String SYS_TABLE_PREFIX = PREFIX + "Z_";
+
+    public static final String SYS_FIELD_PREFIX = PREFIX;
 
     public static final String AUDIT_GEN_PREFIX = PREFIX + "G_";
 
@@ -468,7 +472,18 @@ public class UtJdx {
     }
 
     public static String getDbInfoStr(Db db) {
-        return db.getDbSource().getDbType() + ":" + db.getDbSource().getHost() + ":" + db.getDbSource().getDatabase() + "@" + db.getDbSource().getUsername();
+        return getDbType(db) + ":" + db.getDbSource().getHost() + ":" + db.getDbSource().getDatabase() + "@" + db.getDbSource().getUsername();
     }
+
+    public static String getDbType(Db db) {
+        if (db.getDbSource().getDbType().equalsIgnoreCase("oracle")) {
+            return "oracle";
+        }
+        if (db.getDbSource().getDbType().equalsIgnoreCase("jdbc") && db.getDbSource().getJdbcDriverClass().equalsIgnoreCase("org.firebirdsql.jdbc.FBDriver")) {
+            return "firebird";
+        }
+        throw new XError("Неизвестный тип базы");
+    }
+
 
 }

@@ -5,6 +5,7 @@ import jandcode.dbm.db.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.api.util.*;
 import org.json.simple.*;
 import org.junit.*;
 
@@ -22,9 +23,9 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
             "  STATE__ENABLED.param_value as ENABLED,\n" +
             "  STATE__MUTE_AGE.param_value as MUTE_AGE\n" +
             "from\n" +
-            "  Z_Z_SRV_WORKSTATION_LIST WORKSTATION_LIST\n" +
-            "  left join Z_Z_SRV_WORKSTATION_STATE STATE__ENABLED on (WORKSTATION_LIST.id = STATE__ENABLED.ws_id and STATE__ENABLED.param_name = 'enabled')\n" +
-            "  left join Z_Z_SRV_WORKSTATION_STATE STATE__MUTE_AGE on (WORKSTATION_LIST.id = STATE__MUTE_AGE.ws_id and STATE__MUTE_AGE.param_name = 'mute_age')\n" +
+            "  " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST WORKSTATION_LIST\n" +
+            "  left join " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE STATE__ENABLED on (WORKSTATION_LIST.id = STATE__ENABLED.ws_id and STATE__ENABLED.param_name = 'enabled')\n" +
+            "  left join " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE STATE__MUTE_AGE on (WORKSTATION_LIST.id = STATE__MUTE_AGE.ws_id and STATE__MUTE_AGE.param_name = 'mute_age')\n" +
             "where\n" +
             "  1=1\n";
 

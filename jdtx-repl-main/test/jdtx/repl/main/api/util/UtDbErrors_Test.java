@@ -10,7 +10,7 @@ public class UtDbErrors_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_createAudit_twice() throws Exception {
-        UtDbObjectManager objectManager = new UtDbObjectManager(db);
+        IDbObjectManager objectManager = UtDbObjectManager.createInst(db);
         IJdxTable table = struct.getTable("AppUpdate");
         //
         System.out.println("----------");
@@ -19,13 +19,11 @@ public class UtDbErrors_Test extends ReplDatabaseStruct_Test {
         //
         System.out.println("----------");
         System.out.println("objectManager.createAudit");
-        objectManager.createAuditTable(table);
-        objectManager.createAuditTriggers(table);
+        objectManager.createAudit(table);
         //
         System.out.println("----------");
         System.out.println("objectManager.createAudit");
-        objectManager.createAuditTable(table);
-        objectManager.createAuditTriggers(table);
+        objectManager.createAudit(table);
         //
         System.out.println("----------");
         System.out.println("objectManager.dropAudit");
@@ -41,8 +39,8 @@ public class UtDbErrors_Test extends ReplDatabaseStruct_Test {
         Exception e = new Exception("violation of FOREIGN KEY constraint \"FK_LIC_ULZ\" on table \"LIC\"");
         JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
         //
-        IJdxTable thisTable = UtDbErrors.get_ForeignKeyViolation_tableInfo(ee, struct);
-        IJdxForeignKey foreignKey = UtDbErrors.get_ForeignKeyViolation_refInfo(ee, struct);
+        IJdxTable thisTable = UtDbErrors.getInst(db).get_ForeignKeyViolation_tableInfo(ee, struct);
+        IJdxForeignKey foreignKey = UtDbErrors.getInst(db).get_ForeignKeyViolation_refInfo(ee, struct);
         IJdxField refField = foreignKey.getField();
         IJdxTable refTable = refField.getRefTable();
         //

@@ -7,14 +7,14 @@ public class UtDbObjectManager_Test extends Database_Test {
 
     @Test
     public void test_checkReplVerDb() throws Exception {
-        UtDbObjectManager objectManager = new UtDbObjectManager(db1);
-        objectManager.checkReplVerDb();
+        UtDbObjectManager objectManager = (UtDbObjectManager) UtDbObjectManager.createInst(db1);
+        objectManager.checkVerDb();
     }
 
     @Test
     public void test_db_lock() throws Exception {
-        UtDbObjectManager objectManager_1 = new UtDbObjectManager(db1);
-        UtDbObjectManager objectManager_2 = new UtDbObjectManager(db2);
+        UtDbObjectManager objectManager_1 = (UtDbObjectManager) UtDbObjectManager.createInst(db1);
+        UtDbObjectManager objectManager_2 = (UtDbObjectManager) UtDbObjectManager.createInst(db2);
 
         // Тренируемся
         objectManager_1.lockDb();
@@ -59,7 +59,7 @@ public class UtDbObjectManager_Test extends Database_Test {
         }
 
         // Снимаем блокировку 2, путем disconnect
-        objectManager_2.db.disconnectForce();
+        db2.disconnectForce();
 
         // Ставим блокировку 1
         objectManager_1.lockDb();
@@ -67,7 +67,7 @@ public class UtDbObjectManager_Test extends Database_Test {
 
     @Test
     public void test_db_lock_1() throws Exception {
-        UtDbObjectManager objectManager_1 = new UtDbObjectManager(db1);
+        UtDbObjectManager objectManager_1 = (UtDbObjectManager) UtDbObjectManager.createInst(db1);
 
         // Ставим блокировку 1
         objectManager_1.lockDb();
@@ -80,7 +80,7 @@ public class UtDbObjectManager_Test extends Database_Test {
 
     @Test
     public void test_db_lock_disconnect() throws Exception {
-        UtDbObjectManager objectManager_1 = new UtDbObjectManager(db1);
+        UtDbObjectManager objectManager_1 = (UtDbObjectManager) UtDbObjectManager.createInst(db1);
 
         // Ставим блокировку 1
         objectManager_1.lockDb();
@@ -93,7 +93,7 @@ public class UtDbObjectManager_Test extends Database_Test {
 
     @Test
     public void test_db_lock_2() throws Exception {
-        UtDbObjectManager objectManager_2 = new UtDbObjectManager(db2);
+        UtDbObjectManager objectManager_2 = (UtDbObjectManager) UtDbObjectManager.createInst(db2);
 
         // Ставим блокировку 1
         objectManager_2.lockDb();

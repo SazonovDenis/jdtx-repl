@@ -16,7 +16,7 @@ public class Update_013_014_index implements ISqlScriptExecutor {
         IJdxDbStruct struct = dbStructReader.readDbStruct();
 
         //
-        UtDbObjectManager objectManager = new UtDbObjectManager(db);
+        UtDbObjectManager objectManager = (UtDbObjectManager) UtDbObjectManager.createInst(db);
 
         //
         for (IJdxTable table : struct.getTables()) {
@@ -26,7 +26,7 @@ public class Update_013_014_index implements ISqlScriptExecutor {
             } catch (Exception e) {
                 if (UtJdxErrors.collectExceptionText(e).contains("Unknown columns in index")) {
                     log.debug("createAuditTableIndex_OPR_DTTM, table: " + table.getName() + ", message: " + e.getMessage().replace("\n", " ").replace("~", ""));
-                } else if (UtDbErrors.errorIs_IndexAlreadyExists(e)) {
+                } else if (UtDbErrors.getInst(db).errorIs_IndexAlreadyExists(e)) {
                     log.debug("createAuditTableIndex_OPR_DTTM, table: " + table.getName() + ", IndexAlreadyExists, message: " + e.getMessage().replace("\n", " ").replace("~", ""));
                 } else {
                     throw e;

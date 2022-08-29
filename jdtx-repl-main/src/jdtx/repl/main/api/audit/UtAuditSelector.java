@@ -177,7 +177,8 @@ public class UtAuditSelector {
                 }
 
                 // изменения с указанным возрастом
-                query = "delete from " + UtJdx.AUDIT_TABLE_PREFIX + t.getName() + " where " + UtJdx.PREFIX + "id >= :fromId and " + UtJdx.PREFIX + "id <= :toId";
+                String auditTableName = UtDbNameManager.getInst(db).getShortName(t.getName(), UtJdx.AUDIT_TABLE_PREFIX);
+                query = "delete from " + auditTableName + " where " + UtJdx.AUDIT_FIELD_PREFIX + "id >= :fromId and " + UtJdx.AUDIT_FIELD_PREFIX + "id <= :toId";
                 db.execSql(query, UtCnv.toMap("fromId", fromId, "toId", toId));
             }
             db.commit();
@@ -196,17 +197,18 @@ public class UtAuditSelector {
      * @return id таблицы аудита, соответствующая возрасту age
      */
     protected long getAuditMaxIdByAge(IJdxTable tableFrom, long age) throws Exception {
-        String query = "select " + UtJdx.PREFIX + "id as id from " + UtJdx.SYS_TABLE_PREFIX + "age where age=" + age + " and table_name='" + tableFrom.getName() + "'";
+        String query = "select " + UtJdx.AUDIT_FIELD_PREFIX + "id as id from " + UtJdx.SYS_TABLE_PREFIX + "age where age=" + age + " and table_name='" + tableFrom.getName() + "'";
         return db.loadSql(query).getCurRec().getValueLong("id");
     }
 
     protected String getSql_full(IJdxTable tableFrom, String tableFields, long fromId, long toId) {
         String tableName = tableFrom.getName();
+        String auditTableName = UtDbNameManager.getInst(db).getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
         return "select " +
                 UtJdx.SQL_FIELD_OPR_TYPE + ", " + tableFields +
-                " from " + UtJdx.AUDIT_TABLE_PREFIX + tableName +
-                " where " + UtJdx.PREFIX + "id >= " + fromId + " and " + UtJdx.PREFIX + "id <= " + toId +
-                " order by " + UtJdx.PREFIX + "id";
+                " from " + auditTableName +
+                " where " + UtJdx.AUDIT_FIELD_PREFIX + "id >= " + fromId + " and " + UtJdx.AUDIT_FIELD_PREFIX + "id <= " + toId +
+                " order by " + UtJdx.AUDIT_FIELD_PREFIX + "id";
     }
 
     protected String getSql(IJdxTable tableFrom, String tableFields, long fromId, long toId) {
@@ -229,16 +231,17 @@ public class UtAuditSelector {
         String tableFieldsAlias = sb.toString();
 
         //
+        String auditTableName = UtDbNameManager.getInst(db).getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
         return "select " +
                 UtJdx.SQL_FIELD_OPR_TYPE + ", \n" +
-                UtJdx.PREFIX + "opr_dttm, \n" +
-                UtJdx.AUDIT_TABLE_PREFIX + tableName + "." + pkFieldName + ", \n" +
+                UtJdx.AUDIT_FIELD_PREFIX + "opr_dttm, \n" +
+                auditTableName + "." + pkFieldName + ", \n" +
                 "(case when " + UtJdx.SQL_FIELD_OPR_TYPE + " in (" + JdxOprType.INS.getValue() + "," + JdxOprType.UPD.getValue() + ") and " + tableName + "." + pkFieldName + " is null then 1 else 0 end) z_skip, \n" +
                 tableFieldsAlias + "\n" +
-                " from " + UtJdx.AUDIT_TABLE_PREFIX + tableName + "\n" +
-                " left join " + tableName + " on (" + UtJdx.AUDIT_TABLE_PREFIX + tableName + "." + pkFieldName + " = " + tableName + "." + pkFieldName + ") \n" +
-                " where " + UtJdx.PREFIX + "id >= " + fromId + " and " + UtJdx.PREFIX + "id <= " + toId + "\n" +
-                " order by " + UtJdx.PREFIX + "id";
+                " from " + auditTableName + "\n" +
+                " left join " + tableName + " on (" + auditTableName + "." + pkFieldName + " = " + tableName + "." + pkFieldName + ") \n" +
+                " where " + UtJdx.AUDIT_FIELD_PREFIX + "id >= " + fromId + " and " + UtJdx.AUDIT_FIELD_PREFIX + "id <= " + toId + "\n" +
+                " order by " + UtJdx.AUDIT_FIELD_PREFIX + "id";
     }
 
 

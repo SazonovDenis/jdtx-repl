@@ -85,7 +85,7 @@ public class UtTest extends UtilsTestCase {
         try {
             db.execSql(sql);
         } catch (Exception e) {
-            if (!UtDbErrors.errorIs_TableNotExists(e)) {
+            if (!UtDbErrors.getInst(db).errorIs_TableNotExists(e)) {
                 throw e;
             }
         }

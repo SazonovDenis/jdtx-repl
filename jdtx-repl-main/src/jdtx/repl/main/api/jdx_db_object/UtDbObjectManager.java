@@ -5,75 +5,50 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jandcode.web.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
 import java.util.*;
 
-public class UtDbObjectManager {
+public class UtDbObjectManager implements IDbObjectManager {
 
     public static int CURRENT_VER_DB = 17;
 
-    Db db;
-
     enum IDEmodes {INSERT, UPDATE, DELETE}
+
+    Db db;
+    IUtDbNameManager dbNameManager;
+    IUtDbErrors dbErrors;
 
     public UtDbObjectManager(Db db) {
         this.db = db;
+        this.dbNameManager = UtDbNameManager.getInst(db);
+        this.dbErrors = UtDbErrors.getInst(db);
+    }
+
+    public static IDbObjectManager createInst(Db db) {
+        IDbObjectManager inst;
+        String dbType = UtJdx.getDbType(db);
+        if (dbType.equalsIgnoreCase("oracle")) {
+            inst = new DbObjectManager_Oracle(db);
+        } else if (dbType.equalsIgnoreCase("firebird")) {
+            inst = new DbObjectManager_Firebird(db);
+        } else {
+            throw new XError("Неизвестный тип базы: " + dbType);
+        }
+        //
+        return inst;
     }
 
     DbQuery lockFlag = null;
 
-    public static String[] param_names = {
-            "que_common_dispatch_done",
-            "que_out000_no",
-            "que_out000_send_done",
-            "que_out001_no",
-            "que_out001_send_done",
-            "que_in_no",
-            "que_in_no_done",
-            "enabled",
-            "mute_age"
-    };
-
     static Log log = LogFactory.getLog("jdtx.DbObject");
 
-    /**
-     * Проверяем, что репликация инициализировалась
-     */
-    public void checkReplDb() throws Exception {
-        try {
-            // Читаем код нашей станции
-            DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO").getCurRec();
-            // Проверяем код нашей станции
-            if (rec.getValueLong("ws_id") == 0) {
-                throw new XError("Invalid workstation.ws_id == 0");
-            }
-        } catch (Exception e) {
-            if (UtDbErrors.errorIs_TableNotExists(e)) {
-                throw new XError("Replication is not initialized: " + e.getMessage());
-            } else {
-                throw e;
-            }
-        }
-    }
-
-    public void checkReplVerDb() throws Exception {
+    public void checkVerDb() throws Exception {
         // --- Проверяем, что можно прочитать версию БД
-        try {
-            db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "verdb").getCurRec();
-        } catch (Exception e) {
-            if (UtDbErrors.errorIs_TableNotExists(e)) {
-                // Создаем таблицу verdb
-                log.info("Создаем таблицу " + UtJdx.SYS_TABLE_PREFIX + "verdb");
-                //
-                String sql = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/UtDbObjectManager.verdb.sql");
-                execScript(sql, db);
-            } else {
-                throw e;
-            }
-        }
+        initVerDb();
 
         // --- Запрещаем другим читать и менять версию
         lockDb();
@@ -104,30 +79,30 @@ public class UtDbObjectManager {
                     //
                     String[] sqlArr = sqls.split(";");
                     for (int ver_step_i = ver_step; ver_step_i < sqlArr.length; ) {
-                        sqls = sqlArr[ver_step_i].trim();
-                        if (sqls.length() == 0) {
+                        String sql = sqlArr[ver_step_i].trim();
+                        if (sql.length() == 0) {
                             ver_step_i = ver_step_i + 1;
                             continue;
                         }
                         //
                         log.info("Смена версии, шаг: " + ver_i + "." + ver_step_i);
                         //
-                        if (sqls.startsWith("@")) {
+                        if (sql.startsWith("@")) {
                             SqlScriptExecutorService svc = db.getApp().service(SqlScriptExecutorService.class);
-                            ISqlScriptExecutor script = svc.createByName(sqls.substring(1));
+                            ISqlScriptExecutor script = svc.createByName(sql.substring(1));
                             script.exec(db);
                         } else {
-                            db.execSql(sqls);
+                            db.execSql(sql);
                         }
                         //
                         ver_step_i = ver_step_i + 1;
-                        db.execSql("update " + UtJdx.SYS_TABLE_PREFIX + "verdb set ver = " + ver_i + ", ver_step = " + ver_step_i);
+                        setVerDb(ver_i, ver_step_i);
                     }
 
                     //
                     ver_i = ver_i + 1;
                     ver_step = 0;
-                    db.execSql("update " + UtJdx.SYS_TABLE_PREFIX + "verdb set ver = " + ver_i + ", ver_step = " + ver_step);
+                    setVerDb(ver_i, ver_step);
 
                     //
                     log.info("Смена версии до: " + ver_i + "." + ver_step + " - ok");
@@ -141,7 +116,174 @@ public class UtDbObjectManager {
 
     }
 
-    public void lockDb() throws Exception {
+    public void checkReplicationInit() throws Exception {
+        try {
+            // Читаем код нашей станции
+            DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO").getCurRec();
+            // Проверяем код нашей станции
+            if (rec.getValueLong("ws_id") == 0) {
+                throw new XError("Invalid workstation.ws_id == 0");
+            }
+        } catch (Exception e) {
+            if (dbErrors.errorIs_TableNotExists(e)) {
+                throw new XError("Replication is not initialized: " + e.getMessage());
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    public void createReplBase(long wsId, String guid) throws Exception {
+        log.info("Создаем системные структуры");
+
+        // Базовая структура для verdb
+        initVerDb();
+
+        // Базовая структура (системные структуры)
+        String verDbStr = UtString.padLeft(String.valueOf(CURRENT_VER_DB), 3, '0');
+        OutBuilder builder = new OutBuilder(db.getApp());
+        Map args = new HashMap();
+        args.put("SYS_TABLE_PREFIX", UtJdx.SYS_TABLE_PREFIX);
+        args.put("SYS_GEN_PREFIX", UtJdx.SYS_GEN_PREFIX);
+        builder.outTml("res:jdtx/repl/main/api/jdx_db_object/create_" + verDbStr + "." + UtJdx.getDbType(db) + ".sql", args, null);
+        String sql = builder.toString();
+        //
+        JdxDbUtils.execScript(sql, db);
+
+        // Базовая структура для verdb
+        setVerDb(CURRENT_VER_DB, 0);
+
+        // Метка с guid БД и номером wsId
+        log.info("Помечаем рабочую станцию, ws_id: " + wsId + ", guid: " + guid);
+        sql = "update " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO set ws_id = " + wsId + ", guid = '" + guid + "'";
+        db.execSql(sql);
+    }
+
+    public void dropReplBase() throws Exception {
+        // Удаляем системные таблицы и генераторы
+        String[] jdx_sys_tables = new String[]{
+                "db_info", "workstation_list", "state", "state_ws", "workstation", "que_common", "que_out000", "que_out001", // старые, но тоже удаляем
+                "verdb",
+                "age", "flag_tab", "ws_info", "ws_state", "srv_state", "srv_workstation_state", "srv_workstation_list",
+                "srv_que_in", "srv_que_common", "srv_que_out001", "srv_que_out000",
+                "que_in001", "que_in", "que_out"
+        };
+        dropSysTables(jdx_sys_tables);
+    }
+
+    public void createAudit(IJdxTable table) throws Exception {
+        // Создание таблицы журнала
+        String tableName = table.getName();
+        String pkFieldName = table.getPrimaryKey().get(0).getName();
+        String auditTableName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
+        //
+        String pkFieldDataType = table.getPrimaryKey().get(0).getDbDatatype();
+        if (table.getPrimaryKey().get(0).getJdxDatatype() == JdxDataType.STRING) {
+            pkFieldDataType = pkFieldDataType + "(" + table.getPrimaryKey().get(0).getSize() + ")";
+        }
+        String sql = "create table \n" +
+                auditTableName + "(\n" +
+                UtJdx.AUDIT_FIELD_PREFIX + "id integer not null,\n" +
+                UtJdx.SQL_FIELD_OPR_TYPE + " integer not null,\n" +
+                UtJdx.AUDIT_FIELD_PREFIX + "opr_dttm timestamp not null,\n" +
+                pkFieldName + " " + pkFieldDataType + " not null\n" +
+                ")";
+        try {
+            db.execSql(sql);
+        } catch (Exception e) {
+            if (dbErrors.errorIs_TableAlreadyExists(e)) {
+                log.warn("createAuditTable, audit table already exists, table: " + table.getName());
+            } else {
+                throw e;
+            }
+        }
+
+        // Генератор Id для новой таблицы
+        String generatorName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_GEN_PREFIX);
+        createGenerator(generatorName);
+
+        // Индекс для таблицы журнала
+        createAuditTableIndex_ID(table);
+        createAuditTableIndex_OPR_DTTM(table);
+
+        // Тригер на вставку записи
+        createAuditTrigger(table, IDEmodes.INSERT);
+
+        // Тригер на обновление записи
+        createAuditTrigger(table, IDEmodes.UPDATE);
+
+        // Тригер на удаление записи
+        createAuditTrigger(table, IDEmodes.DELETE);
+    }
+
+    public void dropAudit(String tableName) throws Exception {
+        String sql;
+
+        // удаляем триггеры
+
+        String triggerName = dbNameManager.getShortName(tableName, UtJdx.TRIGER_PREFIX, "_I");
+        try {
+            sql = "drop trigger " + triggerName;
+            db.execSql(sql);
+        } catch (Exception e) {
+            // если удаляемый объект не будет найден, программа продолжит работу
+            if (dbErrors.errorIs_TriggerNotExists(e)) {
+                log.debug("dropAudit, audit trigger for " + IDEmodes.INSERT + " not exists, table: " + tableName + ", trigger: " + triggerName);
+            } else {
+                throw e;
+            }
+        }
+
+        triggerName = dbNameManager.getShortName(tableName, UtJdx.TRIGER_PREFIX, "_U");
+        try {
+            sql = "drop trigger " + triggerName;
+            db.execSql(sql);
+        } catch (Exception e) {
+            // если удаляемый объект не будет найден, программа продолжит работу
+            if (dbErrors.errorIs_TriggerNotExists(e)) {
+                log.debug("dropAudit, audit trigger for " + IDEmodes.UPDATE + " not exists, table: " + tableName + ", trigger: " + triggerName);
+            } else {
+                throw e;
+            }
+        }
+
+        triggerName = dbNameManager.getShortName(tableName, UtJdx.TRIGER_PREFIX, "_D");
+        try {
+            sql = "drop trigger " + triggerName;
+            db.execSql(sql);
+        } catch (Exception e) {
+            // если удаляемый объект не будет найден, программа продолжит работу
+            if (dbErrors.errorIs_TriggerNotExists(e)) {
+                log.debug("dropAudit, audit trigger for " + IDEmodes.DELETE + " not exists, table: " + tableName + ", trigger: " + triggerName);
+            } else {
+                throw e;
+            }
+        }
+
+        // удаляем саму таблицу журнала изменений
+        String auditTableName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
+        try {
+            sql = "drop table " + auditTableName;
+            db.execSql(sql);
+        } catch (Exception e) {
+            // если удаляемый объект не будет найден, программа продолжит работу
+            if (dbErrors.errorIs_TableNotExists(e)) {
+                log.debug("dropAudit, audit table not exists, table: " + tableName + ", audit: " + auditTableName);
+            } else {
+                throw e;
+            }
+        }
+
+        // удаляем генератор для таблицы журнала изменений
+        String generatorName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_GEN_PREFIX);
+        dropGenerator(generatorName);
+    }
+
+    // ---
+    // Утилиты
+    // ---
+
+    void lockDb() throws Exception {
         if (lockFlag != null) {
             throw new XError("Database already locked by current thread");
         }
@@ -160,7 +302,8 @@ public class UtDbObjectManager {
         log.info("Database locked: " + db.getDbSource().getDatabase());
     }
 
-    public void unlockDb() throws Exception {
+
+    void unlockDb() throws Exception {
         if (lockFlag == null) {
             throw new XError("Database is not locked by current thread");
         }
@@ -173,50 +316,33 @@ public class UtDbObjectManager {
         log.info("Database unlocked: " + db.getDbSource().getDatabase());
     }
 
-    /**
-     * Создает системные структуры и помечает рабочую станцию
-     */
-    public void createReplBase(long wsId, String guid) throws Exception {
-        log.info("Создаем системные структуры");
-
-        // Базовая структура (системные структуры)
-        String sql = UtFile.loadString("res:jdtx/repl/main/api/jdx_db_object/UtDbObjectManager.sql");
-        execScript(sql, db);
-
-        // Обновления базовых структур
-        checkReplVerDb();
-
-        // Метка с guid БД и номером wsId
-        log.info("Помечаем рабочую станцию, ws_id: " + wsId + ", guid: " + guid);
-        sql = "update " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO set ws_id = " + wsId + ", guid = '" + guid + "'";
-        db.execSql(sql);
+    private void initVerDb() throws Exception {
+        try {
+            db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "verdb").getCurRec();
+        } catch (Exception e) {
+            if (dbErrors.errorIs_TableNotExists(e)) {
+                // Создаем таблицу verdb
+                log.info("Создаем таблицу " + UtJdx.SYS_TABLE_PREFIX + "verdb");
+                //
+                OutBuilder builder = new OutBuilder(db.getApp());
+                Map args = new HashMap();
+                args.put("SYS_TABLE_PREFIX", UtJdx.SYS_TABLE_PREFIX);
+                args.put("SYS_GEN_PREFIX", UtJdx.SYS_GEN_PREFIX);
+                builder.outTml("res:jdtx/repl/main/api/jdx_db_object/UtDbObjectManager.verdb.sql", args, null);
+                String sql = builder.toString();
+                //
+                JdxDbUtils.execScript(sql, db);
+            } else {
+                throw e;
+            }
+        }
     }
 
-
-    public void dropAuditBase() throws Exception {
-        // Удаляем системные таблицы и генераторы
-        String[] jdx_sys_tables = new String[]{
-                "db_info", "workstation_list", "state", "state_ws", "workstation", // старые, но тоже удаляем
-                "age", "flag_tab", "ws_info", "ws_state", "srv_state", "srv_workstation_state", "srv_workstation_list",
-                "que_in", "que_out", "que_common",
-                "que_in001", "que_out001",
-                "que_out000",
-                "verdb"
-        };
-        dropSysTables(jdx_sys_tables, db);
+    private void setVerDb(int ver, int ver_step) throws Exception {
+        db.execSql("update " + UtJdx.SYS_TABLE_PREFIX + "verdb set ver = " + ver + ", ver_step = " + ver_step);
     }
 
-    public void createAuditTriggers(IJdxTable table) throws Exception {
-        // Тригер на вставку записи
-        createTrigger(table, IDEmodes.INSERT);
-
-        // Тригер на обновление записи
-        createTrigger(table, IDEmodes.UPDATE);
-
-        // Тригер на удаление записи
-        createTrigger(table, IDEmodes.DELETE);
-    }
-
+/*
     private void createAuditTriggers_full(IJdxTable table) throws Exception {
         // Тригер на вставку записи
         createTrigger_full(table, IDEmodes.INSERT);
@@ -227,13 +353,14 @@ public class UtDbObjectManager {
         // Тригер на удаление записи
         createTrigger_full(table, IDEmodes.DELETE);
     }
+*/
 
-    private void createTrigger(IJdxTable table, IDEmodes IDEmode) throws Exception {
+    private void createAuditTrigger(IJdxTable table, IDEmodes IDEmode) throws Exception {
         try {
-            String sql = getSqlCreateTrigger(table, IDEmode);
+            String sql = getSqlCreateAuditTrigger(table, IDEmode);
             db.execSqlNative(sql);
         } catch (Exception e) {
-            if (UtDbErrors.errorIs_TriggerAlreadyExists(e)) {
+            if (dbErrors.errorIs_TriggerAlreadyExists(e)) {
                 log.warn("createAuditTriggers, trigger " + IDEmode + " already exists, table: " + table.getName());
             } else {
                 throw e;
@@ -241,82 +368,30 @@ public class UtDbObjectManager {
         }
     }
 
+/*
     private void createTrigger_full(IJdxTable table, IDEmodes IDEmode) throws Exception {
         try {
             String sql = getSqlCreateTrigger_full(table, IDEmode);
             db.execSqlNative(sql);
         } catch (Exception e) {
-            if (UtDbErrors.errorIs_TriggerAlreadyExists(e)) {
+            if (dbErrors.errorIs_TriggerAlreadyExists(e)) {
                 log.warn("createAuditTriggers, trigger " + IDEmode + " already exists, table: " + table.getName());
             } else {
                 throw e;
             }
         }
     }
-
-    /**
-     * Создаем аудит - для таблицы в БД создаем собственную таблицу журнала изменений
-     * <p>
-     * Допускаем, что аудит уже был создан.
-     * Так бывает, если по каким-то причинам следующий блок "выгрузка snapshot" будет прерван,
-     * и в итоге реплика не будет помечена как использованная. Тогда ее применение начнется снова,
-     * но структуры аудита снова создавать не надо.
-     *
-     * @param table Имя таблицы
-     */
-    public void createAuditTable(IJdxTable table) throws Exception {
-        // создание таблицы журнала
-        String tableName = table.getName();
-        String pkFieldName = table.getPrimaryKey().get(0).getName();
-        //
-        String pkFieldDataType = table.getPrimaryKey().get(0).getDbDatatype();
-        if (table.getPrimaryKey().get(0).getJdxDatatype() == JdxDataType.STRING) {
-            pkFieldDataType = pkFieldDataType + "(" + table.getPrimaryKey().get(0).getSize() + ")";
-        }
-        String sql = "create table \n" +
-                UtJdx.AUDIT_TABLE_PREFIX + tableName + "(\n" +
-                UtJdx.AUDIT_TABLE_PREFIX + "id integer not null,\n" +
-                UtJdx.SQL_FIELD_OPR_TYPE + " integer not null,\n" +
-                UtJdx.AUDIT_TABLE_PREFIX + "opr_dttm timestamp not null,\n" +
-                pkFieldName + " " + pkFieldDataType + " not null\n" +
-                ")";
-        try {
-            db.execSql(sql);
-        } catch (Exception e) {
-            if (UtDbErrors.errorIs_TableAlreadyExists(e)) {
-                log.warn("createAuditTable, audit table already exists, table: " + table.getName());
-            } else {
-                throw e;
-            }
-        }
-
-        // генератор Id для новой таблицы
-        try {
-            sql = "create generator " + UtJdx.AUDIT_GEN_PREFIX + tableName;
-            db.execSql(sql);
-            //
-            sql = "set generator " + UtJdx.AUDIT_GEN_PREFIX + tableName + " to 0";
-            db.execSql(sql);
-        } catch (Exception e) {
-            if (UtDbErrors.errorIs_GeneratorAlreadyExists(e)) {
-                log.warn("createAuditTable, generator already exists, table: " + table.getName());
-            } else {
-                throw e;
-            }
-        }
-
-        // Индекс для таблицы журнала
-        createAuditTableIndex_ID(table);
-        createAuditTableIndex_OPR_DTTM(table);
-    }
+*/
 
     void createAuditTableIndex_ID(IJdxTable table) throws Exception {
-        String idxName = UtJdx.PREFIX + table.getName() + "_IDX";
+        String tableName = table.getName();
+        String auditTableName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
+        String idxName = dbNameManager.getShortName(tableName, UtJdx.PREFIX, "_IDX");
         try {
-            String sql = "CREATE UNIQUE INDEX " + idxName + " ON " + UtJdx.PREFIX + table.getName() + " (Z_ID)";
+            String sql = "CREATE UNIQUE INDEX " + idxName + " ON " + auditTableName + " (" + UtJdx.SYS_FIELD_PREFIX + "ID)";
             db.execSql(sql);
         } catch (Exception e) {
-            if (UtDbErrors.errorIs_IndexAlreadyExists(e)) {
+            if (dbErrors.errorIs_IndexAlreadyExists(e)) {
                 log.debug("createAuditTableIndex_ID, index already exists, index: " + idxName + ", table: " + table.getName());
             } else {
                 throw e;
@@ -325,12 +400,14 @@ public class UtDbObjectManager {
     }
 
     void createAuditTableIndex_OPR_DTTM(IJdxTable table) throws Exception {
-        String idxName = UtJdx.PREFIX + table.getName() + "_DT";
+        String tableName = table.getName();
+        String auditTableName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
+        String idxName = dbNameManager.getShortName(tableName, UtJdx.PREFIX, "_DT");
         try {
-            String sql = "CREATE INDEX " + idxName + " ON " + UtJdx.PREFIX + table.getName() + " (Z_OPR_DTTM)";
+            String sql = "CREATE INDEX " + idxName + " ON " + auditTableName + " (" + UtJdx.SYS_FIELD_PREFIX + "OPR_DTTM)";
             db.execSql(sql);
         } catch (Exception e) {
-            if (UtDbErrors.errorIs_IndexAlreadyExists(e)) {
+            if (dbErrors.errorIs_IndexAlreadyExists(e)) {
                 log.warn("createAuditTableIndex_OPR_DTTM, index already exists, index: " + idxName + ", table: " + table.getName());
             } else {
                 throw e;
@@ -338,6 +415,7 @@ public class UtDbObjectManager {
         }
     }
 
+/*
     private void createAuditTable_full(IJdxTable table) throws Exception {
         String tableName = table.getName();
         List<IJdxField> fields = table.getFields();
@@ -365,17 +443,20 @@ public class UtDbObjectManager {
         db.execSql(sql);
 
         // генератор Id для новой таблицы
-        sql = "create generator " + UtJdx.AUDIT_GEN_PREFIX + tableName;
-        db.execSql(sql);
-        sql = "set generator " + UtJdx.AUDIT_GEN_PREFIX + tableName + " to 0";
-        db.execSql(sql);
+        String generatorName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_GEN_PREFIX);
+        createGenerator(generatorName);
     }
+*/
 
-    private String getSqlCreateTrigger(IJdxTable table, IDEmodes upd_mode) {
+    private String getSqlCreateAuditTrigger(IJdxTable table, IDEmodes upd_mode) {
         String sql;
         String tableName = table.getName();
         String pkFieldName = table.getPrimaryKey().get(0).getName();
-        sql = "create trigger " + UtJdx.TRIGER_PREFIX + tableName + "_" + upd_mode.toString().substring(0, 1) + " for " + tableName + " after " + upd_mode.toString() + " \n" +
+        String triggerName = dbNameManager.getShortName(tableName, UtJdx.TRIGER_PREFIX, upd_mode.toString().substring(0, 1));
+        String generatorName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_GEN_PREFIX);
+        String audditTableName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
+        //
+        sql = "create trigger " + triggerName + " for " + tableName + " after " + upd_mode.toString() + " \n" +
                 "as\n" +
                 "declare variable trigger_flag_ integer;\n" +
                 "declare variable opr_dttm_ timestamp;\n" +
@@ -384,9 +465,9 @@ public class UtDbObjectManager {
                 "  select current_timestamp from rdb$database into :opr_dttm_;\n" +
                 "  if (trigger_flag_<>0) then\n" +
                 "  begin\n" +
-                "    insert into " + UtJdx.AUDIT_TABLE_PREFIX + tableName + " (" + UtJdx.AUDIT_TABLE_PREFIX + "id, " + UtJdx.SQL_FIELD_OPR_TYPE + ", " + UtJdx.AUDIT_TABLE_PREFIX + "opr_dttm, " + pkFieldName + ") ";
+                "    insert into " + audditTableName + " (" + UtJdx.AUDIT_FIELD_PREFIX + "id, " + UtJdx.SQL_FIELD_OPR_TYPE + ", " + UtJdx.AUDIT_FIELD_PREFIX + "opr_dttm, " + pkFieldName + ") ";
         // значения
-        sql = sql + "values (GEN_ID(" + UtJdx.AUDIT_GEN_PREFIX + tableName + ", 1), " + (upd_mode.ordinal() + 1) + ", :opr_dttm_, ";
+        sql = sql + "values (GEN_ID(" + generatorName + ", 1), " + (upd_mode.ordinal() + 1) + ", :opr_dttm_, ";
         //
         String contVar = "NEW.";
         if (upd_mode.toString().equals("DELETE")) {
@@ -399,6 +480,7 @@ public class UtDbObjectManager {
         return sql;
     }
 
+/*
     private String getSqlCreateTrigger_full(IJdxTable table, IDEmodes upd_mode) {
         String tableName = table.getName();
         String sql;
@@ -429,121 +511,38 @@ public class UtDbObjectManager {
         sql = sql + "  end\nend";
         return sql;
     }
+*/
 
-    /**
-     * Удаляем аудит (связанную с таблицей таблицу журнала изменений)
-     *
-     * @param tableName Таблица
-     */
-    public void dropAudit(String tableName) throws Exception {
-        String sql;
-
-        try {
-            // удаляем триггеры
-            sql = "drop trigger " + UtJdx.TRIGER_PREFIX + tableName + "_I";
-            db.execSql(sql);
-        } catch (Exception e) {
-            // если удаляемый объект не будет найден, программа продолжит работу
-            if (UtDbErrors.errorIs_TriggerNotExists(e)) {
-                log.debug("dropAudit, audit trigger " + IDEmodes.INSERT + " not exists, table: " + tableName);
-            } else {
-                throw e;
-            }
-        }
-
-        try {
-            sql = "drop trigger " + UtJdx.TRIGER_PREFIX + tableName + "_U";
-            db.execSql(sql);
-        } catch (Exception e) {
-            // если удаляемый объект не будет найден, программа продолжит работу
-            if (UtDbErrors.errorIs_TriggerNotExists(e)) {
-                log.debug("dropAudit, audit trigger " + IDEmodes.UPDATE + " not exists, table: " + tableName);
-            } else {
-                throw e;
-            }
-        }
-
-        try {
-            sql = "drop trigger " + UtJdx.TRIGER_PREFIX + tableName + "_D";
-            db.execSql(sql);
-        } catch (Exception e) {
-            // если удаляемый объект не будет найден, программа продолжит работу
-            if (UtDbErrors.errorIs_TriggerNotExists(e)) {
-                log.debug("dropAudit, audit trigger " + IDEmodes.DELETE + " not exists, table: " + tableName);
-            } else {
-                throw e;
-            }
-        }
-
-        try {
-            // удаляем саму таблицу журнала изменений
-            sql = "drop table " + UtJdx.AUDIT_TABLE_PREFIX + tableName;
-            db.execSql(sql);
-        } catch (Exception e) {
-            // если удаляемый объект не будет найден, программа продолжит работу
-            if (UtDbErrors.errorIs_TableNotExists(e)) {
-                log.debug("dropAudit, audit table not exists, table: " + tableName);
-            } else {
-                throw e;
-            }
-        }
-
-        try {
-            // удаляем генератор для таблицы журнала изменений
-            sql = "drop generator " + UtJdx.AUDIT_GEN_PREFIX + tableName;
-            db.execSql(sql);
-        } catch (Exception e) {
-            // если удаляемый объект не будет найден, программа продолжит работу
-            if (UtDbErrors.errorIs_GeneratorNotExists(e)) {
-                log.debug("dropAudit, audit generator not exists, table: " + tableName);
-            } else {
-                throw e;
-            }
-        }
-    }
-
-
-    /**
-     * Утилиты
-     */
-
-    static void execScript(String sqls, Db db) throws Exception {
-        String[] sqlArr = sqls.split(";");
-        for (String sql : sqlArr) {
-            if (sql.trim().length() != 0) {
-                db.execSql(sql);
-            }
-        }
-    }
-
-    static void dropSysTables(String[] sys_names, Db db) throws Exception {
+    void dropSysTables(String[] sys_names) throws Exception {
         // удаляем генераторы
         for (String name : sys_names) {
-            try {
-                String query = "drop generator " + UtJdx.SYS_GEN_PREFIX + name;
-                db.execSql(query);
-            } catch (Exception e) {
-                // если удаляемый объект не будет найден, программа продолжит работу
-                if (UtDbErrors.errorIs_GeneratorNotExists(e)) {
-                    log.debug("dropSysTables, generator not exists, table: " + name);
-                } else {
-                    throw e;
-                }
-            }
+            dropGenerator(UtJdx.SYS_GEN_PREFIX + name);
         }
 
         // удаляем таблицу
         for (String name : sys_names) {
-            try {
-                String query = "drop table " + UtJdx.SYS_TABLE_PREFIX + name;
-                db.execSql(query);
-            } catch (Exception e) {
-                // если удаляемый объект не будет найден, программа продолжит работу
-                if (UtDbErrors.errorIs_TableNotExists(e)) {
-                    log.debug("dropSysTables, table not exists, table: " + name);
-                } else {
-                    throw e;
-                }
+            dropTable(UtJdx.SYS_TABLE_PREFIX + name);
+        }
+    }
+
+    void createGenerator(String generatorName) throws Exception {
+        throw new XError("Not implemented");
+    }
+
+    void dropGenerator(String generatorName) throws Exception {
+        throw new XError("Not implemented");
+    }
+
+    void dropTable(String tableName) throws Exception {
+        try {
+            String sql = "drop table " + tableName;
+            db.execSql(sql);
+        } catch (Exception e) {
+            // если удаляемый объект не будет найден, программа продолжит работу
+            if (dbErrors.errorIs_TableNotExists(e)) {
+                log.debug("table not exists: " + tableName);
+            } else {
+                throw e;
             }
         }
     }

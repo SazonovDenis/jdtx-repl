@@ -3,6 +3,7 @@ package jdtx.repl.main.api.jdx_db_object;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
@@ -26,7 +27,7 @@ public class Update_015_016_srv_workstation_state implements ISqlScriptExecutor 
         for (DataRecord rec : st) {
             long wsId = rec.getValueLong("ws_id");
             long id = wsId * 1000;
-            for (String param_name : UtDbObjectManager.param_names) {
+            for (String param_name : JdxReplSrv.ws_param_names) {
                 long param_value = rec.getValueLong(param_name);
                 Map values = UtCnv.toMap("id", id, "param_name", param_name, "ws_id", wsId, "param_value", param_value);
                 //

@@ -1033,7 +1033,7 @@ public class JdxReplWs {
         db.startTran();
         try {
             //
-            UtDbObjectManager objectManager = new UtDbObjectManager(db);
+            IDbObjectManager objectManager = UtDbObjectManager.createInst(db);
 
             //
             long n;
@@ -1059,11 +1059,8 @@ public class JdxReplWs {
                     continue;
                 }
 
-                // Создание таблицы аудита
-                objectManager.createAuditTable(table);
-
-                // Создание тригеров
-                objectManager.createAuditTriggers(table);
+                // Создание отслеживания аудита таблицы
+                objectManager.createAudit(table);
             }
 
             //
@@ -1713,8 +1710,8 @@ public class JdxReplWs {
      * @return Команды на вставку/изменение этой записи, оформленные в виде реплики
      */
     public File handleFailedInsertUpdateRef(JdxForeignKeyViolationException e) throws Exception {
-        IJdxTable thisTable = UtDbErrors.get_ForeignKeyViolation_tableInfo(e, struct);
-        IJdxForeignKey foreignKey = UtDbErrors.get_ForeignKeyViolation_refInfo(e, struct);
+        IJdxTable thisTable = UtDbErrors.getInst(db).get_ForeignKeyViolation_tableInfo(e, struct);
+        IJdxForeignKey foreignKey = UtDbErrors.getInst(db).get_ForeignKeyViolation_refInfo(e, struct);
         IJdxField refField = foreignKey.getField();
         IJdxTable refTable = refField.getRefTable();
         //

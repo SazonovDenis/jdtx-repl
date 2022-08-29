@@ -250,8 +250,8 @@ class Jdx_Ext extends ProjectExt {
                 srv.init()
                 srv.firstSetup()
 
-                // Добавляем рабочую станцию wsId = 1 на сервер
-                srv.addWorkstation(wsId, name /*, cfgPublications, cfgDecode*/)
+                // Добавляем рабочую станцию wsId = 1 в список сервера
+                srv.addWorkstation(wsId, name)
             }
         } finally {
             db.disconnect()
@@ -280,7 +280,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            srv.addWorkstation(wsId, name /*, cfgPublications, cfgDecode*/)
+            srv.addWorkstation(wsId, name)
         } finally {
             restoreServiceState(serviceState, db, args)
             db.disconnect()
