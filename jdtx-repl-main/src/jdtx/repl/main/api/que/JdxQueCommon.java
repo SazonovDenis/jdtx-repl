@@ -97,7 +97,7 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
         );
         if (isServerReplica(replica.getInfo())) {
             // Из-за требований уникального индекса
-            // Z_Z_srv_que_common_idx в таблице Z_Z_srv_que_common (author_ws_id + author_id)
+            // ZZ_Z_srv_que_common_idx в таблице ZZ_Z_srv_que_common (author_ws_id + author_id)
             values.put("author_id", -queNo);
         }
         db.execSql(sql, values);

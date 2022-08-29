@@ -8,7 +8,7 @@ import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
 /**
- * Сохранение данных о разрешенной/фиксированной структуре для реплицируемой БД (в таблице Z_Z_state)
+ * Сохранение данных о разрешенной/фиксированной структуре для реплицируемой БД
  */
 public class DatabaseStructManager {
 

@@ -51,8 +51,8 @@ public class UtAuditSelector {
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
         replica.getInfo().setWsId(wsId);
         replica.getInfo().setAge(age);
-        replica.getInfo().setDtFrom((DateTime) auditInfo.get("z_opr_dttm_from"));
-        replica.getInfo().setDtTo((DateTime) auditInfo.get("z_opr_dttm_to"));
+        replica.getInfo().setDtFrom((DateTime) auditInfo.get(UtJdx.AUDIT_FIELD_PREFIX + "opr_dttm_from"));
+        replica.getInfo().setDtTo((DateTime) auditInfo.get(UtJdx.AUDIT_FIELD_PREFIX + "opr_dttm_to"));
 
         // Стартуем формирование файла реплики
         UtReplicaWriter replicaWriter = new UtReplicaWriter(replica);
@@ -74,11 +74,11 @@ public class UtAuditSelector {
             // Интервал id в таблице аудита, который покрывает возраст age
             Map autitInfoTable = (Map) auditInfo.get(publicationTableName);
             if (autitInfoTable != null) {
-                long fromId = (long) autitInfoTable.get("z_id_from");
-                long toId = (long) autitInfoTable.get("z_id_to");
+                long fromId = (long) autitInfoTable.get(UtJdx.AUDIT_FIELD_PREFIX + "id_from");
+                long toId = (long) autitInfoTable.get(UtJdx.AUDIT_FIELD_PREFIX + "id_to");
 
                 //
-                log.info("createReplicaFromAudit: " + publicationTableName + ", age: " + age + ", z_id: [" + fromId + ".." + toId + "]");
+                log.info("createReplicaFromAudit: " + publicationTableName + ", age: " + age + ", " + UtJdx.AUDIT_FIELD_PREFIX + "id: [" + fromId + ".." + toId + "]");
 
                 //
                 String publicationFields = UtJdx.fieldsToString(publicationRule.getFields());
@@ -121,7 +121,7 @@ public class UtAuditSelector {
                     // на "обратную вставку" - эта запись будет с пустыми полями как раз из-за того,
                     // что запрос аудита по изменению уже удаленных записей возвращает все поля null
                     // (что неудивительно, т.к. идет left join аудита и физической таблицы).
-                    int z_skip = (int) values.get("z_skip");
+                    int z_skip = (int) values.get(UtJdx.AUDIT_FIELD_PREFIX + "skip");
 
                     // Не пропущенная запись
                     if (z_skip == 0) {
@@ -171,7 +171,7 @@ public class UtAuditSelector {
 
                 //
                 if (toId >= fromId) {
-                    log.info("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], z_id: [" + fromId + ".." + toId + "], audit recs: " + (toId - fromId + 1));
+                    log.info("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], " + UtJdx.AUDIT_FIELD_PREFIX + "id: [" + fromId + ".." + toId + "], audit recs: " + (toId - fromId + 1));
                 } else {
                     log.debug("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], audit empty");
                 }
@@ -236,7 +236,7 @@ public class UtAuditSelector {
                 UtJdx.SQL_FIELD_OPR_TYPE + ", \n" +
                 UtJdx.AUDIT_FIELD_PREFIX + "opr_dttm, \n" +
                 auditTableName + "." + pkFieldName + ", \n" +
-                "(case when " + UtJdx.SQL_FIELD_OPR_TYPE + " in (" + JdxOprType.INS.getValue() + "," + JdxOprType.UPD.getValue() + ") and " + tableName + "." + pkFieldName + " is null then 1 else 0 end) z_skip, \n" +
+                "(case when " + UtJdx.SQL_FIELD_OPR_TYPE + " in (" + JdxOprType.INS.getValue() + "," + JdxOprType.UPD.getValue() + ") and " + tableName + "." + pkFieldName + " is null then 1 else 0 end) " + UtJdx.AUDIT_FIELD_PREFIX + "skip, \n" +
                 tableFieldsAlias + "\n" +
                 " from " + auditTableName + "\n" +
                 " left join " + tableName + " on (" + auditTableName + "." + pkFieldName + " = " + tableName + "." + pkFieldName + ") \n" +
@@ -246,7 +246,7 @@ public class UtAuditSelector {
 
 
     /**
-     * Извлекает мин и макс z_id аудита для каждой таблицы,
+     * Извлекает мин и макс zz_id аудита для каждой таблицы,
      * а также общий период возникновения изменений в таблице.
      * Используем publicationStorage чтобы
      * - сэкономить на запросах - не делать запросов к таблицам, которые не в publicationStorage,
@@ -266,8 +266,8 @@ public class UtAuditSelector {
         DateTime dtTo = auditAgeManager.loadMaxIdsFixed(age, maxIdsFixed_To);
 
         //
-        auditInfo.put("z_opr_dttm_from", dtFrom);
-        auditInfo.put("z_opr_dttm_to", dtTo);
+        auditInfo.put(UtJdx.AUDIT_FIELD_PREFIX + "opr_dttm_from", dtFrom);
+        auditInfo.put(UtJdx.AUDIT_FIELD_PREFIX + "opr_dttm_to", dtTo);
 
         // Собираем данные об аудите таблиц
         for (IJdxTable structTable : struct.getTables()) {
@@ -291,8 +291,8 @@ public class UtAuditSelector {
 
             // Аудит для таблицы НЕ пуст, набираем выходные данные об аудите измененной таблицы
             Map auditInfoTable = new HashMap<>();
-            auditInfoTable.put("z_id_from", z_id_age_prior + 1);
-            auditInfoTable.put("z_id_to", z_id_age);
+            auditInfoTable.put(UtJdx.AUDIT_FIELD_PREFIX + "id_from", z_id_age_prior + 1);
+            auditInfoTable.put(UtJdx.AUDIT_FIELD_PREFIX + "id_to", z_id_age);
             auditInfo.put(tableName, auditInfoTable);
         }
 

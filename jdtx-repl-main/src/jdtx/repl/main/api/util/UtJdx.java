@@ -18,25 +18,27 @@ import java.util.*;
 public class UtJdx {
 
 
-    public static final String PREFIX = "ZZ_";
+    static final String PREFIX = "ZZ";
 
-    public static final String AUDIT_TABLE_PREFIX = PREFIX;
+    public static final String AUDIT_TABLE_PREFIX = PREFIX + "_";
 
-    public static final String AUDIT_FIELD_PREFIX = PREFIX;
+    public static final String AUDIT_GEN_PREFIX = PREFIX + "_G_";
+
+    public static final String AUDIT_FIELD_PREFIX = PREFIX + "_";
+
+    public static final String AUDIT_INDEX_PREFIX = PREFIX + "_";
+
+    public static final String AUDIT_TRIGER_PREFIX = PREFIX + "_T_";
+
 
     public static final String SYS_TABLE_PREFIX = PREFIX + "Z_";
 
-    public static final String SYS_FIELD_PREFIX = PREFIX;
+    public static final String SYS_GEN_PREFIX = PREFIX + "Z_G_";
 
-    public static final String AUDIT_GEN_PREFIX = PREFIX + "G_";
 
-    public static final String SYS_GEN_PREFIX = SYS_TABLE_PREFIX + "G_";
+    public static final String XML_FIELD_OPR_TYPE = PREFIX + "_OPR";
 
-    public static final String TRIGER_PREFIX = PREFIX + "T_";
-
-    public static final String XML_FIELD_OPR_TYPE = PREFIX + "OPR";
-
-    public static final String SQL_FIELD_OPR_TYPE = PREFIX + "opr_type";
+    public static final String SQL_FIELD_OPR_TYPE = PREFIX + "_opr_type";
 
 
     /**

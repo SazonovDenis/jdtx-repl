@@ -114,11 +114,11 @@ public class JdxReplWs {
         db.getConnection().setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
 
         // Проверка версии служебных структур в БД
-        UtDbObjectManager ut = new UtDbObjectManager(db);
-        ut.checkReplVerDb();
+        IDbObjectManager ut = UtDbObjectManager.createInst(db);
+        ut.checkVerDb();
 
         // Проверка, что инициализация станции прошла
-        ut.checkReplDb();
+        ut.checkReplicationInit();
 
         // В каком каталоге работаем
         initDataRoot();
