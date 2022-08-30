@@ -18,7 +18,7 @@ import java.util.*;
 public class UtJdx {
 
 
-    static final String PREFIX = "ZZ";
+    static final String PREFIX = "Z";
 
     public static final String AUDIT_TABLE_PREFIX = PREFIX + "_";
 
@@ -31,9 +31,9 @@ public class UtJdx {
     public static final String AUDIT_TRIGER_PREFIX = PREFIX + "_T_";
 
 
-    public static final String SYS_TABLE_PREFIX = PREFIX + "Z_";
+    public static final String SYS_TABLE_PREFIX = PREFIX + "_Z_";
 
-    public static final String SYS_GEN_PREFIX = PREFIX + "Z_G_";
+    public static final String SYS_GEN_PREFIX = PREFIX + "_Z_G_";
 
 
     public static final String XML_FIELD_OPR_TYPE = PREFIX + "_OPR";

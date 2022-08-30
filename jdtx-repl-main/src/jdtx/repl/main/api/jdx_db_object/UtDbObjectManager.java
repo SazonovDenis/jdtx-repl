@@ -452,7 +452,7 @@ public class UtDbObjectManager implements IDbObjectManager {
         String sql;
         String tableName = table.getName();
         String pkFieldName = table.getPrimaryKey().get(0).getName();
-        String triggerName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TRIGER_PREFIX, upd_mode.toString().substring(0, 1));
+        String triggerName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TRIGER_PREFIX, "_" + upd_mode.toString().substring(0, 1));
         String generatorName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_GEN_PREFIX);
         String audditTableName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
         //
