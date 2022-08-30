@@ -833,8 +833,6 @@ public class JdxReplWs {
      * Реакция на команду - задать "разрешенную" структуру БД
      */
     private void useReplica_SET_DB_STRUCT(IReplica replica, ReplicaUseResult useResult) throws Exception {
-        log.info("useReplica_SET_DB_STRUCT, self.wsId: " + wsId);
-
         // В реплике - параметры команды
         JSONObject info;
         InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
@@ -852,6 +850,7 @@ public class JdxReplWs {
 
         // Пришла команда для нашей станции (или всем станциям)?
         if (destinationWsId == 0 || destinationWsId == wsId) {
+            log.info("useReplica_SET_DB_STRUCT, self.wsId: " + wsId + ", destinationWsId: " + destinationWsId);
 
             // В реплике - новая "разрешенная" структура
             IJdxDbStruct structAllowedNew;
@@ -953,8 +952,6 @@ public class JdxReplWs {
      * Реакция на команду - "задать конфигурацию"
      */
     private void useReplica_SET_CFG(IReplica replica, ReplicaUseResult useResult) throws Exception {
-        log.info("useReplica_SET_CFG, self.wsId: " + wsId);
-
         // Параметры команды
         JSONObject info;
         InputStream cfgInfoStream = JdxReplicaReaderXml.createInputStream(replica, "cfg.info.json");
@@ -970,6 +967,8 @@ public class JdxReplWs {
 
         // Пришла конфигурация для нашей станции (или всем станциям)?
         if (destinationWsId == 0 || destinationWsId == wsId) {
+            log.info("useReplica_SET_CFG, self.wsId: " + wsId + ", destinationWsId: " + destinationWsId);
+
             // В реплике - новая конфигурация
             JSONObject cfg;
             InputStream cfgStream = JdxReplicaReaderXml.createInputStream(replica, "cfg.json");
@@ -1125,7 +1124,7 @@ public class JdxReplWs {
     /**
      * Реакция на реплику с данными
      */
-    private void useReplica_IDE_SNAPSHOT(IReplica replica, boolean forceApplySelf) throws Exception {
+    private void useReplica_IDE_SNAPSHOT(IReplica replica, boolean forceApplySelf, ReplicaUseResult useResult) throws Exception {
         int replicaType = replica.getInfo().getReplicaType();
 
         // Совпадает ли реальная структура БД с разрешенной структурой
@@ -1136,8 +1135,20 @@ public class JdxReplWs {
         if (!isEqualStruct_Actual_Allowed) {
             // Для справки/отладки - не совпадающие структуры - в файл
             debugDumpStruct("5.");
+
+            // Мягкая или жесткая ошибка.
+            // Если структура еще не приходила (станция новая),
+            // то исключения в логах - бесят, поэтому просто пока прерываемся.
+            if (struct.getTables().size() == 0) {
+                // Просто ждем
+                useResult.replicaUsed = false;
+                useResult.doBreak = true;
+                log.error("handleQueIn, structActual <> structAllowed");
+                return;
+            } else {
             // Генерим ошибку
             throw new XError("handleQueIn, structActual <> structAllowed");
+        }
         }
 
         // Свои собственные snapshot-реплики точно можно не применять
@@ -1153,8 +1164,20 @@ public class JdxReplWs {
         if (replicaStructCrc.compareToIgnoreCase(dbStructActualCrc) != 0) {
             // Для справки/отладки - структуры в файл
             debugDumpStruct("6.");
-            //
+
+            // Мягкая или жесткая ошибка.
+            // Если структура еще не приходила (станция новая),
+            // то исключения в логах - бесят, поэтому просто пока прерываемся.
+            if (struct.getTables().size() == 0) {
+                // Просто ждем
+                useResult.replicaUsed = false;
+                useResult.doBreak = true;
+                log.error("handleQueIn, wait for database struct, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
+                return;
+            } else {
+                // Генерим ошибку
             throw new XError("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
+        }
         }
 
 
@@ -1321,7 +1344,7 @@ public class JdxReplWs {
             case JdxReplicaType.IDE:
             case JdxReplicaType.IDE_MERGE:
             case JdxReplicaType.SNAPSHOT: {
-                useReplica_IDE_SNAPSHOT(replica, forceApplySelf);
+                useReplica_IDE_SNAPSHOT(replica, forceApplySelf, useResult);
                 break;
             }
 

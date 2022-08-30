@@ -325,6 +325,9 @@ public class JdxReplSrv {
             db.execSql(sql, params);
 
             //
+            long queCommonNo = queCommon.getMaxNo();
+
+            //
             CfgManager cfgManager = new CfgManager(db);
             cfgManager.setWsStruct(new JdxDbStruct(), wsId);
 
@@ -354,9 +357,8 @@ public class JdxReplSrv {
             // ---
             // Реплика на установку возрастов очередей рабочей станции (начальное состояние)
             JdxWsState wsState = new JdxWsState();
-            // Возраст очереди "in" новой рабочей станции - по возрасту очереди "in"
-            // "серверной" рабочей станции (que_in_no_done), запомненному при формировании snapshot
-            long wsSnapshotAge = 0;
+            // Возраст очереди "in" новой рабочей станции - по текущему возрасту серверной очереди "common"
+            long wsSnapshotAge = queCommonNo;
             wsState.QUE_IN_NO = wsSnapshotAge;
             wsState.QUE_IN_NO_DONE = wsSnapshotAge;
             //

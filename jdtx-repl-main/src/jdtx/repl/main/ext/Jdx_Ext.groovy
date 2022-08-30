@@ -212,9 +212,6 @@ class Jdx_Ext extends ProjectExt {
         if (mailUrl == null || mailUrl.length() == 0) {
             throw new XError("Не указан [mail] - почтовый сервер")
         }
-        // Начальный конфиг Ws
-        JSONObject cfg = new JSONObject()
-        cfg.put("url", mailUrl)
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -229,13 +226,19 @@ class Jdx_Ext extends ProjectExt {
             dbStructReader.setDb(db)
             IJdxDbStruct struct = dbStructReader.readDbStruct()
 
-            // Создаем базовые объекты и рабочую станцию для сервера (wsId = 1)
+            // Создаем базовые объекты и рабочую станцию для сервера (серверную, wsId = 1)
             UtRepl utRepl = new UtRepl(db, struct)
             utRepl.checkNotOwnId()
             utRepl.dropReplication()
             utRepl.createReplication(wsId, guid)
 
-            // Записываем начальный конфиг cfg_ws рабочей станции
+            // Начальный конфиг cfg_ws рабочей станции
+            JSONObject cfg = new JSONObject()
+            cfg.put("url", mailUrl)
+            JSONObject cfgApp = new JSONObject()
+            cfgApp.put("autoUseRepairReplica", true)
+            cfg.put("app", cfgApp)
+            // Записываем конфиг
             CfgManager cfgManager = new CfgManager(db)
             cfgManager.setSelfCfg(cfg, CfgType.WS)
 
@@ -982,12 +985,6 @@ class Jdx_Ext extends ProjectExt {
         //
         String queName = args.getValueString("que")
         if (queName == null || queName.length() == 0) {
-            ///////////////
-            ///////////////
-            ///////////////
-            ///////////////
-            // todo ранее snapshot реплики отправлялись в que001, а она умеет нумеровать
-            // сейчас я пытаюсь отправить в коммон, а она не умеет сама нумеровать (и это правльно) - может отправлять не в common&
             queName = UtQue.SRV_QUE_OUT001
         }
 
@@ -1030,7 +1027,7 @@ class Jdx_Ext extends ProjectExt {
         //
         String queName = args.getValueString("que")
         if (queName == null || queName.length() == 0) {
-            queName = UtQue.SRV_QUE_COMMON
+            queName = UtQue.SRV_QUE_OUT001
         }
 
         // БД
@@ -1053,11 +1050,6 @@ class Jdx_Ext extends ProjectExt {
     }
 
 
-    ///////////////////////////////////
-    ///////////////////////////////////
-    ///////////////////////////////////
-    // Обосновать. зачем он нужен
-    ///////////////////////////////////
     /**
      * Используется для
      * 1) задания конфигов серврера при инициализации репликации

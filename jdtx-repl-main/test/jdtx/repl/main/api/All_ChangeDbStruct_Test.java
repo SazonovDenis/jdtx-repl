@@ -14,10 +14,10 @@ public class All_ChangeDbStruct_Test extends AppTestCase {
     // иначе БД не отсвобождается
     DbPrepareEtalon_Test test;
 
-    // Если нужно много раз запускать единственный метод из этого класа, то чтобы сэкономить время на подготовке бэкапа,
+    // Если нужно несколько раз позапускать один метод из этого класа, то чтобы сэкономить время на подготовке бэкапа,
     // можно установить один раз true (чтобы первый раз сделался бэкап), а потом можно установить false -
     // тогда перед запуском метода восстановление из бэкапа будет запускаться, а долгая подготовка бэкапа - нет.
-    static boolean isClassTestMode = false;
+    static boolean isClassTestMode = true;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {

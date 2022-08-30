@@ -273,7 +273,7 @@ public class UtAuditSelector {
         for (IJdxTable structTable : struct.getTables()) {
             String tableName = structTable.getName();
 
-            // Не правила публикации - не анализируем аудит
+            // Нет правила публикации - не анализируем аудит
             IPublicationRule publicationRule = publicationStorage.getPublicationRule(tableName);
             if (publicationRule == null) {
                 log.info("  skip table: " + tableName + ", not found in publicationStorage");
