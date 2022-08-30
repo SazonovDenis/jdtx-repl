@@ -11,7 +11,7 @@ install/JadatexSync*.exe
 notuse
 
 _app.rt
-_db-ini.rt
+_db-ini*.rt
 _log.properties
 _product
 _data_root

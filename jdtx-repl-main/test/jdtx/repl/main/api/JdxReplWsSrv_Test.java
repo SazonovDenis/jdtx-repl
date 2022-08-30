@@ -24,7 +24,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     public String mailUrl;
     public String mailGuid;
-    public String mailPass = null;
+    public String mailPass;
 
     public String cfg_json_ws;
     public String cfg_json_decode;

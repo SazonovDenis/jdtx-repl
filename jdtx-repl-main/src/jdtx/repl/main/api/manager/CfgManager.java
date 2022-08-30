@@ -42,15 +42,6 @@ public class CfgManager {
         db.execSql("update " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO set " + cfgName + " = :cfg", UtCnv.toMap("cfg", cfgStr));
     }
 
-/*
-    public void setSelfStruct(IJdxDbStruct struct) throws Exception {
-        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-        String structStr = struct_rw.toString(struct, false);
-        db.execSql("update " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO set db_struct = :db_struct", UtCnv.toMap("db_struct", structStr));
-    }
-*/
-
-
     /*
      * На сервере по каждой рабочей станции
      */

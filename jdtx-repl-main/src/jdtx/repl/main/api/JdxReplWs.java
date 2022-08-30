@@ -306,40 +306,6 @@ public class JdxReplWs {
 
 
     /**
-     * Один из шагов по фиксации структуры:
-     * - дополнение аудита (удаление для исключенных и добавление для новых)
-     * - если нужно - отправляем в queOut snapshot для тех таблиц, которые появились в структуре
-     *
-     * @return true, если структуры были обновлены или не требуют обновления.
-     */
-    public boolean canApplyNewDbStruct(IJdxDbStruct structActual, IJdxDbStruct structAllowed) throws Exception {
-/*
-        log.info("dbStructApplyFixed, checking");
-
-        // Читаем структуры
-        DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
-        //IJdxDbStruct structFixed = databaseStructManager.getDbStructFixed();
-        IJdxDbStruct structAllowed = databaseStructManager.getDbStructAllowed();
-*/
-
-        // Сравниваем
-        boolean equal_Actual_Allowed = UtDbComparer.dbStructIsEqualTables(structActual, structAllowed);
-        //boolean equal_Actual_Fixed = UtDbComparer.dbStructIsEqualTables(structActual, structFixed);
-
-        // Нет возможности фиксации структуры -
-        // наша реальная не совпадает с разрешенной
-        if (!equal_Actual_Allowed) {
-            log.warn("dbStructApplyFixed, Actual <> Allowed");
-            //
-            return false;
-        }
-
-        //
-        return true;
-    }
-
-
-    /**
      * Обрабатываем свои таблицы аудита на предмет изменений,
      * формируем исходящие реплики.
      */
@@ -885,8 +851,11 @@ public class JdxReplWs {
 
             // Проверяем возможность фиксации структуры БД
             // т.е. превращения "разрешенной" в "фиксированную"
-            if (!canApplyNewDbStruct(structNew, structAllowedNew)) {
-                log.warn("useReplica_SET_DB_STRUCT, canApplyNewDbStruct <> true");
+            boolean equal_Actual_Allowed = UtDbComparer.dbStructIsEqualTables(structNew, structAllowedNew);
+            if (!equal_Actual_Allowed) {
+                // Нет возможности фиксации структуры -
+                // наша будущая ребочая не совпадает с "разрешенной"
+                log.warn("useReplica_SET_DB_STRUCT, can`t ApplyNewDbStruct: structNew <> structAllowedNew");
 
                 // Для справки/отладки - структуры в файл
                 debugDumpStruct("2.structNew", structNew);
@@ -902,7 +871,7 @@ public class JdxReplWs {
             // Наша реальная совпадает с разрешенной, но отличается от зафиксированной
 
             // Начинаем фиксацию структуры
-            log.info("dbStructApplyFixed, start");
+            log.info("SET_DB_STRUCT, start");
 
             // Определяем разницу между старым и новым составом таблиц, отправляемых со станции на сервер.
             List<IJdxTable> tablesAdded = new ArrayList<>();
@@ -939,7 +908,7 @@ public class JdxReplWs {
             reportReplica(JdxReplicaType.SET_DB_STRUCT_DONE);
 
             //
-            log.info("dbStructApplyFixed, complete");
+            log.info("SET_DB_STRUCT, complete");
 
 
             // Смена структуры требует переинициализацию репликатора,

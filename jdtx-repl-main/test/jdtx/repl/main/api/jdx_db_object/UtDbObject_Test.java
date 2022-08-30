@@ -68,6 +68,9 @@ public class UtDbObject_Test extends Database_Test {
      */
     @Test
     public void test_compareCreateDrop() throws Exception {
+        System.out.println(UtJdx.getDbInfoStr(db1));
+
+        //
         JdxDbStructReader dbStructReader = new JdxDbStructReader();
         dbStructReader.setDb(db1);
         IJdxDbStruct struct = dbStructReader.readDbStruct();

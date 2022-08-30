@@ -37,7 +37,7 @@ public class JdxReplWsSrv_Expected  {
     ]
 
     public static Map<String, String> expectedEqual_noFilter = [
-            "USRLOG"         : "NYN",
+            "USRLOG"         : "N?N",
             "PAWNCHIT"       : "NNN",
             "PAWNCHITSUBJECT": "NNN",
             "COMMENTTEXT"    : "NNN",
