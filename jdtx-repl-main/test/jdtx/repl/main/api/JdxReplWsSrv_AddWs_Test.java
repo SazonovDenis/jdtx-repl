@@ -32,6 +32,7 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
         // ---
         // Добавляем рабочую станцию (на сервере)
         args.clear();
+        args.put("notSaveServiceState", true);
         args.put("ws", 5);
         args.put("name", "ws 5");
         extSrv.repl_add_ws(args);
@@ -45,9 +46,10 @@ public class JdxReplWsSrv_AddWs_Test extends JdxReplWsSrv_Test {
         // ---
         // Задаем и отправляем конфигурацию станции
         args.clear();
+        args.put("notSaveServiceState", true);
         args.put("ws", 5);
-        args.put("file", cfg_json_decode);
         args.put("cfg", CfgType.DECODE);
+        args.put("file", cfg_json_decode);
         extSrv.repl_send_cfg(args);
         args.put("file", cfg_json_publication_ws);
         extSrv.repl_send_struct(args);

@@ -1,6 +1,7 @@
 package jdtx.repl.main.api.publication;
 
 import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.json.simple.*;
@@ -194,6 +195,41 @@ public class PublicationRule_Test extends ReplDatabaseStruct_Test {
         assertEquals(0, tablesAddedIn.size());
         assertEquals(0, tablesRemovedIn.size());
         assertEquals(0, tablesChangedIn.size());
+    }
+
+
+    /**
+     *
+     */
+    @Test
+    public void test_createCfgSnapshot() throws Exception {
+        CfgManager cfgManager = new CfgManager(db);
+        //JSONObject cfg_ws = cfgManager.getWsCfg(CfgType.PUBLICATIONS, 3);
+
+        JSONObject cfg_file_lic = UtRepl.loadAndValidateJsonFile("test/etalon/publication_lic_152_ws.json");
+        JSONObject cfg_file_full = UtRepl.loadAndValidateJsonFile("test/etalon/publication_full_152_ws.json");
+
+        //
+        System.out.println("=== cfg_file_full");
+        cfgManager.setWsCfg(cfg_file_full, CfgType.PUBLICATIONS, 3);
+        createCfgSnapshot(3);
+
+        //
+        System.out.println();
+        System.out.println("=== cfg_file_lic");
+        cfgManager.setWsCfg(cfg_file_lic, CfgType.PUBLICATIONS, 3);
+        createCfgSnapshot(3);
+    }
+
+    void createCfgSnapshot(long wsId) throws Exception {
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init();
+
+        //
+        IPublicationRuleStorage ruleSnapshot = srv.createCfgSnapshot(wsId);
+
+        //
+        printPublicationRules(ruleSnapshot.getPublicationRules());
     }
 
 }

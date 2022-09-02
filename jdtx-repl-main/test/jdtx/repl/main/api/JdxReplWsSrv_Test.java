@@ -129,6 +129,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         // Инициализация баз и начальный конфиг рабочих станций
         args.clear();
+        args.put("notSaveServiceState", true);
         args.put("ws", 1);
         args.put("name", "Сервер");
         args.put("mail", mailUrl);
@@ -137,8 +138,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         // Начальный конфиг сервера: напрямую задаем структуру публикаций (команда repl_set_cfg);
         args.clear();
-        args.put("file", cfg_json_decode);
+        args.put("notSaveServiceState", true);
         args.put("cfg", CfgType.DECODE);
+        args.put("file", cfg_json_decode);
         extSrv.repl_set_cfg(args);
         args.put("file", cfg_json_publication_srv);
         extSrv.repl_set_struct(args);
@@ -146,21 +148,25 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         // Добавляем рабочие станции
         args.clear();
+        args.put("notSaveServiceState", true);
         args.put("ws", 2);
         args.put("name", "ws 2");
         extSrv.repl_add_ws(args);
         //
         args.clear();
+        args.put("notSaveServiceState", true);
         args.put("ws", 3);
         args.put("name", "ws 3");
         extSrv.repl_add_ws(args);
         //
         args.clear();
+        args.put("notSaveServiceState", true);
         args.put("ws", 4);
         args.put("name", "ws 4");
         extSrv.repl_add_ws(args);
         //
         args.clear();
+        args.put("notSaveServiceState", true);
         args.put("ws", 4);
         extSrv.repl_ws_disable(args);
 
@@ -177,25 +183,28 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         // ---
         // Задаем и отправляем конфигурацию станций
         args.clear();
+        args.put("notSaveServiceState", true);
         args.put("ws", 2);
-        args.put("file", cfg_json_decode);
         args.put("cfg", CfgType.DECODE);
+        args.put("file", cfg_json_decode);
         extSrv.repl_send_cfg(args);
         args.put("file", cfg_json_publication_ws);
         extSrv.repl_send_struct(args);
         //
         args.clear();
+        args.put("notSaveServiceState", true);
         args.put("ws", 3);
-        args.put("file", cfg_json_decode);
         args.put("cfg", CfgType.DECODE);
+        args.put("file", cfg_json_decode);
         extSrv.repl_send_cfg(args);
         args.put("file", cfg_json_publication_ws);
         extSrv.repl_send_struct(args);
         //
         args.clear();
+        args.put("notSaveServiceState", true);
         args.put("ws", 4);
-        args.put("file", cfg_json_decode);
         args.put("cfg", CfgType.DECODE);
+        args.put("file", cfg_json_decode);
         extSrv.repl_send_cfg(args);
         args.put("file", cfg_json_publication_ws);
         extSrv.repl_send_struct(args);

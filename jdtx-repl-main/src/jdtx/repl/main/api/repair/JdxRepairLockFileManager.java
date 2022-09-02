@@ -10,31 +10,43 @@ import java.util.*;
 
 public class JdxRepairLockFileManager {
 
-    // todo сделать автосоздание и автоудаление lock на сервере
-
     String dataRoot;
 
-    public JdxRepairLockFileManager(String dataRoot){
+    public JdxRepairLockFileManager(String dataRoot) {
         this.dataRoot = dataRoot;
     }
 
     public File getRepairLockFile() {
-        File lockFile = new File(dataRoot + "temp/repairBackup.lock");
+        File lockFile = new File(dataRoot + "/repairBackup.lock");
         return lockFile;
     }
 
-    public void repairLockFileCreate() throws Exception {
+    public void repairLockFileCreate(Map<String, Object> params) throws Exception {
         File lockFile = getRepairLockFile();
 
         if (lockFile.exists()) {
-            throw new XError("lockFile already exists: " + repairLockFileRead());
+            throw new XError("lockFile already exists: " + repairLockFileStr());
         }
 
+        //
+        Map<String, String> lockFileMap = new HashMap<>();
+        //
         RandomString rnd = new RandomString();
         String guid = rnd.nextHexStr(16);
         String dt = String.valueOf(new DateTime());
-        Map lockFileMap = UtCnv.toMap("dt", dt, "guid", guid);
-        UtFile.saveString(UtCnv.toString(lockFileMap), lockFile);
+
+        lockFileMap.put("dt", dt);
+        lockFileMap.put("guid", guid);
+
+        if (params != null) {
+            for (String key : params.keySet()) {
+                lockFileMap.put(key, String.valueOf(params.get(key)));
+            }
+        }
+
+        String lockFileStr = lockFileMap.toString();
+        lockFileStr = lockFileStr.substring(1, lockFileStr.length() - 1);
+        UtFile.saveString(lockFileStr, lockFile);
     }
 
     public void repairLockFileDelete() {
@@ -45,10 +57,21 @@ public class JdxRepairLockFileManager {
         }
     }
 
-    public String repairLockFileRead() throws Exception {
+    public String repairLockFileStr() throws Exception {
         File lockFile = getRepairLockFile();
         if (lockFile.exists()) {
             return UtFile.loadString(getRepairLockFile());
+        } else {
+            return null;
+        }
+    }
+
+    public Map repairLockFileMap() throws Exception {
+        File lockFile = getRepairLockFile();
+        if (lockFile.exists()) {
+            Map res = new HashMap();
+            UtCnv.toMap(res, UtFile.loadString(getRepairLockFile()), ",", "=");
+            return res;
         } else {
             return null;
         }

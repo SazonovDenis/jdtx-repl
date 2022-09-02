@@ -412,10 +412,65 @@ public class JdxReplSrv {
     }
 
     //
-    public IPublicationRuleStorage getCfgSnapshot(long wsId, String cfgSnapshotFileName) throws Exception {
+    public IPublicationRuleStorage getCfgSnapshot(String cfgSnapshotFileName) throws Exception {
         JSONObject cfgSnapsot = UtRepl.loadAndValidateJsonFile(cfgSnapshotFileName);
         IPublicationRuleStorage ruleSnapsot = PublicationRuleStorage.loadRules(cfgSnapsot, struct, "snapshot");
         return ruleSnapsot;
+    }
+
+    /**
+     * При восстановлении станции в снимок для неё нужно отправить не только то, что станция может ПОЛУЧИТЬ по правилам "in"
+     * но и то, что она сама отправила (а это может отфильтровываться по правилам in),
+     * Например, если станция отправляет заказы только вверх, то при получении снимка она не должна получить
+     * ВСЕ заказы без разбора - иначе там будут чужие заказы.
+     * С другой стороны, СВОИ заказы (ранее отправленные, до сбоя) станция должна получить.
+     * <p>
+     * Формируем правила snapshot для станции
+     * из правил "in", и комбнации правил "out" с фильтром по автору (условием "RECORD_OWNER_ID == наша станция")
+     */
+    public IPublicationRuleStorage createCfgSnapshot(long wsId) throws Exception {
+        // Правила входящих и исходящих реплик для рабочей станции
+        CfgManager cfgManager = new CfgManager(db);
+        JSONObject cfgPublicationsWs = cfgManager.getWsCfg(CfgType.PUBLICATIONS, wsId);
+        IPublicationRuleStorage publicationRuleWsIn = PublicationRuleStorage.loadRules(cfgPublicationsWs, structFull, "in");
+        IPublicationRuleStorage publicationRuleWsOut = PublicationRuleStorage.loadRules(cfgPublicationsWs, structFull, "out");
+
+        // Берем все правила "in" без изменений
+        IPublicationRuleStorage rulesSnapsot = new PublicationRuleStorage();
+        rulesSnapsot.getPublicationRules().addAll(publicationRuleWsIn.getPublicationRules());
+
+        // Добавим все правила "out", при этом в каждое правило добавим фильтр по автору
+        // todo: да, грязно и зависимость от синтаксиса правил
+        String magicFilterRule = "RECORD_OWNER_ID = PARAM_wsDestination";
+        for (IPublicationRule ruleOut : publicationRuleWsOut.getPublicationRules()) {
+            IPublicationRule ruleSnapsot = rulesSnapsot.getPublicationRule(ruleOut.getTableName());
+
+            // Если для таблицы ruleOut.tableName уже есть привило (из списка "in")
+            // сейчас не добавляем и не меняем выражение фильтрации
+            if (ruleSnapsot != null) {
+                continue;
+            }
+
+            // Для таблицы ruleOut.tableName добавим привило, взяв за основу привило из списка "out"
+            ruleSnapsot = ruleOut;
+
+            // Добавим в выражение фильтрации привило "RECORD_OWNER_ID == наша станция"
+            String filterExpression = ruleSnapsot.getFilterExpression();
+            if (filterExpression == null || !filterExpression.contains(magicFilterRule)) {
+                if (filterExpression == null) {
+                    filterExpression = magicFilterRule;
+                } else {
+                    filterExpression = "(" + filterExpression + ") || (" + magicFilterRule + ")";
+                }
+                ruleSnapsot.setFilterExpression(filterExpression);
+            }
+
+            //
+            rulesSnapsot.getPublicationRules().add(ruleSnapsot);
+        }
+
+        //
+        return rulesSnapsot;
     }
 
     /**
@@ -424,36 +479,42 @@ public class JdxReplSrv {
      *
      * @param wsId код ранее существующей рабочей станции
      */
-    public void restoreWorkstation(long wsId, IPublicationRuleStorage ruleSnapsot) throws Exception {
+    public void restoreWorkstation(long wsId, IPublicationRuleStorage rulesForSnapsot) throws Exception {
         log.info("Restore workstation, wsId: " + wsId);
 
-        //
-        UtRepl utRepl = new UtRepl(db, struct);
+        // ---
+        // Читаем текущие (последние) конфиги станции
+        CfgManager cfgManager = new CfgManager(db);
+        JSONObject cfgDecode = cfgManager.getWsCfg(CfgType.DECODE, wsId);
+        JSONObject cfgPublications = cfgManager.getWsCfg(CfgType.PUBLICATIONS, wsId);
 
         // Очередь queOut001 для станции (инициализационная или для системных команд)
         JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
         queOut001.setDataRoot(dataRoot);
 
-
-        // ---
-        // Отправляем команду "задать структуру БД"
-        // Снимок ОТ СТАНЦИИ не просим - её данные на сервере и так есть
-        //srvSetAndSendDbStructInternal(queOut001, false);
+        //
+        UtRepl utRepl = new UtRepl(db, struct);
 
 
         // ---
-        // Читаем текущие конфиги станции
-        CfgManager cfgManager = new CfgManager(db);
-        JSONObject cfgDecode = cfgManager.getWsCfg(CfgType.DECODE, wsId);
-        JSONObject cfgPublications = cfgManager.getWsCfg(CfgType.PUBLICATIONS, wsId);
+        // Узнаем у сервера текущее (последнее) состояние рабочей станции
 
+        // Очередь queIn001 станции (равна тому, что мы успели отправить на станцию в прошлой жизни)
+        long wsQueIn001 = queOut001.getMaxNo();
 
-        // ---
-        // Отправляем конфиги на станцию
-        IReplica replica = utRepl.createReplicaSetCfg(cfgDecode, CfgType.DECODE, wsId);
-        queOut001.push(replica);
-        replica = utRepl.createReplicaSetDbStruct(wsId, cfgPublications, false);
-        queOut001.push(replica);
+        // Очередь queOut станции (равна тому, что станция успела нам отправить в прошлой жизни)
+        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
+        long wsQueOutNo = stateManager.getWsQueInNoDone(wsId);
+
+        // Запоминаем возраст входящей очереди "серверной" рабочей станции (que_in_no_done).
+        // Если мы начинаем готовить snapshot из "серверной" рабочей станции в этом возрасте,
+        // то все реплики ДО этого возраста будут отражены в snapshot,
+        // а все реплики ПОСЛЕ этого возраста в snapshot НЕ попадут,
+        // и рабочая станция должна будет получить их самостоятельно, через свою очередь queIn.
+        // Поэтому можно взять у "серверной" рабочей станции номер обработанной входящей очереди
+        // и считать его возрастом обработанной входящей очереди на новой рабочей станции.
+        JdxStateManagerWs stateManagerWs = new JdxStateManagerWs(db);
+        long wsSnapshotAge = stateManagerWs.getQueNoDone(UtQue.QUE_IN);
 
 
         // ---
@@ -462,15 +523,27 @@ public class JdxReplSrv {
         // Стратегии перекодировки каждой таблицы (нужно для формирования snaphot)
         RefDecodeStrategy.initInstance(cfgDecode);
 
-        // Делаем snapshot (по правилам cfgSnapshot)
-        List<IReplica> replicasSnapshot = new ArrayList<>();
-        long wsSnapshotAge = createReplicasSnapshot(SERVER_WS_ID, wsId, ruleSnapsot, replicasSnapshot);
+        // Передаем тот состав таблиц, который перечислен в правилах rulesForSnapsot
+        List<IJdxTable> publicationOutTables = makeOrderedFromPublicationRules(struct, rulesForSnapsot);
+
+        // Подготовим snapshot для станции wsId, фильтруем его по правилам rulesForSnapsot
+        List<IReplica> replicasSnapshot = utRepl.createSnapshotForTablesFiltered(publicationOutTables, SERVER_WS_ID, wsId, rulesForSnapsot, false);
 
 
         // ---
-        // Отправляем snapshot на станцию, в очередь queOut001.
-        UtRepl ut = new UtRepl(db, null);
-        ut.sendToQue(replicasSnapshot, queOut001);
+        // Отправляем конфиги на станцию (в очередь queOut001)
+        IReplica replica = utRepl.createReplicaSetCfg(cfgDecode, CfgType.DECODE, wsId);
+        queOut001.push(replica);
+
+        // Отправляем команду "задать структуру БД" (в очередь queOut001)
+        // Снимок ОТ СТАНЦИИ не просим - её данные на сервере и так есть
+        replica = utRepl.createReplicaSetDbStruct(wsId, cfgPublications, false);
+        queOut001.push(replica);
+
+
+        // ---
+        // Отправляем snapshot для станции (в очередь queOut001)
+        utRepl.sendToQue(replicasSnapshot, queOut001);
 
 
         // ---
@@ -478,17 +551,6 @@ public class JdxReplSrv {
         // После применения snaphot генераторы восстановленной рабочей станции будут находятся в устаревшем сосоянии.
         IReplica replicaRepairGenerators = utRepl.createReplicaRepairGenerators(wsId);
         queOut001.push(replicaRepairGenerators);
-
-
-        // ---
-        // Узнаем у сервера состояние рабочей станции
-
-        // Что станция успела получить в прошлой жизни?
-        long ageQueOut001Ws = queOut001.getMaxNo();
-
-        // Очередь queOut станции (что станция успела нам отправить в прошлой жизни?)
-        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
-        long wsQueOutNo = stateManager.getWsQueInNoDone(wsId);
 
 
         // ---
@@ -501,8 +563,8 @@ public class JdxReplSrv {
         wsState.QUE_IN_NO = wsSnapshotAge;
         wsState.QUE_IN_NO_DONE = wsSnapshotAge;
         //
-        wsState.QUE_IN001_NO = ageQueOut001Ws;
-        wsState.QUE_IN001_NO_DONE = ageQueOut001Ws;
+        wsState.QUE_IN001_NO = wsQueIn001;
+        wsState.QUE_IN001_NO_DONE = wsQueIn001;
         //
         wsState.QUE_OUT_NO = wsQueOutNo;
         //
@@ -517,29 +579,14 @@ public class JdxReplSrv {
         IReplica replicaSetState = utRepl.createReplicaSetWsState(wsId, wsState);
 
 
-        // Самым наглым образом установим номер реплики, разрешенной к отправке, на почтовом сервере.
-        // Это нужно, чтобы станция вышла из состояния "Detected restore from backup, repair needed" и получила нашу первую реплику.
-        // В этой первой реплике возраст QUE_OUT_NO и AUDIT_AGE_DONE будет возвращен на место, вместе с остальными возрастами.
-        IMailer mailerWs = mailerList.get(wsId);
-        RequiredInfo requiredInfo = new RequiredInfo();
-        requiredInfo.requiredFrom = 1;
-        requiredInfo.requiredTo = 1;
-        requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
-        mailerWs.setSendRequired("to001", requiredInfo);
-
+        // ---
         // Реплика на установку возрастов - отправка.
         // Самым наглым образом, минуя все очереди, тупо под номером 1
         // Станция сейчас в таком состоянии, что ждет тменно этот номер в своей очереди in001
+        // Это нужно, чтобы станция при выполнении команды "repair restore from backup" получила нашу первую реплику.
+        // В этой первой реплике возраст QUE_OUT_NO и AUDIT_AGE_DONE будет возвращен на место, вместе с остальными возрастами.
+        IMailer mailerWs = mailerList.get(wsId);
         mailerWs.send(replicaSetState, "to001", 1);
-
-        // Установим номер реплики, разрешенной к отправке, на почтовом сервере.
-        // На этот раз это номер, соответствующий имеющимся репликам в out001.
-        // todo Это нужно для???? - выяснить и тогда раскомменитровать
-        // Ведь это потенциально может отвалиться, а делается не внутри транзакции
-        requiredInfo.requiredFrom = ageQueOut001Ws + 1;
-        requiredInfo.requiredTo = -1;
-        requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
-        mailerWs.setSendRequired("to001", requiredInfo);
 
 
         // ---
@@ -608,33 +655,6 @@ public class JdxReplSrv {
         return replicasRes;
     }
 
-    /**
-     * Подготовим snapshot для станции wsIdDestination,
-     * фильтруем его по правилам rulesForSnapshot,
-     * и отправляем в очередь que
-     */
-    private long createReplicasSnapshot(long selfWsId, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot, List<IReplica> replicasRes) throws Exception {
-        // Запоминаем возраст входящей очереди "серверной" рабочей станции (que_in_no_done).
-        // Если мы начинаем готовить snapshot из "серверной" рабочей станции в этом возрасте,
-        // то все реплики ДО этого возраста будут отражены в snapshot,
-        // а все реплики ПОСЛЕ этого возраста в snapshot НЕ попадут,
-        // и рабочая станция должна будет получить их самостоятельно, через свою очередь queIn.
-        // Поэтому можно взять у "серверной" рабочей станции номер обработанной входящей очереди
-        // и считать его возрастом обработанной входящей очереди на новой рабочей станции.
-        JdxStateManagerWs stateManagerWs = new JdxStateManagerWs(db);
-        long wsSnapshotAge = stateManagerWs.getQueNoDone(UtQue.QUE_IN);
-
-        // Передаем тот состав таблиц, который перечислен в правилах исходящих публикаций
-        List<IJdxTable> publicationOutTables = makeOrderedFromPublicationRules(struct, rulesForSnapshot);
-
-        // Создаем snapshot-реплики, фильтруем
-        UtRepl ut = new UtRepl(db, struct);
-        List<IReplica> replicasResFiltered = ut.createSnapshotForTablesFiltered(publicationOutTables, selfWsId, wsIdDestination, rulesForSnapshot, false);
-        replicasRes.addAll(replicasResFiltered);
-
-        //
-        return wsSnapshotAge;
-    }
 
     /**
      * Возвращает список таблиц из правил publicationStorage,

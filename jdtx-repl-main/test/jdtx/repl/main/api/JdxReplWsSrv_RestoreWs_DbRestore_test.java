@@ -270,49 +270,6 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         doRepair(expectedNotEqual);
     }
 
-    /**
-     * Сохраним "бэкап" базы и папок для всех
-     */
-    @Test
-    public void doBackupNolmalLife() throws Exception {
-        // Рабочие станции
-        doBackupDB(1, "_all");
-        doBackupDir(1, "_all");
-        doBackupDB(2, "_all");
-        doBackupDir(2, "_all");
-        doBackupDB(3, "_all");
-        doBackupDir(3, "_all");
-        doBackupDB(5, "_all");
-        doBackupDir(5, "_all");
-        // Сервер
-        doBackupDir(0, "_all");
-        // Почтовый каталог
-        doBackupMail(1, "_all");
-    }
-
-    @Test
-    public void doRestoreFromNolmalLife() throws Exception {
-        //
-        disconnectAll();
-
-        // Рабочие станции
-        doRestoreDBInternal(1, "_all");
-        doRestoreDirInternal(1, "_all");
-        doRestoreDBInternal(2, "_all");
-        doRestoreDirInternal(2, "_all");
-        doRestoreDBInternal(3, "_all");
-        doRestoreDirInternal(3, "_all");
-        doRestoreDBInternal(5, "_all");
-        doRestoreDirInternal(5, "_all");
-        // Сервер
-        doRestoreDirInternal(0, "_all");
-        // Почтовый каталог
-        doRestoreMailInternal(1, "_all");
-
-        //
-        connectAll();
-    }
-
     private void doRequest(long from_no) {
         IVariantMap args = new VariantMap();
         args.put("box", "from");
@@ -341,7 +298,7 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         test_srv_doReplSession();
 
 
-        // Последняя попытка ремонта
+        // Сейчас все готово для ремонта
         System.out.println();
         System.out.println("Последняя попытка ремонта");
         doStepRepair(db2, false);
@@ -371,11 +328,11 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
     void doSetUp_doNolmalLife_BeforeFail() throws Exception {
         if (doNolmalLifeBromBackup) {
             System.out.println("-------------");
-            System.out.println("Делаем doSetUp_doNolmalLife_BeforeFail из ранее созданной копии");
+            System.out.println("Делаем doRestoreFromNolmalLife из ранее созданной копии");
             System.out.println("-------------");
             doRestoreFromNolmalLife();
             System.out.println("-------------");
-            System.out.println("doSetUp_doNolmalLife_BeforeFail - ok");
+            System.out.println("doRestoreFromNolmalLife - ok");
             System.out.println("-------------");
             return;
         }

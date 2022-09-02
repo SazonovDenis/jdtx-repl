@@ -1,8 +1,10 @@
 package jdtx.repl.main.api;
 
+import jandcode.dbm.data.*;
 import jandcode.utils.rt.*;
 import jandcode.utils.variant.*;
 import jdtx.repl.main.api.publication.*;
+import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.io.*;
 import org.junit.*;
@@ -17,6 +19,7 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
 
     String cfg_json_snapshot;
 
+    boolean doNolmalLifeBromBackup = false;
 
     public JdxReplWsSrv_RestoreWs_FromSrv_Test() {
         super();
@@ -31,8 +34,14 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
      */
     @Test
     public void test_DirDB_srv() throws Exception {
-        test_DatabaseRestore_stepRuin();
-        test_DatabaseRestore_stepRepair();
+        // Создание репликации, обычная работа - изменения в базах и синхронизация
+        doSetUp_doNolmalLife_BeforeFail();
+
+        // Аварийное событие
+        databaseRestore_stepRuin();
+
+        // Восстановление
+        databaseRestore_stepRepair();
     }
 
     /**
@@ -51,8 +60,21 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         test_DirDB_srv();
     }
 
-    @Test
-    public void test_DatabaseRestore_stepRuin() throws Exception {
+    // Создание репликации,
+    // обычная работа - изменения в базах и синхронизация
+    // По дороге создаем две контрольных точки
+    void doSetUp_doNolmalLife_BeforeFail() throws Exception {
+        if (doNolmalLifeBromBackup) {
+            System.out.println("-------------");
+            System.out.println("Делаем doRestoreFromNolmalLife из ранее созданной копии");
+            System.out.println("-------------");
+            doRestoreFromNolmalLife();
+            System.out.println("-------------");
+            System.out.println("doRestoreFromNolmalLife - ok");
+            System.out.println("-------------");
+            return;
+        }
+
         // Создание репликации
         allSetUp();
 
@@ -71,8 +93,11 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         // получаем синхронные базы
         test_AllHttp();
 
+        //
+        doBackupNolmalLife();
+    }
 
-        // ---
+    void databaseRestore_stepRuin() throws Exception {
         // Проверим исходную синхронность
         System.out.println("Базы должны быть в синхронном состоянии");
         compareDb(db, db2, equalExpected);
@@ -92,8 +117,7 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         // ... не делаем - ясно, что не получится
     }
 
-    @Test
-    public void test_DatabaseRestore_stepRepair() throws Exception {
+    void databaseRestore_stepRepair() throws Exception {
         // Берем заготовку базы данных (на "рабочей станции")
         Rt rt = extWs3.getApp().getRt().getChild("db/default");
         String dbNameDest = rt.getValue("database").toString();
@@ -101,6 +125,7 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         //
         FileUtils.copyFile(new File(dbNameSour), new File(dbNameDest));
         //
+        System.out.println();
         System.out.println("Эталонная база скопирована [" + dbNameDest + "]");
         //
         connectAll();
@@ -121,6 +146,7 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         sync_http_1_2_3();
 
         //
+        System.out.println();
         System.out.println("Попытка синхронизации была неудачная");
         compareDb(db, db2, equalExpected);
         compareDb(db, db3, expectedNotEqual_2isEmpty);
@@ -139,7 +165,7 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         // Подаем команду для подготовки snaphot (на сервере)
         args.clear();
         args.put("ws", 3);
-        args.put("cfg_snapshot", cfg_json_snapshot);
+        //args.put("cfg_snapshot", cfg_json_snapshot);
         extSrv.repl_restore_ws(args);
 
 
@@ -154,9 +180,12 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         System.out.println("Сервер ответит на просьбы о повторной отправке");
         test_srv_doReplSession();
 
-        // Последняя попытка ремонта
+        // Сейчас все готово для ремонта
         System.out.println();
         System.out.println("Последняя попытка ремонта");
+        doStepRepair(db3, false);
+        System.out.println();
+        System.out.println("Удачная попытка ремонта");
         doStepRepair(db3, true);
 
 
@@ -166,30 +195,95 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         sync_http_1_2_3();
 
         // Проверим синхронность после восстановления
-        System.out.println("Cинхронизация прошла нормально");
+        System.out.println();
+        System.out.println("Cинхронизация должна пройти нормально");
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
+        //
         compareDb(db, db2, equalExpected);
         compareDb(db, db3, equalExpected);
+
 
         // --- Работаем после восстановления
         test_AllHttp();
         test_AllHttp();
 
         // Проверим синхронность после работы
-        System.out.println("Cинхронизация прошла нормально");
+        System.out.println("Cинхронизация должна пройти нормально");
+        do_DumpTables(db, db2, db3, struct, struct2, struct3);
+        //
         compareDb(db, db2, equalExpected);
         compareDb(db, db3, equalExpected);
-        //
-        do_DumpTables(db, db2, db3, struct, struct2, struct3);
-        new File("../_test-data/csv").renameTo(new File("../_test-data/csv3"));
+
+
+        // --- Проверим работу que001
+        test_mute_unmute();
     }
 
     @Test
-    public void test_restoreWorkstation_ws3() throws Exception {
+    public void test_mute_unmute() throws Exception {
+        UtData.outTable(db.loadSql(sqlEnabledIs1));
+        assertEquals(0, db.loadSql(sqlEnabledIs1MuteIs1).size());
+
+        //
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init();
+
+
+        //
+        srv.srvSendWsMute(3, UtQue.SRV_QUE_OUT001);
+        test_AllHttp();
+
+        // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
+        UtData.outTable(db.loadSql(sqlEnabledIs1));
+        assertEquals(1, db.loadSql(sqlEnabledIs1MuteIs1).size());
+
+
+        //
+        srv.srvSendWsMute(2, UtQue.SRV_QUE_OUT001);
+        test_AllHttp();
+
+        // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
+        UtData.outTable(db.loadSql(sqlEnabledIs1));
+        assertEquals(2, db.loadSql(sqlEnabledIs1MuteIs1).size());
+
+
+        //
+        srv.srvSendWsUnmute(2, UtQue.SRV_QUE_OUT001);
+        srv.srvSendWsUnmute(3, UtQue.SRV_QUE_OUT001);
+        test_AllHttp();
+
+        // Проверяем (на сервере) ответ на сигнал - проверяем состояние MUTE
+        UtData.outTable(db.loadSql(sqlEnabledIs1));
+        assertEquals(0, db.loadSql(sqlEnabledIs1MuteIs1).size());
+    }
+
+    private String sqlWsList = "select\n" +
+            "  WORKSTATION_LIST.ID as WS_ID,\n" +
+            "  WORKSTATION_LIST.NAME,\n" +
+            "  WORKSTATION_LIST.GUID,\n" +
+            "  STATE__ENABLED.param_value as ENABLED,\n" +
+            "  STATE__MUTE_AGE.param_value as MUTE_AGE\n" +
+            "from\n" +
+            "  " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST WORKSTATION_LIST\n" +
+            "  left join " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE STATE__ENABLED on (WORKSTATION_LIST.id = STATE__ENABLED.ws_id and STATE__ENABLED.param_name = 'enabled')\n" +
+            "  left join " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE STATE__MUTE_AGE on (WORKSTATION_LIST.id = STATE__MUTE_AGE.ws_id and STATE__MUTE_AGE.param_name = 'mute_age')\n" +
+            "where\n" +
+            "  1=1\n";
+
+    private String sqlEnabledIs1 = sqlWsList +
+            "  and STATE__ENABLED.param_value = 1";
+
+    private String sqlEnabledIs1MuteIs1 = sqlWsList +
+            "  and STATE__ENABLED.param_value = 1\n" +
+            "  and STATE__MUTE_AGE.param_value <> 0";
+
+    @Test
+    public void test_restoreWorkstation_ws3_jsonCfg() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init();
 
         // Узнаем правила для формирования snapshot
-        IPublicationRuleStorage ruleSnapshot = srv.getCfgSnapshot(3, cfg_json_snapshot);
+        IPublicationRuleStorage ruleSnapshot = srv.getCfgSnapshot(cfg_json_snapshot);
 
         //
         srv.restoreWorkstation(3, ruleSnapshot);

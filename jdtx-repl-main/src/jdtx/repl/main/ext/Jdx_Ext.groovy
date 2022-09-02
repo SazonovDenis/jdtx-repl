@@ -297,9 +297,6 @@ class Jdx_Ext extends ProjectExt {
         if (wsId == 0L) {
             throw new XError("Не указан [ws] - код рабочей станции")
         }
-        if (cfgSnapshotFileName == null || cfgSnapshotFileName.length() == 0) {
-            throw new XError("Не указан [cfg_snapshot] - конфиг-файл для фильтрации snapshot рабочей станции")
-        }
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -312,10 +309,15 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             // Узнаем правила для формирования snapshot
-            JSONObject cfgSnapshot = srv.getCfgSnapshot(wsId, cfgSnapshotFileName)
+            IPublicationRuleStorage ruleSnapshot;
+            if (cfgSnapshotFileName != null && cfgSnapshotFileName.length() != 0) {
+                ruleSnapshot = srv.getCfgSnapshot(cfgSnapshotFileName)
+            } else {
+                ruleSnapshot = srv.createCfgSnapshot(wsId)
+            }
 
-            //
-            srv.restoreWorkstation(wsId, cfgSnapshot)
+            // Сформируем snapshot
+            srv.restoreWorkstation(wsId, ruleSnapshot)
         } finally {
             restoreServiceState(serviceState, db, args)
             db.disconnect()

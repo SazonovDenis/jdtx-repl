@@ -19,8 +19,8 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
     String backupDirName = "temp/backup/";
 
     String tempDirName;
-    String workDirName;
-    String workDbName;
+    String dataDirName;
+    String dbName;
     String dbBackupName;
     String dirBackupName;
     File workDirFile;
@@ -74,18 +74,17 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         //
         JdxReplWs ws = new JdxReplWs(db);
         ws.initDataRoot();
-        String wsDataRoot = ws.getDataRoot();
+        ws.initDataDir(wsId);
+        tempDirName = ws.getDataRoot() + "temp/";
+        dataDirName = ws.getDataDir();
+        dbName = db.getDbSource().getDatabase();
         //
         String wsIdStr = "ws_" + UtString.padLeft(String.valueOf(wsId), 3, "0");
-        //
-        tempDirName = wsDataRoot + "temp/";
-        workDirName = wsDataRoot + wsIdStr;
-        workDbName = db.getDbSource().getDatabase();
         dbBackupName = backupDirName + "db_" + wsIdStr + suffix + ".bak";
         dirBackupName = backupDirName + "dir_" + wsIdStr + suffix + ".bak";
         //
-        workDirFile = new File(workDirName);
-        workDbFile = new File(workDbName);
+        workDirFile = new File(dataDirName);
+        workDbFile = new File(dbName);
         dbBackupFile = new File(dbBackupName);
         dirBackupFile = new File(dirBackupName);
     }
@@ -100,13 +99,13 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         String wsIdStr = "srv";
         //
         tempDirName = wsDataRoot + "temp/";
-        workDirName = wsDataRoot + wsIdStr;
-        workDbName = db.getDbSource().getDatabase();
+        dataDirName = wsDataRoot + wsIdStr;
+        dbName = db.getDbSource().getDatabase();
         //dbBackupName = backupDirName + "db_" + wsIdStr + suffix + ".bak";
         dirBackupName = backupDirName + "dir_" + wsIdStr + suffix + ".bak";
         //
-        workDirFile = new File(workDirName);
-        workDbFile = new File(workDbName);
+        workDirFile = new File(dataDirName);
+        workDbFile = new File(dbName);
         //dbBackupFile = new File(dbBackupName);
         dirBackupFile = new File(dirBackupName);
     }
@@ -135,11 +134,12 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
      * Попытка ремонта
      */
     public void doStepRepair(Db db, boolean doRaise) throws Exception {
-        JdxReplWs ws = new JdxReplWs(db);
-        ws.init();
-
-        //
         try {
+            JdxReplWs ws = new JdxReplWs(db);
+            ws.init();
+            ws.repairAfterBackupRestore(true, true);
+
+            //
             ws_doReplSession(db);
         } catch (Exception e) {
             if (doRaise) {
@@ -156,8 +156,8 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         disconnectAll();
 
         //
-        System.out.println("Удаляем содержимое: " + workDirName + "(" + workDirFile.getAbsolutePath() + ")");
-        UtFile.cleanDir(workDirName);
+        System.out.println("Удаляем содержимое: " + dataDirName + "(" + workDirFile.getAbsolutePath() + ")");
+        UtFile.cleanDir(dataDirName);
         FileUtils.forceDelete(workDirFile);
 
         //
@@ -171,7 +171,7 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         disconnectAll();
 
         //
-        System.out.println("Удаляем: " + workDbName + "(" + (workDbFile.getAbsolutePath()) + ")");
+        System.out.println("Удаляем: " + dbName + "(" + (workDbFile.getAbsolutePath()) + ")");
         FileUtils.forceDelete(workDbFile);
 
         //
@@ -204,7 +204,7 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         }
 
         //
-        UtZip.doZipDir(workDirName, dirBackupName);
+        UtZip.doZipDir(dataDirName, dirBackupName);
     }
 
     void doBackupMail(long wsId, String suffix) throws Exception {
@@ -266,12 +266,12 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         initWs(wsId, suffix);
 
         //
-        UtFile.cleanDir(workDirName);
-        UtZip.doUnzipDir(dirBackupName, workDirName);
+        UtFile.cleanDir(dataDirName);
+        UtZip.doUnzipDir(dirBackupName, dataDirName);
         //
         UtFile.cleanDir(tempDirName);
         //
-        System.out.println("restoreDir: " + dirBackupName + " -> " + workDirName);
+        System.out.println("restoreDir: " + dirBackupName + " -> " + dataDirName);
     }
 
     void doRestoreMailInternal(long wsId, String suffix) throws Exception {
@@ -289,6 +289,55 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
         UtZip.doUnzipDir(dirBackupName, mailDirName);
         //
         System.out.println("restoreMail: " + dirBackupName + " -> " + mailDirName);
+    }
+
+    /**
+     * Сохраним "бэкап" базы и папок для всех станций
+     */
+    public void doBackupNolmalLife() throws Exception {
+        UtFile.cleanDir(backupDirName);
+
+        // Рабочие станции
+        doBackupDB(1, "_all");
+        doBackupDir(1, "_all");
+        doBackupDB(2, "_all");
+        doBackupDir(2, "_all");
+        doBackupDB(3, "_all");
+        doBackupDir(3, "_all");
+        doBackupDB(5, "_all");
+        doBackupDir(5, "_all");
+
+        // Сервер
+        doBackupDir(0, "_all");
+
+        // Почтовый каталог
+        doBackupMail(1, "_all");
+    }
+
+    /**
+     * Восстановим базы и папкки для всех станций из "бэкапа"
+     */
+    public void doRestoreFromNolmalLife() throws Exception {
+        disconnectAll();
+
+        // Рабочие станции
+        doRestoreDBInternal(1, "_all");
+        doRestoreDirInternal(1, "_all");
+        doRestoreDBInternal(2, "_all");
+        doRestoreDirInternal(2, "_all");
+        doRestoreDBInternal(3, "_all");
+        doRestoreDirInternal(3, "_all");
+        doRestoreDBInternal(5, "_all");
+        doRestoreDirInternal(5, "_all");
+
+        // Сервер
+        doRestoreDirInternal(0, "_all");
+
+        // Почтовый каталог
+        doRestoreMailInternal(1, "_all");
+
+        //
+        connectAll();
     }
 
 

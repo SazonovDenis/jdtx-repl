@@ -73,6 +73,7 @@ public class JdxReplWs {
 
     //
     protected String dataRoot;
+    protected String dataDir;
 
     //
     public JdxErrorCollector errorCollector = null;
@@ -95,6 +96,10 @@ public class JdxReplWs {
 
     public String getDataRoot() {
         return dataRoot;
+    }
+
+    public String getDataDir() {
+        return dataDir;
     }
 
     public IMailer getMailer() {
@@ -120,11 +125,12 @@ public class JdxReplWs {
         // Проверка, что инициализация станции прошла
         ut.checkReplicationInit();
 
-        // В каком каталоге работаем
-        initDataRoot();
-
         // Читаем код нашей станции
         readIdGuid();
+
+        // В каком каталоге работаем
+        initDataRoot();
+        initDataDir(wsId);
 
         // Чтение структуры БД
         IJdxDbStructReader structReader = new JdxDbStructReader();
@@ -146,17 +152,17 @@ public class JdxReplWs {
 
         // Читаем из общей очереди
         queIn = new JdxQueInWs(db, UtQue.QUE_IN, UtQue.STATE_AT_WS);
-        String queIn_DirLocal = dataRoot + "ws_" + sWsId + "/que_in";
+        String queIn_DirLocal = dataDir + "que_in";
         queIn.setDataRoot(queIn_DirLocal);
 
         // Читаем из очереди 001
         queIn001 = new JdxQueInWs(db, UtQue.QUE_IN001, UtQue.STATE_AT_WS);
-        String queIn001_DirLocal = dataRoot + "ws_" + sWsId + "/que_in001";
+        String queIn001_DirLocal = dataDir + "que_in001";
         queIn001.setDataRoot(queIn001_DirLocal);
 
         // Пишем в эту очередь
         queOut = new JdxQuePersonal(db, UtQue.QUE_OUT, wsId);
-        String queOut_DirLocal = dataRoot + "ws_" + sWsId + "/que_out";
+        String queOut_DirLocal = dataDir + "que_out";
         queOut.setDataRoot(queOut_DirLocal);
 
         // Конфиг для мейлера
@@ -199,11 +205,25 @@ public class JdxReplWs {
      * В каком каталоге работаем.
      * Оформлен как отдельный метод, чтобы можно было вызывать только его (в тестах и т.д.)
      */
-    public void initDataRoot() throws IOException {
+    void initDataRoot() throws IOException {
         dataRoot = new File(db.getApp().getRt().getChild("app").getValueString("dataRoot")).getCanonicalPath();
         dataRoot = UtFile.unnormPath(dataRoot) + "/";
         //
+        String wsIdStr = UtString.padLeft(String.valueOf(wsId), 3, "0");
+        dataDir = dataRoot + "ws_" + wsIdStr + "/";
+        //
         log.info("dataRoot: " + dataRoot);
+    }
+
+    /**
+     * Где наши данные.
+     * Оформлен как отдельный метод, чтобы можно было вызывать только его (в тестах и т.д.)
+     */
+    void initDataDir(long wsId) {
+        String wsIdStr = UtString.padLeft(String.valueOf(wsId), 3, "0");
+        dataDir = dataRoot + "ws_" + wsIdStr + "/";
+        //
+        log.info("dataDir: " + dataDir);
     }
 
     /**
@@ -571,8 +591,6 @@ public class JdxReplWs {
      * Реакция на команду - перевод в режим "MUTE"
      */
     private void useReplica_MUTE(IReplica replica) throws Exception {
-        log.info("useReplica_MUTE, self.wsId: " + wsId);
-
         // Узнаем получателя
         JSONObject info;
         InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
@@ -584,9 +602,10 @@ public class JdxReplWs {
         }
         long destinationWsId = UtJdxData.longValueOf(info.get("destinationWsId"));
 
-
         // Реакция на команду, если получатель - все станции или именно наша
         if (destinationWsId == 0 || destinationWsId == wsId) {
+            log.info("useReplica_MUTE, self.wsId: " + wsId);
+
             // Последняя обработка собственного аудита
             handleSelfAudit();
 
@@ -603,8 +622,6 @@ public class JdxReplWs {
      * Реакция на команду - отключение режима "MUTE"
      */
     private void useReplica_UNMUTE(IReplica replica) throws Exception {
-        log.info("useReplica_UNMUTE, self.wsId: " + wsId);
-
         // Узнаем получателя
         JSONObject info;
         InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
@@ -618,6 +635,7 @@ public class JdxReplWs {
 
         // Реакция на команду, если получатель - все станции или именно наша
         if (destinationWsId == 0 || destinationWsId == wsId) {
+            log.info("useReplica_UNMUTE, self.wsId: " + wsId);
 
             // Выход из состояния "Я замолчал"
             JdxMuteManagerWs muteManager = new JdxMuteManagerWs(db);
@@ -631,7 +649,7 @@ public class JdxReplWs {
     /**
      * Реакция на команду - SET_STATE
      */
-    private void useReplica_SET_STATE(IReplica replica) throws Exception {
+    private void useReplica_SET_STATE(IReplica replica, ReplicaUseResult useResult) throws Exception {
         // Узнаем получателя
         JSONObject wsStateJson;
         InputStream infoStream = JdxReplicaReaderXml.createInputStream(replica, "info.json");
@@ -648,6 +666,10 @@ public class JdxReplWs {
             JdxWsState wsState = new JdxWsState();
             wsState.fromJson(wsStateJson);
 
+            //
+            log.info("useReplica_SET_STATE, self.wsId: " + wsId + ", state: " + wsState);
+
+            //
             db.startTran();
             try {
                 // --- in
@@ -730,6 +752,9 @@ public class JdxReplWs {
 
             // --- Отчитаемся
             reportReplica(JdxReplicaType.SET_STATE_DONE);
+
+            //
+            useResult.doBreak = true;
         }
     }
 
@@ -1115,9 +1140,9 @@ public class JdxReplWs {
                 log.error("handleQueIn, structActual <> structAllowed");
                 return;
             } else {
-            // Генерим ошибку
-            throw new XError("handleQueIn, structActual <> structAllowed");
-        }
+                // Генерим ошибку
+                throw new XError("handleQueIn, structActual <> structAllowed");
+            }
         }
 
         // Свои собственные snapshot-реплики точно можно не применять
@@ -1145,8 +1170,8 @@ public class JdxReplWs {
                 return;
             } else {
                 // Генерим ошибку
-            throw new XError("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
-        }
+                throw new XError("handleQueIn, database.structCrc <> replica.structCrc, expected: " + dbStructActualCrc + ", actual: " + replicaStructCrc);
+            }
         }
 
 
@@ -1281,7 +1306,7 @@ public class JdxReplWs {
             }
 
             case JdxReplicaType.SET_STATE: {
-                useReplica_SET_STATE(replica);
+                useReplica_SET_STATE(replica, useResult);
                 break;
             }
 
@@ -1845,7 +1870,7 @@ public class JdxReplWs {
 
         // ---
         // Есть ли отметка о начале ремонта
-        JdxRepairLockFileManager repairLockFileManager = new JdxRepairLockFileManager(getDataRoot());
+        JdxRepairLockFileManager repairLockFileManager = new JdxRepairLockFileManager(getDataDir());
         JdxRepairInfoManager repairInfoManager = new JdxRepairInfoManager(mailer);
         //
         File lockFile = repairLockFileManager.getRepairLockFile();
@@ -1865,7 +1890,7 @@ public class JdxReplWs {
         boolean needRepair = false;
 
         if (lockFile.exists()) {
-            log.warn("Need repair: lockFile.exists");
+            log.warn("Need repair: lockFile.exists, " + repairLockFileManager.repairLockFileStr());
             needRepair = true;
         }
 
@@ -1947,7 +1972,8 @@ public class JdxReplWs {
             log.warn("  noQueOutSendMarked: " + noQueOutSendMarked);
             log.warn("  noQueIn001Used: " + noQueIn001Used);
             log.warn("  noQueInUsed: " + noQueInUsed);
-            log.warn("  lockFile: " + repairLockFileManager.repairLockFileRead());
+            log.warn("  lockFile: " + repairLockFileManager.repairLockFileStr());
+            log.warn("  need repair: " + needRepair);
         }
 
         //
@@ -1959,7 +1985,13 @@ public class JdxReplWs {
         // ---
         // Отметим, что проблема обнаружена. После этой отметки ремонт считается НАЧАТЫМ, но НЕ ЗАВЕРШЕННЫМ.
         if (needRepair && !lockFile.exists()) {
-            repairLockFileManager.repairLockFileCreate();
+            if (noQueIn001Used == 0 && noQueInUsed == 0) {
+                repairLockFileManager.repairLockFileCreate(UtCnv.toMap("repairMode_EmptyBase", true));
+            } else {
+                repairLockFileManager.repairLockFileCreate(null);
+            }
+
+            // Отметка на сервер
             repairInfoManager.setRequestRepair(repairLockFileManager.repairLockFileGuid());
         }
 
@@ -1980,13 +2012,20 @@ public class JdxReplWs {
                     "noQueOutSendMarked: " + noQueOutSendMarked + ", " +
                     "noQueIn001Used: " + noQueIn001Used + ", " +
                     "noQueInUsed: " + noQueInUsed + ", " +
-                    "lockFile: " + repairLockFileManager.repairLockFileRead() + ", " +
+                    "lockFile: " + repairLockFileManager.repairLockFileStr() + ", " +
                     "need repair: " + needRepair;
             throw new XError("Detected restore from backup, repair needed: " + errInfo);
         }
 
         log.warn("==========");
-        log.warn("Restore from backup: start repair");
+        log.warn("Restore from backup: start repair, lockFile: " + repairLockFileManager.repairLockFileStr());
+
+        //
+        Map repairParams = repairLockFileManager.repairLockFileMap();
+        boolean repairMode_EmptyBase = UtJdxData.booleanValueOf(repairParams.get("repairMode_EmptyBase"));
+        if (repairMode_EmptyBase) {
+            log.warn("repairMode_EmptyBase: " + repairMode_EmptyBase);
+        }
 
 
         // ---
@@ -2031,6 +2070,19 @@ public class JdxReplWs {
 
 
         // ---
+        // Особая ситуация "база совсем потеряна, полностью пустая"
+        // Применим реплику SET_STATE
+        // ---
+        if (repairMode_EmptyBase && noQueIn001Used == 0 && noQueIn001 > 0) {
+            // Применим реплику SET_STATE
+            handleQue(queIn001, 1, 1, false);
+
+            // Надо останавливаться
+            throw new XError("handleQueIn001, break using replicas");
+        }
+
+
+        // ---
         // Ремонт очередей по данным с сервера
         // ---
 
@@ -2069,42 +2121,52 @@ public class JdxReplWs {
 
 
         // ---
-        // Убедимся, что в queIn есть все наши СОБСТВЕННЫЕ (исходящие) реплики до того возраста, который мы ранее (до сбоя) отправили на сервер (это noQueOutSendSrv).
-        boolean needWait_noQueOutSendSrv;
-        long no0 = queIn.getMaxNo();
-        while (true) {
-            IReplica replica = queIn.get(no0);
-            //
-            if (replica.getInfo().getWsId() == wsId) {
-                needWait_noQueOutSendSrv = noQueOutSendSrv > replica.getInfo().getNo();
-                break;
-            }
-
-            //
-            no0 = no0 - 1;
-        }
-
         // Добиваемся того, чтобы в очереди QueIn оказались и все ранее отправленные наши СОБСТВЕННЫЕ реплики.
-        // Читаем queIn с сервера до тех пор, пока не получим собственную реплику нужного возраста (это noQueOutSendSrv)
-        // Пока чтение не закончится успехом - выкидываем ошибку (или ждем, если стоит флаг ожидания)
-        if (needWait_noQueOutSendSrv) {
-            do {
-                boolean repairQueBySrv_doneOk_queIn = readQueFromSrv_RepicaNo(queIn, "to", queIn.getMaxNo() + 1, noQueOutSendSrv);
+        // Это нужно, чтобы после завершения ремонта пользователь увидел те данные, которые водил сам, до сбоя.
+        // Применение для восстановления СВОИХ данных ТОЛЬКО queOut недопустимо, т.к. реплики queOut формировались вперемешку
+        // с получением queIn и могут содержать ССЫЛКИ на значения, полученные через queIn (и сейчас их в базе пока нет).
+        // Таким образом, просто применить только свой queOut - опасно. И наоборот, для восстановления всех своих данных
+        // достаточно дождаться потока queIn, где будут и наши данные.
 
-                if (repairQueBySrv_doneOk_queIn) {
+        // Проверим, есть ли в queIn есть все наши СОБСТВЕННЫЕ (исходящие) реплики до того номера,
+        // который мы ранее (до сбоя) отправили на сервер (это noQueOutSendSrv).
+        if (!repairMode_EmptyBase) {
+            boolean needWait_noQueOutSendSrv = false;
+            long no0 = queIn.getMaxNo();
+            while (no0 > 0) {
+                IReplica replica = queIn.get(no0);
+                //
+                if (replica.getInfo().getWsId() == wsId) {
+                    needWait_noQueOutSendSrv = noQueOutSendSrv > replica.getInfo().getNo();
                     break;
                 }
 
-                if (waitRepairQueBySrv) {
-                    Thread.sleep(2000);
-                } else {
-                    throw new XError("Wait for repairQueBySrv");
-                }
+                //
+                no0 = no0 - 1;
+            }
 
-            } while (true);
+            // Если в нашей queIn таких (ранее нами же отправленных) реплик пока нет, то
+            // читаем queIn с сервера до тех пор, пока не получим собственную реплику нужного возраста (это noQueOutSendSrv)
+            // Пока чтение не закончится успехом - выкидываем ошибку (или ждем, если стоит флаг ожидания)
+            if (needWait_noQueOutSendSrv) {
+                do {
+                    boolean repairQueBySrv_doneOk_queIn = readQueFromSrv_RepicaNo(queIn, "to", queIn.getMaxNo() + 1, noQueOutSendSrv);
+
+                    if (repairQueBySrv_doneOk_queIn) {
+                        break;
+                    }
+
+                    if (waitRepairQueBySrv) {
+                        Thread.sleep(2000);
+                    } else {
+                        throw new XError("Wait for repairQueBySrv");
+                    }
+
+                } while (true);
+            }
         }
 
-        // Тут мы полностью получили то состояние очереди queIn, которое позволит отремонитровать данные.
+        // Тут мы полностью получили то состояние очереди queIn, которое позволит отремонтровать все данные.
         noQueIn = queIn.getMaxNo();
 
 
@@ -2113,7 +2175,7 @@ public class JdxReplWs {
         // ---
 
 
-        // Чиним (восстанавливаем) данные на основе входящих реплик queIn, обычным handleQueIn001.
+        // Чиним (восстанавливаем) данные на основе входящих реплик queIn001.
         handleQueIn001();
 
         // Проверяем, что все применили
@@ -2136,74 +2198,128 @@ public class JdxReplWs {
         }
 
 
-        // ---
-        // Отслеживаем наш последний возраст age, встретившийся в НАШИХ СОБСТВЕННЫХ репликах при примененнии QueIn.
-        // Ремонт отметки возраста ОБРАБОТАННОГО аудита делаем именно по нему
-        long lastOwnAgeUsed = -1;
-        long no00 = queIn.getMaxNo();
-        while (no00 > 0) {
-            IReplica replica = queIn.get(no00);
-            //
-            if (replica.getInfo().getWsId() == wsId) {
+        if (!repairMode_EmptyBase) {
+
+            // ---
+            // Отслеживаем наш последний возраст age, встретившийся в НАШИХ СОБСТВЕННЫХ репликах при примененнии QueIn.
+            // Ремонт отметки возраста ОБРАБОТАННОГО аудита делаем именно по нему
+            long lastOwnAgeUsed = -1;
+            long no00 = queIn.getMaxNo();
+            while (no00 > 0) {
+                IReplica replica = queIn.get(no00);
+                //
+                if (replica.getInfo().getWsId() == wsId) {
+                    long age = replica.getInfo().getAge();
+                    if (age != -1 && age > lastOwnAgeUsed) {
+                        lastOwnAgeUsed = age;
+                        break;
+                    }
+                }
+
+                //
+                no00 = no00 - 1;
+            }
+
+
+            // ---
+            // Если имеющаяся исходящая очередь старше реплик, которые мы еще НЕ ОТПРАВЛЯЛИ на сервер, значит исходящая очередь
+            // содержит реплики, которые мы НЕ ПРИМЕНЯЛИ в рамках ремонта данных путем применения QueIn.
+            // Чиним (восстанавливаем) данные на основе исходящей очереди QueOut.
+            int count = 0;
+            for (long no1 = noQueOutSendSrv + 1; no1 <= noQueOut; no1++) {
+                log.warn("Use queOut, self.wsId: " + wsId + ", queOut.no: " + no1 + " (" + count + "/" + (noQueOut - noQueOutSendSrv) + ")");
+
+                // Извлекаем собственную реплику из закромов queOut
+                IReplica replica = queOut.get(no1);
+
+                // Отслеживаем наш последний возраст age, встретившийся в НАШИХ СОБСТВЕННЫХ репликах при примененнии QueOut.
+                // Ремонт отметки возраста ОБРАБОТАННОГО аудита делаем именно по нему
                 long age = replica.getInfo().getAge();
                 if (age != -1 && age > lastOwnAgeUsed) {
                     lastOwnAgeUsed = age;
-                    break;
+                }
+
+                // Пробуем применить собственную реплику
+                ReplicaUseResult useResult = useReplicaInternal(replica, true);
+
+                //
+                if (!useResult.replicaUsed) {
+                    throw new XError("Use queOut, useResult.replicaUsed == false");
+                }
+                if (useResult.doBreak) {
+                    throw new XError("Use queOut, replica useResult.doBreak == true");
+                }
+                log.warn("Use queOut, used: " + no1);
+
+
+                //
+                count = count + 1;
+            }
+
+            //
+            if (count > 0) {
+                log.warn("Use queOut, self.wsId: " + wsId + ", queOut: " + (noQueOutSendSrv + 1) + " .. " + noQueOut + ", done count: " + count);
+            } else {
+                log.info("Use queOut, self.wsId: " + wsId + ", queOut: " + noQueOut + ", nothing to do");
+            }
+
+
+            // ---
+            // Тут мы полностью получили такую базу, какой она была на момент отправки последних своих данных.
+            // Можно чинить генераторы, отметки разных возрастов и т.п.
+            // ---
+
+
+            // ---
+            // Чиним отметки
+            // ---
+
+
+            // ---
+            // Если отмечено "отправлено на сервер" не совпадает с фактической отправкой на сервер.
+            if (noQueOutSendMarked != noQueOutSendSrv) {
+                if (noQueOutSendMarked < noQueOutSendSrv) {
+                    // Отметка отстает от сервера
+                    // В отличие от процедуры ремонта repairSendTaskBySrvState тут можно передвинуть вперед -
+                    // ведь мы отремонтировали очередь до уровня noQueOutSendSrv.
+                    // Просто исправляем отметку "отправлено на сервер".
+                    mailStateManager.setMailSendDone(noQueOutSendSrv);
+                    log.warn("Repair noQueOutSendMarked != noQueOutSendSrv, setMailSendDone, " + noQueOutSendMarked + " -> " + noQueOutSendSrv);
+                } else {
+                    // Отметка опережает сервер
+                    throw new XError("Unable to repair marked, noQueSendMarked > noQueSendSrv, noQueOutSendMarked: " + noQueOutSendMarked + ", noQueOutSendSrv: " + noQueOutSendSrv);
                 }
             }
 
-            //
-            no00 = no00 - 1;
-        }
+
+            // ---
+            // До какого возраста обработана очередь QueIn (noQueInUsed) - нет необходимости чинить,
+            // т.к. она уже сдвинута вызовом handleQueIn
 
 
-        // ---
-        // Если имеющаяся исходящая очередь старше реплик, которые мы еще НЕ ОТПРАВЛЯЛИ на сервер, значит исходящая очередь
-        // содержит реплики, которые мы НЕ ПРИМЕНЯЛИ в рамках ремонта данных путем применения QueIn.
-        // Чиним (восстанавливаем) данные на основе исходящей очереди QueOut.
-        int count = 0;
-        for (long no1 = noQueOutSendSrv + 1; no1 <= noQueOut; no1++) {
-            log.warn("Use queOut, self.wsId: " + wsId + ", queOut.no: " + no1 + " (" + count + "/" + (noQueOut - noQueOutSendSrv) + ")");
+            // ---
+            // Исправление отметок аудита
+            // ---
 
-            // Извлекаем собственную реплику из закромов queOut
-            IReplica replica = queOut.get(no1);
-
-            // Отслеживаем наш последний возраст age, встретившийся в НАШИХ СОБСТВЕННЫХ репликах при примененнии QueOut.
-            // Ремонт отметки возраста ОБРАБОТАННОГО аудита делаем именно по нему
-            long age = replica.getInfo().getAge();
-            if (age != -1 && age > lastOwnAgeUsed) {
-                lastOwnAgeUsed = age;
+            // После ремонта данных применением собственных реплик из очередей QueIn и QueOut
+            // аудит таблиц пуст, а отметка возраста аудита ("возраст age" для таблиц аудита) все ещё содержит устаревшее состояние.
+            // Чиним отметку возраста аудита.
+            UtAuditAgeManager auditManager = new UtAuditAgeManager(db, struct);
+            long ageNow = auditManager.getAuditAge();
+            if (ageNow < lastOwnAgeUsed) {
+                auditManager.setAuditAge(lastOwnAgeUsed);
+                log.warn("Repair auditAge, " + ageNow + " -> " + lastOwnAgeUsed);
             }
 
-            // Пробуем применить собственную реплику
-            ReplicaUseResult useResult = useReplicaInternal(replica, true);
-
-            //
-            if (!useResult.replicaUsed) {
-                throw new XError("Use queOut, useResult.replicaUsed == false");
+            // После применения собственных реплик из очередей QueIn и QueOut отметка возраста ОБРАБОТАННОГО аудита
+            // (до какого возраста аудит отмечен как выложенный в очередь QueOut) все ещё содержит устаревшее состояние.
+            // Чиним отметку возраста обработанного аудита.
+            long ageQueOutDoneNow = stateManager.getAuditAgeDoneQueOut();
+            if (ageQueOutDoneNow < lastOwnAgeUsed) {
+                stateManager.setAuditAgeDoneQueOut(lastOwnAgeUsed);
+                log.warn("Repair ageQueOutDone, " + ageQueOutDoneNow + " -> " + lastOwnAgeUsed);
             }
-            if (useResult.doBreak) {
-                throw new XError("Use queOut, replica useResult.doBreak == true");
-            }
-            log.warn("Use queOut, used: " + no1);
-
-
-            //
-            count = count + 1;
         }
-
-        //
-        if (count > 0) {
-            log.warn("Use queOut, self.wsId: " + wsId + ", queOut: " + (noQueOutSendSrv + 1) + " .. " + noQueOut + ", done count: " + count);
-        } else {
-            log.info("Use queOut, self.wsId: " + wsId + ", queOut: " + noQueOut + ", nothing to do");
-        }
-
-
-        // ---
-        // Тут мы полностью получили такую базу, какой она была на момент отправки последних своих данных.
-        // Можно чинить генераторы, отметки разных возрастов и т.п.
-        // ---
 
 
         // ---
@@ -2211,57 +2327,6 @@ public class JdxReplWs {
         // Чиним генераторы.
         PkGenerator pkGenerator = new PkGenerator_PS(db, struct);
         pkGenerator.repairGenerators();
-
-
-        // ---
-        // Чиним отметки
-        // ---
-
-
-        // ---
-        // Если отмечено "отправлено на сервер" не совпадает с фактической отправкой на сервер.
-        if (noQueOutSendMarked != noQueOutSendSrv) {
-            if (noQueOutSendMarked < noQueOutSendSrv) {
-                // Отметка отстает от сервера
-                // В отличие от процедуры ремонта repairSendTaskBySrvState тут можно передвинуть вперед -
-                // ведь мы отремонтировали очередь до уровня noQueOutSendSrv.
-                // Просто исправляем отметку "отправлено на сервер".
-                mailStateManager.setMailSendDone(noQueOutSendSrv);
-                log.warn("Repair noQueOutSendMarked != noQueOutSendSrv, setMailSendDone, " + noQueOutSendMarked + " -> " + noQueOutSendSrv);
-            } else {
-                // Отметка опережает сервер
-                throw new XError("Unable to repair marked, noQueSendMarked > noQueSendSrv, noQueOutSendMarked: " + noQueOutSendMarked + ", noQueOutSendSrv: " + noQueOutSendSrv);
-            }
-        }
-
-
-        // ---
-        // До какого возраста обработана очередь QueIn (noQueInUsed) - нет необходимости чинить,
-        // т.к. она уже сдвинута вызовом handleQueIn
-
-
-        // ---
-        // Исправление отметок аудита
-        // ---
-
-        // После ремонта данных применением собственных реплик из очередей QueIn и QueOut
-        // аудит таблиц пуст, а отметка возраста аудита ("возраст age" для таблиц аудита) все ещё содержит устаревшее состояние.
-        // Чиним отметку возраста аудита.
-        UtAuditAgeManager auditManager = new UtAuditAgeManager(db, struct);
-        long ageNow = auditManager.getAuditAge();
-        if (ageNow < lastOwnAgeUsed) {
-            auditManager.setAuditAge(lastOwnAgeUsed);
-            log.warn("Repair auditAge, " + ageNow + " -> " + lastOwnAgeUsed);
-        }
-
-        // После применения собственных реплик из очередей QueIn и QueOut отметка возраста ОБРАБОТАННОГО аудита
-        // (до какого возраста аудит отмечен как выложенный в очередь QueOut) все ещё содержит устаревшее состояние.
-        // Чиним отметку возраста обработанного аудита.
-        long ageQueOutDoneNow = stateManager.getAuditAgeDoneQueOut();
-        if (ageQueOutDoneNow < lastOwnAgeUsed) {
-            stateManager.setAuditAgeDoneQueOut(lastOwnAgeUsed);
-            log.warn("Repair ageQueOutDone, " + ageQueOutDoneNow + " -> " + lastOwnAgeUsed);
-        }
 
 
         // ---
@@ -2301,11 +2366,17 @@ public class JdxReplWs {
 
         // Если в ящике нет того, что нам нужно - попросим сразу прислать всесь диапазон, который мы намерены скачивать
         if (!isReplicaInBox(box, replicaNoFrom) || !isReplicaInBox(box, replicaNoTo)) {
-            RequiredInfo requiredInfo = new RequiredInfo();
-            requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
-            requiredInfo.requiredFrom = replicaNoFrom;
-            requiredInfo.requiredTo = replicaNoTo;
-            mailer.setSendRequired(box, requiredInfo);
+            if (replicaNoFrom == 1) {
+                // Запрос с самого первого номера - не разрешаем (это слишком много)
+                log.warn("readQueFromSrv_Interval, not valid replicaNoFrom == 1, que: " + que.getQueName() + ", box: " + box);
+            } else {
+                // Просим диапазон
+                RequiredInfo requiredInfo = new RequiredInfo();
+                requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
+                requiredInfo.requiredFrom = replicaNoFrom;
+                requiredInfo.requiredTo = replicaNoTo;
+                mailer.setSendRequired(box, requiredInfo);
+            }
         }
 
         // Читаем с сервера

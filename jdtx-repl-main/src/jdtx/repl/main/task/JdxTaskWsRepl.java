@@ -71,7 +71,7 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
             logInfo("Определение команды ремонта");
             try {
                 JdxRepairInfoManager repairInfoManager = new JdxRepairInfoManager(mailer);
-                JdxRepairLockFileManager repairLockFileManager = new JdxRepairLockFileManager(ws.getDataRoot());
+                JdxRepairLockFileManager repairLockFileManager = new JdxRepairLockFileManager(ws.getDataDir());
                 //
                 String allowedRepairGuid = repairInfoManager.getAllowedRepairGuid();
                 String wsRepairGuid = repairLockFileManager.repairLockFileGuid();

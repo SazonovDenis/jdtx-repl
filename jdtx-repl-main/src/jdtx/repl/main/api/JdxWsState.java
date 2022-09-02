@@ -39,4 +39,17 @@ public class JdxWsState {
         MUTE = UtJdxData.longValueOf(wsStateJson.get("mute"));
     }
 
+    @Override
+    public String toString() {
+        return "age: " + AGE + ", " +
+                "que_in_no: " + QUE_IN_NO + ", " +
+                "que_in001_no: " + QUE_IN001_NO + ", " +
+                "que_out_no: " + QUE_OUT_NO + ", " +
+                "que_in_no_done: " + QUE_IN_NO_DONE + ", " +
+                "que_in001_no_done: " + QUE_IN001_NO_DONE + ", " +
+                "audit_age_done: " + AUDIT_AGE_DONE + ", " +
+                "mail_send_done: " + MAIL_SEND_DONE + ", " +
+                "mute: " + MUTE;
+    }
+
 }

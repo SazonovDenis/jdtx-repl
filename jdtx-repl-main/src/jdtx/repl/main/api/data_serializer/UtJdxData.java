@@ -16,6 +16,10 @@ public class UtJdxData {
         return doubleValueOf(value, null);
     }
 
+    public static boolean booleanValueOf(Object value) {
+        return booleanValueOf(value, false);
+    }
+
     public static String stringValueOf(Object value, String valueIfNull) {
         String valueString;
         if (value == null) {
