@@ -86,6 +86,9 @@ public class JdxTaskSrvRepl extends JdxTaskCustom {
         //
         log.info("Сервер, обработка реплик завершена");
         log.info("----------");
+
+        //
+        MDC.remove("serviceName");
     }
 
 }

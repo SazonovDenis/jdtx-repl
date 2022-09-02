@@ -180,7 +180,7 @@ public class MailerHttp implements IMailer {
             throw new XError("validateRequiredInfo: requiredInfo.executor not valid");
         }
 
-        // requiredFrom .. requiredInfo.requiredTo
+        // Правильный интервал requiredFrom .. requiredTo
         if (requiredInfo.requiredTo != -1 && requiredInfo.requiredFrom > requiredInfo.requiredTo) {
             throw new XError("validateRequiredInfo: requiredInfo.requiredTo > requiredInfo.requiredFrom");
         }

@@ -165,6 +165,9 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
         //
         logInfo("Рабочая станция, основной цикл завершен");
         log.info("----------");
+
+        //
+        MDC.remove("serviceName");
     }
 
 }

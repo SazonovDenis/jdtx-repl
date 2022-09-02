@@ -62,6 +62,9 @@ public class JdxTaskWsMailRequest extends JdxTaskCustom {
         //
         log.info("Рабочая станция, рассылка по требованию завершена");
         log.info("----------");
+
+        //
+        MDC.remove("serviceName");
     }
 
 }

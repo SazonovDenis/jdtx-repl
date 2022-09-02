@@ -51,6 +51,9 @@ public class JdxTaskSrvMailRequest extends JdxTaskCustom {
         //
         log.info("Сервер, рассылка по требованию завершена");
         log.info("----------");
+
+        //
+        MDC.remove("serviceName");
     }
 
 }
