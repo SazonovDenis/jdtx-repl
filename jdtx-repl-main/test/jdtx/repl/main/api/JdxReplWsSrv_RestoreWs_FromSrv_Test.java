@@ -1,6 +1,7 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
+import jandcode.utils.*;
 import jandcode.utils.rt.*;
 import jandcode.utils.variant.*;
 import jdtx.repl.main.api.publication.*;
@@ -94,6 +95,7 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         test_AllHttp();
 
         //
+        UtFile.cleanDir(backupDirName);
         doBackupNolmalLife();
     }
 

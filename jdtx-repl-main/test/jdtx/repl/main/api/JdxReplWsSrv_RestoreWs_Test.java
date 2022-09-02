@@ -295,8 +295,6 @@ public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
      * Сохраним "бэкап" базы и папок для всех станций
      */
     public void doBackupNolmalLife() throws Exception {
-        UtFile.cleanDir(backupDirName);
-
         // Рабочие станции
         doBackupDB(1, "_all");
         doBackupDir(1, "_all");

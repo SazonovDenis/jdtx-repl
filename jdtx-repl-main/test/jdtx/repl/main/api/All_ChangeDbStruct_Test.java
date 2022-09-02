@@ -1,6 +1,7 @@
 package jdtx.repl.main.api;
 
 import jandcode.app.test.*;
+import jandcode.utils.*;
 import org.junit.*;
 
 /**
@@ -34,6 +35,7 @@ public class All_ChangeDbStruct_Test extends AppTestCase {
 
             JdxReplWsSrv_RestoreWs_DbRestore_test testForBackup = new JdxReplWsSrv_RestoreWs_DbRestore_test();
             testForBackup.setUp();
+            UtFile.cleanDir(testForBackup.backupDirName);
             testForBackup.doBackupNolmalLife();
             testForBackup.disconnectAllForce();
 
