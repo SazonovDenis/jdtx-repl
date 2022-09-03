@@ -816,15 +816,15 @@ public class JdxReplSrv {
                         // Пробуем что-то сделать с проблемой реплики в очереди
                             log.error("srvHandleCommonQue, wsId: " + wsId + ", error: " + e.getMessage());
 
-                            // Запросим реплику и починим очередь, когда дождемся ответа
+                            // Выясним, у кого куда просить
                             IMailer mailerWs = mailerList.get(wsId);
                             String box = "from";
                             String executor = RequiredInfo.EXECUTOR_WS;
-                            //
+
+                            // Попросим автора реплики прислать её в ящик, когда дождемся ответа - починим очередь
                             log.info("receiveOrRequestReplica, try replica receive, box: " + box + ", replica.no: " + no + ", executor: " + executor);
                             IReplica replicaNew = UtMail.receiveOrRequestReplica(mailerWs, box, no, executor);
                             log.info("receiveOrRequestReplica, replica receive done");
-
 
                             // Обновим "битую" реплику в очереди - заменим на нормальную
                             queInSrv.remove(no);
@@ -920,15 +920,8 @@ public class JdxReplSrv {
                         if (UtJdxErrors.errorIs_replicaFile(e)) {
                         //
                         log.error("srvReplicasDispatch, error: " + e.getMessage());
-                        // Пробуем что-то сделать с проблемой реплики в очереди
-                            /* todo С номерами реплики из queCommon не все так просто -
-                                невозможно просто запросить у queCommon нет прямого соттветствия для ящика,
-                                тут нужно выяснить, какая станция отвечает,
-                                ктоме того, иногда реплики физически находятся в Common, а иногда - в queInSrv
-                        IMailer mailerWs = mailerList.get(wsId);
-                        UtRepl ut = new UtRepl(db, struct);
-                        ut.handleError_BadReplica(queCommon, no, mailerWs, e);
-                            */
+                            // Сможем  что-то сделать с проблемой реплики в очереди, когда сделаем
+                            // https://github.com/SazonovDenis/jdtx-repl/issues/22
                         // А пока - ошибка
                         String replicaInfo;
                         if (replica != null) {

@@ -33,23 +33,23 @@ public class UtJdxErrors {
         return collectExceptionText(e).contains(message_guidAlreadyExists);
     }
 
-    private static boolean errorIs_replicaFileNotFound(Exception e) {
+    static boolean errorIs_replicaFileNotFound(Exception e) {
         return collectExceptionText(e).contains(message_fileNotFound);
     }
 
-    public static boolean errorIs_replicaFileNotExists(Exception e) {
+    static boolean errorIs_replicaFileNotExists(Exception e) {
         return collectExceptionText(e).contains(message_replicaDataFileNotExists);
     }
 
-    public static boolean errorIs_replicaBadCrc(Exception e) {
+    static boolean errorIs_replicaBadCrc(Exception e) {
         return collectExceptionText(e).contains(message_replicaBadCrc);
     }
 
-    public static boolean errorIs_replicaFileZipError(Exception e) {
+    static boolean errorIs_replicaFileZipError(Exception e) {
         return collectExceptionText(e).contains(message_replicaZipError);
     }
 
-    public static boolean errorIs_replicaFileNotFoundContent(Exception e) {
+    static boolean errorIs_replicaFileNotFoundContent(Exception e) {
         return collectExceptionText(e).contains(message_replicaNotFoundContent);
     }
 

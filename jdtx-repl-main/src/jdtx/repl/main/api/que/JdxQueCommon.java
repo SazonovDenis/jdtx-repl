@@ -70,9 +70,11 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
             replica = super.get(noQueCommon);
         } else {
             // Берем реплику из очереди SrvQueIn, узнаем только, какой рабочй станции она
-            IJdxQue srvQueIn = srvQueInList.get(replicaInfo.getWsId());
-            // Реплику берем по её номеру.
-            replica = srvQueIn.get(replicaInfo.getNo());
+            long wsId = replicaInfo.getWsId();
+            IJdxQue srvQueIn = srvQueInList.get(wsId);
+            // Реплику берем из очереди SrvQueIn по номеру реплики.
+            long no = replicaInfo.getNo();
+            replica = srvQueIn.get(no);
         }
 
         //
@@ -164,7 +166,7 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
 
     /**
      * Бывают реплики, формируемые самим сервером (а не серверной рабочей станцией),
-     * например, системные реплики, а также snapshot на станции присмене версии БД
+     * например, системные реплики, а также snapshot для станции при смене версии БД
      * попадут в QueCommon не через очередь станций, а непосредственно с сервера.
      *
      * @return сформированна ли реплика самим сервером

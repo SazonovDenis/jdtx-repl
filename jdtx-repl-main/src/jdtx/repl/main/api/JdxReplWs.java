@@ -467,6 +467,7 @@ public class JdxReplWs {
                 if (UtJdxErrors.errorIs_replicaFile(e)) {
                     log.error("handleQue, error: " + e.getMessage());
 
+                    // Выясним, у кого куда просить
                     // По имени очереди выясним, какой ящик ответит нам за реплику
                     String box;
                     switch (queName) {
@@ -479,10 +480,9 @@ public class JdxReplWs {
                         default:
                             throw new XError("handleQue, unknown mailer.box for que.name: " + queName);
                     }
-
-                    // Запросим реплику и починим очередь, когда дождемся ответа
                     String executor = RequiredInfo.EXECUTOR_SRV;
-                    //
+
+                    // Попросим автора реплики прислать её в ящик, когда дождемся ответа - починим очередь
                     log.info("receiveOrRequestReplica, try replica receive, box: " + box + ", replica.no: " + no + ", executor: " + executor);
                     IReplica replicaNew = UtMail.receiveOrRequestReplica(mailer, box, no, executor);
                     log.info("receiveOrRequestReplica, replica receive done");
