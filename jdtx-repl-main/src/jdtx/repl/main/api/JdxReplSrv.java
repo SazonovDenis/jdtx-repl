@@ -527,7 +527,7 @@ public class JdxReplSrv {
         List<IJdxTable> publicationOutTables = makeOrderedFromPublicationRules(struct, rulesForSnapsot);
 
         // Подготовим snapshot для станции wsId, фильтруем его по правилам rulesForSnapsot
-        List<IReplica> replicasSnapshot = utRepl.createSnapshotForTablesFiltered(publicationOutTables, SERVER_WS_ID, wsId, rulesForSnapsot, false);
+        List<IReplica> replicasSnapshot = utRepl.createSnapshotForTablesFiltered(publicationOutTables, SERVER_WS_ID, wsId, rulesForSnapsot);
 
 
         // ---
@@ -648,7 +648,7 @@ public class JdxReplSrv {
 
         // Делаем snapshot (по новым правилам publicationRulesInNew)
         UtRepl utRepl = new UtRepl(db, structNew);
-        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, SERVER_WS_ID, destinationWsId, publicationRulesInNew, false);
+        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, SERVER_WS_ID, destinationWsId, publicationRulesInNew);
 
 
         // ---
@@ -1429,7 +1429,7 @@ public class JdxReplSrv {
 
         // Создаем снимок таблицы (разрешаем отсылать чужие записи)
         UtRepl utRepl = new UtRepl(db, struct);
-        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, SERVER_WS_ID, destinationWsId, publicationRule, false);
+        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, SERVER_WS_ID, destinationWsId, publicationRule);
 
         // Отправляем снимок таблицы в очередь queOut001
         utRepl.sendToQue(replicasRes, queOut001);

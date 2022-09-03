@@ -7,11 +7,11 @@ import java.util.*;
 
 /**
  * todo: путаница в ролях RefDecoder и RefDecodeStrategy,
- * todo: кроме того, именно RefDecoder специфичен для PS, а через фабрику кастомизируется именно JdxRefDecoderService
+ * todo: кроме того, именно RefDecoder специфичен для PS, а через фабрику кастомизируется именно RefManagerService
  * todo: кроме того! static RefDecodeStrategy.instance и static initInstance() - ваще капец!
  */
 
-// todo: по коду куча вызовов "new RefDecoder()" - а зачем тогда фабрика jdtx.repl.main.api.decoder.JdxRefDecoderService?
+// todo: по коду куча вызовов "new RefDecoder()" - а зачем тогда фабрика jdtx.repl.main.api.decoder.RefManagerService?
 public class RefDecodeStrategy {
 
     int NO_DECODE = 1;

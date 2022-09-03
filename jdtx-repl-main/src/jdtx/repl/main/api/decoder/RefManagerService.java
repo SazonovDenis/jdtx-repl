@@ -4,8 +4,8 @@ import jandcode.app.*;
 import jandcode.dbm.db.*;
 
 //todo доделать ИСПОЛЬЗОВАНИЕ именно через СЕРВИС, убрать все конструкторы
-public abstract class JdxRefDecoderService extends CompRt {
+public abstract class RefManagerService extends CompRt {
 
-    public abstract IRefDecoder createRefDecoder(Db db, long self_ws_id) throws Exception;
+    public abstract IRefManager createRefManager(Db db, long self_ws_id) throws Exception;
 
 }

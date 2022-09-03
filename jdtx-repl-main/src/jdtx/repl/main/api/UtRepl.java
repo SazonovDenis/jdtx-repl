@@ -140,7 +140,7 @@ public class UtRepl {
                 //
                 long maxId = db.loadSql("select max(" + pkFieldName + ") max_id from " + tableName).getCurRec().getValueLong("max_id");
                 //
-                if (maxId > RefDecoder.get_max_own_id()) {
+                if (maxId > RefManagerDecode.get_max_own_id()) {
                     log.error("Check not own id, not own id found, table: " + tableName + ", " + pkFieldName + ": " + maxId);
                     foundNotOwnId = true;
                 }
@@ -183,7 +183,7 @@ public class UtRepl {
         JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDat();
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
-        UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId, false);
+        UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId);
         String publicationFields = UtJdx.fieldsToString(table.getFields());
         dataSelector.readRecordsByIdList(table.getName(), idList, publicationFields, xmlWriter);
 
@@ -201,7 +201,7 @@ public class UtRepl {
      * Используется при включении новой БД в систему, в числе первых реплик для сервера
      * или при добавлении таблицы в БД.
      */
-    public IReplica createReplicaSnapshotForTable(long selfWsId, IPublicationRule publicationRule, boolean forbidNotOwnId) throws Exception {
+    public IReplica createReplicaSnapshotForTable(long selfWsId, IPublicationRule publicationRule) throws Exception {
         IReplica replica = new ReplicaFile();
         replica.getInfo().setReplicaType(JdxReplicaType.SNAPSHOT);
         replica.getInfo().setDbStructCrc(UtDbComparer.getDbStructCrcTables(struct));
@@ -216,7 +216,7 @@ public class UtRepl {
         JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDat();
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
-        UtDataSelector dataSelector = new UtDataSelector(db, struct, selfWsId, forbidNotOwnId);
+        UtDataSelector dataSelector = new UtDataSelector(db, struct, selfWsId);
         dataSelector.readAllRecords(publicationRule, xmlWriter);
 
         // Заканчиваем формирование файла реплики
@@ -902,17 +902,7 @@ public class UtRepl {
      * т.к. таблица аудита ЕЩЕ не видна другим транзакциям, а данные, продолжающие поступать в snapshot, УЖЕ не видны нашей транзакции.
      */
 
-    ////////////////////////
-    ////////////////////////
-    ////////////////////////
-    ////////////////////////
-    // jdtx.repl.main.api.JdxReplWs.doStructChangesSteps: и разрешаем чужие id - ведь это не инициализация базы, они у нас точно уже есть
-    // А вот теперь - зачем теперь параметр forbidNotOwnId - ведь теперь даже при первой инициализации этот парамтер не станет true
-    // От чего защищаемся? И как Теперь защищаться?
-    ////////////////////////
-    ////////////////////////
-    ////////////////////////
-    public List<IReplica> createSnapshotForTablesFiltered(List<IJdxTable> tables, long selfWsId, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot, boolean forbidNotOwnId) throws Exception {
+    public List<IReplica> createSnapshotForTablesFiltered(List<IJdxTable> tables, long selfWsId, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot) throws Exception {
         log.info("createSendSnapshotForTables, selfWsId: " + selfWsId + ", wsIdDestination: " + wsIdDestination);
 
         // В tables будет соблюден порядок сортировки таблиц с учетом foreign key.
@@ -928,7 +918,7 @@ public class UtRepl {
         // Снимок делаем в рамках одной транзакции - чтобы видеть непроитворечивое состояние таблиц
         db.startTran();
         try {
-            replicasSnapshot = createSnapshotForTables(tables, selfWsId, rulesForSnapshot, forbidNotOwnId);
+            replicasSnapshot = createSnapshotForTables(tables, selfWsId, rulesForSnapshot);
             //
             db.commit();
         } catch (Exception e) {
@@ -981,7 +971,7 @@ public class UtRepl {
      * Создаем snapsot-реплики для таблиц tables (без фильтрации записей).
      * Только для таблиц, упомянутых в publicationRules.
      */
-    private List<IReplica> createSnapshotForTables(List<IJdxTable> tables, long selfWsId, IPublicationRuleStorage publicationRules, boolean forbidNotOwnId) throws Exception {
+    private List<IReplica> createSnapshotForTables(List<IJdxTable> tables, long selfWsId, IPublicationRuleStorage publicationRules) throws Exception {
         List<IReplica> res = new ArrayList<>();
 
         //
@@ -997,7 +987,7 @@ public class UtRepl {
                 log.info("SnapshotForTables, skip createSnapshot, not found in publicationRules, table: " + tableName);
             } else {
                 // Создаем snapshot-реплику
-                IReplica replicaSnapshot = createReplicaSnapshotForTable(selfWsId, publicationTableRule, forbidNotOwnId);
+                IReplica replicaSnapshot = createReplicaSnapshotForTable(selfWsId, publicationTableRule);
                 res.add(replicaSnapshot);
             }
 

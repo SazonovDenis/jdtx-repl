@@ -16,8 +16,10 @@ import java.util.*;
  * Чужие id подвергаются перекодировке и занимают диапазоны по слотам, по мере поступления записей.
  * <p>
  * todo: Есть вариант обезопасить изменение политики диапазанов: в таблице decode сохранить также и реальные значения id_min id_max для диапазонов, а не только номера диапазонов
+ * Кроме того, тогда можно будет НЕ ОГРАНИЧИВАТЬ максимальную id от станции - просто для крупных ID
+ * будет больше номер диапазона, а его истинный id?????.
  */
-public class RefDecoder implements IRefDecoder {
+public class RefManagerDecode implements IRefManager {
 
     // Своими записи считаются значения id в диапазоне от 0 до 100 000 000
     public static long SLOT_SIZE = 1000000;
@@ -38,7 +40,7 @@ public class RefDecoder implements IRefDecoder {
     /**
      * @param self_ws_id Код нашей рабочей станции
      */
-    public RefDecoder(Db db, long self_ws_id) throws Exception {
+    public RefManagerDecode(Db db, long self_ws_id) throws Exception {
         if (self_ws_id <= 0) {
             throw new XError("invalid self_ws_id <= 0");
         }
@@ -68,33 +70,18 @@ public class RefDecoder implements IRefDecoder {
 
             // Добавляем слот в наборы
             Map<Long, RefDecoderSlot> slotToWs = findOrAdd1(slotToWsList, tableName);
-            if (slotToWs == null) {
-                slotToWs = new HashMap<>();
-                slotToWsList.put(tableName, slotToWs);
-            }
             slotToWs.put(own_slot_no, sl);
             //
             Map<RefDecoderSlot, Long> wsToSlot = findOrAdd2(wsToSlotList, tableName);
-            if (wsToSlot == null) {
-                wsToSlot = new HashMap<>();
-                wsToSlotList.put(tableName, wsToSlot);
-            }
             wsToSlot.put(sl, own_slot_no);
         }
 
     }
 
+
     // ------------------------------------------
     // IRefDecoder
     // ------------------------------------------
-
-    public boolean is_own_id(String tableName, long id) {
-        if (id <= get_max_own_id()) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 
     public JdxRef get_ref(String tableName, long id_local) throws Exception {
         tableName = tableName.toUpperCase();
@@ -108,8 +95,8 @@ public class RefDecoder implements IRefDecoder {
             return ref;
         }
 
-        // Это уже наша собственная id?
-        if (is_own_id(tableName, id_local)) {
+        // Это наша собственная id?
+        if (id_local <= get_max_own_id()) {
             ref.ws_id = this.self_ws_id;
             ref.value = id_local;
             return ref;
@@ -118,7 +105,7 @@ public class RefDecoder implements IRefDecoder {
         // Берем слоты для таблицы
         Map<Long, RefDecoderSlot> slotToWs = findOrAdd1(slotToWsList, tableName);
 
-        // Номер нашего слота для нашей id
+        // Номер нашего слота для id_local
         long own_slot_no = id_local / SLOT_SIZE;
 
         // Ищем наш слот
@@ -195,11 +182,12 @@ public class RefDecoder implements IRefDecoder {
         return own_id;
     }
 
+
     // ------------------------------------------
     //
     // ------------------------------------------
 
-
+    // todo: необходимость public метода говорит об архитектурной проблеме
     public static long get_max_own_id() {
         return SLOT_SIZE * SLOT_START_NUMBER - 1;
     }
@@ -207,7 +195,7 @@ public class RefDecoder implements IRefDecoder {
     /**
      * @return Нужно ли перекодировать по стратегии перекодировки
      */
-    protected boolean needDecodeStrategy(String tableName, long db_id) {
+    private boolean needDecodeStrategy(String tableName, long db_id) {
         return RefDecodeStrategy.getInstance().needDecodeOwn(tableName, db_id);
     }
 

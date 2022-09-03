@@ -403,7 +403,7 @@ class Jdx_Ext extends ProjectExt {
                 if (!recordIdRefStr.contains(":")) {
                     // Передали просто id - превратим ее в "каноническую" форму (пару ws:id)
                     long tableId = Long.parseLong(recordIdRefStr)
-                    IRefDecoder decoder = new RefDecoder(db, ws.wsId)
+                    IRefManager decoder = new RefManagerDecode(db, ws.wsId)
                     JdxRef tableIdRef = decoder.get_ref(tableName, tableId)
                     recordIdRefStr = tableIdRef.toString()
                 }

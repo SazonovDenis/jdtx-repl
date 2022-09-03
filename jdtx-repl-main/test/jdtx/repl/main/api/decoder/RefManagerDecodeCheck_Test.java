@@ -8,7 +8,7 @@ import org.junit.*;
  *
  */
 // todo: тест сломался
-public class RefDecoderCheck_Test extends ReplDatabaseStruct_Test {
+public class RefManagerDecodeCheck_Test extends ReplDatabaseStruct_Test {
 
 
     @Override

@@ -385,7 +385,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         tables.add(struct.getTable("CommentTip"));
 
         //
-        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, ws.wsId, ws.wsId, ws.publicationOut, false);
+        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, ws.wsId, ws.wsId, ws.publicationOut);
 
         // Переносим файл
         for (int i = 0; i < replicasRes.size(); i++) {

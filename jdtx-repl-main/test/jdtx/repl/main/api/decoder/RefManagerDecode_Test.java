@@ -11,7 +11,7 @@ import java.util.*;
 /**
  *
  */
-public class RefDecoder_Test extends DbmTestCase {
+public class RefManagerDecode_Test extends DbmTestCase {
 
     @Override
     public void setUp() throws Exception {
@@ -56,7 +56,7 @@ public class RefDecoder_Test extends DbmTestCase {
         long wsId_d2 = 2;
 
         // ---
-        RefDecoder d1 = new RefDecoder(dbm.getDb(), wsId);
+        RefManagerDecode d1 = new RefManagerDecode(dbm.getDb(), wsId);
         d1.SLOT_SIZE = 4;
 
         //
@@ -79,7 +79,7 @@ public class RefDecoder_Test extends DbmTestCase {
 
 
         // ---
-        RefDecoder d2 = new RefDecoder(dbm.getDb(), wsId);
+        RefManagerDecode d2 = new RefManagerDecode(dbm.getDb(), wsId);
         d2.SLOT_SIZE = 4;
 
         //
@@ -102,7 +102,7 @@ public class RefDecoder_Test extends DbmTestCase {
 
 
         // ---
-        d1 = new RefDecoder(dbm.getDb(), wsId);
+        d1 = new RefManagerDecode(dbm.getDb(), wsId);
         d1.SLOT_SIZE = 4;
 
         //
@@ -119,7 +119,7 @@ public class RefDecoder_Test extends DbmTestCase {
 
 
         // ---
-        d2 = new RefDecoder(dbm.getDb(), wsId);
+        d2 = new RefManagerDecode(dbm.getDb(), wsId);
         d2.SLOT_SIZE = 4;
 
         //
@@ -188,7 +188,7 @@ public class RefDecoder_Test extends DbmTestCase {
         long wsId_d2 = 2;
 
         // ---
-        RefDecoder decoder = new RefDecoder(dbm.getDb(), wsId);
+        RefManagerDecode decoder = new RefManagerDecode(dbm.getDb(), wsId);
         decoder.SLOT_SIZE = 4;
 
         for (long id = 10; id < 25; id++) {

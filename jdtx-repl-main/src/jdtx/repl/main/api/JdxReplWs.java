@@ -795,7 +795,7 @@ public class JdxReplWs {
             // Создаем снимок таблицы (разрешаем отсылать чужие записи)
             // Параметры (для правил публикации и фильтрации): автор и получатель реплики реплики - wsId
             UtRepl utRepl = new UtRepl(db, struct);
-            List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut, false);
+            List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut);
 
             // Отправляем снимок таблицы в очередь queOut
             utRepl.sendToQue(replicasRes, queOut);
@@ -916,9 +916,9 @@ public class JdxReplWs {
                 tables.addAll(tablesAdded);
                 tables.addAll(tablesChanged);
 
-                // Делаем snapshot (и разрешаем чужие id - ведь это не инициализация базы, теперь они у нас точно есть)
+                // Делаем snapshot
                 UtRepl utRepl = new UtRepl(db, structNew);
-                List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOutNew, false);
+                List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOutNew);
 
                 // Отправляем snapshot
                 utRepl.sendToQue(replicasRes, queOut);
@@ -2431,7 +2431,7 @@ public class JdxReplWs {
 
         // Создаем снимок для таблиц (разрешаем отсылать чужие записи)
         UtRepl utRepl = new UtRepl(db, struct);
-        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut, false);
+        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut);
 
         // Отправляем снимки таблиц в файл(ы)
         if (replicasRes.size() == 1) {
@@ -2464,7 +2464,7 @@ public class JdxReplWs {
 
         // Создаем снимок для таблиц (разрешаем отсылать чужие записи)
         UtRepl utRepl = new UtRepl(db, struct);
-        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut, false);
+        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut);
 
         // Отправляем снимки таблиц в очередь queOut
         utRepl.sendToQue(replicasRes, queOut);

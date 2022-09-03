@@ -8,13 +8,13 @@ import jdtx.repl.main.api.struct.*;
 public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
 
 
-    private IRefDecoder decoder;
+    private IRefManager decoder;
 
     // Рабочая станция по умолчанию для десериализации  локальных ссылок.
     private long wsIdDefault;
 
     public JdxDataSerializerDecode(Db db, long wsIdDefault) throws Exception {
-        this.decoder = new RefDecoder(db, wsIdDefault);
+        this.decoder = new RefManagerDecode(db, wsIdDefault);
         this.wsIdDefault = wsIdDefault;
     }
 
@@ -67,7 +67,7 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
                 // например "12:1324", так и локальная, например "101000001324".
                 // Так бывает, если план слияния был составлен (и сохранен в xml) локально
                 // (и поэтому все ссылки локальные), а мы хотим отправить план на филиалы
-                // (для чего нужно превратить наши ломкальные ссылки в глобальные).
+                // (для чего нужно превратить наши локальные ссылки в глобальные).
                 // Выполним дополнение ws_id, если пришла локальная ссылка, а не глобальная.
                 if (fieldValueRef.isEmptyWs() && this.wsIdDefault > 0) {
                     fieldValueRef.ws_id = wsIdDefault;

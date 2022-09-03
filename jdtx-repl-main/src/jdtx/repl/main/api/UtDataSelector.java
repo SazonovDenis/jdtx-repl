@@ -1,7 +1,6 @@
 package jdtx.repl.main.api;
 
 import jandcode.dbm.db.*;
-import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_binder.*;
 import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.decoder.*;
@@ -20,8 +19,8 @@ public class UtDataSelector {
 
     private Db db;
     private IJdxDbStruct struct;
-    private boolean forbidNotOwnId;
-    private IRefDecoder decoder;
+    private long wsId;
+    private IRefManager decoder;
     private IJdxDataSerializer dataSerializer;
 
     private long MAX_SNAPSHOT_RECS = 5000;
@@ -33,11 +32,11 @@ public class UtDataSelector {
     /**
      * @param selfWsId Код рабочей станции, на которой делаем выборку
      */
-    public UtDataSelector(Db db, IJdxDbStruct struct, long selfWsId, boolean forbidNotOwnId) throws Exception {
-        this.struct = struct;
+    public UtDataSelector(Db db, IJdxDbStruct struct, long selfWsId) throws Exception {
         this.db = db;
-        this.decoder = new RefDecoder(db, selfWsId);
-        this.forbidNotOwnId = forbidNotOwnId;
+        this.struct = struct;
+        this.wsId = selfWsId;
+        this.decoder = new RefManagerDecode(db, selfWsId);
         this.dataSerializer = new JdxDataSerializerDecode(db, selfWsId);
     }
 
@@ -85,17 +84,6 @@ public class UtDataSelector {
         long countPortion = 0;
         while (!data.eof()) {
             Map<String, Object> values = data.getValues();
-
-            // Защита от дурака (для snapshot): в snapshot недопустимы чужие id
-            if (forbidNotOwnId) {
-                String pkFieldName = table.getPrimaryKey().get(0).getName();
-                Object pkFieldValue = values.get(pkFieldName);
-                String refTableName = table.getName();
-                long own_id = UtJdxData.longValueOf(pkFieldValue);
-                if (!decoder.is_own_id(refTableName, own_id)) {
-                    throw new XError("Not own id found, tableName: " + refTableName + ", id: " + own_id);
-                }
-            }
 
             // Обеспечим не слишком огромные порции данных
             if (countPortion >= MAX_SNAPSHOT_RECS) {
@@ -159,7 +147,7 @@ public class UtDataSelector {
                         "  " + tableFields + "\n" +
                         "from\n" +
                         "  " + tableFrom.getName() + "\n" +
-                        "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefDecoder.SLOT_SIZE + "))\n" +
+                        "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefManagerDecode.SLOT_SIZE + "))\n" +
                         condWhere +
                         "where\n" +
                         "  " + fk.getField().getName() + " = 0\n" +
@@ -170,7 +158,7 @@ public class UtDataSelector {
                         "  1 as dummySortField, " + tableFields + "\n" +
                         "from\n" +
                         "  " + tableFrom.getName() + "\n" +
-                        "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefDecoder.SLOT_SIZE + "))\n" +
+                        "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefManagerDecode.SLOT_SIZE + "))\n" +
                         "where\n" +
                         "  " + fk.getField().getName() + " <> 0\n" +
                         condWhere +
@@ -185,11 +173,11 @@ public class UtDataSelector {
                 "  " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot,\n" +
                 "  " + UtJdx.SYS_TABLE_PREFIX + "decode.ws_slot,\n" +
                 "  " + UtJdx.SYS_TABLE_PREFIX + "decode.ws_id,\n" +
-                "  (" + tableFrom.getName() + ".id - " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot * " + RefDecoder.SLOT_SIZE + ") as id_ws,\n" +
+                "  (" + tableFrom.getName() + ".id - " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot * " + RefManagerDecode.SLOT_SIZE + ") as id_ws,\n" +
                 "  " + tableFields + "\n" +
                 "from\n" +
                 "  " + tableFrom.getName() + "\n" +
-                "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefDecoder.SLOT_SIZE + "))\n" +
+                "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefManagerDecode.SLOT_SIZE + "))\n" +
                 condWhere +
                 "order by\n" +
                 "  " + tableFrom.getPrimaryKey().get(0).getName();
