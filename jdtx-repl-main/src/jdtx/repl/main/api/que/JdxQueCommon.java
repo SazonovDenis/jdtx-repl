@@ -117,35 +117,19 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
         long replicaAge = replica.getInfo().getAge();
         long replicaWsId = replica.getInfo().getWsId();
 
-        // Проверки: правильность возраста реплик IDE от рабочей станции wsId - обязательно монотонное возрастание возраста replica.age
+        // Правильность возраста (age) для реплик IDE от рабочей станции wsId.
+        // Очередь либо пуста (queWsMaxNo == -1), либо обязательно монотонное возрастание возраста replica.age
         if (replica.getInfo().getReplicaType() == JdxReplicaType.IDE) {
             long queWsMaxAge = getMaxAgeForAuthorWs(replicaWsId);
-            ///////////////////////
-            ///////////////////////
-            ///////////////////////
-            ///////////////////////
-            // вот это условие меня смущает притянцтостью за уши queWsMaxAge != -1
-            ///////////////////////
-            ///////////////////////
-            ///////////////////////
-            ///////////////////////
+            // Очередь либо пуста (queWsMaxNo == -1), либо пронумерована правильно
             if (queWsMaxAge != -1 && replicaAge != queWsMaxAge + 1) {
                 throw new XError("invalid replica.age: " + replicaAge + ", que.age: " + queWsMaxAge + ", replica.wsId: " + replicaWsId + ", que.name: " + queName);
             }
         }
 
-        // Проверки: правильность номеров реплик от рабочей станции wsId - обязательно монотонное возрастание номера replica.no
+        // Правильность номеров (no) реплик от рабочей станции wsId.
+        // Очередь либо пуста (queWsMaxNo == -1), либо обязательно монотонное возрастание номера replica.no
         long queWsMaxNo = getMaxNoForAuthorWs(replicaWsId);
-        ///////////////////////
-        ///////////////////////
-        ///////////////////////
-        ///////////////////////
-        // вот это условие меня смущает притянцтостью за уши: queWsMaxNo != -1
-        // а вот это условие меня смущает лишними зависимостями: replicaWsId == JdxReplSrv.SERVER_WS_ID
-        ///////////////////////
-        ///////////////////////
-        ///////////////////////
-        ///////////////////////
         if (queWsMaxNo != -1 && replicaNo != queWsMaxNo + 1) {
             throw new XError("invalid replica.no: " + replicaNo + ", que.no: " + queWsMaxNo + ", replica.wsId: " + replicaWsId + ", que.name: " + queName);
         }
