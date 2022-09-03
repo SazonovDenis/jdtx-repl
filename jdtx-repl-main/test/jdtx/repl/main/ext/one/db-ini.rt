@@ -8,12 +8,14 @@
         jdbcDriverClass="org.firebirdsql.jdbc.FBDriver"
         url="jdbc:firebirdsql:localhost/3050:${database}?charSet=Cp1251"
         
-        database="*.gdb"
-
+        database="db.gdb"
         username="SYSDBA"
         password="masterkey"
         host="localhost"
     />
                 
+    <!-- перкрытие настроек -->
+    <x-include path="_db-ini.rt" required="false"/>
+
 
 </root>
