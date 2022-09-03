@@ -647,8 +647,8 @@ public class JdxReplSrv {
         RefDecodeStrategy.initInstance(cfgDecode);
 
         // Делаем snapshot (по новым правилам publicationRulesInNew)
-        UtRepl ut = new UtRepl(db, structNew);
-        List<IReplica> replicasRes = ut.createSnapshotForTablesFiltered(tables, SERVER_WS_ID, destinationWsId, publicationRulesInNew, false);
+        UtRepl utRepl = new UtRepl(db, structNew);
+        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, SERVER_WS_ID, destinationWsId, publicationRulesInNew, false);
 
 
         // ---
@@ -1418,12 +1418,10 @@ public class JdxReplSrv {
     public void srvSendSnapshot(long destinationWsId, String tableNames) throws Exception {
         log.info("srvSendSnapshot, destination wsId: " + destinationWsId + ", tables: " + tableNames);
 
-
-        // todo: static RefDecodeStrategy instance - ваще капец!
-        // Именно за этим тут и нужна ИНИЦИАЛИЗАЦИЯ ws.init, и больше ни для чего!!!
-        JdxReplWs ws = new JdxReplWs(db);
-        ws.init();
-
+        // Стратегии перекодировки
+        CfgManager cfgManager = new CfgManager(db);
+        JSONObject cfgDecode = cfgManager.getWsCfg(CfgType.DECODE, SERVER_WS_ID);
+        RefDecodeStrategy.initInstance(cfgDecode);
 
         // Очередь queOut001 станции (инициализационная или для системных команд)
         JdxQueOut001 queOut001 = new JdxQueOut001(db, destinationWsId);
@@ -1437,11 +1435,11 @@ public class JdxReplSrv {
         IPublicationRuleStorage publicationRule = publicationsInList.get(destinationWsId);
 
         // Создаем снимок таблицы (разрешаем отсылать чужие записи)
-        UtRepl ut = new UtRepl(db, struct);
-        List<IReplica> replicasRes = ut.createSnapshotForTablesFiltered(tables, SERVER_WS_ID, destinationWsId, publicationRule, false);
+        UtRepl utRepl = new UtRepl(db, struct);
+        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, SERVER_WS_ID, destinationWsId, publicationRule, false);
 
         // Отправляем снимок таблицы в очередь queOut001
-        ut.sendToQue(replicasRes, queOut001);
+        utRepl.sendToQue(replicasRes, queOut001);
     }
 
 

@@ -377,21 +377,6 @@ public class JdxReplWs {
             long auditAgeFrom = stateManager.getAuditAgeDoneQueOut();
 
             //
-            long queAuditState = 0;
-            if (queAuditState >= auditAgeFrom) {
-                // todo
-                // У нас выложено в аудит больше, чем есть у нас.
-                // Это говорит от том, что наша база восстановлена из старой копии, и успела наотправлять реплик НА СЕРВЕР
-
-                // todo запретить создание реплики, если ее ФАЙЛ уже есть,
-                // это говорит о том, что наша база восстановлена из старой копии, и успела наготовить реплик в ЛОКАЛЬНЫЕ ФАЙЛЫ
-            }
-            // todo запретить передавать то, что уже есть физически в ящике. команда "повтори передачу" должна расчитвать, что файлов в ящике уже НЕТ
-
-            // todo сделать команду "повтор приготовления реплик", для случая, если реплику съел вирус или иных проблем с ЛОКАЛЬНЫМ файлом,
-            // команда включает в себя команду "повторно отправить реплики mailer.getSendRequired()"
-
-            //
             long count = 0;
             for (long age = auditAgeFrom + 1; age <= auditAgeTo; age++) {
                 IReplica replica = auditSelector.createReplicaFromAudit(publicationOut, age);
@@ -809,11 +794,11 @@ public class JdxReplWs {
 
             // Создаем снимок таблицы (разрешаем отсылать чужие записи)
             // Параметры (для правил публикации и фильтрации): автор и получатель реплики реплики - wsId
-            UtRepl ut = new UtRepl(db, struct);
-            List<IReplica> replicasRes = ut.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut, false);
+            UtRepl utRepl = new UtRepl(db, struct);
+            List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut, false);
 
             // Отправляем снимок таблицы в очередь queOut
-            ut.sendToQue(replicasRes, queOut);
+            utRepl.sendToQue(replicasRes, queOut);
 
             // Выкладывание реплики "snapshot отправлен"
             reportReplica(JdxReplicaType.SEND_SNAPSHOT_DONE);
@@ -917,10 +902,30 @@ public class JdxReplWs {
             tablesRemoved = UtJdx.selectTablesByName(tablesRemoved, structFull);
             tablesChanged = UtJdx.selectTablesByName(tablesChanged, structFull);
 
+
             // Выполняем применение изменения структуры:
-            //  - пересоздаём аудит (добавляем для новых и удаляем для удаленных таблиц)
-            //  - выкладываем snapshot в queOut (для добавленных и измененных таблиц)
-            doStructChangesSteps(structNew, publicationOutNew, tablesAdded, tablesRemoved, tablesChanged, sendSnapshotForNewTables);
+            // Подгоняем структуру аудита под реальную структуру (добавляем для новых и удаляем для удаленных таблиц)
+            // В отдельной транзакции
+            doChangeAudit(tablesAdded, tablesRemoved);
+
+            // Выполняем применение изменения структуры:
+            // Делаем выгрузку snapshot в queOut (для добавленных и измененных таблиц)
+            // Обязательно в ОТДЕЛЬНОЙ транзакции (отдельной от изменения структуры).
+            if (sendSnapshotForNewTables) {
+                List<IJdxTable> tables = new ArrayList<>();
+                tables.addAll(tablesAdded);
+                tables.addAll(tablesChanged);
+
+                // Делаем snapshot (и разрешаем чужие id - ведь это не инициализация базы, теперь они у нас точно есть)
+                UtRepl utRepl = new UtRepl(db, structNew);
+                List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOutNew, false);
+
+                // Отправляем snapshot
+                utRepl.sendToQue(replicasRes, queOut);
+            } else {
+                log.info("dbStructApplyFixed, snapshot not send");
+            }
+
 
             // Обновляем конфиг cfg_publications своей рабочей станции
             CfgManager cfgManager = new CfgManager(db);
@@ -987,28 +992,6 @@ public class JdxReplWs {
         }
     }
 
-    void doStructChangesSteps(IJdxDbStruct struct, IPublicationRuleStorage publicationsOut, List<IJdxTable> tablesAdded, List<IJdxTable> tablesRemoved, List<IJdxTable> tablesChanged, boolean sendSnapshotForNewTables) throws Exception {
-        // Подгоняем структуру аудита под реальную структуру.
-        // В отдельной транзакции
-        doChangeAudit(tablesAdded, tablesRemoved);
-
-        // Делаем выгрузку snapshot.
-        // Обязательно в ОТДЕЛЬНОЙ транзакции (отдельной от изменения структуры).
-        if (sendSnapshotForNewTables) {
-            List<IJdxTable> tables = new ArrayList<>();
-            tables.addAll(tablesAdded);
-            tables.addAll(tablesChanged);
-
-            // Делаем snapshot (и разрешаем чужие id - ведь это не инициализация базы, они у нас точно уже есть)
-            UtRepl ut = new UtRepl(db, struct);
-            List<IReplica> replicasRes = ut.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationsOut, false);
-
-            // Отправляем snapshot
-            ut.sendToQue(replicasRes, queOut);
-        } else {
-            log.info("dbStructApplyFixed, snapshot not send");
-        }
-    }
 
     /**
      * Дополнение аудита (создание журналов и триггеров) - удаление для исключенных и добавление для новых таблиц.
@@ -2447,8 +2430,8 @@ public class JdxReplWs {
         List<IJdxTable> tables = UtJdx.selectTablesByName(tableNames, struct);
 
         // Создаем снимок для таблиц (разрешаем отсылать чужие записи)
-        UtRepl ut = new UtRepl(db, struct);
-        List<IReplica> replicasRes = ut.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut, false);
+        UtRepl utRepl = new UtRepl(db, struct);
+        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut, false);
 
         // Отправляем снимки таблиц в файл(ы)
         if (replicasRes.size() == 1) {
@@ -2480,11 +2463,11 @@ public class JdxReplWs {
         List<IJdxTable> tables = UtJdx.selectTablesByName(tableNames, struct);
 
         // Создаем снимок для таблиц (разрешаем отсылать чужие записи)
-        UtRepl ut = new UtRepl(db, struct);
-        List<IReplica> replicasRes = ut.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut, false);
+        UtRepl utRepl = new UtRepl(db, struct);
+        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, wsId, wsId, publicationOut, false);
 
         // Отправляем снимки таблиц в очередь queOut
-        ut.sendToQue(replicasRes, queOut);
+        utRepl.sendToQue(replicasRes, queOut);
     }
 
     public void debugDumpStruct(String prefix, IJdxDbStruct struct) throws Exception {

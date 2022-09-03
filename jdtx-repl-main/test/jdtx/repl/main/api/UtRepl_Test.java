@@ -380,12 +380,12 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         JdxReplWs ws = new JdxReplWs(db);
         ws.init();
         //
-        UtRepl ut = new UtRepl(db, struct);
+        UtRepl utRepl = new UtRepl(db, struct);
         List<IJdxTable> tables = new ArrayList<>();
         tables.add(struct.getTable("CommentTip"));
 
         //
-        List<IReplica> replicasRes = ut.createSnapshotForTablesFiltered(tables, ws.wsId, ws.wsId, ws.publicationOut, false);
+        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, ws.wsId, ws.wsId, ws.publicationOut, false);
 
         // Переносим файл
         for (int i = 0; i < replicasRes.size(); i++) {
