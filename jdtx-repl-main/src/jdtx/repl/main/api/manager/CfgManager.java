@@ -83,6 +83,10 @@ public class CfgManager {
         return struct;
     }
 
+    /**
+     * Записывает структуру в БД
+     * Без ссылок, просто таблицы и поля - только они важны при репликации данных.
+     */
     public void setWsStruct(IJdxDbStruct struct, long wsId) throws Exception {
         JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
         String structStr = struct_rw.toString(struct);
