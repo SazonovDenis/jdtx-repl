@@ -5,6 +5,7 @@ import jandcode.utils.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.data_binder.*;
 import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
@@ -94,8 +95,10 @@ public class UtAuditSelector {
     }
 
     void readAuditData_ByInterval(String tableName, String tableFields, long fromId, long toId, JdxReplicaWriterXml dataWriter) throws Exception {
+        // Serializer
+        RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
+        IJdxDataSerializer dataSerializer = refManagerService.getJdxDataSerializer();
         // Таблица и поля в Serializer-е
-        IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, wsId);
         IJdxTable table = struct.getTable(tableName);
         dataSerializer.setTable(table, tableFields);
 

@@ -9,7 +9,7 @@ import jandcode.utils.variant.*;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.database_info.*;
-import jdtx.repl.main.api.decoder.*;
+import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.manager.*;
@@ -53,6 +53,8 @@ public class JdxReplWs {
     private final Db db;
     protected long wsId;
     protected String wsGuid;
+    protected JSONObject cfgDecode;
+
     /**
      * Рабочая структура БД - только те таблицы, которые мы обрабатываем
      */
@@ -142,6 +144,7 @@ public class JdxReplWs {
         JSONObject cfgWs = cfgManager.getSelfCfg(CfgType.WS);
         JSONObject cfgPublications = cfgManager.getSelfCfg(CfgType.PUBLICATIONS);
         JSONObject cfgDecode = cfgManager.getSelfCfg(CfgType.DECODE);
+        this.cfgDecode = cfgDecode;
 
         // Параметры приложения
         appCfg = loadAppCfg((JSONObject) cfgWs.get("app"));
@@ -176,8 +179,9 @@ public class JdxReplWs {
         mailer = new MailerHttp();
         mailer.init(cfgMailer);
 
-        // Стратегии перекодировки каждой таблицы
-        RefDecodeStrategy.initInstance(cfgDecode);
+        // Инициализация RefManagerService по конфигурации ws
+        RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
+        refManagerService.init(db, this);
 
         // Правила публикаций
         publicationIn = PublicationRuleStorage.loadRules(cfgPublications, structFull, "in");
@@ -193,8 +197,8 @@ public class JdxReplWs {
         structFixed = databaseStructManager.getDbStructFixed();
 
         //
-        DatabaseInfoReaderService svc = db.getApp().service(DatabaseInfoReaderService.class);
-        IDatabaseInfoReader databaseInfoReader = svc.createDatabaseInfoReader(db, struct);
+        DatabaseInfoReaderService databaseInfoReaderService = db.getApp().service(DatabaseInfoReaderService.class);
+        IDatabaseInfoReader databaseInfoReader = databaseInfoReaderService.createDatabaseInfoReader(db, struct);
         databaseInfo = databaseInfoReader.readDatabaseVersion();
 
         // Чтобы были
@@ -257,6 +261,10 @@ public class JdxReplWs {
 
         //
         return res;
+    }
+
+    public JSONObject getCfgDecode() {
+        return cfgDecode;
     }
 
     /**
@@ -552,7 +560,7 @@ public class JdxReplWs {
     }
 
     private ReplicaUseResult useReplicaFile(File f, boolean forceApplySelf) throws Exception {
-        log.info("useReplicaFile, file: " + f.getAbsolutePath());
+        log.info("useReplicaFile, self.wsId: " + wsId + ", file: " + f.getAbsolutePath());
 
         //
         IReplica replica = new ReplicaFile();
@@ -1179,7 +1187,7 @@ public class JdxReplWs {
         }
 
         //
-        UtAuditApplyer auditApplyer = new UtAuditApplyer(db, struct, wsId);
+        UtAuditApplyer auditApplyer = new UtAuditApplyer(db, struct);
         auditApplyer.jdxReplWs = this;
 
         // Параметры (для правил публикации)
@@ -1235,7 +1243,9 @@ public class JdxReplWs {
         db.startTran();
         try {
             // Исполняем
-            IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, wsId);
+            RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
+            IJdxDataSerializer dataSerializer = refManagerService.getJdxDataSerializer();
+            //
             JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
             recMerger.execMergePlan(mergePlans, resultFile);
 

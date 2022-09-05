@@ -1,7 +1,7 @@
 package jdtx.repl.main.api.pk_generator;
 
 import jandcode.dbm.db.*;
-import jdtx.repl.main.api.decoder.*;
+import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.struct.*;
 
 /**

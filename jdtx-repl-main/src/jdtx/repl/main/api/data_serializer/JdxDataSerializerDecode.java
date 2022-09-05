@@ -1,7 +1,7 @@
 package jdtx.repl.main.api.data_serializer;
 
 import jandcode.dbm.db.*;
-import jdtx.repl.main.api.decoder.*;
+import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.struct.*;
 
 
@@ -14,7 +14,7 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
     private long wsIdDefault;
 
     public JdxDataSerializerDecode(Db db, long wsIdDefault) throws Exception {
-        this.decoder = new RefManagerDecode(db, wsIdDefault);
+        this.decoder = db.getApp().service(RefManagerService.class);
         this.wsIdDefault = wsIdDefault;
     }
 

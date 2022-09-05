@@ -5,6 +5,7 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.struct.*;
 import org.junit.*;
 
@@ -106,7 +107,8 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
         ws.init();
 
         //
-        IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, ws.wsId);
+        RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
+        IJdxDataSerializer dataSerializer = refManagerService.getJdxDataSerializer();
 
         // Собираем отпечаток crc записей таблиц
         Map<String, Map<String, String>> dbCrc = UtDbComparer.getDbDataCrc(db, ws.struct, dataSerializer);

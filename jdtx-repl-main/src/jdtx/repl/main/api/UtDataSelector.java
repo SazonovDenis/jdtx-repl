@@ -3,7 +3,7 @@ package jdtx.repl.main.api;
 import jandcode.dbm.db.*;
 import jdtx.repl.main.api.data_binder.*;
 import jdtx.repl.main.api.data_serializer.*;
-import jdtx.repl.main.api.decoder.*;
+import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
@@ -19,8 +19,6 @@ public class UtDataSelector {
 
     private Db db;
     private IJdxDbStruct struct;
-    private long wsId;
-    private IRefManager decoder;
     private IJdxDataSerializer dataSerializer;
 
     private long MAX_SNAPSHOT_RECS = 5000;
@@ -30,14 +28,12 @@ public class UtDataSelector {
 
 
     /**
-     * @param selfWsId Код рабочей станции, на которой делаем выборку
      */
-    public UtDataSelector(Db db, IJdxDbStruct struct, long selfWsId) throws Exception {
+    public UtDataSelector(Db db, IJdxDbStruct struct) throws Exception {
         this.db = db;
         this.struct = struct;
-        this.wsId = selfWsId;
-        this.decoder = new RefManagerDecode(db, selfWsId);
-        this.dataSerializer = new JdxDataSerializerDecode(db, selfWsId);
+        RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
+        this.dataSerializer = refManagerService.getJdxDataSerializer();
     }
 
     /**

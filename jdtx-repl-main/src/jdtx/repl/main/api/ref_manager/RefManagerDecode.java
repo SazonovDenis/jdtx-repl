@@ -1,89 +1,80 @@
-package jdtx.repl.main.api.decoder;
+package jdtx.repl.main.api.ref_manager;
 
 
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.util.*;
+import org.json.simple.*;
 
 import java.util.*;
 
 /**
- * Перекодировщик ссылок.
+ * Реализация IRefManager, если разведение pk основано на перекодировке, как в PS
+ * <p>
  * Работает на допущении, что до определенного id - записи принадлежат этой рабочей станции,
  * а выше некоторого id - это места для перекодированных записей с других станций.
+ * <p>
  * Чужие id подвергаются перекодировке и занимают диапазоны по слотам, по мере поступления записей.
  * <p>
  * todo: Есть вариант обезопасить изменение политики диапазанов: в таблице decode сохранить также и реальные значения id_min id_max для диапазонов, а не только номера диапазонов
  * Кроме того, тогда можно будет НЕ ОГРАНИЧИВАТЬ максимальную id от станции - просто для крупных ID
  * будет больше номер диапазона, а его истинный id?????.
  */
-public class RefManagerDecode implements IRefManager {
+public class RefManagerDecode extends RefManagerService implements IRefManager {
 
     // Своими записи считаются значения id в диапазоне от 0 до 100 000 000
     public static long SLOT_SIZE = 1000000;
     static long SLOT_START_NUMBER = 100;  //todo: политика назначения диапазонов
 
 
-    Db db = null;
+    // Код нашей рабочей станции
     long self_ws_id = -1;
 
+    // Слоты
     protected Map<String, Map<RefDecoderSlot, Long>> wsToSlotList;
     protected Map<String, Map<Long, RefDecoderSlot>> slotToWsList;
 
+    // Стратегии перекодировки
+    RefDecodeStrategy decodeStrategy = null;
+
 
     // ------------------------------------------
-    // RefDecoder
+    // RefManagerService
     // ------------------------------------------
 
-    /**
-     * @param self_ws_id Код нашей рабочей станции
-     */
-    public RefManagerDecode(Db db, long self_ws_id) throws Exception {
-        if (self_ws_id <= 0) {
-            throw new XError("invalid self_ws_id <= 0");
-        }
+    @Override
+    public void init(Db db, JdxReplWs ws) throws Exception {
+        super.init(db, ws);
 
-        //
-        this.db = db;
-        this.self_ws_id = self_ws_id;
+        // Код станции wsId
+        initWs(ws.getWsId());
 
-        // Слоты
-        slotToWsList = new HashMap<>();
-        wsToSlotList = new HashMap<>();
+        // Слоты из БД
+        initSlots();
 
-        // Загрузим все слоты
-        DataStore st = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "decode");
-        for (DataRecord rec : st) {
-            // Берем слоты для таблицы
-            String tableName = rec.getValueString("table_name");
-            tableName = tableName.toUpperCase();
+        // Стратегии перекодировки
+        initStrategy(ws.getCfgDecode());
+    }
 
-            // Создем слот
-            RefDecoderSlot sl = new RefDecoderSlot();
-            sl.ws_id = rec.getValueLong("ws_id");
-            sl.ws_slot_no = rec.getValueLong("ws_slot");
-
-            //
-            long own_slot_no = rec.getValueLong("own_slot");
-
-            // Добавляем слот в наборы
-            Map<Long, RefDecoderSlot> slotToWs = findOrAdd1(slotToWsList, tableName);
-            slotToWs.put(own_slot_no, sl);
-            //
-            Map<RefDecoderSlot, Long> wsToSlot = findOrAdd2(wsToSlotList, tableName);
-            wsToSlot.put(sl, own_slot_no);
-        }
-
+    @Override
+    public IJdxDataSerializer getJdxDataSerializer() throws Exception {
+        checkInit();
+        return new JdxDataSerializerDecode(db, ws.getWsId());
     }
 
 
     // ------------------------------------------
-    // IRefDecoder
+    // IRefManager
     // ------------------------------------------
 
     public JdxRef get_ref(String tableName, long id_local) throws Exception {
+        checkInit();
+
+        //
         tableName = tableName.toUpperCase();
 
         //
@@ -111,7 +102,7 @@ public class RefManagerDecode implements IRefManager {
         // Ищем наш слот
         RefDecoderSlot sl = slotToWs.get(own_slot_no);
         if (sl == null) {
-            throw new XError("RefDecoder.get_ref: trying to decode id, than was not inserted, table: " + tableName + ", ws_id: " + this.self_ws_id + ", id: " + id_local);
+            throw new XError("IRefManager.get_ref: trying to decode id, than was not inserted, table: " + tableName + ", ws_id: " + this.self_ws_id + ", id: " + id_local);
         }
 
         // По нашему номеру слота определяем ws_id и ws_slot_no
@@ -125,6 +116,9 @@ public class RefManagerDecode implements IRefManager {
     }
 
     public long get_id_local(String tableName, JdxRef ref) throws Exception {
+        checkInit();
+
+        //
         tableName = tableName.toUpperCase();
 
         // Не надо перекодировать?
@@ -141,7 +135,7 @@ public class RefManagerDecode implements IRefManager {
 
         // Нужна перекодировка, а рабочая станция не указана
         if (ref.ws_id <= 0) {
-            throw new XError("RefDecoder.get_id_own: id is need to decode, but ws_id is invalid, table: " + tableName + ", ws_id: " + ref.ws_id + ", id: " + ref.value);
+            throw new XError("IRefManager.get_id_own: id is need to decode, but ws_id is invalid, table: " + tableName + ", ws_id: " + ref.ws_id + ", id: " + ref.value);
         }
 
         // Пробуем перекодировку чужой id имеющемися слотами
@@ -187,7 +181,55 @@ public class RefManagerDecode implements IRefManager {
     //
     // ------------------------------------------
 
+    protected void initWs(long wsId) {
+        if (wsId <= 0) {
+            throw new XError("invalid wsId <= 0, wsId: " + wsId);
+        }
+        this.self_ws_id = wsId;
+    }
+
+    protected void initSlots() throws Exception {
+        // Слоты
+        slotToWsList = new HashMap<>();
+        wsToSlotList = new HashMap<>();
+
+        // Загрузим все слоты
+        DataStore st = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "decode");
+        for (DataRecord rec : st) {
+            // Берем слоты для таблицы
+            String tableName = rec.getValueString("table_name");
+            tableName = tableName.toUpperCase();
+
+            // Создем слот
+            RefDecoderSlot sl = new RefDecoderSlot();
+            sl.ws_id = rec.getValueLong("ws_id");
+            sl.ws_slot_no = rec.getValueLong("ws_slot");
+
+            //
+            long own_slot_no = rec.getValueLong("own_slot");
+
+            // Добавляем слот в наборы
+            Map<Long, RefDecoderSlot> slotToWs = findOrAdd1(slotToWsList, tableName);
+            slotToWs.put(own_slot_no, sl);
+            //
+            Map<RefDecoderSlot, Long> wsToSlot = findOrAdd2(wsToSlotList, tableName);
+            wsToSlot.put(sl, own_slot_no);
+        }
+    }
+
+    protected void initStrategy(JSONObject cfgDecode) throws Exception {
+        decodeStrategy = new RefDecodeStrategy();
+        decodeStrategy.init(cfgDecode);
+    }
+
+
+    //////////////////////
+    //////////////////////
+    //////////////////////
     // todo: необходимость public метода говорит об архитектурной проблеме
+    //////////////////////
+    //////////////////////
+    //////////////////////
     public static long get_max_own_id() {
         return SLOT_SIZE * SLOT_START_NUMBER - 1;
     }
@@ -196,9 +238,15 @@ public class RefManagerDecode implements IRefManager {
      * @return Нужно ли перекодировать по стратегии перекодировки
      */
     private boolean needDecodeStrategy(String tableName, long db_id) {
-        return RefDecodeStrategy.getInstance().needDecodeOwn(tableName, db_id);
+        checkInit();
+        return decodeStrategy.needDecodeOwn(tableName, db_id);
     }
 
+    private void checkInit() {
+        if (decodeStrategy == null) {
+            throw new XError("RefManagerDecode: service RefManagerService not initialized");
+        }
+    }
 
     private Map<Long, RefDecoderSlot> findOrAdd1(Map<String, Map<Long, RefDecoderSlot>> slotToWsList, String tableName) {
         Map<Long, RefDecoderSlot> slotToWs = slotToWsList.get(tableName);

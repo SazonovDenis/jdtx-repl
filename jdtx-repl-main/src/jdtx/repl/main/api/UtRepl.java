@@ -6,7 +6,7 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.data_serializer.*;
-import jdtx.repl.main.api.decoder.*;
+import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.manager.*;
@@ -183,7 +183,7 @@ public class UtRepl {
         JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDat();
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
-        UtDataSelector dataSelector = new UtDataSelector(db, struct, wsId);
+        UtDataSelector dataSelector = new UtDataSelector(db, struct);
         String publicationFields = UtJdx.fieldsToString(table.getFields());
         dataSelector.readRecordsByIdList(table.getName(), idList, publicationFields, xmlWriter);
 
@@ -216,7 +216,7 @@ public class UtRepl {
         JdxReplicaWriterXml xmlWriter = replicaWriter.replicaWriterStartDat();
 
         // Забираем все данные из таблиц (по порядку сортировки таблиц в struct с учетом foreign key)
-        UtDataSelector dataSelector = new UtDataSelector(db, struct, selfWsId);
+        UtDataSelector dataSelector = new UtDataSelector(db, struct);
         dataSelector.readAllRecords(publicationRule, xmlWriter);
 
         // Заканчиваем формирование файла реплики

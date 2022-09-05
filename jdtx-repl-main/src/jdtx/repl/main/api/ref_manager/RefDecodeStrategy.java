@@ -1,4 +1,4 @@
-package jdtx.repl.main.api.decoder;
+package jdtx.repl.main.api.ref_manager;
 
 import jandcode.utils.error.*;
 import org.json.simple.*;
@@ -6,32 +6,16 @@ import org.json.simple.*;
 import java.util.*;
 
 /**
- * todo: путаница в ролях RefDecoder и RefDecodeStrategy,
- * todo: кроме того, именно RefDecoder специфичен для PS, а через фабрику кастомизируется именно RefManagerService
- * todo: кроме того! static RefDecodeStrategy.instance и static initInstance() - ваще капец!
+ * Хранилище настроек стратегий перекодировки,
+ * используется в jdtx.repl.main.api.decoder.RefManagerDecode
+ * <p>
+ * <p>
+ * todo: именно RefDecoder специфичен для PS, а через фабрику кастомизируется именно RefManagerService
  */
-
-// todo: по коду куча вызовов "new RefDecoder()" - а зачем тогда фабрика jdtx.repl.main.api.decoder.RefManagerService?
 public class RefDecodeStrategy {
 
     int NO_DECODE = 1;
     int DECODE_ID = 2;
-
-    private static RefDecodeStrategy instance = null;
-
-    public static void initInstance(JSONObject cfgDecode) throws Exception {
-        RefDecodeStrategy decodeStrategy = new RefDecodeStrategy();
-        decodeStrategy.init(cfgDecode);
-        instance = decodeStrategy;
-    }
-
-    public static RefDecodeStrategy getInstance() {
-        if (instance == null) {
-            // Не заданы стратегии перекодировки для каждой таблицы
-            throw new XError("RefDecodeStrategy.instance == null");
-        }
-        return instance;
-    }
 
     /**
      * Хранилище устроено так:
@@ -39,6 +23,7 @@ public class RefDecodeStrategy {
      * TableB: {strategy: NO_DECODE}
      */
     protected Map<String, RefDecodeStrategyItem> tablesDecodeStrategy;
+
 
     public void init(JSONObject cfg) throws Exception {
         // Стратегии перекодировки каждой таблицы

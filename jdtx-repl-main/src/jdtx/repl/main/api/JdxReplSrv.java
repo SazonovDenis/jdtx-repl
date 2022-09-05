@@ -5,7 +5,7 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
-import jdtx.repl.main.api.decoder.*;
+import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
@@ -194,6 +194,15 @@ public class JdxReplSrv {
 
         // Чтобы были
         UtFile.mkdirs(dataRoot + "temp");
+
+
+        // Инициализация RefManagerService по конфигурации wsSrv
+        // Только рабочая станция знает, какая у нас wsId
+        JdxReplWs wsSrv = new JdxReplWs(db);
+        wsSrv.init();
+        // Инициализация RefManagerService
+        RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
+        refManagerService.init(db, wsSrv);
     }
 
     /**
@@ -520,9 +529,6 @@ public class JdxReplSrv {
         // ---
         // Подготовим snapshot для станции wsId
 
-        // Стратегии перекодировки каждой таблицы (нужно для формирования snaphot)
-        RefDecodeStrategy.initInstance(cfgDecode);
-
         // Передаем тот состав таблиц, который перечислен в правилах rulesForSnapsot
         List<IJdxTable> publicationOutTables = makeOrderedFromPublicationRules(struct, rulesForSnapsot);
 
@@ -641,10 +647,6 @@ public class JdxReplSrv {
         List<IJdxTable> tables = new ArrayList<>();
         tables.addAll(tablesAdded);
         tables.addAll(tablesChanged);
-
-        // Стратегии перекодировки
-        JSONObject cfgDecode = cfgManager.getWsCfg(CfgType.DECODE, SERVER_WS_ID);
-        RefDecodeStrategy.initInstance(cfgDecode);
 
         // Делаем snapshot (по новым правилам publicationRulesInNew)
         UtRepl utRepl = new UtRepl(db, structNew);
@@ -1306,8 +1308,12 @@ public class JdxReplSrv {
         JdxReplWs ws = new JdxReplWs(db);
         ws.init();
 
+        // Инициализация RefManagerService по конфигурации ws
+        RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
+        refManagerService.init(db, ws);
+
         //
-        IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, ws.wsId);
+        IJdxDataSerializer dataSerializer = refManagerService.getJdxDataSerializer();
 
         //
         for (RecMergePlan mergePlan : mergePlans) {
@@ -1410,11 +1416,6 @@ public class JdxReplSrv {
      */
     public void srvSendSnapshot(long destinationWsId, String tableNames) throws Exception {
         log.info("srvSendSnapshot, destination wsId: " + destinationWsId + ", tables: " + tableNames);
-
-        // Стратегии перекодировки
-        CfgManager cfgManager = new CfgManager(db);
-        JSONObject cfgDecode = cfgManager.getWsCfg(CfgType.DECODE, SERVER_WS_ID);
-        RefDecodeStrategy.initInstance(cfgDecode);
 
         // Очередь queOut001 станции (инициализационная или для системных команд)
         JdxQueOut001 queOut001 = new JdxQueOut001(db, destinationWsId);

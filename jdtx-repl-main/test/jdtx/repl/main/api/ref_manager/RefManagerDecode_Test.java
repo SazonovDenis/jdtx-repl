@@ -1,4 +1,4 @@
-package jdtx.repl.main.api.decoder;
+package jdtx.repl.main.api.ref_manager;
 
 import jandcode.dbm.test.*;
 import jdtx.repl.main.api.*;
@@ -13,12 +13,13 @@ import java.util.*;
  */
 public class RefManagerDecode_Test extends DbmTestCase {
 
+    // Стратегии перекодировки каждой таблицы
+    JSONObject cfgDecode;
+
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        // Стратегии перекодировки каждой таблицы
-        JSONObject cfgDecode = UtRepl.loadAndValidateJsonFile("test/etalon/decode_strategy.json");
-        RefDecodeStrategy.initInstance(cfgDecode);
+        cfgDecode = UtRepl.loadAndValidateJsonFile("test/etalon/decode_strategy.json");
     }
 
     @Test
@@ -56,7 +57,11 @@ public class RefManagerDecode_Test extends DbmTestCase {
         long wsId_d2 = 2;
 
         // ---
-        RefManagerDecode d1 = new RefManagerDecode(dbm.getDb(), wsId);
+        RefManagerDecode d1 = new RefManagerDecode();
+        d1.db = dbm.getDb();
+        d1.initWs(wsId);
+        d1.initSlots();
+        d1.initStrategy(cfgDecode);
         d1.SLOT_SIZE = 4;
 
         //
@@ -79,7 +84,11 @@ public class RefManagerDecode_Test extends DbmTestCase {
 
 
         // ---
-        RefManagerDecode d2 = new RefManagerDecode(dbm.getDb(), wsId);
+        RefManagerDecode d2 = new RefManagerDecode();
+        d2.db = dbm.getDb();
+        d2.initWs(wsId);
+        d2.initSlots();
+        d2.initStrategy(cfgDecode);
         d2.SLOT_SIZE = 4;
 
         //
@@ -102,7 +111,11 @@ public class RefManagerDecode_Test extends DbmTestCase {
 
 
         // ---
-        d1 = new RefManagerDecode(dbm.getDb(), wsId);
+        d1 = new RefManagerDecode();
+        d1.db = dbm.getDb();
+        d1.initWs(wsId);
+        d1.initSlots();
+        d1.initStrategy(cfgDecode);
         d1.SLOT_SIZE = 4;
 
         //
@@ -119,7 +132,11 @@ public class RefManagerDecode_Test extends DbmTestCase {
 
 
         // ---
-        d2 = new RefManagerDecode(dbm.getDb(), wsId);
+        d2 = new RefManagerDecode();
+        d2.db = dbm.getDb();
+        d2.initWs(wsId);
+        d2.initSlots();
+        d2.initStrategy(cfgDecode);
         d2.SLOT_SIZE = 4;
 
         //
@@ -188,7 +205,11 @@ public class RefManagerDecode_Test extends DbmTestCase {
         long wsId_d2 = 2;
 
         // ---
-        RefManagerDecode decoder = new RefManagerDecode(dbm.getDb(), wsId);
+        RefManagerDecode decoder = new RefManagerDecode();
+        decoder.db = dbm.getDb();
+        decoder.initWs(wsId);
+        decoder.initSlots();
+        decoder.initStrategy(cfgDecode);
         decoder.SLOT_SIZE = 4;
 
         for (long id = 10; id < 25; id++) {
@@ -236,14 +257,14 @@ public class RefManagerDecode_Test extends DbmTestCase {
         JdxRef ref = decoder.get_ref("LIC", id_own);
         System.out.println(id_own + " -> " + ref.toString());
         assertEquals(0, ref.value);
-        assertEquals(decoder.self_ws_id, ref.ws_id);
+        assertEquals(true, ref.isEmptyWs());
 
         //
         id_own = decoder.get_id_local("LIC", new JdxRef(wsId_d2, 0));
         ref = decoder.get_ref("LIC", id_own);
         System.out.println(id_own + " -> " + ref.toString());
         assertEquals(0, ref.value);
-        assertEquals(decoder.self_ws_id, ref.ws_id);
+        assertEquals(true, ref.isEmptyWs());
     }
 
 

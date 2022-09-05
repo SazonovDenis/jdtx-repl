@@ -1,4 +1,4 @@
-package jdtx.repl.main.api.decoder;
+package jdtx.repl.main.api.ref_manager;
 
 /**
  * Значение типа "ссылка".

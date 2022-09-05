@@ -6,7 +6,6 @@ import jandcode.dbm.test.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.data_serializer.*;
-import jdtx.repl.main.api.decoder.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.json.simple.*;

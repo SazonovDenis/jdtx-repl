@@ -116,8 +116,8 @@
     </service>
 
 
-    <service name="jdtx.repl.main.api.decoder.JdxRefDecoderService"
-             class="jdtx.repl.main.api.decoder.JdxRefDecoderService_PS">
+    <service name="jdtx.repl.main.api.ref_manager.RefManagerService"
+             class="jdtx.repl.main.api.ref_manager.RefManagerDecode">
     </service>
 
     <service name="jdtx.repl.main.api.database_info.DatabaseInfoReaderService"

@@ -5,6 +5,7 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
@@ -24,7 +25,6 @@ public class UtAuditApplyer {
 
     private Db db;
     private IJdxDbStruct struct;
-    private long wsId;
     public JdxReplWs jdxReplWs;
 
     //
@@ -32,10 +32,9 @@ public class UtAuditApplyer {
 
 
     //
-    public UtAuditApplyer(Db db, IJdxDbStruct struct, long wsId) throws Exception {
+    public UtAuditApplyer(Db db, IJdxDbStruct struct) throws Exception {
         this.db = db;
         this.struct = struct;
-        this.wsId = wsId;
     }
 
     public void applyReplica(IReplica replica, IPublicationRuleStorage publicationIn, Map<String, String> filterParams, boolean forceApply_ignorePublicationRules, long commitPortionMax) throws Exception {
@@ -92,7 +91,7 @@ public class UtAuditApplyer {
      * Применить данные из dataReader на рабочей станции selfWsId
      */
     public void applyReplicaReader(JdxReplicaReaderXml dataReader, IPublicationRuleStorage publicationRules, Map<String, String> filterParams, boolean forceApply_ignorePublicationRules, long portionMax) throws Exception {
-        log.info("applyReplica, self.WsId: " + wsId + ", replica.WsId: " + dataReader.getWsId() + ", replica.no: " + dataReader.getNo() + ", replica.age: " + dataReader.getAge());
+        log.info("applyReplica, replica.WsId: " + dataReader.getWsId() + ", replica.no: " + dataReader.getNo() + ", replica.age: " + dataReader.getAge());
 
         //
         List<IJdxTable> tables = struct.getTables();
@@ -106,7 +105,8 @@ public class UtAuditApplyer {
         AuditDbTriggersManager triggersManager = new AuditDbTriggersManager(db);
 
         //
-        IJdxDataSerializer dataSerializer = new JdxDataSerializerDecode(db, wsId);
+        RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
+        IJdxDataSerializer dataSerializer = refManagerService.getJdxDataSerializer();
 
         //
         SelfAuditDtComparer selfAuditDtComparer = new SelfAuditDtComparer(db);
