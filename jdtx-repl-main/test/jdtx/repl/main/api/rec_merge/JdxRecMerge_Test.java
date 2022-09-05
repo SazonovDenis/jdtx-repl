@@ -61,11 +61,8 @@ public class JdxRecMerge_Test extends DbmTestCase {
         reader.setDb(db);
         struct = reader.readDbStruct();
         //
-        JSONObject cfgDecode = UtRepl.loadAndValidateJsonFile("test/etalon/decode_strategy.json");
-        RefDecodeStrategy.initInstance(cfgDecode);
         JSONObject cfgGroups = UtRepl.loadAndValidateJsonFile("test/etalon/field_groups.json");
         GroupsStrategyStorage.initInstance(cfgGroups, struct);
-        //logOn();
     }
 
     @Test
