@@ -3,7 +3,7 @@ package jdtx.repl.main.api.util;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.struct.*;
 
-public interface IUtDbErrors {
+public interface IDbErrors {
 
     boolean errorIs_PrimaryKeyError(Exception e);
 

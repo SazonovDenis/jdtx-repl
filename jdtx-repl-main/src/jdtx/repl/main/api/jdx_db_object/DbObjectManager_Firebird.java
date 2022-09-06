@@ -17,7 +17,7 @@ public class DbObjectManager_Firebird extends UtDbObjectManager {
             sql = "set generator " + generatorName + " to 0";
             db.execSql(sql);
         } catch (Exception e) {
-            if (UtDbErrors.getInst(db).errorIs_GeneratorAlreadyExists(e)) {
+            if (dbErrors.errorIs_GeneratorAlreadyExists(e)) {
                 log.warn("generator already exists: " + generatorName);
             } else {
                 throw e;
@@ -31,7 +31,7 @@ public class DbObjectManager_Firebird extends UtDbObjectManager {
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
-            if (UtDbErrors.getInst(db).errorIs_GeneratorNotExists(e)) {
+            if (dbErrors.errorIs_GeneratorNotExists(e)) {
                 log.debug("generator not exists: " + generatorName);
             } else {
                 throw e;

@@ -2,6 +2,7 @@ package jdtx.repl.main.api.manager;
 
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.jdx_db_object.*;
+import jdtx.repl.main.api.util.*;
 import org.junit.*;
 
 import java.util.*;
@@ -20,8 +21,8 @@ public class SrvWorkstationStateManager_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void test_verdb() throws Exception {
-        UtDbObjectManager objectManager = (UtDbObjectManager) UtDbObjectManager.createInst(db);
-        objectManager.CURRENT_VER_DB = 16;
+        IDbObjectManager objectManager = DbToolsService.getDbObjectManager(db);
+        ((UtDbObjectManager) objectManager).CURRENT_VER_DB = 16;
         objectManager.checkVerDb();
     }
 

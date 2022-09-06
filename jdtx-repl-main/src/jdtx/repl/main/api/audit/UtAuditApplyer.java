@@ -99,7 +99,7 @@ public class UtAuditApplyer {
 
         //
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
-        IUtDbErrors dbErrors = UtDbErrors.getInst(db);
+        IDbErrors dbErrors = db.getApp().service(DbToolsService.class).getDbErrors(db);
 
         //
         AuditDbTriggersManager triggersManager = new AuditDbTriggersManager(db);

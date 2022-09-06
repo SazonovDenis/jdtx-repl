@@ -14,32 +14,18 @@ import java.util.*;
 
 public class UtDbObjectManager implements IDbObjectManager {
 
-    public static int CURRENT_VER_DB = 17;
+    public int CURRENT_VER_DB = 17;
 
     enum IDEmodes {INSERT, UPDATE, DELETE}
 
     Db db;
-    IUtDbNameManager dbNameManager;
-    IUtDbErrors dbErrors;
+    IDbNamesManager dbNamesManager;
+    IDbErrors dbErrors;
 
     public UtDbObjectManager(Db db) {
         this.db = db;
-        this.dbNameManager = UtDbNameManager.getInst(db);
-        this.dbErrors = UtDbErrors.getInst(db);
-    }
-
-    public static IDbObjectManager createInst(Db db) {
-        IDbObjectManager inst;
-        String dbType = UtJdx.getDbType(db);
-        if (dbType.equalsIgnoreCase("oracle")) {
-            inst = new DbObjectManager_Oracle(db);
-        } else if (dbType.equalsIgnoreCase("firebird")) {
-            inst = new DbObjectManager_Firebird(db);
-        } else {
-            throw new XError("Неизвестный тип базы: " + dbType);
-        }
-        //
-        return inst;
+        this.dbNamesManager = db.getApp().service(DbToolsService.class).getDbNamesManager(db);
+        this.dbErrors = db.getApp().service(DbToolsService.class).getDbErrors(db);
     }
 
     DbQuery lockFlag = null;
@@ -175,7 +161,7 @@ public class UtDbObjectManager implements IDbObjectManager {
         // Создание таблицы журнала
         String tableName = table.getName();
         String pkFieldName = table.getPrimaryKey().get(0).getName();
-        String auditTableName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
+        String auditTableName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
         //
         String pkFieldDataType = table.getPrimaryKey().get(0).getDbDatatype();
         if (table.getPrimaryKey().get(0).getJdxDatatype() == JdxDataType.STRING) {
@@ -199,7 +185,7 @@ public class UtDbObjectManager implements IDbObjectManager {
         }
 
         // Генератор Id для новой таблицы
-        String generatorName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_GEN_PREFIX);
+        String generatorName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_GEN_PREFIX);
         createGenerator(generatorName);
 
         // Индекс для таблицы журнала
@@ -221,7 +207,7 @@ public class UtDbObjectManager implements IDbObjectManager {
 
         // удаляем триггеры
 
-        String triggerName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TRIGER_PREFIX, "_I");
+        String triggerName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_TRIGER_PREFIX, "_I");
         try {
             sql = "drop trigger " + triggerName;
             db.execSql(sql);
@@ -234,7 +220,7 @@ public class UtDbObjectManager implements IDbObjectManager {
             }
         }
 
-        triggerName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TRIGER_PREFIX, "_U");
+        triggerName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_TRIGER_PREFIX, "_U");
         try {
             sql = "drop trigger " + triggerName;
             db.execSql(sql);
@@ -247,7 +233,7 @@ public class UtDbObjectManager implements IDbObjectManager {
             }
         }
 
-        triggerName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TRIGER_PREFIX, "_D");
+        triggerName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_TRIGER_PREFIX, "_D");
         try {
             sql = "drop trigger " + triggerName;
             db.execSql(sql);
@@ -261,7 +247,7 @@ public class UtDbObjectManager implements IDbObjectManager {
         }
 
         // удаляем саму таблицу журнала изменений
-        String auditTableName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
+        String auditTableName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
         try {
             sql = "drop table " + auditTableName;
             db.execSql(sql);
@@ -275,15 +261,11 @@ public class UtDbObjectManager implements IDbObjectManager {
         }
 
         // удаляем генератор для таблицы журнала изменений
-        String generatorName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_GEN_PREFIX);
+        String generatorName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_GEN_PREFIX);
         dropGenerator(generatorName);
     }
 
-    // ---
-    // Утилиты
-    // ---
-
-    void lockDb() throws Exception {
+    public void lockDb() throws Exception {
         if (lockFlag != null) {
             throw new XError("Database already locked by current thread");
         }
@@ -302,8 +284,7 @@ public class UtDbObjectManager implements IDbObjectManager {
         log.info("Database locked: " + db.getDbSource().getDatabase());
     }
 
-
-    void unlockDb() throws Exception {
+    public void unlockDb() throws Exception {
         if (lockFlag == null) {
             throw new XError("Database is not locked by current thread");
         }
@@ -315,6 +296,11 @@ public class UtDbObjectManager implements IDbObjectManager {
         //
         log.info("Database unlocked: " + db.getDbSource().getDatabase());
     }
+
+
+    // ---
+    // Утилиты
+    // ---
 
     private void initVerDb() throws Exception {
         try {
@@ -385,8 +371,8 @@ public class UtDbObjectManager implements IDbObjectManager {
 
     void createAuditTableIndex_ID(IJdxTable table) throws Exception {
         String tableName = table.getName();
-        String auditTableName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
-        String idxName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_INDEX_PREFIX, "_IDX");
+        String auditTableName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
+        String idxName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_INDEX_PREFIX, "_IDX");
         try {
             String sql = "CREATE UNIQUE INDEX " + idxName + " ON " + auditTableName + " (" + UtJdx.AUDIT_FIELD_PREFIX + "ID)";
             db.execSql(sql);
@@ -401,8 +387,8 @@ public class UtDbObjectManager implements IDbObjectManager {
 
     void createAuditTableIndex_OPR_DTTM(IJdxTable table) throws Exception {
         String tableName = table.getName();
-        String auditTableName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
-        String idxName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_INDEX_PREFIX, "_DT");
+        String auditTableName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
+        String idxName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_INDEX_PREFIX, "_DT");
         try {
             String sql = "CREATE INDEX " + idxName + " ON " + auditTableName + " (" + UtJdx.AUDIT_FIELD_PREFIX + "OPR_DTTM)";
             db.execSql(sql);
@@ -443,7 +429,7 @@ public class UtDbObjectManager implements IDbObjectManager {
         db.execSql(sql);
 
         // генератор Id для новой таблицы
-        String generatorName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_GEN_PREFIX);
+        String generatorName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_GEN_PREFIX);
         createGenerator(generatorName);
     }
 */
@@ -452,9 +438,9 @@ public class UtDbObjectManager implements IDbObjectManager {
         String sql;
         String tableName = table.getName();
         String pkFieldName = table.getPrimaryKey().get(0).getName();
-        String triggerName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TRIGER_PREFIX, "_" + upd_mode.toString().substring(0, 1));
-        String generatorName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_GEN_PREFIX);
-        String audditTableName = dbNameManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
+        String triggerName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_TRIGER_PREFIX, "_" + upd_mode.toString().substring(0, 1));
+        String generatorName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_GEN_PREFIX);
+        String audditTableName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
         //
         sql = "create trigger " + triggerName + " for " + tableName + " after " + upd_mode.toString() + " \n" +
                 "as\n" +

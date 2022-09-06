@@ -24,6 +24,7 @@ public class UtAuditSelector {
     private Db db;
     private IJdxDbStruct struct;
     long wsId;
+    IDbNamesManager dbNamesManager;
 
     //
     protected static Log log = LogFactory.getLog("jdtx.AuditSelector");
@@ -34,6 +35,7 @@ public class UtAuditSelector {
         this.db = db;
         this.struct = struct;
         this.wsId = wsId;
+        this.dbNamesManager = db.getApp().service(DbToolsService.class).getDbNamesManager(db);
     }
 
 
@@ -180,7 +182,7 @@ public class UtAuditSelector {
                 }
 
                 // изменения с указанным возрастом
-                String auditTableName = UtDbNameManager.getInst(db).getShortName(t.getName(), UtJdx.AUDIT_TABLE_PREFIX);
+                String auditTableName = dbNamesManager.getShortName(t.getName(), UtJdx.AUDIT_TABLE_PREFIX);
                 query = "delete from " + auditTableName + " where " + UtJdx.AUDIT_FIELD_PREFIX + "id >= :fromId and " + UtJdx.AUDIT_FIELD_PREFIX + "id <= :toId";
                 db.execSql(query, UtCnv.toMap("fromId", fromId, "toId", toId));
             }
@@ -206,7 +208,7 @@ public class UtAuditSelector {
 
     protected String getSql_full(IJdxTable tableFrom, String tableFields, long fromId, long toId) {
         String tableName = tableFrom.getName();
-        String auditTableName = UtDbNameManager.getInst(db).getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
+        String auditTableName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
         return "select " +
                 UtJdx.SQL_FIELD_OPR_TYPE + ", " + tableFields +
                 " from " + auditTableName +
@@ -234,7 +236,7 @@ public class UtAuditSelector {
         String tableFieldsAlias = sb.toString();
 
         //
-        String auditTableName = UtDbNameManager.getInst(db).getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
+        String auditTableName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
         return "select " +
                 UtJdx.SQL_FIELD_OPR_TYPE + ", \n" +
                 UtJdx.AUDIT_FIELD_PREFIX + "opr_dttm, \n" +

@@ -14,7 +14,6 @@ import java.util.*;
 public class SelfAuditDtComparer {
 
     private Db db;
-    private String tableName;
     private DateTime replicaDtTo;
     private Map<Long, DateTime> selfAuditData = null;
 
@@ -30,12 +29,12 @@ public class SelfAuditDtComparer {
      * @param dt        берем возраст, старше этого
      */
     public void readSelfAuditData(String tableName, DateTime dt) throws Exception {
-        this.tableName = tableName;
         this.replicaDtTo = dt;
         this.selfAuditData = new HashMap<>();
 
         // Читаем изменения из аудита, сделанные ПОСЛЕ даты dt
-        String auditTableName = UtDbNameManager.getInst(db).getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
+        IDbNamesManager dbNamesManager = db.getApp().service(DbToolsService.class).getDbNamesManager(db);
+        String auditTableName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
         String sql = "select * from " + auditTableName + " where " + UtJdx.AUDIT_FIELD_PREFIX + "OPR_DTTM > :replicaDt order by " + UtJdx.AUDIT_FIELD_PREFIX + "OPR_DTTM";
         DbQuery query = db.openSql(sql, UtCnv.toMap("replicaDt", dt));
 

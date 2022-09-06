@@ -120,6 +120,10 @@
              class="jdtx.repl.main.api.ref_manager.RefManagerDecode">
     </service>
 
+    <service name="jdtx.repl.main.api.util.DbToolsService"
+             class="jdtx.repl.main.api.util.DbToolsService">
+    </service>
+
     <service name="jdtx.repl.main.api.database_info.DatabaseInfoReaderService"
              class="jdtx.repl.main.api.database_info.DatabaseInfoReaderSrvice_PS">
     </service>

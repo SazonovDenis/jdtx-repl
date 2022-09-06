@@ -3,7 +3,7 @@ package jdtx.repl.main.api.util;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.struct.*;
 
-public class UtDbErrors_Oracle implements IUtDbErrors {
+public class DbErrors_Firebird extends DbToolsService implements IDbErrors {
 
     public boolean errorIs_PrimaryKeyError(Exception e) {
         String errText = UtJdxErrors.collectExceptionText(e);
@@ -21,7 +21,9 @@ public class UtDbErrors_Oracle implements IUtDbErrors {
 
     public boolean errorIs_TableNotExists(Exception e) {
         String errText = UtJdxErrors.collectExceptionText(e);
-        if (errText.contains("java.sql.SQLException: ORA-00942:")) {
+        if ((errText.contains("table/view") && errText.contains("does not exist") ||
+                errText.contains("Table") && errText.contains("does not exist")) ||
+                errText.contains("Table unknown")) {
             return true;
         } else {
             return false;
@@ -30,7 +32,8 @@ public class UtDbErrors_Oracle implements IUtDbErrors {
 
     public boolean errorIs_GeneratorNotExists(Exception e) {
         String errText = UtJdxErrors.collectExceptionText(e);
-        if (errText.contains("java.sql.SQLException: ORA-02289:")) {
+        if (errText.contains("Generator not found") ||
+                errText.contains("Generator") && errText.contains("not found")) {
             return true;
         } else {
             return false;
@@ -39,7 +42,8 @@ public class UtDbErrors_Oracle implements IUtDbErrors {
 
     public boolean errorIs_TriggerNotExists(Exception e) {
         String errText = UtJdxErrors.collectExceptionText(e);
-        if (errText.contains("java.sql.SQLException: ORA-04080:")) {
+        if (errText.contains("Trigger not found") ||
+                errText.contains("Trigger") && errText.contains("not found")) {
             return true;
         } else {
             return false;

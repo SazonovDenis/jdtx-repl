@@ -1,6 +1,6 @@
 package jdtx.repl.main.api.util;
 
-public interface IUtDbNameManager {
+public interface IDbNamesManager {
 
     String getShortName(String name, int additionalLen);
 

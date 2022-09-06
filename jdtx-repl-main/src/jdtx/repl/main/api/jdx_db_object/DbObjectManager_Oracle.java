@@ -15,7 +15,7 @@ public class DbObjectManager_Oracle extends UtDbObjectManager {
             String sql = "create sequence " + generatorName + " minvalue 0 start with 0 increment by 1";
             db.execSql(sql);
         } catch (Exception e) {
-            if (UtDbErrors.getInst(db).errorIs_GeneratorAlreadyExists(e)) {
+            if (dbErrors.errorIs_GeneratorAlreadyExists(e)) {
                 log.warn("generator already exists: " + generatorName);
             } else {
                 throw e;
@@ -30,7 +30,7 @@ public class DbObjectManager_Oracle extends UtDbObjectManager {
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
-            if (UtDbErrors.getInst(db).errorIs_GeneratorNotExists(e)) {
+            if (dbErrors.errorIs_GeneratorNotExists(e)) {
                 log.debug("generator not exists: " + generatorName);
             } else {
                 throw e;

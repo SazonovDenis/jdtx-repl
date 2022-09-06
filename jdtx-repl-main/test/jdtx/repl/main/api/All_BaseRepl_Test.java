@@ -63,14 +63,6 @@ public class All_BaseRepl_Test extends AppTestCase {
     }
 
     @Test
-    public void test_Restore_06_Run() throws Exception {
-        JdxReplWsSrv_Verdb_Test test = new JdxReplWsSrv_Verdb_Test();
-        this.test = test;
-        test.setUp();
-        test.test_Restore_06_Run();
-    }
-
-    @Test
     public void test_allSetUp_CascadeDel() throws Exception {
         JdxReplWsSrv_DeleteCascade_Test test = new JdxReplWsSrv_DeleteCascade_Test();
         this.test = test;

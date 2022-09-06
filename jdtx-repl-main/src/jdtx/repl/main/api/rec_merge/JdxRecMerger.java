@@ -4,7 +4,6 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
-import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
@@ -25,6 +24,7 @@ public class JdxRecMerger implements IJdxRecMerger {
     IJdxDbStruct struct;
     JdxDbUtils dbu;
     IJdxDataSerializer dataSerializer;
+    IDbErrors dbErrors;
 
     //
     protected static Log log = LogFactory.getLog("jdtx.JdxRecMerger");
@@ -35,6 +35,7 @@ public class JdxRecMerger implements IJdxRecMerger {
         this.struct = struct;
         this.dbu = new JdxDbUtils(db, struct);
         this.dataSerializer = dataSerializer;
+        this.dbErrors = db.getApp().service(DbToolsService.class).getDbErrors(db);
     }
 
 
@@ -318,7 +319,7 @@ public class JdxRecMerger implements IJdxRecMerger {
             try {
                 db.execSql(sql, recValues);
             } catch (Exception e) {
-                if (!UtDbErrors.getInst(db).errorIs_PrimaryKeyError(e)) {
+                if (!dbErrors.errorIs_PrimaryKeyError(e)) {
                     log.error(e.getMessage());
                     log.error("table: " + table.getName());
                     log.error("oprType: " + tableOperation);

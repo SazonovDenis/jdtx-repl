@@ -1,20 +1,21 @@
 package jdtx.repl.main.api.jdx_db_object;
 
 import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.util.*;
 import org.junit.*;
 
 public class UtDbObjectManager_Test extends Database_Test {
 
     @Test
     public void test_checkReplVerDb() throws Exception {
-        UtDbObjectManager objectManager = (UtDbObjectManager) UtDbObjectManager.createInst(db1);
+        IDbObjectManager objectManager = DbToolsService.getDbObjectManager(db1);
         objectManager.checkVerDb();
     }
 
     @Test
     public void test_db_lock() throws Exception {
-        UtDbObjectManager objectManager_1 = (UtDbObjectManager) UtDbObjectManager.createInst(db1);
-        UtDbObjectManager objectManager_2 = (UtDbObjectManager) UtDbObjectManager.createInst(db2);
+        IDbObjectManager objectManager_1 = DbToolsService.getDbObjectManager(db1);
+        IDbObjectManager objectManager_2 = DbToolsService.getDbObjectManager(db2);
 
         // Тренируемся
         objectManager_1.lockDb();
@@ -67,7 +68,7 @@ public class UtDbObjectManager_Test extends Database_Test {
 
     @Test
     public void test_db_lock_1() throws Exception {
-        UtDbObjectManager objectManager_1 = (UtDbObjectManager) UtDbObjectManager.createInst(db1);
+        IDbObjectManager objectManager_1 = DbToolsService.getDbObjectManager(db1);
 
         // Ставим блокировку 1
         objectManager_1.lockDb();
@@ -80,7 +81,7 @@ public class UtDbObjectManager_Test extends Database_Test {
 
     @Test
     public void test_db_lock_disconnect() throws Exception {
-        UtDbObjectManager objectManager_1 = (UtDbObjectManager) UtDbObjectManager.createInst(db1);
+        IDbObjectManager objectManager_1 = DbToolsService.getDbObjectManager(db1);
 
         // Ставим блокировку 1
         objectManager_1.lockDb();
@@ -93,7 +94,7 @@ public class UtDbObjectManager_Test extends Database_Test {
 
     @Test
     public void test_db_lock_2() throws Exception {
-        UtDbObjectManager objectManager_2 = (UtDbObjectManager) UtDbObjectManager.createInst(db2);
+        IDbObjectManager objectManager_2 = DbToolsService.getDbObjectManager(db2);
 
         // Ставим блокировку 1
         objectManager_2.lockDb();

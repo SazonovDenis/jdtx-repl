@@ -2,7 +2,7 @@ package jdtx.repl.main.api.util;
 
 import jandcode.utils.*;
 
-public class UtDbNameManager_Custom implements IUtDbNameManager {
+public class DbNamesManager_Custom implements IDbNamesManager {
 
     int MAX_LEN = 10;
     int HASH_SUFFIX_LEN = 2;

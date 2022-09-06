@@ -108,7 +108,7 @@ public class JdxReplSrv {
         }
 
         // Проверка версии служебных структур в БД
-        IDbObjectManager ut = UtDbObjectManager.createInst(db);
+        IDbObjectManager ut = DbToolsService.getDbObjectManager(db);
         ut.checkVerDb();
 
         // Проверка, что инициализация станции прошла

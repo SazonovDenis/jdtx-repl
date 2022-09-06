@@ -18,11 +18,13 @@ public class JdxDbUtils {
 
     Db db;
     IJdxDbStruct struct;
+    IDbErrors dbErrors;
 
 
     public JdxDbUtils(Db db, IJdxDbStruct struct) {
         this.db = db;
         this.struct = struct;
+        this.dbErrors = db.getApp().service(DbToolsService.class).getDbErrors(db);
     }
 
     /**
@@ -371,7 +373,7 @@ public class JdxDbUtils {
         try {
             id = insertRec(tableName, recParams, publicationFields, null);
         } catch (Exception e) {
-            if (UtDbErrors.getInst(db).errorIs_PrimaryKeyError(e)) {
+            if (dbErrors.errorIs_PrimaryKeyError(e)) {
                 updateRec(tableName, recParams, publicationFields, null);
             } else {
                 throw e;

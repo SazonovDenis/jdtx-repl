@@ -51,5 +51,8 @@ public interface IDbObjectManager {
     void dropAudit(String tableName) throws Exception;
 
 
+    void lockDb() throws Exception;
+
+    void unlockDb() throws Exception;
 
 }

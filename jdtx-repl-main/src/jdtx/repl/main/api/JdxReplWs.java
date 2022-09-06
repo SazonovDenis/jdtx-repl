@@ -121,7 +121,7 @@ public class JdxReplWs {
         db.getConnection().setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
 
         // Проверка версии служебных структур в БД
-        IDbObjectManager ut = UtDbObjectManager.createInst(db);
+        IDbObjectManager ut = DbToolsService.getDbObjectManager(db);
         ut.checkVerDb();
 
         // Проверка, что инициализация станции прошла
@@ -1017,7 +1017,7 @@ public class JdxReplWs {
         db.startTran();
         try {
             //
-            IDbObjectManager objectManager = UtDbObjectManager.createInst(db);
+            IDbObjectManager objectManager = DbToolsService.getDbObjectManager(db);
 
             //
             long n;
@@ -1720,8 +1720,9 @@ public class JdxReplWs {
      * @return Команды на вставку/изменение этой записи, оформленные в виде реплики
      */
     public File handleFailedInsertUpdateRef(JdxForeignKeyViolationException e) throws Exception {
-        IJdxTable thisTable = UtDbErrors.getInst(db).get_ForeignKeyViolation_tableInfo(e, struct);
-        IJdxForeignKey foreignKey = UtDbErrors.getInst(db).get_ForeignKeyViolation_refInfo(e, struct);
+        IDbErrors dbErrors = db.getApp().service(DbToolsService.class).getDbErrors(db);
+        IJdxTable thisTable = dbErrors.get_ForeignKeyViolation_tableInfo(e, struct);
+        IJdxForeignKey foreignKey = dbErrors.get_ForeignKeyViolation_refInfo(e, struct);
         IJdxField refField = foreignKey.getField();
         IJdxTable refTable = refField.getRefTable();
         //
