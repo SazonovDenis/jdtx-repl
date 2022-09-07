@@ -3,8 +3,8 @@ package jdtx.repl.main.api;
 import jandcode.dbm.db.*;
 import jdtx.repl.main.api.data_binder.*;
 import jdtx.repl.main.api.data_serializer.*;
-import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.publication.*;
+import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
@@ -28,6 +28,7 @@ public class UtDataSelector {
 
 
     /**
+     *
      */
     public UtDataSelector(Db db, IJdxDbStruct struct) throws Exception {
         this.db = db;
@@ -129,6 +130,50 @@ public class UtDataSelector {
     String getSqlAllRecords(IPublicationRule publicationRule) {
         String tableName = publicationRule.getTableName();
         IJdxTable tableFrom = struct.getTable(tableName);
+
+        //
+        String tableFields = UtJdx.fieldsToString(publicationRule.getFields(), tableFrom.getName() + ".");
+
+        // Таблица древовидная (имеет ссылки на саму себя)?
+        for (IJdxForeignKey fk : tableFrom.getForeignKeys()) {
+            if (fk.getTable().getName().equals(tableFrom.getName())) {
+                // todo: Пока так реализуем правильную последовательность записей (если есть ссылка на самого себя)
+                return "select\n" +
+                        "  0 as dummySortField, \n" +
+                        "  " + tableFields + "\n" +
+                        "from\n" +
+                        "  " + tableFrom.getName() + "\n" +
+                        "where\n" +
+                        "  " + fk.getField().getName() + " = 0\n" +
+                        "\n" +
+                        "union\n" +
+                        "\n" +
+                        "select\n" +
+                        "  1 as dummySortField, " + tableFields + "\n" +
+                        "from\n" +
+                        "  " + tableFrom.getName() + "\n" +
+                        "where\n" +
+                        "  " + fk.getField().getName() + " <> 0\n" +
+                        "order by\n" +
+                        "  1";
+            }
+        }
+
+        // Порядок следования записей (по pk) важен даже при получении snapshot,
+        // т.к. важно обеспечить правильный порядок вставки, например: триггер учитывает данные новой и ПРЕДЫДУЩЕЙ записи (см. например в PS: calc_SubjectOpr)
+        String pkFieldName = tableFrom.getPrimaryKey().get(0).getName();
+        return "select\n" +
+                "  " + tableFields + "\n" +
+                "from\n" +
+                "  " + tableFrom.getName() + "\n" +
+                "order by\n" +
+                "  " + pkFieldName;
+    }
+
+/*
+    String getSqlAllRecords(IPublicationRule publicationRule) {
+        String tableName = publicationRule.getTableName();
+        IJdxTable tableFrom = struct.getTable(tableName);
         //
         String tableFields = UtJdx.fieldsToString(publicationRule.getFields(), tableFrom.getName() + ".");
         //
@@ -143,6 +188,13 @@ public class UtDataSelector {
                         "  " + tableFields + "\n" +
                         "from\n" +
                         "  " + tableFrom.getName() + "\n" +
+                        ////////////////
+                        ////////////////
+                        ////////////////
+                        // При чем тут Decode???
+                        ////////////////
+                        ////////////////
+                        ////////////////
                         "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefManager_Decode.SLOT_SIZE + "))\n" +
                         condWhere +
                         "where\n" +
@@ -163,9 +215,16 @@ public class UtDataSelector {
             }
         }
 
-        // Порядок следования записей важен даже при получении snapshot,
+        // Порядок следования записей (по pk) важен даже при получении snapshot,
         // т.к. важно обеспечить правильный порядок вставки, например: триггер учитывает данные новой и ПРЕДЫДУЩЕЙ записи (см. например в PS: calc_SubjectOpr)
         return "select\n" +
+                ////////////////
+                ////////////////
+                ////////////////
+                // При чем тут Decode???
+                ////////////////
+                ////////////////
+                ////////////////
                 "  " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot,\n" +
                 "  " + UtJdx.SYS_TABLE_PREFIX + "decode.ws_slot,\n" +
                 "  " + UtJdx.SYS_TABLE_PREFIX + "decode.ws_id,\n" +
@@ -178,6 +237,7 @@ public class UtDataSelector {
                 "order by\n" +
                 "  " + tableFrom.getPrimaryKey().get(0).getName();
     }
+*/
 
 
 }
