@@ -2,6 +2,7 @@ package jdtx.repl.main.api;
 
 import jandcode.dbm.data.*;
 import jandcode.utils.*;
+import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
@@ -307,6 +308,11 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
 
     @Test
     public void test_checkNotOwnId() throws Exception {
+        // Процедура ws.init() инициализирует сервис RefManagerService
+        JdxReplWs ws = new JdxReplWs(db2);
+        ws.init();
+
+        //
         System.out.println("---");
         UtRepl utRepl = new UtRepl(db2, struct2);
         utRepl.checkNotOwnId();

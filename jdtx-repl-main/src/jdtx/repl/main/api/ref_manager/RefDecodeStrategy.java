@@ -8,9 +8,6 @@ import java.util.*;
 /**
  * Хранилище настроек стратегий перекодировки,
  * используется в jdtx.repl.main.api.decoder.RefManagerDecode
- * <p>
- * <p>
- * todo: именно RefDecoder специфичен для PS, а через фабрику кастомизируется именно RefManagerService
  */
 public class RefDecodeStrategy {
 

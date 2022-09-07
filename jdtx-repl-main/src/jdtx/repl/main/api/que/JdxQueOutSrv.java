@@ -6,7 +6,6 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.replica.*;
-import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
 import java.util.*;
@@ -87,9 +86,7 @@ public abstract class JdxQueOutSrv extends JdxQue implements IJdxQue {
 
     @Override
     void pushDb(IReplica replica, long queNo) throws Exception {
-        JdxDbUtils dbu = new JdxDbUtils(db, null);
-        long id = dbu.getNextGenerator(queTableGeneratorName);
-        //
+        long id = db.loadSql("select gen_id(" + queTableGeneratorName + ", 1) as id from dual").getCurRec().getValueLong("id");
         Map params = UtCnv.toMap(
                 "id", id,
                 "destination_ws_id", destinationWsId,

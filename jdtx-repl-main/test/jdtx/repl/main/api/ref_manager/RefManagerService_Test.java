@@ -1,9 +1,9 @@
 package jdtx.repl.main.api.ref_manager;
 
-import jdtx.repl.main.api.*;
+import jandcode.app.test.*;
 import org.junit.*;
 
-public class RefManagerDecodeService_Test extends Database_Test {
+public class RefManagerService_Test extends AppTestCase {
 
     @Test
     public void testSvc() throws Exception {

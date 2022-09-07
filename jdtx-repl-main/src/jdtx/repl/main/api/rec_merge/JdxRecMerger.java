@@ -30,7 +30,7 @@ public class JdxRecMerger implements IJdxRecMerger {
     protected static Log log = LogFactory.getLog("jdtx.JdxRecMerger");
 
     //
-    public JdxRecMerger(Db db, IJdxDbStruct struct, IJdxDataSerializer dataSerializer) {
+    public JdxRecMerger(Db db, IJdxDbStruct struct, IJdxDataSerializer dataSerializer) throws Exception {
         this.db = db;
         this.struct = struct;
         this.dbu = new JdxDbUtils(db, struct);

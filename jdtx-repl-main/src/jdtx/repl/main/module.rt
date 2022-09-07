@@ -117,7 +117,7 @@
 
 
     <service name="jdtx.repl.main.api.ref_manager.RefManagerService"
-             class="jdtx.repl.main.api.ref_manager.RefManagerDecode">
+             class="jdtx.repl.main.api.ref_manager.RefManager_Decode">
     </service>
 
     <service name="jdtx.repl.main.api.util.DbToolsService"
@@ -128,8 +128,8 @@
              class="jdtx.repl.main.api.database_info.DatabaseInfoReaderSrvice_PS">
     </service>
 
-    <service name="jdtx.repl.main.api.pk_generator.PkGeneratorService"
-             class="jdtx.repl.main.api.pk_generator.PkGeneratorService_PS">
+    <service name="jdtx.repl.main.api.pk_generator.AppPkRulesService"
+             class="jdtx.repl.main.api.pk_generator.AppPkRulesRules_PS">
     </service>
 
 </root>

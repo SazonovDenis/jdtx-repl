@@ -3,7 +3,7 @@ package jdtx.repl.main.api.jdx_db_object;
 import jdtx.repl.main.api.struct.*;
 
 /**
- * Создает служебные структуры в БД
+ * Создает служебные структуры для репликатора в БД
  */
 public interface IDbObjectManager {
 

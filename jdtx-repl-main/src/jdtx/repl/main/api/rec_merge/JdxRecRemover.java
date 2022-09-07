@@ -24,7 +24,7 @@ public class JdxRecRemover {
     protected static Log log = LogFactory.getLog("jdtx.JdxRecRemover");
 
     //
-    public JdxRecRemover(Db db, IJdxDbStruct struct, IJdxDataSerializer dataSerializer) {
+    public JdxRecRemover(Db db, IJdxDbStruct struct, IJdxDataSerializer dataSerializer) throws Exception {
         this.db = db;
         this.struct = struct;
         this.dbu = new JdxDbUtils(db, struct);

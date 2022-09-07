@@ -21,7 +21,7 @@ public class UtRecMerger {
     protected static Log log = LogFactory.getLog("jdtx.UtRecMerger");
 
     //
-    public UtRecMerger(Db db, IJdxDbStruct struct) {
+    public UtRecMerger(Db db, IJdxDbStruct struct) throws Exception {
         this.db = db;
         this.struct = struct;
         this.dbu = new JdxDbUtils(db, struct);

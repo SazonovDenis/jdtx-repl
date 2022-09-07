@@ -33,7 +33,7 @@ public class UtDataSelector {
         this.db = db;
         this.struct = struct;
         RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
-        this.dataSerializer = refManagerService.getJdxDataSerializer();
+        this.dataSerializer = refManagerService.createDataSerializer();
     }
 
     /**
@@ -143,7 +143,7 @@ public class UtDataSelector {
                         "  " + tableFields + "\n" +
                         "from\n" +
                         "  " + tableFrom.getName() + "\n" +
-                        "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefManagerDecode.SLOT_SIZE + "))\n" +
+                        "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefManager_Decode.SLOT_SIZE + "))\n" +
                         condWhere +
                         "where\n" +
                         "  " + fk.getField().getName() + " = 0\n" +
@@ -154,7 +154,7 @@ public class UtDataSelector {
                         "  1 as dummySortField, " + tableFields + "\n" +
                         "from\n" +
                         "  " + tableFrom.getName() + "\n" +
-                        "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefManagerDecode.SLOT_SIZE + "))\n" +
+                        "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefManager_Decode.SLOT_SIZE + "))\n" +
                         "where\n" +
                         "  " + fk.getField().getName() + " <> 0\n" +
                         condWhere +
@@ -169,11 +169,11 @@ public class UtDataSelector {
                 "  " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot,\n" +
                 "  " + UtJdx.SYS_TABLE_PREFIX + "decode.ws_slot,\n" +
                 "  " + UtJdx.SYS_TABLE_PREFIX + "decode.ws_id,\n" +
-                "  (" + tableFrom.getName() + ".id - " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot * " + RefManagerDecode.SLOT_SIZE + ") as id_ws,\n" +
+                "  (" + tableFrom.getName() + ".id - " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot * " + RefManager_Decode.SLOT_SIZE + ") as id_ws,\n" +
                 "  " + tableFields + "\n" +
                 "from\n" +
                 "  " + tableFrom.getName() + "\n" +
-                "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefManagerDecode.SLOT_SIZE + "))\n" +
+                "  left join " + UtJdx.SYS_TABLE_PREFIX + "decode on (" + UtJdx.SYS_TABLE_PREFIX + "decode.table_name = '" + tableFrom.getName() + "' and " + UtJdx.SYS_TABLE_PREFIX + "decode.own_slot = (" + tableFrom.getName() + ".id / " + RefManager_Decode.SLOT_SIZE + "))\n" +
                 condWhere +
                 "order by\n" +
                 "  " + tableFrom.getPrimaryKey().get(0).getName();

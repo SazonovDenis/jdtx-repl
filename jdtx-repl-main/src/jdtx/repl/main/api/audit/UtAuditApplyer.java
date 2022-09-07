@@ -106,7 +106,7 @@ public class UtAuditApplyer {
 
         //
         RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
-        IJdxDataSerializer dataSerializer = refManagerService.getJdxDataSerializer();
+        IJdxDataSerializer dataSerializer = refManagerService.createDataSerializer();
 
         //
         SelfAuditDtComparer selfAuditDtComparer = new SelfAuditDtComparer(db);

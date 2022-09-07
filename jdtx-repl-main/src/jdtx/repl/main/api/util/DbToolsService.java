@@ -4,46 +4,53 @@ import jandcode.app.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.jdx_db_object.*;
+import jdtx.repl.main.api.pk_generator.*;
 
 public class DbToolsService extends CompRt {
 
-    public IDbNamesManager getDbNamesManager(Db db) {
-        IDbNamesManager inst;
+    public static IDbNamesManager getDbNamesManager(Db db) {
+        IDbNamesManager instance;
         String dbType = UtJdx.getDbType(db);
         if (dbType.equalsIgnoreCase("oracle")) {
-            inst = new DbNamesManager_Oracle();
+            instance = new DbNamesManager_Oracle();
         } else if (dbType.equalsIgnoreCase("firebird")) {
-            inst = new DbNamesManager_Firebird();
+            instance = new DbNamesManager_Firebird();
         } else {
             throw new XError("Неизвестный тип базы: " + dbType);
         }
-        return inst;
+        return instance;
     }
 
-    public IDbErrors getDbErrors(Db db) {
-        IDbErrors inst;
+    public static IDbErrors getDbErrors(Db db) {
+        IDbErrors instance;
         String dbType = UtJdx.getDbType(db);
         if (dbType.equalsIgnoreCase("oracle")) {
-            inst = new DbErrors_Oracle();
+            instance = new DbErrors_Oracle();
         } else if (dbType.equalsIgnoreCase("firebird")) {
-            inst = new DbErrors_Firebird();
+            instance = new DbErrors_Firebird();
         } else {
             throw new XError("Неизвестный тип базы: " + dbType);
         }
-        return inst;
+        return instance;
     }
 
     public static IDbObjectManager getDbObjectManager(Db db) {
-        IDbObjectManager inst;
+        IDbObjectManager instance;
+        instance = new UtDbObjectManager(db);
+        return instance;
+    }
+
+    public static IDbGenerators getDbGenerators(Db db) {
+        IDbGenerators instance;
         String dbType = UtJdx.getDbType(db);
         if (dbType.equalsIgnoreCase("oracle")) {
-            inst = new DbObjectManager_Oracle(db);
+            instance = new DbObjectManager_Oracle(db);
         } else if (dbType.equalsIgnoreCase("firebird")) {
-            inst = new DbObjectManager_Firebird(db);
+            instance = new DbObjectManager_Firebird(db);
         } else {
             throw new XError("Неизвестный тип базы: " + dbType);
         }
-        return inst;
+        return instance;
     }
 
 }

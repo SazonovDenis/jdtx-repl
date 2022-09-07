@@ -330,7 +330,6 @@ public class UtJdx {
 
     /**
      * Проверки реплики, правильность полей.
-     * Защита от дурака, в отлаженнном коде - не нужна
      */
     public static void validateReplicaFields(IReplica replica) {
         // Проверки: правильность типа реплики

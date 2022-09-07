@@ -1,13 +1,12 @@
 package jdtx.repl.main.api.ref_manager;
 
-import jandcode.dbm.db.*;
-import jdtx.repl.main.api.*;
+import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
 
 /**
- * Реализация IRefManager, если разведение pk не нужно.
+ * Реализация IRefManager, если разведение pk основано на диапазонах как в ТБД
  */
-public class RefManagerBase extends RefManagerService implements IRefManager {
+public class RefManager_TBD extends RefManagerService implements IRefManager {
 
 
     // ------------------------------------------
@@ -15,12 +14,7 @@ public class RefManagerBase extends RefManagerService implements IRefManager {
     // ------------------------------------------
 
     @Override
-    public void init(Db db, JdxReplWs ws) throws Exception {
-        super.init(db, ws);
-    }
-
-    @Override
-    public IJdxDataSerializer getJdxDataSerializer() {
+    public IJdxDataSerializer createDataSerializer() {
         return new JdxDataSerializerPlain();
     }
 
@@ -41,6 +35,11 @@ public class RefManagerBase extends RefManagerService implements IRefManager {
         ref.value = id_local;
 
         return ref;
+    }
+
+    @Override
+    public long get_max_own_id() {
+        throw new XError("Not implemented");
     }
 
 

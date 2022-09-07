@@ -24,7 +24,7 @@ public class JdxRecRelocator {
     protected static Log log = LogFactory.getLog("jdtx.UtRecRelocator");
 
     //
-    public JdxRecRelocator(Db db, IJdxDbStruct struct, IJdxDataSerializer dataSerializer) {
+    public JdxRecRelocator(Db db, IJdxDbStruct struct, IJdxDataSerializer dataSerializer) throws Exception {
         this.db = db;
         this.struct = struct;
         this.dbu = new JdxDbUtils(db, struct);

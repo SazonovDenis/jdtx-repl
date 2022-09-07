@@ -24,7 +24,7 @@ import java.util.*;
  * Кроме того, тогда можно будет НЕ ОГРАНИЧИВАТЬ максимальную id от станции - просто для крупных ID
  * будет больше номер диапазона, а его истинный id?????.
  */
-public class RefManagerDecode extends RefManagerService implements IRefManager {
+public class RefManager_Decode extends RefManagerService implements IRefManager {
 
     // Своими записи считаются значения id в диапазоне от 0 до 100 000 000
     public static long SLOT_SIZE = 1000000;
@@ -35,8 +35,8 @@ public class RefManagerDecode extends RefManagerService implements IRefManager {
     long self_ws_id = -1;
 
     // Слоты
-    protected Map<String, Map<RefDecoderSlot, Long>> wsToSlotList;
-    protected Map<String, Map<Long, RefDecoderSlot>> slotToWsList;
+    Map<String, Map<RefDecoderSlot, Long>> wsToSlotList;
+    Map<String, Map<Long, RefDecoderSlot>> slotToWsList;
 
     // Стратегии перекодировки
     RefDecodeStrategy decodeStrategy = null;
@@ -61,7 +61,7 @@ public class RefManagerDecode extends RefManagerService implements IRefManager {
     }
 
     @Override
-    public IJdxDataSerializer getJdxDataSerializer() throws Exception {
+    public IJdxDataSerializer createDataSerializer() throws Exception {
         checkInit();
         return new JdxDataSerializerDecode(db, ws.getWsId());
     }
@@ -71,6 +71,7 @@ public class RefManagerDecode extends RefManagerService implements IRefManager {
     // IRefManager
     // ------------------------------------------
 
+    @Override
     public JdxRef get_ref(String tableName, long id_local) throws Exception {
         checkInit();
 
@@ -115,6 +116,7 @@ public class RefManagerDecode extends RefManagerService implements IRefManager {
         return ref;
     }
 
+    @Override
     public long get_id_local(String tableName, JdxRef ref) throws Exception {
         checkInit();
 
@@ -176,6 +178,11 @@ public class RefManagerDecode extends RefManagerService implements IRefManager {
         return own_id;
     }
 
+    @Override
+    public long get_max_own_id() {
+        return SLOT_SIZE * SLOT_START_NUMBER - 1;
+    }
+
 
     // ------------------------------------------
     //
@@ -222,16 +229,10 @@ public class RefManagerDecode extends RefManagerService implements IRefManager {
         decodeStrategy.init(cfgDecode);
     }
 
-
-    //////////////////////
-    //////////////////////
-    //////////////////////
-    // todo: необходимость public метода говорит об архитектурной проблеме
-    //////////////////////
-    //////////////////////
-    //////////////////////
-    public static long get_max_own_id() {
-        return SLOT_SIZE * SLOT_START_NUMBER - 1;
+    void checkInit() {
+        if (decodeStrategy == null) {
+            throw new XError("RefManagerDecode: decodeStrategy not initialized");
+        }
     }
 
     /**
@@ -240,12 +241,6 @@ public class RefManagerDecode extends RefManagerService implements IRefManager {
     private boolean needDecodeStrategy(String tableName, long db_id) {
         checkInit();
         return decodeStrategy.needDecodeOwn(tableName, db_id);
-    }
-
-    private void checkInit() {
-        if (decodeStrategy == null) {
-            throw new XError("RefManagerDecode: service RefManagerService not initialized");
-        }
     }
 
     private Map<Long, RefDecoderSlot> findOrAdd1(Map<String, Map<Long, RefDecoderSlot>> slotToWsList, String tableName) {

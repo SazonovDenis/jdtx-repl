@@ -15,6 +15,9 @@ public abstract class RefManagerService extends CompRt implements IRefManager {
         this.db = db;
     }
 
-    public abstract IJdxDataSerializer getJdxDataSerializer() throws Exception;
+    /**
+     * Выдать экземпляр IJdxDataSerializer по правилам конекретной имплементации IRefManager
+     */
+    public abstract IJdxDataSerializer createDataSerializer() throws Exception;
 
 }

@@ -1,6 +1,5 @@
 package jdtx.repl.main.api.ref_manager;
 
-import jandcode.dbm.test.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.util.*;
 import org.json.simple.*;
@@ -11,19 +10,22 @@ import java.util.*;
 /**
  *
  */
-public class RefManagerDecode_Test extends DbmTestCase {
+public class RefManager_Decode_Test extends ReplDatabaseStruct_Test {
 
     // Стратегии перекодировки каждой таблицы
     JSONObject cfgDecode;
 
     @Override
     public void setUp() throws Exception {
+        rootDir = "../../ext/";
+        //
         super.setUp();
+        //
         cfgDecode = UtRepl.loadAndValidateJsonFile("test/etalon/decode_strategy.json");
     }
 
     @Test
-    public void test_x() throws Exception {
+    public void test_DecoderSlot() throws Exception {
         Map<RefDecoderSlot, Long> wsToSlot = new HashMap<>();
 
         //
@@ -48,8 +50,8 @@ public class RefManagerDecode_Test extends DbmTestCase {
 
 
     @Test
-    public void test_1() throws Exception {
-        dbm.getDb().execSql("delete from " + UtJdx.SYS_TABLE_PREFIX + "decode");
+    public void test_RefManagerDecode_1() throws Exception {
+        db.execSql("delete from " + UtJdx.SYS_TABLE_PREFIX + "decode");
 
         //
         long wsId = 1;
@@ -57,8 +59,8 @@ public class RefManagerDecode_Test extends DbmTestCase {
         long wsId_d2 = 2;
 
         // ---
-        RefManagerDecode d1 = new RefManagerDecode();
-        d1.db = dbm.getDb();
+        RefManager_Decode d1 = new RefManager_Decode();
+        d1.db = db;
         d1.initWs(wsId);
         d1.initSlots();
         d1.initStrategy(cfgDecode);
@@ -84,8 +86,8 @@ public class RefManagerDecode_Test extends DbmTestCase {
 
 
         // ---
-        RefManagerDecode d2 = new RefManagerDecode();
-        d2.db = dbm.getDb();
+        RefManager_Decode d2 = new RefManager_Decode();
+        d2.db = db;
         d2.initWs(wsId);
         d2.initSlots();
         d2.initStrategy(cfgDecode);
@@ -111,8 +113,8 @@ public class RefManagerDecode_Test extends DbmTestCase {
 
 
         // ---
-        d1 = new RefManagerDecode();
-        d1.db = dbm.getDb();
+        d1 = new RefManager_Decode();
+        d1.db = db;
         d1.initWs(wsId);
         d1.initSlots();
         d1.initStrategy(cfgDecode);
@@ -132,8 +134,8 @@ public class RefManagerDecode_Test extends DbmTestCase {
 
 
         // ---
-        d2 = new RefManagerDecode();
-        d2.db = dbm.getDb();
+        d2 = new RefManager_Decode();
+        d2.db = db;
         d2.initWs(wsId);
         d2.initSlots();
         d2.initStrategy(cfgDecode);
@@ -199,14 +201,14 @@ public class RefManagerDecode_Test extends DbmTestCase {
     }
 
     @Test
-    public void test_2() throws Exception {
+    public void test_RefManagerDecode_2() throws Exception {
         long wsId = 1;
         long wsId_d1 = 1;
         long wsId_d2 = 2;
 
         // ---
-        RefManagerDecode decoder = new RefManagerDecode();
-        decoder.db = dbm.getDb();
+        RefManager_Decode decoder = new RefManager_Decode();
+        decoder.db = db;
         decoder.initWs(wsId);
         decoder.initSlots();
         decoder.initStrategy(cfgDecode);
@@ -267,5 +269,67 @@ public class RefManagerDecode_Test extends DbmTestCase {
         assertEquals(true, ref.isEmptyWs());
     }
 
+    @Test
+    public void test_checkValid() throws Exception {
+        String jsonFileName = "test/jdtx/repl/main/api/ref_manager/decode_strategy.json";
+        checkValid(jsonFileName);
+    }
+
+    @Test
+    public void test_checkValid_install() throws Exception {
+        String jsonFileName = "../install/cfg/decode_strategy_194.json";
+        checkValid(jsonFileName);
+    }
+
+    void checkValid(String jsonFileName) throws Exception {
+        JSONObject cfgDecode = UtRepl.loadAndValidateJsonFile(jsonFileName);
+        RefDecodeStrategy decodeStrategy = new RefDecodeStrategy();
+        decodeStrategy.init(cfgDecode);
+
+        //
+        System.out.println("file: " + jsonFileName);
+        UtDecodeStrategy.checkValid(decodeStrategy, struct);
+
+        //
+        System.out.println();
+        //
+        assertEquals(false, decodeStrategy.needDecodeOwn("Lic".toUpperCase(), 0L));
+        assertEquals(true, decodeStrategy.needDecodeOwn("Lic".toUpperCase(), 10L));
+        assertEquals(true, decodeStrategy.needDecodeOwn("Lic".toUpperCase(), 1000L));
+        assertEquals(true, decodeStrategy.needDecodeOwn("Lic".toUpperCase(), 1001L));
+        //
+        assertEquals(false, decodeStrategy.needDecodeOwn("Lic".toLowerCase(), 0L));
+        assertEquals(true, decodeStrategy.needDecodeOwn("Lic".toLowerCase(), 10L));
+        assertEquals(true, decodeStrategy.needDecodeOwn("Lic".toLowerCase(), 1000L));
+        assertEquals(true, decodeStrategy.needDecodeOwn("Lic".toLowerCase(), 1001L));
+
+        //
+        assertEquals(false, decodeStrategy.needDecodeOwn("CommentTip".toUpperCase(), 0L));
+        assertEquals(false, decodeStrategy.needDecodeOwn("CommentTip".toUpperCase(), 10L));
+        assertEquals(true, decodeStrategy.needDecodeOwn("CommentTip".toUpperCase(), 1000L));
+        assertEquals(true, decodeStrategy.needDecodeOwn("CommentTip".toUpperCase(), 1001L));
+        //
+        assertEquals(false, decodeStrategy.needDecodeOwn("CommentTip".toLowerCase(), 0L));
+        assertEquals(false, decodeStrategy.needDecodeOwn("CommentTip".toLowerCase(), 10L));
+        assertEquals(true, decodeStrategy.needDecodeOwn("CommentTip".toLowerCase(), 1000L));
+        assertEquals(true, decodeStrategy.needDecodeOwn("CommentTip".toLowerCase(), 1001L));
+
+        //
+        assertEquals(false, decodeStrategy.needDecodeOwn("DataTip".toUpperCase(), 0L));
+        assertEquals(false, decodeStrategy.needDecodeOwn("DataTip".toUpperCase(), 10L));
+        assertEquals(false, decodeStrategy.needDecodeOwn("DataTip".toUpperCase(), 1000L));
+        assertEquals(false, decodeStrategy.needDecodeOwn("DataTip".toUpperCase(), 1001L));
+        //
+        assertEquals(false, decodeStrategy.needDecodeOwn("DataTip".toLowerCase(), 0L));
+        assertEquals(false, decodeStrategy.needDecodeOwn("DataTip".toLowerCase(), 10L));
+        assertEquals(false, decodeStrategy.needDecodeOwn("DataTip".toLowerCase(), 1000L));
+        assertEquals(false, decodeStrategy.needDecodeOwn("DataTip".toLowerCase(), 1001L));
+
+        //
+        System.out.println(decodeStrategy.needDecodeOwn("DataTip_Qaz", 0L));
+        System.out.println(decodeStrategy.needDecodeOwn("DataTip_Qaz", 10L));
+        System.out.println(decodeStrategy.needDecodeOwn("DataTip_Qaz", 1000L));
+        System.out.println(decodeStrategy.needDecodeOwn("DataTip_Qaz", 1001L));
+    }
 
 }

@@ -6,6 +6,7 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
+import jdtx.repl.main.api.pk_generator.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
@@ -21,11 +22,13 @@ public class UtDbObjectManager implements IDbObjectManager {
     Db db;
     IDbNamesManager dbNamesManager;
     IDbErrors dbErrors;
+    IDbGenerators dbGenerators;
 
     public UtDbObjectManager(Db db) {
         this.db = db;
-        this.dbNamesManager = db.getApp().service(DbToolsService.class).getDbNamesManager(db);
-        this.dbErrors = db.getApp().service(DbToolsService.class).getDbErrors(db);
+        this.dbNamesManager = DbToolsService.getDbNamesManager(db);
+        this.dbErrors = DbToolsService.getDbErrors(db);
+        this.dbGenerators = DbToolsService.getDbGenerators(db);
     }
 
     DbQuery lockFlag = null;
@@ -186,7 +189,7 @@ public class UtDbObjectManager implements IDbObjectManager {
 
         // Генератор Id для новой таблицы
         String generatorName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_GEN_PREFIX);
-        createGenerator(generatorName);
+        dbGenerators.createGenerator(generatorName);
 
         // Индекс для таблицы журнала
         createAuditTableIndex_ID(table);
@@ -262,7 +265,7 @@ public class UtDbObjectManager implements IDbObjectManager {
 
         // удаляем генератор для таблицы журнала изменений
         String generatorName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_GEN_PREFIX);
-        dropGenerator(generatorName);
+        dbGenerators.dropGenerator(generatorName);
     }
 
     public void lockDb() throws Exception {
@@ -502,21 +505,13 @@ public class UtDbObjectManager implements IDbObjectManager {
     void dropSysTables(String[] sys_names) throws Exception {
         // удаляем генераторы
         for (String name : sys_names) {
-            dropGenerator(UtJdx.SYS_GEN_PREFIX + name);
+            dbGenerators.dropGenerator(UtJdx.SYS_GEN_PREFIX + name);
         }
 
         // удаляем таблицу
         for (String name : sys_names) {
             dropTable(UtJdx.SYS_TABLE_PREFIX + name);
         }
-    }
-
-    void createGenerator(String generatorName) throws Exception {
-        throw new XError("Not implemented");
-    }
-
-    void dropGenerator(String generatorName) throws Exception {
-        throw new XError("Not implemented");
     }
 
     void dropTable(String tableName) throws Exception {

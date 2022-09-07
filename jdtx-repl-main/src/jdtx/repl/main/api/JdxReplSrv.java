@@ -1313,7 +1313,7 @@ public class JdxReplSrv {
         refManagerService.init(db, ws);
 
         //
-        IJdxDataSerializer dataSerializer = refManagerService.getJdxDataSerializer();
+        IJdxDataSerializer dataSerializer = refManagerService.createDataSerializer();
 
         //
         for (RecMergePlan mergePlan : mergePlans) {

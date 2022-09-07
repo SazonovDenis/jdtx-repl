@@ -4,6 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.utils.*;
 import jandcode.utils.rt.*;
 import jandcode.utils.variant.*;
+import jdtx.repl.main.api.pk_generator.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.util.*;
@@ -85,8 +86,12 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         sync_http_1_2_3();
 
         // Удобно различать записи
-        JdxDbUtils dbu = new JdxDbUtils(db2, struct2);
-        dbu.getNextGenerator("g_UsrLog", 2000);
+        IDbGenerators pkGenerator2 = DbToolsService.getDbGenerators(db2);
+        pkGenerator2.setGeneratorValue("g_UsrLog", pkGenerator2.getGeneratorCurrValue("g_UsrLog") + 2000);
+        IDbGenerators pkGenerator3 = DbToolsService.getDbGenerators(db3);
+        pkGenerator3.setGeneratorValue("g_UsrLog", pkGenerator3.getGeneratorCurrValue("g_UsrLog") + 3000);
+        IDbGenerators pkGenerator5 = DbToolsService.getDbGenerators(db5);
+        pkGenerator5.setGeneratorValue("g_UsrLog", pkGenerator5.getGeneratorCurrValue("g_UsrLog") + 5000);
 
 
         // ---

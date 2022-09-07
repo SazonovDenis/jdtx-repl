@@ -226,7 +226,7 @@ class Jdx_Ext extends ProjectExt {
             dbStructReader.setDb(db)
             IJdxDbStruct struct = dbStructReader.readDbStruct()
 
-            // Создаем базовые объекты и рабочую станцию для сервера (серверную, wsId = 1)
+            // Создаем базовые объекты рабочей станции
             UtRepl utRepl = new UtRepl(db, struct)
             utRepl.checkNotOwnId()
             utRepl.dropReplication()
@@ -247,7 +247,7 @@ class Jdx_Ext extends ProjectExt {
             ws.init()
             ws.firstSetup()
 
-            // Создаем окружение для сервера
+            // Создаем окружение для сервера и добавляем рабочую станцию для сервера (серверную, wsId = 1)  в общий список
             if (wsId == JdxReplSrv.SERVER_WS_ID) {
                 JdxReplSrv srv = new JdxReplSrv(db)
                 srv.init()
@@ -396,6 +396,9 @@ class Jdx_Ext extends ProjectExt {
 
             // Выполнение команды
             try {
+                //
+                IRefManager refManager = app.service(RefManagerService.class)
+
                 // Имя таблицы как оно есть в структуре
                 tableName = ws.struct.getTable(tableName).getName()
 
@@ -403,8 +406,7 @@ class Jdx_Ext extends ProjectExt {
                 if (!recordIdRefStr.contains(":")) {
                     // Передали просто id - превратим ее в "каноническую" форму (пару ws:id)
                     long tableId = Long.parseLong(recordIdRefStr)
-                    IRefManager decoder = new RefManagerDecode(db, ws.wsId)
-                    JdxRef tableIdRef = decoder.get_ref(tableName, tableId)
+                    JdxRef tableIdRef = refManager.get_ref(tableName, tableId)
                     recordIdRefStr = tableIdRef.toString()
                 }
                 println("В таблице: " + tableName + " ищем: " + recordIdRefStr)

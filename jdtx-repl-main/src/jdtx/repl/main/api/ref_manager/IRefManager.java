@@ -31,10 +31,9 @@ public interface IRefManager {
      */
     JdxRef get_ref(String tableName, long id_local) throws Exception;
 
+    /**
+     * Максмально доступная id для станции
+     */
+    long get_max_own_id();
+
 }
-
-
-/*
-^c непонтно, как делать инициализацию разных IRefManager& если у каждого свой набор параметров, но ГДЕ их взять - они НЕ ЗНАЮТ
-        Поэтому фабрика сосет. а тупо case IRefManager instance of ... - это выход
-*/

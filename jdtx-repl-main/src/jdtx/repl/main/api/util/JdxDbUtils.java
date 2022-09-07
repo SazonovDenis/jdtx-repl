@@ -5,9 +5,9 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.pk_generator.*;
 import jdtx.repl.main.api.struct.*;
 
-import java.sql.*;
 import java.util.*;
 
 
@@ -19,47 +19,22 @@ public class JdxDbUtils {
     Db db;
     IJdxDbStruct struct;
     IDbErrors dbErrors;
+    IDbGenerators dbGenerators;
+    IAppPkRules pkRules;
 
-
-    public JdxDbUtils(Db db, IJdxDbStruct struct) {
+    public JdxDbUtils(Db db, IJdxDbStruct struct) throws Exception {
         this.db = db;
         this.struct = struct;
-        this.dbErrors = db.getApp().service(DbToolsService.class).getDbErrors(db);
+        this.dbErrors = DbToolsService.getDbErrors(db);
+        this.dbGenerators = DbToolsService.getDbGenerators(db);
+        this.pkRules = db.getApp().service(AppPkRulesService.class);
     }
 
     /**
      * Возвращает очередную id для генератора generatorName
      */
-    public long getNextGenerator(String generatorName) throws SQLException {
-        return getNextGenerator(generatorName, 1);
-    }
-
-    /**
-     * Возвращает текущую id для генератора generatorName
-     */
-    public long getCurrId(String generatorName) throws SQLException {
-        return getNextGenerator(generatorName, 0);
-    }
-
-    public long getNextGenerator(String generatorName, int increment) throws SQLException {
-        Statement st = db.getConnection().createStatement();
-        ResultSet rs = null;
-        try {
-            String sql = "select gen_id(" + generatorName + ", " + increment + ") as id from dual";
-            rs = st.executeQuery(sql);
-            if (rs.next()) {
-                return rs.getLong("id");
-            }
-        } finally {
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-            } catch (Exception ex) {
-            }
-            st.close();
-        }
-        return 0;
+    public long getNextGenerator(String generatorName) throws Exception {
+        return dbGenerators.getGeneratorNextValue(generatorName);
     }
 
     public static String getPkFieldName(IJdxTable table) {
@@ -350,7 +325,8 @@ public class JdxDbUtils {
         p.putAll(params);
         Long id = UtJdxData.longValueOf(p.get(pkFieldName));
         if (id == null) {
-            id = getTableNextId(tableName);
+            String generatorName = pkRules.getGeneratorName(tableName);
+            id = dbGenerators.getGeneratorNextValue(generatorName);
             p.put(pkFieldName, id);
         }
         //
@@ -381,17 +357,6 @@ public class JdxDbUtils {
         }
 
         return id;
-    }
-
-    /**
-     * Генерация Id по правилам базы
-     *
-     * @param tableName
-     * @return
-     * @throws SQLException
-     */
-    private long getTableNextId(String tableName) throws SQLException {
-        return getNextGenerator("g_" + tableName);
     }
 
     public DataRecord loadSqlRec(String sql, Map params) throws Exception {

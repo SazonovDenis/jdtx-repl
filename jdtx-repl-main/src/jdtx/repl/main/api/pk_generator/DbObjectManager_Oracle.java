@@ -1,16 +1,16 @@
-package jdtx.repl.main.api.jdx_db_object;
+package jdtx.repl.main.api.pk_generator;
 
 import jandcode.dbm.db.*;
-import jdtx.repl.main.api.util.*;
+import jandcode.utils.error.*;
 
-public class DbObjectManager_Oracle extends UtDbObjectManager {
+public class DbObjectManager_Oracle extends DbGenerators implements IDbGenerators {
 
     public DbObjectManager_Oracle(Db db) {
         super(db);
     }
 
     @Override
-    void createGenerator(String generatorName) throws Exception {
+    public void createGenerator(String generatorName) throws Exception {
         try {
             String sql = "create sequence " + generatorName + " minvalue 0 start with 0 increment by 1";
             db.execSql(sql);
@@ -24,7 +24,7 @@ public class DbObjectManager_Oracle extends UtDbObjectManager {
     }
 
     @Override
-    void dropGenerator(String generatorName) throws Exception {
+    public void dropGenerator(String generatorName) throws Exception {
         try {
             String sql = "drop sequence " + generatorName;
             db.execSql(sql);
@@ -36,6 +36,21 @@ public class DbObjectManager_Oracle extends UtDbObjectManager {
                 throw e;
             }
         }
+    }
+
+    @Override
+    public long getGeneratorCurrValue(String generatorName) throws Exception {
+        throw new XError("Not implemented");
+    }
+
+    @Override
+    public long getGeneratorNextValue(String generatorName) throws Exception {
+        throw new XError("Not implemented");
+    }
+
+    @Override
+    public void setGeneratorValue(String generatorName, long value) throws Exception {
+        throw new XError("Not implemented");
     }
 
 }

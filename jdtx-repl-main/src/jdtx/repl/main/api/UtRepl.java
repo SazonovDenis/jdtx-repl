@@ -6,12 +6,12 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.data_serializer.*;
-import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.que.*;
+import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
@@ -129,6 +129,9 @@ public class UtRepl {
         boolean foundNotOwnId = false;
 
         //
+        IRefManager refManager = db.getApp().service(RefManagerService.class);
+
+        //
         long n = 0;
         for (IJdxTable table : struct.getTables()) {
             n++;
@@ -140,7 +143,7 @@ public class UtRepl {
                 //
                 long maxId = db.loadSql("select max(" + pkFieldName + ") max_id from " + tableName).getCurRec().getValueLong("max_id");
                 //
-                if (maxId > RefManagerDecode.get_max_own_id()) {
+                if (maxId > refManager.get_max_own_id()) {
                     log.error("Check not own id, not own id found, table: " + tableName + ", " + pkFieldName + ": " + maxId);
                     foundNotOwnId = true;
                 }

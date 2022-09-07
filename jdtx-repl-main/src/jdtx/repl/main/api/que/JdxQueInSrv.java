@@ -7,7 +7,6 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.replica.*;
-import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 
 import static jdtx.repl.main.api.util.UtJdxErrors.*;
@@ -33,7 +32,7 @@ public class JdxQueInSrv extends JdxQue {
     public JdxQueInSrv(Db db, long authorWsId) {
         super(db, UtQue.SRV_QUE_IN, UtQue.STATE_AT_SRV);
         this.authorWsId = authorWsId;
-        stateManager = new SrvWorkstationStateManager(db);
+        this.stateManager = new SrvWorkstationStateManager(db);
     }
 
 
@@ -70,10 +69,8 @@ public class JdxQueInSrv extends JdxQue {
 
     @Override
     void pushDb(IReplica replica, long queNo) throws Exception {
-        JdxDbUtils dbu = new JdxDbUtils(db, null);
-        long id = dbu.getNextGenerator(queTableGeneratorName);
-        //
         String sql = "insert into " + queTableName + " (id, author_ws_id, author_id, age, crc, replica_type) values (:id, :author_ws_id, :author_id, :age, :crc, :replica_type)";
+        long id = db.loadSql("select gen_id(" + queTableGeneratorName + ", 1) as id from dual").getCurRec().getValueLong("id");
         db.execSql(sql, UtCnv.toMap(
                 "id", id,
                 "author_ws_id", replica.getInfo().getWsId(),

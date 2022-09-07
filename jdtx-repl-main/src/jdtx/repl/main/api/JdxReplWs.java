@@ -9,7 +9,6 @@ import jandcode.utils.variant.*;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.database_info.*;
-import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.manager.*;
@@ -17,6 +16,7 @@ import jdtx.repl.main.api.pk_generator.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.rec_merge.*;
+import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.repair.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
@@ -769,9 +769,9 @@ public class JdxReplWs {
         // Реакция на команду, если получатель - все станции или именно наша
         if (destinationWsId == 0 || destinationWsId == wsId) {
 
-            // Чиним генераторы.
-            PkGenerator pkGenerator = new PkGenerator_PS(db, struct);
-            pkGenerator.repairGenerators();
+            // Чиним генераторы
+            UtPkGeneratorRepair generatorRepair = new UtPkGeneratorRepair(db, struct);
+            generatorRepair.repairGenerators();
 
             // Отчитаемся
             reportReplica(JdxReplicaType.REPAIR_GENERATORS_DONE);
@@ -1244,7 +1244,7 @@ public class JdxReplWs {
         try {
             // Исполняем
             RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
-            IJdxDataSerializer dataSerializer = refManagerService.getJdxDataSerializer();
+            IJdxDataSerializer dataSerializer = refManagerService.createDataSerializer();
             //
             JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
             recMerger.execMergePlan(mergePlans, resultFile);
@@ -2319,8 +2319,8 @@ public class JdxReplWs {
         // ---
         // После применения собственных реплик генераторы находятся в устаревшем состоянии.
         // Чиним генераторы.
-        PkGenerator pkGenerator = new PkGenerator_PS(db, struct);
-        pkGenerator.repairGenerators();
+        UtPkGeneratorRepair generatorRepair = new UtPkGeneratorRepair(db, struct);
+        generatorRepair.repairGenerators();
 
 
         // ---
