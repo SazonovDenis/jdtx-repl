@@ -12,7 +12,7 @@ public class DbDatatypeManager_Oracle implements IDbDatatypeManager {
     }
 
     @Override
-    public JdxDataType dbDatatypeToJdxDatatype(String dbDataType) throws Exception {
+    public JdxDataType dbDatatypeToJdxDatatype(String dbDataType, int columnSize, int decimalDigits) throws Exception {
         String dataType = dbDataType.toUpperCase();
 
         switch (dataType) {
@@ -42,10 +42,17 @@ public class DbDatatypeManager_Oracle implements IDbDatatypeManager {
             }
             case "FLOAT":
             case "DECIMAL":
-            case "SHORTDECIMAL":
-            case "NUMBER": {
+            case "SHORTDECIMAL": {
                 return JdxDataType.DOUBLE;
             }
+            case "NUMBER": {
+                if (decimalDigits == 0) {
+                    return JdxDataType.INTEGER;
+                } else {
+                    return JdxDataType.DOUBLE;
+                }
+            }
+
             default: {
                 throw new Exception("Неизвестный тип поля: " + dbDataType);
             }

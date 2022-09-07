@@ -3,8 +3,10 @@ package jdtx.repl.main.api;
 import jandcode.dbm.data.*;
 import jandcode.jc.*;
 import jandcode.jc.test.*;
+import jandcode.utils.*;
 import jandcode.utils.variant.*;
 import jdtx.repl.main.api.rec_merge.*;
+import jdtx.repl.main.api.util.*;
 import jdtx.repl.main.ext.*;
 import org.junit.*;
 
@@ -323,6 +325,53 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         compareDb(db, db2, equalExpected);
         compareDb(db, db3, equalExpected);
         test_DumpTables_1_2_3();
+    }
+
+    @Test
+    public void test_one() throws Exception {
+        System.out.println("База данных: " + UtJdx.getDbInfoStr(db_one));
+
+        // Проверяем отсутствие дубликатов
+        JdxRecMerge_Test testMerge = new JdxRecMerge_Test();
+        testMerge.setUp();
+
+        // Проверяем отсутствие дубликатов
+        UtData.outTable(db_one.loadSql("select id, Name from Waxauth_user order by id"));
+        //testMerge.assertDuplicatesExists(false, db_one, struct_one, "Waxauth_user", "Name");
+
+        // Делаем дубликаты
+        JdxDbUtils dbu = new JdxDbUtils(db_one, struct_one);
+        dbu.insertRec("Waxauth_user", UtCnv.toMap("Name", "Val1"));
+        dbu.insertRec("Waxauth_user", UtCnv.toMap("Name", "Val1"));
+        UtData.outTable(db_one.loadSql("select id, Name from Waxauth_user order by id"));
+
+        // Проверяем наличие дубликатов на сервере
+        testMerge.assertDuplicatesExists(true, db_one, struct_one, "Waxauth_user", "Name");
+
+        //
+        TestExtJc jc = createExt(TestExtJc.class);
+        ProjectScript project = jc.loadProject("../ext/one/project.jc");
+        Merge_Ext ext = (Merge_Ext) project.createExt("jdtx.repl.main.ext.Merge_Ext");
+
+        //
+        IVariantMap args = new VariantMap();
+        args.put("table", "Waxauth_user");
+        args.put("file", "temp/_Waxauth_user.plan.json");
+        args.put("fields", "Name");
+
+        // Готовим план слияния записей
+        deletePlanFiles("temp/_Waxauth_user");
+        ext.rec_merge_find(args);
+
+        // Сливаем записи на сервере
+        ext.rec_merge_exec(args);
+
+        //
+        UtData.outTable(db_one.loadSql("select id, Name from Waxauth_user order by id"));
+
+
+        // Проверяем отсутствие дубликатов на сервере
+        testMerge.assertDuplicatesExists(false, db_one, struct_one, "Waxauth_user", "Name");
     }
 
     /**

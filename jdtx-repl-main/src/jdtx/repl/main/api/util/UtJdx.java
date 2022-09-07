@@ -476,6 +476,24 @@ public class UtJdx {
         return getDbType(db) + ":" + db.getDbSource().getHost() + ":" + db.getDbSource().getDatabase() + "@" + db.getDbSource().getUsername();
     }
 
+    public static String getDbName(Db db) {
+        String dbName;
+
+        //
+        String dbType = getDbType(db);
+        if (dbType.equalsIgnoreCase("oracle")) {
+            dbName = db.getDbSource().getUsername();
+        } else if (dbType.equalsIgnoreCase("firebird")) {
+            dbName = new File(db.getDbSource().getDatabase()).getName();
+            dbName = dbName.substring(0, dbName.length() - 4);
+        } else {
+            throw new XError("Неизвестный тип базы: " + dbType);
+        }
+
+        //
+        return dbName;
+    }
+
     public static String getDbType(Db db) {
         if (db.getDbSource().getDbType().equalsIgnoreCase("oracle")) {
             return "oracle";

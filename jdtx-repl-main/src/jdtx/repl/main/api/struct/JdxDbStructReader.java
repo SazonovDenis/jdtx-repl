@@ -102,6 +102,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
                 String columnName = rsColumns.getString("COLUMN_NAME");
                 String columnType = rsColumns.getString("TYPE_NAME");
                 int columnSize = rsColumns.getInt("COLUMN_SIZE");
+                int decimalDigits = rsColumns.getInt("DECIMAL_DIGITS");
                 boolean isNullable = rsColumns.getBoolean("NULLABLE");
 
                 // Пополняем список полей для таблицы (table == null если tableName это не таблица, а view или что-то аналогичное)
@@ -112,7 +113,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
                     //
                     field.setName(columnName);
                     field.setDbDatatype(columnType);
-                    field.setJdxDatatype(dbDatatypeManager.dbDatatypeToJdxDatatype(columnType));
+                    field.setJdxDatatype(dbDatatypeManager.dbDatatypeToJdxDatatype(columnType, columnSize, decimalDigits));
                     field.setSize(columnSize);
                     field.setIsNullable(isNullable);
                 }

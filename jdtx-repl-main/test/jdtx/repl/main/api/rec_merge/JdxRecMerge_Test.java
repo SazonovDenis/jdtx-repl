@@ -396,14 +396,14 @@ public class JdxRecMerge_Test extends DbmTestCase {
 
     public void assertDuplicatesExists(boolean shouldExists, Db db, IJdxDbStruct struct, String tableName, String fieldsNames) throws Exception {
         if (shouldExists) {
-            assertEquals("Не найдены дубликаты " + getDbName(db) + "." + tableName, true, getDuplicatesCount(db, struct, tableName, fieldsNames) != 0);
+            assertEquals("Не найдены дубликаты " + UtJdx.getDbName(db) + "." + tableName, true, getDuplicatesCount(db, struct, tableName, fieldsNames) != 0);
         } else {
-            assertEquals("Найдены дубликаты " + getDbName(db) + "." + tableName, true, getDuplicatesCount(db, struct, tableName, fieldsNames) == 0);
+            assertEquals("Найдены дубликаты " + UtJdx.getDbName(db) + "." + tableName, true, getDuplicatesCount(db, struct, tableName, fieldsNames) == 0);
         }
     }
 
     public void makeDuplicates(Db db, IJdxDbStruct struct, String tableName) throws Exception {
-        System.out.println("Копируем запись: " + getDbName(db) + "." + tableName);
+        System.out.println("Копируем запись: " + UtJdx.getDbName(db) + "." + tableName);
 
         // Копируем запись 2 раза
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
@@ -418,9 +418,9 @@ public class JdxRecMerge_Test extends DbmTestCase {
         DataStore st = db.loadSql("select count(*) cnt, " + fieldNamesStr + " from " + tableName + " where id <> 0 group by " + fieldNamesStr + " having count(*) > 1");
         //
         if (st.size() == 0) {
-            System.out.println("Дубликатов в: " + getDbName(db) + "." + tableName + " по полям: " + fieldNamesStr + " нет");
+            System.out.println("Дубликатов в: " + UtJdx.getDbName(db) + "." + tableName + " по полям: " + fieldNamesStr + " нет");
         } else {
-            System.out.println("Дубликаты в: " + getDbName(db) + "." + tableName + " по полям: " + fieldNamesStr);
+            System.out.println("Дубликаты в: " + UtJdx.getDbName(db) + "." + tableName + " по полям: " + fieldNamesStr);
             UtData.outTable(st);
         }
         //
@@ -429,9 +429,4 @@ public class JdxRecMerge_Test extends DbmTestCase {
         return duplicates.size();
     }
 
-    String getDbName(Db db) {
-        String dbName = new File(db.getDbSource().getDatabase()).getName();
-        dbName = dbName.substring(0, dbName.length() - 4);
-        return dbName;
-    }
 }

@@ -18,6 +18,7 @@ import java.util.*;
 public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
 
     // Структуры
+    public IJdxDbStruct struct_one;
     public IJdxDbStruct struct;
     public IJdxDbStruct struct2;
     public IJdxDbStruct struct3;
@@ -59,6 +60,7 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
     }
 
     public void reloadDbStructAll(boolean doRaise) throws Exception {
+        struct_one = loadStruct(db_one, doRaise);
         struct = loadStruct(db, doRaise);
         struct2 = loadStruct(db2, doRaise);
         struct3 = loadStruct(db3, doRaise);

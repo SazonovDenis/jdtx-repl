@@ -7,7 +7,7 @@ public class AppPkRulesRules_TBD extends AppPkRulesService implements IAppPkRule
 
     @Override
     public String getGeneratorName(String tableName) {
-        return "g_" + tableName;
+        return "seq_" + tableName;
     }
 
 }

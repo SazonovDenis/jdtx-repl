@@ -6,6 +6,7 @@ import jandcode.dbm.db.*;
 import jandcode.jc.*;
 import jandcode.jc.test.*;
 import jandcode.utils.rt.*;
+import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ext.*;
 import org.apache.commons.io.*;
 import org.junit.*;
@@ -20,6 +21,7 @@ public class DbPrepareEtalon_Test extends AppTestCase {
 
 
     // Экземпляры db, db2, db3 и db5
+    protected Db db_one;
     protected Db db;
     protected Db db2;
     protected Db db3;
@@ -53,6 +55,8 @@ public class DbPrepareEtalon_Test extends AppTestCase {
         extWs5 = (Jdx_Ext) p5.createExt("jdtx.repl.main.ext.Jdx_Ext");
 
         // Экземпляры db, db2, db3 и db5
+        db_one = app.getApp().service(ModelService.class).getModel().getDb();
+
         db = extSrv.getApp().service(ModelService.class).getModel().getDb();
         db2 = extWs2.getApp().service(ModelService.class).getModel().getDb();
         db3 = extWs3.getApp().service(ModelService.class).getModel().getDb();
@@ -72,6 +76,7 @@ public class DbPrepareEtalon_Test extends AppTestCase {
 
     @Test
     public void test_ConnectAll() throws Exception {
+        db_one.disconnect();
         db.disconnect();
         db2.disconnect();
         db3.disconnect();
@@ -89,6 +94,7 @@ public class DbPrepareEtalon_Test extends AppTestCase {
     }
 
     void connectAll(boolean doRaise) throws Exception {
+        doConnect(db_one, doRaise);
         doConnect(db, doRaise);
         doConnect(db2, doRaise);
         doConnect(db3, doRaise);
@@ -115,6 +121,7 @@ public class DbPrepareEtalon_Test extends AppTestCase {
     }
 
     void disconnectAll(boolean doRaise) throws Exception {
+        doDisconnect(db_one, doRaise);
         doDisconnect(db, doRaise);
         doDisconnect(db2, doRaise);
         doDisconnect(db3, doRaise);
@@ -138,6 +145,7 @@ public class DbPrepareEtalon_Test extends AppTestCase {
     }
 
     void disconnectAllForce(boolean doRaise) throws Exception {
+        disconnectForce(db_one, doRaise);
         disconnectForce(db, doRaise);
         disconnectForce(db2, doRaise);
         disconnectForce(db3, doRaise);

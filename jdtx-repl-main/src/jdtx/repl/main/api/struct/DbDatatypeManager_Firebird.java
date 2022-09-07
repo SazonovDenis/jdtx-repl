@@ -12,7 +12,7 @@ public class DbDatatypeManager_Firebird implements IDbDatatypeManager {
     }
 
     @Override
-    public JdxDataType dbDatatypeToJdxDatatype(String dbDataType) throws Exception {
+    public JdxDataType dbDatatypeToJdxDatatype(String dbDataType, int columnSize, int decimalDigits) throws Exception {
         String dataType = dbDataType.toUpperCase();
 
         switch (dataType) {

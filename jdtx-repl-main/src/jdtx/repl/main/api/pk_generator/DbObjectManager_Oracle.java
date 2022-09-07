@@ -45,7 +45,16 @@ public class DbObjectManager_Oracle extends DbGenerators implements IDbGenerator
 
     @Override
     public long getGeneratorNextValue(String generatorName) throws Exception {
-        throw new XError("Not implemented");
+        long valueNext;
+        DbQuery q = db.openSql("select " + generatorName + ".nextval as id from dual");
+        try {
+            valueNext = q.getValueLong("id");
+        } finally {
+            q.close();
+        }
+
+        //
+        return valueNext;
     }
 
     @Override

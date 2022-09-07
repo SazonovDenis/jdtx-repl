@@ -3,7 +3,7 @@
 
     <!-- настройки базы данных -->
 
-    <db name="default"
+    <db name="default1"
         dbdriver="jdbc" 
         jdbcDriverClass="org.firebirdsql.jdbc.FBDriver"
         url="jdbc:firebirdsql:localhost/3050:${database}?charSet=Cp1251"

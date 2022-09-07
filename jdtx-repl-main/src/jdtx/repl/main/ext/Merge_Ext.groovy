@@ -118,7 +118,7 @@ class Merge_Ext extends ProjectExt {
             }
 
             //
-            System.out.println("Out file: " + resultFile.getAbsolutePath())
+            System.out.println("Out file: " + resultFile.getCanonicalPath())
         } finally {
             db.disconnect()
         }
