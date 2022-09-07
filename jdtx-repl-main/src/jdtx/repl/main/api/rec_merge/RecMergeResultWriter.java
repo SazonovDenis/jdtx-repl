@@ -10,9 +10,9 @@ import java.util.zip.*;
 public class RecMergeResultWriter {
 
 
-    XMLStreamWriter writer;
-    OutputStream outputStream;
-    ZipOutputStream zipOutputStream;
+    OutputStream outputStream = null;
+    ZipOutputStream zipOutputStream = null;
+    XMLStreamWriter writer = null;
 
     // Статусы писателя
     boolean currentElement_root = false;
@@ -38,17 +38,22 @@ public class RecMergeResultWriter {
         closeDocument();
 
         // XML-писатель заканчивает
-        writer.flush();
-        writer.close();
+        if (writer != null) {
+            writer.flush();
+            writer.close();
+        }
 
         // Заканчиваем запись в в zip-архив
-        zipOutputStream.closeEntry();
-        zipOutputStream.finish();
-        zipOutputStream.close();
+        if (zipOutputStream != null) {
+            zipOutputStream.closeEntry();
+            zipOutputStream.finish();
+            zipOutputStream.close();
+        }
 
         // Закрываем файл
-        outputStream.close();
-
+        if (outputStream != null) {
+            outputStream.close();
+        }
     }
 
 
