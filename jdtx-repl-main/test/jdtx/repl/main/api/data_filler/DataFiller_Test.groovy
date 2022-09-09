@@ -7,7 +7,7 @@ import jdtx.repl.main.api.*
 import jdtx.repl.main.api.struct.*
 import org.junit.*
 
-class DataFiller_gen_Test extends ReplDatabaseStruct_Test {
+class DataFiller_Test extends ReplDatabaseStruct_Test {
 
 
     @Override
@@ -49,7 +49,6 @@ class DataFiller_gen_Test extends ReplDatabaseStruct_Test {
     @Test
     void test_genRec_PawnChit() throws Exception {
         int count = 15
-
 
         // Посмотрим, как сейчас в БД
         DataStore st1 = db.loadSql("select * from PawnChit order by id")

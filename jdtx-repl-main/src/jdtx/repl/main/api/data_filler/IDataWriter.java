@@ -18,8 +18,8 @@ public interface IDataWriter {
     Map<Long, DataFillerRec> upd(String tableName, Collection<Long> ids, Map<String, Object> valuesVariansSet);
 
 
-    Map<Long, DataFillerRec> del(String tableName, int count, boolean cascade);
+    Map<Long, DataFillerRec> del(String tableName, int count, boolean cascade) throws Exception;
 
-    Map<Long, DataFillerRec> del(String tableName, Collection<Long> ids, boolean cascade);
+    Map<Long, DataFillerRec> del(String tableName, Collection<Long> ids, boolean cascade) throws Exception;
 
 }
