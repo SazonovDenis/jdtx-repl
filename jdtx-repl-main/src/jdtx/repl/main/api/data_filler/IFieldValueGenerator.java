@@ -5,7 +5,7 @@ import jdtx.repl.main.api.struct.*;
 /**
  * Генератор значений (обычно случайных по некоторому шаблону)
  */
-public interface IFileldValueGenerator {
+public interface IFieldValueGenerator {
 
     Object genValue(IJdxField field);
 

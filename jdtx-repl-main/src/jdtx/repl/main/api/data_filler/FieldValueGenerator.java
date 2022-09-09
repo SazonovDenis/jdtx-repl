@@ -2,11 +2,11 @@ package jdtx.repl.main.api.data_filler;
 
 import java.util.*;
 
-public abstract class FileldValueGenerator implements IFileldValueGenerator {
+public abstract class FieldValueGenerator implements IFieldValueGenerator {
 
     Random rnd;
 
-    public FileldValueGenerator() {
+    public FieldValueGenerator() {
         this.rnd = new Random();
     }
 

@@ -2,15 +2,15 @@ package jdtx.repl.main.api.data_filler;
 
 import jdtx.repl.main.api.struct.*;
 
-public class FileldValueGenerator_Blob extends FileldValueGenerator {
+public class FieldValueGenerator_Blob extends FieldValueGenerator {
 
     int maxSize = 1024;
 
-    public FileldValueGenerator_Blob() {
+    public FieldValueGenerator_Blob() {
         super();
     }
 
-    public FileldValueGenerator_Blob(int maxSize) {
+    public FieldValueGenerator_Blob(int maxSize) {
         super();
         this.maxSize = maxSize;
     }

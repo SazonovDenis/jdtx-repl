@@ -2,37 +2,43 @@ package jdtx.repl.main.api.data_filler;
 
 import jdtx.repl.main.api.struct.*;
 
-public class FileldValueGenerator_String extends FileldValueGenerator {
+public class FieldValueGenerator_String extends FieldValueGenerator {
 
     int maxSize = 0;
 
     String template;
 
-    String charSet = "0123456789" +
-            "әғқңөұүhі" +
-            "ӘҒҚҢӨҰҮHІ" +
+    String alphabet = "0123456789" +
+//            "әғқңөұүhі" +
+//            "ӘҒҚҢӨҰҮHІ" +
             "абвгдеёжзийклмнопрстуфхцчшщъыьэюя" +
             "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ" +
             "abcdefghijklmnopqrstuvwxyz" +
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    public FileldValueGenerator_String(String template, int maxSize) {
+    public FieldValueGenerator_String(String template) {
+        super();
+        //this.maxSize = template.length();
+        this.template = template;
+    }
+
+    public FieldValueGenerator_String(String template, int maxSize) {
         super();
         this.maxSize = maxSize;
         this.template = template;
     }
 
-    public FileldValueGenerator_String(String template, String charSet) {
+    public FieldValueGenerator_String(String template, String alphabet) {
         super();
         this.template = template;
-        this.charSet = charSet;
+        this.alphabet = alphabet;
     }
 
-    public FileldValueGenerator_String(String template, String charSet, int maxSize) {
+    public FieldValueGenerator_String(String template, String alphabet, int maxSize) {
         super();
         this.maxSize = maxSize;
         this.template = template;
-        this.charSet = charSet;
+        this.alphabet = alphabet;
     }
 
     @Override
@@ -41,8 +47,8 @@ public class FileldValueGenerator_String extends FileldValueGenerator {
 
         for (char chTemplate : String.valueOf(template).toCharArray()) {
             if (chTemplate == '*') {
-                int idx = rnd.nextInt(charSet.length());
-                char ch = charSet.charAt(idx);
+                int idx = rnd.nextInt(alphabet.length());
+                char ch = alphabet.charAt(idx);
                 sb.append(ch);
             } else {
                 sb.append(chTemplate);
@@ -52,6 +58,9 @@ public class FileldValueGenerator_String extends FileldValueGenerator {
         String res = sb.toString();
         if (maxSize != 0) {
             int len = rnd.nextInt(maxSize);
+            if (res.length() < len) {
+                len = res.length();
+            }
             res = res.substring(0, len);
         }
 

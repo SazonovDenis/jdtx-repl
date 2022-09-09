@@ -3,9 +3,9 @@ package jdtx.repl.main.api.data_filler;
 import jdtx.repl.main.api.struct.*;
 import org.joda.time.*;
 
-public class FileldValueGenerator_DateTime extends FileldValueGenerator {
+public class FieldValueGenerator_DateTime extends FieldValueGenerator {
 
-    public FileldValueGenerator_DateTime() {
+    public FieldValueGenerator_DateTime() {
         super();
     }
 

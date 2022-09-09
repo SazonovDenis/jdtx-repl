@@ -103,24 +103,24 @@ public class DataFiller implements IDataFiller {
     }
 
     private Object getTemplateByDatatype(IJdxField field) {
-        IFileldValueGenerator generator;
+        IFieldValueGenerator generator;
 
         switch (field.getJdxDatatype()) {
             case DOUBLE:
             case INTEGER:
-                generator = new FileldValueGenerator_Number();
+                generator = new FieldValueGenerator_Number();
                 break;
             case STRING:
-                generator = new FileldValueGenerator_String(UtString.repeat("*", field.getSize()), field.getSize());
+                generator = new FieldValueGenerator_String(UtString.repeat("*", field.getSize()), field.getSize());
                 break;
             case BLOB:
-                generator = new FileldValueGenerator_Blob();
+                generator = new FieldValueGenerator_Blob();
                 break;
             case DATETIME:
-                generator = new FileldValueGenerator_DateTime();
+                generator = new FieldValueGenerator_DateTime();
                 break;
             default:
-                generator = new FileldValueGenerator_String(UtString.repeat("*", field.getSize()), field.getSize());
+                generator = new FieldValueGenerator_String(UtString.repeat("*", field.getSize()), field.getSize());
         }
 
         return generator;
@@ -143,9 +143,9 @@ public class DataFiller implements IDataFiller {
         // Можно передать несколь генераторов, тут выберем один
         Object fieldGenerator = selectOneGenerator(fieldsTemplates);
 
-        if (fieldGenerator instanceof IFileldValueGenerator) {
+        if (fieldGenerator instanceof IFieldValueGenerator) {
             // Можно передать заполнятель
-            IFileldValueGenerator generator = (IFileldValueGenerator) fieldGenerator;
+            IFieldValueGenerator generator = (IFieldValueGenerator) fieldGenerator;
             value = generator.genValue(field);
         } else {
             // А можно передать и значение

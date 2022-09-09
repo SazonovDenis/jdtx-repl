@@ -27,8 +27,8 @@ class DataFiller_gen_Test extends ReplDatabaseStruct_Test {
         // Набор генераторов для некоторых полей
         HashMapNoCase<Object> generators = [
                 "name"  : ["vvv",
-                           new FileldValueGenerator_String("***-test-***", "йцукен12345"),
-                           new FileldValueGenerator_String("ch-********************", 20)
+                           new FieldValueGenerator_String("***-test-***", "йцукен12345"),
+                           new FieldValueGenerator_String("ch-********************", 20)
                 ],
                 "UlzTip": [101000003, 101000001, 0],
                 "Region": 101000117,
@@ -64,8 +64,8 @@ class DataFiller_gen_Test extends ReplDatabaseStruct_Test {
 
         // Набор генераторов для некоторых полей
         HashMapNoCase<Object> generators = [
-                "ChitNo"       : new FileldValueGenerator_String("NO-*****", "0123456789"),
-                "ValuationSumm": new FileldValueGenerator_Number(5000, 120000, 1),
+                "ChitNo"       : new FieldValueGenerator_String("NO-*****", "0123456789"),
+                "ValuationSumm": new FieldValueGenerator_Number(5000, 120000, 1),
                 "Storn"        : [0, 0, 0, 1],
                 "Lic"          : licSet
         ]
@@ -94,8 +94,8 @@ class DataFiller_gen_Test extends ReplDatabaseStruct_Test {
 
         // Набор генераторов для некоторых полей
         HashMapNoCase<Object> templatesDefault = [
-                "ChitNo"       : new FileldValueGenerator_String("NO-*****", "0123456789"),
-                "ValuationSumm": new FileldValueGenerator_Number(5000, 120000, 1),
+                "ChitNo"       : new FieldValueGenerator_String("NO-*****", "0123456789"),
+                "ValuationSumm": new FieldValueGenerator_Number(5000, 120000, 1),
                 "Storn"        : [0, 0, 0, 1]
         ]
 
@@ -165,7 +165,7 @@ class DataFiller_gen_Test extends ReplDatabaseStruct_Test {
     }
 
 
-    static void UtData_outTable(DataStore st, int limit) {
+    public static void UtData_outTable(DataStore st, int limit) {
         OutTableSaver sv = new OutTableSaver_Dvsa(st)
         sv.setMaxColWidth(35)
         sv.setLimit(limit)
