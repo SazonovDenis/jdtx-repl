@@ -9,8 +9,8 @@ public class FieldValueGenerator_String extends FieldValueGenerator {
     String template;
 
     String alphabet = "0123456789" +
-//            "әғқңөұүhі" +
-//            "ӘҒҚҢӨҰҮHІ" +
+            "әғқңөұүhі" +
+            "ӘҒҚҢӨҰҮHІ" +
             "абвгдеёжзийклмнопрстуфхцчшщъыьэюя" +
             "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ" +
             "abcdefghijklmnopqrstuvwxyz" +
@@ -18,7 +18,6 @@ public class FieldValueGenerator_String extends FieldValueGenerator {
 
     public FieldValueGenerator_String(String template) {
         super();
-        //this.maxSize = template.length();
         this.template = template;
     }
 
@@ -45,6 +44,7 @@ public class FieldValueGenerator_String extends FieldValueGenerator {
     public String genValue(IJdxField field) {
         StringBuilder sb = new StringBuilder();
 
+        // Раскроем шаблон
         for (char chTemplate : String.valueOf(template).toCharArray()) {
             if (chTemplate == '*') {
                 int idx = rnd.nextInt(alphabet.length());
@@ -54,14 +54,14 @@ public class FieldValueGenerator_String extends FieldValueGenerator {
                 sb.append(chTemplate);
             }
         }
-
         String res = sb.toString();
+
+        // Ограничим длину
         if (maxSize != 0) {
             int len = rnd.nextInt(maxSize);
-            if (res.length() < len) {
-                len = res.length();
+            while (res.getBytes().length > len) {
+                res = res.substring(0, res.length() - 1);
             }
-            res = res.substring(0, len);
         }
 
         return res;
