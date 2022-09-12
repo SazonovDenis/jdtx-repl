@@ -102,19 +102,28 @@ class DataWriter_Oracle_Test extends ReplDatabaseStruct_Test {
 
     @Test
     void test_ins_FileLog() {
+        int count = 30
+
+        //
         DataWriter writer = new DataWriter(db_one, struct_one, generatorsDefault)
-        ins_Table(db_one, struct_one.getTable("FileLog"), writer)
+
+        //
+        ins_Table(db_one, struct_one.getTable("FileLog"), writer, count)
     }
 
     @Test
     void test_ins_All() {
+        int count = 30
+
+        //
         DataWriter writer = new DataWriter(db_one, struct_one, generatorsDefault)
         generatorsDefault.put("field:fileItem.linkFileItem", [null, null, null, null, null, new FieldValueGenerator_Ref(db_one, struct_one, writer.filler)])
 
+        //
         for (IJdxTable table : struct_one.tables) {
             println("table: " + table.getName())
 
-            ins_Table(db_one, table, writer)
+            ins_Table(db_one, table, writer, count)
 
             println()
         }
@@ -128,37 +137,34 @@ class DataWriter_Oracle_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    void test_del_FileItem_1161() {
-        long id = 1161
-        String tableName = "FileItem"
-
-        IDataWriter writer = new DataWriter(db_one, struct_one)
-        writer.del(tableName, [id], true)
-    }
-
-    @Test
-    void test_del_FileItem_1161_() {
-        long id = 1161
-        String tableName = "FileItem"
-
-        IDataWriter writer = new DataWriter(db_one, struct_one)
-        writer.del(tableName, [id], true)
-    }
-
-    @Test
     void test_del_FileAttrDef() {
         int count = 5
         String tableName = "FileAttrDef"
         del_Table(tableName, count)
     }
 
+    @Test
+    void test_del_All() {
+        int count = 50
+
+        for (IJdxTable table : struct_one.tables) {
+            String tableName = table.getName()
+
+            println("table: " + tableName)
+
+            del_Table(tableName, count)
+
+            println()
+        }
+    }
+
     void del_Table(String tableName, int count) {
         // Посмотрим, как сейчас в БД
-        String sql = sqlCheckTable.
-                replace("#{table}", tableName).
-                replace("#{where}", "")
-        DataStore st// = db_one.loadSql(sql)
-        //DataFiller_Test.UtData_outTable(st, 999)
+        //String sql = sqlCheckTable.
+        //        replace("#{table}", tableName).
+        //        replace("#{where}", "")
+        //DataStore st = db_one.loadSql(sql)
+        //DataFiller_Test.UtData_outTable(st, 15)
 
         //
         IDataWriter writer = new DataWriter(db_one, struct_one)
@@ -176,11 +182,11 @@ class DataWriter_Oracle_Test extends ReplDatabaseStruct_Test {
         writer.del(tableName, setDel, true)
 
         // Посмотрим, как сейчас в БД
-        sql = sqlCheckTable.
-                replace("#{table}", tableName).
-                replace("#{where}", "")
-        st = db_one.loadSql(sql)
-        DataFiller_Test.UtData_outTable(st, 999)
+        //sql = sqlCheckTable.
+        //        replace("#{table}", tableName).
+        //        replace("#{where}", "")
+        //DataStore st1 = db_one.loadSql(sql)
+        //DataFiller_Test.UtData_outTable(st1, 15)
     }
 
     @Test
@@ -248,38 +254,6 @@ order by
   FileDict.id
 """
 
-
-    void ins_Table(Db db, IJdxTable table, DataWriter writer) {
-        int count = 30
-
-        String tableName = table.getName()
-
-        // Посмотрим, как сейчас в БД
-        String sql = sqlCheckTable.
-                replace("#{table}", tableName).
-                replace("#{where}", "")
-        DataStore st = db.loadSql(sql)
-        DataFiller_Test.UtData_outTable(st, 5)
-
-        // Добавим
-        Map<Long, Map> set = writer.ins(tableName, count)
-        println("inserted: " + set.keySet())
-
-        // Посмотрим, как сейчас в БД
-        sql = sqlCheckTable.
-                replace("#{table}", tableName).
-                replace("#{where}", "and " + tableName + ".id in (" + setToStr(set.keySet()) + ")")
-        //
-        st = db.loadSql(sql)
-        DataFiller_Test.UtData_outTable(st, 999)
-    }
-
-    String setToStr(Set set) {
-        String idsStr = set.toString()
-        idsStr = idsStr.substring(1, idsStr.length() - 1)
-        return idsStr
-    }
-
     String sqlCheckTable = """
 select
   #{table}.*
@@ -290,5 +264,34 @@ where
 order by
   #{table}.id
 """
+
+    void ins_Table(Db db, IJdxTable table, DataWriter writer, int count) {
+        String tableName = table.getName()
+
+        // Посмотрим, как сейчас в БД
+        //String sql = sqlCheckTable.
+        //        replace("#{table}", tableName).
+        //        replace("#{where}", "")
+        //DataStore st = db.loadSql(sql)
+        //DataFiller_Test.UtData_outTable(st, 5)
+
+        // Добавим
+        Map<Long, Map> set = writer.ins(tableName, count)
+        println("inserted: " + set.keySet())
+
+        // Посмотрим, как сейчас в БД
+        String sql = sqlCheckTable.
+                replace("#{table}", tableName).
+                replace("#{where}", "and " + tableName + ".id in (" + setToStr(set.keySet()) + ")")
+        //
+        DataStore st1 = db.loadSql(sql)
+        DataFiller_Test.UtData_outTable(st1, 3)
+    }
+
+    String setToStr(Set set) {
+        String idsStr = set.toString()
+        idsStr = idsStr.substring(1, idsStr.length() - 1)
+        return idsStr
+    }
 
 }

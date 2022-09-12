@@ -21,16 +21,16 @@ public class UtFiller {
     /**
      * Для таблицы table собирает все id (т.е. все возможные значения ссылок на нее)
      */
-    public Set<Long> loadAllIds(IJdxTable table) throws Exception {
+    public Set<Long> loadAllIds(String tableName) throws Exception {
+        return loadAllIds(struct.getTable(tableName));
+    }
+
+    Set<Long> loadAllIds(IJdxTable table) throws Exception {
         String refTableName = table.getName();
         IJdxField pkField = table.getPrimaryKey().get(0);
         String pkFieldName = pkField.getName();
         DataStore refSt = db.loadSql("select " + pkFieldName + " as id from " + refTableName);
         return UtData.uniqueValues(refSt, "id");
-    }
-
-    public Set<Long> loadAllIds(String tableName) throws Exception {
-        return loadAllIds(struct.getTable(tableName));
     }
 
 
@@ -40,7 +40,7 @@ public class UtFiller {
      *
      * @return Новый набор
      */
-    Set<Long> choiceSubsetFromSet(Set<Long> set, Integer count) {
+    Set<Long> choiceSubsetFromSet(Set<Long> set, int count) {
         Set<Long> res = new HashSet<>();
 
         if (set.size() <= count) {
@@ -53,13 +53,17 @@ public class UtFiller {
         Object[] arr = set.toArray();
         while (res.size() < count) {
             int idx = rnd.nextInt(set.size());
-            res.add((Long)arr[idx]);
+            res.add((Long) arr[idx]);
         }
 
         return res;
     }
 
 
+    /**
+     * Если object является коллекцией, то выбирает случайно один элемент,
+     * иначе возвращает сам object.
+     */
     public Object selectOneObject(Object object) {
         Object res;
 
@@ -67,10 +71,10 @@ public class UtFiller {
             List<Object> list = (List) object;
             int rndIdx = rnd.nextInt(list.size());
             res = list.get(rndIdx);
-        } else if (object instanceof Set) {
-            Set<Object> set = (Set) object;
-            int idx = rnd.nextInt(set.size());
-            res = set.toArray()[idx];
+        } else if (object instanceof Collection) {
+            Collection<Object> collection = (Collection) object;
+            int rndIdx = rnd.nextInt(collection.size());
+            res = collection.toArray()[rndIdx];
         } else {
             res = object;
         }

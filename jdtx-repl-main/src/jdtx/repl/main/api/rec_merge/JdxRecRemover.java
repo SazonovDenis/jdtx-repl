@@ -55,8 +55,7 @@ public class JdxRecRemover {
         UtRecMerger utRecMerger = new UtRecMerger(db, struct);
 
         //
-        Map<String, List<Long>> deletedRecordsInTables_Global = new HashMap<>();
-        Set<String> deletedTablesGlobal = new HashSet<>();
+        Map<String, List<Long>> deletedRecords_Global = new HashMap<>();
 
         // Первая таблица в задание - та, которую передали в tableName
         List<Long> recordsDelete = new ArrayList<>();
@@ -74,54 +73,53 @@ public class JdxRecRemover {
 
             // В первый слой ссылок добавляем записи на удаление из текущей таблицы
             String levelIndent = "";
-            Map<String, List<Long>> deletedRecordsInTables = new HashMap<>();
-            deletedRecordsInTables.put(tableName, recordsDelete);
+            Map<String, List<Long>> deletedRecords = new HashMap<>();
+            deletedRecords.put(tableName, recordsDelete);
 
             // Переходим от текущего слоя ссылок переходим к следующему, пока на очередном слое не останется сылок
             do {
-                Map<String, List<Long>> deletedRecordsInTables_Curr = new HashMap<>();
+                Map<String, List<Long>> deletedRecords_Curr = new HashMap<>();
 
-                // Собираем зависимости от таблиц из текуших deletedRecordsInTables
-                Collection<String> refTables = deletedRecordsInTables.keySet();
+                // Собираем зависимости от таблиц из текуших deletedRecords
+                Collection<String> refTables = deletedRecords.keySet();
                 for (String tableNameRef : refTables) {
-                    List<Long> recordsDeleteRef = deletedRecordsInTables.get(tableNameRef);
+                    List<Long> recordsDeleteRef = deletedRecords.get(tableNameRef);
 
                     // Если есть записи по ссылке, то разматываем её
                     if (recordsDeleteRef.size() > 0) {
                         //
-                        Map<String, List<Long>> deletedRecordsInTable_Ref = utRecMerger.loadRecordsRefTable(tableNameRef, recordsDeleteRef, dataSerializer, recMergeResultWriter, MergeOprType.DEL);
+                        Map<String, List<Long>> deletedRecords_Ref = utRecMerger.loadRecordsRefTable(tableNameRef, recordsDeleteRef, dataSerializer, recMergeResultWriter, MergeOprType.DEL);
 
                         //
                         log.debug(levelIndent + "Dependences for: " + tableNameRef + ", count: " + recordsDeleteRef.size() + ", ids: " + recordsDeleteRef);
-                        if (deletedRecordsInTable_Ref.keySet().size() == 0) {
+                        if (deletedRecords_Ref.keySet().size() == 0) {
                             log.debug(levelIndent + "  " + "<no ref>");
                         } else {
-                            for (String tableNameRef_refTableName : deletedRecordsInTable_Ref.keySet()) {
-                                List<Long> deletedRecordsInTable_RefRef = deletedRecordsInTable_Ref.get(tableNameRef_refTableName);
+                            for (String tableNameRef_refTableName : deletedRecords_Ref.keySet()) {
+                                List<Long> deletedRecordsInTable_RefRef = deletedRecords_Ref.get(tableNameRef_refTableName);
                                 log.debug(levelIndent + "  " + tableNameRef_refTableName + ", count: " + deletedRecordsInTable_RefRef.size() + ", ids: " + deletedRecordsInTable_RefRef);
                             }
                         }
 
                         //
-                        mergeMaps(deletedRecordsInTable_Ref, deletedRecordsInTables_Curr);
+                        mergeMaps(deletedRecords_Ref, deletedRecords_Curr);
                     }
                 }
 
-                // Уберем из deletedRecordsInTables_Curr значения, которые
-                // 1) уже есть в deletedRecordsInTables_Global
-                // 1) указаны в recordsDelete
-                clearAlreadyExists(deletedRecordsInTables_Curr.get(tableName), recordsDelete);
-                clearAlreadyExists(deletedRecordsInTables_Curr, deletedRecordsInTables_Global);
+                // Уберем из deletedRecords_Curr значения, которые
+                // 1) уже есть в deletedRecords_Global
+                // 1) указаны в recordsDelete (записи из основной таблицы)
+                clearAlreadyExists(deletedRecords_Curr.get(tableName), recordsDelete);
+                clearAlreadyExists(deletedRecords_Curr, deletedRecords_Global);
 
                 // Пополняем общий список зависимостей
-                mergeMaps(deletedRecordsInTables_Curr, deletedRecordsInTables_Global);
-                deletedTablesGlobal.addAll(refTables);
+                mergeMaps(deletedRecords_Curr, deletedRecords_Global);
 
                 // Теперь переходим на зависимости следующего слоя
-                deletedRecordsInTables = deletedRecordsInTables_Curr;
+                deletedRecords = deletedRecords_Curr;
                 //
                 levelIndent = levelIndent + "  ";
-            } while (deletedRecordsInTables.size() != 0);
+            } while (deletedRecords.size() != 0);
 
         } finally {
             db.rollback();
@@ -138,16 +136,18 @@ public class JdxRecRemover {
         db.startTran();
         try {
             // Удаление из зависимых
-            List<String> refsToTableSorted = UtJdx.getSortedKeys(struct.getTables(), deletedTablesGlobal);
+            Set<String> deletedTables_Global = deletedRecords_Global.keySet();
+            List<String> refsToTableSorted = UtJdx.getSortedKeys(struct.getTables(), deletedTables_Global);
             for (int i = refsToTableSorted.size() - 1; i >= 0; i--) {
                 String tableNameRef = refsToTableSorted.get(i);
-                List<Long> recordsDeleteRef = deletedRecordsInTables_Global.get(tableNameRef);
-                if (recordsDeleteRef.size() != 0) {
-                    log.info("delete from: " + tableNameRef + ", count: " + recordsDeleteRef.size() + ", ids: " + recordsDeleteRef);
+                List<Long> deletedRecords = deletedRecords_Global.get(tableNameRef);
+                if (deletedRecords.size() != 0) {
+                    log.info("delete from: " + tableNameRef + ", count: " + deletedRecords.size() + ", ids: " + deletedRecords);
                     // Удаляем в обратном порядке, т.к. в конец были добавлены id "конечных" записей.
                     // Актуально для иерархических таблиц: при наличии цепочки дочерних записей их нужно удалять с конца.
-                    Collections.reverse(recordsDeleteRef);
-                    utRecMerger.execRecordsDelete(tableNameRef, recordsDeleteRef);
+                    Collections.reverse(deletedRecords);
+                    // Удаляем
+                    utRecMerger.execRecordsDelete(tableNameRef, deletedRecords);
                 } else {
                     log.info("delete from: " + tableNameRef + " <no records>");
                 }

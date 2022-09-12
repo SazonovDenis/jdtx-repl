@@ -27,7 +27,7 @@ class FieldValueGenerator_Ref extends FieldValueGenerator {
 
         //
         if (refValues == null) {
-            // Правильно подготовим набор значений для ссылочных полей
+            // Подготовим набор значений для ссылочных полей
             refValues = utFiller.loadAllIds(field.getRefTable());
             // Закэшируем набор значений - повторно ссылки искать - дорого
             filler.getRefValuesCache().put(keyField, refValues);

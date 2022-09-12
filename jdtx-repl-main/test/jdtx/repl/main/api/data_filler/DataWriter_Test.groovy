@@ -59,13 +59,6 @@ class DataWriter_Test extends ReplDatabaseStruct_Test {
             println("inserted PawnChitSubject: " + PawnChitSubject.keySet())
         }
 
-        //
-        // String idsStr = pawnChit.keySet().toString()
-        // idsStr = idsStr.substring(1, idsStr.length() - 1)
-        // sql = sqlCheck.replace("#{where}", "and PawnChit.id in (" + idsStr + ")")
-        // DataStore st1 = db.loadSql(sql)
-        // DataFiller_gen_Test.UtData_outTable(st1, 999)
-
         // Посмотрим, как сейчас в БД
         sql = sqlCheck.replace("#{where}", "")
         st = db.loadSql(sql)
