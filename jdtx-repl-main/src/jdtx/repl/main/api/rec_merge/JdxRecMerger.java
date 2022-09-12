@@ -201,7 +201,7 @@ public class JdxRecMerger implements IJdxRecMerger {
                 }
 
                 // Распаковываем PK удаляемых записей
-                Collection<Long> recordsDelete = new ArrayList<>();
+                List<Long> recordsDelete = new ArrayList<>();
                 for (String recordDeletePkStr : mergePlan.recordsDelete) {
                     Long recordDeletePk = UtJdxData.longValueOf(dataSerializer.prepareValue(recordDeletePkStr, pkField));
                     recordsDelete.add(recordDeletePk);

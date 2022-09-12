@@ -55,11 +55,11 @@ public class JdxRecRemover {
         UtRecMerger utRecMerger = new UtRecMerger(db, struct);
 
         //
-        Map<String, Set<Long>> deletedRecordsInTables_Global = new HashMap<>();
+        Map<String, List<Long>> deletedRecordsInTables_Global = new HashMap<>();
         Set<String> deletedTablesGlobal = new HashSet<>();
 
         // Первая таблица в задание - та, которую передали в tableName
-        Set<Long> recordsDelete = new HashSet<>();
+        List<Long> recordsDelete = new ArrayList<>();
         recordsDelete.add(tableId);
 
         // Прочитаем удаляемые записи и сохраним их в resultFile
@@ -74,22 +74,22 @@ public class JdxRecRemover {
 
             // В первый слой ссылок добавляем записи на удаление из текущей таблицы
             String levelIndent = "";
-            Map<String, Set<Long>> deletedRecordsInTables = new HashMap<>();
+            Map<String, List<Long>> deletedRecordsInTables = new HashMap<>();
             deletedRecordsInTables.put(tableName, recordsDelete);
 
             // Переходим от текущего слоя ссылок переходим к следующему, пока на очередном слое не останется сылок
             do {
-                Map<String, Set<Long>> deletedRecordsInTables_Curr = new HashMap<>();
+                Map<String, List<Long>> deletedRecordsInTables_Curr = new HashMap<>();
 
                 // Собираем зависимости от таблиц из текуших deletedRecordsInTables
                 Collection<String> refTables = deletedRecordsInTables.keySet();
                 for (String tableNameRef : refTables) {
-                    Set<Long> recordsDeleteRef = deletedRecordsInTables.get(tableNameRef);
+                    List<Long> recordsDeleteRef = deletedRecordsInTables.get(tableNameRef);
 
                     // Если есть записи по ссылке, то разматываем её
                     if (recordsDeleteRef.size() > 0) {
                         //
-                        Map<String, Set<Long>> deletedRecordsInTable_Ref = utRecMerger.loadRecordsRefTable(tableNameRef, recordsDeleteRef, dataSerializer, recMergeResultWriter, MergeOprType.DEL);
+                        Map<String, List<Long>> deletedRecordsInTable_Ref = utRecMerger.loadRecordsRefTable(tableNameRef, recordsDeleteRef, dataSerializer, recMergeResultWriter, MergeOprType.DEL);
 
                         //
                         log.info(levelIndent + "Dependences for: " + tableNameRef + ", count: " + recordsDeleteRef.size() + ", ids: " + recordsDeleteRef);
@@ -97,7 +97,7 @@ public class JdxRecRemover {
                             log.info(levelIndent + "  " + "<no ref>");
                         } else {
                             for (String tableNameRef_refTableName : deletedRecordsInTable_Ref.keySet()) {
-                                Set<Long> deletedRecordsInTable_RefRef = deletedRecordsInTable_Ref.get(tableNameRef_refTableName);
+                                List<Long> deletedRecordsInTable_RefRef = deletedRecordsInTable_Ref.get(tableNameRef_refTableName);
                                 log.info(levelIndent + "  " + tableNameRef_refTableName + ", count: " + deletedRecordsInTable_RefRef.size() + ", ids: " + deletedRecordsInTable_RefRef);
                             }
                         }
@@ -135,9 +135,12 @@ public class JdxRecRemover {
             List<String> refsToTableSorted = UtJdx.getSortedKeys(struct.getTables(), deletedTablesGlobal);
             for (int i = refsToTableSorted.size() - 1; i >= 0; i--) {
                 String tableNameRef = refsToTableSorted.get(i);
-                Set<Long> recordsDeleteRef = deletedRecordsInTables_Global.get(tableNameRef);
+                List<Long> recordsDeleteRef = deletedRecordsInTables_Global.get(tableNameRef);
                 if (recordsDeleteRef.size() != 0) {
                     log.info("delete from: " + tableNameRef + ", count: " + recordsDeleteRef.size() + ", ids: " + recordsDeleteRef);
+                    // Удаляем в обратном порядке, т.к. в конец были добавлены id "конечных" записей.
+                    // Актуально для иерархических таблиц: при наличии цепочки дочерних записей их нужно удалять с конца.
+                    Collections.reverse(recordsDeleteRef);
                     utRecMerger.execRecordsDelete(tableNameRef, recordsDeleteRef);
                 } else {
                     log.info("delete from: " + tableNameRef + " <no records>");
@@ -163,10 +166,10 @@ public class JdxRecRemover {
      * @param mapSource Map с добавляемыми списками
      * @param mapDest   пополняемая Map со списками
      */
-    private void mergeMaps(Map<String, Set<Long>> mapSource, Map<String, Set<Long>> mapDest) {
+    private void mergeMaps(Map<String, List<Long>> mapSource, Map<String, List<Long>> mapDest) {
         for (String key : mapSource.keySet()) {
-            Set<Long> destList = mapDest.get(key);
-            Set<Long> addList = mapSource.get(key);
+            List<Long> destList = mapDest.get(key);
+            List<Long> addList = mapSource.get(key);
             if (destList == null) {
                 mapDest.put(key, addList);
             } else {

@@ -36,8 +36,8 @@ public class UtRecMerger {
      * @param resultWriter место для сохранения исходного состояния обновляемых/удаленных записей
      * @return Набор id для каждой зависомой таблицы
      */
-    public Map<String, Set<Long>> loadRecordsRefTable(String tableName, Collection<Long> records, IJdxDataSerializer dataSerializer, RecMergeResultWriter resultWriter, MergeOprType writerMode) throws Exception {
-        Map<String, Set<Long>> deletedRecordsInTables = new HashMap<>();
+    public Map<String, List<Long>> loadRecordsRefTable(String tableName, Collection<Long> records, IJdxDataSerializer dataSerializer, RecMergeResultWriter resultWriter, MergeOprType writerMode) throws Exception {
+        Map<String, List<Long>> deletedRecordsInTables = new HashMap<>();
 
         // Собираем непосредственные зависимости
         Map<String, Collection<IJdxForeignKey>> refsToTable = UtJdx.getRefsToTable(struct.getTables(), struct.getTable(tableName), false);
@@ -61,7 +61,7 @@ public class UtRecMerger {
                 String refFkFieldName = fk.getField().getName();
 
                 // Тут собираем id удаленных записей в таблице refTableName только по ссылке refFkFieldName
-                Set<Long> deletedRecordsInTable_forRef = new HashSet<>();
+                List<Long> deletedRecordsInTable_forRef = new ArrayList<>();
 
                 // Таблица во Writer-е
                 if (resultWriter != null) {
@@ -131,10 +131,10 @@ public class UtRecMerger {
      * @param sourceValue
      * @param mapDest
      */
-    private void mergeMaps(String sourceKey, Set<Long> sourceValue, Map<String, Set<Long>> mapDest) {
-        Set<Long> destValue = mapDest.get(sourceKey);
+    private void mergeMaps(String sourceKey, List<Long> sourceValue, Map<String, List<Long>> mapDest) {
+        List<Long> destValue = mapDest.get(sourceKey);
         if (destValue == null) {
-            destValue = new HashSet<>();
+            destValue = new ArrayList<>();
             mapDest.put(sourceKey, destValue);
         }
 
@@ -198,12 +198,14 @@ public class UtRecMerger {
     /**
      * Удаляем записи recordsDelete из tableName
      */
-    public void execRecordsDelete(String tableName, Collection<Long> recordsDelete) throws Exception {
+    public void execRecordsDelete(String tableName, List<Long> recordsDelete) throws Exception {
         String pkFieldName = struct.getTable(tableName).getPrimaryKey().get(0).getName();
         String sqlDelete = "delete from " + tableName + " where " + pkFieldName + " = :" + pkFieldName;
 
         //
         for (long deleteRecId : recordsDelete) {
+            //for (int idx = recordsDelete.size() - 1; idx >= 0; idx--) {
+            //long deleteRecId = recordsDelete.get(idx);
             Map params = UtCnv.toMap(pkFieldName, deleteRecId);
 
             // Удаляем
