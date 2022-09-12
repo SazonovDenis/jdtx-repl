@@ -41,8 +41,6 @@ public class DataFiller implements IDataFiller {
     public Map<String, Object> createGenerators(IJdxTable table, Map generatorsDefault) throws Exception {
         HashMapNoCase<Object> res = new HashMapNoCase<>();
 
-        String tableName = table.getName();
-
         for (IJdxField field : table.getFields()) {
             String fieldName = field.getName();
 
@@ -59,8 +57,18 @@ public class DataFiller implements IDataFiller {
                 continue;
             }
 
+            if (generatorsDefault != null && generatorsDefault.containsKey(keyField)) {
+                res.put(fieldName, generatorsDefault.get(keyField));
+                continue;
+            }
+
             if (generatorsDefault != null && generatorsDefault.containsKey(fieldName)) {
                 res.put(fieldName, generatorsDefault.get(fieldName));
+                continue;
+            }
+
+            if (generatorsDefault != null && generatorsDefault.containsKey(keyDatatype)) {
+                res.put(fieldName, generatorsDefault.get(keyDatatype));
                 continue;
             }
 
@@ -73,7 +81,7 @@ public class DataFiller implements IDataFiller {
                 // Закэшируем набор значений - повторно ссылки искать - дорого
                 generatorsCache.put(keyDatatype, generator);
             } else {
-                generator = getTemplateByDatatype(field);
+                generator = createGeneratorByDatatype(field);
             }
             res.put(fieldName, generator);
         }
@@ -102,13 +110,16 @@ public class DataFiller implements IDataFiller {
         return "field:" + table.getName() + "." + field.getName();
     }
 
-    private Object getTemplateByDatatype(IJdxField field) {
+    private Object createGeneratorByDatatype(IJdxField field) {
         IFieldValueGenerator generator;
 
         switch (field.getJdxDatatype()) {
             case DOUBLE:
             case INTEGER:
-                generator = new FieldValueGenerator_Number();
+                int precision = 3;
+                double max = Math.pow(10, field.getSize());
+                double min = 0;
+                generator = new FieldValueGenerator_Number(min, max, precision);
                 break;
             case STRING:
                 generator = new FieldValueGenerator_String(UtString.repeat("*", field.getSize()), field.getSize());

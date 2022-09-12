@@ -2,6 +2,7 @@ package jdtx.repl.main.api.data_filler
 
 
 import jandcode.dbm.data.*
+import jandcode.dbm.db.Db
 import jandcode.utils.*
 import jdtx.repl.main.api.*
 import jdtx.repl.main.api.struct.*
@@ -81,7 +82,7 @@ class DataFiller_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    void test_genRec_genTemplates_PawnChit() throws Exception {
+    void test_genRec_createGenerators_PawnChit() throws Exception {
         int count = 15
 
         // Посмотрим, как сейчас в БД
@@ -92,14 +93,14 @@ class DataFiller_Test extends ReplDatabaseStruct_Test {
         DataFiller filler = new DataFiller(db, struct)
 
         // Набор генераторов для некоторых полей
-        HashMapNoCase<Object> templatesDefault = [
+        HashMapNoCase<Object> generatorsDefault = [
                 "ChitNo"       : new FieldValueGenerator_String("NO-*****", "0123456789"),
                 "ValuationSumm": new FieldValueGenerator_Number(5000, 120000, 1),
                 "Storn"        : [0, 0, 0, 1]
         ]
 
         // Нагенерим генераторов для остальных полей в таблице
-        Map<String, Object> generators = filler.createGenerators(struct.getTable("PawnChit"), templatesDefault)
+        Map<String, Object> generators = filler.createGenerators(struct.getTable("PawnChit"), generatorsDefault)
 
         // Нагенерим записей по шаблонам
         DataStore st2 = db.loadSql("select * from PawnChit where 1 = 0")
@@ -113,27 +114,27 @@ class DataFiller_Test extends ReplDatabaseStruct_Test {
 
 
     @Test
-    void test_genRec_genTemplates_PawnChitDat() throws Exception {
+    void test_genRec_createGenerators_PawnChitDat() throws Exception {
         DataFiller filler = new DataFiller(db, struct)
-        doTable(struct.getTable("PAWNCHITDAT"), filler)
+        doTable(db, struct.getTable("PAWNCHITDAT"), filler)
     }
 
 
     @Test
-    void test_genRec_genTemplates_All() throws Exception {
+    void test_genRec_createGenerators_All() throws Exception {
         DataFiller filler = new DataFiller(db, struct)
 
         for (IJdxTable table : struct.tables) {
             println("table: " + table.getName())
 
-            doTable(table, filler)
+            doTable(db, table, filler)
 
             println()
         }
     }
 
 
-    void doTable(IJdxTable table, DataFiller filler) throws Exception {
+    void doTable(Db db, IJdxTable table, DataFiller filler) throws Exception {
         int count = 15
 
         //
@@ -149,10 +150,10 @@ class DataFiller_Test extends ReplDatabaseStruct_Test {
         UtData_outTable(st1, count)
 
         // Набор генераторов для некоторых полей (например, id пусть будет null)
-        Map templatesDefault = UtCnv.toMap(pkFieldName, null)
+        Map generatorsDefault = UtCnv.toMap(pkFieldName, null)
 
         // Нагенерим генераторов для остальных полей в таблице
-        Map<String, Object> generators = filler.createGenerators(table, templatesDefault)
+        Map<String, Object> generators = filler.createGenerators(table, generatorsDefault)
 
         // Нагенерим записей по шаблонам
         DataStore st2 = db.loadSql("select * from " + table.getName() + " where 1 = 0")

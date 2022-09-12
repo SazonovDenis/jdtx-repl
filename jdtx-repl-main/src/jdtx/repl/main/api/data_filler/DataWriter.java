@@ -17,9 +17,9 @@ public class DataWriter implements IDataWriter {
 
     public DataWriter(Db db, IJdxDbStruct struct) throws Exception {
         this.db = db;
+        this.dbu = new JdxDbUtils(db, struct);
         this.struct = struct;
         this.filler = new DataFiller(db, struct);
-        dbu = new JdxDbUtils(db, struct);
     }
 
     @Override
