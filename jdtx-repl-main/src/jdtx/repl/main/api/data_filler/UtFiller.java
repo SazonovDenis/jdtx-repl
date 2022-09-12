@@ -2,6 +2,7 @@ package jdtx.repl.main.api.data_filler;
 
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
+import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.struct.*;
 
 import java.util.*;
@@ -68,9 +69,12 @@ public class UtFiller {
     Set<Long> choiceSubsetFromSet(Set<Long> set, long min, long max, int count) {
         Set<Long> tmp = new HashSet<>();
 
-        for (Long val : set) {
-            if (val >= min && val <= max) {
-                tmp.add(val);
+        for (Object valObj : set) {
+            if (valObj instanceof Long || valObj instanceof Integer) {
+                long val = UtJdxData.longValueOf(valObj);
+                if (val >= min && val <= max) {
+                    tmp.add(val);
+                }
             }
         }
 

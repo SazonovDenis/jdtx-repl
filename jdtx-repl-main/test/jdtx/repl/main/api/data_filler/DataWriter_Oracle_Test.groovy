@@ -121,7 +121,8 @@ class DataWriter_Oracle_Test extends ReplDatabaseStruct_Test {
 
         //
         for (IJdxTable table : struct_one.tables) {
-            println("table: " + table.getName())
+            String tableName = table.getName()
+            println("table: " + tableName)
 
             ins_Table(db_one, table, writer, count)
 
@@ -149,7 +150,6 @@ class DataWriter_Oracle_Test extends ReplDatabaseStruct_Test {
 
         for (IJdxTable table : struct_one.tables) {
             String tableName = table.getName()
-
             println("table: " + tableName)
 
             del_Table(tableName, count)
