@@ -24,12 +24,19 @@ class DataWriter_Oracle_Test extends ReplDatabaseStruct_Test {
         super.setUp()
 
         //
+        generatorsDefault.put("field:fileItem.linkFileItem", [null])
         generatorsDefault.put("field:fileItem.ISFOLDER", new FieldValueGenerator_Number(0, 1, 0))
-        generatorsDefault.put("field:fileItem.FILEITEMSTATUS", new FieldValueGenerator_Number(0, 50, 0))
-        generatorsDefault.put("field:fileLog.fileItemIDE", new FieldValueGenerator_Number(0, 3, 0))
-        generatorsDefault.put("field:fileLog.fileAttrIDE", new FieldValueGenerator_Number(0, 3, 0))
-        generatorsDefault.put("field:fileItemOpr.ReplacePolitic", new FieldValueGenerator_Number(0, 3, 0))
-        generatorsDefault.put("field:WAXAUTH_USER.LOCKED", new FieldValueGenerator_Number(0, 1, 0))
+        //generatorsDefault.put("field:fileItem.FILEITEMSTATUS", new FieldValueGenerator_Number(0, 50, 0))
+        generatorsDefault.put("field:fileItem.state", [null])
+        generatorsDefault.put("field:fileItem.FileSize", new FieldValueGenerator_Number(0, 100000, 0))
+        generatorsDefault.put("field:fileItem.FileCrc", new FieldValueGenerator_String("****************", "0123456789ABCDEF"))
+        generatorsDefault.put("field:fileLog.fileItem", new FieldValueGenerator_Number(0, 30000, 0))
+        //generatorsDefault.put("field:fileLog.fileItemIDE", new FieldValueGenerator_Number(0, 3, 0))
+        //generatorsDefault.put("field:fileLog.fileAttrIDE", new FieldValueGenerator_Number(0, 3, 0))
+        generatorsDefault.put("field:FileLogUsed.lastUsedId", new FieldValueGenerator_Number(0, 30000, 0))
+        //generatorsDefault.put("field:fileItemOpr.ReplacePolitic", new FieldValueGenerator_Number(0, 3, 0))
+        //generatorsDefault.put("field:WAXAUTH_USER.LOCKED", new FieldValueGenerator_Number(0, 1, 0))
+        //generatorsDefault.put("field:WAX_VERDB.ver", new FieldValueGenerator_Number(0, 10, 0))
         generatorsDefault.put("field:FILEATTRDEF.ISSYS", new FieldValueGenerator_Number(0, 1, 0))
         generatorsDefault.put("field:FILEATTRDEF.MULTI", new FieldValueGenerator_Number(0, 1, 0))
         generatorsDefault.put("field:FILEATTRDEF.USECOMBO", new FieldValueGenerator_Number(0, 1, 0))
@@ -86,7 +93,7 @@ class DataWriter_Oracle_Test extends ReplDatabaseStruct_Test {
     @Test
     void test_load_FileLog() {
         // Посмотрим, как сейчас в БД
-        String sql = sqlCheck.
+        String sql = sqlCheckTable.
                 replace("#{table}", "fileLog").
                 replace("#{where}", "")
         DataStore st = db_one.loadSql(sql)
@@ -96,17 +103,18 @@ class DataWriter_Oracle_Test extends ReplDatabaseStruct_Test {
     @Test
     void test_ins_FileLog() {
         DataWriter writer = new DataWriter(db_one, struct_one, generatorsDefault)
-        doTable(db_one, struct_one.getTable("FileLog"), writer)
+        ins_Table(db_one, struct_one.getTable("FileLog"), writer)
     }
 
     @Test
     void test_ins_All() {
         DataWriter writer = new DataWriter(db_one, struct_one, generatorsDefault)
+        generatorsDefault.put("field:fileItem.linkFileItem", [null, null, null, null, null, new FieldValueGenerator_Ref(db_one, struct_one, writer.filler)])
 
         for (IJdxTable table : struct_one.tables) {
             println("table: " + table.getName())
 
-            doTable(db_one, table, writer)
+            ins_Table(db_one, table, writer)
 
             println()
         }
@@ -114,33 +122,65 @@ class DataWriter_Oracle_Test extends ReplDatabaseStruct_Test {
 
     @Test
     void test_del_FileItem() {
-        int count = 5
+        int count = 50
+        String tableName = "FileItem"
+        del_Table(tableName, count)
+    }
 
+    @Test
+    void test_del_FileItem_1161() {
+        long id = 1161
+        String tableName = "FileItem"
+
+        IDataWriter writer = new DataWriter(db_one, struct_one)
+        writer.del(tableName, [id], true)
+    }
+
+    @Test
+    void test_del_FileItem_1161_() {
+        long id = 1161
+        String tableName = "FileItem"
+
+        IDataWriter writer = new DataWriter(db_one, struct_one)
+        writer.del(tableName, [id], true)
+    }
+
+    @Test
+    void test_del_FileAttrDef() {
+        int count = 5
+        String tableName = "FileAttrDef"
+        del_Table(tableName, count)
+    }
+
+    void del_Table(String tableName, int count) {
         // Посмотрим, как сейчас в БД
-        String sql = sqlCheckFileItem.replace("#{where}", "")
-        DataStore st = db_one.loadSql(sql)
-        DataFiller_Test.UtData_outTable(st, 999)
+        String sql = sqlCheckTable.
+                replace("#{table}", tableName).
+                replace("#{where}", "")
+        DataStore st// = db_one.loadSql(sql)
+        //DataFiller_Test.UtData_outTable(st, 999)
 
         //
         IDataWriter writer = new DataWriter(db_one, struct_one)
 
         // Получим все id
-        DataStore st1 = db_one.loadSql("select id from FileItem")
-        Set set = UtData.uniqueValues(st1, "id")
-        set.remove(0)
-        set.remove(1)
+        Set<Long> setFull = writer.utFiller.loadAllIds(tableName)
+        setFull.remove(0L)
+        setFull.remove(1L)
 
         // Отберем из них несколько
         Set<Long> setDel = writer.utFiller.choiceSubsetFromSet(setFull, count)
 
         // Удалим отобранные id
-        writer.del("FileItem", setDel, true)
-        println("deleted: " + setDel)
+        println("deleting: " + setDel)
+        writer.del(tableName, setDel, true)
 
         // Посмотрим, как сейчас в БД
-        sql = sqlCheckFileItem.replace("#{where}", "")
-        st1 = db_one.loadSql(sql)
-        DataFiller_Test.UtData_outTable(st1, 999)
+        sql = sqlCheckTable.
+                replace("#{table}", tableName).
+                replace("#{where}", "")
+        st = db_one.loadSql(sql)
+        DataFiller_Test.UtData_outTable(st, 999)
     }
 
     @Test
@@ -209,13 +249,13 @@ order by
 """
 
 
-    void doTable(Db db, IJdxTable table, DataWriter writer) {
+    void ins_Table(Db db, IJdxTable table, DataWriter writer) {
         int count = 30
 
         String tableName = table.getName()
 
         // Посмотрим, как сейчас в БД
-        String sql = sqlCheck.
+        String sql = sqlCheckTable.
                 replace("#{table}", tableName).
                 replace("#{where}", "")
         DataStore st = db.loadSql(sql)
@@ -226,7 +266,7 @@ order by
         println("inserted: " + set.keySet())
 
         // Посмотрим, как сейчас в БД
-        sql = sqlCheck.
+        sql = sqlCheckTable.
                 replace("#{table}", tableName).
                 replace("#{where}", "and " + tableName + ".id in (" + setToStr(set.keySet()) + ")")
         //
@@ -240,7 +280,7 @@ order by
         return idsStr
     }
 
-    String sqlCheck = """
+    String sqlCheckTable = """
 select
   #{table}.*
 from

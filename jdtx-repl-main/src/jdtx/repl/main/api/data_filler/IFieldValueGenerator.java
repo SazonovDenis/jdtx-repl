@@ -7,6 +7,6 @@ import jdtx.repl.main.api.struct.*;
  */
 public interface IFieldValueGenerator {
 
-    Object genValue(IJdxField field);
+    Object genValue(IJdxField field) throws Exception;
 
 }

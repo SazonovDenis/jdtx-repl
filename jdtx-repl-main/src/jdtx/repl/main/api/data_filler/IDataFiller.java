@@ -19,7 +19,7 @@ public interface IDataFiller {
      *
      * @param tableGenerators генераторы по умолчанию (для некоторых полей таблицы)
      */
-    Map<String, Object> genRecord(IJdxTable table, Map<String, Object> tableGenerators);
+    Map<String, Object> genRecord(IJdxTable table, Map<String, Object> tableGenerators) throws Exception;
 
     /**
      * Для каждого поля таблицы table создает заполнятель для генерации значений.
@@ -30,6 +30,8 @@ public interface IDataFiller {
 
 
     Map<String, Object> getGeneratorsCache();
+
+    Map<String, Set<Long>> getRefValuesCache();
 
     String getFieldKey(IJdxField field);
 

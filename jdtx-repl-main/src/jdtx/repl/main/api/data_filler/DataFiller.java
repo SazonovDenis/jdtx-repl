@@ -1,6 +1,5 @@
 package jdtx.repl.main.api.data_filler;
 
-import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jdtx.repl.main.api.struct.*;
@@ -12,11 +11,17 @@ public class DataFiller implements IDataFiller {
     Db db;
     IJdxDbStruct struct;
     Map<String, Object> generatorsCache;
-    Random rnd;
+    Map<String, Set<Long>> refValuesCache;
+    UtFiller utFiller;
 
     @Override
     public Map<String, Object> getGeneratorsCache() {
         return generatorsCache;
+    }
+
+    @Override
+    public Map<String, Set<Long>> getRefValuesCache() {
+        return refValuesCache;
     }
 
     public DataFiller(Db db, IJdxDbStruct struct, Map<String, Object> defaultGenerators) {
@@ -27,7 +32,8 @@ public class DataFiller implements IDataFiller {
         } else {
             this.generatorsCache = defaultGenerators;
         }
-        this.rnd = new Random();
+        this.refValuesCache = new HashMap<>();
+        this.utFiller = new UtFiller(db, struct);
     }
 
     public DataFiller(Db db, IJdxDbStruct struct) {
@@ -35,7 +41,7 @@ public class DataFiller implements IDataFiller {
     }
 
     @Override
-    public Map<String, Object> genRecord(IJdxTable table, Map<String, Object> tableGenerators) {
+    public Map<String, Object> genRecord(IJdxTable table, Map<String, Object> tableGenerators) throws Exception {
         Map<String, Object> rec = new HashMap<>();
 
         for (IJdxField field : table.getFields()) {
@@ -80,10 +86,7 @@ public class DataFiller implements IDataFiller {
             Object generator;
             IJdxTable refTable = field.getRefTable();
             if (refTable != null) {
-                // Правильно подготовим набор значений для ссылочных полей
-                generator = getRefValuesSet(refTable);
-                // Закэшируем набор значений - повторно ссылки искать - дорого
-                generatorsCache.put(keyField, generator);
+                generator = new FieldValueGenerator_Ref(db, struct, this);
             } else {
                 generator = createGeneratorByDatatype(field);
             }
@@ -131,10 +134,10 @@ public class DataFiller implements IDataFiller {
 
         switch (field.getJdxDatatype()) {
             case DOUBLE:
-                generator = new FieldValueGenerator_Number(0.0, Math.pow(10, field.getSize()), 3);
+                generator = new FieldValueGenerator_Number(0.0, Math.pow(10, field.getSize() - 1), 3);
                 break;
             case INTEGER:
-                generator = new FieldValueGenerator_Number(0.0, Math.pow(10, field.getSize()), 0);
+                generator = new FieldValueGenerator_Number(0.0, Math.pow(10, field.getSize() - 1), 0);
                 break;
             case STRING:
                 generator = new FieldValueGenerator_String(UtString.repeat("*", field.getSize()), field.getSize());
@@ -152,22 +155,11 @@ public class DataFiller implements IDataFiller {
         return generator;
     }
 
-    /**
-     * Для таблицы refTable собирает возможные значения ссылок на нее
-     */
-    private Set getRefValuesSet(IJdxTable refTable) throws Exception {
-        String refTableName = refTable.getName();
-        IJdxField pkField = refTable.getPrimaryKey().get(0);
-        String pkFieldName = pkField.getName();
-        DataStore refSt = db.loadSql("select distinct " + pkFieldName + " as id from " + refTableName);
-        return UtData.uniqueValues(refSt, "id");
-    }
-
-    private Object genValue(IJdxField field, Object fieldsTemplates) {
+    private Object genValue(IJdxField field, Object fieldGenerators) throws Exception {
         Object value;
 
         // Можно передать несколь генераторов, тут выберем один
-        Object fieldGenerator = selectOneGenerator(fieldsTemplates);
+        Object fieldGenerator = utFiller.selectOneObject(fieldGenerators);
 
         if (fieldGenerator instanceof IFieldValueGenerator) {
             // Можно передать заполнятель
@@ -179,24 +171,6 @@ public class DataFiller implements IDataFiller {
         }
 
         return value;
-    }
-
-    private Object selectOneGenerator(Object generators) {
-        Object generator;
-
-        if (generators instanceof List) {
-            List<Object> fieldTemplatesList = (List) generators;
-            int rndIdx = rnd.nextInt(fieldTemplatesList.size());
-            generator = fieldTemplatesList.get(rndIdx);
-        } else if (generators instanceof Set) {
-            Set<Object> fieldTemplatesSet = (Set) generators;
-            int idx = rnd.nextInt(fieldTemplatesSet.size());
-            generator = fieldTemplatesSet.toArray()[idx];
-        } else {
-            generator = generators;
-        }
-
-        return generator;
     }
 
 
