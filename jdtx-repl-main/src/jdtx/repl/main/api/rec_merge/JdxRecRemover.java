@@ -92,13 +92,13 @@ public class JdxRecRemover {
                         Map<String, List<Long>> deletedRecordsInTable_Ref = utRecMerger.loadRecordsRefTable(tableNameRef, recordsDeleteRef, dataSerializer, recMergeResultWriter, MergeOprType.DEL);
 
                         //
-                        log.info(levelIndent + "Dependences for: " + tableNameRef + ", count: " + recordsDeleteRef.size() + ", ids: " + recordsDeleteRef);
+                        log.debug(levelIndent + "Dependences for: " + tableNameRef + ", count: " + recordsDeleteRef.size() + ", ids: " + recordsDeleteRef);
                         if (deletedRecordsInTable_Ref.keySet().size() == 0) {
-                            log.info(levelIndent + "  " + "<no ref>");
+                            log.debug(levelIndent + "  " + "<no ref>");
                         } else {
                             for (String tableNameRef_refTableName : deletedRecordsInTable_Ref.keySet()) {
                                 List<Long> deletedRecordsInTable_RefRef = deletedRecordsInTable_Ref.get(tableNameRef_refTableName);
-                                log.info(levelIndent + "  " + tableNameRef_refTableName + ", count: " + deletedRecordsInTable_RefRef.size() + ", ids: " + deletedRecordsInTable_RefRef);
+                                log.debug(levelIndent + "  " + tableNameRef_refTableName + ", count: " + deletedRecordsInTable_RefRef.size() + ", ids: " + deletedRecordsInTable_RefRef);
                             }
                         }
 
@@ -106,6 +106,12 @@ public class JdxRecRemover {
                         mergeMaps(deletedRecordsInTable_Ref, deletedRecordsInTables_Curr);
                     }
                 }
+
+                // Уберем из deletedRecordsInTables_Curr значения, которые
+                // 1) уже есть в deletedRecordsInTables_Global
+                // 1) указаны в recordsDelete
+                clearAlreadyExists(deletedRecordsInTables_Curr.get(tableName), recordsDelete);
+                clearAlreadyExists(deletedRecordsInTables_Curr, deletedRecordsInTables_Global);
 
                 // Пополняем общий список зависимостей
                 mergeMaps(deletedRecordsInTables_Curr, deletedRecordsInTables_Global);
@@ -156,6 +162,26 @@ public class JdxRecRemover {
         } catch (Exception e) {
             db.rollback();
             throw e;
+        }
+    }
+
+    private void clearAlreadyExists(List<Long> idsNew, List<Long> listFull) {
+        // Проиндексируем
+        Set<Long> setFull = new HashSet<>(listFull);
+
+        // Проверим
+        if (idsNew != null) {
+            for (int i = idsNew.size() - 1; i >= 0; i--) {
+                if (setFull.contains(idsNew.get(i))) {
+                    idsNew.remove(i);
+                }
+            }
+        }
+    }
+
+    private void clearAlreadyExists(Map<String, List<Long>> list, Map<String, List<Long>> listFull) {
+        for (String tableName : listFull.keySet()) {
+            clearAlreadyExists(list.get(tableName), listFull.get(tableName));
         }
     }
 

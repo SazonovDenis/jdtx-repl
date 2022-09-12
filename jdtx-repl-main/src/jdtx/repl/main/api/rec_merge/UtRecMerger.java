@@ -204,8 +204,6 @@ public class UtRecMerger {
 
         //
         for (long deleteRecId : recordsDelete) {
-            //for (int idx = recordsDelete.size() - 1; idx >= 0; idx--) {
-            //long deleteRecId = recordsDelete.get(idx);
             Map params = UtCnv.toMap(pkFieldName, deleteRecId);
 
             // Удаляем

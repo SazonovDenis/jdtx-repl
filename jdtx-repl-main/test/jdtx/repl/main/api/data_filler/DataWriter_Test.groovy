@@ -107,12 +107,11 @@ class DataWriter_Test extends ReplDatabaseStruct_Test {
         IDataWriter writer = new DataWriter(db, struct)
 
         // Получим все id
-        DataStore st1 = db.loadSql("select id from lic")
-        Set setFull = UtData.uniqueValues(st1, "id")
+        Set<Long> setFull = writer.utFiller.loadAllIds("Lic")
         setFull.remove(0)
 
         // Отберем из них несколько
-        Set setDel = writer.choiceSubsetFromSet(setFull, count)
+        Set setDel = writer.utFiller.choiceSubsetFromSet(setFull, count)
 
         // Удалим отобранные id
         writer.del("Lic", setDel, true)

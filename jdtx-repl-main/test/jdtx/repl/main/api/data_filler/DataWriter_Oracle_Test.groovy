@@ -131,7 +131,7 @@ class DataWriter_Oracle_Test extends ReplDatabaseStruct_Test {
         set.remove(1)
 
         // Отберем из них несколько
-        Set<Long> setDel = writer.choiceSubsetFromSet(set, count)
+        Set<Long> setDel = writer.utFiller.choiceSubsetFromSet(setFull, count)
 
         // Удалим отобранные id
         writer.del("FileItem", setDel, true)
@@ -152,12 +152,12 @@ class DataWriter_Oracle_Test extends ReplDatabaseStruct_Test {
         IDataWriter writer = new DataWriter(db_one, struct_one, generatorsDefault)
 
         // Получим все id
-        Set<Long> setFull = writer.loadAllIds(tableName)
+        Set<Long> setFull = writer.utFiller.loadAllIds(tableName)
         setFull.remove(0)
         setFull.remove(1)
 
         // Отберем из них сколько просили
-        Set<Long> setUpd = writer.choiceSubsetFromSet(setFull, count)
+        Set<Long> setUpd = writer.utFiller.choiceSubsetFromSet(setFull, count)
 
         // Посмотрим, как сейчас в БД
         String sql = sqlCheckFileItem.
