@@ -36,7 +36,7 @@ public class UtFiller {
 
     /**
      * Из набора set выбирает случайно count элементов.
-     * Если запрошено больше, чем есть исходно - вернет все, что есть.
+     * Если запрошено больше, чем есть в наборе - вернет весь набор.
      *
      * @return Новый набор
      */
@@ -57,6 +57,25 @@ public class UtFiller {
         }
 
         return res;
+    }
+
+    /**
+     * Из набора set выбирает случайно count элементов, леэащих в указанном диапазоне min..max.
+     * Если запрошено больше, чем есть в наборе - вернет весь набор.
+     *
+     * @return Новый набор
+     */
+    Set<Long> choiceSubsetFromSet(Set<Long> set, long min, long max, int count) {
+        Set<Long> tmp = new HashSet<>();
+
+        for (Long val : set) {
+            if (val >= min && val <= max) {
+                tmp.add(val);
+            }
+        }
+
+        //
+        return choiceSubsetFromSet(tmp, count);
     }
 
 

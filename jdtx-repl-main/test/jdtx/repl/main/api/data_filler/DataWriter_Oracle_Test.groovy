@@ -175,7 +175,7 @@ class DataWriter_Oracle_Test extends ReplDatabaseStruct_Test {
         setFull.remove(1L)
 
         // Отберем из них несколько
-        Set<Long> setDel = writer.utFiller.choiceSubsetFromSet(setFull, count)
+        Set<Long> setDel = writer.utFiller.choiceSubsetFromSet(setFull, 1000, Long.MAX_VALUE, count)
 
         // Удалим отобранные id
         println("deleting: " + setDel)
