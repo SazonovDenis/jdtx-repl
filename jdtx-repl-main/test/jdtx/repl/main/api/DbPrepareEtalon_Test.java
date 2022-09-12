@@ -6,7 +6,6 @@ import jandcode.dbm.db.*;
 import jandcode.jc.*;
 import jandcode.jc.test.*;
 import jandcode.utils.rt.*;
-import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.ext.*;
 import org.apache.commons.io.*;
 import org.junit.*;

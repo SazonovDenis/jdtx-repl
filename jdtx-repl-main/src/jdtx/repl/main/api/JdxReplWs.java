@@ -1954,18 +1954,18 @@ public class JdxReplWs {
         if (needRepair || doPrintIfNeedNoRepair) {
             log.warn("Restore from backup: need repair: " + needRepair);
             log.warn("  self.wsId: " + wsId);
-            log.warn("  noQueIn: " + noQueIn);
-            log.warn("  noQueInDir: " + noQueInDir);
-            log.warn("  noQueInReadSrv: " + noQueInReadSrv);
             log.warn("  noQueIn001: " + noQueIn001);
             log.warn("  noQueIn001Dir: " + noQueIn001Dir);
             log.warn("  noQueIn001ReadSrv: " + noQueIn001ReadSrv);
+            log.warn("  noQueIn001Used: " + noQueIn001Used);
+            log.warn("  noQueIn: " + noQueIn);
+            log.warn("  noQueInDir: " + noQueInDir);
+            log.warn("  noQueInReadSrv: " + noQueInReadSrv);
+            log.warn("  noQueInUsed: " + noQueInUsed);
             log.warn("  noQueOut: " + noQueOut);
             log.warn("  noQueOutDir: " + noQueOutDir);
             log.warn("  noQueOutSendSrv: " + noQueOutSendSrv);
             log.warn("  noQueOutSendMarked: " + noQueOutSendMarked);
-            log.warn("  noQueIn001Used: " + noQueIn001Used);
-            log.warn("  noQueInUsed: " + noQueInUsed);
             log.warn("  lockFile: " + repairLockFileManager.repairLockFileStr());
             log.warn("  need repair: " + needRepair);
         }
@@ -2004,8 +2004,6 @@ public class JdxReplWs {
                     "noQueOutDir: " + noQueOutDir + ", " +
                     "noQueOutSendSrv: " + noQueOutSendSrv + ", " +
                     "noQueOutSendMarked: " + noQueOutSendMarked + ", " +
-                    "noQueIn001Used: " + noQueIn001Used + ", " +
-                    "noQueInUsed: " + noQueInUsed + ", " +
                     "lockFile: " + repairLockFileManager.repairLockFileStr() + ", " +
                     "need repair: " + needRepair;
             throw new XError("Detected restore from backup, repair needed: " + errInfo);
