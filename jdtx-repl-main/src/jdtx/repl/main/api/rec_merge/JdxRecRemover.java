@@ -37,7 +37,7 @@ public class JdxRecRemover {
         }
 
         // Не затирать существующий
-        if (resultFile.exists()) {
+        if (resultFile != null && resultFile.exists()) {
             throw new XError("Result file already exists: " + resultFile.getCanonicalPath());
         }
 
@@ -45,51 +45,76 @@ public class JdxRecRemover {
         tableName = struct.getTable(tableName).getName();
 
         // Начинаем писать
-        RecMergeResultWriter recMergeResultWriter = new RecMergeResultWriter();
-        recMergeResultWriter.open(resultFile);
+        RecMergeResultWriter recMergeResultWriter = null;
+        if (resultFile != null) {
+            recMergeResultWriter = new RecMergeResultWriter();
+            recMergeResultWriter.open(resultFile);
+        }
 
         //
         UtRecMerger utRecMerger = new UtRecMerger(db, struct);
 
         //
-        Map<String, Set<Long>> deletedRecordsInTablesGlobal = new HashMap<>();
+        Map<String, Set<Long>> deletedRecordsInTables_Global = new HashMap<>();
         Set<String> deletedTablesGlobal = new HashSet<>();
 
         // Первая таблица в задание - та, которую передали в tableName
         Set<Long> recordsDelete = new HashSet<>();
         recordsDelete.add(tableId);
 
-        // Сохраним удаляемые
+        // Прочитаем удаляемые записи и сохраним их в resultFile
         db.startTran();
         try {
             // Сохраним удаляемые из самой tableName
-            utRecMerger.saveRecordsTable(tableName, recordsDelete, recMergeResultWriter, dataSerializer);
+            if (resultFile != null) {
+                utRecMerger.saveRecordsTable(tableName, recordsDelete, dataSerializer, recMergeResultWriter);
+            }
 
-            // Сохраним удаляемые данные из зависимых от таблицы tableName (слой за слоем)
+            // Сохраним удаляемые данные из зависимых от tableName (слой за слоем)
+
+            // В первый слой ссылок добавляем записи на удаление из текущей таблицы
+            String levelIndent = "";
             Map<String, Set<Long>> deletedRecordsInTables = new HashMap<>();
             deletedRecordsInTables.put(tableName, recordsDelete);
+
+            // Переходим от текущего слоя ссылок переходим к следующему, пока на очередном слое не останется сылок
             do {
-                Map<String, Set<Long>> deletedRecordsInTablesCurr = new HashMap<>();
+                Map<String, Set<Long>> deletedRecordsInTables_Curr = new HashMap<>();
 
                 // Собираем зависимости от таблиц из текуших deletedRecordsInTables
                 Collection<String> refTables = deletedRecordsInTables.keySet();
                 for (String tableNameRef : refTables) {
                     Set<Long> recordsDeleteRef = deletedRecordsInTables.get(tableNameRef);
-                    Map<String, Set<Long>> deletedRecordsInTablesRef = utRecMerger.saveRecordsRefTable(tableNameRef, recordsDeleteRef, recMergeResultWriter, MergeOprType.DEL, dataSerializer);
 
-                    //
-                    log.info("dependences for " + tableNameRef + ": " + deletedRecordsInTablesRef.keySet());
+                    // Если есть записи по ссылке, то разматываем её
+                    if (recordsDeleteRef.size() > 0) {
+                        //
+                        Map<String, Set<Long>> deletedRecordsInTable_Ref = utRecMerger.loadRecordsRefTable(tableNameRef, recordsDeleteRef, dataSerializer, recMergeResultWriter, MergeOprType.DEL);
 
-                    //
-                    addAllListValuesInMaps(deletedRecordsInTablesCurr, deletedRecordsInTablesRef);
+                        //
+                        log.info(levelIndent + "Dependences for: " + tableNameRef + ", count: " + recordsDeleteRef.size() + ", ids: " + recordsDeleteRef);
+                        if (deletedRecordsInTable_Ref.keySet().size() == 0) {
+                            log.info(levelIndent + "  " + "<no ref>");
+                        } else {
+                            for (String tableNameRef_refTableName : deletedRecordsInTable_Ref.keySet()) {
+                                Set<Long> deletedRecordsInTable_RefRef = deletedRecordsInTable_Ref.get(tableNameRef_refTableName);
+                                log.info(levelIndent + "  " + tableNameRef_refTableName + ", count: " + deletedRecordsInTable_RefRef.size() + ", ids: " + deletedRecordsInTable_RefRef);
+                            }
+                        }
+
+                        //
+                        mergeMaps(deletedRecordsInTable_Ref, deletedRecordsInTables_Curr);
+                    }
                 }
 
                 // Пополняем общий список зависимостей
-                addAllListValuesInMaps(deletedRecordsInTablesGlobal, deletedRecordsInTablesCurr);
+                mergeMaps(deletedRecordsInTables_Curr, deletedRecordsInTables_Global);
                 deletedTablesGlobal.addAll(refTables);
 
                 // Теперь переходим на зависимости следующего слоя
-                deletedRecordsInTables = deletedRecordsInTablesCurr;
+                deletedRecordsInTables = deletedRecordsInTables_Curr;
+                //
+                levelIndent = levelIndent + "  ";
             } while (deletedRecordsInTables.size() != 0);
 
         } finally {
@@ -97,8 +122,10 @@ public class JdxRecRemover {
         }
 
 
-        // Завершаем писать
-        recMergeResultWriter.close();
+        // Завершаем сохранение записи
+        if (resultFile != null) {
+            recMergeResultWriter.close();
+        }
 
 
         // Выполняем удаление
@@ -106,15 +133,19 @@ public class JdxRecRemover {
         try {
             // Удаление из зависимых
             List<String> refsToTableSorted = UtJdx.getSortedKeys(struct.getTables(), deletedTablesGlobal);
-            for (int i = refsToTableSorted.size() - 1; i > 0; i--) {
+            for (int i = refsToTableSorted.size() - 1; i >= 0; i--) {
                 String tableNameRef = refsToTableSorted.get(i);
-                Set<Long> recordsDeleteRef = deletedRecordsInTablesGlobal.get(tableNameRef);
-                log.info("delete from: " + tableNameRef + " (count: " + recordsDeleteRef.size() + ")");
-                utRecMerger.execRecordsDelete(tableNameRef, recordsDeleteRef);
+                Set<Long> recordsDeleteRef = deletedRecordsInTables_Global.get(tableNameRef);
+                if (recordsDeleteRef.size() != 0) {
+                    log.info("delete from: " + tableNameRef + ", count: " + recordsDeleteRef.size() + ", ids: " + recordsDeleteRef);
+                    utRecMerger.execRecordsDelete(tableNameRef, recordsDeleteRef);
+                } else {
+                    log.info("delete from: " + tableNameRef + " <no records>");
+                }
             }
 
             // Удаление из основной таблицы
-            log.info("delete from: " + tableName + " (count: " + recordsDelete.size() + ")");
+            log.info("delete main: " + tableName + ", count: " + recordsDelete.size() + ", ids: " + recordsDelete);
             utRecMerger.execRecordsDelete(tableName, recordsDelete);
 
             //
@@ -126,15 +157,16 @@ public class JdxRecRemover {
     }
 
     /**
-     * Сливает два мапы, содержащие списки, таким образим, что уже имеющиеся значения в списке не затираются, а объединяются
+     * Сливает две мапы, содержащие списки, таким образом,
+     * что уже имеющиеся значения в списках не затираются, а объединяются
      *
-     * @param mapDest пополняемая Map со списками
-     * @param mapAdd  Map с добавляемыми списками
+     * @param mapSource Map с добавляемыми списками
+     * @param mapDest   пополняемая Map со списками
      */
-    private void addAllListValuesInMaps(Map<String, Set<Long>> mapDest, Map<String, Set<Long>> mapAdd) {
-        for (String key : mapAdd.keySet()) {
+    private void mergeMaps(Map<String, Set<Long>> mapSource, Map<String, Set<Long>> mapDest) {
+        for (String key : mapSource.keySet()) {
             Set<Long> destList = mapDest.get(key);
-            Set<Long> addList = mapAdd.get(key);
+            Set<Long> addList = mapSource.get(key);
             if (destList == null) {
                 mapDest.put(key, addList);
             } else {

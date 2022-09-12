@@ -208,10 +208,10 @@ public class JdxRecMerger implements IJdxRecMerger {
                 }
 
                 // DEL - Сохраняем то, что нужно удалить
-                utRecMerger.saveRecordsTable(mergePlan.tableName, recordsDelete, resultWriter, dataSerializer);
+                utRecMerger.saveRecordsTable(mergePlan.tableName, recordsDelete, dataSerializer, resultWriter);
 
                 // UPD - Сохраняем то, где нужно перебить ссылки
-                utRecMerger.saveRecordsRefTable(mergePlan.tableName, recordsDelete, resultWriter, MergeOprType.UPD, dataSerializer);
+                utRecMerger.loadRecordsRefTable(mergePlan.tableName, recordsDelete, dataSerializer, resultWriter, MergeOprType.UPD);
 
 
                 // UPD - Перебиваем ссылки у зависимых таблиц

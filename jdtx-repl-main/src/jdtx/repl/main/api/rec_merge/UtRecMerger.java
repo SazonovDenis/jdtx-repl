@@ -36,11 +36,8 @@ public class UtRecMerger {
      * @param resultWriter место для сохранения исходного состояния обновляемых/удаленных записей
      * @return Набор id для каждой зависомой таблицы
      */
-    public Map<String, Set<Long>> saveRecordsRefTable(String tableName, Collection<Long> records, RecMergeResultWriter resultWriter, MergeOprType writerMode, IJdxDataSerializer dataSerializer) throws Exception {
+    public Map<String, Set<Long>> loadRecordsRefTable(String tableName, Collection<Long> records, IJdxDataSerializer dataSerializer, RecMergeResultWriter resultWriter, MergeOprType writerMode) throws Exception {
         Map<String, Set<Long>> deletedRecordsInTables = new HashMap<>();
-
-        //
-        log.info("Dependences for: " + tableName + ", records: " + records.size());
 
         // Собираем непосредственные зависимости
         Map<String, Collection<IJdxForeignKey>> refsToTable = UtJdx.getRefsToTable(struct.getTables(), struct.getTable(tableName), false);
@@ -54,25 +51,28 @@ public class UtRecMerger {
             String refTablePkFieldName = refTable.getPrimaryKey().get(0).getName();
 
             // Таблица и поля в Serializer-е
-            dataSerializer.setTable(refTable, UtJdx.fieldsToString(refTable.getFields()));
+            if (resultWriter != null) {
+                dataSerializer.setTable(refTable, UtJdx.fieldsToString(refTable.getFields()));
+            }
 
             //
             Collection<IJdxForeignKey> refsToTableFkList = refsToTable.get(refTableName);
             for (IJdxForeignKey fk : refsToTableFkList) {
                 String refFkFieldName = fk.getField().getName();
 
-                // Тут собираем только id удаленных записей в таблице refTableName
-                Set<Long> deletedRecordsInTable = new HashSet<>();
-                deletedRecordsInTables.put(refTableName, deletedRecordsInTable);
+                // Тут собираем id удаленных записей в таблице refTableName только по ссылке refFkFieldName
+                Set<Long> deletedRecordsInTable_forRef = new HashSet<>();
 
                 // Таблица во Writer-е
-                String refInfo = "ref: " + refTableName + "." + refFkFieldName + "--" + tableName;
-                resultWriter.writeTableItem(new MergeResultTableItem(refTableName, writerMode, refInfo));
+                if (resultWriter != null) {
+                    String refInfo = "ref: " + refTableName + "." + refFkFieldName + "--" + tableName;
+                    resultWriter.writeTableItem(new MergeResultTableItem(refTableName, writerMode, refInfo));
+                }
 
                 //
                 log.debug("Dependence: " + refTableName + "." + refFkFieldName + " --> " + tableName);
 
-                // Селектим из refTableName по ссылке refFkFieldName, записываем в resultWriter и deletedRecordsInTable
+                // Селектим из refTableName по ссылке refFkFieldName, записываем в resultWriter и deletedRecordsInTable_forRef
                 String sqlSelect = "select * from " + refTableName + " where " + refFkFieldName + " = :" + refFkFieldName;
                 long countTotal = 0;
                 for (long recordId : records) {
@@ -86,11 +86,13 @@ public class UtRecMerger {
                         while (!query.eof()) {
                             Map<String, Object> values = query.getValues();
                             // Сохраняем всю запись в resultWriter
-                            Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
-                            resultWriter.writeRec(valuesStr);
+                            if (resultWriter != null) {
+                                Map<String, String> valuesStr = dataSerializer.prepareValuesStr(values);
+                                resultWriter.writeRec(valuesStr);
+                            }
                             // Собираем только id записи
                             long id = UtJdxData.longValueOf(values.get(refTablePkFieldName));
-                            deletedRecordsInTable.add(id);
+                            deletedRecordsInTable_forRef.add(id);
                             //
                             count = count + 1;
                             //
@@ -106,23 +108,44 @@ public class UtRecMerger {
                     //
                     countTotal++;
                     if (countTotal % 1000 == 0) {
-                        log.info("  " + countTotal + " / " + records.size() + ", found: " + deletedRecordsInTable.size());
+                        log.info("  " + countTotal + " / " + records.size() + ", found: " + deletedRecordsInTable_forRef.size());
                     }
                 }
+
+                // Тут собираем id удаленных записей в таблице refTableName не только по ссылке refFkFieldName,
+                // а по всем ссылкам из таблицы refTableName
+                mergeMaps(refTableName, deletedRecordsInTable_forRef, deletedRecordsInTables);
             }
         }
-
-        //
-        log.info("Dependences for: " + tableName + " done");
 
         //
         return deletedRecordsInTables;
     }
 
     /**
+     * К мапе mapDest, содержащей списки,
+     * добавляет список sourceValue по ключу sourceKey таким образом,
+     * что уже имеющееся значения по ключу sourceKey не затираются, а пополняется
+     *
+     * @param sourceKey
+     * @param sourceValue
+     * @param mapDest
+     */
+    private void mergeMaps(String sourceKey, Set<Long> sourceValue, Map<String, Set<Long>> mapDest) {
+        Set<Long> destValue = mapDest.get(sourceKey);
+        if (destValue == null) {
+            destValue = new HashSet<>();
+            mapDest.put(sourceKey, destValue);
+        }
+
+        destValue.addAll(sourceValue);
+    }
+
+
+    /**
      * Сохраняем записи records из tableName
      */
-    public void saveRecordsTable(String tableName, Collection<Long> records, RecMergeResultWriter resultWriter, IJdxDataSerializer dataSerializer) throws Exception {
+    public void saveRecordsTable(String tableName, Collection<Long> records, IJdxDataSerializer dataSerializer, RecMergeResultWriter resultWriter) throws Exception {
         // Таблица и поля в Serializer-е
         IJdxTable table = struct.getTable(tableName);
         dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));

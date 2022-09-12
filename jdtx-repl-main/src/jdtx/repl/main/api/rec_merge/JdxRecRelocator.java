@@ -45,9 +45,9 @@ public class JdxRecRelocator {
         recMergeResultWriter.open(outFile);
 
         // DEL - Сохраняем то, что нужно удалить
-        utRecMerger.saveRecordsTable(tableName, recordsDelete, recMergeResultWriter, dataSerializer);
+        utRecMerger.saveRecordsTable(tableName, recordsDelete, dataSerializer, recMergeResultWriter);
         // UPD - Сохраняем то, где нужно перебить ссылки
-        utRecMerger.saveRecordsRefTable(tableName, recordsDelete, recMergeResultWriter, MergeOprType.UPD, dataSerializer);
+        utRecMerger.loadRecordsRefTable(tableName, recordsDelete, dataSerializer, recMergeResultWriter, MergeOprType.UPD);
 
         // Сохраняем
         recMergeResultWriter.close();
@@ -199,9 +199,9 @@ public class JdxRecRelocator {
             recMergeResultWriter.open(resultFile);
 
             // DEL - Сохраняем то, что нужно удалить
-            utRecMerger.saveRecordsTable(tableName, recordsDelete, recMergeResultWriter, dataSerializer);
+            utRecMerger.saveRecordsTable(tableName, recordsDelete, dataSerializer, recMergeResultWriter);
             // UPD - Сохраняем то, где нужно перебить ссылки
-            utRecMerger.saveRecordsRefTable(tableName, recordsDelete, recMergeResultWriter, MergeOprType.UPD, dataSerializer);
+            utRecMerger.loadRecordsRefTable(tableName, recordsDelete, dataSerializer, recMergeResultWriter, MergeOprType.UPD);
 
             // Сохраняем
             recMergeResultWriter.close();
