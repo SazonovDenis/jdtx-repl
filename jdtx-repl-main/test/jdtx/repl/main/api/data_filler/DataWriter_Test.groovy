@@ -108,15 +108,15 @@ class DataWriter_Test extends ReplDatabaseStruct_Test {
 
         // Получим все id
         DataStore st1 = db.loadSql("select id from lic")
-        Set licSet = UtData.uniqueValues(st1, "id")
-        licSet.remove(0)
+        Set setFull = UtData.uniqueValues(st1, "id")
+        setFull.remove(0)
 
         // Отберем из них несколько
-        Set licSetDel = writer.choiceSubsetFromSet(licSet, count)
+        Set setDel = writer.choiceSubsetFromSet(setFull, count)
 
         // Удалим отобранные id
-        Map<Long, Map> lic = writer.del("Lic", licSetDel, true)
-        println("deleted: " + lic.keySet())
+        writer.del("Lic", setDel, true)
+        println("deleted: " + setDel)
 
         // Посмотрим, как сейчас в БД
         sql = sqlCheckLic.replace("#{where}", "")

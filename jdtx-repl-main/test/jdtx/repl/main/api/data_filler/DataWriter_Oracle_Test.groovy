@@ -16,10 +16,27 @@ class DataWriter_Oracle_Test extends ReplDatabaseStruct_Test {
             "name"        : new FieldValueGenerator_String("File*********", 15)
     ]
 
+    HashMapNoCase<Object> generatorsDefault = new HashMapNoCase<>()
+
     @Override
     void setUp() throws Exception {
         rootDir = "../../ext/"
         super.setUp()
+
+        //
+        generatorsDefault.put("field:fileItem.ISFOLDER", new FieldValueGenerator_Number(0, 1, 0))
+        generatorsDefault.put("field:fileItem.FILEITEMSTATUS", new FieldValueGenerator_Number(0, 50, 0))
+        generatorsDefault.put("field:fileLog.fileItemIDE", new FieldValueGenerator_Number(0, 3, 0))
+        generatorsDefault.put("field:fileLog.fileAttrIDE", new FieldValueGenerator_Number(0, 3, 0))
+        generatorsDefault.put("field:fileItemOpr.ReplacePolitic", new FieldValueGenerator_Number(0, 3, 0))
+        generatorsDefault.put("field:WAXAUTH_USER.LOCKED", new FieldValueGenerator_Number(0, 1, 0))
+        generatorsDefault.put("field:FILEATTRDEF.ISSYS", new FieldValueGenerator_Number(0, 1, 0))
+        generatorsDefault.put("field:FILEATTRDEF.MULTI", new FieldValueGenerator_Number(0, 1, 0))
+        generatorsDefault.put("field:FILEATTRDEF.USECOMBO", new FieldValueGenerator_Number(0, 1, 0))
+        generatorsDefault.put("field:FolderAttrTemplate.MULTI", new FieldValueGenerator_Number(0, 1, 0))
+        generatorsDefault.put("field:FolderAttrTemplate.ISREQ", new FieldValueGenerator_Number(0, 1, 0))
+        generatorsDefault.put("field:FolderAttrTemplate.ISAUTOFILL", new FieldValueGenerator_Number(0, 1, 0))
+        generatorsDefault.put("field:FileStorage.FORUPLOAD", new FieldValueGenerator_Number(0, 1, 0))
     }
 
     @Test
@@ -78,13 +95,13 @@ class DataWriter_Oracle_Test extends ReplDatabaseStruct_Test {
 
     @Test
     void test_ins_FileLog() {
-        DataWriter writer = new DataWriter(db_one, struct_one)
+        DataWriter writer = new DataWriter(db_one, struct_one, generatorsDefault)
         doTable(db_one, struct_one.getTable("FileLog"), writer)
     }
 
     @Test
     void test_ins_All() {
-        DataWriter writer = new DataWriter(db_one, struct_one)
+        DataWriter writer = new DataWriter(db_one, struct_one, generatorsDefault)
 
         for (IJdxTable table : struct_one.tables) {
             println("table: " + table.getName())
@@ -114,16 +131,51 @@ class DataWriter_Oracle_Test extends ReplDatabaseStruct_Test {
         set.remove(1)
 
         // Отберем из них несколько
-        Set setDel = writer.choiceSubsetFromSet(set, count)
+        Set<Long> setDel = writer.choiceSubsetFromSet(set, count)
 
         // Удалим отобранные id
-        Map<Long, Map> setRes = writer.del("FileItem", setDel, true)
-        println("deleted: " + setRes.keySet())
+        writer.del("FileItem", setDel, true)
+        println("deleted: " + setDel)
 
         // Посмотрим, как сейчас в БД
         sql = sqlCheckFileItem.replace("#{where}", "")
         st1 = db_one.loadSql(sql)
         DataFiller_Test.UtData_outTable(st1, 999)
+    }
+
+    @Test
+    void test_upd_FileItem() {
+        int count = 5
+        String tableName = "FileItem"
+
+        //
+        IDataWriter writer = new DataWriter(db_one, struct_one, generatorsDefault)
+
+        // Получим все id
+        Set<Long> setFull = writer.loadAllIds(tableName)
+        setFull.remove(0)
+        setFull.remove(1)
+
+        // Отберем из них сколько просили
+        Set<Long> setUpd = writer.choiceSubsetFromSet(setFull, count)
+
+        // Посмотрим, как сейчас в БД
+        String sql = sqlCheckFileItem.
+                replace("#{table}", tableName).
+                replace("#{where}", "and " + tableName + ".id in (" + setToStr(setUpd) + ")")
+        DataStore st = db_one.loadSql(sql)
+        DataFiller_Test.UtData_outTable(st, 999)
+
+        // Апдейтим отобранные id
+        Map<Long, Map> updRes = writer.upd(tableName, setUpd)
+        println("updated: " + updRes.keySet())
+
+        // Посмотрим, как сейчас в БД
+        sql = sqlCheckFileItem.
+                replace("#{table}", tableName).
+                replace("#{where}", "and " + tableName + ".id in (" + setToStr(updRes.keySet()) + ")")
+        st = db_one.loadSql(sql)
+        DataFiller_Test.UtData_outTable(st, 999)
     }
 
     @Test
@@ -169,34 +221,23 @@ order by
         DataStore st = db.loadSql(sql)
         DataFiller_Test.UtData_outTable(st, 5)
 
-        // 
-        HashMapNoCase<Object> generatorsDefault = new HashMapNoCase<>()
-        generatorsDefault.put("field:fileItem.ISFOLDER", new FieldValueGenerator_Number(0, 1, 0))
-        generatorsDefault.put("field:fileLog.fileItemIDE", new FieldValueGenerator_Number(0, 3, 0))
-        generatorsDefault.put("field:fileLog.fileAttrIDE", new FieldValueGenerator_Number(0, 3, 0))
-        generatorsDefault.put("field:fileItemOpr.ReplacePolitic", new FieldValueGenerator_Number(0, 3, 0))
-        generatorsDefault.put("field:WAXAUTH_USER.LOCKED", new FieldValueGenerator_Number(0, 1, 0))
-        generatorsDefault.put("field:FILEATTRDEF.ISSYS", new FieldValueGenerator_Number(0, 1, 0))
-        generatorsDefault.put("field:FILEATTRDEF.MULTI", new FieldValueGenerator_Number(0, 1, 0))
-        generatorsDefault.put("field:FILEATTRDEF.USECOMBO", new FieldValueGenerator_Number(0, 1, 0))
-        generatorsDefault.put("field:FolderAttrTemplate.MULTI", new FieldValueGenerator_Number(0, 1, 0))
-        generatorsDefault.put("field:FolderAttrTemplate.ISREQ", new FieldValueGenerator_Number(0, 1, 0))
-        generatorsDefault.put("field:FolderAttrTemplate.ISAUTOFILL", new FieldValueGenerator_Number(0, 1, 0))
-        generatorsDefault.put("field:FileStorage.FORUPLOAD", new FieldValueGenerator_Number(0, 1, 0))
-
         // Добавим
-        Map<Long, Map> set = writer.ins(tableName, count, generatorsDefault)
+        Map<Long, Map> set = writer.ins(tableName, count)
         println("inserted: " + set.keySet())
 
         // Посмотрим, как сейчас в БД
-        String idsStr = set.keySet().toString()
-        idsStr = idsStr.substring(1, idsStr.length() - 1)
         sql = sqlCheck.
                 replace("#{table}", tableName).
-                replace("#{where}", "and " + tableName + ".id in (" + idsStr + ")")
+                replace("#{where}", "and " + tableName + ".id in (" + setToStr(set.keySet()) + ")")
         //
         st = db.loadSql(sql)
         DataFiller_Test.UtData_outTable(st, 999)
+    }
+
+    String setToStr(Set set) {
+        String idsStr = set.toString()
+        idsStr = idsStr.substring(1, idsStr.length() - 1)
+        return idsStr
     }
 
     String sqlCheck = """

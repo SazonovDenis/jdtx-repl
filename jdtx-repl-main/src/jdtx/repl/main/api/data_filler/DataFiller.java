@@ -11,23 +11,36 @@ public class DataFiller implements IDataFiller {
 
     Db db;
     IJdxDbStruct struct;
+    Map<String, Object> generatorsCache;
     Random rnd;
 
-    public Map<String, Object> generatorsCache = new HashMap<>();
+    @Override
+    public Map<String, Object> getGeneratorsCache() {
+        return generatorsCache;
+    }
 
-    public DataFiller(Db db, IJdxDbStruct struct) {
+    public DataFiller(Db db, IJdxDbStruct struct, Map<String, Object> defaultGenerators) {
         this.db = db;
         this.struct = struct;
+        if (defaultGenerators == null) {
+            this.generatorsCache = new HashMap<>();
+        } else {
+            this.generatorsCache = defaultGenerators;
+        }
         this.rnd = new Random();
     }
 
+    public DataFiller(Db db, IJdxDbStruct struct) {
+        this(db, struct, null);
+    }
+
     @Override
-    public Map<String, Object> genRecord(IJdxTable table, Map generators) {
+    public Map<String, Object> genRecord(IJdxTable table, Map<String, Object> tableGenerators) {
         Map<String, Object> rec = new HashMap<>();
 
         for (IJdxField field : table.getFields()) {
             String fieldName = field.getName();
-            Object value = genValue(field, generators.get(fieldName));
+            Object value = genValue(field, tableGenerators.get(fieldName));
             rec.put(fieldName, value);
         }
 
@@ -38,48 +51,39 @@ public class DataFiller implements IDataFiller {
      * Для ссылочных полей загрузит допустимые значения ссылок из БД
      */
     @Override
-    public Map<String, Object> createGenerators(IJdxTable table, Map generatorsDefault) throws Exception {
+    public Map<String, Object> createGenerators(IJdxTable table, Map<String, Object> tableGenerators) throws Exception {
         HashMapNoCase<Object> res = new HashMapNoCase<>();
 
         for (IJdxField field : table.getFields()) {
             String fieldName = field.getName();
 
-            String keyField = getTableFieldKey(table, field);
-            String keyDatatype = getDatatypeKey(field);
+            String keyTableField = getTableFieldKey(table, field);
+            String keyField = getFieldKey(field);
 
-            // Поищем генератор в кэшах
+            // Поищем генератор в общих кэшах
+            if (generatorsCache.containsKey(keyTableField)) {
+                res.put(fieldName, generatorsCache.get(keyTableField));
+                continue;
+            }
             if (generatorsCache.containsKey(keyField)) {
                 res.put(fieldName, generatorsCache.get(keyField));
                 continue;
             }
-            if (generatorsCache.containsKey(keyDatatype)) {
-                res.put(fieldName, generatorsCache.get(keyDatatype));
+
+            // Поищем генератор в генераторах для таблицы
+            if (tableGenerators != null && tableGenerators.containsKey(fieldName)) {
+                res.put(fieldName, tableGenerators.get(fieldName));
                 continue;
             }
 
-            if (generatorsDefault != null && generatorsDefault.containsKey(keyField)) {
-                res.put(fieldName, generatorsDefault.get(keyField));
-                continue;
-            }
-
-            if (generatorsDefault != null && generatorsDefault.containsKey(fieldName)) {
-                res.put(fieldName, generatorsDefault.get(fieldName));
-                continue;
-            }
-
-            if (generatorsDefault != null && generatorsDefault.containsKey(keyDatatype)) {
-                res.put(fieldName, generatorsDefault.get(keyDatatype));
-                continue;
-            }
-
-            // Определим заполнятель сами
+            // Определим генератор сами
             Object generator;
             IJdxTable refTable = field.getRefTable();
             if (refTable != null) {
                 // Правильно подготовим набор значений для ссылочных полей
                 generator = getRefValuesSet(refTable);
                 // Закэшируем набор значений - повторно ссылки искать - дорого
-                generatorsCache.put(keyDatatype, generator);
+                generatorsCache.put(keyField, generator);
             } else {
                 generator = createGeneratorByDatatype(field);
             }
@@ -89,25 +93,37 @@ public class DataFiller implements IDataFiller {
         return res;
     }
 
-    public Map<String, Object> genTemplates(IJdxTable table) throws Exception {
+    public Map<String, Object> createGenerators(IJdxTable table) throws Exception {
         return createGenerators(table, null);
     }
 
-    private String getDatatypeKey(IJdxField field) {
-        String datatype;
+    @Override
+    public String getFieldKey(IJdxField field) {
+        String datatypeKey;
 
         IJdxTable refTable = field.getRefTable();
         if (refTable != null) {
-            datatype = "ref:" + refTable.getName();
+            datatypeKey = getRefKey(refTable);
         } else {
-            datatype = field.getJdxDatatype().toString();
+            datatypeKey = getDatatypeKey(field);
         }
 
-        return "datatype:" + datatype;
+        return datatypeKey;
     }
 
-    private String getTableFieldKey(IJdxTable table, IJdxField field) {
+    @Override
+    public String getTableFieldKey(IJdxTable table, IJdxField field) {
         return "field:" + table.getName() + "." + field.getName();
+    }
+
+    @Override
+    public String getRefKey(IJdxTable refTable) {
+        return "ref:" + refTable.getName();
+    }
+
+    @Override
+    public String getDatatypeKey(IJdxField field) {
+        return "datatype:" + field.getJdxDatatype().toString();
     }
 
     private Object createGeneratorByDatatype(IJdxField field) {
@@ -115,11 +131,10 @@ public class DataFiller implements IDataFiller {
 
         switch (field.getJdxDatatype()) {
             case DOUBLE:
+                generator = new FieldValueGenerator_Number(0.0, Math.pow(10, field.getSize()), 3);
+                break;
             case INTEGER:
-                int precision = 3;
-                double max = Math.pow(10, field.getSize());
-                double min = 0;
-                generator = new FieldValueGenerator_Number(min, max, precision);
+                generator = new FieldValueGenerator_Number(0.0, Math.pow(10, field.getSize()), 0);
                 break;
             case STRING:
                 generator = new FieldValueGenerator_String(UtString.repeat("*", field.getSize()), field.getSize());

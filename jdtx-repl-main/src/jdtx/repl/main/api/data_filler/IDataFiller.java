@@ -15,15 +15,28 @@ import java.util.*;
 public interface IDataFiller {
 
     /**
-     * Для таблицы table создает запись, заполненную генераторами generators.
+     * Для таблицы table создает запись, заполненную генераторами tableGenerators.
+     *
+     * @param tableGenerators генераторы по умолчанию (для некоторых полей таблицы)
      */
-    Map<String, Object> genRecord(IJdxTable table, Map<String, Object> generators);
+    Map<String, Object> genRecord(IJdxTable table, Map<String, Object> tableGenerators);
 
     /**
      * Для каждого поля таблицы table создает заполнятель для генерации значений.
      *
-     * @param generatorsDefault генераторы по умолчанию (для некоторых полей)
+     * @param tableGenerators генераторы по умолчанию (для некоторых полей таблицы)
      */
-    Map<String, Object> createGenerators(IJdxTable table, Map<String, Object> generatorsDefault) throws Exception;
+    Map<String, Object> createGenerators(IJdxTable table, Map<String, Object> tableGenerators) throws Exception;
+
+
+    Map<String, Object> getGeneratorsCache();
+
+    String getFieldKey(IJdxField field);
+
+    String getTableFieldKey(IJdxTable table, IJdxField field);
+
+    String getRefKey(IJdxTable refTable);
+
+    String getDatatypeKey(IJdxField field);
 
 }

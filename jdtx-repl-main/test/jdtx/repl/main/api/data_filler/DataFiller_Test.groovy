@@ -99,7 +99,7 @@ class DataFiller_Test extends ReplDatabaseStruct_Test {
                 "Storn"        : [0, 0, 0, 1]
         ]
 
-        // Нагенерим генераторов для остальных полей в таблице
+        // Создадим генераторы для остальных полей в таблице
         Map<String, Object> generators = filler.createGenerators(struct.getTable("PawnChit"), generatorsDefault)
 
         // Нагенерим записей по шаблонам
@@ -152,7 +152,7 @@ class DataFiller_Test extends ReplDatabaseStruct_Test {
         // Набор генераторов для некоторых полей (например, id пусть будет null)
         Map generatorsDefault = UtCnv.toMap(pkFieldName, null)
 
-        // Нагенерим генераторов для остальных полей в таблице
+        // Создадим генераторы для остальных полей в таблице
         Map<String, Object> generators = filler.createGenerators(table, generatorsDefault)
 
         // Нагенерим записей по шаблонам

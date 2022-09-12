@@ -15,89 +15,143 @@ public class DataWriter implements IDataWriter {
     IDataFiller filler;
     JdxDbUtils dbu;
 
-    public DataWriter(Db db, IJdxDbStruct struct) throws Exception {
+    public DataWriter(Db db, IJdxDbStruct struct, Map<String, Object> defaultGenerators) throws Exception {
         this.db = db;
         this.dbu = new JdxDbUtils(db, struct);
         this.struct = struct;
-        this.filler = new DataFiller(db, struct);
+        this.filler = new DataFiller(db, struct, defaultGenerators);
+    }
+
+    public DataWriter(Db db, IJdxDbStruct struct) throws Exception {
+        this(db, struct, null);
     }
 
     @Override
-    public Map<Long, Map> ins(String tableName, int count) throws Exception {
-        return ins(tableName, count, null);
+    public Map<Long, Map<String, Object>> ins(String tableName, int count) throws Exception {
+        return ins(tableName, count);
     }
 
     @Override
-    public Map<Long, Map> ins(String tableName, int count, Map<String, Object> generatorsDefault) throws Exception {
-        Map<Long, Map> res = new HashMap<>();
+    public Map<Long, Map<String, Object>> ins(String tableName, int count, Map<String, Object> tableGenerators) throws Exception {
+        Map<Long, Map<String, Object>> res = new HashMap<>();
 
         IJdxTable table = struct.getTable(tableName);
         String pkFieldName = table.getPrimaryKey().get(0).getName();
 
-        // Нагенерим генераторов для остальных полей в таблице
-        Map<String, Object> generators = filler.createGenerators(table, generatorsDefault);
+        // Создадим генераторы для всех полей в таблице
+        Map<String, Object> generators = filler.createGenerators(table, tableGenerators);
 
         // Нагенерим записей по шаблонам
         for (int i = 0; i < count; i++) {
-            Map recValues = filler.genRecord(table, generators);
+            Map<String, Object> recValues = filler.genRecord(table, generators);
             recValues.put(pkFieldName, null);
             long id = dbu.insertRec(tableName, recValues);
             res.put(id, recValues);
         }
+
+        // Если в таблицу добавили записей - сброим кэш значений ссылок на нее
+        String keyRef = filler.getRefKey(table);
+        filler.getGeneratorsCache().remove(keyRef);
 
         //
         return res;
     }
 
     @Override
-    public Map<Long, DataFillerRec> upd(String tableName, int count) {
-        return null;
-    }
-
-    @Override
-    public Map<Long, DataFillerRec> upd(String tableName, int count, Map<String, Object> valuesVariansSet) {
-        return null;
-    }
-
-    @Override
-    public Map<Long, DataFillerRec> upd(String tableName, Collection<Long> ids) {
-        return null;
-    }
-
-    @Override
-    public Map<Long, DataFillerRec> upd(String tableName, Collection<Long> ids, Map<String, Object> valuesVariansSet) {
-        return null;
-    }
-
-
-    @Override
-    public Map<Long, DataFillerRec> del(String tableName, int count, boolean cascade) throws Exception {
+    public Map<Long, Map<String, Object>> upd(String tableName, int count) throws Exception {
         // Получим все id
-        DataStore st1 = db.loadSql("select id from " + tableName);
-        Set set = UtData.uniqueValues(st1, "id");
+        Set<Long> setFull = loadAllIds(tableName);
 
         // Отберем из них сколько просили
-        Set setDel = choiceSubsetFromSet(set, count);
+        Set<Long> set = choiceSubsetFromSet(setFull, count);
+
+        // Изменим отобранные id
+        return upd(tableName, set, null);
+    }
+
+    @Override
+    public Map<Long, Map<String, Object>> upd(String tableName, int count, Map<String, Object> tableGenerators) throws Exception {
+        // Получим все id
+        Set<Long> setFull = loadAllIds(tableName);
+
+        // Отберем из них сколько просили
+        Set<Long> set = choiceSubsetFromSet(setFull, count);
+
+        // Изменим отобранные id
+        return upd(tableName, set, tableGenerators);
+    }
+
+    @Override
+    public Map<Long, Map<String, Object>> upd(String tableName, Collection<Long> ids) throws Exception {
+        // Изменим отобранные id
+        return upd(tableName, ids, null);
+    }
+
+    @Override
+    public Map<Long, Map<String, Object>> upd(String tableName, Collection<Long> ids, Map<String, Object> tableGenerators) throws Exception {
+        Map<Long, Map<String, Object>> res = new HashMap<>();
+
+        IJdxTable table = struct.getTable(tableName);
+        String pkFieldName = table.getPrimaryKey().get(0).getName();
+
+        // Создадим генераторы для всех полей в таблице
+        Map<String, Object> generators = filler.createGenerators(table, tableGenerators);
+
+        // Нагенерим записей по шаблонам
+        for (Long id : ids) {
+            Map<String, Object> recValues = filler.genRecord(table, generators);
+            recValues.put(pkFieldName, id);
+            dbu.updateRec(tableName, recValues);
+            res.put(id, recValues);
+        }
+
+        // Если в таблицу добавили записей - сброим кэш значений ссылок на нее
+        String keyRef = filler.getRefKey(table);
+        filler.getGeneratorsCache().remove(keyRef);
+
+        //
+        return res;
+    }
+
+
+    @Override
+    public void del(String tableName, int count, boolean cascade) throws Exception {
+        // Получим все id
+        Set<Long> setFull = loadAllIds(tableName);
+
+        // Отберем из них сколько просили
+        Set<Long> set = choiceSubsetFromSet(setFull, count);
 
         // Удалим отобранные id
-        return del(tableName, setDel, cascade);
+        del(tableName, set, cascade);
     }
 
     @Override
     // todo доделать cascade и возврат результата
-    public Map<Long, DataFillerRec> del(String tableName, Collection<Long> ids, boolean cascade) throws Exception {
-        Map<Long, DataFillerRec> res = new HashMap<>();
+    public void del(String tableName, Collection<Long> ids, boolean cascade) throws Exception {
+        IJdxTable table = struct.getTable(tableName);
+        String pkFieldName = table.getPrimaryKey().get(0).getName();
 
         if (ids.size() != 0) {
             String idsStr = ids.toString();
             idsStr = idsStr.substring(1, idsStr.length() - 1);
-            String pkFieldName = struct.getTable(tableName).getPrimaryKey().get(0).getName();
             String sqlDelete = "delete from " + tableName + " where " + pkFieldName + " in (" + idsStr + ")";
 
             db.execSql(sqlDelete);
         }
 
-        return res;
+        // Если из таблицы удалили записи - сброим кэш значений ссылок на нее
+        String keyRef = filler.getRefKey(table);
+        filler.getGeneratorsCache().remove(keyRef);
+    }
+
+    /**
+     * Получим все id в таблице tableName
+     */
+    public Set<Long> loadAllIds(String tableName) throws Exception {
+        DataStore st1 = db.loadSql("select id from " + tableName);
+        Set<Long> setFull = UtData.uniqueValues(st1, "id");
+        return setFull;
     }
 
     /**
@@ -106,8 +160,8 @@ public class DataWriter implements IDataWriter {
      *
      * @return Новый набор
      */
-    public Set<Object> choiceSubsetFromSet(Set<Object> set, Integer count) {
-        Set<Object> res = new HashSet<>();
+    public Set<Long> choiceSubsetFromSet(Set<Long> set, Integer count) {
+        Set<Long> res = new HashSet<>();
 
         if (set.size() <= count) {
             res.addAll(set);
@@ -119,7 +173,7 @@ public class DataWriter implements IDataWriter {
         Object[] arr = set.toArray();
         while (res.size() < count) {
             int idx = rnd.nextInt(set.size());
-            res.add(arr[idx]);
+            res.add((Long)arr[idx]);
         }
 
         return res;
