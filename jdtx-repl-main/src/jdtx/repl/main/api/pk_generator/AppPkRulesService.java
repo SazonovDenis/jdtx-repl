@@ -18,8 +18,8 @@ public abstract class AppPkRulesService extends CompRt implements IAppPkRules {
     }
 
     public IAppPkRules createPkGenerator(Db db, IJdxDbStruct struct) throws Exception {
-        Class<? extends IAppPkRules> cls = getApp().service(AppPkRulesService.class).getClass();
-        AppPkRulesService instance = (AppPkRulesService) cls.newInstance();
+        Class<? extends AppPkRulesService> cls = getApp().service(AppPkRulesService.class).getClass();
+        AppPkRulesService instance = cls.newInstance();
         //
         instance.init(db, struct);
         //
