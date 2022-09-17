@@ -1444,39 +1444,6 @@ public class JdxReplWs {
         }
     }
 
-    /**
-     * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано
-     */
-    @Deprecated
-    public void receiveFromDir(String cfgFileName, String mailDir) throws Exception {
-/*
-        // Готовим локальный мейлер
-        mailDir = UtFile.unnormPath(mailDir) + "/";
-        String guid = this.getWsGuid();
-        String guidPath = guid.replace("-", "/");
-
-        //
-        JSONObject cfgData = UtRepl.loadAndValidateJsonFile(cfgFileName));
-
-        // Конфиг для мейлера
-        JSONObject cfgWs = (JSONObject) cfgData.get(String.valueOf(wsId));
-        cfgWs.put("mailRemoteDir", mailDir + guidPath);
-
-        // Мейлер
-        IMailer mailerLocal = new MailerLocalFiles();
-        mailerLocal.init(cfgWs);
-
-        // Узнаем сколько получено у нас
-        long selfReceivedNo = queIn.getMaxNo();
-
-        // Узнаем сколько есть на сервере
-        long srvAvailableNo = mailer.getBoxState("to");
-
-        // Физически забираем данные
-        receiveInternal(mailerLocal, "to", selfReceivedNo + 1, srvAvailableNo, queIn);
-*/
-    }
-
 
     // Физически забираем данные
     public void replicasReceive() throws Exception {
@@ -1593,52 +1560,6 @@ public class JdxReplWs {
             log.info("receive, self.wsId: " + wsId + ", box: " + box + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", receive.no: " + no_from + ", nothing to receive");
         }
     }
-
-
-    /**
-     * @deprecated Разобраться с репликацией через папку - сейчас полностью сломано
-     */
-/*
-    @Deprecated
-    public void sendToDir(String cfgFileName, String mailDir, long age_from, long age_to, boolean doMarkDone) throws Exception {
-        // Готовим локальный мейлер
-        JSONObject cfgData = UtRepl.loadAndValidateJsonFile(cfgFileName);
-        //
-        mailDir = UtFile.unnormPath(mailDir) + "/";
-        String guid = getWsGuid();
-        String guidPath = guid.replace("-", "/");
-
-        // Конфиг для мейлера
-        cfgData = (JSONObject) cfgData.get(String.valueOf(wsId));
-        cfgData.put("mailRemoteDir", mailDir + guidPath);
-
-        // Мейлер
-        IMailer mailerLocal = new MailerLocalFiles();
-        mailerLocal.init(cfgData);
-
-
-        // Сколько своего аудита уже отправлено на сервер
-        JdxMailStateManagerWs stateManager = new JdxMailStateManagerWs(db);
-        long srvSendAge = stateManager.getMailSendDone();
-
-        // Узнаем сколько есть у нас в очереди на отправку
-        long selfQueOutAge = queOut.getMaxNo();
-
-        // От какого возраста отправлять. Если не указано - начнем от ранее отправленного
-        if (age_from == 0L) {
-            age_from = srvSendAge + 1;
-        }
-
-        // До какого возраста отправлять. Если не указано - все у нас что есть в очереди на отправку
-        if (age_to == 0L) {
-            age_to = selfQueOutAge;
-        }
-
-
-        // Физически отправляем данные
-        // sendInternal(mailerLocal, age_from, age_to, doMarkDone); // Заменен на UtMail.sendQueToMail
-    }
-*/
 
 
     /**
