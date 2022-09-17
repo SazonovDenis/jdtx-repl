@@ -3,7 +3,7 @@ package jdtx.repl.main.api.util;
 import jandcode.utils.test.*;
 import org.junit.*;
 
-public class UtDbNameManager_Oracle_Test extends UtilsTestCase {
+public class DbNames_Oracle_Test extends UtilsTestCase {
 
 
     @Test

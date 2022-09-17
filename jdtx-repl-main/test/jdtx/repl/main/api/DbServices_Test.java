@@ -14,7 +14,7 @@ import org.junit.*;
 /**
  *
  */
-public class DbServices_Test extends AppTestCase {
+public class DbServices_Test extends DbPrepareEtalon_Test {
 
 
     public void setUp() throws Exception {
@@ -31,9 +31,6 @@ public class DbServices_Test extends AppTestCase {
      */
     @Test
     public void test_db() throws Exception {
-        Model model = app.getApp().service(ModelService.class).getModel("default");
-        Db db = model.getDb();
-
         System.out.println("db: " + UtJdx.getDbInfoStr(db));
         System.out.println("connect...");
         db.connect();
@@ -52,13 +49,14 @@ public class DbServices_Test extends AppTestCase {
 
     @Test
     public void test_DbErrorsService() throws Exception {
-        Model model = app.getApp().service(ModelService.class).getModel("default");
-        Db db = model.getDb();
-
-        IDbErrors dbErrors = db.service(DbErrorsService.class);
+        IDbErrors dbErrors_db = db.service(DbErrorsService.class);
+        IDbErrors dbErrors_one = db_one.service(DbErrorsService.class);
 
         System.out.println("db: " + UtJdx.getDbInfoStr(db));
-        System.out.println("dbErrors: " + dbErrors.getClass());
+        System.out.println("dbErrors: " + dbErrors_db.getClass());
+
+        System.out.println("db: " + UtJdx.getDbInfoStr(db_one));
+        System.out.println("dbErrors: " + dbErrors_one.getClass());
     }
 
     @Test
@@ -73,9 +71,6 @@ public class DbServices_Test extends AppTestCase {
 
     @Test
     public void test_DbObjectManager() throws Exception {
-        Model model = app.getApp().service(ModelService.class).getModel("default");
-        Db db = model.getDb();
-
         IDbObjectManager dbObjectManager = db.service(DbObjectManager.class);
         IDbDatatypeManager dbDatatypeManager = db.service(DbDatatypeManager.class);
 
