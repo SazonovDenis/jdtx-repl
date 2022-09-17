@@ -137,14 +137,10 @@ public class UtRepl {
             n++;
             //
             String tableName = table.getName();
+            String pkFieldName = table.getPrimaryKey().get(0).getName();
             if (table.getPrimaryKey().size() > 0) {
-                // log.info("  checkNotOwnId " + n + "/" + struct.getTables().size() + " " + table.getName());
-                String pkFieldName = table.getPrimaryKey().get(0).getName();
-                //
-                long maxId = db.loadSql("select max(" + pkFieldName + ") max_id from " + tableName).getCurRec().getValueLong("max_id");
-                //
-                if (maxId > refManager.get_max_own_id()) {
-                    log.error("Check not own id, not own id found, table: " + tableName + ", " + pkFieldName + ": " + maxId);
+                if (refManager.isPresent_not_own_id(table)) {
+                    log.error("Check not own id, not own id found, table: " + tableName + ", " + pkFieldName);
                     foundNotOwnId = true;
                 }
             } else {

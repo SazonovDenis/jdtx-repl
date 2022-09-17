@@ -2,6 +2,7 @@ package jdtx.repl.main.api.ref_manager;
 
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.struct.*;
 
 /**
  * Реализация IRefManager, если разведение pk не нужно.
@@ -38,7 +39,12 @@ public class RefManager_Base extends RefManagerService implements IRefManager {
     }
 
     @Override
-    public long get_max_own_id() {
+    public long get_max_own_id(IJdxTable table) throws Exception {
+        throw new XError("Not implemented");
+    }
+
+    @Override
+    public boolean isPresent_not_own_id(IJdxTable table) throws Exception {
         throw new XError("Not implemented");
     }
 

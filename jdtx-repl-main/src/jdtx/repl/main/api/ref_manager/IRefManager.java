@@ -1,8 +1,14 @@
 package jdtx.repl.main.api.ref_manager;
 
+import jdtx.repl.main.api.struct.*;
+
 /**
  * Превращает локальные ссылки в глобальные JdxRef и наоборот.
- * Имеет несколько реализаций:
+ * Выражает особенности разведения PK между рабочими станциями в приложении.
+ * <p>
+ * Имеет несколько реализаций.
+ * При некоторых способах разведения id  значения id должны быть меньше определенного числа,
+ * при других - находится в определеном диапазоне.
  * <p>
  * - с пререкодировкой ссылок (на всех станциях pk собственнеых записей начинаются с 1,
  * чужие записи принимаются с перекодировкой)
@@ -32,8 +38,13 @@ public interface IRefManager {
     JdxRef get_ref(String tableName, long id_local) throws Exception;
 
     /**
-     * Максмально доступная id для станции
+     * Для таблицы table возврящает последний занятый собственный id для станции (максмальное значение PK).
      */
-    long get_max_own_id();
+    long get_max_own_id(IJdxTable table) throws Exception;
+
+    /**
+     * Проверяет, что в таблице table нет чужих id (от других станций).
+     */
+    boolean isPresent_not_own_id(IJdxTable table) throws Exception;
 
 }

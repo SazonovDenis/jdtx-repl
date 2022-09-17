@@ -1,6 +1,7 @@
 package jdtx.repl.main.api.pk_generator;
 
 import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.util.*;
 import org.junit.*;
 
@@ -27,15 +28,17 @@ public class Pk_Test extends ReplDatabaseStruct_Test {
         IAppPkRules appPkRules1 = app.service(AppPkRulesService.class).createPkGenerator(db, struct);
         IAppPkRules appPkRules3 = app.service(AppPkRulesService.class).createPkGenerator(db3, struct3);
 
+        IRefManager refManager = app.service(RefManagerService.class);
+
         //
         System.out.println();
         System.out.println("Db 1:");
-        test_pk(generator1, appPkRules1);
+        test_pk(generator1, appPkRules1, refManager);
 
         //
         System.out.println();
         System.out.println("Db 3:");
-        test_pk(generator3, appPkRules3);
+        test_pk(generator3, appPkRules3, refManager);
     }
 
     @Test
@@ -51,7 +54,7 @@ public class Pk_Test extends ReplDatabaseStruct_Test {
         System.out.println(tableName + ".generator.value: " + dbGenerators.getValue(appPkRules.getGeneratorName(tableName)));
     }
 
-    void test_pk(IDbGenerators generator, IAppPkRules appPkRules) throws Exception {
+    void test_pk(IDbGenerators generator, IAppPkRules appPkRules, IRefManager refManager) throws Exception {
         String tableName = "Ulz";
         String generatorName = appPkRules.getGeneratorName(tableName);
         System.out.println("table: " + tableName + ", generator: " + generatorName);
@@ -73,7 +76,7 @@ public class Pk_Test extends ReplDatabaseStruct_Test {
         //
         UtPkGeneratorRepair generatorRepair = new UtPkGeneratorRepair(db, struct);
         //
-        value = generatorRepair.getMaxPkValue(struct.getTable(tableName));
+        value = refManager.get_max_own_id(struct.getTable(tableName));
         System.out.println("    maxPk: " + value);
         //
         generatorRepair.repairGenerator(struct.getTable(tableName));

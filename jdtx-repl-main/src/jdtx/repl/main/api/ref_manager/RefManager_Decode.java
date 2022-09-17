@@ -7,6 +7,7 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.json.simple.*;
 
@@ -179,14 +180,38 @@ public class RefManager_Decode extends RefManagerService implements IRefManager 
     }
 
     @Override
-    public long get_max_own_id() {
-        return SLOT_SIZE * SLOT_START_NUMBER - 1;
+    public long get_max_own_id(IJdxTable table) throws Exception {
+        String tableName = table.getName();
+        String pkFieldName = table.getPrimaryKey().get(0).getName();
+        //
+        String sql = "select max(" + pkFieldName + ") as maxId from " + tableName + " where " + pkFieldName + " <= " + get_max_own_id();
+        long maxId = db.loadSql(sql).getCurRec().getValueLong("maxId");
+        //
+        return maxId;
+    }
+
+    @Override
+    public boolean isPresent_not_own_id(IJdxTable table) throws Exception {
+        String tableName = table.getName();
+        String pkFieldName = table.getPrimaryKey().get(0).getName();
+        //
+        String sql = "select max(" + pkFieldName + ") as maxId from " + tableName;
+        long maxId = db.loadSql(sql).getCurRec().getValueLong("maxId");
+        //
+        if (maxId > get_max_own_id()) {
+            return true;
+        }
+        return false;
     }
 
 
     // ------------------------------------------
     //
     // ------------------------------------------
+
+    long get_max_own_id() {
+        return SLOT_SIZE * SLOT_START_NUMBER - 1;
+    }
 
     protected void initWs(long wsId) {
         if (wsId <= 0) {

@@ -25,7 +25,7 @@ public class UtPkGeneratorRepair {
     }
 
     public void repairGenerator(IJdxTable table) throws Exception {
-        long valueMaxId = getMaxPkValue(table);
+        long valueMaxId = refManager.get_max_own_id(table);
         String generatorName = pkRules.getGeneratorName(table.getName());
         long valueGen = dbGenerators.getValue(generatorName);
         if (valueMaxId > valueGen) {
@@ -39,18 +39,5 @@ public class UtPkGeneratorRepair {
             repairGenerator(table);
         }
     }
-
-    /**
-     * Возврящает последний занятый PK для таблицы.
-     * Выражает особенности организации (разведения) PK в приложении.
-     */
-    public long getMaxPkValue(IJdxTable table) throws Exception {
-        String pkFieldName = table.getPrimaryKey().get(0).getName();
-        String sql = "select max(" + pkFieldName + ") as maxId from " + table.getName() + " where " + pkFieldName + " <= " + refManager.get_max_own_id();
-        long maxId = db.loadSql(sql).getCurRec().getValueLong("maxId");
-        //
-        return maxId;
-    }
-
 
 }
