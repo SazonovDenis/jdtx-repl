@@ -48,7 +48,7 @@ public class Pk_Test extends ReplDatabaseStruct_Test {
 
         String tableName = "Lic";
         System.out.println(tableName + ".generator.name: " + appPkRules.getGeneratorName(tableName));
-        System.out.println(tableName + ".generator.value: " + dbGenerators.getGeneratorCurrValue(appPkRules.getGeneratorName(tableName)));
+        System.out.println(tableName + ".generator.value: " + dbGenerators.getValue(appPkRules.getGeneratorName(tableName)));
     }
 
     void test_pk(IDbGenerators generator, IAppPkRules appPkRules) throws Exception {
@@ -56,20 +56,20 @@ public class Pk_Test extends ReplDatabaseStruct_Test {
         String generatorName = appPkRules.getGeneratorName(tableName);
         System.out.println("table: " + tableName + ", generator: " + generatorName);
         //
-        long value = generator.getGeneratorCurrValue(generatorName);
+        long value = generator.getValue(generatorName);
         System.out.println("      now: " + value);
         //
-        generator.setGeneratorValue(generatorName, generator.getGeneratorCurrValue(generatorName) + 1);
-        System.out.println("  forvard: " + generator.getGeneratorCurrValue(generatorName));
-        assertEquals(value + 1, generator.getGeneratorCurrValue(generatorName));
+        generator.setValue(generatorName, generator.getValue(generatorName) + 1);
+        System.out.println("  forvard: " + generator.getValue(generatorName));
+        assertEquals(value + 1, generator.getValue(generatorName));
         //
-        generator.setGeneratorValue(generatorName, generator.getGeneratorCurrValue(generatorName) - 1);
-        System.out.println("     back: " + generator.getGeneratorCurrValue(generatorName));
-        assertEquals(value, generator.getGeneratorCurrValue(generatorName));
+        generator.setValue(generatorName, generator.getValue(generatorName) - 1);
+        System.out.println("     back: " + generator.getValue(generatorName));
+        assertEquals(value, generator.getValue(generatorName));
         //
-        generator.setGeneratorValue(generatorName, 0);
-        System.out.println("   broken: " + generator.getGeneratorCurrValue(generatorName));
-        assertEquals(0, generator.getGeneratorCurrValue(generatorName));
+        generator.setValue(generatorName, 0);
+        System.out.println("   broken: " + generator.getValue(generatorName));
+        assertEquals(0, generator.getValue(generatorName));
         //
         UtPkGeneratorRepair generatorRepair = new UtPkGeneratorRepair(db, struct);
         //
@@ -77,8 +77,8 @@ public class Pk_Test extends ReplDatabaseStruct_Test {
         System.out.println("    maxPk: " + value);
         //
         generatorRepair.repairGenerator(struct.getTable(tableName));
-        System.out.println(" repaired: " + generator.getGeneratorCurrValue(generatorName));
-        assertEquals(value, generator.getGeneratorCurrValue(generatorName));
+        System.out.println(" repaired: " + generator.getValue(generatorName));
+        assertEquals(value, generator.getValue(generatorName));
     }
 
 

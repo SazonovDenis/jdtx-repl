@@ -5,11 +5,11 @@ package jdtx.repl.main.api.pk_generator;
  */
 public interface IDbGenerators {
 
-    long getGeneratorCurrValue(String generatorName) throws Exception;
+    long getNextValue(String generatorName) throws Exception;
 
-    long getGeneratorNextValue(String generatorName) throws Exception;
+    long getValue(String generatorName) throws Exception;
 
-    void setGeneratorValue(String generatorName, long value) throws Exception;
+    void setValue(String generatorName, long value) throws Exception;
 
     void createGenerator(String generatorName) throws Exception;
 

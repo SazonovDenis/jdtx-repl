@@ -27,10 +27,10 @@ public class UtPkGeneratorRepair {
     public void repairGenerator(IJdxTable table) throws Exception {
         long valueMaxId = getMaxPkValue(table);
         String generatorName = pkRules.getGeneratorName(table.getName());
-        long valueGen = dbGenerators.getGeneratorCurrValue(generatorName);
+        long valueGen = dbGenerators.getValue(generatorName);
         if (valueMaxId > valueGen) {
             log.info("repairGenerator: " + generatorName + ", set " + valueGen + " to " + valueMaxId);
-            dbGenerators.setGeneratorValue(generatorName, valueMaxId);
+            dbGenerators.setValue(generatorName, valueMaxId);
         }
     }
 

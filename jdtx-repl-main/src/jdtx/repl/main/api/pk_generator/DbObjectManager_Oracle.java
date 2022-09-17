@@ -10,6 +10,30 @@ public class DbObjectManager_Oracle extends DbGenerators implements IDbGenerator
     }
 
     @Override
+    public long getNextValue(String generatorName) throws Exception {
+        long valueNext;
+        DbQuery q = db.openSql("select " + generatorName + ".nextval as id from dual");
+        try {
+            valueNext = q.getValueLong("id");
+        } finally {
+            q.close();
+        }
+
+        //
+        return valueNext;
+    }
+
+    @Override
+    public long getValue(String generatorName) throws Exception {
+        throw new XError("Not implemented");
+    }
+
+    @Override
+    public void setValue(String generatorName, long value) throws Exception {
+        throw new XError("Not implemented");
+    }
+
+    @Override
     public void createGenerator(String generatorName) throws Exception {
         try {
             String sql = "create sequence " + generatorName + " minvalue 0 start with 0 increment by 1";
@@ -36,30 +60,6 @@ public class DbObjectManager_Oracle extends DbGenerators implements IDbGenerator
                 throw e;
             }
         }
-    }
-
-    @Override
-    public long getGeneratorCurrValue(String generatorName) throws Exception {
-        throw new XError("Not implemented");
-    }
-
-    @Override
-    public long getGeneratorNextValue(String generatorName) throws Exception {
-        long valueNext;
-        DbQuery q = db.openSql("select " + generatorName + ".nextval as id from dual");
-        try {
-            valueNext = q.getValueLong("id");
-        } finally {
-            q.close();
-        }
-
-        //
-        return valueNext;
-    }
-
-    @Override
-    public void setGeneratorValue(String generatorName, long value) throws Exception {
-        throw new XError("Not implemented");
     }
 
 }

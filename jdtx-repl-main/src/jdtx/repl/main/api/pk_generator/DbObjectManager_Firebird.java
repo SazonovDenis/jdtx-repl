@@ -9,6 +9,40 @@ public class DbObjectManager_Firebird extends DbGenerators implements IDbGenerat
     }
 
     @Override
+    public long getNextValue(String generatorName) throws Exception {
+        long valueNext;
+        DbQuery q = db.openSql("select gen_id(" + generatorName + ", 1) as id from dual");
+        try {
+            valueNext = q.getValueLong("id");
+        } finally {
+            q.close();
+        }
+
+        //
+        return valueNext;
+    }
+
+    @Override
+    public long getValue(String generatorName) throws Exception {
+        long valueCurr;
+        DbQuery q = db.openSql("select gen_id(" + generatorName + ", 0) as id from dual");
+        try {
+            valueCurr = q.getValueLong("id");
+        } finally {
+            q.close();
+        }
+
+        //
+        return valueCurr;
+    }
+
+    @Override
+    public void setValue(String generatorName, long value) throws Exception {
+        db.execSql("set generator " + generatorName + " to " + value + "");
+    }
+
+
+    @Override
     public void createGenerator(String generatorName) throws Exception {
         try {
             String sql = "create generator " + generatorName;
@@ -39,39 +73,5 @@ public class DbObjectManager_Firebird extends DbGenerators implements IDbGenerat
             }
         }
     }
-
-    @Override
-    public long getGeneratorCurrValue(String generatorName) throws Exception {
-        long valueCurr;
-        DbQuery q = db.openSql("select gen_id(" + generatorName + ", 0) as id from dual");
-        try {
-            valueCurr = q.getValueLong("id");
-        } finally {
-            q.close();
-        }
-
-        //
-        return valueCurr;
-    }
-
-    @Override
-    public long getGeneratorNextValue(String generatorName) throws Exception {
-        long valueNext;
-        DbQuery q = db.openSql("select gen_id(" + generatorName + ", 1) as id from dual");
-        try {
-            valueNext = q.getValueLong("id");
-        } finally {
-            q.close();
-        }
-
-        //
-        return valueNext;
-    }
-
-    @Override
-    public void setGeneratorValue(String generatorName, long value) throws Exception {
-        db.execSql("set generator " + generatorName + " to " + value + "");
-    }
-
 
 }

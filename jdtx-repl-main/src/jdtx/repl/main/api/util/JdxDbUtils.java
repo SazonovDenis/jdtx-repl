@@ -34,7 +34,7 @@ public class JdxDbUtils {
      * Возвращает очередную id для генератора generatorName
      */
     public long getNextGenerator(String generatorName) throws Exception {
-        return dbGenerators.getGeneratorNextValue(generatorName);
+        return dbGenerators.getNextValue(generatorName);
     }
 
     public static String getPkFieldName(IJdxTable table) {
@@ -326,7 +326,7 @@ public class JdxDbUtils {
         Long id = UtJdxData.longValueOf(p.get(pkFieldName));
         if (id == null) {
             String generatorName = pkRules.getGeneratorName(tableName);
-            id = dbGenerators.getGeneratorNextValue(generatorName);
+            id = dbGenerators.getNextValue(generatorName);
             p.put(pkFieldName, id);
         }
         //
