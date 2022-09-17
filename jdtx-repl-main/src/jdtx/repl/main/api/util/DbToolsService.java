@@ -44,9 +44,9 @@ public class DbToolsService extends CompRt {
         IDbGenerators instance;
         String dbType = UtJdx.getDbType(db);
         if (dbType.equalsIgnoreCase("oracle")) {
-            instance = new DbObjectManager_Oracle(db);
+            instance = new DbGenerators_Oracle(db);
         } else if (dbType.equalsIgnoreCase("firebird")) {
-            instance = new DbObjectManager_Firebird(db);
+            instance = new DbGenerators_Firebird(db);
         } else {
             throw new XError("Неизвестный тип базы: " + dbType);
         }

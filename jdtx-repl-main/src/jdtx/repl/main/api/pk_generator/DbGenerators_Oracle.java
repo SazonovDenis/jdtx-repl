@@ -1,17 +1,18 @@
 package jdtx.repl.main.api.pk_generator;
 
 import jandcode.dbm.db.*;
+import jandcode.utils.error.*;
 
-public class DbObjectManager_Firebird extends DbGenerators implements IDbGenerators {
+public class DbGenerators_Oracle extends DbGenerators implements IDbGenerators {
 
-    public DbObjectManager_Firebird(Db db) {
+    public DbGenerators_Oracle(Db db) {
         super(db);
     }
 
     @Override
     public long getNextValue(String generatorName) throws Exception {
         long valueNext;
-        DbQuery q = db.openSql("select gen_id(" + generatorName + ", 1) as id from dual");
+        DbQuery q = db.openSql("select " + generatorName + ".nextval as id from dual");
         try {
             valueNext = q.getValueLong("id");
         } finally {
@@ -24,31 +25,18 @@ public class DbObjectManager_Firebird extends DbGenerators implements IDbGenerat
 
     @Override
     public long getValue(String generatorName) throws Exception {
-        long valueCurr;
-        DbQuery q = db.openSql("select gen_id(" + generatorName + ", 0) as id from dual");
-        try {
-            valueCurr = q.getValueLong("id");
-        } finally {
-            q.close();
-        }
-
-        //
-        return valueCurr;
+        throw new XError("Not implemented");
     }
 
     @Override
     public void setValue(String generatorName, long value) throws Exception {
-        db.execSql("set generator " + generatorName + " to " + value + "");
+        throw new XError("Not implemented");
     }
-
 
     @Override
     public void createGenerator(String generatorName) throws Exception {
         try {
-            String sql = "create generator " + generatorName;
-            db.execSql(sql);
-            //
-            sql = "set generator " + generatorName + " to 0";
+            String sql = "create sequence " + generatorName + " minvalue 0 start with 0 increment by 1";
             db.execSql(sql);
         } catch (Exception e) {
             if (dbErrors.errorIs_GeneratorAlreadyExists(e)) {
@@ -62,7 +50,7 @@ public class DbObjectManager_Firebird extends DbGenerators implements IDbGenerat
     @Override
     public void dropGenerator(String generatorName) throws Exception {
         try {
-            String sql = "drop generator " + generatorName;
+            String sql = "drop sequence " + generatorName;
             db.execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
