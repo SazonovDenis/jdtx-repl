@@ -34,6 +34,7 @@ public class DbObjectManagerService_Test extends ReplDatabaseStruct_Test {
 
         //
         IJdxTable table = struct.getTables().get(0);
+        System.out.println("table: " + table.getName());
         //
         System.out.println("----------");
         System.out.println("dbObjectManager.dropAudit");

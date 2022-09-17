@@ -17,6 +17,7 @@ public class DbDatatypeManager_Oracle extends DbDatatypeManager implements IDbDa
             case "UROWID ": {
                 return JdxDataType.STRING;
             }
+            case "TIMESTAMP(6)":
             case "DATE": {
                 return JdxDataType.DATETIME;
             }
