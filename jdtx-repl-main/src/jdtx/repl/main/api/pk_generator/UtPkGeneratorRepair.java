@@ -19,7 +19,7 @@ public class UtPkGeneratorRepair {
     public UtPkGeneratorRepair(Db db, IJdxDbStruct struct) {
         this.db = db;
         this.struct = struct;
-        this.dbGenerators = DbToolsService.getDbGenerators(db);
+        this.dbGenerators = db.service(DbGeneratorsService.class);
         this.pkRules = db.getApp().service(AppPkRulesService.class);
         this.refManager = db.getApp().service(RefManagerService.class);
     }
@@ -27,10 +27,10 @@ public class UtPkGeneratorRepair {
     public void repairGenerator(IJdxTable table) throws Exception {
         long valueMaxId = refManager.get_max_own_id(table);
         String generatorName = pkRules.getGeneratorName(table.getName());
-        long valueGen = dbGenerators.getValue(generatorName);
+        long valueGen = dbGenerators.getLastValue(generatorName);
         if (valueMaxId > valueGen) {
             log.info("repairGenerator: " + generatorName + ", set " + valueGen + " to " + valueMaxId);
-            dbGenerators.setValue(generatorName, valueMaxId);
+            dbGenerators.setLastValue(generatorName, valueMaxId);
         }
     }
 

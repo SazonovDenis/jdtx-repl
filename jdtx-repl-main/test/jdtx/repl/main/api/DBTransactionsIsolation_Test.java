@@ -12,7 +12,7 @@ import java.sql.*;
 
 /**
  */
-public class Database_Test extends AppTestCase {
+public class DBTransactionsIsolation_Test extends AppTestCase {
 
     // Два коннекта к одной БД
     protected Db db1;

@@ -1,26 +1,10 @@
-package jdtx.repl.main.api.jdx_db_object;
+package jdtx.repl.main.api;
 
-import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.junit.*;
 
-public class UtDbObject_Test extends Database_Test {
-
-    @Test
-    public void test_db() throws Exception {
-        System.out.println(UtJdx.getDbInfoStr(db1));
-
-        //
-        JdxDbStructReader dbStructReader = new JdxDbStructReader();
-        dbStructReader.setDb(db1);
-        IJdxDbStruct struct = dbStructReader.readDbStruct();
-        System.out.println("Таблиц в базе: " + struct.getTables().size());
-
-        //
-        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
-        struct_rw.toFile(struct, "../_test-data/dbStruct.xml");
-    }
+public class UtRepl_CreateDropReplication_Test extends DBTransactionsIsolation_Test {
 
     @Test
     public void test_dropReplication() throws Exception {

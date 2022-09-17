@@ -1,15 +1,6 @@
 package jdtx.repl.main.api.struct;
 
-import jandcode.dbm.db.*;
-
-public class DbDatatypeManager_Oracle implements IDbDatatypeManager {
-
-    Db db;
-
-    @Override
-    public void setDb(Db db) throws Exception {
-        this.db = db;
-    }
+public class DbDatatypeManager_Oracle extends DbDatatypeManager implements IDbDatatypeManager {
 
     @Override
     public JdxDataType dbDatatypeToJdxDatatype(String dbDataType, int columnSize, int decimalDigits) throws Exception {

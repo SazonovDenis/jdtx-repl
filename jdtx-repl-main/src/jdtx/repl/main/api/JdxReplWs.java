@@ -121,11 +121,11 @@ public class JdxReplWs {
         db.getConnection().setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
 
         // Проверка версии служебных структур в БД
-        IDbObjectManager ut = DbToolsService.getDbObjectManager(db);
-        ut.checkVerDb();
+        IDbObjectManager dbObjectManager = db.service(DbObjectManager.class);
+        dbObjectManager.checkVerDb();
 
         // Проверка, что инициализация станции прошла
-        ut.checkReplicationInit();
+        dbObjectManager.checkReplicationInit();
 
         // Читаем код нашей станции
         readIdGuid();
@@ -1017,7 +1017,7 @@ public class JdxReplWs {
         db.startTran();
         try {
             //
-            IDbObjectManager objectManager = DbToolsService.getDbObjectManager(db);
+            IDbObjectManager dbObjectManager = db.service(DbObjectManager.class);
 
             //
             long n;
@@ -1028,7 +1028,7 @@ public class JdxReplWs {
                 n++;
                 log.info("  dropAudit " + n + "/" + tablesRemoved.size() + " " + table.getName());
                 //
-                objectManager.dropAudit(table.getName());
+                dbObjectManager.dropAudit(table.getName());
             }
 
             // Создаем аудит для новых таблиц
@@ -1044,7 +1044,7 @@ public class JdxReplWs {
                 }
 
                 // Создание отслеживания аудита таблицы
-                objectManager.createAudit(table);
+                dbObjectManager.createAudit(table);
             }
 
             //
@@ -1641,7 +1641,7 @@ public class JdxReplWs {
      * @return Команды на вставку/изменение этой записи, оформленные в виде реплики
      */
     public File handleFailedInsertUpdateRef(JdxForeignKeyViolationException e) throws Exception {
-        IDbErrors dbErrors = db.getApp().service(DbToolsService.class).getDbErrors(db);
+        IDbErrors dbErrors = db.service(DbErrorsService.class);
         IJdxTable thisTable = dbErrors.get_ForeignKeyViolation_tableInfo(e, struct);
         IJdxForeignKey foreignKey = dbErrors.get_ForeignKeyViolation_refInfo(e, struct);
         IJdxField refField = foreignKey.getField();

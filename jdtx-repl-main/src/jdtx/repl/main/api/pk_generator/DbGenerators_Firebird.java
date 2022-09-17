@@ -2,16 +2,15 @@ package jdtx.repl.main.api.pk_generator;
 
 import jandcode.dbm.db.*;
 
-public class DbGenerators_Firebird extends DbGenerators implements IDbGenerators {
-
-    public DbGenerators_Firebird(Db db) {
-        super(db);
-    }
+/**
+ * Следует учесть, что в Firebird в генераторе записано последнее выданное значение
+ */
+public class DbGenerators_Firebird extends DbGeneratorsService implements IDbGenerators {
 
     @Override
-    public long getNextValue(String generatorName) throws Exception {
+    public long genNextValue(String generatorName) throws Exception {
         long valueNext;
-        DbQuery q = db.openSql("select gen_id(" + generatorName + ", 1) as id from dual");
+        DbQuery q = getDb().openSql("select gen_id(" + generatorName + ", 1) as id from dual");
         try {
             valueNext = q.getValueLong("id");
         } finally {
@@ -23,9 +22,9 @@ public class DbGenerators_Firebird extends DbGenerators implements IDbGenerators
     }
 
     @Override
-    public long getValue(String generatorName) throws Exception {
+    public long getLastValue(String generatorName) throws Exception {
         long valueCurr;
-        DbQuery q = db.openSql("select gen_id(" + generatorName + ", 0) as id from dual");
+        DbQuery q = getDb().openSql("select gen_id(" + generatorName + ", 0) as id from dual");
         try {
             valueCurr = q.getValueLong("id");
         } finally {
@@ -37,8 +36,8 @@ public class DbGenerators_Firebird extends DbGenerators implements IDbGenerators
     }
 
     @Override
-    public void setValue(String generatorName, long value) throws Exception {
-        db.execSql("set generator " + generatorName + " to " + value + "");
+    public void setLastValue(String generatorName, long value) throws Exception {
+        getDb().execSql("set generator " + generatorName + " to " + value + "");
     }
 
 
@@ -46,12 +45,12 @@ public class DbGenerators_Firebird extends DbGenerators implements IDbGenerators
     public void createGenerator(String generatorName) throws Exception {
         try {
             String sql = "create generator " + generatorName;
-            db.execSql(sql);
+            getDb().execSql(sql);
             //
             sql = "set generator " + generatorName + " to 0";
-            db.execSql(sql);
+            getDb().execSql(sql);
         } catch (Exception e) {
-            if (dbErrors.errorIs_GeneratorAlreadyExists(e)) {
+            if (getDbErrors().errorIs_GeneratorAlreadyExists(e)) {
                 log.warn("generator already exists: " + generatorName);
             } else {
                 throw e;
@@ -63,10 +62,10 @@ public class DbGenerators_Firebird extends DbGenerators implements IDbGenerators
     public void dropGenerator(String generatorName) throws Exception {
         try {
             String sql = "drop generator " + generatorName;
-            db.execSql(sql);
+            getDb().execSql(sql);
         } catch (Exception e) {
             // если удаляемый объект не будет найден, программа продолжит работу
-            if (dbErrors.errorIs_GeneratorNotExists(e)) {
+            if (getDbErrors().errorIs_GeneratorNotExists(e)) {
                 log.debug("generator not exists: " + generatorName);
             } else {
                 throw e;

@@ -63,9 +63,9 @@ public class UtRepl {
         log.info("Создаем репликационные структуры, wsId: " + wsId + ", guid: " + guid);
 
         // Создание базовых структур и рабочей станции
-        IDbObjectManager objectManager = DbToolsService.getDbObjectManager(db);
+        IDbObjectManager dbObjectManager = db.service(DbObjectManager.class);
         String guidWs = getGuidWs(guid, wsId);
-        objectManager.createReplBase(wsId, guidWs);
+        dbObjectManager.createReplBase(wsId, guidWs);
 
         // Создаем необходимые для перекодировки таблицы
         UtDbObjectManager_Decode decodeManager = new UtDbObjectManager_Decode(db);
@@ -95,11 +95,11 @@ public class UtRepl {
         log.info("Удаляем репликационные структуры");
 
         //
-        IDbObjectManager objectManager = DbToolsService.getDbObjectManager(db);
+        IDbObjectManager dbObjectManager = db.service(DbObjectManager.class);
 
         // Удаляем системные таблицы и генераторы
         log.info("dropReplication - системные объекты");
-        objectManager.dropReplBase();
+        dbObjectManager.dropReplBase();
 
         // Удаляем необходимые для перекодировки таблицы
         log.info("dropReplication - объекты для перекодировки");
@@ -113,7 +113,7 @@ public class UtRepl {
             n++;
             log.info("  dropAudit " + n + "/" + struct.getTables().size() + " " + table.getName());
             //
-            objectManager.dropAudit(table.getName());
+            dbObjectManager.dropAudit(table.getName());
         }
 
     }

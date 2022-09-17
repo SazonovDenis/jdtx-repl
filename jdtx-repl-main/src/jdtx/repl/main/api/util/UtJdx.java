@@ -31,6 +31,8 @@ public class UtJdx {
     public static final String AUDIT_TRIGER_PREFIX = PREFIX + "_T_";
 
 
+    public static final String SYS_PREFIX = PREFIX + "_Z_";
+
     public static final String SYS_TABLE_PREFIX = PREFIX + "_Z_";
 
     public static final String SYS_GEN_PREFIX = PREFIX + "_Z_G_";
@@ -495,13 +497,13 @@ public class UtJdx {
     }
 
     public static String getDbType(Db db) {
-        if (db.getDbSource().getDbType().equalsIgnoreCase("oracle")) {
+        if (db.getDbSource().getDbDriver().getName().equalsIgnoreCase("oracle")) {
             return "oracle";
         }
-        if (db.getDbSource().getDbType().equalsIgnoreCase("jdbc") && db.getDbSource().getJdbcDriverClass().equalsIgnoreCase("org.firebirdsql.jdbc.FBDriver")) {
+        if (db.getDbSource().getDbDriver().getName().equalsIgnoreCase("firebird")) {
             return "firebird";
         }
-        throw new XError("Неизвестный тип базы");
+        throw new XError("Невозможно установить тип базы");
     }
 
 

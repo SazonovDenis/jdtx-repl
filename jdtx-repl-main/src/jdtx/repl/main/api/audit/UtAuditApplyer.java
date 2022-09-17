@@ -5,6 +5,7 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.pk_generator.*;
 import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.manager.*;
@@ -99,7 +100,7 @@ public class UtAuditApplyer {
 
         //
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
-        IDbErrors dbErrors = db.getApp().service(DbToolsService.class).getDbErrors(db);
+        IDbErrors dbErrors = db.service(DbErrorsService.class);
 
         //
         AuditDbTriggersManager triggersManager = new AuditDbTriggersManager(db);

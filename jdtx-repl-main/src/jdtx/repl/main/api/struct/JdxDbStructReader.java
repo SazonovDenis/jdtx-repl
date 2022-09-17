@@ -18,23 +18,7 @@ public class JdxDbStructReader implements IJdxDbStructReader {
 
     public void setDb(Db db) throws Exception {
         this.db = db;
-
-        String dbDriver = db.getDbSource().getDbDriver().getName();
-        switch (dbDriver) {
-            //case "firebird": {
-            case "jdbc": {
-                dbDatatypeManager = new DbDatatypeManager_Firebird();
-                break;
-            }
-            case "oracle": {
-                dbDatatypeManager = new DbDatatypeManager_Oracle();
-                break;
-            }
-            default: {
-                throw new Exception("Неизвестный тип базы: " + dbDriver);
-            }
-        }
-        dbDatatypeManager.setDb(db);
+        this.dbDatatypeManager = db.service(DbDatatypeManager.class);
     }
 
 

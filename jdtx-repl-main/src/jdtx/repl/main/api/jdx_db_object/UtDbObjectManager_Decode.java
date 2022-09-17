@@ -27,8 +27,8 @@ public class UtDbObjectManager_Decode {
 
     public void dropDbObject() throws Exception {
         String[] jdx_sys_tables = new String[]{"decode"};
-        UtDbObjectManager dbUtils = (UtDbObjectManager) DbToolsService.getDbObjectManager(db);
-        dbUtils.dropSysTables(jdx_sys_tables);
+        DbObjectManager dbObjectManager = db.service(DbObjectManager.class);
+        dbObjectManager.dropSysTables(jdx_sys_tables);
     }
 
 }

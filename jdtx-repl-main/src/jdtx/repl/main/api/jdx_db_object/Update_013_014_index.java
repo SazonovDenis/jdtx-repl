@@ -16,13 +16,13 @@ public class Update_013_014_index implements ISqlScriptExecutor {
         IJdxDbStruct struct = dbStructReader.readDbStruct();
 
         //
-        IDbErrors dbErrors = db.getApp().service(DbToolsService.class).getDbErrors(db);
-        UtDbObjectManager objectManager = (UtDbObjectManager) DbToolsService.getDbObjectManager(db);
+        IDbErrors dbErrors = db.service(DbErrorsService.class);
+        DbObjectManager dbObjectManager = db.service(DbObjectManager.class);
 
         //
         for (IJdxTable table : struct.getTables()) {
             try {
-                objectManager.createAuditTableIndex_OPR_DTTM(table);
+                dbObjectManager.createAuditTableIndex_OPR_DTTM(table);
                 log.info("createAuditTableIndex_OPR_DTTM, table: " + table.getName());
             } catch (Exception e) {
                 if (UtJdxErrors.collectExceptionText(e).contains("Unknown columns in index")) {

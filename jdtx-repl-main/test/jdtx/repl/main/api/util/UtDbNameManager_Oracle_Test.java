@@ -8,7 +8,7 @@ public class UtDbNameManager_Oracle_Test extends UtilsTestCase {
 
     @Test
     public void getShortName() {
-        IDbNamesManager manager = new DbNamesManager_Oracle();
+        IDbNames manager = new DbNames_Oracle();
 
         String s10 = "1234567890";
         String s20 = "01234567890123456789";

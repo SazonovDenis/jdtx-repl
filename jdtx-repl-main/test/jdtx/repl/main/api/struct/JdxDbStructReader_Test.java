@@ -1,6 +1,8 @@
 package jdtx.repl.main.api.struct;
 
+import jandcode.dbm.db.*;
 import jdtx.repl.main.api.*;
+import jdtx.repl.main.api.util.*;
 import org.junit.*;
 
 /**
@@ -14,11 +16,36 @@ public class JdxDbStructReader_Test extends DbPrepareEtalon_Test {
         rootDir = "../../ext/";
         super.setUp();
         db.connect();
+        db_one.connect();
+    }
+
+    @Test
+    public void test_db_one() throws Exception {
+        test_db(db_one);
+    }
+
+    @Test
+    public void test_db() throws Exception {
+        test_db(db);
+    }
+
+    void test_db(Db db) throws Exception {
+        System.out.println(UtJdx.getDbInfoStr(db));
+
+        //
+        JdxDbStructReader dbStructReader = new JdxDbStructReader();
+        dbStructReader.setDb(db);
+        IJdxDbStruct struct = dbStructReader.readDbStruct();
+        System.out.println("Таблиц в базе: " + struct.getTables().size());
+
+        //
+        JdxDbStruct_XmlRW struct_rw = new JdxDbStruct_XmlRW();
+        struct_rw.toFile(struct, "../_test-data/dbStruct." + UtJdx.getDbType(db) + ".xml");
     }
 
     @Test
     public void test_compareCreateDrop() throws Exception {
-        System.out.println("db: " + db.getDbSource().getDatabase());
+        System.out.println(UtJdx.getDbInfoStr(db));
 
         //
         try {

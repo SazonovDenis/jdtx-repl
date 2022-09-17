@@ -86,12 +86,12 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         sync_http_1_2_3();
 
         // Удобно различать записи
-        IDbGenerators pkGenerator2 = DbToolsService.getDbGenerators(db2);
-        pkGenerator2.setValue("g_UsrLog", pkGenerator2.getValue("g_UsrLog") + 2000);
-        IDbGenerators pkGenerator3 = DbToolsService.getDbGenerators(db3);
-        pkGenerator3.setValue("g_UsrLog", pkGenerator3.getValue("g_UsrLog") + 3000);
-        IDbGenerators pkGenerator5 = DbToolsService.getDbGenerators(db5);
-        pkGenerator5.setValue("g_UsrLog", pkGenerator5.getValue("g_UsrLog") + 5000);
+        IDbGenerators pkGenerator2 = db2.service(DbGeneratorsService.class);
+        IDbGenerators pkGenerator3 = db3.service(DbGeneratorsService.class);
+        IDbGenerators pkGenerator5 = db5.service(DbGeneratorsService.class);
+        pkGenerator2.setLastValue("g_UsrLog", pkGenerator2.getLastValue("g_UsrLog") + 2000);
+        pkGenerator3.setLastValue("g_UsrLog", pkGenerator3.getLastValue("g_UsrLog") + 3000);
+        pkGenerator5.setLastValue("g_UsrLog", pkGenerator5.getLastValue("g_UsrLog") + 5000);
 
 
         // ---

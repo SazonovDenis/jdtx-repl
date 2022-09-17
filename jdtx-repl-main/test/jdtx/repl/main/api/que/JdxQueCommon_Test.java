@@ -4,7 +4,7 @@ import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.util.*;
 import org.junit.*;
 
-public class JdxQueCommon_Test extends Database_Test {
+public class JdxQueCommon_Test extends DBTransactionsIsolation_Test {
 
 
     @Override

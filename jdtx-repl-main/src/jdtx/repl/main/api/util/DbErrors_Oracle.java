@@ -3,7 +3,7 @@ package jdtx.repl.main.api.util;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.struct.*;
 
-public class DbErrors_Oracle extends DbToolsService implements IDbErrors {
+public class DbErrors_Oracle extends DbErrorsService implements IDbErrors {
 
     public boolean errorIs_PrimaryKeyError(Exception e) {
         String errText = UtJdxErrors.collectExceptionText(e);

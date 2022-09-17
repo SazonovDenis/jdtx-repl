@@ -5,7 +5,6 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
-import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
 import jdtx.repl.main.api.mailer.*;
@@ -13,6 +12,7 @@ import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.rec_merge.*;
+import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
@@ -107,11 +107,11 @@ public class JdxReplSrv {
         }
 
         // Проверка версии служебных структур в БД
-        IDbObjectManager ut = DbToolsService.getDbObjectManager(db);
-        ut.checkVerDb();
+        IDbObjectManager dbObjectManager = db.service(DbObjectManager.class);
+        dbObjectManager.checkVerDb();
 
         // Проверка, что инициализация станции прошла
-        ut.checkReplicationInit();
+        dbObjectManager.checkReplicationInit();
 
         // В каком каталоге работаем
         initDataRoot();

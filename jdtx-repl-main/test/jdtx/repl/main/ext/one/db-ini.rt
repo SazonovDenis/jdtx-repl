@@ -3,10 +3,8 @@
 
     <!-- настройки базы данных -->
 
-    <db name="default1"
-        dbdriver="jdbc" 
-        jdbcDriverClass="org.firebirdsql.jdbc.FBDriver"
-        url="jdbc:firebirdsql:localhost/3050:${database}?charSet=Cp1251"
+    <db name="default"
+        dbdriver="firebird" 
         
         database="db.gdb"
         username="SYSDBA"

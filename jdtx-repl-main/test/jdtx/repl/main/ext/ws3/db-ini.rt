@@ -4,17 +4,16 @@
     <!-- настройки базы данных -->
 
     <db name="default"
-        dbdriver="jdbc" 
-        jdbcDriverClass="org.firebirdsql.jdbc.FBDriver"
-        url="jdbc:firebirdsql:localhost/3050:${database}?charSet=Cp1251"
+        dbdriver="firebird" 
         
-        database="../_test-data/db3.gdb"
-        database_etalon="test/etalon/db_empty.gdb"
-
+        database="db.gdb"
         username="SYSDBA"
         password="masterkey"
         host="localhost"
     />
                 
+    <!-- перкрытие настроек -->
+    <x-include path="_db-ini.rt" required="false"/>
+
 
 </root>

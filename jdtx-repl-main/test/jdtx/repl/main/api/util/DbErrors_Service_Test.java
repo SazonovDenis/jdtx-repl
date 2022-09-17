@@ -15,37 +15,13 @@ public class DbErrors_Service_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_createAudit_twice() throws Exception {
-        IDbObjectManager objectManager = DbToolsService.getDbObjectManager(db);
-        IJdxTable table = struct.getTable("AppUpdate");
-        //
-        System.out.println("----------");
-        System.out.println("objectManager.dropAudit");
-        objectManager.dropAudit(table.getName());
-        //
-        System.out.println("----------");
-        System.out.println("objectManager.createAudit");
-        objectManager.createAudit(table);
-        //
-        System.out.println("----------");
-        System.out.println("objectManager.createAudit");
-        objectManager.createAudit(table);
-        //
-        System.out.println("----------");
-        System.out.println("objectManager.dropAudit");
-        objectManager.dropAudit(table.getName());
-        //
-        System.out.println("----------");
-        System.out.println("objectManager.dropAudit");
-        objectManager.dropAudit(table.getName());
-    }
-
-    @Test
     public void test_ForeignKeyViolation_Info() {
+        System.out.println(UtJdx.getDbInfoStr(db));
+        IDbErrors dbErrors = db.service(DbErrorsService.class);
+        //
         Exception e = new Exception("violation of FOREIGN KEY constraint \"FK_LIC_ULZ\" on table \"LIC\"");
         JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
         //
-        IDbErrors dbErrors = db.getApp().service(DbToolsService.class).getDbErrors(db);
         IJdxTable thisTable = dbErrors.get_ForeignKeyViolation_tableInfo(ee, struct);
         IJdxForeignKey foreignKey = dbErrors.get_ForeignKeyViolation_refInfo(ee, struct);
         IJdxField refField = foreignKey.getField();

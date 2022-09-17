@@ -11,7 +11,7 @@ public class Update_005_006_index implements ISqlScriptExecutor {
 
     @Override
     public void exec(Db db) throws Exception {
-        IDbErrors dbErrors = db.getApp().service(DbToolsService.class).getDbErrors(db);
+        IDbErrors dbErrors = db.service(DbErrorsService.class);
 
         //
         try {
@@ -31,12 +31,12 @@ public class Update_005_006_index implements ISqlScriptExecutor {
         IJdxDbStruct struct = dbStructReader.readDbStruct();
 
         //
-        UtDbObjectManager objectManager = (UtDbObjectManager) DbToolsService.getDbObjectManager(db);
+        DbObjectManager dbObjectManager = db.service(DbObjectManager.class);
 
         //
         for (IJdxTable table : struct.getTables()) {
             try {
-                objectManager.createAuditTableIndex_ID(table);
+                dbObjectManager.createAuditTableIndex_ID(table);
                 log.info("createAuditTableIndex_ID, table: " + table.getName());
             } catch (Exception e) {
                 if (UtJdxErrors.collectExceptionText(e).contains("Unknown columns in index")) {

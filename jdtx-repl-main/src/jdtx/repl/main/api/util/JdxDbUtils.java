@@ -25,8 +25,8 @@ public class JdxDbUtils {
     public JdxDbUtils(Db db, IJdxDbStruct struct) throws Exception {
         this.db = db;
         this.struct = struct;
-        this.dbErrors = DbToolsService.getDbErrors(db);
-        this.dbGenerators = DbToolsService.getDbGenerators(db);
+        this.dbErrors = db.service(DbErrorsService.class);
+        this.dbGenerators = db.service(DbGeneratorsService.class);
         this.pkRules = db.getApp().service(AppPkRulesService.class);
     }
 
@@ -34,7 +34,7 @@ public class JdxDbUtils {
      * Возвращает очередную id для генератора generatorName
      */
     public long getNextGenerator(String generatorName) throws Exception {
-        return dbGenerators.getNextValue(generatorName);
+        return dbGenerators.genNextValue(generatorName);
     }
 
     public static String getPkFieldName(IJdxTable table) {
@@ -326,7 +326,7 @@ public class JdxDbUtils {
         Long id = UtJdxData.longValueOf(p.get(pkFieldName));
         if (id == null) {
             String generatorName = pkRules.getGeneratorName(tableName);
-            id = dbGenerators.getNextValue(generatorName);
+            id = dbGenerators.genNextValue(generatorName);
             p.put(pkFieldName, id);
         }
         //

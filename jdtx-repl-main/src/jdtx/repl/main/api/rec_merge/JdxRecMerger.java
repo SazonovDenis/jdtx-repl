@@ -5,6 +5,7 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.pk_generator.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
@@ -35,7 +36,7 @@ public class JdxRecMerger implements IJdxRecMerger {
         this.struct = struct;
         this.dbu = new JdxDbUtils(db, struct);
         this.dataSerializer = dataSerializer;
-        this.dbErrors = db.getApp().service(DbToolsService.class).getDbErrors(db);
+        this.dbErrors = db.service(DbErrorsService.class);
     }
 
 

@@ -88,11 +88,71 @@
 
     </service>
 
-    <!-- Коннект к БД без пула -->
-    <dbdriver name="jdbc" parent="sys">
+    <dbdriver name="firebird" parent="jdbc"
+              jdbcDriverClass="org.firebirdsql.jdbc.FBDriver"
+              url="jdbc:firebirdsql:localhost/3050:${database}?charSet=Cp1251"
+    >
+
+        <!-- Коннект к БД без пула -->
         <service name="jandcode.dbm.db.ConnectionService"
                  class="jdtx.repl.main.ut.DirectConnectionService"
         />
+
+        <!-- Парсер ошибок БД -->
+        <service name="jdtx.repl.main.api.util.DbErrorsService"
+                 class="jdtx.repl.main.api.util.DbErrors_Firebird">
+        </service>
+
+        <!-- Синтаксис генераторов (последовательностей) в БД -->
+        <service name="jdtx.repl.main.api.pk_generator.DbGeneratorsService"
+                 class="jdtx.repl.main.api.pk_generator.DbGenerators_Firebird">
+        </service>
+
+        <!-- Сопоставлнеие внутренних типов полей и полей БД -->
+        <service name="jdtx.repl.main.api.struct.DbDatatypeManager"
+                 class="jdtx.repl.main.api.struct.DbDatatypeManager_Firebird">
+        </service>
+
+        <!-- Сокращатель слишком длинных имен объектов БД -->
+        <service name="jdtx.repl.main.api.util.DbNamesService"
+                 class="jdtx.repl.main.api.util.DbNames_Firebird">
+        </service>
+
+        <!-- Создаватель репликационных объектов БД -->
+        <service name="jdtx.repl.main.api.jdx_db_object.DbObjectManager"
+                 class="jdtx.repl.main.api.jdx_db_object.DbObjectManager">
+        </service>
+
+    </dbdriver>
+
+
+    <dbdriver name="oracle">
+
+        <!-- Парсер ошибок БД -->
+        <service name="jdtx.repl.main.api.util.DbErrorsService"
+                 class="jdtx.repl.main.api.util.DbErrors_Oracle">
+        </service>
+
+        <!-- Синтаксис генероаторов (последовательностей) в БД -->
+        <service name="jdtx.repl.main.api.pk_generator.DbGeneratorsService"
+                 class="jdtx.repl.main.api.pk_generator.DbGenerators_Oracle">
+        </service>
+
+        <!-- Сопоставлнеие внутренних типов полей и полей БД -->
+        <service name="jdtx.repl.main.api.struct.DbDatatypeManager"
+                 class="jdtx.repl.main.api.struct.DbDatatypeManager_Oracle">
+        </service>
+
+        <!-- Сокращатель слишком длинных имен объектов БД -->
+        <service name="jdtx.repl.main.api.util.DbNamesService"
+                 class="jdtx.repl.main.api.util.DbNames_Oracle">
+        </service>
+
+        <!-- Создаватель репликационных объектов БД -->
+        <service name="jdtx.repl.main.api.jdx_db_object.DbObjectManager"
+                 class="jdtx.repl.main.api.jdx_db_object.DbObjectManager">
+        </service>
+
     </dbdriver>
 
 
@@ -120,16 +180,12 @@
              class="jdtx.repl.main.api.ref_manager.RefManager_Decode">
     </service>
 
-    <service name="jdtx.repl.main.api.util.DbToolsService"
-             class="jdtx.repl.main.api.util.DbToolsService">
+    <service name="jdtx.repl.main.api.pk_generator.AppPkRulesService"
+             class="jdtx.repl.main.api.pk_generator.AppPkRulesRules_PS">
     </service>
 
     <service name="jdtx.repl.main.api.database_info.DatabaseInfoReaderService"
              class="jdtx.repl.main.api.database_info.DatabaseInfoReaderSrvice_PS">
-    </service>
-
-    <service name="jdtx.repl.main.api.pk_generator.AppPkRulesService"
-             class="jdtx.repl.main.api.pk_generator.AppPkRulesRules_PS">
     </service>
 
 </root>

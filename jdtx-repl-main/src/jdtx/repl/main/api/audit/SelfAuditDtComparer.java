@@ -33,8 +33,8 @@ public class SelfAuditDtComparer {
         this.selfAuditData = new HashMap<>();
 
         // Читаем изменения из аудита, сделанные ПОСЛЕ даты dt
-        IDbNamesManager dbNamesManager = db.getApp().service(DbToolsService.class).getDbNamesManager(db);
-        String auditTableName = dbNamesManager.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
+        IDbNames dbNames = db.service(DbNamesService.class);
+        String auditTableName = dbNames.getShortName(tableName, UtJdx.AUDIT_TABLE_PREFIX);
         String sql = "select * from " + auditTableName + " where " + UtJdx.AUDIT_FIELD_PREFIX + "OPR_DTTM > :replicaDt order by " + UtJdx.AUDIT_FIELD_PREFIX + "OPR_DTTM";
         DbQuery query = db.openSql(sql, UtCnv.toMap("replicaDt", dt));
 

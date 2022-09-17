@@ -3,7 +3,7 @@ package jdtx.repl.main.api.util;
 /**
  * Сокращатель длинных имен объектов СУБД
  */
-public interface IDbNamesManager {
+public interface IDbNames {
 
     String getShortName(String name, int additionalLen);
 
