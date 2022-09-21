@@ -10,6 +10,7 @@ public class JdxDataSerializerCustom extends DataSerializerService implements IJ
     protected IJdxTable table = null;
     protected Collection<IJdxField> fields = null;
 
+    @Override
     public void setTable(IJdxTable table, String tableFieldNamesStr) {
         this.table = table;
         fields = new ArrayList<>();
@@ -18,10 +19,12 @@ public class JdxDataSerializerCustom extends DataSerializerService implements IJ
         }
     }
 
+    @Override
     public String prepareValueStr(Object fieldValue, IJdxField field) throws Exception {
         return null;
     }
 
+    @Override
     public Object prepareValue(String fieldValueStr, IJdxField field) throws Exception {
         return null;
     }
@@ -33,6 +36,7 @@ public class JdxDataSerializerCustom extends DataSerializerService implements IJ
      * @param values Типизированные данные
      * @return Данные в строковом виде (для XML или JSON)
      */
+    @Override
     public Map<String, String> prepareValuesStr(Map<String, Object> values) throws Exception {
         Map<String, String> res = new HashMap<>();
 
@@ -59,6 +63,7 @@ public class JdxDataSerializerCustom extends DataSerializerService implements IJ
      * @param valuesStr Данные в строковом виде (из XML)
      * @return Типизированные данные
      */
+    @Override
     public Map<String, Object> prepareValues(Map<String, String> valuesStr) throws Exception {
         Map<String, Object> res = new HashMap<>();
 
@@ -74,6 +79,11 @@ public class JdxDataSerializerCustom extends DataSerializerService implements IJ
 
         //
         return res;
+    }
+
+    @Override
+    public IJdxDataSerializer getInstance() throws Exception {
+        return this;
     }
 
 }

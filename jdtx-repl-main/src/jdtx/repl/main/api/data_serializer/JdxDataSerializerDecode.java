@@ -11,17 +11,17 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
     private IWsSettings wsSettings = null;
 
     // Кто занимается ссылками
-    private IRefManager decoder = null;
+    private IRefManager refManager = null;
 
     // Рабочая станция по умолчанию (для десериализации  локальных ссылок).
     private long wsIdDefault = 0;
 
-    public IRefManager getDecoder() throws Exception {
+    IRefManager getRefManager() throws Exception {
         checkInit();
-        return decoder;
+        return refManager;
     }
 
-    public long getWsIdDefault() throws Exception {
+    long getWsIdDefault() throws Exception {
         checkInit();
         return wsIdDefault;
     }
@@ -29,11 +29,12 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
     private void checkInit() throws Exception {
         if (wsSettings == null) {
             this.wsSettings = getApp().service(WsSettingsService.class);
-            this.decoder = getApp().service(RefManagerService.class);
+            this.refManager = getApp().service(RefManagerService.class).getInstance();
             this.wsIdDefault = wsSettings.getWsId();
         }
     }
 
+    @Override
     public String prepareValueStr(Object fieldValue, IJdxField field) throws Exception {
         String fieldValueStr;
 
@@ -52,7 +53,7 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
                 refTableName = refTable.getName();
             }
             // Запаковка ссылки в JdxRef
-            JdxRef ref = getDecoder().get_ref(refTableName, UtJdxData.longValueOf(fieldValue));
+            JdxRef ref = getRefManager().get_ref(refTableName, UtJdxData.longValueOf(fieldValue));
             fieldValueStr = String.valueOf(ref);
         } else {
             // Поле других типов
@@ -63,6 +64,7 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
         return fieldValueStr;
     }
 
+    @Override
     public Object prepareValue(String fieldValueStr, IJdxField field) throws Exception {
         Object fieldValue;
 
@@ -95,7 +97,7 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
                 } else {
                     refTableName = refTable.getName();
                 }
-                fieldValue = getDecoder().get_id_local(refTableName, fieldValueRef);
+                fieldValue = getRefManager().get_id_local(refTableName, fieldValueRef);
             }
         } else {
             // Поле других типов
@@ -106,5 +108,10 @@ public class JdxDataSerializerDecode extends JdxDataSerializerCustom {
         return fieldValue;
     }
 
+    @Override
+    public IJdxDataSerializer getInstance() throws Exception {
+        checkInit();
+        return this;
+    }
 
 }

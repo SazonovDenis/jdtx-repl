@@ -14,14 +14,31 @@ public class All_RestoreWs_AfterDbRestore_Test extends AppTestCase {
     // иначе БД не отсвобождается
     DbPrepareEtalon_Test test;
 
+    // Если нужно несколько раз позапускать один метод из этого класа, то чтобы сэкономить время на подготовке бэкапа,
+    // можно установить один раз true (чтобы первый раз сделался бэкап), а потом можно установить false -
+    // тогда перед запуском метода восстановление из бэкапа будет запускаться, а долгая подготовка бэкапа - нет.
+    static boolean isClassTestMode = true;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        // Подготовка репликационных баз и приведение их в нужное состояние
-        JdxReplWsSrv_RestoreWs_DbRestore_test test = new JdxReplWsSrv_RestoreWs_DbRestore_test();
-        test.doNolmalLifeBromBackup = false;
-        test.setUp();
-        test.doSetUp_doNolmalLife_BeforeFail();
-        test.disconnectAllForce();
+        if (isClassTestMode) {
+            // Подготовка репликационных баз и приведение их в нужное состояние
+            System.out.println("-------------");
+            System.out.println("Делаем doBackupNolmalLife");
+            System.out.println("-------------");
+
+            //
+            JdxReplWsSrv_RestoreWs_DbRestore_test testForBackup = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+            testForBackup.doNolmalLifeBromBackup = false;
+            testForBackup.setUp();
+            testForBackup.doSetUp_doNolmalLife_BeforeFail();
+            testForBackup.disconnectAllForce();
+
+            //
+            System.out.println("-------------");
+            System.out.println("doBackupNolmalLife - ok");
+            System.out.println("-------------");
+        }
     }
 
     @Override

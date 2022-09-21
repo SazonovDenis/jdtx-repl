@@ -6,7 +6,6 @@ import java.util.*;
 
 public interface IJdxDataSerializer {
 
-
     /**
      * Приготовиться к обработке значений указанной таблицы.
      * Указываем перечень полей, чтобы удобно было обработать запись целиком.
@@ -41,5 +40,10 @@ public interface IJdxDataSerializer {
      * Десериализация значений записи.
      */
     Map<String, Object> prepareValues(Map<String, String> valuesStr) throws Exception;
+
+    /**
+     * Получить уже инициализированный экземпляр
+     */
+    IJdxDataSerializer getInstance() throws Exception;
 
 }

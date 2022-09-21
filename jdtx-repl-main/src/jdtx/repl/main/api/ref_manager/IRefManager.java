@@ -47,4 +47,9 @@ public interface IRefManager {
      */
     boolean isPresent_not_own_id(IJdxTable table) throws Exception;
 
+    /**
+     * Получить уже инициализированный экземпляр
+     */
+    IRefManager getInstance() throws Exception;
+
 }

@@ -179,6 +179,12 @@ public class RefManager_Decode extends RefManagerService implements IRefManager 
         return false;
     }
 
+    @Override
+    public IRefManager getInstance() throws Exception {
+        checkInit();
+        return this;
+    }
+
 
     // ------------------------------------------
     //

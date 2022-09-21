@@ -3,6 +3,7 @@ package jdtx.repl.main.api.ref_manager;
 import jandcode.app.*;
 import jandcode.dbm.*;
 import jandcode.dbm.db.*;
+import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.settings.*;
 import org.apache.commons.logging.*;
 
@@ -30,5 +31,9 @@ public abstract class RefManagerService extends CompRt implements IRefManager {
         return wsSettings;
     }
 
+    @Override
+    public IRefManager getInstance() throws Exception {
+        return this;
+    }
 
 }
