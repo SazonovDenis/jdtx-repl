@@ -109,8 +109,7 @@ public class ReplDatabaseStruct_Test extends DbPrepareEtalon_Test {
         ws.init();
 
         //
-        RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
-        IJdxDataSerializer dataSerializer = refManagerService.createDataSerializer();
+        IJdxDataSerializer dataSerializer = db.getApp().service(DataSerializerService.class);
 
         // Собираем отпечаток crc записей таблиц
         Map<String, Map<String, String>> dbCrc = UtDbComparer.getDbDataCrc(db, ws.struct, dataSerializer);

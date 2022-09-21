@@ -12,8 +12,8 @@ import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.rec_merge.*;
-import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.replica.*;
+import jdtx.repl.main.api.settings.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import jdtx.repl.main.task.*;
@@ -92,7 +92,7 @@ public class JdxReplSrv {
 
     public String getDataRoot() {
         return dataRoot;
-        }
+    }
 
     public String getSrvGuid() {
         return guid;
@@ -103,7 +103,7 @@ public class JdxReplSrv {
      */
     public void init() throws Exception {
         if (MDC.get("serviceName") == null) {
-        MDC.put("serviceName", "srv");
+            MDC.put("serviceName", "srv");
         }
 
         // Проверка версии служебных структур в БД
@@ -127,16 +127,8 @@ public class JdxReplSrv {
         reader.setDb(db);
         structFull = reader.readDbStruct();
 
-
-        // Читаем код нашей станции
-        DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO").getCurRec();
-        // Проверяем код нашей станции
-        long selfWsId = rec.getValueLong("ws_id");
-        if (selfWsId != SERVER_WS_ID) {
-            throw new XError("Invalid server ws_id: " + selfWsId);
-        }
-        guid = rec.getValueString("guid").split("-")[0];
-
+        // Читаем и проверяем код серверной рабочей станции
+        readIdGuid();
 
         // Правила входящих реплик, почтовые курьеры, входящие очереди-зеркала (отдельные для каждой рабочей станции)
         publicationsInList = new HashMap<>();
@@ -193,25 +185,28 @@ public class JdxReplSrv {
 
         // Чтобы были
         UtFile.mkdirs(dataRoot + "temp");
-
-
-        // Инициализация RefManagerService по конфигурации wsSrv
-        // Только рабочая станция знает, какая у нас wsId
-        JdxReplWs wsSrv = new JdxReplWs(db);
-        wsSrv.init();
-        // Инициализация RefManagerService
-        RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
-        refManagerService.init(db, wsSrv);
     }
 
     /**
      * В каком каталоге работаем.
      * Оформлен как отдельный метод, чтобы можно было вызывать только его (в тестах и т.д.)
      */
-    public void initDataRoot() throws IOException {
+    void initDataRoot() throws IOException {
         dataRoot = new File(db.getApp().getRt().getChild("app").getValueString("dataRoot")).getCanonicalPath();
         dataRoot = UtFile.unnormPath(dataRoot) + "/";
         log.info("dataRoot: " + dataRoot);
+    }
+
+    /**
+     * Читаем и проверяем код и guid серверной станции.
+     */
+    void readIdGuid() throws Exception {
+        IWsSettings wsSettings = db.getApp().service(WsSettingsService.class);
+        long selfWsId = wsSettings.getWsId();
+        if (selfWsId != SERVER_WS_ID) {
+            throw new XError("Invalid server ws_id: " + selfWsId);
+        }
+        this.guid = wsSettings.getWsGuid().split("-")[0];
     }
 
     /**
@@ -317,7 +312,7 @@ public class JdxReplSrv {
         log.info("add workstation, wsId: " + wsId + ", name: " + wsName);
 
         String srvGuid = getSrvGuid();
-        String wsGuid = srvGuid + "-" + UtString.padLeft(String.valueOf(wsId), 3, '0');
+        String wsGuid = UtRepl.getGuidWs(srvGuid, wsId);
 
 
         //
@@ -814,7 +809,7 @@ public class JdxReplSrv {
 
                         //
                         if (UtJdxErrors.errorIs_replicaFile(e)) {
-                        // Пробуем что-то сделать с проблемой реплики в очереди
+                            // Пробуем что-то сделать с проблемой реплики в очереди
                             log.error("srvHandleCommonQue, wsId: " + wsId + ", error: " + e.getMessage());
 
                             // Выясним, у кого куда просить
@@ -919,18 +914,18 @@ public class JdxReplSrv {
                     } catch (Exception e) {
 
                         if (UtJdxErrors.errorIs_replicaFile(e)) {
-                        //
-                        log.error("srvReplicasDispatch, error: " + e.getMessage());
+                            //
+                            log.error("srvReplicasDispatch, error: " + e.getMessage());
                             // Сможем  что-то сделать с проблемой реплики в очереди, когда сделаем
                             // https://github.com/SazonovDenis/jdtx-repl/issues/22
-                        // А пока - ошибка
-                        String replicaInfo;
-                        if (replica != null) {
-                            replicaInfo = "replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", replica.no: " + replica.getInfo().getNo();
-                        } else {
-                            replicaInfo = "no replica.info";
-                        }
-                        throw new XError("srvReplicasDispatch, queCommon.no: " + no + ", " + replicaInfo + ", error: " + e.getMessage());
+                            // А пока - ошибка
+                            String replicaInfo;
+                            if (replica != null) {
+                                replicaInfo = "replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", replica.no: " + replica.getInfo().getNo();
+                            } else {
+                                replicaInfo = "no replica.info";
+                            }
+                            throw new XError("srvReplicasDispatch, queCommon.no: " + no + ", " + replicaInfo + ", error: " + e.getMessage());
                         } else {
                             throw e;
                         }
@@ -1303,16 +1298,11 @@ public class JdxReplSrv {
         UtRecMergePlanRW reader = new UtRecMergePlanRW();
         Collection<RecMergePlan> mergePlans = reader.readPlans(planFileName);
 
-        // Только рабочая станция знает, какая у нас wsId
-        JdxReplWs ws = new JdxReplWs(db);
-        ws.init();
-
-        // Инициализация RefManagerService по конфигурации ws
-        RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
-        refManagerService.init(db, ws);
-
         //
-        IJdxDataSerializer dataSerializer = refManagerService.createDataSerializer();
+        IJdxDataSerializer dataSerializer = db.getApp().service(DataSerializerService.class);
+
+        IWsSettings wsSettings = db.getApp().service(WsSettingsService.class);
+        long selfWsId = wsSettings.getWsId();
 
         //
         for (RecMergePlan mergePlan : mergePlans) {
@@ -1341,7 +1331,7 @@ public class JdxReplSrv {
             mergePlan.recordEtalon = valuesStr;
 
             // Отправим реплику на вставку эталонной записи
-            IReplica replicaIns = utRepl.createReplicaInsRecord(mergePlan.tableName, mergePlan.recordEtalon, ws.wsId);
+            IReplica replicaIns = utRepl.createReplicaInsRecord(mergePlan.tableName, mergePlan.recordEtalon, selfWsId);
             replicaIns.getInfo().setReplicaType(JdxReplicaType.IDE_MERGE);
             queCommon.push(replicaIns);
 
@@ -1489,7 +1479,7 @@ public class JdxReplSrv {
             if (replicasSnapshot != null) {
                 UtRepl ut = new UtRepl(db, null);
                 ut.sendToQue(replicasSnapshot, que);
-    }
+            }
 
             //
             db.commit();

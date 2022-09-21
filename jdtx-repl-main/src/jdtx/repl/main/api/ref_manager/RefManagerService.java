@@ -1,23 +1,34 @@
 package jdtx.repl.main.api.ref_manager;
 
 import jandcode.app.*;
+import jandcode.dbm.*;
 import jandcode.dbm.db.*;
-import jdtx.repl.main.api.*;
-import jdtx.repl.main.api.data_serializer.*;
+import jdtx.repl.main.api.settings.*;
+import org.apache.commons.logging.*;
 
 public abstract class RefManagerService extends CompRt implements IRefManager {
 
-    JdxReplWs ws = null;
+    static Log log = LogFactory.getLog("jdtx.RefManagerService");
+
     Db db = null;
 
-    public void init(Db db, JdxReplWs ws) throws Exception {
-        this.ws = ws;
-        this.db = db;
+    IWsSettings wsSettings = null;
+
+    public Db getDb() {
+        if (db == null) {
+            db = getApp().service(ModelService.class).getModel().getDb();
+        }
+
+        return db;
     }
 
-    /**
-     * Выдать экземпляр IJdxDataSerializer по правилам конекретной имплементации IRefManager
-     */
-    public abstract IJdxDataSerializer createDataSerializer() throws Exception;
+    protected IWsSettings getWsSettings() {
+        if (wsSettings == null) {
+            wsSettings = getApp().service(WsSettingsService.class);
+        }
+
+        return wsSettings;
+    }
+
 
 }

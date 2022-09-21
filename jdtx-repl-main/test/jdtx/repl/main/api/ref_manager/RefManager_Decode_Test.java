@@ -61,9 +61,7 @@ public class RefManager_Decode_Test extends ReplDatabaseStruct_Test {
         // ---
         RefManager_Decode d1 = new RefManager_Decode();
         d1.db = db;
-        d1.initWs(wsId);
-        d1.initSlots();
-        d1.initStrategy(cfgDecode);
+        d1.init(wsId, cfgDecode);
         d1.SLOT_SIZE = 4;
 
         //
@@ -73,24 +71,22 @@ public class RefManager_Decode_Test extends ReplDatabaseStruct_Test {
         }
 
         //
-        System.out.println("");
+        System.out.println();
         for (long id = 5; id < 15; id++) {
             long id_own = d1.get_id_local("LIC", new JdxRef(wsId_d1, id));
             System.out.println(wsId_d1 + ":" + id + " -> " + id_own);
         }
 
-        System.out.println("");
+        System.out.println();
         System.out.println("d1.wsToSlotList: " + d1.wsToSlotList);
         System.out.println("d1.slotToWsList: " + d1.slotToWsList);
-        System.out.println("");
+        System.out.println();
 
 
         // ---
         RefManager_Decode d2 = new RefManager_Decode();
         d2.db = db;
-        d2.initWs(wsId);
-        d2.initSlots();
-        d2.initStrategy(cfgDecode);
+        d2.init(wsId, cfgDecode);
         d2.SLOT_SIZE = 4;
 
         //
@@ -100,45 +96,41 @@ public class RefManager_Decode_Test extends ReplDatabaseStruct_Test {
         }
 
         //
-        System.out.println("");
+        System.out.println();
         for (long id = 100; id < 110; id++) {
             long id_own = d2.get_id_local("LIC", new JdxRef(wsId_d2, id));
             System.out.println(wsId_d2 + ":" + id + " -> " + id_own);
         }
 
-        System.out.println("");
+        System.out.println();
         System.out.println("d2.wsToSlotList: " + d2.wsToSlotList);
         System.out.println("d2.slotToWsList: " + d2.slotToWsList);
-        System.out.println("");
+        System.out.println();
 
 
         // ---
         d1 = new RefManager_Decode();
         d1.db = db;
-        d1.initWs(wsId);
-        d1.initSlots();
-        d1.initStrategy(cfgDecode);
+        d1.init(wsId, cfgDecode);
         d1.SLOT_SIZE = 4;
 
         //
-        System.out.println("");
+        System.out.println();
         for (long id = 10; id < 25; id++) {
             long id_own = d1.get_id_local("LIC", new JdxRef(wsId_d1, id));
             System.out.println(wsId_d1 + ":" + id + " -> " + id_own);
         }
 
-        System.out.println("");
+        System.out.println();
         System.out.println("d1.wsToSlotList: " + d1.wsToSlotList);
         System.out.println("d1.slotToWsList: " + d1.slotToWsList);
-        System.out.println("");
+        System.out.println();
 
 
         // ---
         d2 = new RefManager_Decode();
         d2.db = db;
-        d2.initWs(wsId);
-        d2.initSlots();
-        d2.initStrategy(cfgDecode);
+        d2.init(wsId, cfgDecode);
         d2.SLOT_SIZE = 4;
 
         //
@@ -207,11 +199,10 @@ public class RefManager_Decode_Test extends ReplDatabaseStruct_Test {
         long wsId_d2 = 2;
 
         // ---
+
         RefManager_Decode decoder = new RefManager_Decode();
         decoder.db = db;
-        decoder.initWs(wsId);
-        decoder.initSlots();
-        decoder.initStrategy(cfgDecode);
+        decoder.init(wsId, cfgDecode);
         decoder.SLOT_SIZE = 4;
 
         for (long id = 10; id < 25; id++) {

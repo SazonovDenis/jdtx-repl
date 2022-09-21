@@ -180,6 +180,14 @@
              class="jdtx.repl.main.api.ref_manager.RefManager_Decode">
     </service>
 
+    <service name="jdtx.repl.main.api.data_serializer.DataSerializerService"
+             class="jdtx.repl.main.api.data_serializer.JdxDataSerializerDecode">
+    </service>
+
+    <service name="jdtx.repl.main.api.settings.WsSettingsService"
+             class="jdtx.repl.main.api.settings.WsSettingsService">
+    </service>
+
     <service name="jdtx.repl.main.api.pk_generator.AppPkRulesService"
              class="jdtx.repl.main.api.pk_generator.AppPkRulesRules_PS">
     </service>

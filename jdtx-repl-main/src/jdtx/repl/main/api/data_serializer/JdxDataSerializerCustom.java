@@ -5,7 +5,7 @@ import jdtx.repl.main.api.struct.*;
 import java.util.*;
 
 
-public class JdxDataSerializerCustom implements IJdxDataSerializer {
+public class JdxDataSerializerCustom extends DataSerializerService implements IJdxDataSerializer {
 
     protected IJdxTable table = null;
     protected Collection<IJdxField> fields = null;

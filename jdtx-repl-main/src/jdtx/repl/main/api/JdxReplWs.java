@@ -19,6 +19,7 @@ import jdtx.repl.main.api.rec_merge.*;
 import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.repair.*;
 import jdtx.repl.main.api.replica.*;
+import jdtx.repl.main.api.settings.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import jdtx.repl.main.task.*;
@@ -127,7 +128,7 @@ public class JdxReplWs {
         // Проверка, что инициализация станции прошла
         dbObjectManager.checkReplicationInit();
 
-        // Читаем код нашей станции
+        // Читаем и проверяем код нашей рабочей станции
         readIdGuid();
 
         // В каком каталоге работаем
@@ -179,10 +180,6 @@ public class JdxReplWs {
         mailer = new MailerHttp();
         mailer.init(cfgMailer);
 
-        // Инициализация RefManagerService по конфигурации ws
-        RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
-        refManagerService.init(db, this);
-
         // Правила публикаций
         publicationIn = PublicationRuleStorage.loadRules(cfgPublications, structFull, "in");
         publicationOut = PublicationRuleStorage.loadRules(cfgPublications, structFull, "out");
@@ -231,20 +228,18 @@ public class JdxReplWs {
     }
 
     /**
-     * Читаем код нашей станции.
+     * Читаем и проверяем код и guid нашей станции.
      * Оформлен как отдельный метод, чтобы можно было вызывать только его
      * из jdtx.repl.main.service.UtReplService#remove(), без инициализации и смены версии БД.
      */
     public void readIdGuid() throws Exception {
-        DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO").getCurRec();
-        this.wsId = rec.getValueLong("ws_id");
-        //
-        this.wsGuid = rec.getValueString("guid");
+        IWsSettings wsSettings = db.getApp().service(WsSettingsService.class);
+        this.wsId = wsSettings.getWsId();
+        this.wsGuid = wsSettings.getWsGuid();
         // Проверяем код нашей станции
         if (this.wsId == 0) {
             throw new XError("Invalid workstation.ws_id == 0");
         }
-        //
         log.info("wsId: " + wsId);
     }
 
@@ -1243,8 +1238,7 @@ public class JdxReplWs {
         db.startTran();
         try {
             // Исполняем
-            RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
-            IJdxDataSerializer dataSerializer = refManagerService.createDataSerializer();
+            IJdxDataSerializer dataSerializer = db.getApp().service(DataSerializerService.class);
             //
             JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
             recMerger.execMergePlan(mergePlans, resultFile);

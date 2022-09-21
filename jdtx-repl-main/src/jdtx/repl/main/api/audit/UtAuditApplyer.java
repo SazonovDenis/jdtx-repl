@@ -106,8 +106,7 @@ public class UtAuditApplyer {
         AuditDbTriggersManager triggersManager = new AuditDbTriggersManager(db);
 
         //
-        RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
-        IJdxDataSerializer dataSerializer = refManagerService.createDataSerializer();
+        IJdxDataSerializer dataSerializer = db.getApp().service(DataSerializerService.class);
 
         //
         SelfAuditDtComparer selfAuditDtComparer = new SelfAuditDtComparer(db);

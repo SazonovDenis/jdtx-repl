@@ -11,16 +11,6 @@ public class RefManager_TBD extends RefManagerService implements IRefManager {
 
 
     // ------------------------------------------
-    // RefManagerService
-    // ------------------------------------------
-
-    @Override
-    public IJdxDataSerializer createDataSerializer() {
-        return new JdxDataSerializerPlain();
-    }
-
-
-    // ------------------------------------------
     // IRefManager
     // ------------------------------------------
 
@@ -54,8 +44,8 @@ public class RefManager_TBD extends RefManagerService implements IRefManager {
                 " mod(" + pkFieldName + ", 10) = :wsId\n" +
                 "group by\n" +
                 " mod(" + pkFieldName + ", 10)";
-        long wsId = ws.getWsId();
-        long maxId = db.loadSql(sql, UtCnv.toMap("idFrom", 10000000000L, "wsId", wsId)).getCurRec().getValueLong("maxId");
+        long wsId = getWsSettings().getWsId();
+        long maxId = getDb().loadSql(sql, UtCnv.toMap("idFrom", 10000000000L, "wsId", wsId)).getCurRec().getValueLong("maxId");
 
         //
         return maxId;

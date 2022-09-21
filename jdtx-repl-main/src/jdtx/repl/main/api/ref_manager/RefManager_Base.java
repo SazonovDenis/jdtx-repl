@@ -1,25 +1,11 @@
 package jdtx.repl.main.api.ref_manager;
 
-import jandcode.dbm.data.*;
-import jandcode.utils.error.*;
-import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.struct.*;
-import jdtx.repl.main.api.util.*;
 
 /**
  * Реализация IRefManager, если разведение pk не нужно.
  */
 public class RefManager_Base extends RefManagerService implements IRefManager {
-
-
-    // ------------------------------------------
-    // RefManagerService
-    // ------------------------------------------
-
-    @Override
-    public IJdxDataSerializer createDataSerializer() {
-        return new JdxDataSerializerPlain();
-    }
 
 
     // ------------------------------------------
@@ -46,7 +32,7 @@ public class RefManager_Base extends RefManagerService implements IRefManager {
         String pkFieldName = table.getPrimaryKey().get(0).getName();
         //
         String sql = "select max(" + pkFieldName + ") as maxId from " + tableName;
-        long maxId = db.loadSql(sql).getCurRec().getValueLong("maxId");
+        long maxId = getDb().loadSql(sql).getCurRec().getValueLong("maxId");
         //
         return maxId;
     }

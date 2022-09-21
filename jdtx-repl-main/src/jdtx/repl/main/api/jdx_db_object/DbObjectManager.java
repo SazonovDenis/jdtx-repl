@@ -7,6 +7,7 @@ import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.pk_generator.*;
+import jdtx.repl.main.api.settings.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
@@ -109,10 +110,9 @@ public class DbObjectManager extends DbObjectManagerService implements IDbObject
 
     public void checkReplicationInit() throws Exception {
         try {
-            // Читаем код нашей станции
-            DataRecord rec = getDb().loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO").getCurRec();
-            // Проверяем код нашей станции
-            if (rec.getValueLong("ws_id") == 0) {
+            // Читаем и проверяем код рабочей станции
+            IWsSettings wsSettings = getApp().service(WsSettingsService.class);
+            if (wsSettings.getWsId() == 0) {
                 throw new XError("Invalid workstation.ws_id == 0");
             }
         } catch (Exception e) {
@@ -124,7 +124,7 @@ public class DbObjectManager extends DbObjectManagerService implements IDbObject
         }
     }
 
-    public void createReplBase(long wsId, String guid) throws Exception {
+    public void createReplBase(long wsId, String wsGuid) throws Exception {
         log.info("Создаем системные структуры");
 
         // Базовая структура для verdb
@@ -144,10 +144,9 @@ public class DbObjectManager extends DbObjectManagerService implements IDbObject
         // Базовая структура для verdb
         setVerDb(CURRENT_VER_DB, 0);
 
-        // Метка с guid БД и номером wsId
-        log.info("Помечаем рабочую станцию, ws_id: " + wsId + ", guid: " + guid);
-        sql = "update " + UtJdx.SYS_TABLE_PREFIX + "WS_INFO set ws_id = " + wsId + ", guid = '" + guid + "'";
-        getDb().execSql(sql);
+        // Пометка БД guid и номером ws
+        IWsSettings wsSettings = getApp().service(WsSettingsService.class);
+        wsSettings.setWsIdGuid(wsId, wsGuid);
     }
 
     public void dropReplBase() throws Exception {

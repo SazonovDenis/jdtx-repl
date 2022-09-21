@@ -22,11 +22,7 @@ public class Pk_Test extends ReplDatabaseStruct_Test {
         logOff();
 
         //
-        JdxReplWs ws = new JdxReplWs(db);
-        ws.init();
-        //
         RefManagerService refManager = app.service(RefManagerService.class);
-        refManager.init(db, ws);
 
         //
         IDbGenerators generator1 = db.service(DbGeneratorsService.class);

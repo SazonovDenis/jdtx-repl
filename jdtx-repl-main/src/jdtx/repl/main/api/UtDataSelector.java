@@ -33,8 +33,7 @@ public class UtDataSelector {
     public UtDataSelector(Db db, IJdxDbStruct struct) throws Exception {
         this.db = db;
         this.struct = struct;
-        RefManagerService refManagerService = db.getApp().service(RefManagerService.class);
-        this.dataSerializer = refManagerService.createDataSerializer();
+        this.dataSerializer = db.getApp().service(DataSerializerService.class);
     }
 
     /**

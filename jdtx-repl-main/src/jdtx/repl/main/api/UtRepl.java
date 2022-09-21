@@ -137,8 +137,8 @@ public class UtRepl {
             n++;
             //
             String tableName = table.getName();
-            String pkFieldName = table.getPrimaryKey().get(0).getName();
             if (table.getPrimaryKey().size() > 0) {
+                String pkFieldName = table.getPrimaryKey().get(0).getName();
                 if (refManager.isPresent_not_own_id(table)) {
                     log.error("Check not own id, not own id found, table: " + tableName + ", " + pkFieldName);
                     foundNotOwnId = true;
