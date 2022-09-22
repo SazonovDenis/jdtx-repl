@@ -1,6 +1,5 @@
 package jdtx.repl.main.api;
 
-import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
@@ -16,7 +15,6 @@ import jdtx.repl.main.api.pk_generator.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.rec_merge.*;
-import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.repair.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.settings.*;
@@ -305,12 +303,11 @@ public class JdxReplWs {
         IJdxTable table = struct.getTable(tableName);
         UtRepl utRepl = new UtRepl(db, struct);
 
-        // Создаем реплику
+        // Снимок делаем в рамках одной транзакции - чтобы видеть непроитворечивое состояние таблиц
         IReplica replicaSnapshot;
         //
         db.startTran();
         try {
-            // Создаем реплику
             replicaSnapshot = utRepl.createSnapshotByIdList(wsId, table, idList);
 
             //
@@ -445,7 +442,7 @@ public class JdxReplWs {
 
     private ReplicaUseResult handleQue(IJdxQue que, long queNoFrom, long queNoTo, boolean forceUse) throws Exception {
         String queName = que.getQueName();
-        log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que.name: " + que.getQueName() + ", que: " + queNoFrom + " .. " + queNoTo);
+        log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que.name: " + queName + ", que: " + queNoFrom + " .. " + queNoTo);
 
         //
         ReplicaUseResult handleQueUseResult = new ReplicaUseResult();
@@ -1427,8 +1424,8 @@ public class JdxReplWs {
         //
         db.startTran();  // todo зачем тогда тут транзакция??? !!!!!!!!!!!!!!    Везде, где есть  que***.push - проверить необходимость транзакции
         try {
-            // Системная реплика - в исходящую очередь реплик
-            queOut.push(replica);
+        // Системная реплика - в исходящую очередь реплик
+        queOut.push(replica);
 
             //
             db.commit();
@@ -1679,14 +1676,15 @@ public class JdxReplWs {
     }
 
     void repairQueByDir(IJdxQue que, long noQue, long noQueDir) throws Exception {
-        log.warn("Repair que: " + que.getQueName() + ", self.wsId: " + wsId + ", que: " + (noQue + 1) + " .. " + noQueDir);
+        String queName = que.getQueName();
+        log.warn("repairQueByDir: " + queName + ", self.wsId: " + wsId + ", que: " + (noQue + 1) + " .. " + noQueDir);
 
         JdxStorageFile queFile = new JdxStorageFile();
         queFile.setDataRoot(que.getBaseDir());
 
         long count = 0;
         for (long no = noQue + 1; no <= noQueDir; no++) {
-            log.warn("Repair que: " + que.getQueName() + ", self.wsId: " + wsId + ", que.no: " + no + " (" + count + "/" + (noQueDir - noQue) + ")");
+            log.warn("repairQueByDir: " + queName + ", self.wsId: " + wsId + ", que.no: " + no + " (" + count + "/" + (noQueDir - noQue) + ")");
 
             // Извлекаем реплику из закромов
             IReplica replica = queFile.get(no);
@@ -1700,7 +1698,7 @@ public class JdxReplWs {
         }
 
         //
-        log.warn("Repair que: " + que.getQueName() + ", self.wsId: " + wsId + ", que: " + (noQue + 1) + " .. " + noQueDir + ", done count: " + count);
+        log.warn("repairQueByDir: " + queName + ", self.wsId: " + wsId + ", que: " + (noQue + 1) + " .. " + noQueDir + ", done count: " + count);
     }
 
     /**
@@ -1937,10 +1935,12 @@ public class JdxReplWs {
 
         // ---
         // Ремонт очередей по данным из каталогов
+        // Берем входящие реплики из каталога, кладем их в свою входящую очередь (потом они будут использованы).
+        // Ошибки игнорируем, т.к. все, что не исправится из каталога через repairQueByDir будет завпрошено с сервера
         // ---
 
         // Ситуация: noQueIn001 < noQueInDir001
-        // Берем входящие реплики из каталога, кладем их в свою входящую очередь (потом они будут использованы).
+        // Ремонт очереди QueIn001 по данным из каталога
         try {
             if (noQueIn001 < noQueIn001Dir) {
                 repairQueByDir(queIn001, noQueIn001, noQueIn001Dir);
@@ -1952,7 +1952,7 @@ public class JdxReplWs {
         noQueIn001 = queIn001.getMaxNo();
 
         // Ситуация: noQueIn < noQueInDir
-        // Берем входящие реплики из каталога, кладем их в свою входящую очередь (потом они будут использованы).
+        // Ремонт очереди QueIn по данным из каталога
         try {
             if (noQueIn < noQueInDir) {
                 repairQueByDir(queIn, noQueIn, noQueInDir);
@@ -1964,7 +1964,7 @@ public class JdxReplWs {
         noQueIn = queIn.getMaxNo();
 
         // Ситуация: noQueOut < noQueOutDir
-        // Берем исходящие реплики из каталога, кладем их в свою исходящую очередь.
+        // Ремонт очереди QueOut по данным из каталога
         try {
             if (noQueOut < noQueOutDir) {
                 repairQueByDir(queOut, noQueOut, noQueOutDir);
@@ -2015,7 +2015,10 @@ public class JdxReplWs {
             if (waitRepairQueBySrv) {
                 Thread.sleep(5000);
             } else {
-                throw new XError("Wait for repairQueBySrv");
+                log.warn("doneOk queIn001: " + repairQueBySrv_doneOk_queIn001);
+                log.warn("doneOk queIn: " + repairQueBySrv_doneOk_queIn);
+                log.warn("doneOk queOut: " + repairQueBySrv_doneOk_queOut);
+                throw new XError("Wait for readQueFromSrv_Interval");
             }
 
         } while (true);
@@ -2030,32 +2033,37 @@ public class JdxReplWs {
         // ---
         // Добиваемся того, чтобы в очереди QueIn оказались и все ранее отправленные наши СОБСТВЕННЫЕ реплики.
         // Это нужно, чтобы после завершения ремонта пользователь увидел те данные, которые водил сам, до сбоя.
-        // Применение для восстановления СВОИХ данных ТОЛЬКО queOut недопустимо, т.к. реплики queOut формировались вперемешку
-        // с получением queIn и могут содержать ССЫЛКИ на значения, полученные через queIn (и сейчас их в базе пока нет).
-        // Таким образом, просто применить только свой queOut - опасно. И наоборот, для восстановления всех своих данных
-        // достаточно дождаться потока queIn, где будут и наши данные.
+        //
+        // Применение для восстановления СВОИХ данных queOut недопустимо, т.к. реплики queOut формировались вперемешку
+        // с получением queIn и могут содержать ССЫЛКИ на значения, полученные через queIn (а сейчас их в базе пока нет).
+        // Таким образом, просто применить только свой queOut - опасно.
+        //
+        // И наоборот, для восстановления всех своих данных достаточно дождаться ТОЛЬКО потока queIn,
+        // в котором будут, в том числе, и ВСЕ наши данные.
 
-        // Проверим, есть ли в queIn есть все наши СОБСТВЕННЫЕ (исходящие) реплики до того номера,
-        // который мы ранее (до сбоя) отправили на сервер (это noQueOutSendSrv).
+        // Проверим, есть ли в queIn есть ВСЕ наши СОБСТВЕННЫЕ (исходящие) реплики до того номера,
+        // который мы ранее (до сбоя) отправили на сервер.
         if (!repairMode_EmptyBase) {
-            boolean needWait_noQueOutSendSrv = false;
-            long no0 = queIn.getMaxNo();
-            while (no0 > 0) {
-                IReplica replica = queIn.get(no0);
+            boolean needWait_selfReplica_queIn_fromSrv = false;
+            long noSelfReplica_queIn = 0;
+            long no = queIn.getMaxNo();
+            while (no > 0) {
+                IReplica replicaQueIn = queIn.get(no);
                 //
-                if (replica.getInfo().getWsId() == wsId) {
-                    needWait_noQueOutSendSrv = noQueOutSendSrv > replica.getInfo().getNo();
+                if (replicaQueIn.getInfo().getWsId() == wsId) {
+                    noSelfReplica_queIn = replicaQueIn.getInfo().getNo();
+                    needWait_selfReplica_queIn_fromSrv = noQueOutSendSrv > noSelfReplica_queIn;
                     break;
                 }
 
                 //
-                no0 = no0 - 1;
+                no = no - 1;
             }
 
-            // Если в нашей queIn таких (ранее нами же отправленных) реплик пока нет, то
-            // читаем queIn с сервера до тех пор, пока не получим собственную реплику нужного возраста (это noQueOutSendSrv)
+            // Если в нашей queIn наших СОБСТВЕННЫХ (ранее нами же отправленных из QueOut) реплик пока нет, то
+            // запрашиваем и читаем queIn с сервера до тех пор, пока не получим собственную реплику нужного номера (т.е. номера noQueOutSendSrv)
             // Пока чтение не закончится успехом - выкидываем ошибку (или ждем, если стоит флаг ожидания)
-            if (needWait_noQueOutSendSrv) {
+            if (needWait_selfReplica_queIn_fromSrv) {
                 do {
                     boolean repairQueBySrv_doneOk_queIn = readQueFromSrv_RepicaNo(queIn, "to", queIn.getMaxNo() + 1, noQueOutSendSrv);
 
@@ -2064,9 +2072,9 @@ public class JdxReplWs {
                     }
 
                     if (waitRepairQueBySrv) {
-                        Thread.sleep(2000);
+                        Thread.sleep(5000);
                     } else {
-                        throw new XError("Wait for repairQueBySrv");
+                        throw new XError("Wait for readQueFromSrv_RepicaNo");
                     }
 
                 } while (true);
@@ -2193,8 +2201,9 @@ public class JdxReplWs {
                     mailStateManager.setMailSendDone(noQueOutSendSrv);
                     log.warn("Repair noQueOutSendMarked != noQueOutSendSrv, setMailSendDone, " + noQueOutSendMarked + " -> " + noQueOutSendSrv);
                 } else {
-                    // Отметка опережает сервер
-                    throw new XError("Unable to repair marked, noQueSendMarked > noQueSendSrv, noQueOutSendMarked: " + noQueOutSendMarked + ", noQueOutSendSrv: " + noQueOutSendSrv);
+                    // Отметка станции опережает отметку почтового сервера.
+                    // Не ошибка
+                    log.info("Unable to repair marked, noQueSendMarked > noQueSendSrv, noQueOutSendMarked: " + noQueOutSendMarked + ", noQueOutSendSrv: " + noQueOutSendSrv);
                 }
             }
 
@@ -2268,14 +2277,19 @@ public class JdxReplWs {
      */
     private boolean readQueFromSrv_Interval(IJdxQue que, String box, long replicaNoFrom, long replicaNoTo) throws Exception {
         if (replicaNoFrom > replicaNoTo) {
+            // Запрошен пустой диапазон
             return true;
         }
+
+        //
+        String queName = que.getQueName();
+        log.info("readQueFromSrv_Interval, receive, que: " + queName + ", box: " + box + ", replicaNoFrom: " + replicaNoFrom + ", replicaNoTo: " + replicaNoTo);
 
         // Если в ящике нет того, что нам нужно - попросим сразу прислать всесь диапазон, который мы намерены скачивать
         if (!isReplicaInBox(box, replicaNoFrom) || !isReplicaInBox(box, replicaNoTo)) {
             if (replicaNoFrom == 1) {
                 // Запрос с самого первого номера - не разрешаем (это слишком много)
-                log.warn("readQueFromSrv_Interval, not valid replicaNoFrom == 1, que: " + que.getQueName() + ", box: " + box);
+                log.warn("readQueFromSrv_Interval, not valid replicaNoFrom == 1, que: " + queName + ", box: " + box);
             } else {
                 // Просим диапазон
                 RequiredInfo requiredInfo = new RequiredInfo();
@@ -2290,7 +2304,7 @@ public class JdxReplWs {
         long no = replicaNoFrom;
         while (no <= replicaNoTo) {
             try {
-                log.info("readQueFromSrv_Interval, receive, que: " + que.getQueName() + ", box: " + box + ", no: " + no);
+                log.info("readQueFromSrv_Interval, receive, que: " + queName + ", box: " + box + ", no: " + no);
 
                 //
                 receiveInternalStep(mailer, box, no, que);
@@ -2313,7 +2327,10 @@ public class JdxReplWs {
      *
      * @return =true, если все заказанные реплики прочитаны с сервера
      */
-    private boolean readQueFromSrv_RepicaNo(IJdxQue que, String box, long replicaNoFrom, long requiredReplicaSelfQueNo) throws Exception {
+    private boolean readQueFromSrv_RepicaNo(IJdxQue que, String box, long replicaNoFrom, long noSelfReplica_required) throws Exception {
+        String queName = que.getQueName();
+        log.info("readQueFromSrv_RepicaNo, receive, que: " + queName + ", box: " + box + ", replicaNoFrom: " + replicaNoFrom + ", noSelfReplica_required: " + noSelfReplica_required);
+
         // Если в ящике нет того, что нам нужно - попросим сразу прислать всесь диапазон, который мы намерены скачивать
         if (!isReplicaInBox(box, replicaNoFrom)) {
             RequiredInfo requiredInfo = new RequiredInfo();
@@ -2324,18 +2341,18 @@ public class JdxReplWs {
         }
 
         //
-        long lastSelfQueNo = 0;
+        long noSelfReplica = 0;
         long no = replicaNoFrom;
-        while (lastSelfQueNo < requiredReplicaSelfQueNo) {
+        while (noSelfReplica < noSelfReplica_required) {
             try {
-                log.info("readQueFromSrv_RepicaNo, receive, que: " + que.getQueName() + ", box: " + box + ", no: " + no);
+                log.info("readQueFromSrv_RepicaNo, receive, que: " + queName + ", box: " + box + ", no: " + no);
 
                 //
                 IReplica replica = receiveInternalStep(mailer, box, no, que);
 
                 //
                 if (replica.getInfo().getWsId() == wsId) {
-                    lastSelfQueNo = replica.getInfo().getNo();
+                    noSelfReplica = replica.getInfo().getNo();
                 }
 
                 //
@@ -2346,6 +2363,7 @@ public class JdxReplWs {
             }
         }
 
+        //
         return true;
     }
 

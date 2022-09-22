@@ -287,22 +287,16 @@ public class UtMail {
         //
         log.warn("checkQueSendMarked: need repair marked, que: " + que.getQueName() + ", box: " + box + ", noQueSendMarked: " + noQueSendMarked + ", noQueSendSrv: " + noQueSendSrv);
 
-        // Отметка опережает почтовый сервер
+        // Отметка станции опережает отметку почтового сервера.
+        // Это значит, что почтовый сервер проснулся из бэкапа (или что флешку на обмен притащили немного старую).
         if (noQueSendMarked > noQueSendSrv) {
-            // На почтовый сервер ранее уже что-то отправляли? Учет этого важен:
-            // при добавлении новой рабочей станции отметка почтового сервера noQueSendSrv будет равна 0,
-            // а отметка noQueSendMarked будет установлена не равной 0.
-            if (noQueSendSrv == 0) {
-                log.warn("checkQueSendMarked: noQueSendSrv == 0, que: " + que.getQueName() + ", box: " + box + ", noQueSendMarked: " + noQueSendMarked + ", noQueSendSrv: " + noQueSendSrv);
-                return true;
-            } else {
-                log.error("checkQueSendMarked: unable to repair marked, noQueSendMarked > noQueSendSrv, que: " + que.getQueName() + ", box: " + box + ", noQueSendMarked: " + noQueSendMarked + ", noQueSendSrv: " + noQueSendSrv);
-                return false;
-            }
+            // Не ошибка
+            log.warn("checkQueSendMarked: unable to repair marked, noQueSendMarked > noQueSendSrv");
+            return true;
         }
 
+        // Помеченное (noQueSendMarked) на 1 меньше отправленного (noQueSendSrv)
         if (noQueSendMarked == (noQueSendSrv - 1)) {
-            // Помеченное (noQueSendMarked) на 1 меньше отправленного (noQueSendSrv)
             // Сравним CRC и номер реплик: в своей очереди и последнего отправленнного письма на сервере.
             if (equalLastSend(mailer, box, que, noQueSendSrv)) {
                 // Просто исправляем отметку "отправлено на сервер".
@@ -317,8 +311,9 @@ public class UtMail {
             }
         }
 
-        // Отметка noQueSendMarked сильно отстает от сервера noQueSendSrv.
-        // Это ошибка, не чинится
+        // Помеченное (noQueSendMarked) сильно отстает от отправленного (noQueSendSrv),
+        // значит кто-то нас опрередил с отправкой на сервер (на сервер отправлено больше, чем мы отправляли от себя).
+        // Это ошибка, автоматически не чинится.
         log.error("checkQueSendMarked: unable to repair marked, noQueSendMarked < noQueSendSrv");
 
         //
