@@ -914,7 +914,6 @@ public class JdxReplSrv {
                     } catch (Exception e) {
 
                         if (UtJdxErrors.errorIs_replicaFile(e)) {
-                            //
                             log.error("srvReplicasDispatch, error: " + e.getMessage());
                             // Сможем  что-то сделать с проблемой реплики в очереди, когда сделаем
                             // https://github.com/SazonovDenis/jdtx-repl/issues/22
@@ -1129,22 +1128,7 @@ public class JdxReplSrv {
         while (true) {
             // DataStore stDisplay = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE where enabled = 1");
             // UtData.outTable(stDisplay);
-            String sql = "select\n" +
-                    "  WORKSTATION_LIST.id as WS_ID,\n" +
-                    "  STATE__QUE_IN_NO_DONE.param_value as QUE_IN_NO_DONE,\n" +
-                    "  STATE__MUTE_AGE.param_value as MUTE_AGE,\n" +
-                    "  '' as MUTE_STATE\n" +
-                    "from\n" +
-                    "  " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_LIST WORKSTATION_LIST\n" +
-                    "  left join " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE STATE__ENABLED" +
-                    "    on (WORKSTATION_LIST.id = STATE__ENABLED.ws_id and STATE__ENABLED.param_name = 'enabled')\n" +
-                    "  left join " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE STATE__MUTE_AGE" +
-                    "    on (WORKSTATION_LIST.id = STATE__MUTE_AGE.ws_id and STATE__MUTE_AGE.param_name = 'mute_age')\n" +
-                    "  left join " + UtJdx.SYS_TABLE_PREFIX + "SRV_WORKSTATION_STATE STATE__QUE_IN_NO_DONE" +
-                    "    on (WORKSTATION_LIST.id = STATE__QUE_IN_NO_DONE.ws_id and STATE__QUE_IN_NO_DONE.param_name = 'que_in_no_done')\n" +
-                    "where\n" +
-                    "  STATE__ENABLED.param_value = 1";
-            DataStore stDisplay = db.loadSql(sql);
+            DataStore stDisplay = db.loadSql(UtReplSql.sql_SrvState("STATE__ENABLED.param_value = 1"));
 
             // Вычисление состояния
             long count_total = stDisplay.size();

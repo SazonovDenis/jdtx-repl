@@ -4,14 +4,13 @@
     <!-- Настройки базы данных -->
 
     <db name="default"
-        dbdriver="jdbc" 
-        jdbcDriverClass="org.firebirdsql.jdbc.FBDriver"
-        url="jdbc:firebirdsql:${host}/3050:${database}?charSet=Cp1251"
+        dbdriver="firebird" 
         
         host="localhost"
-        database="C:\Users\Public\Documents\Jadatex.PawnShop\db.gdb"
         username="SYSDBA"
         password="masterkey"
+
+        _database="C:\Users\Public\Documents\Jadatex.PawnShop\db.gdb"
     />
 
 

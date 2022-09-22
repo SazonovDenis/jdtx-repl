@@ -1421,18 +1421,8 @@ public class JdxReplWs {
         // Заканчиваем cразу-же, т.к. для реплики этого типа не нужно содержимое
         replicaWriter.replicaFileClose();
 
-        //
-        db.startTran();  // todo зачем тогда тут транзакция??? !!!!!!!!!!!!!!    Везде, где есть  que***.push - проверить необходимость транзакции
-        try {
         // Системная реплика - в исходящую очередь реплик
         queOut.push(replica);
-
-            //
-            db.commit();
-        } catch (Exception e) {
-            db.rollback(e);
-            throw e;
-        }
     }
 
 

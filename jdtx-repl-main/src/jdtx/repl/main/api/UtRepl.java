@@ -155,10 +155,8 @@ public class UtRepl {
         }
     }
 
-    // todo: в принципе - не нужен, юзается только в jdtx.repl.main.ext.Jdx_Ext.repl_info, уберем при рефакторинге мониторинга
-    @Deprecated
     public DataStore getInfoSrv() throws Exception {
-        DataStore st = db.loadSql(UtReplSql.sql_srv);
+        DataStore st = db.loadSql(UtReplSql.sql_SrvState(null));
         return st;
     }
 
@@ -894,11 +892,15 @@ public class UtRepl {
 
     /**
      * Создаем snapsot-реплики для таблиц tables (фильруем по фильтрам)
-     * Делаем обязательно в ОТДЕЛЬНОЙ транзакции (отдельной от изменения структуры).
+     * Выполняется обязательно в ОТДЕЛЬНОЙ транзакции (отдельной от изменения структуры).
+     * <p>
      * В некоторых СУБД (напр. Firebird) изменение структуры происходит ВНУТРИ транзакций,
      * тогда получится, что пока делается snapshot, аудит не работает.
      * Таким образом данные, вводимые во время подготовки аудита и snapshot-та, не попадут ни в аудит, ни в snapshot,
      * т.к. таблица аудита ЕЩЕ не видна другим транзакциям, а данные, продолжающие поступать в snapshot, УЖЕ не видны нашей транзакции.
+     * <p>
+     * Кроме того, важно видеть непроитворечивое состояние таблиц: в реплику не дложны попасть записи со ссылками
+     * на справочники, вставленные после завершения чтения справочника, но до начала чтения основной таблицы.
      */
 
     public List<IReplica> createSnapshotForTablesFiltered(List<IJdxTable> tables, long selfWsId, long wsIdDestination, IPublicationRuleStorage rulesForSnapshot) throws Exception {

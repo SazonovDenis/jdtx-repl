@@ -36,7 +36,7 @@ public class DbObjectManager extends DbObjectManagerService implements IDbObject
 
     DbQuery lockFlag = null;
 
-    static Log log = LogFactory.getLog("jdtx.DbObject");
+    static Log log = LogFactory.getLog("jdtx.DbObjectManager");
 
     public void checkVerDb() throws Exception {
         // --- Проверяем, что можно прочитать версию БД

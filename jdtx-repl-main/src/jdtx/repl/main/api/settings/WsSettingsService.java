@@ -14,13 +14,8 @@ public class WsSettingsService extends CompRt implements IWsSettings {
 
     static Log log = LogFactory.getLog("jdtx.WsSettingsService");
 
-    Db db = null;
-
-    public Db getDb() {
-        if (db == null) {
-            db = getApp().service(ModelService.class).getModel().getDb();
-        }
-
+    public Db getDb() throws Exception {
+        Db db = getApp().service(ModelService.class).getModel().getDb();
         return db;
     }
 

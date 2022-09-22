@@ -75,30 +75,6 @@ class Jdx_Ext extends ProjectExt {
 
         //
         try {
-            // Рабочая станция
-            JdxReplWs ws = new JdxReplWs(db)
-            ws.init()
-            //
-            System.out.println("Рабочая станция, wsId: " + ws.getWsId())
-
-            //
-            System.out.println("ws.wsId: " + ws.getWsId())
-            System.out.println("  queIn.baseDir: " + ws.queIn.baseDir)
-            System.out.println("  queOut.baseDir: " + ws.queOut.baseDir)
-            System.out.println("  mailer.remoteUrl: " + ws.mailer.remoteUrl)
-            System.out.println("  mailer.guid: " + ws.mailer.guid)
-
-            //
-            Map info = ws.getInfoWs()
-            System.out.println("ws out:")
-            System.out.println("  auditAgeActual: " + info.get("out_auditAgeActual"))
-            System.out.println("  queAvailable: " + info.get("out_queAvailable"))
-            System.out.println("  sendDone: " + info.get("out_sendDone"))
-            System.out.println("ws in:")
-            System.out.println("  mailAvailable: " + info.get("in_mailAvailable"))
-            System.out.println("  queInNoAvailable: " + info.get("in_queInNoAvailable"))
-            System.out.println("  queInNoDone: " + info.get("in_queInNoDone"))
-
             // Сервер
             try {
                 System.out.println("")
@@ -109,18 +85,10 @@ class Jdx_Ext extends ProjectExt {
                 srv.init()
 
                 //
-                System.out.println("queCommon.baseDir: " + srv.queCommon.baseDir)
-                for (Map.Entry<Long, IMailer> en : srv.mailerList.entrySet()) {
-                    long wsId = en.getKey()
-                    MailerHttp wsMailer = en.getValue()
-                    System.out.println("mailer.wsId: " + wsId)
-                    System.out.println("  remoteUrl: " + wsMailer.remoteUrl)
-                    System.out.println("  guid: " + wsMailer.guid)
-                }
+                System.out.println("srv.dataRoot:" + srv.getDataRoot())
 
                 //
                 UtRepl urRepl = new UtRepl(db, null)
-                System.out.println("srv:")
                 UtData.outTable(urRepl.getInfoSrv())
             } catch (Exception e) {
                 System.out.println(e.message)
