@@ -12,8 +12,7 @@
   display: inline-block;
   min-width: 20px;
   border: none;
-  margin-left: 2px;
-  margin-right: 2px;
+  margin: 1px 2px 1px 2px;
 }
 
 
@@ -22,11 +21,11 @@
 }
 
 .down {
-  background: #ffb2b2;
+  background: #ffc5c5;
 }
 
 .hidden {
-  background: #999999;
+  background-color: #dbdbdb;
 }
 
 
@@ -41,7 +40,7 @@
 
 .radio-button {
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   margin: 5px;
   cursor: pointer;
 }
@@ -62,15 +61,15 @@
 
 .button-hidden {
   border-color: #aaaaaa;
-  background-color: #b8b8b8;
+  background-color: #c2c2c2;
 }
 
 
 /* tagsChoice */
 
-.tag-button {
+.tag-element {
   border: 1px solid;
-  border-radius: 5px;
+  border-radius: 8px;
   margin: 5px;
   padding: 5px;
   cursor: pointer;
@@ -88,6 +87,10 @@
   border-color: #aaaaaa;
 }
 
+.tag-empty {
+  border-color: #c1d3e3;
+}
+
 .tag-up.tag-true {
   background-color: #cbffbd;
 }
@@ -97,7 +100,11 @@
 }
 
 .tag-hidden.tag-true {
-  background-color: #b8b8b8;
+  background-color: #dbdbdb;
+}
+
+.tag-empty.tag-true {
+  background-color: #e1f1ff;
 }
 
 

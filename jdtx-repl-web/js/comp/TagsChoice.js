@@ -21,13 +21,13 @@ app.component("tagsChoice", {
             } else {
                 this.tags.push(tag);
             }
-            console.info("this.tags: " + this.tags);
+            //console.info("this.tags: " + this.tags);
         }
     },
     template: `
 <div class="flex-container">
     <div v-for="tag in tagsAll">
-        <div :class="'tag-button tag-' + tag + ' ' + 'tag-' + tags.includes(tag)" @click="tagClick(tag)">{{tag}}</div> 
+        <div :class="'tag-element tag-' + tag + ' ' + 'tag-' + tags.includes(tag)" @click="tagClick(tag)">{{tag}}</div> 
     </div>
 </div>
 `

@@ -15,19 +15,22 @@ app.component("tableItem", {
                 child.visible = item.expanded;
             }
         },
+/*
         itemCheckboxClick(item) {
-            console.info("itemCheckboxClick, name: " + item.name + ", visible: " + item.visible);
+            //console.info("itemCheckboxClick, name: " + item.name + ", visible: " + item.visible);
 
             //
             utItems.setValueDesc(item, "checked", !item.checked, this.itemsList);
         },
+*/
         itemAttrClick(item, attr) {
-            console.info("itemAttrClick, name: " + item.name + ", attr: " + attr);
+            //console.info("itemAttrClick, name: " + item.name + ", attr: " + attr);
+            utItems.setItems(this.itemsList);
 
-            if (utItems.attrExists(item, attr)) {
-                utItems.attrRemoveDesc(item, attr, this.itemsList);
+            if (utItems.attrExists(item, attr)){
+                utItems.itemAttrRemove(item, attr)
             } else {
-                utItems.attrAddDesc(item, attr, this.itemsList);
+                utItems.itemAttrAdd(item, attr)
             }
         },
 
@@ -49,14 +52,16 @@ app.component("tableItem", {
     <span v-if="item.childsCount == 0" @click="itemClick(item)">&nbsp;&nbsp;</span>
     <span v-if="item.childsCount != 0" @click="itemClick(item)"><span v-if="item.expanded">&times;</span><span v-if="!item.expanded">&plus;</span></span>
     
+<!--
     <input type="checkbox" @click="itemCheckboxClick(item)" v-model="item.checked"/>
+-->
     
     <span class="attr up" @click="itemAttrClick(item, 'up')"><span v-if="utItems.attrExists(item, 'up')">&nbsp;&uarr;&nbsp;</span><span v-if="!utItems.attrExists(item, 'up')">&nbsp;</span></span>
     <span class="attr down" @click="itemAttrClick(item, 'down')"><span v-if="utItems.attrExists(item, 'down')">&nbsp;&darr;&nbsp;</span><span v-if="!utItems.attrExists(item, 'down')">&nbsp;</span></span>
     <span class="attr hidden" @click="itemAttrClick(item, 'hidden')"><span v-if="utItems.attrExists(item, 'hidden')">&nbsp;&times;&nbsp;</span><span v-if="!utItems.attrExists(item, 'hidden')">&nbsp;</span></span>
     
     <span @click="itemClick(item)">
-        <span v-html="getNameWrapped(item, inp.tableName)"/><span v-if="item.childsCountFull != 0">({{item.childsCount}} - {{item.childsCountFull}})</span>
+        <span v-html="getNameWrapped(item, inp.tableName)"/><span v-if="item.childsCountFull != 0"> ({{item.childsCountFull}})</span>
     </span>
     <span v-if="item.recursive">&#x27F3;</span>
     <div v-for="item in item.childs">
