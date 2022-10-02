@@ -1,0 +1,104 @@
+.flex-container {
+  display: flex;
+  align-items: center;
+}
+
+.selected {
+  background-color: rgb(32 148 243 / 30%);
+}
+
+.attr {
+  border-radius: 5px;
+  display: inline-block;
+  min-width: 20px;
+  border: none;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+
+.up {
+  background: #cbffbd;
+}
+
+.down {
+  background: #ffb2b2;
+}
+
+.hidden {
+  background: #999999;
+}
+
+
+.button {
+  border: 2px solid;
+  border-radius: 2px;
+  max-width: 100px;
+  margin: 5px;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.radio-button {
+  border: none;
+  border-radius: 5px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.button-pressed {
+  background-color: rgba(255, 255, 255, 0);
+}
+
+.button-up {
+  border-color: #b3e0a7;
+  background-color: #cbffbd;
+}
+
+.button-down {
+  border-color: #de9d9d;
+  background-color: #ffb2b2;
+}
+
+.button-hidden {
+  border-color: #aaaaaa;
+  background-color: #b8b8b8;
+}
+
+
+/* tagsChoice */
+
+.tag-button {
+  border: 1px solid;
+  border-radius: 5px;
+  margin: 5px;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.tag-up {
+  border-color: #b3e0a7;
+}
+
+.tag-down {
+  border-color: #de9d9d;
+}
+
+.tag-hidden {
+  border-color: #aaaaaa;
+}
+
+.tag-up.tag-true {
+  background-color: #cbffbd;
+}
+
+.tag-down.tag-true {
+  background-color: #ffb2b2;
+}
+
+.tag-hidden.tag-true {
+  background-color: #b8b8b8;
+}
+
+
+/* tagsChoice end */

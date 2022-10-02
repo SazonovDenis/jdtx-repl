@@ -44,6 +44,16 @@ public class JdxDbStructHierarchyIndex {
         return roots;
     }
 
+    public Set<JdxDbStructHierarchyNode> getAll() {
+        TreeSet<JdxDbStructHierarchyNode> roots = new TreeSet<>();
+
+        for (JdxDbStructHierarchyNode node : nodes) {
+            roots.add(node);
+        }
+
+        return roots;
+    }
+
     public JdxDbStructHierarchyNode findNode(String tableName) {
         for (JdxDbStructHierarchyNode node : nodes) {
             if (node.getTable().getName().equalsIgnoreCase(tableName)) {

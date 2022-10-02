@@ -1,6 +1,7 @@
 package jdtx.repl.main.api.struct.hierarchy;
 
 import jdtx.repl.main.api.struct.*;
+import org.json.simple.*;
 
 import java.util.*;
 
@@ -75,6 +76,75 @@ public class JdxDbStructHierarchyUtils {
         }
     }
 
+    public static JSONArray getNodesTreeJson(Set<JdxDbStructHierarchyNode> nodes) {
+        JSONArray jsonArr = new JSONArray();
+        for (JdxDbStructHierarchyNode node : nodes) {
+            jsonArr.add(getNodeTreeJson(node, 0));
+        }
+        return jsonArr;
+    }
+
+    private static JSONObject getNodeTreeJson(JdxDbStructHierarchyNode node, int level) {
+        JSONObject object = new JSONObject();
+
+        // Себя
+        object.put("name", node.getTable().getName());
+        object.put("childsCount", node.getChilds().size());
+        object.put("childsCountFull", getChildsCount(node));
+        object.put("recursive", getIsRecursive(node));
+        object.put("visible", level == 0);
+        object.put("expanded", false);
+        object.put("level", level);
+
+        // Потомков, кроме себя
+        List childs = new ArrayList();
+        for (JdxDbStructHierarchyNode nodeChild : node.getChilds()) {
+            if (node.getTable() == nodeChild.getTable()) {
+                // Кроме себя!
+                continue;
+            }
+
+            childs.add(getNodeTreeJson(nodeChild, level + 1));
+        }
+        object.put("childs", childs);
+
+        //
+        return object;
+    }
+
+    public static JSONArray getNodesPlainJson(Set<JdxDbStructHierarchyNode> nodes) {
+        JSONArray lst = new JSONArray();
+        for (JdxDbStructHierarchyNode node : nodes) {
+            getNodePlainJson(node, 0, lst);
+        }
+        return lst;
+    }
+
+
+    private static void getNodePlainJson(JdxDbStructHierarchyNode node, int level, JSONArray lst) {
+        JSONObject object = new JSONObject();
+
+        // Себя
+        object.put("name", node.getTable().getName());
+        object.put("childsCount", node.getChilds().size());
+        object.put("childsCountFull", getChildsCount(node));
+        object.put("visible", level == 0);
+        object.put("level", level);
+
+        //
+        lst.add(object);
+
+        // Потомков, кроме себя
+        for (JdxDbStructHierarchyNode nodeChild : node.getChilds()) {
+            if (node.getTable() == nodeChild.getTable()) {
+                // Кроме себя!
+                continue;
+            }
+
+            getNodePlainJson(nodeChild, level + 1, lst);
+        }
+    }
+
 
     //-------------
     //-------------
@@ -107,6 +177,16 @@ public class JdxDbStructHierarchyUtils {
         }
 
         return count;
+    }
+
+    private static boolean getIsRecursive(JdxDbStructHierarchyNode node) {
+        for (JdxDbStructHierarchyNode child : node.getChilds()) {
+            if (node.getTable() == child.getTable()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static void printNodesHierarchyChilds(JdxDbStructHierarchyNode root, String prefix) {
