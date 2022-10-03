@@ -49,7 +49,7 @@ app.component("tableItems", {
         checked_AttrAdd(attr) {
             //console.info("checked_AttrAdd, attr: " + attr);
             for (let item of utItems.plainList) {
-                if (!utItems.attrExists(item, attr) && this.is_match_name(item, this.inp.tableName)) {
+                if (!utItems.attrExists(item, attr) && this.is_match_name(item, this.inp.tableName) && this.is_match_tags(item, this.inp.tagsVisible)) {
                     //console.info("  ".repeat(item.level) + item.name + ", lev: " + item.level);
                     utItems.itemAttrAdd(item, attr)
                 }
@@ -58,7 +58,7 @@ app.component("tableItems", {
         checked_AttrRemove(attr) {
             //console.info("checked_AttrRemove, attr: " + attr);
             for (let item of utItems.plainList) {
-                if (utItems.attrExists(item, attr) && this.is_match_name(item, this.inp.tableName) ) {
+                if (utItems.attrExists(item, attr) && this.is_match_name(item, this.inp.tableName) && this.is_match_tags(item, this.inp.tagsVisible)) {
                     //console.info("  ".repeat(item.level) + item.name + ", lev: " + item.level);
                     utItems.itemAttrRemove(item, attr)
                 }
