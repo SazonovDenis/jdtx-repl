@@ -1,10 +1,12 @@
 import {app} from '../app.js';
 import {utItems} from '../UtItems.js';
 
-import {itemsPS} from '../data.js';
+import {itemsTBD} from '../data.js';
 
+import './TableItem.js';
 
 app.component("tableItems", {
+    props: ["attrLists"],
     data() {
         return {
             inp: {
@@ -12,45 +14,15 @@ app.component("tableItems", {
                 tableNameCheck: false,
                 tagsVisible: ["empty", "up", "down", "hidden"]
             },
-            items: itemsPS,
-            itemsList: null
+            items: itemsTBD,
+            itemsInfo: {},
         }
     },
     created: function() {
-        // Развернем дерево items в прямой список itemsList
-        this.itemsList = [];
-        for (let item of this.items) {
-            this.fillPlainList(item, this.itemsList);
-        }
-        // Заполним (инициализируем) item.tags
-        for (let item of this.itemsList) {
-            if (item.tags == null) {
-                item.tags = [];
-            }
-        }
-        // Заполним (инициализируем) item.parent
-        for (let item of this.items) {
-            this.fillParentsDesc(item);
-        }
-        //
-        utItems.setItems(this.itemsList);
+        utItems.setItems(this.items, this.itemsInfo);
     },
 
     methods: {
-        fillPlainList(item, plainList) {
-            plainList.push(item)
-            for (let child of item.childs) {
-                this.fillPlainList(child, plainList);
-            }
-        },
-
-        fillParentsDesc(item) {
-            for (let child of item.childs) {
-                child.parent = item;
-                this.fillParentsDesc(child);
-            }
-        },
-
         inp_tableName() {
             //console.info("inp_tableName, value: " + this.inp.tableName);
 
@@ -76,20 +48,18 @@ app.component("tableItems", {
 
         checked_AttrAdd(attr) {
             //console.info("checked_AttrAdd, attr: " + attr);
-            utItems.setItems(this.itemsList);
-
-            for (let item of this.itemsList) {
-                if (this.is_match_name(item, this.inp.tableName)) {
+            for (let item of utItems.plainList) {
+                if (!utItems.attrExists(item, attr) && this.is_match_name(item, this.inp.tableName)) {
+                    //console.info("  ".repeat(item.level) + item.name + ", lev: " + item.level);
                     utItems.itemAttrAdd(item, attr)
                 }
             }
         },
         checked_AttrRemove(attr) {
-            utItems.setItems(this.itemsList);
-
             //console.info("checked_AttrRemove, attr: " + attr);
-            for (let item of this.itemsList) {
-                if (this.is_match_name(item, this.inp.tableName)) {
+            for (let item of utItems.plainList) {
+                if (utItems.attrExists(item, attr) && this.is_match_name(item, this.inp.tableName) ) {
+                    //console.info("  ".repeat(item.level) + item.name + ", lev: " + item.level);
                     utItems.itemAttrRemove(item, attr)
                 }
             }
@@ -149,12 +119,18 @@ app.component("tableItems", {
     <div class="button button-hidden" @click="checked_AttrRemove('hidden')">hidden: false</div>
 </div>
 
-<tags-choice :tags=inp.tagsVisible></tags-choice>
+<tags-choice :tags=inp.tagsVisible :itemsInfo="itemsInfo"></tags-choice>
+
+
+<div class="table-items">
+    <div v-for="item in items">
+        <table-item :item=item :inp="inp" v-if="is_match_name(item, inp.tableName) && is_match_tags(item, inp.tagsVisible)"></table-item>
+    </div>
+</div>
+
 
 <div>
-    <div v-for="item in items">
-        <table-item :item=item :itemsTree=items :itemsList=itemsList :inp="inp" v-if="is_match_name(item, inp.tableName) && is_match_tags(item, inp.tagsVisible)"></table-item>
-    </div>
+    <button>Ok</button>
 </div>
 `
 })

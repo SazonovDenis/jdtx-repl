@@ -3,7 +3,7 @@ import {utItems} from '../UtItems.js';
 
 
 app.component("tableItem", {
-    props: ['item', "itemsTree", "itemsList", "inp"],
+    props: ['item', "inp"],
     created: function() {
         // Чтобы использовать имя "utItems" в шаблоне - иначе шаблон не видит!
         this.utItems = utItems;
@@ -25,8 +25,6 @@ app.component("tableItem", {
 */
         itemAttrClick(item, attr) {
             //console.info("itemAttrClick, name: " + item.name + ", attr: " + attr);
-            utItems.setItems(this.itemsList);
-
             if (utItems.attrExists(item, attr)){
                 utItems.itemAttrRemove(item, attr)
             } else {
@@ -65,7 +63,7 @@ app.component("tableItem", {
     </span>
     <span v-if="item.recursive">&#x27F3;</span>
     <div v-for="item in item.childs">
-        <table-item :item=item :itemsTree=itemsTree :itemsList=itemsList :inp="inp"></table-item>
+        <table-item :item=item :inp="inp"></table-item>
     </div>
 </div>
 `

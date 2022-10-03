@@ -107,5 +107,16 @@
   background-color: #e1f1ff;
 }
 
-
 /* tagsChoice end */
+
+
+/* tableItems */
+
+.table-items {
+  height: calc(100vh - 180px);
+  overflow: scroll;
+  box-sizing: border-box;
+}
+
+
+/* tableItems end */

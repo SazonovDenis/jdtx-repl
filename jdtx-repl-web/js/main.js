@@ -2,11 +2,10 @@ export {main1_f1};
 
 
 import {app} from './app.js';
-import {itemsAll, itemsLic} from './data.js';
+import {itemsTBD, itemsLic} from './data.js';
 
 //
 import './comp/TagsChoice.js';
-import './comp/TableItem.js';
 import './comp/TableItems.js';
 
 //
@@ -22,7 +21,7 @@ console.info("=== module main1 ===");
 
 function button1_click() {
     console.info("=== function button1_click ===");
-    console.info(itemsAll);
+    console.info(itemsTBD);
 }
 
 function button2_click() {
