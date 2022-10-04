@@ -18,3 +18,5 @@ _data_root
 _logs
 
 jdtx-repl-main/_log.properties
+
+jdtx-repl-web/.idea 
