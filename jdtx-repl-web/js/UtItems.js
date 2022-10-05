@@ -9,6 +9,7 @@ const utItems = {
     attrLists: {
         up: new Set(),
         down: new Set(),
+        none: new Set(),
         hidden: new Set(),
         empty: new Set(),
     },
@@ -21,6 +22,7 @@ const utItems = {
         this.itemsInfo = itemsInfo;
         this.itemsInfo["up"] = {};
         this.itemsInfo["down"] = {};
+        this.itemsInfo["none"] = {};
         this.itemsInfo["hidden"] = {};
         this.itemsInfo["empty"] = {};
 
@@ -76,6 +78,7 @@ const utItems = {
     calcOutData() {
         this.itemsInfo["up"].size = this.attrLists["up"].size;
         this.itemsInfo["down"].size = this.attrLists["down"].size;
+        this.itemsInfo["none"].size = this.attrLists["none"].size;
         this.itemsInfo["hidden"].size = this.attrLists["hidden"].size;
         this.itemsInfo["empty"].size = this.attrLists["empty"].size;
     },
@@ -115,23 +118,33 @@ const utItems = {
     },
 
     itemAttrRemove(item, attr) {
-        if (attr == "hidden") {
-            // При удалении родителя - удалим всех потомков
+        if (attr == "hidden" || attr == "none") {
+            // При удалении атрибута hidden или none - удалим у всех потомков
             utItems.attrRemoveDesc(item, attr);
         } else {
-            // При удалении потомка - удалим всех родителей
+            // При удалении атрибута up или down - удалим у всех родителей
             utItems.attrRemoveParents(item, attr);
         }
     },
     itemAttrAdd(item, attr) {
-        if (attr == "hidden") {
-            // При добавлении потомка - добавим всех родителей
+        if (attr == "hidden" || attr == "none") {
+            // При добавлении атрибута hidden или none - добавим у всех родителей
             utItems.attrAddParents(item, attr);
+
+            // При добавлении атрибута hidden или none - удалим атрибуты up и down у всех родителей
             utItems.attrRemoveParents(item, "up");
             utItems.attrRemoveParents(item, "down");
+            if (attr == "hidden") {
+                utItems.attrRemoveParents(item, "none");
+            } else {
+                utItems.attrRemoveParents(item, "hidden");
+            }
         } else {
-            // При добавлении родителя - добавим всех потомков
+            // При добавлении атрибута up или down - добавим у всех потомков
             utItems.attrAddDesc(item, attr);
+
+            // При добавлении атрибута up или down - удалим атрибуты hidden и none у всех родителей
+            utItems.attrRemoveDesc(item, "none");
             utItems.attrRemoveDesc(item, "hidden");
         }
     },
@@ -171,7 +184,7 @@ const utItems = {
         // Своих однофамильцев и их предков
         let items = this.itemIndex.get(item.name);
         for (let itemNamesake of items) {
-        //for (let itemNamesake of this.plainList) {
+            //for (let itemNamesake of this.plainList) {
             if (/*itemNamesake.name == item.name &&*/ !set.has(itemNamesake)) {
                 this.attrRemove(itemNamesake, attr);
                 if (itemNamesake.parent != null) {
@@ -215,7 +228,7 @@ const utItems = {
         // Своих однофамильцев и их предков
         let items = this.itemIndex.get(item.name);
         for (let itemNamesake of items) {
-        //for (let itemNamesake of this.plainList) {
+            //for (let itemNamesake of this.plainList) {
             if (/*itemNamesake.name == item.name &&*/ !set.has(itemNamesake)) {
                 this.attrAdd(itemNamesake, attr);
                 if (itemNamesake.parent != null) {
@@ -233,7 +246,7 @@ const utItems = {
         let items = this.itemIndex.get(itemName);
         for (let item of items) {
             //if (item.name == itemName) {
-                this.attrAdd(item, attr);
+            this.attrAdd(item, attr);
             //}
         }
     },
@@ -246,7 +259,7 @@ const utItems = {
         let items = this.itemIndex.get(itemName);
         for (let item of items) {
             //if (item.name == itemName) {
-                this.attrRemove(item, attr);
+            this.attrRemove(item, attr);
             //}
         }
     },
@@ -274,7 +287,7 @@ const utItems = {
         let items = this.itemIndex.get(itemName);
         for (let item of items) {
             //if (item.name == itemName) {
-                item[key] = value;
+            item[key] = value;
             //}
         }
     },

@@ -15,17 +15,9 @@ app.component("tableItem", {
                 child.visible = item.expanded;
             }
         },
-/*
-        itemCheckboxClick(item) {
-            //console.info("itemCheckboxClick, name: " + item.name + ", visible: " + item.visible);
-
-            //
-            utItems.setValueDesc(item, "checked", !item.checked, this.itemsList);
-        },
-*/
         itemAttrClick(item, attr) {
             //console.info("itemAttrClick, name: " + item.name + ", attr: " + attr);
-            if (utItems.attrExists(item, attr)){
+            if (utItems.attrExists(item, attr)) {
                 utItems.itemAttrRemove(item, attr)
             } else {
                 utItems.itemAttrAdd(item, attr)
@@ -50,13 +42,10 @@ app.component("tableItem", {
     <span v-if="item.childsCount == 0" @click="itemClick(item)">&nbsp;&nbsp;</span>
     <span v-if="item.childsCount != 0" @click="itemClick(item)"><span v-if="item.expanded">&times;</span><span v-if="!item.expanded">&plus;</span></span>
     
-<!--
-    <input type="checkbox" @click="itemCheckboxClick(item)" v-model="item.checked"/>
--->
-    
-    <span class="attr up" @click="itemAttrClick(item, 'up')"><span v-if="utItems.attrExists(item, 'up')">&nbsp;&uarr;&nbsp;</span><span v-if="!utItems.attrExists(item, 'up')">&nbsp;</span></span>
-    <span class="attr down" @click="itemAttrClick(item, 'down')"><span v-if="utItems.attrExists(item, 'down')">&nbsp;&darr;&nbsp;</span><span v-if="!utItems.attrExists(item, 'down')">&nbsp;</span></span>
-    <span class="attr hidden" @click="itemAttrClick(item, 'hidden')"><span v-if="utItems.attrExists(item, 'hidden')">&nbsp;&times;&nbsp;</span><span v-if="!utItems.attrExists(item, 'hidden')">&nbsp;</span></span>
+    <span :class="'inp-tag inp-tag-up inp-tag-up-' + utItems.attrExists(item, 'up')" @click="itemAttrClick(item, 'up')"><span v-if="utItems.attrExists(item, 'up')">&nbsp;&uarr;&nbsp;</span><span v-if="!utItems.attrExists(item, 'up')">&nbsp;</span></span>
+    <span :class="'inp-tag inp-tag-down inp-tag-down-' + utItems.attrExists(item, 'down')" @click="itemAttrClick(item, 'down')"><span v-if="utItems.attrExists(item, 'down')">&nbsp;&darr;&nbsp;</span><span v-if="!utItems.attrExists(item, 'down')">&nbsp;</span></span>
+    <span :class="'inp-tag inp-tag-none inp-tag-none-' + utItems.attrExists(item, 'none')" @click="itemAttrClick(item, 'none')"><span v-if="utItems.attrExists(item, 'none')">&nbsp;&ndash;&nbsp;</span><span v-if="!utItems.attrExists(item, 'none')">&nbsp;</span></span>
+    <span :class="'inp-tag inp-tag-hidden inp-tag-hidden-' + utItems.attrExists(item, 'hidden')" @click="itemAttrClick(item, 'hidden')"><span v-if="utItems.attrExists(item, 'hidden')">&nbsp;&times;&nbsp;</span><span v-if="!utItems.attrExists(item, 'hidden')">&nbsp;</span></span>
     
     <span @click="itemClick(item)">
         <span v-html="getNameWrapped(item, inp.tableName)"/><span v-if="item.childsCountFull != 0"> ({{item.childsCountFull}})</span>

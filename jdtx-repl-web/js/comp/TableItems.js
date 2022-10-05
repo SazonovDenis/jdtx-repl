@@ -12,7 +12,7 @@ app.component("tableItems", {
             inp: {
                 tableName: "",
                 tableNameCheck: false,
-                tagsVisible: ["empty", "up", "down", "hidden"]
+                tagsVisible: ["empty", "up", "down", "none", "hidden"]
             },
             items: itemsTBD,
             itemsInfo: {},
@@ -103,6 +103,12 @@ app.component("tableItems", {
                 }
             }
 
+            if (tagsVisible.includes("none")) {
+                if (item.tags.includes("none")) {
+                    return true
+                }
+            }
+
             return false;
         }
     },
@@ -110,13 +116,15 @@ app.component("tableItems", {
 <div class="flex-container">
     <input v-model="inp.tableName" id="inp_tableName" type="text" @keyup="inp_tableName()"/>
 
-    <div class="button button-up" @click="checked_AttrAdd('up')">up: true</div> 
-    <div class="button button-down" @click="checked_AttrAdd('down')">down: true</div>
-    <div class="button button-hidden" @click="checked_AttrAdd('hidden')">hidden: true</div>
+    <div class="button button-tag-up" @click="checked_AttrAdd('up')">up: true</div> 
+    <div class="button button-tag-down" @click="checked_AttrAdd('down')">down: true</div>
+    <div class="button button-tag-none" @click="checked_AttrAdd('none')">none: true</div>
+    <div class="button button-tag-hidden" @click="checked_AttrAdd('hidden')">hidden: true</div>
 
-    <div class="button button-up" @click="checked_AttrRemove('up')">up: false</div> 
-    <div class="button button-down" @click="checked_AttrRemove('down')">down: false</div>
-    <div class="button button-hidden" @click="checked_AttrRemove('hidden')">hidden: false</div>
+    <div class="button button-tag-up" @click="checked_AttrRemove('up')">up: false</div> 
+    <div class="button button-tag-down" @click="checked_AttrRemove('down')">down: false</div>
+    <div class="button button-tag-none" @click="checked_AttrRemove('none')">none: false</div>
+    <div class="button button-tag-hidden" @click="checked_AttrRemove('hidden')">hidden: false</div>
 </div>
 
 <tags-choice :tags=inp.tagsVisible :itemsInfo="itemsInfo"></tags-choice>

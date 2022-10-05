@@ -7,26 +7,54 @@
   background-color: rgb(32 148 243 / 30%);
 }
 
-.attr {
+/* TableItem */
+
+.inp-tag {
   border-radius: 5px;
   display: inline-block;
   min-width: 20px;
-  border: none;
+  border: 1px solid;
   margin: 1px 2px 1px 2px;
 }
 
 
-.up {
-  background: #cbffbd;
+.inp-tag-up {
+  border-color: #b3e0a7;
+  background-color: #ecffe8;
 }
 
-.down {
-  background: #ffc5c5;
+.inp-tag-down {
+  border-color: #ffc5c5;
+  background-color: #ffebeb;
 }
 
-.hidden {
+.inp-tag-none {
+  border-color: #c1d3e3;
+  background-color: #f1f7ff;
+}
+
+.inp-tag-hidden {
+  border-color: #dbdbdb;
+  background-color: #f5f5f5;
+}
+
+.inp-tag-up-true {
+  background-color: #b3e0a7;
+}
+
+.inp-tag-down-true {
+  background-color: #ffc5c5;
+}
+
+.inp-tag-none-true {
+  background-color: #c1d3e3;
+}
+
+.inp-tag-hidden-true {
   background-color: #dbdbdb;
 }
+
+/* TableItem end */
 
 
 .button {
@@ -45,21 +73,22 @@
   cursor: pointer;
 }
 
-.button-pressed {
-  background-color: rgba(255, 255, 255, 0);
-}
-
-.button-up {
+.button-tag-up {
   border-color: #b3e0a7;
   background-color: #cbffbd;
 }
 
-.button-down {
+.button-tag-down {
   border-color: #de9d9d;
   background-color: #ffb2b2;
 }
 
-.button-hidden {
+.button-tag-none {
+  border-color: #c1d3e3;
+  background-color: #e1f1ff;
+}
+
+.button-tag-hidden {
   border-color: #aaaaaa;
   background-color: #c2c2c2;
 }
@@ -67,7 +96,7 @@
 
 /* tagsChoice */
 
-.tag-element {
+.tag-choice {
   border: 1px solid;
   border-radius: 8px;
   margin: 5px;
@@ -83,28 +112,36 @@
   border-color: #de9d9d;
 }
 
+.tag-none {
+  border-color: #c1d3e3;
+}
+
+.tag-empty {
+  border-color: #aaaaaa;
+}
+
 .tag-hidden {
   border-color: #aaaaaa;
 }
 
-.tag-empty {
-  border-color: #c1d3e3;
-}
-
-.tag-up.tag-true {
+.tag-up-true {
   background-color: #cbffbd;
 }
 
-.tag-down.tag-true {
+.tag-down-true {
   background-color: #ffb2b2;
 }
 
-.tag-hidden.tag-true {
-  background-color: #dbdbdb;
+.tag-none-true {
+  background-color: #e1f1ff;
 }
 
-.tag-empty.tag-true {
-  background-color: #e1f1ff;
+.tag-empty-true {
+  background-color: #f1f1f1;
+}
+
+.tag-hidden-true {
+  background-color: #dbdbdb;
 }
 
 /* tagsChoice end */
