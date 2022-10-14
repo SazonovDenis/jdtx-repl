@@ -28,6 +28,7 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
         super(db, queName, stateMode);
     }
 
+
     /*
      * IJdxStorageFile
      */
@@ -36,6 +37,7 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
     public void setDataRoot(String dataRoot) {
         super.setDataRoot(dataRoot + "srv/que_common");
     }
+
 
     /*
      * IJdxReplicaStorage

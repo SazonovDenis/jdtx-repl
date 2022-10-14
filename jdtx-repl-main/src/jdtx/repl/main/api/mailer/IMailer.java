@@ -78,7 +78,7 @@ public interface IMailer {
     /**
      * Записать на сервер произвольные данные (для отслеживания состояния, ошибок и т.п.)
      */
-    void setData(Map data, String name, String box) throws Exception;
+    void setData(Map<String, Object> data, String name, String box) throws Exception;
 
     /**
      * Прочитать произвольные данные

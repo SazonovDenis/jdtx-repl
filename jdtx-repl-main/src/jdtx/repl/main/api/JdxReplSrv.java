@@ -38,7 +38,7 @@ public class JdxReplSrv {
     IJdxQueCommon queCommon;
 
     // Почтовые ящики для чтения/отправки сообщений (для каждой рабочей станции)
-    Map<Long, IMailer> mailerList;
+    public Map<Long, IMailer> mailerList;
 
     // Правила публикации (для каждой рабочей станции)
     Map<Long, IPublicationRuleStorage> publicationsInList;

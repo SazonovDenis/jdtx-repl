@@ -5,7 +5,6 @@ import jandcode.utils.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.data_binder.*;
 import jdtx.repl.main.api.data_serializer.*;
-import jdtx.repl.main.api.ref_manager.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.publication.*;
 import jdtx.repl.main.api.replica.*;
@@ -23,7 +22,6 @@ public class UtAuditSelector {
 
     private Db db;
     private IJdxDbStruct struct;
-    long wsId;
     IDbNames dbNames;
 
     //
@@ -31,10 +29,9 @@ public class UtAuditSelector {
 
 
     //
-    public UtAuditSelector(Db db, IJdxDbStruct struct, long wsId) {
+    public UtAuditSelector(Db db, IJdxDbStruct struct) {
         this.db = db;
         this.struct = struct;
-        this.wsId = wsId;
         this.dbNames = db.service(DbNamesService.class);
     }
 
@@ -42,7 +39,7 @@ public class UtAuditSelector {
     /**
      * Собрать аудит и подготовить реплику по правилам публикации publicationRules для возраста age.
      */
-    public IReplica createReplicaFromAudit(IPublicationRuleStorage publicationRules, long age) throws Exception {
+    public IReplica createReplicaFromAudit(long wsId, IPublicationRuleStorage publicationRules, long age) throws Exception {
         log.info("createReplicaFromAudit, wsId: " + wsId + ", age: " + age);
 
         // Для выборки из аудита - узнаем интервалы id в таблицах аудита
@@ -163,47 +160,49 @@ public class UtAuditSelector {
         }
     }
 
-    // todo: все-таки задействовать когда нибудь, когда все устаканится. Дергать по команде с сервера, когда все реплики получены и обработаны
-    public void __clearAuditData(long ageFrom, long ageTo) throws Exception {
-        String query;
+    /**
+     * Удалить аудит
+     *
+     * @param ageFrom
+     * @param ageTo
+     */
+    public void clearAuditData(long ageFrom, long ageTo) throws Exception {
+        log.info("clearAuditData, ageFrom: " + ageFrom + ", ageTo: " + ageTo);
+
         db.startTran();
         try {
+            UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
+            Map<String, Long> maxIdsFixed_From = new HashMap<>();
+            auditAgeManager.loadMaxIdsFixed(ageFrom, maxIdsFixed_From);
+            Map<String, Long> maxIdsFixed_To = new HashMap<>();
+            auditAgeManager.loadMaxIdsFixed(ageTo, maxIdsFixed_To);
+
             // удаляем журнал измений во всех таблицах
-            for (IJdxTable t : struct.getTables()) {
+            for (IJdxTable table : struct.getTables()) {
                 // Интервал id в таблице аудита, который покрывает возраст с ageFrom по ageTo
-                long fromId = getAuditMaxIdByAge(t, ageFrom - 1) + 1;
-                long toId = getAuditMaxIdByAge(t, ageTo);
+                long fromId = maxIdsFixed_From.get(table.getName());
+                long toId = maxIdsFixed_To.get(table.getName());
+                //long fromId = getAuditMaxIdByAge(table, ageFrom - 1) + 1;
+                //long toId = getAuditMaxIdByAge(table, ageTo);
 
                 //
-                if (toId >= fromId) {
-                    log.info("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], " + UtJdx.AUDIT_FIELD_PREFIX + "id: [" + fromId + ".." + toId + "], audit recs: " + (toId - fromId + 1));
+                String auditTableName = dbNames.getShortName(table.getName(), UtJdx.AUDIT_TABLE_PREFIX);
+                if (fromId < toId) {
+                    log.info("clearAuditData, table: " + table.getName() + ", " + auditTableName + "." + UtJdx.AUDIT_FIELD_PREFIX + "id: [" + (fromId + 1) + ".." + toId + "], count: " + (toId - fromId));
                 } else {
-                    log.debug("clearAudit: " + t.getName() + ", age: [" + ageFrom + ".." + ageTo + "], audit empty");
+                    log.debug("clearAuditData, table: " + table.getName() + ", audit empty");
                 }
 
                 // изменения с указанным возрастом
-                String auditTableName = dbNames.getShortName(t.getName(), UtJdx.AUDIT_TABLE_PREFIX);
-                query = "delete from " + auditTableName + " where " + UtJdx.AUDIT_FIELD_PREFIX + "id >= :fromId and " + UtJdx.AUDIT_FIELD_PREFIX + "id <= :toId";
+                String query = "delete from " + auditTableName + " where " + UtJdx.AUDIT_FIELD_PREFIX + "id > :fromId and " + UtJdx.AUDIT_FIELD_PREFIX + "id <= :toId";
                 db.execSql(query, UtCnv.toMap("fromId", fromId, "toId", toId));
             }
+
             db.commit();
         } catch (Exception e) {
             db.rollback(e);
             throw e;
         }
-    }
-
-
-    /**
-     * Возвращает, на каком ID таблицы аудита закончилась реплика с возрастом age
-     *
-     * @param tableFrom для какой таблицы
-     * @param age       возраст БД
-     * @return id таблицы аудита, соответствующая возрасту age
-     */
-    protected long getAuditMaxIdByAge(IJdxTable tableFrom, long age) throws Exception {
-        String query = "select " + UtJdx.AUDIT_FIELD_PREFIX + "id as id from " + UtJdx.SYS_TABLE_PREFIX + "age where age=" + age + " and table_name='" + tableFrom.getName() + "'";
-        return db.loadSql(query).getCurRec().getValueLong("id");
     }
 
     protected String getSql_full(IJdxTable tableFrom, String tableFields, long fromId, long toId) {

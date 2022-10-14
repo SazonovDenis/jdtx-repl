@@ -56,8 +56,8 @@ public class AuditTest_Test extends AppTestCase {
         // Формируем реплики
         long wsId = 2;
         long wsAuditAge = 140;
-        UtAuditSelector auditSelector = new UtAuditSelector(db_test, db_test_struct, wsId);
-        IReplica replica = auditSelector.createReplicaFromAudit(publication, wsAuditAge);
+        UtAuditSelector auditSelector = new UtAuditSelector(db_test, db_test_struct);
+        IReplica replica = auditSelector.createReplicaFromAudit(wsId, publication, wsAuditAge);
         // Переносим файл на постоянное место
         File actualFile = new File("../_test-data/~tmp_csv-" + wsAuditAge + ".zip");
         FileUtils.moveFile(replica.getData(), actualFile);
@@ -73,8 +73,8 @@ public class AuditTest_Test extends AppTestCase {
         // Формируем реплики
         long wsId = 2;
         long wsAuditAge = 139;
-        UtAuditSelector auditSelector = new UtAuditSelector(db_test, db_test_struct, wsId);
-        IReplica replica = auditSelector.createReplicaFromAudit(publication, wsAuditAge);
+        UtAuditSelector auditSelector = new UtAuditSelector(db_test, db_test_struct);
+        IReplica replica = auditSelector.createReplicaFromAudit(wsId, publication, wsAuditAge);
         // Переносим файл на постоянное место
         File actualFile = new File("../_test-data/~tmp_csv-" + wsAuditAge + ".zip");
         FileUtils.moveFile(replica.getData(), actualFile);
@@ -82,21 +82,21 @@ public class AuditTest_Test extends AppTestCase {
 
         //
         wsAuditAge = 140;
-        replica = auditSelector.createReplicaFromAudit(publication, wsAuditAge);
+        replica = auditSelector.createReplicaFromAudit(wsId, publication, wsAuditAge);
         actualFile = new File("../_test-data/~tmp_csv-" + wsAuditAge + ".zip");
         FileUtils.moveFile(replica.getData(), actualFile);
         System.out.println(actualFile.getAbsolutePath());
 
         //
         wsAuditAge = 141;
-        replica = auditSelector.createReplicaFromAudit(publication, wsAuditAge);
+        replica = auditSelector.createReplicaFromAudit(wsId, publication, wsAuditAge);
         actualFile = new File("../_test-data/~tmp_csv-" + wsAuditAge + ".zip");
         FileUtils.moveFile(replica.getData(), actualFile);
         System.out.println(actualFile.getAbsolutePath());
 
         //
         wsAuditAge = 145;
-        replica = auditSelector.createReplicaFromAudit(publication, wsAuditAge);
+        replica = auditSelector.createReplicaFromAudit(wsId, publication, wsAuditAge);
         actualFile = new File("../_test-data/~tmp_csv-" + wsAuditAge + ".zip");
         FileUtils.moveFile(replica.getData(), actualFile);
         System.out.println(actualFile.getAbsolutePath());

@@ -28,7 +28,7 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
 
         //
         long wsId = 2;
-        UtAuditSelector utrr = new UtAuditSelector(db2, struct2, wsId);
+        UtAuditSelector utrr = new UtAuditSelector(db2, struct2);
 
         // Загружаем правила публикации
         JSONObject cfg = UtRepl.loadAndValidateJsonFile("test/etalon/publication_full_152.json");
@@ -80,7 +80,7 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
         writerXml.startDocument();
 
         // Забираем реплики
-        UtAuditSelector utrr = new UtAuditSelector(db2, struct2, wsId);
+        UtAuditSelector utrr = new UtAuditSelector(db2, struct2);
         //
         utrr.readAuditData_ByInterval("lic", "id,nameF,nameI,nameO", 0, 10000, writerXml);
         utrr.readAuditData_ByInterval("usr", "id,name,userName", 0, 10000, writerXml);
@@ -111,8 +111,8 @@ public class UtAuditSelector_Test extends ReplDatabaseStruct_Test {
         IPublicationRuleStorage publication = PublicationRuleStorage.loadRules(cfg, struct2, "in");
 
         // Формируем реплики
-        UtAuditSelector auditSelector = new UtAuditSelector(db2, struct2, wsId);
-        IReplica replica = auditSelector.createReplicaFromAudit(publication, selfAuditAge);
+        UtAuditSelector auditSelector = new UtAuditSelector(db2, struct2);
+        IReplica replica = auditSelector.createReplicaFromAudit(wsId, publication, selfAuditAge);
 
         //
         System.out.println(replica.getData().getAbsolutePath());

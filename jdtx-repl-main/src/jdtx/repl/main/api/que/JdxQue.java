@@ -43,6 +43,7 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
         }
     }
 
+
     /*
      * IJdxQueNamed
      */
@@ -53,8 +54,16 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
 
 
     /*
-     * IJdxStorageFile
+     * IJdxReplicaStorage
      */
+
+    @Override
+    public void remove(long no) throws Exception {
+        deleteReplicaRec(no);
+
+        //
+        super.remove(no);
+    }
 
     @Override
     public IReplica get(long no) throws Exception {
@@ -171,6 +180,12 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
         return rec.getValueLong("que_" + queName + "_no");
     }
 
+    public long getMinNo() throws Exception {
+        String sql = "select min(id) as minNo from " + queTableName;
+        DataRecord rec = db.loadSql(sql).getCurRec();
+        return rec.getValueLong("minNo");
+    }
+
     public void setMaxNo(long queNo) throws Exception {
         String sql = "update " + stateTableName + " set que_" + queName + "_no = " + queNo;
         db.execSql(sql);
@@ -219,6 +234,11 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
         info.setNo(rec.getValueLong("author_id"));
         info.setCrc(rec.getValueString("crc"));
         info.setReplicaType(rec.getValueInt("replica_type"));
+    }
+
+    void deleteReplicaRec(long no) throws Exception {
+        String sql = "delete from " + queTableName + " where id = " + no;
+        db.execSql(sql);
     }
 
     DataRecord loadReplicaRec(long no) throws Exception {

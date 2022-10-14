@@ -318,6 +318,21 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         sync_http_1_2_3();
     }
 
+    @Test
+    public void test_AllHttp_ws2_Change() throws Exception {
+        logOn();
+        //
+        test_ws2_makeChange();
+        //
+        UtTest utTest2 = new UtTest(db2);
+        utTest2.make_Region_InsDel_0(struct2, 2);
+        utTest2.make_Region_InsDel_1(struct2, 2);
+
+        //
+        sync_http_1_2_3();
+        sync_http_1_2_3();
+    }
+
 /*
     @Test
     public void test_all_local() throws Exception {
@@ -363,6 +378,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         test_ws2_doReplSession();
     }
 
+    @Test
     public void sync_http_1_3() throws Exception {
         test_srv_doReplSession();
 
@@ -711,12 +727,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_ws1_getInfoWs() throws Exception {
-        JdxReplWs ws = new JdxReplWs(db);
+    public void test_ws2_getInfoWs() throws Exception {
+        JdxReplWs ws = new JdxReplWs(db2);
         ws.init();
 
         //
-        Map info = ws.getInfoWs();
+        Map<String, Object> info = ws.getInfoWs();
         System.out.println(info);
     }
 

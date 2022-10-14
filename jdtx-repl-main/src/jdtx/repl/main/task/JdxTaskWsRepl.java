@@ -7,6 +7,8 @@ import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
 import org.apache.log4j.*;
 
+import java.util.*;
+
 /**
  * Выполняет шаги "сеанс репликации" для рабочей станции.
  */
@@ -153,6 +155,17 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
         } catch (Exception e) {
             logError(e);
             collectError("srv.wsCleanupMailInBox", e);
+        }
+
+
+        //
+        logInfo("Отправка состояния");
+        try {
+            Map<String, Object> info = ws.getInfoWs();
+            ws.getMailer().setData(info, "ws.info", null);
+        } catch (Exception e) {
+            logError(e);
+            collectError("ws.setInfo", e);
         }
 
 

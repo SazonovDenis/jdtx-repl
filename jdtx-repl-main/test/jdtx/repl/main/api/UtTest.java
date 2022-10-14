@@ -418,7 +418,7 @@ public class UtTest extends UtilsTestCase {
      * Фиксация возраста
      * Удаление только что вставленной A1
      */
-    void make_Region_InsDel_0(IJdxDbStruct struct, long ws_id) throws Exception {
+    public void make_Region_InsDel_0(IJdxDbStruct struct, long ws_id) throws Exception {
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
         //UtRepl utRepl = new UtRepl(db, struct);
         JdxRandom rnd = new JdxRandom();
@@ -489,7 +489,7 @@ public class UtTest extends UtilsTestCase {
      * Обновление B1 - замена ссылки с A0 на только что вставленную А1
      * Фиксация возраста
      */
-    void make_Region_InsDel_1(IJdxDbStruct struct, long ws_id) throws Exception {
+    public void make_Region_InsDel_1(IJdxDbStruct struct, long ws_id) throws Exception {
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
         //UtRepl utRepl = new UtRepl(db, struct);
         JdxRandom rnd = new JdxRandom();

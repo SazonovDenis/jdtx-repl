@@ -46,7 +46,7 @@ public class JdxReplWs {
     //
     protected IJdxQue queIn;
     protected IJdxQue queIn001;
-    protected IJdxQue queOut;
+    public IJdxQue queOut;
 
     //
     private final Db db;
@@ -57,7 +57,7 @@ public class JdxReplWs {
     /**
      * Рабочая структура БД - только те таблицы, которые мы обрабатываем
      */
-    protected IJdxDbStruct struct;
+    public IJdxDbStruct struct;
     protected IJdxDbStruct structAllowed;
     protected IJdxDbStruct structFixed;
     /**
@@ -333,7 +333,7 @@ public class JdxReplWs {
         log.info("handleSelfAudit, wsId: " + wsId);
 
         //
-        UtAuditSelector auditSelector = new UtAuditSelector(db, struct, wsId);
+        UtAuditSelector auditSelector = new UtAuditSelector(db, struct);
         DatabaseStructManager databaseStructManager = new DatabaseStructManager(db);
 
         // Если в стостоянии "я замолчал", то молчим
@@ -379,7 +379,7 @@ public class JdxReplWs {
             //
             long count = 0;
             for (long age = auditAgeFrom + 1; age <= auditAgeTo; age++) {
-                IReplica replica = auditSelector.createReplicaFromAudit(publicationOut, age);
+                IReplica replica = auditSelector.createReplicaFromAudit(wsId, publicationOut, age);
 
                 // Пополнение исходящей очереди реплик
                 queOut.push(replica);
@@ -429,8 +429,8 @@ public class JdxReplWs {
         long age = replicaInfo.getAge();
 
         // Формируем реплику заново
-        UtAuditSelector auditSelector = new UtAuditSelector(db, struct, wsId);
-        IReplica replicaRecreated = auditSelector.createReplicaFromAudit(publicationOut, age);
+        UtAuditSelector auditSelector = new UtAuditSelector(db, struct);
+        IReplica replicaRecreated = auditSelector.createReplicaFromAudit(wsId, publicationOut, age);
 
         //
         queOut.put(replicaRecreated, no);
@@ -1529,11 +1529,6 @@ public class JdxReplWs {
         mailer.setData(null, "ping.read", box);
 
 
-        // Отметить состояние рабочей станции
-        Map info = getInfoWs();
-        mailer.setData(info, "ws.info", null);
-
-
         //
         if (count > 0) {
             log.info("receive, self.wsId: " + wsId + ", box: " + box + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
@@ -1576,8 +1571,8 @@ public class JdxReplWs {
     }
 
 
-    public Map getInfoWs() throws Exception {
-        Map info = new HashMap<>();
+    public Map<String, Object> getInfoWs() throws Exception {
+        Map<String, Object> info = new HashMap<>();
 
         //
         UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
@@ -1589,8 +1584,10 @@ public class JdxReplWs {
         long out_auditAgeActual = auditAgeManager.getAuditAge(); // Возраст аудита БД
         long out_queAvailable = stateManager.getAuditAgeDoneQueOut();  // Возраст аудита, до которого сформирована исходящая очередь
         long out_sendDone = stateMailManager.getMailSendDone();  // Возраст, до которого исходящая очередь отправлена на сервер
-        long in_queInNoAvailable = queIn.getMaxNo();             // До какого номера есть реплики во входящей очереди
-        long in_queInNoDone = stateManager.getQueNoDone("in"); // Номер реплики, до которого обработана (применена) входящая очередь
+        long in_queInNoAvailable = queIn.getMaxNo();                  // До какого номера есть реплики во входящей очереди "in"
+        long in_queInNoDone = stateManager.getQueNoDone("in");        // Номер реплики, до которого обработана (применена) входящая очередь "in"
+        long in_queIn001NoAvailable = queIn001.getMaxNo();            // До какого номера есть реплики во входящей очереди "in001"
+        long in_queIn001NoDone = stateManager.getQueNoDone("in001");  // Номер реплики, до которого обработана (применена) входящая очередь "in001"
         boolean isMute = utmm.isMute();
 
         //
@@ -1599,16 +1596,30 @@ public class JdxReplWs {
         info.put("out_sendDone", out_sendDone);
         info.put("in_queInNoAvailable", in_queInNoAvailable);
         info.put("in_queInNoDone", in_queInNoDone);
+        info.put("in_queIn001NoAvailable", in_queIn001NoAvailable);
+        info.put("in_queIn001NoDone", in_queIn001NoDone);
         info.put("databaseInfo", databaseInfo);
         info.put("isMute", isMute);
 
-        //
+/*
+        // Сколько есть на сервере в ящике "to" для станции
         try {
-            long in_mailAvailable = mailer.getBoxState("to");    // Сколько есть на сервере в ящике для станции
+            long in_mailAvailable = mailer.getBoxState("to");
             info.put("in_mailAvailable", in_mailAvailable);
         } catch (Exception e) {
-            info.put("in_mailAvailable", e.getMessage());
+            log.error("mailer.getBoxState, box: to, error: " + e.getMessage());
+            info.put("in_mailAvailable", null);
         }
+
+        // Сколько есть на сервере в ящике to001 для станции
+        try {
+            long in001_mailAvailable = mailer.getBoxState("to001");
+            info.put("in001_mailAvailable", in001_mailAvailable);
+        } catch (Exception e) {
+            log.error("mailer.getBoxState, box: to001, error: " + e.getMessage());
+            info.put("in001_mailAvailable", null);
+        }
+*/
 
         //
         return info;
