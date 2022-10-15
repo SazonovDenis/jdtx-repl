@@ -208,7 +208,7 @@ public class JdxCleaner_Test extends ReplDatabaseStruct_Test {
 
         // Какие реплики больше не нужны на станциях?
         // Узнаем и отправим на станции
-        srv.srvCleanupRepl();
+        srv.srvCleanupRepl(Long.MAX_VALUE);
 
 
         // Рабочая станция

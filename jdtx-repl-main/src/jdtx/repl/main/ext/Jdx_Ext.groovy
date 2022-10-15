@@ -9,6 +9,7 @@ import jandcode.utils.*
 import jandcode.utils.error.*
 import jandcode.utils.variant.*
 import jdtx.repl.main.api.*
+import jdtx.repl.main.api.cleaner.*
 import jdtx.repl.main.api.mailer.*
 import jdtx.repl.main.api.manager.*
 import jdtx.repl.main.api.publication.*
@@ -277,7 +278,7 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             // Узнаем правила для формирования snapshot
-            IPublicationRuleStorage ruleSnapshot;
+            IPublicationRuleStorage ruleSnapshot
             if (cfgSnapshotFileName != null && cfgSnapshotFileName.length() != 0) {
                 ruleSnapshot = srv.getCfgSnapshot(cfgSnapshotFileName)
             } else {
@@ -516,6 +517,59 @@ class Jdx_Ext extends ProjectExt {
 
             //
             println("Ремонт разрешен, wsId: " + wsId + ", guid: " + wsRepairGuid)
+        } finally {
+            db.disconnect()
+        }
+    }
+
+    void repl_clean_info(IVariantMap args) {
+        long queInUsedLast = args.getValueLong("in_used")
+        if (queInUsedLast == 0L) {
+            queInUsedLast = Long.MAX_VALUE
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        try {
+            // Сервер
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init()
+
+            // Анализ старых реплик
+            Map<Long, JdxQueCleanTask> cleanupTasks = srv.srvCleanupReplPrepareTask(queInUsedLast)
+
+            // Печатаем
+            println("Cleanup tasks:")
+            for (long wsId : cleanupTasks.keySet()) {
+                JdxQueCleanTask cleanupTask = cleanupTasks.get(wsId)
+                println("  ws: " + wsId + ", cleanupTask: " + cleanupTask)
+            }
+        } finally {
+            db.disconnect()
+        }
+    }
+
+    void repl_clean_exec(IVariantMap args) {
+        long queInUsedLast = args.getValueLong("in_used")
+        if (queInUsedLast == 0L) {
+            queInUsedLast = Long.MAX_VALUE
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        try {
+            // Сервер
+            JdxReplSrv srv = new JdxReplSrv(db)
+            srv.init()
+
+            // Выполнение удаления старых реплик
+            srv.srvCleanupRepl(queInUsedLast)
         } finally {
             db.disconnect()
         }

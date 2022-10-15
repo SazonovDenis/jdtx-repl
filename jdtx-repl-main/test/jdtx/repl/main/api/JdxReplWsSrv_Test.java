@@ -1,6 +1,5 @@
 package jdtx.repl.main.api;
 
-import jandcode.bgtasks.*;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
@@ -789,7 +788,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         JdxTaskSrvMail mailTask = new JdxTaskSrvMail(srv);
         JdxTaskSrvRepl replTask = new JdxTaskSrvRepl(srv);
         JdxTaskSrvMailRequest mailTaskRequest = new JdxTaskSrvMailRequest(srv);
-        JdxTaskSrvClean cleanTask = new JdxTaskSrvClean(srv);
+        JdxTaskSrvCleanupRepl cleanupTask = new JdxTaskSrvCleanupRepl(srv);
         //
         mailTask.doTask();
         //
@@ -799,7 +798,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         //
         mailTaskRequest.doTask();
         //
-        cleanTask.doTask();
+        //cleanupTask.doTask();
     }
 
 

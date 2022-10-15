@@ -19,9 +19,9 @@
                 enabled="true"
         />
 
-        <bgtask name="server.SrvClean"
+        <bgtask name="server.SrvCleanupRepl"
                 period="3600000"
-                enabled="true"
+                enabled="false"
         />
         
 

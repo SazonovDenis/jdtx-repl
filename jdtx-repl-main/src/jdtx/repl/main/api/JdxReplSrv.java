@@ -269,17 +269,16 @@ public class JdxReplSrv {
 
     /**
      * Сервер, задачи по уходу за сервером.
-     * Анализ, какие реплики больше не нужны на станциях,
-     * отправка команды удаления на рабочие станции.
+     * Анализ, какие реплики больше не нужны на станциях.
      */
-    public void srvCleanupRepl() throws Exception {
+    public Map<Long, JdxQueCleanTask> srvCleanupReplPrepareTask(long argQueInUsedLast) throws Exception {
         JdxCleaner cleanerSrv = new JdxCleaner(db);
 
         // Узнаем, что использовано на всех станциях.
         // Важно учесть, что если для станции не удастся прочитать достоверной информации о состоянии,
         // то удалять реплики будет опасно - вдруг рано? Вдруг кто-то еще не применил?
         // Чтобы обеспечить чтение из ВСЕХ активных станций, чтение состояния итераций идет по mailerList,
-        // а ошибки НЕ маскируются и НЕ пропускаются.
+        // при этом ошибки НЕ маскируются и НЕ пропускаются.
         Map<Long, JdxQueUsedState> usedStates = new HashMap<>();
         for (long wsId : mailerList.keySet()) {
             IMailer mailer = mailerList.get(wsId);
@@ -287,6 +286,7 @@ public class JdxReplSrv {
             usedStates.put(wsId, usedState);
         }
         // Печатаем
+        log.info("Que used status:");
         for (long wsId : usedStates.keySet()) {
             JdxQueUsedState usedState = usedStates.get(wsId);
             log.info("ws: " + wsId + ", usedState: " + usedState);
@@ -299,37 +299,71 @@ public class JdxReplSrv {
         long queInUsedMin = Long.MAX_VALUE;
         for (long wsId : mailerList.keySet()) {
             JdxQueUsedState usedState = usedStates.get(wsId);
-            //
             long queInUsed = usedState.queInUsed;
             if (queInUsed < queInUsedMin) {
                 queInUsedMin = queInUsed;
             }
         }
-        log.info("min queIn.used: " + queInUsedMin);
+        log.info("min ws queIn.used: " + queInUsedMin);
+        if (argQueInUsedLast < queInUsedMin) {
+            queInUsedMin = argQueInUsedLast;
+            log.info("set min queIn.used: " + queInUsedMin);
+        }
 
         // По номеру реплики из серверной ОБЩЕЙ очереди, которую приняли и использовали все рабочие станции,
         // для каждой рабочей станции узнаем, какой номер ИСХОДЯЩЕЙ очереди рабочей станции
         // уже принят и использован всеми другими станциями.
         Map<Long, Long> allQueOutNo = cleanerSrv.get_WsQueOutNo_by_queCommonNo(queInUsedMin);
         // Печатаем
+        log.info("Ws queOut no:");
         for (long wsId : allQueOutNo.keySet()) {
             long wsQueOutNo = allQueOutNo.get(wsId);
             log.info("ws: " + wsId + ", ws.queOut.no: " + wsQueOutNo);
         }
 
 
-        // Отправляем на рабочие станции, какие реплики можно удалить
+        // Формируем команды на очистку
+        Map<Long, JdxQueCleanTask> res = new HashMap<>();
         for (long wsId : mailerList.keySet()) {
-            JdxQueCleanTask wsCleanTask = new JdxQueCleanTask();
-            wsCleanTask.queOutNo = allQueOutNo.get(wsId);
-            wsCleanTask.queInNo = queInUsedMin;
-            wsCleanTask.queIn001No = usedStates.get(wsId).queIn001Used;
+            JdxQueCleanTask cleanTask = new JdxQueCleanTask();
+
+            cleanTask.queOutNo = allQueOutNo.get(wsId);
+            cleanTask.queInNo = queInUsedMin;
+            cleanTask.queIn001No = usedStates.get(wsId).queIn001Used;
+
+            res.put(wsId, cleanTask);
+        }
+
+        //
+        return res;
+    }
+
+    /**
+     * Сервер, задачи по уходу за сервером.
+     * Анализ, какие реплики больше не нужны на станциях,
+     * отправка команды удаления на рабочие станции.
+     */
+    public void srvCleanupRepl(long argQueInUsedLast) throws Exception {
+        JdxCleaner cleanerSrv = new JdxCleaner(db);
+
+        // Анализ, какие реплики больше не нужны на станциях
+        Map<Long, JdxQueCleanTask> cleanupTasks = srvCleanupReplPrepareTask(argQueInUsedLast);
+        // Печатаем
+        log.info("Cleanup tasks:");
+        for (long wsId : cleanupTasks.keySet()) {
+            JdxQueCleanTask cleanupTask = cleanupTasks.get(wsId);
+            log.info("  ws: " + wsId + ", cleanupTask: " + cleanupTask);
+        }
+
+        // Сообщаем на рабочие станции, какие реплики можно удалить
+        for (long wsId : cleanupTasks.keySet()) {
+            JdxQueCleanTask cleanupTask = cleanupTasks.get(wsId);
 
             //
             IMailer mailer = mailerList.get(wsId);
             if (mailer != null) {
-                log.info("sendQueCleanTask, ws: " + wsId + ", cleanTask: " + wsCleanTask);
-                cleanerSrv.sendQueCleanTask(mailer, wsCleanTask);
+                log.info("sendQueCleanTask, ws: " + wsId + ", cleanTask: " + cleanupTask);
+                cleanerSrv.sendQueCleanTask(mailer, cleanupTask);
             } else {
                 log.info("sendQueCleanTask ws: " + wsId + ", skipped");
             }

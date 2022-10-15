@@ -10,10 +10,10 @@ import org.apache.commons.logging.*;
 /**
  * Фоновая задача: сервер, удаление старых реплик
  */
-public class BgTaskSrvClean extends BgTask {
+public class BgTaskSrvCleanupRepl extends BgTask {
 
     //
-    private static Log log = LogFactory.getLog("jdtx.BgTaskSrvClean");
+    private static Log log = LogFactory.getLog("jdtx.BgTaskSrvCleanupRepl");
 
     //
     public void run() throws Exception {
@@ -37,7 +37,7 @@ public class BgTaskSrvClean extends BgTask {
         try {
             JdxReplSrv srv = new JdxReplSrv(db);
             //
-            JdxTaskSrvClean task = new JdxTaskSrvClean(srv);
+            JdxTaskSrvCleanupRepl task = new JdxTaskSrvCleanupRepl(srv);
             //
             task.doTask();
         } finally {

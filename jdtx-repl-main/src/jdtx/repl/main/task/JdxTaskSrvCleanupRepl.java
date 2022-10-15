@@ -8,16 +8,16 @@ import org.apache.log4j.*;
 /**
  * Выполняет шаги "удаление старых реплик" для сервера.
  */
-public class JdxTaskSrvClean extends JdxTaskCustom {
+public class JdxTaskSrvCleanupRepl extends JdxTaskCustom {
 
     //
     JdxReplSrv srv;
 
     //
-    public JdxTaskSrvClean(JdxReplSrv srv) {
+    public JdxTaskSrvCleanupRepl(JdxReplSrv srv) {
         this.srv = srv;
         srv.errorCollector = errorCollector;
-        log = LogFactory.getLog("jdtx.JdxTaskSrvClean");
+        log = LogFactory.getLog("jdtx.JdxTaskSrvCleanupRepl");
     }
 
     //
@@ -36,7 +36,7 @@ public class JdxTaskSrvClean extends JdxTaskCustom {
         //
         log.info("Выполнение удаления старых реплик");
         try {
-            srv.srvCleanupRepl();
+            srv.srvCleanupRepl(Long.MAX_VALUE);
         } catch (Exception e) {
             logError(e);
             collectError("srv.srvCleanupRepl", e);
