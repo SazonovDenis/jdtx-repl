@@ -1,6 +1,7 @@
 package jdtx.repl.main.api.cleaner;
 
 import jandcode.dbm.db.*;
+import jandcode.utils.error.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.mailer.*;
 import org.junit.*;
@@ -27,60 +28,116 @@ public class JdxCleaner_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void readQueUsedStatus() throws Exception {
-        JdxCleaner cleaner = new JdxCleaner(db);
-
-        //
-        JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init();
-        Map<Long, IMailer> mailers = srv.mailerList;
-
-        // Узнаем, что использовано на всех станциях
-        Map<Long, JdxQueUsedState> usedStates = new HashMap<>();
-        for (long wsId : mailers.keySet()) {
-            IMailer mailer = mailers.get(wsId);
-            JdxQueUsedState state = cleaner.readQueUsedStatus(mailer);
-            usedStates.put(wsId, state);
-        }
-
-        // Печатаем
-        for (long wsId : usedStates.keySet()) {
-            JdxQueUsedState state = usedStates.get(wsId);
-            System.out.println(wsId + ": " + state);
-        }
-    }
-
-    @Test
     public void readQueUsedStatus_2() throws Exception {
-        long wsId = 2;
-
-        //
-        JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init();
-        IMailer mailer = srv.mailerList.get(wsId);
+        JdxReplWs ws2 = new JdxReplWs(db2);
+        ws2.init();
+        IMailer mailer = ws2.getMailer();
 
         // Узнаем, что использовано на ws2
         JdxCleaner cleaner = new JdxCleaner(null);
-        JdxQueUsedState state = cleaner.readQueUsedStatus(mailer);
-        System.out.println(wsId + ": " + state);
+        JdxQueUsedState usedState = cleaner.readQueUsedStatus(mailer);
+        System.out.println(ws2.getWsId() + ": " + usedState);
     }
 
     @Test
     public void sendQueUsedStatus_2() throws Exception {
-        long wsId = 2;
+        JdxReplWs ws2 = new JdxReplWs(db2);
+        ws2.init();
+        IMailer mailer = ws2.getMailer();
 
-        //
-        JdxReplSrv srv = new JdxReplSrv(db);
-        srv.init();
-        IMailer mailer = srv.mailerList.get(wsId);
-
-
-        //
-        JdxQueUsedState state = new JdxQueUsedState();
-        state.queOutUsed = 100;
+        // Отправим на ws2
+        JdxQueCleanTask task = new JdxQueCleanTask();
+        task.queOutNo = 100;
         //
         JdxCleaner cleaner = new JdxCleaner(db);
-        cleaner.sendQueUsedStatus(mailer, state);
+        cleaner.sendQueCleanTask(mailer, task);
+
+
+        // Рабочая станция - попытаемся выполнить очистку станции
+        ws2.wsCleanupRepl();
+    }
+
+    @Test
+    public void sendQueUsedStatus_2_big() throws Exception {
+        JdxReplWs ws2 = new JdxReplWs(db2);
+        ws2.init();
+        IMailer mailer = ws2.getMailer();
+
+        //
+        JdxQueCleanTask task;
+        JdxCleaner cleaner = new JdxCleaner(db);
+
+
+        // Отправим слишком большое задание на ws2
+        task = new JdxQueCleanTask();
+        task.queOutNo = 1000000;
+        task.queInNo = 10;
+        task.queIn001No = 10;
+        //
+        cleaner.sendQueCleanTask(mailer, task);
+
+        // Рабочая станция - попытаемся выполнить очистку станции
+        try {
+            ws2.wsCleanupRepl();
+            throw new XError("Shoild Fail");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            if (!e.getMessage().contains("Нельзя удалять")) {
+                throw e;
+            }
+        }
+
+
+        // Отправим слишком большое задание на ws2
+        task = new JdxQueCleanTask();
+        task.queOutNo = 10;
+        task.queInNo = 1000000;
+        task.queIn001No = 10;
+        //
+        cleaner.sendQueCleanTask(mailer, task);
+
+        // Рабочая станция - попытаемся выполнить очистку станции
+        try {
+            ws2.wsCleanupRepl();
+            throw new XError("Shoild Fail");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            if (!e.getMessage().contains("Нельзя удалять")) {
+                throw e;
+            }
+        }
+
+
+        // Отправим слишком большое задание на ws2
+        task = new JdxQueCleanTask();
+        task.queOutNo = 10;
+        task.queInNo = 10;
+        task.queIn001No = 1000000;
+        //
+        cleaner.sendQueCleanTask(mailer, task);
+
+        // Рабочая станция - попытаемся выполнить очистку станции
+        try {
+            ws2.wsCleanupRepl();
+            throw new XError("Shoild Fail");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            if (!e.getMessage().contains("Нельзя удалять")) {
+                throw e;
+            }
+        }
+
+
+        // Отправим нормальное задание на ws2
+        task = new JdxQueCleanTask();
+        task.queOutNo = 10;
+        task.queInNo = 10;
+        task.queIn001No = 10;
+        //
+        cleaner.sendQueCleanTask(mailer, task);
+
+        // Рабочая станция - попытаемся выполнить очистку станции
+        ws2.wsCleanupRepl();
     }
 
     @Test
@@ -128,105 +185,38 @@ public class JdxCleaner_Test extends ReplDatabaseStruct_Test {
         System.out.println("=============");
         cleanQue_3();
         System.out.println("=============");
+
+
+        //
+        test.test_DumpTables_1_2_3();
     }
 
     @Test
     public void cleanQue_2() throws Exception {
-        doCleanQue(2, db2);
+        doCleanQue(db2);
     }
 
     @Test
     public void cleanQue_3() throws Exception {
-        doCleanQue(3, db3);
+        doCleanQue(db3);
     }
 
-    //после удаления при репликации  возникает ошибка
-    //utils.error.XError: Invalid replica.age: 3, que.age: 0
-
-    //////////////////
-    //////////////////
-    //////////////////
-    //////////////////
-    //////////////////
-    //////////////////
-    // todo Важно, что может получится так, что для станции НЕ УДАСТСЯ прочитать достоверной информации о состоянии
-    // ТОгда удалять реплики будет опасно - а вдруг рано????
-    // Обеспечить на сервере хранение возраста использрванных станцией queCommon.
-    // ТОгда можно информацию о состоянии применени получать частями
-    //////////////////
-    public void doCleanQue(long myWsId, Db myDb) throws Exception {
-        JdxCleaner cleanerSrv = new JdxCleaner(db);
-
-        // ---
+    public void doCleanQue(Db wsDb) throws Exception {
         // Сервер
-        // ---
-
-        //
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init();
-        Map<Long, IMailer> mailers = srv.mailerList;
+
+        // Какие реплики больше не нужны на станциях?
+        // Узнаем и отправим на станции
+        srv.srvCleanupRepl();
 
 
-        // Узнаем, что использовано на всех станциях
-        Map<Long, JdxQueUsedState> usedStates = new HashMap<>();
-        for (long wsId : mailers.keySet()) {
-            IMailer mailer = mailers.get(wsId);
-            JdxQueUsedState state = cleanerSrv.readQueUsedStatus(mailer);
-            usedStates.put(wsId, state);
-        }
-        // Печатаем
-        for (long wsId : usedStates.keySet()) {
-            JdxQueUsedState state = usedStates.get(wsId);
-            System.out.println("ws: " + wsId + ", ws.queIn.used: " + state.queInUsed);
-        }
-
-
-        // Определим худший возраст использования queCommon (на самой тормозной станции он будет меньше всех),
-        // и все, что ранее этого возраста, больше никому не нужно и можно удалить у всех
-        long queInUsedMin = Long.MAX_VALUE;
-        for (long wsId : mailers.keySet()) {
-            JdxQueUsedState usedState = usedStates.get(wsId);
-            long queInUsed = usedState.queInUsed;
-            if (queInUsed < queInUsedMin) {
-                queInUsedMin = queInUsed;
-            }
-        }
-        System.out.println("min queIn.used: " + queInUsedMin);
-
-
-        // По номеру реплики из серверной ОБЩЕЙ очереди, которую приняли и использовали все рабочие станции,
-        // для каждой рабочей станции узнаем, какой номер ИСХОДЯЩЕЙ очереди рабочей станции
-        // уже принят и использован всеми другими станциями.
-        Map<Long, Long> allQueOutNo = cleanerSrv.get_WsQueOutNo_by_queCommonNo(queInUsedMin);
-        // Печатаем
-        for (long wsId : allQueOutNo.keySet()) {
-            long wsQueOutNo = allQueOutNo.get(wsId);
-            System.out.println("ws: " + wsId + ", ws.queOut.no: " + wsQueOutNo);
-        }
-
-
-        // ---
-        // Типа отправляем инфу на рабочую станцию, а она принимает
-        // ---
-
-        // ...
-        // Какой номер ИСХОДЯЩЕЙ очереди рабочей станции 2 уже принят всеми?
-        long wsQueOutNo = allQueOutNo.get(myWsId);
-        System.out.println("wsId: " + myWsId + ", queIn.used: " + queInUsedMin + " -> ws.queOut.no: " + wsQueOutNo);
-        // ...
-
-
-        // ---
-        // Рабочая станция ws2
-        // ---
-
-        //
-        JdxReplWs myWs = new JdxReplWs(myDb);
+        // Рабочая станция
+        JdxReplWs myWs = new JdxReplWs(wsDb);
         myWs.init();
 
-        // Чистим аудит и реплики на myWsId
-        JdxCleaner cleanerWs = new JdxCleaner(myDb);
-        cleanerWs.cleanQue(myWs.queOut, wsQueOutNo, myWs.struct);
+        // Выполняем очистку станции myWs
+        myWs.wsCleanupRepl();
     }
 
 }

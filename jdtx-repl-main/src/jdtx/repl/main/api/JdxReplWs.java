@@ -6,6 +6,7 @@ import jandcode.utils.error.*;
 import jandcode.utils.io.*;
 import jandcode.utils.variant.*;
 import jdtx.repl.main.api.audit.*;
+import jdtx.repl.main.api.cleaner.*;
 import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.database_info.*;
 import jdtx.repl.main.api.jdx_db_object.*;
@@ -37,7 +38,7 @@ import java.util.*;
 public class JdxReplWs {
 
     //
-    private final long MAX_COMMIT_RECS = 10000;
+    private long MAX_COMMIT_RECS = 10000;
 
     // Правила публикации
     protected IPublicationRuleStorage publicationIn;
@@ -46,10 +47,10 @@ public class JdxReplWs {
     //
     protected IJdxQue queIn;
     protected IJdxQue queIn001;
-    public IJdxQue queOut;
+    protected IJdxQue queOut;
 
     //
-    private final Db db;
+    private Db db;
     protected long wsId;
     protected String wsGuid;
     protected JSONObject cfgDecode;
@@ -57,7 +58,7 @@ public class JdxReplWs {
     /**
      * Рабочая структура БД - только те таблицы, которые мы обрабатываем
      */
-    public IJdxDbStruct struct;
+    protected IJdxDbStruct struct;
     protected IJdxDbStruct structAllowed;
     protected IJdxDbStruct structFixed;
     /**
@@ -1361,7 +1362,7 @@ public class JdxReplWs {
 
 
     /**
-     * Удаление старых реплик в ящиках, задействованных в задаче чтения с сервера.
+     * Удаление старых реплик в почтовых ящиках, задействованных в задаче чтения с сервера.
      */
     public void wsCleanupMailInBox() throws Exception {
         String box = "to";
@@ -1380,6 +1381,44 @@ public class JdxReplWs {
         }
     }
 
+    /**
+     * Удаление реплик, которые сервер разрешил удалить,
+     * очистка ненужного аудита
+     */
+    public void wsCleanupRepl() throws Exception {
+        JdxCleaner cleanerWs = new JdxCleaner(db);
+
+        // Читаем, что можно удалить на рабочей станции myWs
+        JdxQueCleanTask cleanTask = cleanerWs.readQueCleanTask(getMailer());
+
+        //
+        log.info("wsCleanupRepl, wsId: " + wsId + ", cleanTask: " + cleanTask);
+
+
+        // Защита: не удали не отпраленное в out
+        JdxMailSendStateManagerWs mailStateManager = new JdxMailSendStateManagerWs(db);
+        long queOutSend = mailStateManager.getMailSendDone();
+        if (cleanTask.queOutNo > queOutSend) {
+            throw new XError("Нельзя удалять не отправленные реплики, que: queOut, cleanTask.queNo: " + cleanTask.queOutNo + ", queOutSend: " + queOutSend);
+        }
+
+        // Защита: не удали не примененное в in
+        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
+        long queInNoDone = stateManager.getQueNoDone(queIn.getQueName());
+        long queIn001NoDone = stateManager.getQueNoDone(queIn001.getQueName());
+        if (cleanTask.queInNo > queInNoDone) {
+            throw new XError("Нельзя удалять неиспользованные реплики, que: queIn, cleanTask.queNo: " + cleanTask.queInNo + ", done.queNo: " + queInNoDone);
+        }
+        if (cleanTask.queIn001No > queIn001NoDone) {
+            throw new XError("Нельзя удалять неиспользованные реплики, que: queIn001, cleanTask.queNo: " + cleanTask.queIn001No + ", done.queNo: " + queIn001NoDone);
+        }
+
+
+        // Чистим аудит и реплики на рабочей станции myWs
+        cleanerWs.cleanQue(queOut, cleanTask.queOutNo, struct);
+        cleanerWs.cleanQue(queIn, cleanTask.queInNo, struct);
+        cleanerWs.cleanQue(queIn001, cleanTask.queIn001No, struct);
+    }
 
     private ReplicaUseResult handleQueIn(boolean forceUse) throws Exception {
         JdxStateManagerWs stateManager = new JdxStateManagerWs(db);

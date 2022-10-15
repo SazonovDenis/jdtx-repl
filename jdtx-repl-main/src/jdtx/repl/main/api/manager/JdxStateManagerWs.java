@@ -36,13 +36,16 @@ public class JdxStateManagerWs {
 
 
     /**
-     * @return Номер реплики, до которого обработана (применена и т.п.) очередь (queIn, queIn001 и т.п.)
+     * Задает номер реплики, до которого обработана (применена и т.п.) очередь (queIn, queIn001 и т.п.)
      */
     public void setQueNoDone(String queName, long queInNoDone) throws Exception {
         String sql = "update " + UtJdx.SYS_TABLE_PREFIX + "WS_STATE set que_" + queName + "_no_done = " + queInNoDone;
         db.execSql(sql);
     }
 
+    /**
+     * @return Номер реплики, до которого обработана (применена и т.п.) очередь (queIn, queIn001 и т.п.)
+     */
     public long getQueNoDone(String queName) throws Exception {
         String sql = "select * from " + UtJdx.SYS_TABLE_PREFIX + "WS_STATE";
         DataRecord rec = db.loadSql(sql).getCurRec();

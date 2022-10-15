@@ -4,6 +4,7 @@ import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
+import jdtx.repl.main.api.cleaner.*;
 import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.filter.*;
 import jdtx.repl.main.api.jdx_db_object.*;
@@ -38,7 +39,7 @@ public class JdxReplSrv {
     IJdxQueCommon queCommon;
 
     // Почтовые ящики для чтения/отправки сообщений (для каждой рабочей станции)
-    public Map<Long, IMailer> mailerList;
+    Map<Long, IMailer> mailerList;
 
     // Правила публикации (для каждой рабочей станции)
     Map<Long, IPublicationRuleStorage> publicationsInList;
@@ -48,8 +49,9 @@ public class JdxReplSrv {
     Map<Long, IJdxQue> queInList;
 
     //
-    Db db;
+    private Db db;
 
+    //
     private IJdxDbStruct struct;
 
     /**
@@ -241,7 +243,7 @@ public class JdxReplSrv {
 
     /**
      * Сервер, задачи по уходу за сервером,
-     * удаление старых реплик в ящиках, задействованных в задаче чтения со станций.
+     * удаление старых реплик в почтовых ящиках, задействованных в задаче чтения со станций.
      */
     public void srvCleanupMailInBox() throws Exception {
         DataStore wsSt = loadWsList();
@@ -259,6 +261,74 @@ public class JdxReplSrv {
             long deleted = mailer.deleteAll(box, no);
             if (deleted != 0) {
                 log.info("mailer.deleted, no: " + no + ", box: " + box + " deleted: " + deleted + ", wsId: " + wsId);
+            }
+        }
+    }
+
+    /**
+     * Сервер, задачи по уходу за сервером,
+     * анализ, какие реплики больше не нужны на станциях, отправка команды удаления на рабочие станции
+     */
+    public void srvCleanupRepl() throws Exception {
+        JdxCleaner cleanerSrv = new JdxCleaner(db);
+
+        // Узнаем, что использовано на всех станциях.
+        // Важно учесть, что если для станции не удастся прочитать достоверной информации о состоянии,
+        // то удалять реплики будет опасно - вдруг рано? Вдруг кто-то еще не применил?
+        // Чтобы обеспечить чтение из ВСЕХ активных станций, чтение состояния итераций идет по mailerList,
+        // а ошибки НЕ маскируются и НЕ пропускаются.
+        Map<Long, JdxQueUsedState> usedStates = new HashMap<>();
+        for (long wsId : mailerList.keySet()) {
+            IMailer mailer = mailerList.get(wsId);
+            JdxQueUsedState usedState = cleanerSrv.readQueUsedStatus(mailer);
+            usedStates.put(wsId, usedState);
+        }
+        // Печатаем
+        for (long wsId : usedStates.keySet()) {
+            JdxQueUsedState usedState = usedStates.get(wsId);
+            log.info("ws: " + wsId + ", usedState: " + usedState);
+        }
+
+
+        // Определим худший возраст использования серверной общей очереди queCommon
+        // среди всех рабочих станций (на самой отстающей станции он будет меньше всех).
+        // Все реплики, что меньше этого возраста, больше никому не нужны - их можно удалить на всех станциях.
+        long queInUsedMin = Long.MAX_VALUE;
+        for (long wsId : mailerList.keySet()) {
+            JdxQueUsedState usedState = usedStates.get(wsId);
+            //
+            long queInUsed = usedState.queInUsed;
+            if (queInUsed < queInUsedMin) {
+                queInUsedMin = queInUsed;
+            }
+        }
+        log.info("min queIn.used: " + queInUsedMin);
+
+        // По номеру реплики из серверной ОБЩЕЙ очереди, которую приняли и использовали все рабочие станции,
+        // для каждой рабочей станции узнаем, какой номер ИСХОДЯЩЕЙ очереди рабочей станции
+        // уже принят и использован всеми другими станциями.
+        Map<Long, Long> allQueOutNo = cleanerSrv.get_WsQueOutNo_by_queCommonNo(queInUsedMin);
+        // Печатаем
+        for (long wsId : allQueOutNo.keySet()) {
+            long wsQueOutNo = allQueOutNo.get(wsId);
+            log.info("ws: " + wsId + ", ws.queOut.no: " + wsQueOutNo);
+        }
+
+
+        // Отправляем на рабочие станции, какие реплики можно удалить
+        for (long wsId : mailerList.keySet()) {
+            JdxQueCleanTask wsCleanTask = new JdxQueCleanTask();
+            wsCleanTask.queOutNo = allQueOutNo.get(wsId);
+            wsCleanTask.queInNo = queInUsedMin;
+            wsCleanTask.queIn001No = usedStates.get(wsId).queIn001Used;
+
+            //
+            IMailer mailer = mailerList.get(wsId);
+            if (mailer != null) {
+                log.info("sendQueCleanTask, ws: " + wsId + ", cleanTask: " + wsCleanTask);
+                cleanerSrv.sendQueCleanTask(mailer, wsCleanTask);
+            } else {
+                log.info("sendQueCleanTask ws: " + wsId + ", skipped");
             }
         }
     }

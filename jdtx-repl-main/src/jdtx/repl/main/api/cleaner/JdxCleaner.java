@@ -24,16 +24,42 @@ public class JdxCleaner {
         this.db = db;
     }
 
+    static String INFO_DATA_NAME = "ws.info";
+    static String TASK_DATA_NAME = "que.used.task";
+
     /**
-     * Возвращает информацию о состоянии применения реплик станцией
+     * Читает информацию о применении реплик рабочей станцией
      */
-    JdxQueUsedState readQueUsedStatus(IMailer mailer) throws Exception {
+    public JdxQueUsedState readQueUsedStatus(IMailer mailer) throws Exception {
         JdxQueUsedState res = new JdxQueUsedState();
 
-        JSONObject json = mailer.getData("ws.info", null);
+        JSONObject json = mailer.getData(INFO_DATA_NAME, null);
         JSONObject jsonData = (JSONObject) json.get("data");
+        res.fromJson(jsonData);
         res.queInUsed = UtJdxData.longValueOf(jsonData.get("in_queInNoDone"), -1L);
         res.queIn001Used = UtJdxData.longValueOf(jsonData.get("in_queIn001NoDone"), -1L);
+
+        return res;
+    }
+
+    /**
+     * Отправляет информащию о репликах, которые можно удалять на рабочей станции
+     */
+    public void sendQueCleanTask(IMailer mailer, JdxQueCleanTask cleanTask) throws Exception {
+        Map data = new HashMap<>();
+        cleanTask.toMap(data);
+        mailer.setData(data, TASK_DATA_NAME, null);
+    }
+
+    /**
+     * Читает, какие реплики можно уже удалять на рабочей станции
+     */
+    public JdxQueCleanTask readQueCleanTask(IMailer mailer) throws Exception {
+        JdxQueCleanTask res = new JdxQueCleanTask();
+
+        JSONObject json = mailer.getData(TASK_DATA_NAME, null);
+        JSONObject jsonData = (JSONObject) json.get("data");
+        res.fromJson(jsonData);
 
         return res;
     }
@@ -46,7 +72,7 @@ public class JdxCleaner {
      * Т.е. определяем, до какого номера ИСХОДЯЩИЕ реплики со станци (ws.queOut.no)
      * попали в СЕРВЕРНУЮ общую очередь указанного номера (srv.queCommon.no == queCommonNo).
      */
-    Map<Long, Long> get_WsQueOutNo_by_queCommonNo(long queCommonNo) throws Exception {
+    public Map<Long, Long> get_WsQueOutNo_by_queCommonNo(long queCommonNo) throws Exception {
         Map<Long, Long> res = new HashMap<>();
 
         DataStore st = db.loadSql(getSqlQueCommon(), UtCnv.toMap("srvQueCommonNo", queCommonNo));
@@ -54,19 +80,7 @@ public class JdxCleaner {
             res.put(rec.getValueLong("wsId"), rec.getValueLong("wsQueOutNo"));
         }
 
-        // System.out.println(getSqlQueCommon());
-        // UtData.outTable(st);
-
         return res;
-    }
-
-    /**
-     * Отправляет на рабочую станцию информащию о репликах, которые можно удалять
-     */
-    void sendQueUsedStatus(IMailer mailer, JdxQueUsedState queUsedStatus) throws Exception {
-        Map<String, Object> data = new HashMap<>();
-        data.put("queOutUsed", queUsedStatus.queOutUsed);
-        mailer.setData(data, "que.used.info", null);
     }
 
     /**
@@ -76,8 +90,14 @@ public class JdxCleaner {
      * @param que     очищаемая очередь
      * @param queNoTo номер, от которого и ниже будут удалены реплики
      */
-    void cleanQue(IJdxQue que, long queNoTo, IJdxDbStruct struct) throws Exception {
+    public void cleanQue(IJdxQue que, long queNoTo, IJdxDbStruct struct) throws Exception {
         long queNoFrom = que.getMinNo();
+
+        //
+        if (queNoFrom == -1 || queNoFrom > queNoTo) {
+            log.info("cleanQue, que: " + que.getQueName() + ", nothing to clean");
+            return;
+        }
 
         //
         log.info("cleanQue, que: " + que.getQueName() + ", que.noFrom: " + queNoFrom + ", que.noTo: " + queNoTo);

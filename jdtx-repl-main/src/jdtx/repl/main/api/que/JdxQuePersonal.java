@@ -104,7 +104,8 @@ public class JdxQuePersonal extends JdxQue implements IJdxQue {
         String sql = "select max(age) as maxAge, count(*) as cnt from " + queTableName;
         DataRecord rec = db.loadSql(sql).getCurRec();
         if (rec.getValueLong("cnt") == 0) {
-            return 0;
+            // Признак того, что очередь пуста
+            return -1;
         } else {
             return rec.getValueLong("maxAge");
         }

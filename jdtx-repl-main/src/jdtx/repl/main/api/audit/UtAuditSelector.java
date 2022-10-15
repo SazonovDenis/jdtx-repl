@@ -161,7 +161,7 @@ public class UtAuditSelector {
     }
 
     /**
-     * Удалить аудит
+     * Удалить аудит (очистить таблицы аудита) указанного диапазона возрастов
      *
      * @param ageFrom
      * @param ageTo
@@ -179,11 +179,9 @@ public class UtAuditSelector {
 
             // удаляем журнал измений во всех таблицах
             for (IJdxTable table : struct.getTables()) {
-                // Интервал id в таблице аудита, который покрывает возраст с ageFrom по ageTo
+                // Записи в таблице аудита (интервал id), которые соответствуют возрасту аудита от ageFrom до ageTo
                 long fromId = maxIdsFixed_From.get(table.getName());
                 long toId = maxIdsFixed_To.get(table.getName());
-                //long fromId = getAuditMaxIdByAge(table, ageFrom - 1) + 1;
-                //long toId = getAuditMaxIdByAge(table, ageTo);
 
                 //
                 String auditTableName = dbNames.getShortName(table.getName(), UtJdx.AUDIT_TABLE_PREFIX);
