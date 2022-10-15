@@ -115,7 +115,7 @@
                  class="jdtx.repl.main.api.pk_generator.DbGenerators_Firebird">
         </service>
 
-        <!-- Сопоставлнеие внутренних типов полей и полей БД -->
+        <!-- Сопоставление внутренних типов полей и полей БД -->
         <service name="jdtx.repl.main.api.struct.DbDatatypeManager"
                  class="jdtx.repl.main.api.struct.DbDatatypeManager_Firebird">
         </service>
@@ -145,7 +145,7 @@
                  class="jdtx.repl.main.api.pk_generator.DbGenerators_Oracle">
         </service>
 
-        <!-- Сопоставлнеие внутренних типов полей и полей БД -->
+        <!-- Сопоставление внутренних типов полей и полей БД -->
         <service name="jdtx.repl.main.api.struct.DbDatatypeManager"
                  class="jdtx.repl.main.api.struct.DbDatatypeManager_Oracle">
         </service>
