@@ -14,6 +14,9 @@ import org.json.simple.*;
 
 import java.util.*;
 
+/**
+ * Набор утилитных методов для поиска и удаления старых реплик и старого аудита.
+ */
 public class JdxCleaner {
 
     Db db;
@@ -31,14 +34,15 @@ public class JdxCleaner {
      * Читает информацию о применении реплик рабочей станцией
      */
     public JdxQueUsedState readQueUsedStatus(IMailer mailer) throws Exception {
-        JdxQueUsedState res = new JdxQueUsedState();
-
         JSONObject json = mailer.getData(INFO_DATA_NAME, null);
         JSONObject jsonData = (JSONObject) json.get("data");
-        res.fromJson(jsonData);
+
+        //
+        JdxQueUsedState res = new JdxQueUsedState();
         res.queInUsed = UtJdxData.longValueOf(jsonData.get("in_queInNoDone"), -1L);
         res.queIn001Used = UtJdxData.longValueOf(jsonData.get("in_queIn001NoDone"), -1L);
 
+        //
         return res;
     }
 
@@ -55,12 +59,14 @@ public class JdxCleaner {
      * Читает, какие реплики можно уже удалять на рабочей станции
      */
     public JdxQueCleanTask readQueCleanTask(IMailer mailer) throws Exception {
-        JdxQueCleanTask res = new JdxQueCleanTask();
-
         JSONObject json = mailer.getData(TASK_DATA_NAME, null);
         JSONObject jsonData = (JSONObject) json.get("data");
+
+        //
+        JdxQueCleanTask res = new JdxQueCleanTask();
         res.fromJson(jsonData);
 
+        //
         return res;
     }
 

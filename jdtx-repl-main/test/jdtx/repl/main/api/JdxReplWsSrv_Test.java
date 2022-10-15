@@ -789,6 +789,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         JdxTaskSrvMail mailTask = new JdxTaskSrvMail(srv);
         JdxTaskSrvRepl replTask = new JdxTaskSrvRepl(srv);
         JdxTaskSrvMailRequest mailTaskRequest = new JdxTaskSrvMailRequest(srv);
+        JdxTaskSrvClean cleanTask = new JdxTaskSrvClean(srv);
         //
         mailTask.doTask();
         //
@@ -797,14 +798,8 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         mailTask.doTask();
         //
         mailTaskRequest.doTask();
-    }
-
-
-    @Test
-    public void test_z() throws Exception {
-        BgTasksService bgTasksService = app.service(BgTasksService.class);
-        String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName");
-        System.out.println(cfgFileName);  // todo: почему не накладывается _app.rt ?
+        //
+        cleanTask.doTask();
     }
 
 

@@ -159,6 +159,16 @@ public class JdxTaskWsRepl extends JdxTaskCustom {
 
 
         //
+        log.info("Выполнение удаления старых реплик");
+        try {
+            ws.wsCleanupRepl();
+        } catch (Exception e) {
+            logError(e);
+            collectError("ws.wsCleanupRepl", e);
+        }
+
+
+        //
         logInfo("Отправка состояния");
         try {
             Map<String, Object> info = ws.getInfoWs();

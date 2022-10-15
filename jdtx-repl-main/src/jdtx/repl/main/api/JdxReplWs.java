@@ -1640,26 +1640,6 @@ public class JdxReplWs {
         info.put("databaseInfo", databaseInfo);
         info.put("isMute", isMute);
 
-/*
-        // Сколько есть на сервере в ящике "to" для станции
-        try {
-            long in_mailAvailable = mailer.getBoxState("to");
-            info.put("in_mailAvailable", in_mailAvailable);
-        } catch (Exception e) {
-            log.error("mailer.getBoxState, box: to, error: " + e.getMessage());
-            info.put("in_mailAvailable", null);
-        }
-
-        // Сколько есть на сервере в ящике to001 для станции
-        try {
-            long in001_mailAvailable = mailer.getBoxState("to001");
-            info.put("in001_mailAvailable", in001_mailAvailable);
-        } catch (Exception e) {
-            log.error("mailer.getBoxState, box: to001, error: " + e.getMessage());
-            info.put("in001_mailAvailable", null);
-        }
-*/
-
         //
         return info;
     }

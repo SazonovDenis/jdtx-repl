@@ -19,6 +19,12 @@
                 enabled="true"
         />
 
+        <bgtask name="server.SrvClean"
+                period="3600000"
+                enabled="true"
+        />
+        
+
         <!-- Рабочая станция -->
         <bgtask name="ws"
                 period="100000"
@@ -29,6 +35,7 @@
                 period="130000"
                 enabled="true"
         />
+
 
         <!-- Отметчик -->
         <bgtask name="logHttp"

@@ -63,6 +63,13 @@
                 enabled="false"
         />
 
+        <bgtask name="server.SrvClean"
+                class="jdtx.repl.main.task.BgTaskSrvClean"
+                delay="4000"
+                period="5000000"
+                enabled="false"
+        />
+
         <!-- Рабочая станция -->
         <bgtask name="ws"
                 class="jdtx.repl.main.task.BgTaskWsRepl"

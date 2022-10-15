@@ -6,7 +6,7 @@ import org.apache.commons.logging.*;
 import org.apache.log4j.*;
 
 /**
- * Выполняет шаги "очистка старых реплик" для сервера.
+ * Выполняет шаги "удаление старых реплик" для сервера.
  */
 public class JdxTaskSrvClean extends JdxTaskCustom {
 
@@ -22,10 +22,10 @@ public class JdxTaskSrvClean extends JdxTaskCustom {
 
     //
     public void doTask() throws Exception {
-        MDC.put("serviceName", "srv");
+        MDC.put("serviceName", "srvCl");
 
         //
-        log.info("Сервер, очистка старых реплик");
+        log.info("Сервер, удаление старых реплик");
         srv.init();
 
 
@@ -34,7 +34,7 @@ public class JdxTaskSrvClean extends JdxTaskCustom {
 
 
         //
-        log.info("Выполнение очистки старых реплик");
+        log.info("Выполнение удаления старых реплик");
         try {
             srv.srvCleanupRepl();
         } catch (Exception e) {
@@ -50,7 +50,7 @@ public class JdxTaskSrvClean extends JdxTaskCustom {
 
 
         //
-        log.info("Сервер, очистка старых реплик завершена");
+        log.info("Сервер, удаление старых реплик завершено");
         log.info("----------");
 
         //
