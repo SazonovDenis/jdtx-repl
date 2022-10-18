@@ -59,6 +59,12 @@ public abstract class JdxQueOutSrv extends JdxQue implements IJdxQue {
     }
 
     @Override
+    public long getMinNo() throws Exception {
+        String sql = "select min(destination_id) as minNo, count(*) cnt from " + queTableName + " where destination_ws_id = " + destinationWsId;
+        return loadSqlField(sql, "minNo");
+    }
+
+    @Override
     public void setMaxNo(long queNo) throws Exception {
         stateManager.setValue(destinationWsId, "que_" + queName + "_no", queNo);
     }
@@ -67,6 +73,11 @@ public abstract class JdxQueOutSrv extends JdxQue implements IJdxQue {
     /*
      * Утилиты
      */
+
+    void deleteReplicaRec(long no) throws Exception {
+        String sql = "delete from " + queTableName + " where destination_ws_id = " + destinationWsId + " and destination_id = " + no;
+        db.execSql(sql);
+    }
 
     long getReplicaQueNo(IReplica replica) throws Exception {
         // Генерим следующий номер в нашей очереди - по порядку.

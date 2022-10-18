@@ -36,7 +36,7 @@ public class JdxTaskSrvCleanupRepl extends JdxTaskCustom {
         //
         log.info("Выполнение удаления старых реплик");
         try {
-            srv.srvCleanupRepl(Long.MAX_VALUE);
+            srv.srvCleanupReplWs(Long.MAX_VALUE);
         } catch (Exception e) {
             logError(e);
             collectError("srv.srvCleanupRepl", e);

@@ -1389,13 +1389,13 @@ public class JdxReplWs {
         JdxCleaner cleanerWs = new JdxCleaner(db);
 
         // Читаем, что можно удалить на рабочей станции myWs
-        JdxQueCleanTask cleanTask = cleanerWs.readQueCleanTask(getMailer());
+        JdxCleanTaskWs cleanTask = cleanerWs.readQueCleanTask(getMailer());
 
         //
         log.info("wsCleanupRepl, wsId: " + wsId + ", cleanTask: " + cleanTask);
 
 
-        // Защита: не удали не отпраленное в out
+        // Защита: не удали не отправленное в out
         JdxMailSendStateManagerWs mailStateManager = new JdxMailSendStateManagerWs(db);
         long queOutSend = mailStateManager.getMailSendDone();
         if (cleanTask.queOutNo > queOutSend) {
@@ -1415,9 +1415,10 @@ public class JdxReplWs {
 
 
         // Чистим аудит и реплики на рабочей станции myWs
-        cleanerWs.cleanQue(queOut, cleanTask.queOutNo, struct);
-        cleanerWs.cleanQue(queIn, cleanTask.queInNo, struct);
-        cleanerWs.cleanQue(queIn001, cleanTask.queIn001No, struct);
+        cleanerWs.cleanAudit(cleanTask.queOutNo, struct);
+        cleanerWs.cleanQue(queOut, cleanTask.queOutNo);
+        cleanerWs.cleanQue(queIn, cleanTask.queInNo);
+        cleanerWs.cleanQue(queIn001, cleanTask.queIn001No);
     }
 
     private ReplicaUseResult handleQueIn(boolean forceUse) throws Exception {

@@ -38,15 +38,19 @@ public class JdxReplSrv {
     // Общая очередь на сервере
     IJdxQueCommon queCommon;
 
+    // Входящие очереди-зеркала на сервере (для каждой рабочей станции)
+    Map<Long, IJdxQue> queInList;
+
+    // Исходящие очереди-зеркала на сервере (для каждой рабочей станции)
+    Map<Long, IJdxQue> queOut000List;
+    Map<Long, IJdxQue> queOut001List;
+
     // Почтовые ящики для чтения/отправки сообщений (для каждой рабочей станции)
     Map<Long, IMailer> mailerList;
 
     // Правила публикации (для каждой рабочей станции)
     Map<Long, IPublicationRuleStorage> publicationsInList;
 
-    // Входящие очереди-зеркала на сервере (для каждой рабочей станции).
-    // Нужны отдельным списком ради передачи в QueCommon.
-    Map<Long, IJdxQue> queInList;
 
     //
     private Db db;
@@ -132,10 +136,13 @@ public class JdxReplSrv {
         // Читаем и проверяем код серверной рабочей станции
         readIdGuid();
 
-        // Правила входящих реплик, почтовые курьеры, входящие очереди-зеркала (отдельные для каждой рабочей станции)
+        // Отдельные для каждой рабочей станции:
+        // правила входящих реплик, почтовые курьеры, входящие и исходящие очереди-зеркала
         publicationsInList = new HashMap<>();
         mailerList = new HashMap<>();
         queInList = new HashMap<>();
+        queOut000List = new HashMap<>();
+        queOut001List = new HashMap<>();
         //
         DataStore wsSt = loadWsList();
         for (DataRecord wsRec : wsSt) {
@@ -167,11 +174,21 @@ public class JdxReplSrv {
             publicationsInList.put(wsId, publicationRuleWsIn);
 
 
-            // Входящие очереди-зеркала
+            // Входящие очереди-зеркала (с рабочих станций)
             JdxQueInSrv queIn = new JdxQueInSrv(db, wsId);
             queIn.setDataRoot(dataRoot);
-            //
             queInList.put(wsId, queIn);
+
+
+            // Исходящие очереди-зеркала (на рабочие станции)
+            JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
+            queOut000.setDataRoot(dataRoot);
+            queOut000List.put(wsId, queOut000);
+
+            //
+            JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
+            queOut001.setDataRoot(dataRoot);
+            queOut001List.put(wsId, queOut001);
         }
 
 
@@ -271,7 +288,7 @@ public class JdxReplSrv {
      * Сервер, задачи по уходу за сервером.
      * Анализ, какие реплики больше не нужны на станциях.
      */
-    public Map<Long, JdxQueCleanTask> srvCleanupReplPrepareTask(long argQueInUsedLast) throws Exception {
+    public Map<Long, JdxCleanTaskWs> srvCleanupReplPrepareTask(long argQueInUsedLast) throws Exception {
         JdxCleaner cleanerSrv = new JdxCleaner(db);
 
         // Узнаем, что использовано на всех станциях.
@@ -289,7 +306,7 @@ public class JdxReplSrv {
         log.info("Que used status:");
         for (long wsId : usedStates.keySet()) {
             JdxQueUsedState usedState = usedStates.get(wsId);
-            log.info("ws: " + wsId + ", usedState: " + usedState);
+            log.info("  ws: " + wsId + ", usedState: " + usedState);
         }
 
 
@@ -304,10 +321,12 @@ public class JdxReplSrv {
                 queInUsedMin = queInUsed;
             }
         }
-        log.info("min ws queIn.used: " + queInUsedMin);
+        log.info("Ws min queIn.used: " + queInUsedMin);
+
+        // Если дополнительно просили ограничить возраст использования queCommon - ограничиваем
         if (argQueInUsedLast < queInUsedMin) {
             queInUsedMin = argQueInUsedLast;
-            log.info("set min queIn.used: " + queInUsedMin);
+            log.info("Set ws min queIn.used: " + queInUsedMin);
         }
 
         // По номеру реплики из серверной ОБЩЕЙ очереди, которую приняли и использовали все рабочие станции,
@@ -315,17 +334,17 @@ public class JdxReplSrv {
         // уже принят и использован всеми другими станциями.
         Map<Long, Long> allQueOutNo = cleanerSrv.get_WsQueOutNo_by_queCommonNo(queInUsedMin);
         // Печатаем
-        log.info("Ws queOut no:");
+        log.info("QueCommon no -> ws queOut no:");
         for (long wsId : allQueOutNo.keySet()) {
             long wsQueOutNo = allQueOutNo.get(wsId);
-            log.info("ws: " + wsId + ", ws.queOut.no: " + wsQueOutNo);
+            log.info("  ws: " + wsId + ", ws.queOut.no: " + wsQueOutNo);
         }
 
 
         // Формируем команды на очистку
-        Map<Long, JdxQueCleanTask> res = new HashMap<>();
+        Map<Long, JdxCleanTaskWs> res = new HashMap<>();
         for (long wsId : mailerList.keySet()) {
-            JdxQueCleanTask cleanTask = new JdxQueCleanTask();
+            JdxCleanTaskWs cleanTask = new JdxCleanTaskWs();
 
             cleanTask.queOutNo = allQueOutNo.get(wsId);
             cleanTask.queInNo = queInUsedMin;
@@ -339,25 +358,44 @@ public class JdxReplSrv {
     }
 
     /**
-     * Сервер, задачи по уходу за сервером.
-     * Анализ, какие реплики больше не нужны на станциях,
-     * отправка команды удаления на рабочие станции.
+     * Очистка на сервере серверных очередей:
+     * общей очереди queCommon и
+     * очередей-зеркал станций: queInList, queOut000List, queOut001List
+     *
+     * @param cleanupTasks
      */
-    public void srvCleanupRepl(long argQueInUsedLast) throws Exception {
+    public void srvCleanupReplSrvExec(long cleanupQueCommonNo, Map<Long, JdxCleanTaskSrv> cleanupTasks) throws Exception {
         JdxCleaner cleanerSrv = new JdxCleaner(db);
 
-        // Анализ, какие реплики больше не нужны на станциях
-        Map<Long, JdxQueCleanTask> cleanupTasks = srvCleanupReplPrepareTask(argQueInUsedLast);
-        // Печатаем
-        log.info("Cleanup tasks:");
-        for (long wsId : cleanupTasks.keySet()) {
-            JdxQueCleanTask cleanupTask = cleanupTasks.get(wsId);
-            log.info("  ws: " + wsId + ", cleanupTask: " + cleanupTask);
-        }
+        // Очередь queCommon
+        cleanerSrv.cleanQue(queCommon, cleanupQueCommonNo);
 
-        // Сообщаем на рабочие станции, какие реплики можно удалить
+        // Входящие и исходящие очереди-зеркала на сервере (для каждой рабочей станции)
         for (long wsId : cleanupTasks.keySet()) {
-            JdxQueCleanTask cleanupTask = cleanupTasks.get(wsId);
+            log.info("srvCleanupReplSrvExec, ws: " + wsId);
+
+            //
+            IJdxQue queIn = queInList.get(wsId);
+            IJdxQue queOut000 = queOut000List.get(wsId);
+            IJdxQue queOut001 = queOut001List.get(wsId);
+
+            //
+            JdxCleanTaskSrv cleanupTask = cleanupTasks.get(wsId);
+            cleanerSrv.cleanQue(queIn, cleanupTask.queInNo);
+            cleanerSrv.cleanQue(queOut000, cleanupTask.queOut000No);
+            cleanerSrv.cleanQue(queOut001, cleanupTask.queOut001No);
+        }
+    }
+
+    /**
+     * Сообщаем на рабочие станции, какие реплики можно удалить
+     */
+    void srvCleanupReplWsSendTo(Map<Long, JdxCleanTaskWs> cleanupTasks) throws Exception {
+        JdxCleaner cleanerSrv = new JdxCleaner(db);
+
+        //
+        for (long wsId : cleanupTasks.keySet()) {
+            JdxCleanTaskWs cleanupTask = cleanupTasks.get(wsId);
 
             //
             IMailer mailer = mailerList.get(wsId);
@@ -368,6 +406,64 @@ public class JdxReplSrv {
                 log.info("sendQueCleanTask ws: " + wsId + ", skipped");
             }
         }
+    }
+
+    /**
+     * Сервер, задачи по уходу за сервером.
+     * Анализ, какие реплики больше не нужны на сервере,
+     * очистка реплик на сервере.
+     */
+    public void srvCleanupReplSrv(long argQueInUsedLast) throws Exception {
+        // Анализ, какие реплики больше не нужны на станциях
+        Map<Long, JdxCleanTaskWs> cleanupTasksWs = srvCleanupReplPrepareTask(argQueInUsedLast);
+
+        // Превращаем в cleanupTasksSrv
+        Map<Long, JdxCleanTaskSrv> cleanupTasksSrv = new HashMap<>();
+        for (long wsId : cleanupTasksWs.keySet()) {
+            JdxCleanTaskWs cleanupTaskWs = cleanupTasksWs.get(wsId);
+
+            JdxCleanTaskSrv cleanupTaskSrv = new JdxCleanTaskSrv();
+            cleanupTaskSrv.queInNo = cleanupTaskWs.queOutNo;
+            cleanupTaskSrv.queOut000No = cleanupTaskWs.queInNo;
+            cleanupTaskSrv.queOut001No = cleanupTaskWs.queIn001No;
+
+            cleanupTasksSrv.put(wsId, cleanupTaskSrv);
+        }
+
+        // Номер QueCommon можно взять с любой станции - он везде одинаковый
+        JdxCleanTaskWs cleanupTask = cleanupTasksWs.get(SERVER_WS_ID);
+        long cleanupQueCommonNo = cleanupTask.queInNo;
+
+        // Печатаем
+        log.info("Cleanup tasks srv:");
+        log.info("  QueCommon.no: " + cleanupQueCommonNo);
+        for (long wsId : cleanupTasksSrv.keySet()) {
+            JdxCleanTaskSrv cleanupTaskSrv = cleanupTasksSrv.get(wsId);
+            log.info("  ws: " + wsId + ", cleanupTask: " + cleanupTaskSrv);
+        }
+
+        // Очистка реплик на сервере
+        srvCleanupReplSrvExec(cleanupQueCommonNo, cleanupTasksSrv);
+    }
+
+    /**
+     * Сервер, задачи по уходу за сервером.
+     * Анализ, какие реплики больше не нужны на станциях,
+     * отправка команды удаления на рабочие станции.
+     */
+    public void srvCleanupReplWs(long argQueInUsedLast) throws Exception {
+        // Анализ, какие реплики больше не нужны на станциях
+        Map<Long, JdxCleanTaskWs> cleanupTasks = srvCleanupReplPrepareTask(argQueInUsedLast);
+
+        // Печатаем
+        log.info("Cleanup tasks:");
+        for (long wsId : cleanupTasks.keySet()) {
+            JdxCleanTaskWs cleanupTask = cleanupTasks.get(wsId);
+            log.info("  ws: " + wsId + ", cleanupTask: " + cleanupTask);
+        }
+
+        // Сообщаем на рабочие станции, какие реплики можно удалить
+        srvCleanupReplWsSendTo(cleanupTasks);
     }
 
     /**
@@ -387,11 +483,7 @@ public class JdxReplSrv {
         // очередь Out000 для станции wsId (исходящая из сервера)
         for (Object wsIdObj : wsList) {
             long wsId = UtJdxData.longValueOf(wsIdObj);
-            // Исходящая очередь Out000 для станции wsId
-            JdxQueOut000 que = new JdxQueOut000(db, wsId);
-            que.setDataRoot(dataRoot);
-
-            //
+            IJdxQue que = queOut000List.get(wsId);
             UtRepl.clearTrashFiles(que);
         }
 
@@ -399,11 +491,7 @@ public class JdxReplSrv {
         // очередь queOut001 для станции wsId (инициализационная или для системных команд)
         for (Object wsIdObj : wsList) {
             long wsId = UtJdxData.longValueOf(wsIdObj);
-            //
-            JdxQueOut001 que = new JdxQueOut001(db, wsId);
-            que.setDataRoot(dataRoot);
-
-            //
+            IJdxQue que = queOut001List.get(wsId);
             UtRepl.clearTrashFiles(que);
         }
     }
@@ -600,8 +688,7 @@ public class JdxReplSrv {
         JSONObject cfgPublications = cfgManager.getWsCfg(CfgType.PUBLICATIONS, wsId);
 
         // Очередь queOut001 для станции (инициализационная или для системных команд)
-        JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
-        queOut001.setDataRoot(dataRoot);
+        IJdxQue queOut001 = queOut001List.get(wsId);
 
         //
         UtRepl utRepl = new UtRepl(db, struct);
@@ -981,8 +1068,7 @@ public class JdxReplSrv {
             try {
 
                 // Исходящая очередь для станции wsId
-                JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
-                queOut000.setDataRoot(dataRoot);
+                IJdxQue queOut000 = queOut000List.get(wsId);
 
                 // Преобразователь по фильтрам
                 IReplicaFilter filter = new ReplicaFilter();
@@ -1089,8 +1175,7 @@ public class JdxReplSrv {
             try {
                 // Рассылаем очередь out000 (продукт обработки очереди common -> out000) на каждую станцию
                 IJdxMailSendStateManager mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT000);
-                JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
-                queOut000.setDataRoot(dataRoot);
+                IJdxQue queOut000 = queOut000List.get(wsId);
 
                 // Проверка и ремонт отметки "отправлено в ящик на почтовый сервер"
                 UtMail.repairSendMarkedBySendDone(queOut000, wsMailer, "to", mailStateManager);
@@ -1101,8 +1186,7 @@ public class JdxReplSrv {
 
                 // Рассылаем очередь queOut001 на каждую станцию
                 mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT001);
-                JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
-                queOut001.setDataRoot(dataRoot);
+                IJdxQue queOut001 = queOut001List.get(wsId);
 
                 // Проверка и ремонт отметки "отправлено в ящик на почтовый сервер"
                 UtMail.repairSendMarkedBySendDone(queOut001, wsMailer, "to001", mailStateManager);
@@ -1147,8 +1231,7 @@ public class JdxReplSrv {
                 RequiredInfo requiredInfo000 = wsMailer.getSendRequired(box);
                 MailSendTask sendTask000 = UtMail.getRequiredSendTask(mailStateManager, requiredInfo000, RequiredInfo.EXECUTOR_SRV);
                 // Отправляем из очереди, что запросили
-                JdxQueOut000 queOut000 = new JdxQueOut000(db, wsId);
-                queOut000.setDataRoot(dataRoot);
+                IJdxQue queOut000 = queOut000List.get(wsId);
                 UtMail.sendQueToMail_Required(sendTask000, wsId, queOut000, wsMailer, box, mailStateManager);
 
                 // ws.to001 <- srv.out001 (станция пропустила передачу с сервера)
@@ -1158,8 +1241,7 @@ public class JdxReplSrv {
                 RequiredInfo requiredInfo001 = wsMailer.getSendRequired(box);
                 MailSendTask sendTask001 = UtMail.getRequiredSendTask(mailStateManager, requiredInfo001, RequiredInfo.EXECUTOR_SRV);
                 // Отправляем из очереди, что запросили
-                JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
-                queOut001.setDataRoot(dataRoot);
+                IJdxQue queOut001 = queOut001List.get(wsId);
                 UtMail.sendQueToMail_Required(sendTask001, wsId, queOut001, wsMailer, box, mailStateManager);
 
             } catch (Exception e) {
@@ -1362,9 +1444,7 @@ public class JdxReplSrv {
         } else if (queName.compareToIgnoreCase(UtQue.SRV_QUE_OUT001) == 0) {
             for (long wsId : mailerList.keySet()) {
                 // Очередь queOut001 станции (инициализационная или для системных команд)
-                JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
-                queOut001.setDataRoot(dataRoot);
-                que = queOut001;
+                que = queOut001List.get(wsId);
 
                 // Команда на обновление
                 IReplica replica = utRepl.createReplicaAppUpdate(exeFileName);
@@ -1499,8 +1579,7 @@ public class JdxReplSrv {
         log.info("srvSendSnapshot, destination wsId: " + destinationWsId + ", tables: " + tableNames);
 
         // Очередь queOut001 станции (инициализационная или для системных команд)
-        JdxQueOut001 queOut001 = new JdxQueOut001(db, destinationWsId);
-        queOut001.setDataRoot(dataRoot);
+        IJdxQue queOut001 = queOut001List.get(destinationWsId);
 
         // Разложим в список
         List<IJdxTable> tables = UtJdx.selectTablesByName(tableNames, struct);
@@ -1670,11 +1749,14 @@ public class JdxReplSrv {
             que = queCommon;
         } else if (queName.compareToIgnoreCase(UtQue.SRV_QUE_OUT001) == 0) {
             // Очередь queOut001 станции (инициализационная или для системных команд)
-            JdxQueOut001 queOut001 = new JdxQueOut001(db, wsId);
-            queOut001.setDataRoot(dataRoot);
-            que = queOut001;
+            que = queOut001List.get(wsId);
         } else {
             throw new XError("Unknown queName: " + queName);
+        }
+
+        // Дизабленные не найдутся в списке очередей
+        if (que == null) {
+            throw new XError("Для рабочей станции очередь не найдена, ws: " + wsId + ", que: " + queName);
         }
 
         //

@@ -46,6 +46,12 @@ public class JdxQueInSrv extends JdxQue {
     }
 
     @Override
+    public long getMinNo() throws Exception {
+        String sql = "select min(author_id) as minNo, count(*) cnt from " + queTableName + " where author_ws_id = " + authorWsId;
+        return loadSqlField(sql, "minNo");
+    }
+
+    @Override
     public void setMaxNo(long queNo) throws Exception {
         stateManager.setValue(authorWsId, "que_" + queName + "_no", queNo);
     }
@@ -67,6 +73,11 @@ public class JdxQueInSrv extends JdxQue {
      * Утилиты
      */
 
+    void deleteReplicaRec(long no) throws Exception {
+        String sql = "delete from " + queTableName + " where author_ws_id = " + authorWsId + " and author_id = " + no;
+        db.execSql(sql);
+    }
+
     @Override
     void pushDb(IReplica replica, long queNo) throws Exception {
         String sql = "insert into " + queTableName + " (id, author_ws_id, author_id, age, crc, replica_type) values (:id, :author_ws_id, :author_id, :age, :crc, :replica_type)";
@@ -83,7 +94,7 @@ public class JdxQueInSrv extends JdxQue {
 
     @Override
     DataRecord loadReplicaRec(long no) throws Exception {
-        String sqlFromWhere = "from " + queTableName + " where author_ws_id = " + this.authorWsId;
+        String sqlFromWhere = "from " + queTableName + " where author_ws_id = " + authorWsId;
         //
         String sql = "select * " + sqlFromWhere + " and author_id = " + no;
         DataRecord rec = db.loadSql(sql).getCurRec();

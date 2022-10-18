@@ -182,13 +182,7 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
 
     public long getMinNo() throws Exception {
         String sql = "select min(id) as minNo, count(*) cnt from " + queTableName;
-        DataRecord rec = db.loadSql(sql).getCurRec();
-        if (rec.getValueLong("cnt") == 0) {
-            // Признак того, что очередь пуста
-            return -1;
-        } else {
-            return rec.getValueLong("minNo");
-        }
+        return loadSqlField(sql, "minNo");
     }
 
     public void setMaxNo(long queNo) throws Exception {
@@ -200,6 +194,16 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
     /*
      * Утилиты
      */
+
+    long loadSqlField(String sql, String fieldName) throws Exception {
+        DataRecord rec = db.loadSql(sql).getCurRec();
+        if (rec.getValueLong("cnt") == 0) {
+            // Признак того, что очередь пуста
+            return -1;
+        } else {
+            return rec.getValueLong(fieldName);
+        }
+    }
 
     long getReplicaQueNo(IReplica replica) throws Exception {
         // Генерим следующий номер в НАШЕЙ очереди - по порядку.

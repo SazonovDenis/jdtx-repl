@@ -199,14 +199,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         args.put("file", cfg_json_publication_ws);
         extSrv.repl_send_struct(args);
         //
-        args.clear();
-        args.put("notSaveServiceState", true);
-        args.put("ws", 4);
-        args.put("cfg", CfgType.DECODE);
-        args.put("file", cfg_json_decode);
-        extSrv.repl_send_cfg(args);
-        args.put("file", cfg_json_publication_ws);
-        extSrv.repl_send_struct(args);
+        // args.clear();
+        // args.put("notSaveServiceState", true);
+        // args.put("ws", 4);
+        // args.put("cfg", CfgType.DECODE);
+        // args.put("file", cfg_json_decode);
+        // extSrv.repl_send_cfg(args);
+        // args.put("file", cfg_json_publication_ws);
+        // extSrv.repl_send_struct(args);
 
 
         // ---

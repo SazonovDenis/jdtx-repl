@@ -49,7 +49,7 @@ public class JdxCleaner {
     /**
      * Отправляет информащию о репликах, которые можно удалять на рабочей станции
      */
-    public void sendQueCleanTask(IMailer mailer, JdxQueCleanTask cleanTask) throws Exception {
+    public void sendQueCleanTask(IMailer mailer, JdxCleanTaskWs cleanTask) throws Exception {
         Map data = new HashMap<>();
         cleanTask.toMap(data);
         mailer.setData(data, TASK_DATA_NAME, null);
@@ -58,12 +58,12 @@ public class JdxCleaner {
     /**
      * Читает, какие реплики можно уже удалять на рабочей станции
      */
-    public JdxQueCleanTask readQueCleanTask(IMailer mailer) throws Exception {
+    public JdxCleanTaskWs readQueCleanTask(IMailer mailer) throws Exception {
         JSONObject json = mailer.getData(TASK_DATA_NAME, null);
         JSONObject jsonData = (JSONObject) json.get("data");
 
         //
-        JdxQueCleanTask res = new JdxQueCleanTask();
+        JdxCleanTaskWs res = new JdxCleanTaskWs();
         res.fromJson(jsonData);
 
         //
@@ -81,7 +81,7 @@ public class JdxCleaner {
     public Map<Long, Long> get_WsQueOutNo_by_queCommonNo(long queCommonNo) throws Exception {
         Map<Long, Long> res = new HashMap<>();
 
-        DataStore st = db.loadSql(getSqlQueCommon(), UtCnv.toMap("srvQueCommonNo", queCommonNo));
+        DataStore st = db.loadSql(sqlQueCommonAuthorsIds(), UtCnv.toMap("srvQueCommonNo", queCommonNo));
         for (DataRecord rec : st) {
             res.put(rec.getValueLong("wsId"), rec.getValueLong("wsQueOutNo"));
         }
@@ -96,7 +96,7 @@ public class JdxCleaner {
      * @param que     очищаемая очередь
      * @param queNoTo номер, от которого и ниже будут удалены реплики
      */
-    public void cleanQue(IJdxQue que, long queNoTo, IJdxDbStruct struct) throws Exception {
+    public void cleanQue(IJdxQue que, long queNoTo) throws Exception {
         long queNoFrom = que.getMinNo();
 
         //
@@ -104,26 +104,7 @@ public class JdxCleaner {
             log.info("cleanQue, que: " + que.getQueName() + ", nothing to clean");
             return;
         }
-
-        //
         log.info("cleanQue, que: " + que.getQueName() + ", que.noFrom: " + queNoFrom + ", que.noTo: " + queNoTo);
-
-        // Если удаление из queOut, то очищается и аудит
-        if (que.getQueName().equalsIgnoreCase(UtQue.QUE_OUT)) {
-            DataRecord rec = db.loadSql(getSqlAge(), UtCnv.toMap("noFrom", queNoFrom, "noTo", queNoTo)).getCurRec();
-            long ageFrom = rec.getValueLong("ageMin");
-            long ageTo = rec.getValueLong("ageMax");
-
-            //
-            if (ageFrom == 0 || ageTo == 0) {
-                log.info("clearAudit, no audit found, age.from: " + ageFrom + ", age.to: " + ageTo);
-                return;
-            }
-
-            //
-            UtAuditSelector auditSelector = new UtAuditSelector(db, struct);
-            auditSelector.clearAuditData(ageFrom, ageTo);
-        }
 
         // Очищаем очередь
         for (long no = queNoFrom; no <= queNoTo; no++) {
@@ -131,17 +112,42 @@ public class JdxCleaner {
         }
     }
 
-    private String getSqlAge() {
+    /**
+     * Очистить таблицы аудита, опираясь на номер исходящей очереди.
+     *
+     * @param queOutNo номер в очереди queOut, по возрасту реплики из нее узнаем возраст очищаемого аудита
+     * @param struct
+     */
+    public void cleanAudit(long queOutNo, IJdxDbStruct struct) throws Exception {
+        log.info("cleanAudit, queOut.no: " + queOutNo);
+
+        // По номеру реплики в очереди queOut, узнаем возраст age очищаемого аудита
+        DataRecord rec = db.loadSql(sqlAgeByQueOutNo(), UtCnv.toMap("queOutNo", queOutNo)).getCurRec();
+        long ageFrom = rec.getValueLong("ageMin");
+        long ageTo = rec.getValueLong("ageMax");
+
+        //
+        if (ageFrom == 0 || ageTo == 0) {
+            log.info("clearAudit, no audit found, age.from: " + ageFrom + ", age.to: " + ageTo);
+            return;
+        }
+
+        //
+        UtAuditSelector auditSelector = new UtAuditSelector(db, struct);
+        auditSelector.clearAuditData(ageFrom, ageTo);
+    }
+
+    private String sqlAgeByQueOutNo() {
         return "select \n" +
                 "  min(case when age > 0 then age else null end) ageMin,\n" +
                 "  max(case when age > 0 then age else null end) ageMax\n" +
                 "from\n" +
                 "   " + UtQue.getQueTableName(UtQue.QUE_OUT) + "\n" +
                 "where\n" +
-                "  id >= :noFrom and id <= :noTo";
+                "  id <= :queNoTo";
     }
 
-    private String getSqlQueCommon() {
+    private String sqlQueCommonAuthorsIds() {
         return "select\n" +
                 "  " + UtJdx.SYS_TABLE_PREFIX + "srv_workstation_list.id as wsId,\n" +
                 "  max(author_id) as wsQueOutNo\n" +

@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * Что можно уже удалять на рабочей станции (ненужный аудит и обработанные реплики)
  */
-public class JdxQueCleanTask {
+public class JdxCleanTaskWs {
 
     public long queOutNo = -1;
     public long queInNo = -1;
