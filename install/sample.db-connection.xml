@@ -10,7 +10,7 @@
         username="SYSDBA"
         password="masterkey"
 
-        _database="C:\Users\Public\Documents\Jadatex.PawnShop\db.gdb"
+        _database="db.gdb"
     />
 
 
