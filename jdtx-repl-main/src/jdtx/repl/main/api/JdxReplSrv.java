@@ -279,7 +279,7 @@ public class JdxReplSrv {
             long no = que.getMaxNo();
             long deleted = mailer.deleteAll(box, no);
             if (deleted != 0) {
-                log.info("mailer.deleted, no: " + no + ", box: " + box + " deleted: " + deleted + ", wsId: " + wsId);
+                log.info("mailer.deleted, no: " + no + ", box: " + box + ", deleted: " + deleted + ", wsId: " + wsId);
             }
         }
     }

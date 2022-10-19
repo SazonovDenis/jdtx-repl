@@ -46,7 +46,7 @@ public class JdxCleaner_Test extends ReplDatabaseStruct_Test {
         IMailer mailer = ws2.getMailer();
 
         // Отправим на ws2
-        JdxQueCleanTask task = new JdxQueCleanTask();
+        JdxCleanTaskWs task = new JdxCleanTaskWs();
         task.queOutNo = 100;
         //
         JdxCleaner cleaner = new JdxCleaner(db);
@@ -64,12 +64,12 @@ public class JdxCleaner_Test extends ReplDatabaseStruct_Test {
         IMailer mailer = ws2.getMailer();
 
         //
-        JdxQueCleanTask task;
+        JdxCleanTaskWs task;
         JdxCleaner cleaner = new JdxCleaner(db);
 
 
         // Отправим слишком большое задание на ws2
-        task = new JdxQueCleanTask();
+        task = new JdxCleanTaskWs();
         task.queOutNo = 1000000;
         task.queInNo = 10;
         task.queIn001No = 10;
@@ -89,7 +89,7 @@ public class JdxCleaner_Test extends ReplDatabaseStruct_Test {
 
 
         // Отправим слишком большое задание на ws2
-        task = new JdxQueCleanTask();
+        task = new JdxCleanTaskWs();
         task.queOutNo = 10;
         task.queInNo = 1000000;
         task.queIn001No = 10;
@@ -109,7 +109,7 @@ public class JdxCleaner_Test extends ReplDatabaseStruct_Test {
 
 
         // Отправим слишком большое задание на ws2
-        task = new JdxQueCleanTask();
+        task = new JdxCleanTaskWs();
         task.queOutNo = 10;
         task.queInNo = 10;
         task.queIn001No = 1000000;
@@ -129,7 +129,7 @@ public class JdxCleaner_Test extends ReplDatabaseStruct_Test {
 
 
         // Отправим нормальное задание на ws2
-        task = new JdxQueCleanTask();
+        task = new JdxCleanTaskWs();
         task.queOutNo = 10;
         task.queInNo = 10;
         task.queIn001No = 10;
@@ -174,7 +174,7 @@ public class JdxCleaner_Test extends ReplDatabaseStruct_Test {
 
         // Что покажет очистка аудита?
         System.out.println("=============");
-        cleanQue_3();
+        cleanQue();
         System.out.println("=============");
 
 
@@ -183,32 +183,39 @@ public class JdxCleaner_Test extends ReplDatabaseStruct_Test {
 
         // Что теперь покажет очистка аудита?
         System.out.println("=============");
-        cleanQue_3();
+        cleanQue();
         System.out.println("=============");
 
 
         //
-        test.test_DumpTables_1_2_3();
+        //test.test_DumpTables_1_2_3();
+    }
+
+    @Test
+    public void cleanQue() throws Exception {
+        doCleanWs(db);
+        doCleanWs(db2);
+        doCleanWs(db3);
     }
 
     @Test
     public void cleanQue_2() throws Exception {
-        doCleanQue(db2);
+        doCleanWs(db2);
     }
 
     @Test
     public void cleanQue_3() throws Exception {
-        doCleanQue(db3);
+        doCleanWs(db3);
     }
 
-    public void doCleanQue(Db wsDb) throws Exception {
+    public void doCleanWs(Db wsDb) throws Exception {
         // Сервер
         JdxReplSrv srv = new JdxReplSrv(db);
         srv.init();
 
         // Какие реплики больше не нужны на станциях?
         // Узнаем и отправим на станции
-        srv.srvCleanupRepl(Long.MAX_VALUE);
+        srv.srvCleanupReplWs(Long.MAX_VALUE);
 
 
         // Рабочая станция
@@ -217,6 +224,17 @@ public class JdxCleaner_Test extends ReplDatabaseStruct_Test {
 
         // Выполняем очистку станции myWs
         myWs.wsCleanupRepl();
+    }
+
+    @Test
+    public void cleanSrv() throws Exception {
+        // Сервер
+        JdxReplSrv srv = new JdxReplSrv(db);
+        srv.init();
+
+        // Какие реплики больше не нужны?
+        // Узнаем и очистим на сервере
+        srv.srvCleanupReplSrv(Long.MAX_VALUE);
     }
 
 }

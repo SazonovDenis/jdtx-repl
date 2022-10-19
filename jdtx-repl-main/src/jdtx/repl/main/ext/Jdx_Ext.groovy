@@ -532,7 +532,8 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
         try {
             // Сервер
             JdxReplSrv srv = new JdxReplSrv(db)
@@ -548,11 +549,12 @@ class Jdx_Ext extends ProjectExt {
                 println("  ws: " + wsId + ", cleanupTask: " + cleanupTask)
             }
         } finally {
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
 
-    void repl_clean_send(IVariantMap args) {
+    void repl_clean_ws(IVariantMap args) {
         long queInUsedLast = args.getValueLong("used")
         if (queInUsedLast == 0L) {
             queInUsedLast = Long.MAX_VALUE
@@ -562,7 +564,8 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
         try {
             // Сервер
             JdxReplSrv srv = new JdxReplSrv(db)
@@ -571,6 +574,7 @@ class Jdx_Ext extends ProjectExt {
             // Отправка команды удаления на рабочие станции.
             srv.srvCleanupReplWs(queInUsedLast)
         } finally {
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -585,7 +589,8 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
         try {
             // Сервер
             JdxReplSrv srv = new JdxReplSrv(db)
@@ -594,6 +599,7 @@ class Jdx_Ext extends ProjectExt {
             // Выполнение удаления старых реплик на сервере
             srv.srvCleanupReplSrv(queInUsedLast)
         } finally {
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
@@ -604,7 +610,6 @@ class Jdx_Ext extends ProjectExt {
         if (replicaFileName == null || replicaFileName.length() == 0) {
             throw new XError("Не указан [file] - файл с репликой")
         }
-
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()

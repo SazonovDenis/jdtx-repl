@@ -1369,7 +1369,7 @@ public class JdxReplWs {
         long no = queIn.getMaxNo();
         long deleted = mailer.deleteAll(box, no);
         if (deleted != 0) {
-            log.info("mailer.deleted, no: " + no + ", box: " + box + " deleted: " + deleted);
+            log.info("mailer.deleted, no: " + no + ", box: " + box + ", deleted: " + deleted);
         }
 
         //
@@ -1377,7 +1377,7 @@ public class JdxReplWs {
         no = queIn001.getMaxNo();
         deleted = mailer.deleteAll(box, no);
         if (deleted != 0) {
-            log.info("mailer.deleted, no: " + no + ", box: " + box + " deleted: " + deleted);
+            log.info("mailer.deleted, no: " + no + ", box: " + box + ", deleted: " + deleted);
         }
     }
 
