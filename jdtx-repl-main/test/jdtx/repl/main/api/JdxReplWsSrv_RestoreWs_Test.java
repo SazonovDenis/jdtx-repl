@@ -16,7 +16,7 @@ import java.io.*;
 public class JdxReplWsSrv_RestoreWs_Test extends JdxReplWsSrv_Test {
 
 
-    String backupDirName = "temp/backup/";
+    public String backupDirName = "temp/backup/";
 
     String tempDirName;
     String dataDirName;

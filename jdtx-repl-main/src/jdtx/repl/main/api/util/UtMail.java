@@ -246,11 +246,22 @@ public class UtMail {
 
         // Узнаем, сколько есть у нас
         long noQue = que.getMaxNo();
+
         // Узнаем, какая последняя отправленная помечена
-        long lastNoMailSendMarked = mailStateManager.getMailSendDone();
+        long noQueSendMarked = mailStateManager.getMailSendDone();
+
+        // Сколько реплик фактически отправлено на сервер (спросим у почтового сервера)
+        long noQueSendSrv = mailer.getSendDone(box);
+
+        // Если почтовый сервер отстает - дадим по его отметке
+        long noLastSend = noQueSendMarked;
+        if (noQueSendSrv != 0 && noQueSendSrv < noQueSendMarked) {
+            noLastSend = noQueSendSrv;
+        }
+
 
         // Зададим от последней отправленной до последней, что у нас есть на раздачу
-        sendTask.sendFrom = lastNoMailSendMarked + 1;
+        sendTask.sendFrom = noLastSend + 1;
         sendTask.sendTo = noQue;
 
         //
@@ -288,14 +299,19 @@ public class UtMail {
         log.warn("checkQueSendMarked: need repair marked, que: " + que.getQueName() + ", box: " + box + ", noQueSendMarked: " + noQueSendMarked + ", noQueSendSrv: " + noQueSendSrv);
 
         // Отметка станции опережает отметку почтового сервера.
-        // Это значит, что почтовый сервер проснулся из бэкапа (или что флешку на обмен притащили немного старую).
+        // Это значит, что почтовый сервер проснулся из бэкапа
+        // или что флешку на обмен притащили немного старую
+        // или станция до этого отправляла на другую флешку и передвинула вперед свои отметки.
         if (noQueSendMarked > noQueSendSrv) {
             // Не ошибка
             log.warn("checkQueSendMarked: unable to repair marked, noQueSendMarked > noQueSendSrv");
             return true;
         }
 
-        // Помеченное (noQueSendMarked) на 1 меньше отправленного (noQueSendSrv)
+        // Отметка станции (noQueSendMarked) отстает
+        // от отметки отправленного на почтовый сервер (noQueSendSrv)
+
+        // Помеченное на 1 меньше отправленного
         if (noQueSendMarked == (noQueSendSrv - 1)) {
             // Сравним CRC и номер реплик: в своей очереди и последнего отправленнного письма на сервере.
             if (equalLastSend(mailer, box, que, noQueSendSrv)) {
@@ -311,7 +327,7 @@ public class UtMail {
             }
         }
 
-        // Помеченное (noQueSendMarked) сильно отстает от отправленного (noQueSendSrv),
+        // Помеченное сильно отстает от отправленного,
         // значит кто-то нас опрередил с отправкой на сервер (на сервер отправлено больше, чем мы отправляли от себя).
         // Это ошибка, автоматически не чинится.
         log.error("checkQueSendMarked: unable to repair marked, noQueSendMarked < noQueSendSrv");

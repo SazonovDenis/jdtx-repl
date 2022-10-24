@@ -1,16 +1,23 @@
 package jdtx.repl.main.api.mailer;
 
 import jandcode.dbm.db.*;
+import jandcode.utils.*;
+import jandcode.utils.variant.*;
 import jdtx.repl.main.api.*;
 import org.junit.*;
 
 public class MailerLocalFiles_Repl_Test extends JdxReplWsSrv_Test {
 
+    String localDirName = "temp/MailerLocalFiles/";
+
     @Override
     public void setUp() throws Exception {
         rootDir = "../../ext/";
         super.setUp();
+        //
+        UtFile.cleanDir(localDirName);
     }
+
 
     @Test
     public void test_AllDir_LocalFiles() throws Exception {
@@ -34,11 +41,12 @@ public class MailerLocalFiles_Repl_Test extends JdxReplWsSrv_Test {
         compareDb(db, db3, equalExpected);
     }
 
-    @Test
     /**
-     * Проверим, что после сеанса с LocalFiles можно продолжать через Http
+     * Проверим, что после сеанса станции через LocalFiles можно продолжать через Http
      */
+    @Test
     public void test_Http_After_LocalFiles() throws Exception {
+        //doRestore();
         logOn();
 
         // Внесем изменения
@@ -51,9 +59,18 @@ public class MailerLocalFiles_Repl_Test extends JdxReplWsSrv_Test {
         utTest2.make_Region_InsDel_1(struct2, 2);
 
 
-        // Выполним сеанс для всех через http, а для ws2 - через localFiles
-        ws_doReplSessionLocalFiles(db2);
+        // Выполним сеанс для ws2 - через localFiles
+        // ws_doReplSessionLocalFiles(db2);
+        IVariantMap args = new VariantMap();
+        args.put("dir", localDirName);
+        extWs2.repl_mail_ws(args);
 
+        // Выполним сеанс для всех станций через http
+        sync_http_1_2_3();
+
+        //
+        compareDb(db, db2, equalExpected);
+        compareDb(db, db3, equalExpected);
 
         // Внесем изменения второй раз
         test_ws1_makeChange_Unimportant();
@@ -67,12 +84,32 @@ public class MailerLocalFiles_Repl_Test extends JdxReplWsSrv_Test {
 
         // Теперь продолжаем через http
         sync_http_1_2_3();
-        sync_http_1_2_3();
 
         //
         do_DumpTables(db, db2, db3, struct, struct2, struct3);
         compareDb(db, db2, equalExpected);
         compareDb(db, db3, equalExpected);
+    }
+
+    @Test
+    public void doBackup() throws Exception {
+        JdxReplWsSrv_RestoreWs_DbRestore_test testForBackup = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+        testForBackup.setUp();
+        UtFile.cleanDir(testForBackup.backupDirName);
+        testForBackup.doBackupNolmalLife();
+        testForBackup.disconnectAllForce();
+    }
+
+    @Test
+    public void doRestore() throws Exception {
+        disconnectAllForce();
+        //
+        JdxReplWsSrv_RestoreWs_DbRestore_test testForBackup = new JdxReplWsSrv_RestoreWs_DbRestore_test();
+        testForBackup.setUp();
+        testForBackup.doRestoreFromNolmalLife();
+        testForBackup.disconnectAllForce();
+        //
+        connectAll();
     }
 
     @Test
@@ -121,8 +158,6 @@ public class MailerLocalFiles_Repl_Test extends JdxReplWsSrv_Test {
 */
 
     public void ws_doReplSessionLocalFiles(Db db) throws Exception {
-        String dirName = "temp/MailerLocalFiles/";
-
         // Рабочая станция
         JdxReplWs ws = new JdxReplWs(db);
         ws.init();
@@ -133,11 +168,11 @@ public class MailerLocalFiles_Repl_Test extends JdxReplWsSrv_Test {
 
         //
         System.out.println("Отправляем свои реплики");
-        ws.replicasSendDir(dirName);
+        ws.replicasSendDir(localDirName);
 
         //
         System.out.println("Забираем входящие реплики");
-        ws.replicasReceiveDir(dirName);
+        ws.replicasReceiveDir(localDirName);
 
         //
         System.out.println("Применяем входящие реплики");
@@ -149,7 +184,7 @@ public class MailerLocalFiles_Repl_Test extends JdxReplWsSrv_Test {
 
         //
         System.out.println("Отправляем свои реплики (ответ на входящие)");
-        ws.replicasSendDir(dirName);
+        ws.replicasSendDir(localDirName);
     }
 
     void srv_doReplSessionLocalFiles() throws Exception {

@@ -88,7 +88,7 @@ public class DbPrepareEtalon_Test extends AppTestCase {
         disconnectAll();
     }
 
-    void connectAll() throws Exception {
+    public void connectAll() throws Exception {
         connectAll(true);
     }
 
@@ -139,7 +139,7 @@ public class DbPrepareEtalon_Test extends AppTestCase {
         }
     }
 
-    void disconnectAllForce() throws Exception {
+    public void disconnectAllForce() throws Exception {
         disconnectAllForce(false);
     }
 
