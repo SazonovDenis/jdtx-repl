@@ -255,5 +255,11 @@ class Jdx_Ext_Test extends JcTestCase {
         extWs2.repl_snapshot_create(args)
     }
 
+    @Test
+    void syncLocal() throws Exception {
+        IVariantMap args = new VariantMap()
+        args.put("dir", "temp/mailDir")
+        extWs2.repl_mail_ws(args)
+    }
 
 }

@@ -236,6 +236,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     void clearAllTestData() {
         UtFile.cleanDir("../_test-data");
         UtFile.cleanDir("../_data_root");
+        UtFile.cleanDir("temp/MailerLocalFiles");
     }
 
     @Test
@@ -350,28 +351,28 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void sync_http_1_2_3() throws Exception {
-        test_srv_doReplSession();
+        srv_doReplSession();
 
         test_ws1_doReplSession();
         test_ws2_doReplSession();
         test_ws3_doReplSession();
 
-        test_srv_doReplSession();
+        srv_doReplSession();
 
         test_ws1_doReplSession();
         test_ws2_doReplSession();
         test_ws3_doReplSession();
 
-        test_srv_doReplSession();
+        srv_doReplSession();
     }
 
     public void sync_http_1_2() throws Exception {
-        test_srv_doReplSession();
+        srv_doReplSession();
 
         test_ws1_doReplSession();
         test_ws2_doReplSession();
 
-        test_srv_doReplSession();
+        srv_doReplSession();
 
         test_ws1_doReplSession();
         test_ws2_doReplSession();
@@ -379,12 +380,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void sync_http_1_3() throws Exception {
-        test_srv_doReplSession();
+        srv_doReplSession();
 
         test_ws1_doReplSession();
         test_ws3_doReplSession();
 
-        test_srv_doReplSession();
+        srv_doReplSession();
 
         test_ws1_doReplSession();
         test_ws3_doReplSession();
@@ -392,21 +393,21 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     public void sync_http_1() throws Exception {
         test_ws1_doReplSession();
-        test_srv_doReplSession();
+        srv_doReplSession();
         test_ws1_doReplSession();
     }
 
     public void sync_http_2() throws Exception {
-        test_srv_doReplSession();
+        srv_doReplSession();
         test_ws2_doReplSession();
-        test_srv_doReplSession();
+        srv_doReplSession();
         test_ws2_doReplSession();
     }
 
     public void sync_http_3() throws Exception {
-        test_srv_doReplSession();
+        srv_doReplSession();
         test_ws3_doReplSession();
-        test_srv_doReplSession();
+        srv_doReplSession();
         test_ws3_doReplSession();
     }
 
@@ -452,14 +453,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void sync_http_1_2_3_5() throws Exception {
-        test_srv_doReplSession();
+        srv_doReplSession();
 
         test_ws1_doReplSession();
         test_ws2_doReplSession();
         test_ws3_doReplSession();
         test_ws5_doReplSession();
 
-        test_srv_doReplSession();
+        srv_doReplSession();
 
         test_ws1_doReplSession();
         test_ws2_doReplSession();
@@ -525,7 +526,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         System.out.println();
     }
 
-    void do_DumpTables(Db db1, Db db2, Db db3, IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct struct3) throws Exception {
+    protected void do_DumpTables(Db db1, Db db2, Db db3, IJdxDbStruct struct1, IJdxDbStruct struct2, IJdxDbStruct struct3) throws Exception {
         String db1name = UtFile.removeExt(UtFile.filename(db1.getDbSource().getDatabase()));
         String db2name = UtFile.removeExt(UtFile.filename(db2.getDbSource().getDatabase()));
         String db3name = UtFile.removeExt(UtFile.filename(db3.getDbSource().getDatabase()));
@@ -783,7 +784,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
-    public void test_srv_doReplSession() throws Exception {
+    public void srv_doReplSession() throws Exception {
         JdxReplSrv srv = new JdxReplSrv(db);
         JdxTaskSrvMail mailTask = new JdxTaskSrvMail(srv);
         JdxTaskSrvRepl replTask = new JdxTaskSrvRepl(srv);
@@ -805,7 +806,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Test
     public void test_run_srv() throws Exception {
         while (true) {
-            test_srv_doReplSession();
+            srv_doReplSession();
         }
     }
 
@@ -960,7 +961,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void loop_srv() throws Exception {
         while (true) {
             try {
-                test_srv_doReplSession();
+                srv_doReplSession();
                 TimeUnit.SECONDS.sleep(5);
             } catch (Exception e) {
                 String msg = Ut.getExceptionMessage(e);

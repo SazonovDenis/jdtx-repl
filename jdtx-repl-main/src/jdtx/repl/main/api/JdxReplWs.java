@@ -1465,9 +1465,29 @@ public class JdxReplWs {
         queOut.push(replica);
     }
 
-
-    // Физически забираем данные
+    /**
+     * Забираем реплики, через http
+     */
     public void replicasReceive() throws Exception {
+        receiveInternal(mailer);
+    }
+
+    /**
+     * Забираем реплики, через папку
+     */
+    public void replicasReceiveDir(String dirName) throws Exception {
+        IMailer mailer = createMailerLocalFiles(dirName);
+
+        //
+        receiveInternal(mailer);
+    }
+
+    /**
+     * Выясняем, сколько нужно нам забирать,
+     * забираем реплики в очереди queIn001 и queIn,
+     * через указанный mailer
+     */
+    private void receiveInternal(IMailer mailer) throws Exception {
         // --- Ящик to001 в очередь queIn001
         // Узнаем сколько получено у нас
         long selfReceivedNo1 = queIn001.getMaxNo();
@@ -1477,7 +1497,7 @@ public class JdxReplWs {
 
         // Физически получаем данные
         selfReceivedNo1 = selfReceivedNo1 + 1;
-        receiveInternal(mailer, "to001", selfReceivedNo1, srvAvailableNo1, queIn001);
+        receiveQueInternal(mailer, "to001", selfReceivedNo1, srvAvailableNo1, queIn001);
 
         // --- Ящик to в очередь queIn
         // Узнаем сколько получено у нас
@@ -1489,34 +1509,37 @@ public class JdxReplWs {
         if (selfReceivedNo != -1) {
             // Физически получаем данные
             selfReceivedNo = selfReceivedNo + 1;
-            receiveInternal(mailer, "to", selfReceivedNo, srvAvailableNo, queIn);
+            receiveQueInternal(mailer, "to", selfReceivedNo, srvAvailableNo, queIn);
         } else {
             log.warn("JdxReplWs.receive wait, queIn.getMaxNo == -1, self.wsId: " + wsId + ", box: to, que.name: in, srv.available: " + srvAvailableNo);
         }
     }
 
+    private IMailer createMailerLocalFiles(String dirName) {
+        // В папке dirName будет структура папок, которую задем мы
+        String guid = getWsGuid();
+        guid = guid.split("-")[0];
+        String wsIdStr = UtString.padLeft(String.valueOf(wsId), 3, "0");
+        String remoteDir = dirName + guid + "/" + wsIdStr;
+        String localDirTmp = dataRoot + "temp/";
 
-    IReplica receiveInternalStep(IMailer mailer, String box, long no, IJdxReplicaQue que) throws Exception {
-        // Физически забираем данные с почтового сервера
-        IReplica replica = UtMail.receiveOrRequestReplica(mailer, box, no, RequiredInfo.EXECUTOR_SRV);
+        // Конфиг для мейлера
+        JSONObject cfgMailer = new JSONObject();
+        cfgMailer.put("remoteDir", remoteDir);
+        cfgMailer.put("localDirTmp", localDirTmp);
 
-        // Читаем поля заголовка
-        JdxReplicaReaderXml.readReplicaInfo(replica);
-
-        // Помещаем реплику в очередь
-        que.push(replica);
-
-        // Удаляем с почтового сервера
-        //mailer.delete(box, no);
+        // Мейлер
+        MailerLocalFiles mailer = new MailerLocalFiles();
+        mailer.init(cfgMailer);
 
         //
-        return replica;
+        return mailer;
     }
 
     /**
      * Скачивает из ящика box письма в запрошенном диапазоне и помещает их в очередь que
      */
-    void receiveInternal(IMailer mailer, String box, long no_from, long no_to, IJdxReplicaQue que) throws Exception {
+    void receiveQueInternal(IMailer mailer, String box, long no_from, long no_to, IJdxReplicaQue que) throws Exception {
         log.info("receive, self.wsId: " + wsId + ", box: " + box + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", " + no_from + ".." + no_to);
 
         //
@@ -1553,11 +1576,8 @@ public class JdxReplWs {
 
                 // Просто помещаем реплику в очередь
                 que.push(replica);
-
-                // Удаляем с почтового сервера
-                //mailer.delete(box, no);
             } else {
-                receiveInternalStep(mailer, box, no, que);
+                receiveQueInternalStep(mailer, box, no, que);
             }
 
             //
@@ -1577,13 +1597,47 @@ public class JdxReplWs {
         }
     }
 
+    IReplica receiveQueInternalStep(IMailer mailer, String box, long no, IJdxReplicaQue que) throws Exception {
+        // Физически забираем данные с почтового сервера
+        IReplica replica = UtMail.receiveOrRequestReplica(mailer, box, no, RequiredInfo.EXECUTOR_SRV);
+
+        // Читаем поля заголовка
+        JdxReplicaReaderXml.readReplicaInfo(replica);
+
+        // Помещаем реплику в очередь
+        que.push(replica);
+
+        //
+        return replica;
+    }
+
 
     /**
-     * Отправка реплик с рабочей станции, штатная
+     * Выясняем, сколько нужно нам отправить,
+     * отправляем реплики из queOut,
+     * через указанный mailer
      */
-    public void replicasSend() throws Exception {
+    public void sendInternal(IMailer mailer) throws Exception {
         JdxMailSendStateManagerWs stateManager = new JdxMailSendStateManagerWs(db);
         UtMail.sendQueToMail_State(wsId, queOut, mailer, "from", stateManager);
+    }
+
+    /**
+     * Отправка реплик с рабочей станции, через http
+     */
+    public void replicasSend() throws Exception {
+        sendInternal(mailer);
+    }
+
+    /**
+     * Отправка реплик с рабочей станции, через папку
+     */
+    public void replicasSendDir(String dirName/*, long noFrom, long noTo, boolean doMarkDone*/) throws Exception {
+        IMailer mailer = createMailerLocalFiles(dirName);
+
+        //
+        sendInternal(mailer);
+
     }
 
 
@@ -2328,7 +2382,7 @@ public class JdxReplWs {
                 log.info("readQueFromSrv_Interval, receive, que: " + queName + ", box: " + box + ", no: " + no);
 
                 //
-                receiveInternalStep(mailer, box, no, que);
+                receiveQueInternalStep(mailer, box, no, que);
 
                 //
                 no++;
@@ -2369,7 +2423,7 @@ public class JdxReplWs {
                 log.info("readQueFromSrv_RepicaNo, receive, que: " + queName + ", box: " + box + ", no: " + no);
 
                 //
-                IReplica replica = receiveInternalStep(mailer, box, no, que);
+                IReplica replica = receiveQueInternalStep(mailer, box, no, que);
 
                 //
                 if (replica.getInfo().getWsId() == wsId) {

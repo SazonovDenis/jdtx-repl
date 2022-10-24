@@ -57,7 +57,7 @@ public class JdxRepairInfoManager {
         JSONObject repairInfo = mailer.getData("repair.info", null);
         JSONObject repairData = (JSONObject) repairInfo.get("data");
         boolean doRepair = UtJdxData.booleanValueOf(repairData.get("allowed"), false);
-        String srvRepairGuid = UtJdxData.stringValueOf(repairData.get("guid"), null);
+        String srvRepairGuid = UtJdxData.stringValueOf(repairData.get("guid"));
         if (doRepair) {
             return srvRepairGuid;
         } else {
@@ -71,7 +71,7 @@ public class JdxRepairInfoManager {
     public String getRepairGuid() throws Exception {
         JSONObject repairInfo = mailer.getData("repair.info", null);
         JSONObject repairData = (JSONObject) repairInfo.get("data");
-        String srvRepairGuid = UtJdxData.stringValueOf(repairData.get("guid"), null);
+        String srvRepairGuid = UtJdxData.stringValueOf(repairData.get("guid"));
         return srvRepairGuid;
     }
 

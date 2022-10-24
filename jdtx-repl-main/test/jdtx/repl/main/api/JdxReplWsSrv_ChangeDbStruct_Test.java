@@ -196,7 +196,7 @@ public class JdxReplWsSrv_ChangeDbStruct_Test extends JdxReplWsSrv_Test {
         //
         test_ws1_doReplSession();
         //
-        test_srv_doReplSession();
+        srv_doReplSession();
 
 
         // ---

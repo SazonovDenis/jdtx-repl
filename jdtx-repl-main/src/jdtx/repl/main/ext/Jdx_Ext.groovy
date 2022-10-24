@@ -638,99 +638,83 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
-/*
-    void repl_sync_ws(IVariantMap args) {
-        String mailDir = args.getValueString("dir")
-        long age_from = args.getValueLong("from", 0)
-        long age_to = args.getValueLong("to", 0)
+    void repl_mail_ws(IVariantMap args) {
+        String dirName = args.getValueString("dir")
+        long noFrom = args.getValueLong("from", 0)
+        long noTo = args.getValueLong("to", 0)
         boolean doMarkDone = args.getValueBoolean("mark", false)
         //
-        if (mailDir == null || mailDir.length() == 0) {
+        if (dirName == null || dirName.length() == 0) {
             throw new XError("Не указан [dir] - почтовый каталог")
         }
-
-        //
-        BgTasksService bgTasksService = app.service(BgTasksService.class)
-        String cfgFileName = bgTasksService.getRt().getChild("bgtask").getChild("ws").getValueString("cfgFileName")
+        UtFile.unnormPath(dirName) + "/"
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
         try {
             // Рабочая станция
             JdxReplWs ws = new JdxReplWs(db)
             ws.init()
-            System.out.println("Рабочая станция, cfgFileName: " + cfgFileName + ", wsId: " + ws.getWsId())
 
             //
-            System.out.println("Отслеживаем и обрабатываем свои изменения")
-            ws.handleSelfAudit()
+            System.out.println("Отправляем свои реплики");
+            //ws.replicasSendDir(dirName, noFrom, noTo, doMarkDone)
+            ws.replicasSendDir(dirName)
 
             //
-            System.out.println("Отправляем свои изменения")
-            ws.sendToDir(cfgFileName, mailDir, age_from, age_to, doMarkDone)
+            System.out.println("Забираем входящие реплики");
+            ws.replicasReceiveDir(dirName)
 
-            //
-            System.out.println("Забираем входящие реплики")
-            ws.receiveFromDir(cfgFileName, mailDir)
-
-            //
-            System.out.println("Применяем входящие реплики")
-            ws.handleQueIn()
         } finally {
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
-*/
 
-
-/*
-    void repl_sync_srv(IVariantMap args) {
-        String mailDir = args.getValueString("dir")
-        long from = args.getValueLong("from", 0)
-        long to = args.getValueLong("to", 0)
+    void repl_mail_srv(IVariantMap args) {
+        String dirName = args.getValueString("dir")
+        long noFrom = args.getValueLong("from", 0)
+        long noTo = args.getValueLong("to", 0)
         boolean doMarkDone = args.getValueBoolean("mark", false)
         long destinationWsId = args.getValueLong("ws")
         //
-        if (mailDir == null || mailDir.length() == 0) {
+        if (dirName == null || dirName.length() == 0) {
             throw new XError("Не указан [dir] - почтовый каталог")
         }
+        UtFile.unnormPath(dirName) + "/"
+        //
         if (doMarkDone && destinationWsId == 0L) {
             throw new XError("Не указан [ws] - код рабочей станции, для которой готовятся реплики")
         }
-
-        //
-        BgTasksService bgTasksService = app.service(BgTasksService.class)
-        String cfgFileName_srv = bgTasksService.getRt().getChild("bgtask").getChild("server").getValueString("cfgFileName")
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        //
+        // Останавливаем процесс и удаляем службу
+        ReplServiceState serviceState = saveServiceState(db, args)
         try {
             // ---
             // Сервер
             JdxReplSrv srv = new JdxReplSrv(db)
-            srv.init(cfgFileName_srv)
+            srv.init()
+
             //
-            System.out.println("Сервер, cfgFileName: " + cfgFileName_srv)
+            System.out.println("Чтение входящих очередей");
+            srv.srvReplicasReceiveDir(dirName)
 
-            // Формирование общей очереди
-            srv.srvHandleCommonQueFrom(cfgFileName_srv, mailDir)
-
-            // Тиражирование реплик
-            SendRequiredInfo requiredInfo = new SendRequiredInfo()
-            requiredInfo.requiredFrom = from
-            requiredInfo.requiredTo = to
-            srv.srvDispatchReplicasToDir(cfgFileName_srv, mailDir, requiredInfo, destinationWsId, doMarkDone)
+            //
+            System.out.println("Рассылка исходящих очередей");
+            srv.srvReplicasSendDir(dirName)
         } finally {
+            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }
-*/
 
 
     boolean repl_mail_create(IVariantMap args) {

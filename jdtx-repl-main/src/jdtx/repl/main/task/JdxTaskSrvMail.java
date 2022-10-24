@@ -46,7 +46,7 @@ public class JdxTaskSrvMail extends JdxTaskCustom {
         //
         log.info("Чтение входящих очередей");
         try {
-            srv.srvHandleQueIn();
+            srv.srvReplicasReceive();
         } catch (Exception e) {
             logError(e);
             collectError("srv.srvHandleQueIn", e);

@@ -3,18 +3,18 @@
   "queCommon_DirLocal": "../_test-data/srv/queCommon/",
 
   "1": {
-    "mailLocalDirTmp": "../_test-data/srv/tmp/",
-    "mailRemoteDir": "../_test-data/mail/ws_srv/"
+    "localDirTmp": "../_test-data/srv/tmp/",
+    "mailDir": "../_test-data/mail/ws_srv/"
   },
 
   "2": {
-    "mailLocalDirTmp": "../_test-data/srv/tmp/",
-    "mailRemoteDir": "../_test-data/mail/ws2/"
+    "localDirTmp": "../_test-data/srv/tmp/",
+    "mailDir": "../_test-data/mail/ws2/"
   },
 
   "3": {
-    "mailLocalDirTmp": "../_test-data/srv/tmp/",
-    "mailRemoteDir": "../_test-data/mail/ws3/"
+    "localDirTmp": "../_test-data/srv/tmp/",
+    "mailDir": "../_test-data/mail/ws3/"
   }
 
 }

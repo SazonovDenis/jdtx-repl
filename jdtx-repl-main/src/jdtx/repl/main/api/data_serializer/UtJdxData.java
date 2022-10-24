@@ -20,6 +20,10 @@ public class UtJdxData {
         return booleanValueOf(value, false);
     }
 
+    public static String stringValueOf(Object value) {
+        return stringValueOf(value, null);
+    }
+
     public static String stringValueOf(Object value, String valueIfNull) {
         String valueString;
         if (value == null) {

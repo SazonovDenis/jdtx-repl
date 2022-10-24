@@ -64,7 +64,7 @@ public class JdxReplWsSrv_ApplyAudit_Test extends JdxReplWsSrv_Test {
         //test_DumpTables_1_2_3();
 
         // Сервер проснулся
-        test_srv_doReplSession();
+        srv_doReplSession();
 
         // Мы меняем данные, получаем состояние "val_222"
         int val_222 = 222;

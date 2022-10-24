@@ -21,7 +21,7 @@ public class RequiredInfo {
         super();
         requiredFrom = UtJdxData.longValueOf(required.get("requiredFrom"), -1L);
         requiredTo = UtJdxData.longValueOf(required.get("requiredTo"), -1L);
-        executor = UtJdxData.stringValueOf(required.get("executor"), null);
+        executor = UtJdxData.stringValueOf(required.get("executor"));
         recreate = UtJdxData.booleanValueOf(required.get("recreate"), false);
     }
 

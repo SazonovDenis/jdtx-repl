@@ -878,9 +878,25 @@ public class JdxReplSrv {
     }
 
     /**
-     * Сервер: считывание из mailer очередей рабочих станций и помещение их в очередь-зеркало на сервере
+     * Сервер: считывание из mailerList очередей рабочих станций
+     * и помещение их в очередь-зеркало на сервере, через папку
      */
-    public void srvHandleQueIn() throws Exception {
+    public void srvReplicasReceiveDir(String dirName) throws Exception {
+        Map<Long, IMailer> mailerList = prepareMailerListDir(dirName);
+
+        //
+        srvReplicasReceiveInternal(mailerList);
+    }
+
+    /**
+     * Сервер: считывание из mailerList очередей рабочих станций
+     * и помещение их в очередь-зеркало на сервере, http
+     */
+    public void srvReplicasReceive() throws Exception {
+        srvReplicasReceiveInternal(mailerList);
+    }
+
+    void srvReplicasReceiveInternal(Map<Long, IMailer> mailerList) throws Exception {
         JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
         for (long wsId : mailerList.keySet()) {
             IMailer mailerWs = mailerList.get(wsId);
@@ -1164,9 +1180,53 @@ public class JdxReplSrv {
 
 
     /**
-     * Рассылка реплик в ящики каждой рабочей станции, штатная
+     * Рассылка реплик в ящики каждой рабочей станции, через папку
+     */
+    public void srvReplicasSendDir(String dirName) throws Exception {
+        Map<Long, IMailer> mailerList = prepareMailerListDir(dirName);
+
+        //
+        srvReplicasSendInternal(mailerList);
+    }
+
+    /**
+     * Рассылка реплик в ящики каждой рабочей станции, http
      */
     public void srvReplicasSend() throws Exception {
+        srvReplicasSendInternal(mailerList);
+    }
+
+    private Map<Long, IMailer> prepareMailerListDir(String dirName) throws Exception {
+        Map<Long, IMailer> mailerList = new HashMap<>();
+
+        //
+        DataStore wsSt = loadWsList();
+        for (DataRecord wsRec : wsSt) {
+            // В папке dirName будет структура папок, которую задем мы
+            String guid = wsRec.getValueString("guid");
+            guid = guid.split("-")[0];
+            long wsId = wsRec.getValueLong("id");
+            String wsIdStr = UtString.padLeft(String.valueOf(wsId), 3, "0");
+            String remoteDir = dirName + "/" + guid + "/" + wsIdStr;
+            String localDirTmp = dataRoot + "srv/ws_" + wsIdStr + "_tmp/";
+
+            // Конфиг для мейлера
+            JSONObject cfgMailer = new JSONObject();
+            cfgMailer.put("remoteDir", remoteDir);
+            cfgMailer.put("localDirTmp", localDirTmp);
+
+            // Мейлер
+            MailerLocalFiles mailer = new MailerLocalFiles();
+            mailer.init(cfgMailer);
+
+            //
+            mailerList.put(wsId, mailer);
+        }
+
+        return mailerList;
+    }
+
+    private void srvReplicasSendInternal(Map<Long, IMailer> mailerList) throws Exception {
         for (Map.Entry<Long, IMailer> en : mailerList.entrySet()) {
             long wsId = en.getKey();
             IMailer wsMailer = en.getValue();

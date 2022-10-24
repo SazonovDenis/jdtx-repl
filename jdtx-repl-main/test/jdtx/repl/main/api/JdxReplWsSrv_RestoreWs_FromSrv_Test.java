@@ -185,7 +185,7 @@ public class JdxReplWsSrv_RestoreWs_FromSrv_Test extends JdxReplWsSrv_RestoreWs_
         // Сервер ответит на просьбы о повторной отправке
         System.out.println();
         System.out.println("Сервер ответит на просьбы о повторной отправке");
-        test_srv_doReplSession();
+        srv_doReplSession();
 
         // Сейчас все готово для ремонта
         System.out.println();
