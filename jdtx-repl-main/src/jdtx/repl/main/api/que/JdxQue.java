@@ -99,20 +99,12 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
 
             // Старая и новая реплика
             IReplica replicaOriginal = get(no);
-            File replicaOriginalFile = replicaOriginal.getData();
-
-            //
             log.info("--- original replica:");
             infoReplica(replicaOriginal);
             log.info("--- recreated replica:");
             infoReplica(replica);
 
             // Копируем содержимое новой реплики на место старой
-            if (replicaOriginalFile.exists() && !replicaOriginalFile.delete()) {
-                throw new IOException("Unable to delete file: " + replicaOriginalFile.getAbsolutePath());
-            }
-
-            //
             super.put(replica, no);
 
             // Обновляем crc в БД

@@ -53,7 +53,7 @@ public class JdxQueCommon extends JdxQue implements IJdxQueCommon {
             // Предполагаем, что ФАЙЛ реплики остается в очереди srvQueIn,
             // поэтому никаких действий по размещению ФАЙЛА реплики в очереди - не требуется,
             // потребуется только помещение в саму очередь, но это делается командой push.
-            log.trace("");
+            log.trace("JdxQueCommon.put, no: " + no);
         }
     }
 

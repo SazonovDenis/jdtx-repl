@@ -362,7 +362,7 @@ public class UtMail {
     /**
      * Читаем реплику номер no из ящика box.
      * Если она есть (осталась при штатной передаче, либо её запросили повторно на предыдущем цикле), то возвращаем ее,.
-     * если реплики не оказалосьь в ящике - запрашиваем у executor.
+     * если реплики не оказалось в ящике - запрашиваем у executor.
      */
     public static IReplica receiveOrRequestReplica(IMailer mailer, String box, long no, String executor) throws Exception {
         try {

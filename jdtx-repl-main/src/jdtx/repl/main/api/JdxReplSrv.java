@@ -1034,7 +1034,6 @@ public class JdxReplSrv {
                             log.info("receiveOrRequestReplica, replica receive done");
 
                             // Обновим "битую" реплику в очереди - заменим на нормальную
-                            queInSrv.remove(no);
                             queInSrv.put(replicaNew, no);
 
                             // Ждем следующего цикла, а пока - ошибка

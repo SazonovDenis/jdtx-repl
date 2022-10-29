@@ -114,15 +114,15 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
         if (replicaFile.getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
             // Какой-то файл уже занимает постоянное место?
             if (actualFile.exists()) {
+                log.warn("ActualFile already exists: " + actualFile.getAbsolutePath());
+                //
                 String crcInfo = replica.getInfo().getCrc();
-                String crcFile = UtJdx.getMd5File(actualFile);
-                if (crcInfo.compareToIgnoreCase(crcFile) != 0) {
-                    // Если ДРУГОЙ файл уже занимает постоянное место, то этот файл НЕ удаляем.
-                    throw new XError("Other actualFile already exists: " + actualFile.getAbsolutePath());
-                } else {
-                    // Если ТАКОЙ-ЖЕ файл уже занимает постоянное место, то этот файл можно заменить.
-                    log.warn("Same actualFile already exists: " + actualFile.getAbsolutePath() + ", delete existing");
-                    actualFile.delete();
+                String crcActualFile = UtJdx.getMd5File(actualFile);
+                log.warn("replicaInfo.crc: " + crcInfo + ", actualFile.crc: " + crcActualFile + ", replicaFile.length: " + replicaFile.length() + ", actualFile.length: " + actualFile.length());
+                //
+                // Удаялем старый файл
+                if (!actualFile.delete()) {
+                    throw new IOException("Unable to delete file: " + actualFile.getAbsolutePath());
                 }
             }
             // Переносим файл на постоянное место

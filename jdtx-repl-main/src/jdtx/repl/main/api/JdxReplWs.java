@@ -454,7 +454,7 @@ public class JdxReplWs {
         //
         long count = 0;
         for (long no = queNoFrom; no <= queNoTo; no++) {
-            log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que.no: " + no + " (count: " + count + "/" + (queNoTo - queNoFrom) + ")");
+            log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que.no: " + no + " (count: " + (count + 1) + "/" + (queNoTo - queNoFrom + 1) + ")");
 
             //
             ReplicaUseResult replicaUseResult;
@@ -489,7 +489,6 @@ public class JdxReplWs {
                     log.info("receiveOrRequestReplica, replica receive done");
 
                     // Обновим "битую" реплику в очереди - заменим на нормальную
-                    que.remove(no);
                     que.put(replicaNew, no);
 
                     // Ждем следующего цикла, а пока - ошибка
