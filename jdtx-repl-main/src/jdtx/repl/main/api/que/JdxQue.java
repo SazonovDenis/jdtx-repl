@@ -119,12 +119,14 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
         log.info("   age: " + replica.getInfo().getAge());
         log.info("    no: " + replica.getInfo().getNo());
         log.info("   crc: " + replica.getInfo().getCrc());
-        log.info("  file:");
-        log.info("  path: " + replicaFile.getAbsolutePath());
+        log.info("  file: " + replicaFile.getAbsolutePath());
         log.info("exists: " + replicaFile.exists());
         if (replicaFile.exists()) {
             log.info("  size: " + replicaFile.length());
             log.info("   crc: " + UtJdx.getMd5File(replicaFile));
+        } else {
+            log.info("  size: -");
+            log.info("   crc: -");
         }
     }
 
