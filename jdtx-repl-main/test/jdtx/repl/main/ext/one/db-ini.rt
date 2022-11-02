@@ -4,14 +4,24 @@
     <!-- настройки базы данных -->
 
     <db name="default"
-        dbdriver="firebird" 
-        
-        database="db.gdb"
-        username="SYSDBA"
-        password="masterkey"
-        host="localhost"
+        dbdriver="oracle"
+
+        host="db-srv"
+        database="orcl"
+        username="TEST1"
+        password="Aa123456"
     />
                 
+
+    <service name="jdtx.repl.main.api.ref_manager.RefManagerService"
+             class="jdtx.repl.main.api.ref_manager.RefManager_Base">
+    </service>
+
+    <service name="jdtx.repl.main.api.pk_generator.AppPkRulesService"
+             class="jdtx.repl.main.api.pk_generator.AppPkRulesRules_TBD">
+    </service>
+
+
     <!-- перкрытие настроек -->
     <x-include path="_db-ini.rt" required="false"/>
 
