@@ -52,6 +52,16 @@ class Merge_Ext_Test extends JcTestCase {
     }
 
     @Test
+    void rec_merge_revert() {
+        IVariantMap args = new VariantMap()
+        args.put("tables", "LicDocTip,LicDocVid")
+        args.put("file", "temp/229990_result.zip")
+
+        //
+        ext2.rec_merge_revert(args)
+    }
+
+    @Test
     void relocate() {
         Db db = ext.getApp().service(ModelService.class).model.getDb()
         db.connect()

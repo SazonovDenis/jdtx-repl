@@ -228,7 +228,13 @@ class Merge_Ext extends ProjectExt {
 
     /**
      */
-    void revert_exec(IVariantMap args) {
+    void rec_merge_revert(IVariantMap args) {
+        String tableNames = args.getValueString("tables")
+        List<String> tables = null
+        if (tableNames != null && tableNames.length() != 0) {
+            tables = UtCnv.toList(tableNames)
+        }
+        //
         String resultFileName = args.getValueString("file")
         if (resultFileName == null || resultFileName.length() == 0) {
             throw new XError("Не указан [file] - файл с результатом слияния")
@@ -245,16 +251,12 @@ class Merge_Ext extends ProjectExt {
 
         //
         try {
-            IJdxDbStructReader structReader = new JdxDbStructReader()
-            structReader.setDb(db)
-            IJdxDbStruct struct = structReader.readDbStruct()
+            JdxReplWs ws = new JdxReplWs(db)
+            ws.init()
+            IJdxRecMerger recMerger = ws.getRecMerger();
 
             //
-            IJdxDataSerializer dataSerializer = new JdxDataSerializerPlain()
-            JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer)
-
-            //
-            recMerger.revertExec(resultFile)
+            recMerger.revertExec(resultFile, tables)
         } finally {
             db.disconnect()
         }

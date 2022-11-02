@@ -42,6 +42,15 @@ rec_merge_exec = cm("Выполнить слияние дубликатов",
 }
 
 //
+rec_merge_revert = cm("Откатить удаление/слияние дубликатов",
+        "tables": [value: null, help: "Какие таблицы восстанавливать, например -tables:LicDocTip,LicDocVid. Не указывать, если нужно восстановить все"],
+        "file": [value: null, help: "Файл с результатами удаления/слияния"],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
+    ext.rec_merge_revert(args)
+}
+
+//
 rec_merge_request = cm("Разослать команду на слияние дубликатов",
         "file": [value: null, help: "Файл с задачами на слияние"],
 ) {
@@ -56,14 +65,6 @@ rec_remove_cascade = cm("Удалить запись каскадно",
 ) {
     def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
     ext.rec_remove_cascade(args)
-}
-
-//
-rec_revert_exec = cm("Откатить удаление/слияние",
-        "file": [value: null, help: "Файл с результатами удаления/слияния"],
-) {
-    def ext = createExt("jdtx.repl.main.ext.Merge_Ext")
-    ext.revert_exec(args)
 }
 
 //

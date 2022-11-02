@@ -1645,11 +1645,11 @@ public class JdxReplSrv {
 
         // Правила публикаций (фильтры) для станции wsId.
         // В качестве фильтров на ОТПРАВКУ от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
-        IPublicationRuleStorage publicationRule = publicationsInList.get(destinationWsId);
+        IPublicationRuleStorage publicationRules = publicationsInList.get(destinationWsId);
 
         // Создаем снимок таблицы (разрешаем отсылать чужие записи)
         UtRepl utRepl = new UtRepl(db, struct);
-        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, SERVER_WS_ID, destinationWsId, publicationRule);
+        List<IReplica> replicasRes = utRepl.createSnapshotForTablesFiltered(tables, SERVER_WS_ID, destinationWsId, publicationRules);
 
         // Отправляем снимок таблицы в очередь queOut001
         utRepl.sendToQue(replicasRes, queOut001);

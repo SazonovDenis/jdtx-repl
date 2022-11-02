@@ -138,7 +138,7 @@ public class JdxRecRemover_Test extends DbmTestCase {
         System.out.println();
         // 
         JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
-        recMerger.revertExec(outFile);
+        recMerger.revertExec(outFile, UtCnv.toList(tableName));
 
 
         //
@@ -205,7 +205,7 @@ public class JdxRecRemover_Test extends DbmTestCase {
         System.out.println();
         //
         JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
-        recMerger.revertExec(outFile);
+        recMerger.revertExec(outFile, null);
     }
 
     @Test

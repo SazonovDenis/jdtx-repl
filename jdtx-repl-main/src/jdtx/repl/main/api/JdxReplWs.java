@@ -1199,6 +1199,12 @@ public class JdxReplWs {
         return replicaType == JdxReplicaType.SNAPSHOT && replicaWsId == wsId;
     }
 
+    public IJdxRecMerger getRecMerger() throws Exception {
+        IJdxDataSerializer dataSerializer = db.getApp().service(DataSerializerService.class);
+        JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
+        return recMerger;
+    }
+
     /**
      * Реакция на команду слияния записей
      */
@@ -1234,10 +1240,7 @@ public class JdxReplWs {
         // Исполняем задачу на слияние
         db.startTran();
         try {
-            // Исполняем
-            IJdxDataSerializer dataSerializer = db.getApp().service(DataSerializerService.class);
-            //
-            JdxRecMerger recMerger = new JdxRecMerger(db, struct, dataSerializer);
+            IJdxRecMerger recMerger = getRecMerger();
             recMerger.execMergePlan(mergePlans, resultFile);
 
             //

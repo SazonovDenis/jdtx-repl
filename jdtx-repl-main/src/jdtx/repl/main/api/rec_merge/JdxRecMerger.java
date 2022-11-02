@@ -5,7 +5,6 @@ import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.data_serializer.*;
-import jdtx.repl.main.api.pk_generator.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
 import org.apache.commons.logging.*;
@@ -254,7 +253,7 @@ public class JdxRecMerger implements IJdxRecMerger {
 
 
     @Override
-    public void revertExec(File resultFile) throws Exception {
+    public void revertExec(File resultFile, List<String> affectTables) throws Exception {
         log.info("revertExec");
 
         //
@@ -271,17 +270,19 @@ public class JdxRecMerger implements IJdxRecMerger {
                 String tableName = tableItem.tableName;
                 IJdxTable table = struct.getTable(tableName);
 
-
                 //
-                log.info("revertExec, table: " + tableName);
+                if (affectTables == null || affectTables.contains(tableName)) {
+                    log.info("revertExec, table: " + tableName);
 
-                //
-                dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
-                long doneRecs = revertTableRecs(table, tableItem.tableOperation, resultReader);
+                    //
+                    dataSerializer.setTable(table, UtJdx.fieldsToString(table.getFields()));
+                    long doneRecs = revertTableRecs(table, tableItem.tableOperation, resultReader);
 
-                //
-                log.info("  table done: " + tableName + ", total: " + doneRecs);
-
+                    //
+                    log.info("  table done: " + tableName + ", total: " + doneRecs);
+                } else {
+                    log.info("revertExec, table: " + tableName + ", skipped");
+                }
 
                 //
                 tableItem = resultReader.nextResultTable();
@@ -302,9 +303,10 @@ public class JdxRecMerger implements IJdxRecMerger {
         log.info("revertExec done");
     }
 
-    private long revertTableRecs(IJdxTable table, MergeOprType tableOperation, RecMergeResultReader resultReader) throws Exception {
+
+    private long revertTableRecs(IJdxTable table, MergeOprType oprTypeToRevert, RecMergeResultReader resultReader) throws Exception {
         String sql;
-        if (tableOperation == MergeOprType.UPD) {
+        if (oprTypeToRevert == MergeOprType.UPD) {
             sql = dbu.generateSqlUpdate(table.getName(), null, null);
         } else {
             sql = dbu.generateSqlInsert(table.getName(), null, null);
@@ -323,7 +325,7 @@ public class JdxRecMerger implements IJdxRecMerger {
                 if (!dbErrors.errorIs_PrimaryKeyError(e)) {
                     log.error(e.getMessage());
                     log.error("table: " + table.getName());
-                    log.error("oprType: " + tableOperation);
+                    log.error("oprType: " + oprTypeToRevert);
                     log.error("recParams: " + recValues);
                     log.error("recValuesStr: " + recValuesStr);
                     throw e;

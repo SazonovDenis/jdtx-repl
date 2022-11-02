@@ -145,11 +145,11 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
         // ---
 
         // Создание дубликатов LicDocTip на ws2
-        testMerge.makeDuplicates(db2, struct2, "LicDocTip");
-        testMerge.makeDuplicates(db2, struct2, "Usr");
+        testMerge.makeDuplicates(db2, struct2, "LicDocTip", "Lic");
+        testMerge.makeDuplicates(db2, struct2, "Usr", "UsrOtdel");
         // Создание дубликатов LicDocVid на ws3
-        testMerge.makeDuplicates(db3, struct3, "LicDocVid");
-        testMerge.makeDuplicates(db3, struct3, "Usr");
+        testMerge.makeDuplicates(db3, struct3, "LicDocVid", "Lic");
+        testMerge.makeDuplicates(db3, struct3, "Usr", "UsrOtdel");
 
         //
         System.out.println();

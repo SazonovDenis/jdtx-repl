@@ -28,6 +28,8 @@ public class JdxRecMerge_Test extends DbmTestCase {
     //String tableName = "LicDocVid";
     //String tableName = "Lic";
     //
+    String tableNameCascade = "Lic";
+    //
     //String fieldNamesStr = "Name";
     String fieldNamesStr = "Name,ShortName";
     //String fieldNamesStr = "RNN";
@@ -83,7 +85,7 @@ public class JdxRecMerge_Test extends DbmTestCase {
 
 
         // Создаем дубликаты
-        makeDuplicates(db, struct, tableName);
+        makeDuplicates(db, struct, tableName, tableNameCascade);
 
 
         // Снова ищем дубликаты
@@ -338,6 +340,20 @@ public class JdxRecMerge_Test extends DbmTestCase {
     }
 
     @Test
+    public void test_revert_ws() throws Exception {
+        //logOn();
+
+        //
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.init();
+        IJdxRecMerger recMerger = ws.getRecMerger();
+
+        //
+        File fileResults = new File("temp/229990_result.zip");
+        recMerger.revertExec(fileResults, UtCnv.toList("LicDocTip", ","));
+    }
+
+    @Test
     public void test_revertExecMergePlan() throws Exception {
         test_MakeNoDuplicates();
 
@@ -359,30 +375,51 @@ public class JdxRecMerge_Test extends DbmTestCase {
         assertEquals("Есть задание на слияние", false, mergePlans.size() == 0);
 
         // Печатаем задачу на слияние
+        System.out.println("Задача на слияние:");
         UtRecMergePrint.printPlans(mergePlans);
+        System.out.println();
 
 
         // Исполняем задачу на слияние
+        System.out.println("Исполняем задачу на слияние");
         JdxRecMerger recMerger = getJdxRecMerger();
         File fileResults = new File("temp/result.zip");
         fileResults.delete();
         recMerger.execMergePlan(mergePlans, fileResults);
+        System.out.println();
 
         // Печатаем результат выполнения задачи
-        System.out.println();
         System.out.println("Результат выполнения слияния:");
         UtRecMergePrint.printMergeResults(fileResults);
+        System.out.println();
 
 
         // Теперь дубликатов нет
+        System.out.println("Теперь дубликатов нет");
         check_NoDuplicates();
+        System.out.println();
 
 
         // Отменяем слияние
-        recMerger.revertExec(fileResults);
+        System.out.println("Отменяем слияние, без таблицы " + tableName);
+        recMerger.revertExec(fileResults, UtCnv.toList("Tab1,Tab2", ","));
+        System.out.println();
+
+
+        // Пока дубликаты не появились
+        System.out.println("Пока дубликаты не появились");
+        check_NoDuplicates();
+        System.out.println();
+
+
+        // Отменяем слияние
+        System.out.println("Отменяем слияние, для таблицы " + tableName);
+        recMerger.revertExec(fileResults, UtCnv.toList("Tab3," + tableName, ","));
+        System.out.println();
 
 
         // Опять дубликаты есть
+        System.out.println("Опять дубликаты есть");
         check_IsDuplicates();
     }
 
@@ -402,16 +439,35 @@ public class JdxRecMerge_Test extends DbmTestCase {
         }
     }
 
-    public void makeDuplicates(Db db, IJdxDbStruct struct, String tableName) throws Exception {
+    public void makeDuplicates(Db db, IJdxDbStruct struct, String tableName, String tableNameCascade) throws Exception {
         System.out.println("Копируем запись: " + UtJdx.getDbName(db) + "." + tableName);
 
-        // Копируем запись 2 раза
+        //
         JdxDbUtils dbu = new JdxDbUtils(db, struct);
-        long idMax = db.loadSql("select max(id) id from " + tableName).get(0).getValueLong("id");
-        DataRecord rec = dbu.loadSqlRec("select * from " + tableName + " where id = :id", UtCnv.toMap("id", idMax));
+
+        // Делаем еще 2 дубликата
+
+        // Выбираем запись tableName
+        long id = db.loadSql("select max(id) id from " + tableName).get(0).getValueLong("id");
+        DataRecord rec = dbu.loadSqlRec("select * from " + tableName + " where id = :id", UtCnv.toMap("id", id));
+
+        // Копируем запись 2 раза
         rec.setValue("id", null);
-        dbu.insertRec(tableName, rec.getValues());
-        dbu.insertRec(tableName, rec.getValues());
+        long id1 = dbu.insertRec(tableName, rec.getValues());
+        long id2 = dbu.insertRec(tableName, rec.getValues());
+
+
+        // Добавляем зависимости (использование записи)
+
+        // Выбираем зависимые записи из tableNameCascade
+        long idCascade0 = db.loadSql("select max(id) id from " + tableNameCascade).get(0).getValueLong("id");
+        long idCascade1 = db.loadSql("select max(id) id from " + tableNameCascade + " where id < " + idCascade0).get(0).getValueLong("id");
+        long idCascade2 = db.loadSql("select max(id) id from " + tableNameCascade + " where id < " + idCascade1).get(0).getValueLong("id");
+
+        // Ставим ссылки на вновь вставленные записи
+        dbu.updateRec(tableNameCascade, UtCnv.toMap("id", idCascade0, tableName, id), tableName);
+        dbu.updateRec(tableNameCascade, UtCnv.toMap("id", idCascade1, tableName, id1), tableName);
+        dbu.updateRec(tableNameCascade, UtCnv.toMap("id", idCascade2, tableName, id2), tableName);
     }
 
     public long getDuplicatesCount(Db db, IJdxDbStruct struct, String tableName, String fieldNamesStr) throws Exception {

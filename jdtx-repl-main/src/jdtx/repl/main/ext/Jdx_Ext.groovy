@@ -1261,14 +1261,14 @@ class Jdx_Ext extends ProjectExt {
         ReplServiceState serviceState = saveServiceState(db, args)
         try {
             if (destinationWsId != 0L) {
-                // Запросили на сервере, для конкретной станциию
+                // Запросили для конкретной станциии.
                 // Отправляем на станцию через сервер, в очередь QUE_OUT001
                 JdxReplSrv srv = new JdxReplSrv(db)
                 srv.init()
                 srv.srvSendSnapshot(destinationWsId, tableNames)
             } else {
-                // Запросили с любой станции, не для конкретной станции
-                // Отправляем всем в очередь QUE_COMMON
+                // Запросили не для конкретной станции
+                // Отправляем с любой станции, всем в очередь QUE_COMMON
                 JdxReplWs ws = new JdxReplWs(db)
                 ws.init()
                 ws.wsSendSnapshot(tableNames)
