@@ -109,7 +109,7 @@ class Jdx_Ext_Test extends JcTestCase {
         mailer.init(cfgMailer);
 
         //
-        String pass = null
+        String pass = mailPass
         mailer.createGuid(guid, pass)
 
         //

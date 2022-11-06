@@ -11,7 +11,7 @@
         password="masterkey"
         host="localhost"
 
-        database_etalon="d:/z_disk/jdtx-repl/jdtx-repl-main/test/etalon/db_empty.gdb"
+        database_etalon="test/etalon/db_empty.gdb"
     />
                 
     <!-- перкрытие настроек -->

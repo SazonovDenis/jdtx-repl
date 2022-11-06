@@ -16,6 +16,7 @@ _log.properties
 _product
 _data_root
 _logs
+_log
 
 jdtx-repl-main/_log.properties
 
