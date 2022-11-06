@@ -567,7 +567,6 @@ public class MailerHttp implements IMailer {
                 throw new XError("HttpResponse.StatusCode: " + response.getStatusLine().getStatusCode() + ", " + resStr);
             }
         }
-
     }
 
     JSONObject parseHttpResponse(HttpResponse response) throws Exception {
