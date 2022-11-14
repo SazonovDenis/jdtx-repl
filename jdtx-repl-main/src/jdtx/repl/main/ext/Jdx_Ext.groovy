@@ -647,7 +647,7 @@ class Jdx_Ext extends ProjectExt {
         if (dirName == null || dirName.length() == 0) {
             throw new XError("Не указан [dir] - почтовый каталог")
         }
-        UtFile.unnormPath(dirName) + "/"
+        dirName = UtFile.unnormPath(dirName) + "/"
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()

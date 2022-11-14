@@ -1635,6 +1635,9 @@ public class JdxReplWs {
      * Отправка реплик с рабочей станции, через папку
      */
     public void replicasSendDir(String dirName/*, long noFrom, long noTo, boolean doMarkDone*/) throws Exception {
+        log.info("replicasSendDir, dir: " + dirName);
+
+        //
         IMailer mailer = createMailerLocalFiles(dirName);
 
         //

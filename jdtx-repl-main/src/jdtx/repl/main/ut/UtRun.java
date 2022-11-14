@@ -69,7 +69,7 @@ public class UtRun {
 
     public static String getAppDir() {
         String dir = UtFile.getWorkdir().getAbsolutePath();
-        dir = UtFile.unnormPath(dir) + "\\";
+        dir = UtFile.unnormPath(dir) + "/";
         return dir;
     }
 
