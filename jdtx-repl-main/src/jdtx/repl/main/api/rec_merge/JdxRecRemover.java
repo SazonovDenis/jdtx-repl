@@ -102,7 +102,7 @@ public class JdxRecRemover {
                         }
 
                         //
-                        mergeMaps(deletedRecords_Ref, deletedRecords_Curr);
+                        UtRecMerger.mapMergeMap(deletedRecords_Ref, deletedRecords_Curr);
                     }
                 }
 
@@ -113,7 +113,7 @@ public class JdxRecRemover {
                 clearAlreadyExists(deletedRecords_Curr, deletedRecords_Global);
 
                 // Пополняем общий список зависимостей
-                mergeMaps(deletedRecords_Curr, deletedRecords_Global);
+                UtRecMerger.mapMergeMap(deletedRecords_Curr, deletedRecords_Global);
 
                 // Теперь переходим на зависимости следующего слоя
                 deletedRecords = deletedRecords_Curr;
@@ -184,25 +184,5 @@ public class JdxRecRemover {
             clearAlreadyExists(list.get(tableName), listFull.get(tableName));
         }
     }
-
-    /**
-     * Сливает две мапы, содержащие списки, таким образом,
-     * что уже имеющиеся значения в списках не затираются, а объединяются
-     *
-     * @param mapSource Map с добавляемыми списками
-     * @param mapDest   пополняемая Map со списками
-     */
-    private void mergeMaps(Map<String, List<Long>> mapSource, Map<String, List<Long>> mapDest) {
-        for (String key : mapSource.keySet()) {
-            List<Long> destList = mapDest.get(key);
-            List<Long> addList = mapSource.get(key);
-            if (destList == null) {
-                mapDest.put(key, addList);
-            } else {
-                destList.addAll(addList);
-            }
-        }
-    }
-
 
 }

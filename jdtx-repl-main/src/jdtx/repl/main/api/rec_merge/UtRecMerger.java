@@ -114,7 +114,7 @@ public class UtRecMerger {
 
                 // Тут собираем id удаленных записей в таблице refTableName не только по ссылке refFkFieldName,
                 // а по всем ссылкам из таблицы refTableName
-                mergeMaps(refTableName, deletedRecordsInTable_forRef, deletedRecordsInTables);
+                UtRecMerger.mapMergeList(refTableName, deletedRecordsInTable_forRef, deletedRecordsInTables);
             }
         }
 
@@ -127,11 +127,11 @@ public class UtRecMerger {
      * добавляет список sourceValue по ключу sourceKey таким образом,
      * что уже имеющееся значения по ключу sourceKey не затираются, а пополняется
      *
-     * @param sourceKey
-     * @param sourceValue
-     * @param mapDest
+     * @param sourceKey   ключ для добалнеия в mapDest
+     * @param sourceValue добавляемый список
+     * @param mapDest     пополняемая Map со списками
      */
-    private void mergeMaps(String sourceKey, List<Long> sourceValue, Map<String, List<Long>> mapDest) {
+    public static void mapMergeList(String sourceKey, List<Long> sourceValue, Map<String, List<Long>> mapDest) {
         List<Long> destValue = mapDest.get(sourceKey);
         if (destValue == null) {
             destValue = new ArrayList<>();
@@ -139,6 +139,25 @@ public class UtRecMerger {
         }
 
         destValue.addAll(sourceValue);
+    }
+
+    /**
+     * Сливает mapSource (содержащие списки) таким образом,
+     * что уже имеющиеся значения в списках не затираются, а объединяются.
+     *
+     * @param mapSource добавляемые списки
+     * @param mapDest   пополняемая Map со списками
+     */
+    public static void mapMergeMap(Map<String, List<Long>> mapSource, Map<String, List<Long>> mapDest) {
+        for (String key : mapSource.keySet()) {
+            List<Long> destList = mapDest.get(key);
+            List<Long> addList = mapSource.get(key);
+            if (destList == null) {
+                mapDest.put(key, addList);
+            } else {
+                destList.addAll(addList);
+            }
+        }
     }
 
 
