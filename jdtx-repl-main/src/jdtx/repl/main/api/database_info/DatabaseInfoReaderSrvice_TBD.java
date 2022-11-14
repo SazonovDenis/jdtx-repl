@@ -4,8 +4,7 @@ import jandcode.dbm.db.*;
 import jdtx.repl.main.api.struct.*;
 
 /**
- * "Логическая" версия базы данных.
- * Реализация для ТБД.
+ * "Логическая" версия базы данных, реализация для ТБД.
  */
 public class DatabaseInfoReaderSrvice_TBD extends DatabaseInfoReaderService {
 

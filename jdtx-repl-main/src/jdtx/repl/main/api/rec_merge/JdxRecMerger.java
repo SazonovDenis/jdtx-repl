@@ -426,7 +426,7 @@ public class JdxRecMerger implements IJdxRecMerger {
         for (String fieldNameForGroup : record.keySet()) {
             Collection<String> fieldsGroup = groupStrategy.getForField(fieldNameForGroup);
 
-            // Ишем какая запись полнее заполнена для группы полй fieldsGroup
+            // Ищем какая запись полнее заполнена для группы полй fieldsGroup
             int recordEtalonFilledCount = 0;
             int recordFilledCount = 0;
             for (String fieldName : fieldsGroup) {

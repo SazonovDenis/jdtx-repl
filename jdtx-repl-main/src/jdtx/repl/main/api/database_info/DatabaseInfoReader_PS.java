@@ -6,8 +6,7 @@ import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 
 /**
- * "Логическая" версия базы данных.
- * Реализация для PS.
+ * "Логическая" версия базы данных, реализация для PS.
  */
 public class DatabaseInfoReader_PS implements IDatabaseInfoReader {
 
