@@ -8,6 +8,7 @@ import jdtx.repl.main.api.mailer.*;
 import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
+import jdtx.repl.main.log.JdtxStateContainer;
 import jdtx.repl.main.task.*;
 import jdtx.repl.main.ut.*;
 import org.apache.commons.io.*;
@@ -40,6 +41,9 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     String json_srv;
     String json_ws;
 
+    Thread stateOuterFile = null;
+    Thread stateOuterMailer = null;
+
     public JdxReplWsSrv_Test() {
         super();
 
@@ -58,6 +62,26 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         equalExpected = expectedEqual_noFilter;
     }
 
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+
+        //
+        stateOuterFile = new Thread(new JdtxStateOuterFile(JdtxStateContainer.state, "temp/state.json"));
+        stateOuterFile.start();
+    }
+
+    @Override
+    public void tearDown() throws Exception {
+        stateOuterFile.stop();
+        if (stateOuterMailer != null) {
+            stateOuterMailer.stop();
+        }
+
+        //
+        super.tearDown();
+    }
+
     /**
      * Прогон базового сценария репликации: создание репликации, полная двусторонняя репликация
      */
@@ -65,6 +89,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     public void test_baseReplication() throws Exception {
         // Создание репликации
         allSetUp();
+
+        //
+        JdxReplWs ws = new JdxReplWs(db);
+        ws.init();
+        stateOuterMailer = new Thread(new JdtxStateOuterMailer(JdtxStateContainer.state, ws.getMailer()));
+        stateOuterMailer.start();
 
         // Первичная синхронизация
         sync_http_1_2_3();

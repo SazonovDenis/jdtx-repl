@@ -1,7 +1,9 @@
 package jdtx.repl.main.log;
 
+import com.jdtx.state.StateItemStackNamed;
 import org.apache.log4j.*;
 import org.apache.log4j.spi.*;
+import org.joda.time.DateTime;
 
 public class JdtxLogAppender extends AppenderSkeleton {
 
@@ -15,7 +17,10 @@ public class JdtxLogAppender extends AppenderSkeleton {
 
     public String conversionPattern;
 
+    protected static StateItemStackNamed state = JdtxStateContainer.state;
+
     protected void append(LoggingEvent event) {
+        // Обновим JdtxLogContainer
         PatternLayout layout = new PatternLayout(conversionPattern);
         String value = layout.format(event);
         value = value.trim();
@@ -27,7 +32,15 @@ public class JdtxLogAppender extends AppenderSkeleton {
         }
 
         //
-        JdtxLogStorage.setLogValue(key, value);
+        JdtxLogContainer.setLogValue(key, value);
+
+
+        // Обновим JdtxStateContainer.state
+        String text = event.getRenderedMessage().trim();
+        state.get().setValue("log.name", event.categoryName);
+        state.get().setValue("log.serviceName", key);
+        state.get().setValue("log.datetime", new DateTime(event.getTimeStamp()));
+        state.get().setValue("log.text", text);
     }
 
     public void close() {

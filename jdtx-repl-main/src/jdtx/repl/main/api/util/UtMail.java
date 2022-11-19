@@ -1,5 +1,6 @@
 package jdtx.repl.main.api.util;
 
+import com.jdtx.state.*;
 import jandcode.utils.error.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.mailer.*;
@@ -7,6 +8,7 @@ import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.struct.*;
+import jdtx.repl.main.log.*;
 import org.apache.commons.logging.*;
 import org.joda.time.*;
 import org.json.simple.*;
@@ -18,6 +20,7 @@ public class UtMail {
 
     //
     protected static Log log = LogFactory.getLog("jdtx.UtMail");
+    protected static StateItemStackNamed state = JdtxStateContainer.state;
 
 
     /**
@@ -125,64 +128,77 @@ public class UtMail {
      */
     private static void sendReplicasToMail(MailSendTask sendTask, Map<Long, IReplica> replicasToSend, long wsId, IMailer mailer, String box, IJdxMailSendStateManager mailStateManager) throws Exception {
         log.info("sendReplicasToMail, wsId: " + wsId + ", box: " + box + ", count: " + replicasToSend.size() + ", sendTask: " + sendTask);
+        state.start("sendReplicasToMail");
+        try {
+            state.get().setValue("wsId", wsId);
+            state.get().setValue("box", box);
+            state.get().setValue("total", replicasToSend.size());
+            state.get().setValue("count", 0);
 
-        // Узнаем, какой номер помечен как отправленный
-        long lastNoMailSendMarked = -1;
-        if (mailStateManager != null) {
-            lastNoMailSendMarked = mailStateManager.getMailSendDone();
-        }
 
-        // Передаем
-        long count = 0;
-        for (Map.Entry<Long, IReplica> en : replicasToSend.entrySet()) {
-            long no = en.getKey();
-            IReplica replica = en.getValue();
-
-            // Физически отправим реплику
-            mailer.send(replica, box, no);
-
-            // Отметим отправку очередного номера реплики (если отметка двигается вперед)
-            if (mailStateManager != null && no > lastNoMailSendMarked) {
-                mailStateManager.setMailSendDone(no);
+            // Узнаем, какой номер помечен как отправленный
+            long lastNoMailSendMarked = -1;
+            if (mailStateManager != null) {
+                lastNoMailSendMarked = mailStateManager.getMailSendDone();
             }
 
-            // Двигаем вперед запрошенный номер (если просили повторную передачу)
-            if (sendTask.required) {
-                // Двигаем номер так, чтобы он двигался только вперед от sendTask.sendFrom, и чтобы не стал больше sendTask.sendTo
-                if (no >= sendTask.sendFrom && no < sendTask.sendTo) {
-                    RequiredInfo requiredInfo = new RequiredInfo();
-                    // Двигаем номер вперед так, чтобы в случае сбоя продолжить после номера, который уже передали
-                    requiredInfo.requiredFrom = no + 1;
-                    requiredInfo.requiredTo = sendTask.sendTo;
-                    requiredInfo.recreate = sendTask.recreate;
-                    requiredInfo.executor = sendTask.executor;
-                    // Отмечаем на сервере
-                    mailer.setSendRequired(box, requiredInfo);
-                    log.warn("sendReplicasToMail, move forward sendRequired, no: " + no);
+            // Передаем
+            long count = 0;
+            for (Map.Entry<Long, IReplica> en : replicasToSend.entrySet()) {
+                long no = en.getKey();
+                IReplica replica = en.getValue();
+
+                // Физически отправим реплику
+                mailer.send(replica, box, no);
+
+                // Отметим отправку очередного номера реплики (если отметка двигается вперед)
+                if (mailStateManager != null && no > lastNoMailSendMarked) {
+                    mailStateManager.setMailSendDone(no);
                 }
+
+                // Двигаем вперед запрошенный номер (если просили повторную передачу)
+                if (sendTask.required) {
+                    // Двигаем номер так, чтобы он двигался только вперед от sendTask.sendFrom, и чтобы не стал больше sendTask.sendTo
+                    if (no >= sendTask.sendFrom && no < sendTask.sendTo) {
+                        RequiredInfo requiredInfo = new RequiredInfo();
+                        // Двигаем номер вперед так, чтобы в случае сбоя продолжить после номера, который уже передали
+                        requiredInfo.requiredFrom = no + 1;
+                        requiredInfo.requiredTo = sendTask.sendTo;
+                        requiredInfo.recreate = sendTask.recreate;
+                        requiredInfo.executor = sendTask.executor;
+                        // Отмечаем на сервере
+                        mailer.setSendRequired(box, requiredInfo);
+                        log.warn("sendReplicasToMail, move forward sendRequired, no: " + no);
+                    }
+                }
+
+                //
+                log.info("sendReplicasToMail, wsId: " + wsId + ", box: " + box + ", no: " + no + ", " + count + "/" + replicasToSend.size());
+                state.get().setValue("replicaNo", no);
+                state.get().setValue("count", count);
+
+                //
+                count = count + 1;
             }
 
-            //
-            log.info("sendReplicasToMail, wsId: " + wsId + ", box: " + box + ", no: " + no + ", " + count + "/" + replicasToSend.size());
+            // Снимем флаг просьбы станции (если просили повторную передачу)
+            if (sendTask.required) {
+                mailer.setSendRequired(box, new RequiredInfo());
+                log.warn("sendReplicasToMail, set sendRequired: none");
+            }
+
+            // Отметим попытку записи (для отслеживания активности станции, когда нет данных для реальной передачи)
+            mailer.setData(null, "ping.write", box);
 
             //
-            count = count + 1;
-        }
+            if (count > 0) {
+                log.info("sendReplicasToMail done, wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask.sendFrom + " .. " + sendTask.sendTo + ", done count: " + count);
+            } else {
+                log.info("sendReplicasToMail done, wsId: " + wsId + ", box: " + box + ", nothing done");
+            }
 
-        // Снимем флаг просьбы станции (если просили повторную передачу)
-        if (sendTask.required) {
-            mailer.setSendRequired(box, new RequiredInfo());
-            log.warn("sendReplicasToMail, set sendRequired: none");
-        }
-
-        // Отметим попытку записи (для отслеживания активности станции, когда нет данных для реальной передачи)
-        mailer.setData(null, "ping.write", box);
-
-        //
-        if (count > 0) {
-            log.info("sendReplicasToMail done, wsId: " + wsId + ", box: " + box + ", sendTask: " + sendTask.sendFrom + " .. " + sendTask.sendTo + ", done count: " + count);
-        } else {
-            log.info("sendReplicasToMail done, wsId: " + wsId + ", box: " + box + ", nothing done");
+        } finally {
+            state.stop();
         }
     }
 

@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import com.jdtx.state.StateItemStackNamed;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
@@ -21,6 +22,7 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.settings.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
+import jdtx.repl.main.log.JdtxStateContainer;
 import jdtx.repl.main.task.*;
 import org.apache.commons.io.*;
 import org.apache.commons.logging.*;
@@ -81,7 +83,8 @@ public class JdxReplWs {
     public JdxErrorCollector errorCollector = null;
 
     //
-    private static final Log log = LogFactory.getLog("jdtx.Workstation");
+    protected static final Log log = LogFactory.getLog("jdtx.Workstation");
+    protected static StateItemStackNamed state = JdtxStateContainer.state;
 
     //
     public JdxReplWs(Db db) throws Exception {
@@ -449,97 +452,113 @@ public class JdxReplWs {
         ReplicaUseResult handleQueUseResult = new ReplicaUseResult();
 
         //
-        JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
-
-        //
-        long count = 0;
-        for (long no = queNoFrom; no <= queNoTo; no++) {
-            log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que.no: " + no + " (count: " + (count + 1) + "/" + (queNoTo - queNoFrom + 1) + ")");
+        state.start("handleQue-" + queName);
+        try {
+            JdxStateManagerWs stateManager = new JdxStateManagerWs(db);
 
             //
-            ReplicaUseResult replicaUseResult;
-            try {
-                // Берем реплику из очереди
-                IReplica replica = que.get(no);
+            long total = queNoTo - queNoFrom + 1;
+            long count = 0;
 
-                // Пробуем применить реплику
-                replicaUseResult = useReplicaInternal(replica, forceUse);
-            } catch (Exception e) {
-                if (UtJdxErrors.errorIs_replicaFile(e)) {
-                    log.error("handleQue, error: " + e.getMessage());
+            //
+            state.get().setValue("total", total);
+            state.get().setValue("count", count);
 
-                    // Выясним, у кого куда просить
-                    // По имени очереди выясним, какой ящик ответит нам за реплику
-                    String box;
-                    switch (queName) {
-                        case UtQue.QUE_IN:
-                            box = "to";
-                            break;
-                        case UtQue.QUE_IN001:
-                            box = "to001";
-                            break;
-                        default:
-                            throw new XError("handleQue, unknown mailer.box for que.name: " + queName);
+            //
+            for (long no = queNoFrom; no <= queNoTo; no++) {
+                log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que.no: " + no + " (count: " + (count + 1) + "/" + total + ")");
+
+                //
+                ReplicaUseResult replicaUseResult;
+                try {
+                    // Берем реплику из очереди
+                    IReplica replica = que.get(no);
+
+                    // Пробуем применить реплику
+                    replicaUseResult = useReplicaInternal(replica, forceUse);
+                } catch (Exception e) {
+                    if (UtJdxErrors.errorIs_replicaFile(e)) {
+                        log.error("handleQue, error: " + e.getMessage());
+
+                        // Выясним, у кого куда просить
+                        // По имени очереди выясним, какой ящик ответит нам за реплику
+                        String box;
+                        switch (queName) {
+                            case UtQue.QUE_IN:
+                                box = "to";
+                                break;
+                            case UtQue.QUE_IN001:
+                                box = "to001";
+                                break;
+                            default:
+                                throw new XError("handleQue, unknown mailer.box for que.name: " + queName);
+                        }
+                        String executor = RequiredInfo.EXECUTOR_SRV;
+
+                        // Попросим автора реплики прислать её в ящик, когда дождемся ответа - починим очередь
+                        log.info("receiveOrRequestReplica, try replica receive, box: " + box + ", replica.no: " + no + ", executor: " + executor);
+                        IReplica replicaNew = UtMail.receiveOrRequestReplica(mailer, box, no, executor);
+                        log.info("receiveOrRequestReplica, replica receive done");
+
+                        // Обновим "битую" реплику в очереди - заменим на нормальную
+                        que.put(replicaNew, no);
+
+                        // Ждем следующего цикла, а пока - ошибка
+                        throw new XError("handleQue, requestReplica done, wait for next iteration, queName: " + queName + ", replica.no: " + no);
+                    } else {
+                        throw e;
                     }
-                    String executor = RequiredInfo.EXECUTOR_SRV;
+                }
 
-                    // Попросим автора реплики прислать её в ящик, когда дождемся ответа - починим очередь
-                    log.info("receiveOrRequestReplica, try replica receive, box: " + box + ", replica.no: " + no + ", executor: " + executor);
-                    IReplica replicaNew = UtMail.receiveOrRequestReplica(mailer, box, no, executor);
-                    log.info("receiveOrRequestReplica, replica receive done");
+                if (replicaUseResult.replicaUsed) {
+                    if (replicaUseResult.lastOwnAgeUsed > handleQueUseResult.lastOwnAgeUsed) {
+                        handleQueUseResult.lastOwnAgeUsed = replicaUseResult.lastOwnAgeUsed;
+                    }
+                    if (replicaUseResult.lastOwnNoUsed > handleQueUseResult.lastOwnNoUsed) {
+                        handleQueUseResult.lastOwnNoUsed = replicaUseResult.lastOwnNoUsed;
+                    }
+                }
 
-                    // Обновим "битую" реплику в очереди - заменим на нормальную
-                    que.put(replicaNew, no);
-
-                    // Ждем следующего цикла, а пока - ошибка
-                    throw new XError("handleQue, requestReplica done, wait for next iteration, queName: " + queName + ", replica.no: " + no);
+                // Реплика использованна?
+                if (replicaUseResult.replicaUsed) {
+                    // Отметим применение реплики
+                    // Отметку двигаем только вперёд. Это важно учитывать, т.к. бывает ситуация "восстановление базы станции по данным с сервера",
+                    // в рамках которых может прийти реплика на изменение возраста очередей, а отметку назад двигать не надо.
+                    long queDoneNow = stateManager.getQueNoDone(queName);
+                    if (no > queDoneNow) {
+                        stateManager.setQueNoDone(queName, no);
+                    } else {
+                        log.info("setQueNoDone was not set, queName: " + queName + ", queNo new: " + no + ", queNo now: " + queDoneNow);
+                    }
                 } else {
-                    throw e;
+                    // Не отмечаем
+                    log.info("handleQue, replica not used");
                 }
-            }
 
-            if (replicaUseResult.replicaUsed) {
-                if (replicaUseResult.lastOwnAgeUsed > handleQueUseResult.lastOwnAgeUsed) {
-                    handleQueUseResult.lastOwnAgeUsed = replicaUseResult.lastOwnAgeUsed;
+                // Надо останавливаться?
+                if (replicaUseResult.doBreak) {
+                    // Останавливаемся
+                    log.info("handleQue, break using replicas");
+                    break;
                 }
-                if (replicaUseResult.lastOwnNoUsed > handleQueUseResult.lastOwnNoUsed) {
-                    handleQueUseResult.lastOwnNoUsed = replicaUseResult.lastOwnNoUsed;
-                }
-            }
 
-            // Реплика использованна?
-            if (replicaUseResult.replicaUsed) {
-                // Отметим применение реплики
-                // Отметку двигаем только вперёд. Это важно учитывать, т.к. бывает ситуация "восстановление базы станции по данным с сервера",
-                // в рамках которых может прийти реплика на изменение возраста очередей, а отметку назад двигать не надо.
-                long queDoneNow = stateManager.getQueNoDone(queName);
-                if (no > queDoneNow) {
-                    stateManager.setQueNoDone(queName, no);
-                } else {
-                    log.info("setQueNoDone was not set, queName: " + queName + ", queNo new: " + no + ", queNo now: " + queDoneNow);
-                }
 
                 //
                 count++;
+
+                //
+                state.get().setValue("count", count);
+            }
+
+            //
+            if (count > 0) {
+                log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que: " + queNoFrom + " .. " + queNoTo + ", done count: " + count);
             } else {
-                // Не отмечаем
-                log.info("handleQue, replica not used");
+                log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que: " + queNoFrom + ", nothing to do");
             }
 
-            // Надо останавливаться?
-            if (replicaUseResult.doBreak) {
-                // Останавливаемся
-                log.info("handleQue, break using replicas");
-                break;
-            }
-
-        }
-
-        //
-        if (count > 0) {
-            log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que: " + queNoFrom + " .. " + queNoTo + ", done count: " + count);
-        } else {
-            log.info("handleQue: " + queName + ", self.wsId: " + wsId + ", que: " + queNoFrom + ", nothing to do");
+        } finally {
+            state.stop();
         }
 
 
@@ -1542,60 +1561,83 @@ public class JdxReplWs {
      * Скачивает из ящика box письма в запрошенном диапазоне и помещает их в очередь que
      */
     void receiveQueInternal(IMailer mailer, String box, long no_from, long no_to, IJdxReplicaQue que) throws Exception {
-        log.info("receive, self.wsId: " + wsId + ", box: " + box + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", " + no_from + ".." + no_to);
+        String queName = ((IJdxQueNamed) que).getQueName();
+        log.info("receive, self.wsId: " + wsId + ", box: " + box + ", que.name: " + queName + ", " + no_from + ".." + no_to);
 
         //
-        long count = 0;
-        for (long no = no_from; no <= no_to; no++) {
-            log.debug("receive, receiving.no: " + no);
-
-            IReplicaInfo info;
-            try {
-                // Информация о реплике с почтового сервера
-                info = mailer.getReplicaInfo(box, no);
-            } catch (Exception exceptionMail) {
-                // Какая-то ошибка
-                if (UtJdxErrors.errorIs_replicaMailNotFound(exceptionMail)) {
-                    // Ошибка: реплики в ящике нет - запросм сами повторную передачу
-                    UtMail.handleReplicaMailNotFound(mailer, box, no, RequiredInfo.EXECUTOR_SRV, exceptionMail);
-                }
-                throw exceptionMail;
+        state.start("receiveQue-" + queName);
+        try {
+            long total = no_to - no_from;
+            if (total < 0) {
+                total = 0;
             }
-
-            // Нужно ли скачивать эту реплику с сервера?
-            IReplica replica;
-            if (isReplicaSelfSnapshot(info)) {
-                // Свои собственные snapshot-реплики можно не скачивать (и в дальнейшем не применять)
-                log.info("Found self snapshot replica, no: " + no + ", replica.age: " + info.getAge());
-                // Имитируем реплику просто чтобы положить в очередь.
-                // Никто не заметит, что реплика пустая, т.к. она НЕ нужна
-                replica = new ReplicaFile();
-                replica.getInfo().setReplicaType(info.getReplicaType());
-                replica.getInfo().setWsId(info.getWsId());
-                replica.getInfo().setNo(info.getNo());
-                replica.getInfo().setAge(info.getAge());
-                //replica.getInfo().setCrc(info.getCrc()); по идее crc тоже удобнее НЕ прописывать - как сигнал, что и файла тоже нет
-
-                // Просто помещаем реплику в очередь
-                que.push(replica);
-            } else {
-                receiveQueInternalStep(mailer, box, no, que);
-            }
+            long count = 0;
 
             //
-            count++;
-        }
+            state.get().setValue("box", box);
+            state.get().setValue("queName", queName);
+            state.get().setValue("total", total);
+            state.get().setValue("count", 0);
+
+            //
+            for (long no = no_from; no <= no_to; no++) {
+                log.debug("receive, receiving.no: " + no);
+
+                IReplicaInfo info;
+                try {
+                    // Информация о реплике с почтового сервера
+                    info = mailer.getReplicaInfo(box, no);
+                } catch (Exception exceptionMail) {
+                    // Какая-то ошибка
+                    if (UtJdxErrors.errorIs_replicaMailNotFound(exceptionMail)) {
+                        // Ошибка: реплики в ящике нет - запросм сами повторную передачу
+                        UtMail.handleReplicaMailNotFound(mailer, box, no, RequiredInfo.EXECUTOR_SRV, exceptionMail);
+                    }
+                    throw exceptionMail;
+                }
+
+                // Нужно ли скачивать эту реплику с сервера?
+                IReplica replica;
+                if (isReplicaSelfSnapshot(info)) {
+                    // Свои собственные snapshot-реплики можно не скачивать (и в дальнейшем не применять)
+                    log.info("Found self snapshot replica, no: " + no + ", replica.age: " + info.getAge());
+                    // Имитируем реплику просто чтобы положить в очередь.
+                    // Никто не заметит, что реплика пустая, т.к. она НЕ нужна
+                    replica = new ReplicaFile();
+                    replica.getInfo().setReplicaType(info.getReplicaType());
+                    replica.getInfo().setWsId(info.getWsId());
+                    replica.getInfo().setNo(info.getNo());
+                    replica.getInfo().setAge(info.getAge());
+                    //replica.getInfo().setCrc(info.getCrc()); по идее crc тоже удобнее НЕ прописывать - как сигнал, что и файла тоже нет
+
+                    // Просто помещаем реплику в очередь
+                    que.push(replica);
+                } else {
+                    receiveQueInternalStep(mailer, box, no, que);
+                }
+
+                //
+                count++;
+
+                //
+                state.get().setValue("replicaNo", no);
+                state.get().setValue("count", count);
+            }
 
 
-        // Отметить попытку чтения (для отслеживания активности станции, когда нет данных для реальной передачи)
-        mailer.setData(null, "ping.read", box);
+            // Отметить попытку чтения (для отслеживания активности станции, когда нет данных для реальной передачи)
+            mailer.setData(null, "ping.read", box);
 
 
-        //
-        if (count > 0) {
-            log.info("receive, self.wsId: " + wsId + ", box: " + box + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
-        } else {
-            log.info("receive, self.wsId: " + wsId + ", box: " + box + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", receive.no: " + no_from + ", nothing to receive");
+            //
+            if (count > 0) {
+                log.info("receive, self.wsId: " + wsId + ", box: " + box + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", receive.no: " + no_from + " .. " + no_to + ", done count: " + count);
+            } else {
+                log.info("receive, self.wsId: " + wsId + ", box: " + box + ", que.name: " + ((IJdxQueNamed) que).getQueName() + ", receive.no: " + no_from + ", nothing to receive");
+            }
+
+        } finally {
+            state.stop();
         }
     }
 
@@ -1680,9 +1722,9 @@ public class JdxReplWs {
         JdxMuteManagerWs utmm = new JdxMuteManagerWs(db);
 
         //
-        long out_auditAgeActual = auditAgeManager.getAuditAge(); // Возраст аудита БД
-        long out_queAvailable = stateManager.getAuditAgeDoneQueOut();  // Возраст аудита, до которого сформирована исходящая очередь
-        long out_sendDone = stateMailManager.getMailSendDone();  // Возраст, до которого исходящая очередь отправлена на сервер
+        long out_auditAgeActual = auditAgeManager.getAuditAge();      // Возраст аудита БД
+        long out_queAvailable = stateManager.getAuditAgeDoneQueOut(); // Возраст аудита, до которого сформирована исходящая очередь
+        long out_sendDone = stateMailManager.getMailSendDone();       // Возраст, до которого исходящая очередь отправлена на сервер
         long in_queInNoAvailable = queIn.getMaxNo();                  // До какого номера есть реплики во входящей очереди "in"
         long in_queInNoDone = stateManager.getQueNoDone("in");        // Номер реплики, до которого обработана (применена) входящая очередь "in"
         long in_queIn001NoAvailable = queIn001.getMaxNo();            // До какого номера есть реплики во входящей очереди "in001"
@@ -2361,40 +2403,64 @@ public class JdxReplWs {
             return true;
         }
 
-        //
-        String queName = que.getQueName();
-        log.info("readQueFromSrv_Interval, receive, que: " + queName + ", box: " + box + ", replicaNoFrom: " + replicaNoFrom + ", replicaNoTo: " + replicaNoTo);
+        state.start("readQueFromSrv_Interval");
+        try {
+            //
+            String queName = que.getQueName();
+            log.info("readQueFromSrv_Interval, receive, que: " + queName + ", box: " + box + ", replicaNoFrom: " + replicaNoFrom + ", replicaNoTo: " + replicaNoTo);
 
-        // Если в ящике нет того, что нам нужно - попросим сразу прислать всесь диапазон, который мы намерены скачивать
-        if (!isReplicaInBox(box, replicaNoFrom) || !isReplicaInBox(box, replicaNoTo)) {
-            if (replicaNoFrom == 1) {
-                // Запрос с самого первого номера - не разрешаем (это слишком много)
-                log.warn("readQueFromSrv_Interval, not valid replicaNoFrom == 1, que: " + queName + ", box: " + box);
-            } else {
-                // Просим диапазон
-                RequiredInfo requiredInfo = new RequiredInfo();
-                requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
-                requiredInfo.requiredFrom = replicaNoFrom;
-                requiredInfo.requiredTo = replicaNoTo;
-                mailer.setSendRequired(box, requiredInfo);
+            //
+            long total = replicaNoTo - replicaNoFrom;
+            long count = 0;
+
+            //
+            state.get().setValue("box", box);
+            state.get().setValue("queName", queName);
+            state.get().setValue("total", total);
+            state.get().setValue("count", 0);
+
+
+            // Если в ящике нет того, что нам нужно - попросим сразу прислать всесь диапазон, который мы намерены скачивать
+            if (!isReplicaInBox(box, replicaNoFrom) || !isReplicaInBox(box, replicaNoTo)) {
+                if (replicaNoFrom == 1) {
+                    // Запрос с самого первого номера - не разрешаем (это слишком много)
+                    log.warn("readQueFromSrv_Interval, not valid replicaNoFrom == 1, que: " + queName + ", box: " + box);
+                } else {
+                    // Просим диапазон
+                    RequiredInfo requiredInfo = new RequiredInfo();
+                    requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
+                    requiredInfo.requiredFrom = replicaNoFrom;
+                    requiredInfo.requiredTo = replicaNoTo;
+                    mailer.setSendRequired(box, requiredInfo);
+                }
             }
-        }
 
-        // Читаем с сервера
-        long no = replicaNoFrom;
-        while (no <= replicaNoTo) {
-            try {
-                log.info("readQueFromSrv_Interval, receive, que: " + queName + ", box: " + box + ", no: " + no);
+            // Читаем с сервера
+            long no = replicaNoFrom;
+            while (no <= replicaNoTo) {
+                try {
+                    log.info("readQueFromSrv_Interval, receive, que: " + queName + ", box: " + box + ", no: " + no);
+
+                    //
+                    receiveQueInternalStep(mailer, box, no, que);
+
+                    //
+                    no++;
+                } catch (Exception e) {
+                    log.warn("readQueFromSrv_Interval, error: " + e.getMessage());
+                    return false;
+                }
 
                 //
-                receiveQueInternalStep(mailer, box, no, que);
+                count++;
 
                 //
-                no++;
-            } catch (Exception e) {
-                log.warn("readQueFromSrv_Interval, error: " + e.getMessage());
-                return false;
+                state.get().setValue("replicaNo", no);
+                state.get().setValue("count", count);
             }
+
+        } finally {
+            state.stop();
         }
 
         //
@@ -2408,39 +2474,61 @@ public class JdxReplWs {
      * @return =true, если все заказанные реплики прочитаны с сервера
      */
     private boolean readQueFromSrv_RepicaNo(IJdxQue que, String box, long replicaNoFrom, long noSelfReplica_required) throws Exception {
-        String queName = que.getQueName();
-        log.info("readQueFromSrv_RepicaNo, receive, que: " + queName + ", box: " + box + ", replicaNoFrom: " + replicaNoFrom + ", noSelfReplica_required: " + noSelfReplica_required);
+        state.start("readQueFromSrv_RepicaNo");
+        try {
+            String queName = que.getQueName();
+            log.info("readQueFromSrv_RepicaNo, receive, que: " + queName + ", box: " + box + ", replicaNoFrom: " + replicaNoFrom + ", noSelfReplica_required: " + noSelfReplica_required);
 
-        // Если в ящике нет того, что нам нужно - попросим сразу прислать всесь диапазон, который мы намерены скачивать
-        if (!isReplicaInBox(box, replicaNoFrom)) {
-            RequiredInfo requiredInfo = new RequiredInfo();
-            requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
-            requiredInfo.requiredFrom = replicaNoFrom;
-            requiredInfo.requiredTo = -1;
-            mailer.setSendRequired(box, requiredInfo);
-        }
+            //
+            long count = 0;
 
-        //
-        long noSelfReplica = 0;
-        long no = replicaNoFrom;
-        while (noSelfReplica < noSelfReplica_required) {
-            try {
-                log.info("readQueFromSrv_RepicaNo, receive, que: " + queName + ", box: " + box + ", no: " + no);
+            //
+            state.get().setValue("box", box);
+            state.get().setValue("queName", queName);
+            state.get().setValue("count", 0);
 
-                //
-                IReplica replica = receiveQueInternalStep(mailer, box, no, que);
 
-                //
-                if (replica.getInfo().getWsId() == wsId) {
-                    noSelfReplica = replica.getInfo().getNo();
+            // Если в ящике нет того, что нам нужно - попросим сразу прислать всесь диапазон, который мы намерены скачивать
+            if (!isReplicaInBox(box, replicaNoFrom)) {
+                RequiredInfo requiredInfo = new RequiredInfo();
+                requiredInfo.executor = RequiredInfo.EXECUTOR_SRV;
+                requiredInfo.requiredFrom = replicaNoFrom;
+                requiredInfo.requiredTo = -1;
+                mailer.setSendRequired(box, requiredInfo);
+            }
+
+            //
+            long noSelfReplica = 0;
+            long no = replicaNoFrom;
+            while (noSelfReplica < noSelfReplica_required) {
+                try {
+                    log.info("readQueFromSrv_RepicaNo, receive, que: " + queName + ", box: " + box + ", no: " + no);
+
+                    //
+                    IReplica replica = receiveQueInternalStep(mailer, box, no, que);
+
+                    //
+                    if (replica.getInfo().getWsId() == wsId) {
+                        noSelfReplica = replica.getInfo().getNo();
+                    }
+
+                    //
+                    no++;
+                } catch (Exception e) {
+                    log.warn("readQueFromSrv_RepicaNo, error: " + e.getMessage());
+                    return false;
                 }
 
                 //
-                no++;
-            } catch (Exception e) {
-                log.warn("readQueFromSrv_RepicaNo, error: " + e.getMessage());
-                return false;
+                count++;
+
+                //
+                state.get().setValue("replicaNo", no);
+                state.get().setValue("count", count);
             }
+
+        } finally {
+            state.stop();
         }
 
         //

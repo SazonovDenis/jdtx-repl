@@ -1,5 +1,6 @@
 package jdtx.repl.main.api;
 
+import com.jdtx.state.StateItemStackNamed;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
@@ -17,6 +18,7 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.settings.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
+import jdtx.repl.main.log.JdtxStateContainer;
 import jdtx.repl.main.task.*;
 import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
@@ -84,6 +86,7 @@ public class JdxReplSrv {
 
     //
     protected static Log log = LogFactory.getLog("jdtx.Server");
+    protected static StateItemStackNamed state = JdtxStateContainer.state;
 
     //
     public JdxReplSrv(Db db) throws Exception {
@@ -897,66 +900,106 @@ public class JdxReplSrv {
     }
 
     void srvReplicasReceiveInternal(Map<Long, IMailer> mailerList) throws Exception {
-        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
-        for (long wsId : mailerList.keySet()) {
-            IMailer mailerWs = mailerList.get(wsId);
-            IJdxQue queInSrv = queInList.get(wsId);
+        state.start("srvReplicasReceive");
+        try {
+            long totalWs = mailerList.size();
+            long countWs = 0;
 
-            // Обрабатываем каждую станцию
-            try {
-                log.info("srvHandleQueIn, from.wsId: " + wsId);
+            //
+            state.get().setValue("total", totalWs);
+            state.get().setValue("count", countWs);
 
-                //
-                long queDoneNo = stateManager.getWsQueInNoReceived(wsId);
-                long mailMaxNo = mailerWs.getBoxState("from");
+            //
+            JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
+            for (long wsId : mailerList.keySet()) {
+                IMailer mailerWs = mailerList.get(wsId);
+                IJdxQue queInSrv = queInList.get(wsId);
 
-                //
-                long count = 0;
-                for (long no = queDoneNo + 1; no <= mailMaxNo; no++) {
-                    log.info("receive, wsId: " + wsId + ", receiving.no: " + no);
-
-                    // Физически забираем данные с почтового сервера
-                    IReplica replica = UtMail.receiveOrRequestReplica(mailerWs, "from", no, RequiredInfo.EXECUTOR_WS);
-
-                    // Помещаем полученные данные в общую очередь
-                    db.startTran();
-                    try {
-                        // Помещаем в очередь
-                        queInSrv.push(replica);
-
-                        // Отмечаем факт скачивания
-                        stateManager.setWsQueInNoReceived(wsId, no);
-
-                        //
-                        db.commit();
-                    } catch (Exception e) {
-                        db.rollback();
-                        throw e;
-                    }
+                // Обрабатываем каждую станцию
+                state.start("srvReplicasReceive.Ws");
+                try {
+                    log.info("srvHandleQueIn, from.wsId: " + wsId);
 
                     //
-                    count++;
+                    long queDoneNo = stateManager.getWsQueInNoReceived(wsId);
+                    long mailMaxNo = mailerWs.getBoxState("from");
+
+
+                    //
+                    long total = mailMaxNo - queDoneNo;
+                    if (total < 0) {
+                        total = 0;
+                    }
+                    long count = 0;
+
+                    //
+                    state.get().setValue("wsId", wsId);
+                    state.get().setValue("total", total);
+                    state.get().setValue("count", 0);
+
+                    //
+                    for (long no = queDoneNo + 1; no <= mailMaxNo; no++) {
+                        log.info("receive, wsId: " + wsId + ", receiving.no: " + no);
+
+                        // Физически забираем данные с почтового сервера
+                        IReplica replica = UtMail.receiveOrRequestReplica(mailerWs, "from", no, RequiredInfo.EXECUTOR_WS);
+
+                        // Помещаем полученные данные в общую очередь
+                        db.startTran();
+                        try {
+                            // Помещаем в очередь
+                            queInSrv.push(replica);
+
+                            // Отмечаем факт скачивания
+                            stateManager.setWsQueInNoReceived(wsId, no);
+
+                            //
+                            db.commit();
+                        } catch (Exception e) {
+                            db.rollback();
+                            throw e;
+                        }
+
+                        //
+                        count++;
+
+                        //
+                        state.get().setValue("count", count);
+                    }
+
+
+                    // Отметить попытку чтения (для отслеживания активности сервера, когда нет данных для реальной передачи)
+                    mailerWs.setData(null, "ping.read", "from");
+
+
+                    //
+                    if (count > 0) {
+                        log.info("srvHandleQueIn, from.wsId: " + wsId + ", que.no: " + (queDoneNo + 1) + " .. " + mailMaxNo + ", done count: " + count);
+                    } else {
+                        log.info("srvHandleQueIn, from.wsId: " + wsId + ", que.no: " + mailMaxNo + ", nothing done");
+                    }
+
+                } catch (Exception e) {
+                    // Ошибка для станции - пропускаем, идем дальше
+                    errorCollector.collectError("srvHandleQueIn", e);
+                    //
+                    log.error("Error in srvHandleQueIn, from.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
+                    log.error(Ut.getStackTrace(e));
+
+                } finally {
+                    state.stop();
                 }
 
 
-                // Отметить попытку чтения (для отслеживания активности сервера, когда нет данных для реальной передачи)
-                mailerWs.setData(null, "ping.read", "from");
-
+                //
+                countWs++;
 
                 //
-                if (count > 0) {
-                    log.info("srvHandleQueIn, from.wsId: " + wsId + ", que.no: " + (queDoneNo + 1) + " .. " + mailMaxNo + ", done count: " + count);
-                } else {
-                    log.info("srvHandleQueIn, from.wsId: " + wsId + ", que.no: " + mailMaxNo + ", nothing done");
-                }
-
-            } catch (Exception e) {
-                // Ошибка для станции - пропускаем, идем дальше
-                errorCollector.collectError("srvHandleQueIn", e);
-                //
-                log.error("Error in srvHandleQueIn, from.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
-                log.error(Ut.getStackTrace(e));
+                state.get().setValue("count", countWs);
             }
+
+        } finally {
+            state.stop();
         }
     }
 
@@ -967,101 +1010,137 @@ public class JdxReplSrv {
      * Единая очередь используется как входящая для применения аудита на сервере и как основа для тиражирование реплик подписчикам.
      */
     public void srvHandleCommonQue() throws Exception {
-        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
-        for (long wsId : queInList.keySet()) {
-            IJdxQue queInSrv = queInList.get(wsId);
+        state.start("srvHandleCommonQue");
+        try {
+            long totalWs = mailerList.size();
+            long countWs = 0;
 
-            // Обрабатываем каждую станцию
-            try {
-                log.info("srvHandleCommonQue, from.wsId: " + wsId);
+            //
+            state.get().setValue("total", totalWs);
+            state.get().setValue("count", countWs);
 
-                //
-                long queDoneNo = stateManager.getWsQueInNoDone(wsId);
-                long queMaxNo = queInSrv.getMaxNo();
+            //
+            JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
+            for (long wsId : queInList.keySet()) {
+                IJdxQue queInSrv = queInList.get(wsId);
 
-                //
-                long count = 0;
-                for (long no = queDoneNo + 1; no <= queMaxNo; no++) {
-                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", queInSrv.no: " + no);
-
-                    // Обработка входящих очередей
-                    db.startTran();
-                    try {
-                        // --- Формируем общую очередь queCommon
-
-                        // Берем реплику из входящей очереди queInSrv
-                        IReplica replica = queInSrv.get(no);
-
-                        // Помещаем в очередь queCommon
-                        long queCommonNo = queCommon.push(replica);
-
-
-                        // --- Специальные реакции на реплики
-
-                        // Станция прислала отчет об изменении своего состояния - отмечаем состояние станции в серверных таблицах
-                        if (replica.getInfo().getReplicaType() == JdxReplicaType.MUTE_DONE) {
-                            JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
-                            utmm.setMuteDone(wsId, queCommonNo);
-                        }
-                        //
-                        if (replica.getInfo().getReplicaType() == JdxReplicaType.UNMUTE_DONE) {
-                            JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
-                            utmm.setUnmuteDone(wsId);
-                        }
-
-
-                        // --- Отмечаем, что реплика обработана
-                        stateManager.setWsQueInNoDone(wsId, no);
-
-                        //
-                        db.commit();
-                    } catch (Exception e) {
-                        db.rollback();
-
-                        //
-                        if (UtJdxErrors.errorIs_replicaFile(e)) {
-                            // Пробуем что-то сделать с проблемой реплики в очереди
-                            log.error("srvHandleCommonQue, wsId: " + wsId + ", error: " + e.getMessage());
-
-                            // Выясним, у кого куда просить
-                            IMailer mailerWs = mailerList.get(wsId);
-                            String box = "from";
-                            String executor = RequiredInfo.EXECUTOR_WS;
-
-                            // Попросим автора реплики прислать её в ящик, когда дождемся ответа - починим очередь
-                            log.info("receiveOrRequestReplica, try replica receive, box: " + box + ", replica.no: " + no + ", executor: " + executor);
-                            IReplica replicaNew = UtMail.receiveOrRequestReplica(mailerWs, box, no, executor);
-                            log.info("receiveOrRequestReplica, replica receive done");
-
-                            // Обновим "битую" реплику в очереди - заменим на нормальную
-                            queInSrv.put(replicaNew, no);
-
-                            // Ждем следующего цикла, а пока - ошибка
-                            throw new XError("srvHandleCommonQue, requestReplica done, wait for next iteration, wsId: " + wsId + ", queName: " + queInSrv.getQueName() + " , replica.no: " + no);
-                        } else {
-                            throw e;
-                        }
-                    }
+                // Обрабатываем каждую станцию
+                state.start("srvHandleCommonQue.Ws");
+                try {
+                    log.info("srvHandleCommonQue, from.wsId: " + wsId);
 
                     //
-                    count++;
+                    long queDoneNo = stateManager.getWsQueInNoDone(wsId);
+                    long queMaxNo = queInSrv.getMaxNo();
+
+                    //
+                    long total = queMaxNo - queDoneNo;
+                    long count = 0;
+
+                    //
+                    state.get().setValue("wsId", wsId);
+                    state.get().setValue("total", total);
+                    state.get().setValue("count", count);
+
+                    //
+                    for (long no = queDoneNo + 1; no <= queMaxNo; no++) {
+                        log.info("srvHandleCommonQue, from.wsId: " + wsId + ", queInSrv.no: " + no);
+
+                        // Обработка входящих очередей
+                        db.startTran();
+                        try {
+                            // --- Формируем общую очередь queCommon
+
+                            // Берем реплику из входящей очереди queInSrv
+                            IReplica replica = queInSrv.get(no);
+
+                            // Помещаем в очередь queCommon
+                            long queCommonNo = queCommon.push(replica);
+
+
+                            // --- Специальные реакции на реплики
+
+                            // Станция прислала отчет об изменении своего состояния - отмечаем состояние станции в серверных таблицах
+                            if (replica.getInfo().getReplicaType() == JdxReplicaType.MUTE_DONE) {
+                                JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
+                                utmm.setMuteDone(wsId, queCommonNo);
+                            }
+                            //
+                            if (replica.getInfo().getReplicaType() == JdxReplicaType.UNMUTE_DONE) {
+                                JdxMuteManagerSrv utmm = new JdxMuteManagerSrv(db);
+                                utmm.setUnmuteDone(wsId);
+                            }
+
+
+                            // --- Отмечаем, что реплика обработана
+                            stateManager.setWsQueInNoDone(wsId, no);
+
+                            //
+                            db.commit();
+                        } catch (Exception e) {
+                            db.rollback();
+
+                            //
+                            if (UtJdxErrors.errorIs_replicaFile(e)) {
+                                // Пробуем что-то сделать с проблемой реплики в очереди
+                                log.error("srvHandleCommonQue, wsId: " + wsId + ", error: " + e.getMessage());
+
+                                // Выясним, у кого куда просить
+                                IMailer mailerWs = mailerList.get(wsId);
+                                String box = "from";
+                                String executor = RequiredInfo.EXECUTOR_WS;
+
+                                // Попросим автора реплики прислать её в ящик, когда дождемся ответа - починим очередь
+                                log.info("receiveOrRequestReplica, try replica receive, box: " + box + ", replica.no: " + no + ", executor: " + executor);
+                                IReplica replicaNew = UtMail.receiveOrRequestReplica(mailerWs, box, no, executor);
+                                log.info("receiveOrRequestReplica, replica receive done");
+
+                                // Обновим "битую" реплику в очереди - заменим на нормальную
+                                queInSrv.put(replicaNew, no);
+
+                                // Ждем следующего цикла, а пока - ошибка
+                                throw new XError("srvHandleCommonQue, requestReplica done, wait for next iteration, wsId: " + wsId + ", queName: " + queInSrv.getQueName() + " , replica.no: " + no);
+                            } else {
+                                throw e;
+                            }
+                        }
+
+                        //
+                        count++;
+
+                        //
+                        state.get().setValue("count", count);
+                    }
+
+
+                    //
+                    if (count > 0) {
+                        log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.no: " + queDoneNo + " .. " + queMaxNo + ", done count: " + count);
+                    } else {
+                        log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.no: " + queMaxNo + ", nothing done");
+                    }
+
+                } catch (Exception e) {
+                    // Ошибка для станции - пропускаем, идем дальше
+                    errorCollector.collectError("srvHandleCommonQue, from.wsId: " + wsId, e);
+                    //
+                    log.error("Error in srvHandleCommonQue, from.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
+                    log.error(Ut.getStackTrace(e));
+
+                } finally {
+                    state.stop();
                 }
 
 
                 //
-                if (count > 0) {
-                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.no: " + queDoneNo + " .. " + queMaxNo + ", done count: " + count);
-                } else {
-                    log.info("srvHandleCommonQue, from.wsId: " + wsId + ", que.no: " + queMaxNo + ", nothing done");
-                }
+                countWs++;
 
-            } catch (Exception e) {
-                // Ошибка для станции - пропускаем, идем дальше
-                errorCollector.collectError("srvHandleCommonQue, from.wsId: " + wsId, e);
                 //
-                log.error("Error in srvHandleCommonQue, from.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
-                log.error(Ut.getStackTrace(e));
+                state.get().setValue("count", countWs);
             }
+
+        } finally {
+            state.stop();
         }
     }
 
@@ -1070,110 +1149,143 @@ public class JdxReplSrv {
      * Распределение общей очереди по очередям рабочих станций: common -> out000
      */
     public void srvReplicasDispatch() throws Exception {
-        JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
-
-        // Все что у нас есть на раздачу
-        long commonQueMaxNo = queCommon.getMaxNo();
-
-        for (long wsId : mailerList.keySet()) {
+        state.start("srvReplicasDispatch");
+        try {
+            long totalWs = mailerList.size();
+            long countWs = 0;
 
             //
-            log.info("srvReplicasDispatch, to.wsId: " + wsId);
+            state.get().setValue("total", totalWs);
+            state.get().setValue("count", countWs);
 
-            try {
+            //
+            JdxStateManagerSrv stateManager = new JdxStateManagerSrv(db);
 
-                // Исходящая очередь для станции wsId
-                IJdxQue queOut000 = queOut000List.get(wsId);
+            // Все что у нас есть на раздачу
+            long commonQueMaxNo = queCommon.getMaxNo();
 
-                // Преобразователь по фильтрам
-                IReplicaFilter filter = new ReplicaFilter();
+            // Обрабатываем каждую станцию
+            for (long wsId : mailerList.keySet()) {
+                log.info("srvReplicasDispatch, to.wsId: " + wsId);
 
-                // Правила публикаций (фильтры) для станции wsId.
-                // В качестве фильтров на ОТПРАВКУ от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
-                IPublicationRuleStorage publicationRule = publicationsInList.get(wsId);
+                // Обрабатываем каждую станцию
+                state.start("srvReplicasDispatch.Ws");
+                try {
+                    // Исходящая очередь для станции wsId
+                    IJdxQue queOut000 = queOut000List.get(wsId);
 
-                // Параметры (для правил публикации): получатель реплики (для правил публикации)
-                filter.getFilterParams().put("wsDestination", String.valueOf(wsId));
+                    // Преобразователь по фильтрам
+                    IReplicaFilter filter = new ReplicaFilter();
 
-                //
-                long sendFrom = stateManager.getDispatchDoneQueCommon(wsId) + 1;
-                long sendTo = commonQueMaxNo;
+                    // Правила публикаций (фильтры) для станции wsId.
+                    // В качестве фильтров на ОТПРАВКУ от сервера берем ВХОДЯЩЕЕ правило рабочей станции.
+                    IPublicationRuleStorage publicationRule = publicationsInList.get(wsId);
 
-                long countToDo = sendTo - sendFrom + 1;
-                long count = 0;
-                for (long no = sendFrom; no <= sendTo; no++) {
-                    log.info("srvReplicasDispatch, to.wsId: " + wsId + ", no: " + no + ", " + count + "/" + countToDo);
-
-                    // Фильтруем данные из реплики
-                    IReplica replicaForWs;
-                    IReplica replica = null;
-                    try {
-                        // Берем реплику из queCommon
-                        replica = queCommon.get(no);
-
-                        // Читаем заголовок
-                        JdxReplicaReaderXml.readReplicaInfo(replica);
-
-                        // Параметры (для правил публикации): автор реплики
-                        filter.getFilterParams().put("wsAuthor", String.valueOf(replica.getInfo().getWsId()));
-
-                        // Преобразовываем по правилам публикаций (фильтрам)
-                        replicaForWs = filter.convertReplicaForWs(replica, publicationRule);
-
-                    } catch (Exception e) {
-
-                        if (UtJdxErrors.errorIs_replicaFile(e)) {
-                            log.error("srvReplicasDispatch, error: " + e.getMessage());
-                            // Сможем  что-то сделать с проблемой реплики в очереди, когда сделаем
-                            // https://github.com/SazonovDenis/jdtx-repl/issues/22
-                            // А пока - ошибка
-                            String replicaInfo;
-                            if (replica != null) {
-                                replicaInfo = "replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", replica.no: " + replica.getInfo().getNo();
-                            } else {
-                                replicaInfo = "no replica.info";
-                            }
-                            throw new XError("srvReplicasDispatch, queCommon.no: " + no + ", " + replicaInfo + ", error: " + e.getMessage());
-                        } else {
-                            throw e;
-                        }
-                    }
+                    // Параметры (для правил публикации): получатель реплики (для правил публикации)
+                    filter.getFilterParams().put("wsDestination", String.valueOf(wsId));
 
                     //
-                    db.startTran();
-                    try {
-                        // Положим реплику в очередь (физически переместим)
-                        queOut000.push(replicaForWs);
+                    long sendFrom = stateManager.getDispatchDoneQueCommon(wsId) + 1;
+                    long sendTo = commonQueMaxNo;
 
-                        // Отметим распределение очередного номера реплики.
-                        stateManager.setDispatchDoneQueCommon(wsId, no);
+                    //
+                    long total = sendTo - sendFrom + 1;
+                    long count = 0;
+
+                    //
+                    state.get().setValue("wsId", wsId);
+                    state.get().setValue("total", total);
+                    state.get().setValue("count", count);
+
+                    //
+                    for (long no = sendFrom; no <= sendTo; no++) {
+                        log.info("srvReplicasDispatch, to.wsId: " + wsId + ", no: " + no + ", " + count + "/" + total);
+
+                        // Фильтруем данные из реплики
+                        IReplica replicaForWs;
+                        IReplica replica = null;
+                        try {
+                            // Берем реплику из queCommon
+                            replica = queCommon.get(no);
+
+                            // Читаем заголовок
+                            JdxReplicaReaderXml.readReplicaInfo(replica);
+
+                            // Параметры (для правил публикации): автор реплики
+                            filter.getFilterParams().put("wsAuthor", String.valueOf(replica.getInfo().getWsId()));
+
+                            // Преобразовываем по правилам публикаций (фильтрам)
+                            replicaForWs = filter.convertReplicaForWs(replica, publicationRule);
+
+                        } catch (Exception e) {
+
+                            if (UtJdxErrors.errorIs_replicaFile(e)) {
+                                log.error("srvReplicasDispatch, error: " + e.getMessage());
+                                // Сможем  что-то сделать с проблемой реплики в очереди, когда сделаем
+                                // https://github.com/SazonovDenis/jdtx-repl/issues/22
+                                // А пока - ошибка
+                                String replicaInfo;
+                                if (replica != null) {
+                                    replicaInfo = "replica.wsId: " + replica.getInfo().getWsId() + ", replica.age: " + replica.getInfo().getAge() + ", replica.no: " + replica.getInfo().getNo();
+                                } else {
+                                    replicaInfo = "no replica.info";
+                                }
+                                throw new XError("srvReplicasDispatch, queCommon.no: " + no + ", " + replicaInfo + ", error: " + e.getMessage());
+                            } else {
+                                throw e;
+                            }
+                        }
 
                         //
-                        db.commit();
-                    } catch (Exception e) {
-                        db.rollback(e);
-                        throw e;
+                        db.startTran();
+                        try {
+                            // Положим реплику в очередь (физически переместим)
+                            queOut000.push(replicaForWs);
+
+                            // Отметим распределение очередного номера реплики.
+                            stateManager.setDispatchDoneQueCommon(wsId, no);
+
+                            //
+                            db.commit();
+                        } catch (Exception e) {
+                            db.rollback(e);
+                            throw e;
+                        }
+
+                        //
+                        count++;
+
+                        //
+                        state.get().setValue("count", count);
                     }
 
                     //
-                    count++;
+                    if (count > 0) {
+                        log.info("srvReplicasDispatch done, to.wsId: " + wsId + ", out001.no: " + sendFrom + " .. " + sendTo + ", done count: " + count);
+                    } else {
+                        log.info("srvReplicasDispatch done, to.wsId: " + wsId + ", out001.no: " + sendTo + ", nothing done");
+                    }
+
+                } catch (Exception e) {
+                    // Ошибка для станции - пропускаем, идем дальше
+                    errorCollector.collectError("srvReplicasDispatch, to.wsId: " + wsId, e);
+                    //
+                    log.error("Error in srvReplicasDispatch, to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
+                    log.error(Ut.getStackTrace(e));
+                } finally {
+                    state.stop();
                 }
 
-                //
-                if (count > 0) {
-                    log.info("srvReplicasDispatch done, to.wsId: " + wsId + ", out001.no: " + sendFrom + " .. " + sendTo + ", done count: " + count);
-                } else {
-                    log.info("srvReplicasDispatch done, to.wsId: " + wsId + ", out001.no: " + sendTo + ", nothing done");
-                }
 
-            } catch (Exception e) {
-                // Ошибка для станции - пропускаем, идем дальше
-                errorCollector.collectError("srvReplicasDispatch, to.wsId: " + wsId, e);
                 //
-                log.error("Error in srvReplicasDispatch, to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
-                log.error(Ut.getStackTrace(e));
+                countWs++;
+
+                //
+                state.get().setValue("count", countWs);
             }
 
+        } finally {
+            state.stop();
         }
     }
 
@@ -1226,39 +1338,60 @@ public class JdxReplSrv {
     }
 
     private void srvReplicasSendInternal(Map<Long, IMailer> mailerList) throws Exception {
-        for (Map.Entry<Long, IMailer> en : mailerList.entrySet()) {
-            long wsId = en.getKey();
-            IMailer wsMailer = en.getValue();
+        state.start("srvReplicasSendInternal");
+        try {
+            long totalWs = mailerList.size();
+            long countWs = 0;
 
-            // Рассылаем
-            try {
-                // Рассылаем очередь out000 (продукт обработки очереди common -> out000) на каждую станцию
-                IJdxMailSendStateManager mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT000);
-                IJdxQue queOut000 = queOut000List.get(wsId);
+            //
+            state.get().setValue("total", totalWs);
+            state.get().setValue("count", countWs);
 
-                // Проверка и ремонт отметки "отправлено в ящик на почтовый сервер"
-                UtMail.repairSendMarkedBySendDone(queOut000, wsMailer, "to", mailStateManager);
+            //
+            for (Map.Entry<Long, IMailer> en : mailerList.entrySet()) {
+                long wsId = en.getKey();
+                IMailer wsMailer = en.getValue();
 
-                // Рассылаем очередь
-                UtMail.sendQueToMail_State(wsId, queOut000, wsMailer, "to", mailStateManager);
+                // Рассылаем
+                try {
+                    // Рассылаем очередь out000 (продукт обработки очереди common -> out000) на каждую станцию
+                    IJdxMailSendStateManager mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT000);
+                    IJdxQue queOut000 = queOut000List.get(wsId);
+
+                    // Проверка и ремонт отметки "отправлено в ящик на почтовый сервер"
+                    UtMail.repairSendMarkedBySendDone(queOut000, wsMailer, "to", mailStateManager);
+
+                    // Рассылаем очередь
+                    UtMail.sendQueToMail_State(wsId, queOut000, wsMailer, "to", mailStateManager);
 
 
-                // Рассылаем очередь queOut001 на каждую станцию
-                mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT001);
-                IJdxQue queOut001 = queOut001List.get(wsId);
+                    // Рассылаем очередь queOut001 на каждую станцию
+                    mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT001);
+                    IJdxQue queOut001 = queOut001List.get(wsId);
 
-                // Проверка и ремонт отметки "отправлено в ящик на почтовый сервер"
-                UtMail.repairSendMarkedBySendDone(queOut001, wsMailer, "to001", mailStateManager);
+                    // Проверка и ремонт отметки "отправлено в ящик на почтовый сервер"
+                    UtMail.repairSendMarkedBySendDone(queOut001, wsMailer, "to001", mailStateManager);
 
-                // Рассылаем очередь
-                UtMail.sendQueToMail_State(wsId, queOut001, wsMailer, "to001", mailStateManager);
-            } catch (Exception e) {
-                // Ошибка для станции - пропускаем, идем дальше
-                errorCollector.collectError("srvReplicasSendMail, to.wsId: " + wsId, e);
+                    // Рассылаем очередь
+                    UtMail.sendQueToMail_State(wsId, queOut001, wsMailer, "to001", mailStateManager);
+                } catch (Exception e) {
+                    // Ошибка для станции - пропускаем, идем дальше
+                    errorCollector.collectError("srvReplicasSendMail, to.wsId: " + wsId, e);
+                    //
+                    log.error("Error in srvReplicasSendMail, to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
+                    log.error(Ut.getStackTrace(e));
+                }
+
+
                 //
-                log.error("Error in srvReplicasSendMail, to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
-                log.error(Ut.getStackTrace(e));
+                countWs++;
+
+                //
+                state.get().setValue("count", countWs);
             }
+
+        } finally {
+            state.stop();
         }
     }
 
@@ -1267,50 +1400,70 @@ public class JdxReplSrv {
      * Рассылка реплик с сервера, по требованию
      */
     public void replicasSend_Requied() throws Exception {
-        for (Map.Entry<Long, IMailer> en : mailerList.entrySet()) {
-            long wsId = en.getKey();
-            IMailer wsMailer = en.getValue();
+        state.start("replicasSend_Requied");
+        try {
+            long totalWs = mailerList.size();
+            long countWs = 0;
 
-            try {
-                // ws.from <- srv.common (станция потеряла свою собственную почту)
-                String box = "from";
-                // Выясняем, что запросили передать
-                RequiredInfo requiredInfo = wsMailer.getSendRequired(box);
-                MailSendTask sendTask = UtMail.getRequiredSendTask(null, requiredInfo, RequiredInfo.EXECUTOR_SRV);
-                // Отправляем из очереди, что запросили
-                UtMail.sendQueToMail_Required_QueCommon(sendTask, wsId, queCommon, wsMailer, box);
+            //
+            state.get().setValue("total", totalWs);
+            state.get().setValue("count", countWs);
+
+            //
+            for (Map.Entry<Long, IMailer> en : mailerList.entrySet()) {
+                long wsId = en.getKey();
+                IMailer wsMailer = en.getValue();
+
+                try {
+                    // ws.from <- srv.common (станция потеряла свою собственную почту)
+                    String box = "from";
+                    // Выясняем, что запросили передать
+                    RequiredInfo requiredInfo = wsMailer.getSendRequired(box);
+                    MailSendTask sendTask = UtMail.getRequiredSendTask(null, requiredInfo, RequiredInfo.EXECUTOR_SRV);
+                    // Отправляем из очереди, что запросили
+                    UtMail.sendQueToMail_Required_QueCommon(sendTask, wsId, queCommon, wsMailer, box);
+
+                    //
+                    IJdxMailSendStateManager mailStateManager;
+
+                    // ws.to <- srv.out (станция пропустила передачу с сервера)
+                    box = "to";
+                    // Выясняем, что запросили передать
+                    mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT000);
+                    RequiredInfo requiredInfo000 = wsMailer.getSendRequired(box);
+                    MailSendTask sendTask000 = UtMail.getRequiredSendTask(mailStateManager, requiredInfo000, RequiredInfo.EXECUTOR_SRV);
+                    // Отправляем из очереди, что запросили
+                    IJdxQue queOut000 = queOut000List.get(wsId);
+                    UtMail.sendQueToMail_Required(sendTask000, wsId, queOut000, wsMailer, box, mailStateManager);
+
+                    // ws.to001 <- srv.out001 (станция пропустила передачу с сервера)
+                    box = "to001";
+                    // Выясняем, что запросили передать
+                    mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT001);
+                    RequiredInfo requiredInfo001 = wsMailer.getSendRequired(box);
+                    MailSendTask sendTask001 = UtMail.getRequiredSendTask(mailStateManager, requiredInfo001, RequiredInfo.EXECUTOR_SRV);
+                    // Отправляем из очереди, что запросили
+                    IJdxQue queOut001 = queOut001List.get(wsId);
+                    UtMail.sendQueToMail_Required(sendTask001, wsId, queOut001, wsMailer, box, mailStateManager);
+
+                } catch (Exception e) {
+                    // Ошибка для станции - пропускаем, идем дальше
+                    errorCollector.collectError("srvMailRequest, to.wsId: " + wsId, e);
+                    //
+                    log.error("Error in srvMailRequest, to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
+                    log.error(Ut.getStackTrace(e));
+                }
+
 
                 //
-                IJdxMailSendStateManager mailStateManager;
+                countWs++;
 
-                // ws.to <- srv.out (станция пропустила передачу с сервера)
-                box = "to";
-                // Выясняем, что запросили передать
-                mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT000);
-                RequiredInfo requiredInfo000 = wsMailer.getSendRequired(box);
-                MailSendTask sendTask000 = UtMail.getRequiredSendTask(mailStateManager, requiredInfo000, RequiredInfo.EXECUTOR_SRV);
-                // Отправляем из очереди, что запросили
-                IJdxQue queOut000 = queOut000List.get(wsId);
-                UtMail.sendQueToMail_Required(sendTask000, wsId, queOut000, wsMailer, box, mailStateManager);
-
-                // ws.to001 <- srv.out001 (станция пропустила передачу с сервера)
-                box = "to001";
-                // Выясняем, что запросили передать
-                mailStateManager = new JdxMailSendStateManagerSrv(db, wsId, UtQue.SRV_QUE_OUT001);
-                RequiredInfo requiredInfo001 = wsMailer.getSendRequired(box);
-                MailSendTask sendTask001 = UtMail.getRequiredSendTask(mailStateManager, requiredInfo001, RequiredInfo.EXECUTOR_SRV);
-                // Отправляем из очереди, что запросили
-                IJdxQue queOut001 = queOut001List.get(wsId);
-                UtMail.sendQueToMail_Required(sendTask001, wsId, queOut001, wsMailer, box, mailStateManager);
-
-            } catch (Exception e) {
-                // Ошибка для станции - пропускаем, идем дальше
-                errorCollector.collectError("srvMailRequest, to.wsId: " + wsId, e);
                 //
-                log.error("Error in srvMailRequest, to.wsId: " + wsId + ", error: " + Ut.getExceptionMessage(e));
-                log.error(Ut.getStackTrace(e));
+                state.get().setValue("count", countWs);
             }
 
+        } finally {
+            state.stop();
         }
     }
 
@@ -1655,6 +1808,35 @@ public class JdxReplSrv {
         utRepl.sendToQue(replicasRes, queOut001);
     }
 
+
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    // Проанализировать, протестить и расписать в локументации режим,
+    // когда мы делаем смену структуры не ОТДЕЛЬНО на каждую станцияю:
+    //   srv.srvSetAndSendDbStruct(cfg_publications, 1, UtQue.SRV_QUE_OUT001);
+    //   srv.srvSetAndSendDbStruct(cfg_publications, 2, UtQue.SRV_QUE_OUT001);
+    //   srv.srvSetAndSendDbStruct(cfg_publications, 3, UtQue.SRV_QUE_OUT001);
+    // а потом
+    //   srv.srvSendWsUnmute(1, UtQue.SRV_QUE_OUT001);
+    //   srv.srvSendWsUnmute(2, UtQue.SRV_QUE_OUT001);
+    //   srv.srvSendWsUnmute(3, UtQue.SRV_QUE_OUT001);
+    //
+    // а еще такой, когда мы делаем смену структуры ОДИНАКОВО на каждую станцию:
+    //   srv.srvSetAndSendDbStruct(cfg_publications, 0, UtQue.SRV_QUE_COMMON);
+    // а потом::
+    //   srv.srvUnmuteAll();
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
 
     /**
      * Отправляем команду на изменение структуры на рабочую станцию
