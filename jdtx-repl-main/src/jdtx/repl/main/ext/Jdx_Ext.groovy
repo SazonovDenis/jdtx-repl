@@ -720,7 +720,7 @@ class Jdx_Ext extends ProjectExt {
     boolean repl_mail_create(IVariantMap args) {
         boolean result = true
 
-        String pass = args.getValueString("pass")
+        String pass = args.getValue("pass")
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()

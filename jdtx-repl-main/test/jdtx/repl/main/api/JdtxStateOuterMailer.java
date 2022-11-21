@@ -6,23 +6,21 @@ import com.jdtx.state.UtStateCnv;
 import com.jdtx.state.impl.StateItemStackThread;
 import com.jdtx.tree.ITreeNode;
 import jdtx.repl.main.api.mailer.IMailer;
-import jdtx.repl.main.log.JdtxStateContainer;
-import org.apache.commons.io.FileUtils;
-import org.json.simple.JSONObject;
+import jdtx.repl.main.api.mailer.MailerHttp;
+import jdtx.repl.main.ut.Ut;
 
-import java.io.File;
 import java.util.Map;
 
 public class JdtxStateOuterMailer implements Runnable {
 
 
     private IMailer mailer;
-    private StateItemStack stateItemStack;
+    private StateItemStack state;
     private long sleepDuration = 100;
 
 
-    public JdtxStateOuterMailer(StateItemStackThread stateItemStack, IMailer mailer) {
-        this.stateItemStack = stateItemStack;
+    public JdtxStateOuterMailer(StateItemStackThread state, IMailer mailer) {
+        this.state = state;
         this.mailer = mailer;
     }
 
@@ -30,25 +28,26 @@ public class JdtxStateOuterMailer implements Runnable {
     @Override
     public void run() {
         System.out.println("Started: " + this.getClass().getName() + ", mailer: " + mailer.getClass().getName());
+        System.out.println("mailer.guid: " + ((MailerHttp) mailer).guid);
 
         //
         while (true) {
             try {
-                ITreeNode<StateItem> root = stateItemStack.getAll();
-
-                //
+                ITreeNode<StateItem> root = state.getAll();
                 Map<String, Object> stateValue = UtStateCnv.stateItemToMap(root);
                 try {
                     mailer.setData(stateValue, "state.json", null);
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                    String msg = Ut.getExceptionMessage(e);
+                    System.out.println("JdtxStateOuterMailer.guid: " + ((MailerHttp) mailer).guid + ", error: " + msg);
                 }
 
                 //
                 try {
                     Thread.sleep(sleepDuration);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    String msg = Ut.getExceptionMessage(e);
+                    System.out.println("JdtxStateOuterMailer.guid: " + ((MailerHttp) mailer).guid + ", error: " + msg);
                     return;
                 }
             } catch (Exception e) {

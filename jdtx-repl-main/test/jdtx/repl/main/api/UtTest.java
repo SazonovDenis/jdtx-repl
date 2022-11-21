@@ -189,6 +189,25 @@ public class UtTest extends UtilsTestCase {
         ));
     }
 
+    public void makeChangeMany() throws Exception {
+        JdxRandom rnd = new JdxRandom();
+        rnd.setSeed(getDbSeed());
+
+        db.execSql("update Lic set id = id where id <> 0");
+        if (rnd.nextBoolean()) {
+            db.execSql("update LicDocVid set id = id where id <> 0");
+        }
+        if (rnd.nextBoolean()) {
+            db.execSql("update LicDocTip set id = id where id <> 0");
+        }
+        if (rnd.nextBoolean()) {
+            db.execSql("update Region set id = id where id <> 0");
+        }
+        if (rnd.nextBoolean()) {
+            db.execSql("update Ulz set id = id where id <> 0");
+        }
+    }
+
     public void makeChange(IJdxDbStruct struct, long ws_id) throws Exception {
         JdxRandom rnd = new JdxRandom();
         rnd.setSeed(getDbSeed());
