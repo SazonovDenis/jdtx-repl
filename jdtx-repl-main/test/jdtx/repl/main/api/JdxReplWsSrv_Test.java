@@ -62,6 +62,7 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         mailUrl = "http://localhost/lombard.systems/repl";
         //mailUrl = "http://jadatex.ru/repl";
         mailPass = "111";
+        //mailPass = null;
 
         cfg_json_ws = "test/etalon/ws.json";
         cfg_json_decode = "test/etalon/decode_strategy.json";
@@ -74,15 +75,14 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-
-        //
-        stateOuterFile = new Thread(new JdtxStateOuterFile(JdtxStateContainer.state, "temp/state.json"));
-        stateOuterFile.start();
     }
 
     @Override
     public void tearDown() throws Exception {
-        stateOuterFile.stop();
+        if (stateOuterFile != null) {
+            stateOuterFile.stop();
+        }
+        //
         if (stateOuterThread != null) {
             stateOuterThread.stop();
         }
@@ -100,8 +100,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         allSetUp();
 
         //
-        stateOuterThread = createStateOuterMailer(db);
-        stateOuterThread.start();
+        //stateOuterThread = createStateOuterMailer(db);
+        //stateOuterThread.start();
+
+        //
+        //stateOuterFile = new Thread(new JdtxStateOuterFile(JdtxStateContainer.state, "temp/state.json"));
+        //stateOuterFile.start();
 
         // Первичная синхронизация
         sync_http_1_2_3();
@@ -742,6 +746,12 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
     }
 
     @Test
+    public void test_ws3_makeChange_Unimportant() throws Exception {
+        UtTest utTest = new UtTest(db3);
+        utTest.makeChangeUnimportant(struct3, 3);
+    }
+
+    @Test
     public void test_srv_make001() throws Exception {
         UtTest utTest = new UtTest(db);
         utTest.test_srv_make001();
@@ -941,7 +951,10 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         while (true) {
             try {
                 reloadDbStructAll();
-                test_ws1_makeChange();
+
+                //test_ws1_makeChange();
+                test_ws1_makeChange_Unimportant();
+
                 test_ws1_doReplSession();
                 Thread.sleep(1000);
             } catch (Exception e) {
@@ -968,15 +981,15 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 UtTest utTest = new UtTest(db2);
                 utTest.makeChangeMany();
 
-                test_ws2_makeChange();
-                test_ws2_makeChange();
-                test_ws2_makeChange();
-                test_ws2_makeChange();
-                test_ws2_makeChange();
-                test_ws2_makeChange();
-                test_ws2_makeChange();
-                test_ws2_makeChange();
-                test_ws2_makeChange();
+                //test_ws2_makeChange();
+                //test_ws2_makeChange();
+                //test_ws2_makeChange();
+                //test_ws2_makeChange();
+                //test_ws2_makeChange();
+                //test_ws2_makeChange();
+                //test_ws2_makeChange();
+                //test_ws2_makeChange();
+                //test_ws2_makeChange();
                 test_ws2_doReplSession();
                 Thread.sleep(2000);
             } catch (Exception e) {
@@ -1004,8 +1017,11 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
                 //utTest.makeChangeMany();
 
                 test_ws3_makeChange();
-                test_ws3_makeChange();
-                test_ws3_makeChange();
+                //test_ws3_makeChange();
+                //test_ws3_makeChange();
+
+                test_ws3_makeChange_Unimportant();
+
                 test_ws3_doReplSession();
                 Thread.sleep(2000);
             } catch (Exception e) {
@@ -1022,9 +1038,17 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
     @Test
     public void loop_5_repl() throws Exception {
+        Thread stateOuterThread = createStateOuterMailer(db5);
+        stateOuterThread.start();
+
         while (true) {
             try {
+                //test_ws5_makeChange();
+                //test_ws5_makeChange();
+                //test_ws5_makeChange();
+
                 test_ws5_doReplSession();
+                Thread.sleep(2000);
             } catch (Exception e) {
                 String msg = Ut.getExceptionMessage(e);
                 if (canSkipException(msg)) {
@@ -1045,12 +1069,41 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
 
         while (true) {
             try {
+                test_ws1_makeChange_Unimportant();
+
                 srv_doReplSession();
-                Thread.sleep(2000);
+                Thread.sleep(5000);
             } catch (Exception e) {
                 String msg = Ut.getExceptionMessage(e);
                 if (canSkipException(msg)) {
                     System.out.println("loop_srv: " + msg);
+                    e.printStackTrace();
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+
+    @Test
+    public void loop_srv_ws1() throws Exception {
+        Thread stateOuterThread = createStateOuterMailer(db);
+        stateOuterThread.start();
+
+        while (true) {
+            try {
+                test_ws1_makeChange_Unimportant();
+
+                srv_doReplSession();
+
+                test_ws1_doReplSession();
+
+                Thread.sleep(5000);
+            } catch (Exception e) {
+                String msg = Ut.getExceptionMessage(e);
+                if (canSkipException(msg)) {
+                    System.out.println("loop_srv_ws1: " + msg);
                     e.printStackTrace();
                 } else {
                     throw e;

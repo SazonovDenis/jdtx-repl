@@ -1,22 +1,32 @@
 package jdtx.repl.main.api.audit;
 
-import jandcode.dbm.db.*;
-import jandcode.utils.*;
-import jandcode.utils.error.*;
-import jdtx.repl.main.api.*;
-import jdtx.repl.main.api.data_serializer.*;
-import jdtx.repl.main.api.pk_generator.*;
-import jdtx.repl.main.api.ref_manager.*;
-import jdtx.repl.main.api.filter.*;
-import jdtx.repl.main.api.manager.*;
-import jdtx.repl.main.api.publication.*;
+import com.jdtx.state.StateItemStackNamed;
+import jandcode.dbm.db.Db;
+import jandcode.utils.DataType;
+import jandcode.utils.error.XError;
+import jdtx.repl.main.api.JdxReplWs;
+import jdtx.repl.main.api.data_serializer.DataSerializerService;
+import jdtx.repl.main.api.data_serializer.IJdxDataSerializer;
+import jdtx.repl.main.api.filter.IRecordFilter;
+import jdtx.repl.main.api.filter.RecordFilter;
+import jdtx.repl.main.api.filter.RecordFilterTrue;
+import jdtx.repl.main.api.manager.AuditDbTriggersManager;
+import jdtx.repl.main.api.publication.IPublicationRule;
+import jdtx.repl.main.api.publication.IPublicationRuleStorage;
+import jdtx.repl.main.api.publication.PublicationRule;
 import jdtx.repl.main.api.replica.*;
-import jdtx.repl.main.api.struct.*;
-import jdtx.repl.main.api.util.*;
-import org.apache.commons.logging.*;
-import org.joda.time.*;
+import jdtx.repl.main.api.struct.IJdxDbStruct;
+import jdtx.repl.main.api.struct.IJdxTable;
+import jdtx.repl.main.api.util.DbErrorsService;
+import jdtx.repl.main.api.util.IDbErrors;
+import jdtx.repl.main.api.util.JdxDbUtils;
+import jdtx.repl.main.api.util.UtJdx;
+import jdtx.repl.main.log.JdtxStateContainer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.joda.time.DateTime;
 
-import java.io.*;
+import java.io.File;
 import java.util.*;
 
 /**
@@ -30,6 +40,7 @@ public class UtAuditApplyer {
 
     //
     protected static Log log = LogFactory.getLog("jdtx.AuditApplyer");
+    protected static StateItemStackNamed state = JdtxStateContainer.state;
 
 
     //
@@ -94,339 +105,360 @@ public class UtAuditApplyer {
     public void applyReplicaReader(JdxReplicaReaderXml dataReader, IPublicationRuleStorage publicationRules, Map<String, String> filterParams, boolean forceApply_ignorePublicationRules, long portionMax) throws Exception {
         log.info("applyReplica, replica.WsId: " + dataReader.getWsId() + ", replica.no: " + dataReader.getNo() + ", replica.age: " + dataReader.getAge());
 
-        //
-        List<IJdxTable> tables = struct.getTables();
-        int tIdx = 0;
-
-        //
-        JdxDbUtils dbu = new JdxDbUtils(db, struct);
-        IDbErrors dbErrors = db.service(DbErrorsService.class);
-
-        //
-        AuditDbTriggersManager triggersManager = new AuditDbTriggersManager(db);
-
-        //
-        IJdxDataSerializer dataSerializer = db.getApp().service(DataSerializerService.class);
-
-        //
-        SelfAuditDtComparer selfAuditDtComparer = new SelfAuditDtComparer(db);
-        int replicaType = dataReader.getReplicaType();
-        DateTime replicaDtTo = dataReader.getDtTo();
-
-        //
-        db.startTran();
+        state.start("applyReplicaReader");
         try {
-            // На время применения аудита нужно выключать триггера
-            triggersManager.setTriggersOff();
-
-
-            // Тут копим задания на DELETE для всей реплики, их выполняем вторым проходом,
-            // Логику работы с delayedDeleteTask см. разделе "Взаимные зависимости в рамках одной реплики" (jdtx/repl/main/api/audit/UtAuditApplyer.md)
-            Map<String, Collection<Long>> delayedDeleteTask = new HashMap<>();
+            state.get().setValue("wsId", dataReader.getWsId());
+            state.get().setValue("replicaNo", dataReader.getNo());
 
             //
-            long fileSize = dataReader.getInputStream().getSize();
-            long countPortion = 0;
-            long count = 0;
+            List<IJdxTable> tables = struct.getTables();
+            int tIdx = 0;
+
             //
-            String readerTableName = dataReader.nextTable();
-            String readerTableNamePrior = "";
+            JdxDbUtils dbu = new JdxDbUtils(db, struct);
+            IDbErrors dbErrors = db.service(DbErrorsService.class);
+
             //
-            while (readerTableName != null) {
-                // Поиск таблицы readerTableName в структуре, только в одну сторону (из-за зависимостей)
-                int n = -1;
-                for (int i = tIdx; i < tables.size(); i++) {
-                    if (tables.get(i).getName().compareToIgnoreCase(readerTableName) == 0) {
-                        n = i;
-                        break;
+            AuditDbTriggersManager triggersManager = new AuditDbTriggersManager(db);
+
+            //
+            IJdxDataSerializer dataSerializer = db.getApp().service(DataSerializerService.class);
+
+            //
+            SelfAuditDtComparer selfAuditDtComparer = new SelfAuditDtComparer(db);
+            int replicaType = dataReader.getReplicaType();
+            DateTime replicaDtTo = dataReader.getDtTo();
+
+            //
+            db.startTran();
+            try {
+                // На время применения аудита нужно выключать триггера
+                triggersManager.setTriggersOff();
+
+
+                // Тут копим задания на DELETE для всей реплики, их выполняем вторым проходом,
+                // Логику работы с delayedDeleteTask см. разделе "Взаимные зависимости в рамках одной реплики" (jdtx/repl/main/api/audit/UtAuditApplyer.md)
+                Map<String, Collection<Long>> delayedDeleteTask = new HashMap<>();
+
+                //
+                long fileSize = dataReader.getInputStream().getSize();
+                long countPortion = 0;
+                long count = 0;
+                //
+                String readerTableName = dataReader.nextTable();
+                String readerTableNamePrior = "";
+
+                //
+                state.get().setValue("total", fileSize);
+                state.get().setValue("count", 0);
+                state.get().setValue("recCount", count);
+
+                //
+                while (readerTableName != null) {
+                    state.get().setValue("table", readerTableName);
+
+                    // Поиск таблицы readerTableName в структуре, только в одну сторону (из-за зависимостей)
+                    int n = -1;
+                    for (int i = tIdx; i < tables.size(); i++) {
+                        if (tables.get(i).getName().compareToIgnoreCase(readerTableName) == 0) {
+                            n = i;
+                            break;
+                        }
                     }
-                }
-                if (n == -1) {
-                    // Для справки/отладки - структуры в файл
-                    jdxReplWs.debugDumpStruct("7.");
+                    if (n == -1) {
+                        // Для справки/отладки - структуры в файл
+                        jdxReplWs.debugDumpStruct("7.");
+                        //
+                        throw new XError("table [" + readerTableName + "] found in replica data, but not found in dbstruct");
+                    }
                     //
-                    throw new XError("table [" + readerTableName + "] found in replica data, but not found in dbstruct");
-                }
-                //
-                tIdx = n;
-                IJdxTable table = tables.get(n);
-                String pkFieldName = table.getPrimaryKey().get(0).getName();
-                String tableName = table.getName();
-
-                //
-                IRecordFilter recordFilter = null;
-
-                // Поиск таблицы и ее полей в публикации (поля берем именно из правил публикаций)
-                IPublicationRule publicationRuleTable;
-                if (forceApply_ignorePublicationRules) {
-                    // Таблицу и ее поля берем из актуальной структуры БД
-                    publicationRuleTable = new PublicationRule(struct.getTable(readerTableName));
-                    log.info("  force apply table: " + readerTableName + ", ignore publication rules");
+                    tIdx = n;
+                    IJdxTable table = tables.get(n);
+                    String pkFieldName = table.getPrimaryKey().get(0).getName();
+                    String tableName = table.getName();
 
                     //
-                    recordFilter = new RecordFilterTrue();
-                } else {
-                    // Таблицу и ее поля берем именно из правил публикаций
-                    publicationRuleTable = publicationRules.getPublicationRule(readerTableName);
-                    if (publicationRuleTable == null) {
-                        log.info("  skip table: " + readerTableName + ", not found in publication");
+                    IRecordFilter recordFilter = null;
+
+                    // Поиск таблицы и ее полей в публикации (поля берем именно из правил публикаций)
+                    IPublicationRule publicationRuleTable;
+                    if (forceApply_ignorePublicationRules) {
+                        // Таблицу и ее поля берем из актуальной структуры БД
+                        publicationRuleTable = new PublicationRule(struct.getTable(readerTableName));
+                        log.info("  force apply table: " + readerTableName + ", ignore publication rules");
 
                         //
-                        readerTableName = dataReader.nextTable();
+                        recordFilter = new RecordFilterTrue();
+                    } else {
+                        // Таблицу и ее поля берем именно из правил публикаций
+                        publicationRuleTable = publicationRules.getPublicationRule(readerTableName);
+                        if (publicationRuleTable == null) {
+                            log.info("  skip table: " + readerTableName + ", not found in publication");
+
+                            //
+                            readerTableName = dataReader.nextTable();
+
+                            //
+                            continue;
+                        }
 
                         //
+                        recordFilter = new RecordFilter(publicationRuleTable, tableName, filterParams);
+                    }
+
+                    // Для проверки, что записи, обновляемые из текущей реплики НЕ были ещё раз изменены на рабочей станции,
+                    // после того, как текущая реплика была отправлена. Актуально при применении СОБСТВЕННЫХ реплик.
+                    // Также возможно, если кто-то другой отредактировал запись, которую недавно редавтировали мы -
+                    // тогда selfAuditDtComparer решает, какая запись будет считаться последней.
+                    if (replicaType != JdxReplicaType.SNAPSHOT) {
+                        // Предполагается, что SNAPSHOT или IDE_MERGE просто так не присылают,
+                        // значит дело серьезное и нужно обязательно применить.
+                        selfAuditDtComparer.readSelfAuditData(tableName, replicaDtTo);
+                    }
+
+                    // Тут будем копить задания на DELETE для таблицы tableName, их выполняем вторым проходом.
+                    Collection<Long> delayedDeleteTaskForTable = delayedDeleteTask.get(tableName);
+                    if (delayedDeleteTaskForTable == null) {
+                        delayedDeleteTaskForTable = new ArrayList<>();
+                        delayedDeleteTask.put(tableName, delayedDeleteTaskForTable);
+                    }
+
+                    // Перебираем записи
+                    if (readerTableName.compareToIgnoreCase(readerTableNamePrior) != 0) {
+                        // Новая таблица - сброс счетчика записей
+                        count = 0;
+                    } else {
+                        // Продолжение этой же таблицы новой порцией
+                        log.info("next portion: " + readerTableName);
+                    }
+                    readerTableNamePrior = readerTableName;
+
+                    // Очень важно взять поля для обновления (publicationFields) именно из правил публикации,
+                    // а не все что есть в физической  таблице, т.к. именно по этим правилам готовилась реплика на сервере,
+                    // при этом мог использоваться НЕ ПОЛНЫЙ набор полей. Из-за такого пропуска полей,
+                    // при получении на рабочей станции СВОЕЙ реплики и попытке обновить ВСЕ поля,
+                    // пропущенные поля станут null. На ДРУГИХ филиалах это не страшно, а на НАШЕЙ - данные затрутся.
+                    // (Неполный набр полей используется, например, если на филиалы НЕ отправляются данные из справочников,
+                    // на которые ссылается рассматриваемая таблица, например: "примечания, сделанные пользователем":
+                    // сами примечания отправляем, а ССЫЛКИ на пользователей придется пропустить).
+                    String publicationFields = UtJdx.fieldsToString(publicationRuleTable.getFields());
+
+                    // Таблица и поля в Serializer-е
+                    dataSerializer.setTable(table, publicationFields);
+
+                    // Перебираем записи
+                    Map<String, String> recValuesStr = dataReader.nextRec();
+                    while (recValuesStr != null) {
+
+                        // Перебираем записи, пропускаем те, которые не подходят под наши входящие фильтры publicationRules
+                        if (recordFilter.isMach(recValuesStr)) {
+
+                            // Подготовка recParams для записи в БД - десериализация значений
+                            Map<String, Object> recParams = dataSerializer.prepareValues(recValuesStr);
+
+
+                            // Выполняем INS/UPD/DEL
+                            JdxOprType oprType = JdxOprType.valueOfStr(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
+                            long recId = (Long) recParams.get(pkFieldName);
+                            if (oprType == JdxOprType.INS) {
+                                // Отменим удаление этой записи на втором проходе
+                                delayedDeleteTaskForTable.remove(recId);
+
+                                // Проверяем, что обновляемая запись НЕ была ещё раз изменена
+                                if (selfAuditDtComparer.isSelfAuditAgeAboveReplicaAge(recId)) {
+                                    log.info("Self audit age > replica age, record skipped, oprType: " + oprType + ", table: " + tableName + ", id: " + recId);
+                                } else {
+                                    try {
+                                        //
+                                        dbu.insertOrUpdate(tableName, recParams, publicationFields);
+                                    } catch (Exception e) {
+                                        if (dbErrors.errorIs_ForeignKeyViolation(e)) {
+                                            JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
+                                            ee.tableName = tableName;
+                                            ee.oprType = oprType;
+                                            ee.recParams = recParams;
+                                            ee.recValues = recValuesStr;
+                                            // todo вообще, костыль страшнейший, сделан для пропуска неуместных реплик,
+                                            // которые просочились на станцию из-за кривых настроек фильтров.
+                                            // todo Убрать skipForeignKeyViolationIns, когда будут сделана фильтрация по ссылкам!!!
+                                            boolean skipForeignKeyViolationIns = jdxReplWs.appCfg.getValueBoolean("skipForeignKeyViolationIns");
+                                            if (skipForeignKeyViolationIns) {
+                                                log.error(e.getMessage());
+                                                log.error("table: " + tableName);
+                                                log.error("oprType: " + oprType);
+                                                log.error("recParams: " + recParams);
+                                                log.error("recValuesStr: " + recValuesStr);
+                                                log.error("skipForeignKeyViolationIns: " + skipForeignKeyViolationIns);
+                                            } else {
+                                                throw (ee);
+                                            }
+                                        } else {
+                                            throw (e);
+                                        }
+                                    }
+                                }
+
+                            } else if (oprType == JdxOprType.UPD) {
+                                // Проверяем, что обновляемая запись НЕ была ещё раз изменена
+                                if (selfAuditDtComparer.isSelfAuditAgeAboveReplicaAge(recId)) {
+                                    log.info("Self audit age > replica age, record skipped, oprType: " + oprType + ", table: " + tableName + ", id: " + recId);
+                                } else {
+                                    try {
+                                        dbu.updateRec(tableName, recParams, publicationFields, null);
+                                    } catch (Exception e) {
+                                        if (dbErrors.errorIs_ForeignKeyViolation(e)) {
+                                            JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
+                                            ee.tableName = tableName;
+                                            ee.oprType = oprType;
+                                            ee.recParams = recParams;
+                                            ee.recValues = recValuesStr;
+                                            // todo вообще, костыль страшнейший, сделан для пробуска неуместных реплик,
+                                            // которые просочились на станцию из-за кривых настроек фильтров.
+                                            // todo Убрать skipForeignKeyViolationIns, когда будут сделана фильтрация по ссылкам!!!
+                                            boolean skipForeignKeyViolationUpd = jdxReplWs.appCfg.getValueBoolean("skipForeignKeyViolationUpd");
+                                            if (skipForeignKeyViolationUpd) {
+                                                log.error(e.getMessage());
+                                                log.error("table: " + tableName);
+                                                log.error("oprType: " + oprType);
+                                                log.error("recParams: " + recParams);
+                                                log.error("recValuesStr: " + recValuesStr);
+                                                log.error("skipForeignKeyViolationUpd: " + skipForeignKeyViolationUpd);
+                                            } else {
+                                                throw (ee);
+                                            }
+                                        } else {
+                                            throw (e);
+                                        }
+                                    }
+                                }
+                            } else if (oprType == JdxOprType.DEL) {
+                                // Отложим удаление на второй проход
+                                delayedDeleteTaskForTable.add(recId);
+                            }
+                        }
+
+                        //
+                        recValuesStr = dataReader.nextRec();
+
+                        // Обеспечим не слишком огромные порции коммитов
+                        countPortion++;
+                        if (portionMax != 0 && countPortion >= portionMax) {
+                            countPortion = 0;
+                            //
+                            db.commit();
+                            db.startTran();
+                            //
+                            log.info("  table: " + readerTableName + ", " + count + ", commit/startTran");
+                        }
+
+                        //
+                        count = count + 1;
+                        if (count % 1000 == 0) {
+                            long filePos = dataReader.getInputStream().getPos();
+                            log.info("  table: " + readerTableName + ", recs: " + count + ", bytes: " + filePos + "/" + fileSize);
+
+                            //
+                            state.get().setValue("count", filePos);
+                            state.get().setValue("recCount", count);
+                        }
+                    }
+
+
+                    //
+                    log.info("  done: " + readerTableName + ", recs total: " + count);
+
+
+                    //
+                    readerTableName = dataReader.nextTable();
+                }
+
+
+                // Ворой проход - выполнение удаления отложенных
+                for (int i = tables.size() - 1; i >= 0; i--) {
+                    IJdxTable table = tables.get(i);
+                    String tableName = table.getName();
+
+                    //
+                    Collection<Long> delayedDeleteTaskForTable = delayedDeleteTask.get(tableName);
+                    if (delayedDeleteTaskForTable == null) {
+                        continue;
+                    }
+                    if (delayedDeleteTaskForTable.size() == 0) {
                         continue;
                     }
 
                     //
-                    recordFilter = new RecordFilter(publicationRuleTable, tableName, filterParams);
-                }
-
-                // Для проверки, что записи, обновляемые из текущей реплики НЕ были ещё раз изменены на рабочей станции,
-                // после того, как текущая реплика была отправлена. Актуально при применении СОБСТВЕННЫХ реплик.
-                // Также возможно, если кто-то другой отредактировал запись, которую недавно редавтировали мы -
-                // тогда selfAuditDtComparer решает, какая запись будет считаться последней.
-                if (replicaType != JdxReplicaType.SNAPSHOT) {
-                    // Предполагается, что SNAPSHOT или IDE_MERGE просто так не присылают,
-                    // значит дело серьезное и нужно обязательно применить.
-                    selfAuditDtComparer.readSelfAuditData(tableName, replicaDtTo);
-                }
-
-                // Тут будем копить задания на DELETE для таблицы tableName, их выполняем вторым проходом.
-                Collection<Long> delayedDeleteTaskForTable = delayedDeleteTask.get(tableName);
-                if (delayedDeleteTaskForTable == null) {
-                    delayedDeleteTaskForTable = new ArrayList<>();
-                    delayedDeleteTask.put(tableName, delayedDeleteTaskForTable);
-                }
-
-                // Перебираем записи
-                if (readerTableName.compareToIgnoreCase(readerTableNamePrior) != 0) {
-                    // Новая таблица - сброс счетчика записей
+                    List<Long> failedDeleteList = new ArrayList<>();
                     count = 0;
-                } else {
-                    // Продолжение этой же таблицы новой порцией
-                    log.info("next portion: " + readerTableName);
-                }
-                readerTableNamePrior = readerTableName;
-
-                // Очень важно взять поля для обновления (publicationFields) именно из правил публикации,
-                // а не все что есть в физической  таблице, т.к. именно по этим правилам готовилась реплика на сервере,
-                // при этом мог использоваться НЕ ПОЛНЫЙ набор полей. Из-за такого пропуска полей,
-                // при получении на рабочей станции СВОЕЙ реплики и попытке обновить ВСЕ поля,
-                // пропущенные поля станут null. На ДРУГИХ филиалах это не страшно, а на НАШЕЙ - данные затрутся.
-                // (Неполный набр полей используется, например, если на филиалы НЕ отправляются данные из справочников,
-                // на которые ссылается рассматриваемая таблица, например: "примечания, сделанные пользователем":
-                // сами примечания отправляем, а ССЫЛКИ на пользователей придется пропустить).
-                String publicationFields = UtJdx.fieldsToString(publicationRuleTable.getFields());
-
-                // Таблица и поля в Serializer-е
-                dataSerializer.setTable(table, publicationFields);
-
-                // Перебираем записи
-                Map<String, String> recValuesStr = dataReader.nextRec();
-                while (recValuesStr != null) {
-
-                    // Перебираем записи, пропускаем те, которые не подходят под наши входящие фильтры publicationRules
-                    if (recordFilter.isMach(recValuesStr)) {
-
-                        // Подготовка recParams для записи в БД - десериализация значений
-                        Map<String, Object> recParams = dataSerializer.prepareValues(recValuesStr);
-
-
-                        // Выполняем INS/UPD/DEL
-                        JdxOprType oprType = JdxOprType.valueOfStr(recValuesStr.get(UtJdx.XML_FIELD_OPR_TYPE));
-                        long recId = (Long) recParams.get(pkFieldName);
-                        if (oprType == JdxOprType.INS) {
-                            // Отменим удаление этой записи на втором проходе
-                            delayedDeleteTaskForTable.remove(recId);
-
-                            // Проверяем, что обновляемая запись НЕ была ещё раз изменена
-                            if (selfAuditDtComparer.isSelfAuditAgeAboveReplicaAge(recId)) {
-                                log.info("Self audit age > replica age, record skipped, oprType: " + oprType + ", table: " + tableName + ", id: " + recId);
+                    for (Long recId : delayedDeleteTaskForTable) {
+                        try {
+                            dbu.deleteRec(tableName, recId);
+                            count = count + 1;
+                        } catch (Exception e) {
+                            if (dbErrors.errorIs_ForeignKeyViolation(e)) {
+                                // Пропустим реплику, а ниже - выдадим в исходящую очередь наш вариант удаляемой записи
+                                log.info("  table: " + tableName + ", fail to delete: " + failedDeleteList.size());
+                                failedDeleteList.add(recId);
                             } else {
-                                try {
-                                    //
-                                    dbu.insertOrUpdate(tableName, recParams, publicationFields);
-                                } catch (Exception e) {
-                                    if (dbErrors.errorIs_ForeignKeyViolation(e)) {
-                                        JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
-                                        ee.tableName = tableName;
-                                        ee.oprType = oprType;
-                                        ee.recParams = recParams;
-                                        ee.recValues = recValuesStr;
-                                        // todo вообще, костыль страшнейший, сделан для пропуска неуместных реплик,
-                                        // которые просочились на станцию из-за кривых настроек фильтров.
-                                        // todo Убрать skipForeignKeyViolationIns, когда будут сделана фильтрация по ссылкам!!!
-                                        boolean skipForeignKeyViolationIns = jdxReplWs.appCfg.getValueBoolean("skipForeignKeyViolationIns");
-                                        if (skipForeignKeyViolationIns) {
-                                            log.error(e.getMessage());
-                                            log.error("table: " + tableName);
-                                            log.error("oprType: " + oprType);
-                                            log.error("recParams: " + recParams);
-                                            log.error("recValuesStr: " + recValuesStr);
-                                            log.error("skipForeignKeyViolationIns: " + skipForeignKeyViolationIns);
-                                        } else {
-                                            throw (ee);
-                                        }
-                                    } else {
-                                        throw (e);
-                                    }
-                                }
+                                log.error("table: " + tableName + ", table.id: " + recId);
+                                //
+                                throw (e);
                             }
-
-                        } else if (oprType == JdxOprType.UPD) {
-                            // Проверяем, что обновляемая запись НЕ была ещё раз изменена
-                            if (selfAuditDtComparer.isSelfAuditAgeAboveReplicaAge(recId)) {
-                                log.info("Self audit age > replica age, record skipped, oprType: " + oprType + ", table: " + tableName + ", id: " + recId);
-                            } else {
-                                try {
-                                    dbu.updateRec(tableName, recParams, publicationFields, null);
-                                } catch (Exception e) {
-                                    if (dbErrors.errorIs_ForeignKeyViolation(e)) {
-                                        JdxForeignKeyViolationException ee = new JdxForeignKeyViolationException(e);
-                                        ee.tableName = tableName;
-                                        ee.oprType = oprType;
-                                        ee.recParams = recParams;
-                                        ee.recValues = recValuesStr;
-                                        // todo вообще, костыль страшнейший, сделан для пробуска неуместных реплик,
-                                        // которые просочились на станцию из-за кривых настроек фильтров.
-                                        // todo Убрать skipForeignKeyViolationIns, когда будут сделана фильтрация по ссылкам!!!
-                                        boolean skipForeignKeyViolationUpd = jdxReplWs.appCfg.getValueBoolean("skipForeignKeyViolationUpd");
-                                        if (skipForeignKeyViolationUpd) {
-                                            log.error(e.getMessage());
-                                            log.error("table: " + tableName);
-                                            log.error("oprType: " + oprType);
-                                            log.error("recParams: " + recParams);
-                                            log.error("recValuesStr: " + recValuesStr);
-                                            log.error("skipForeignKeyViolationUpd: " + skipForeignKeyViolationUpd);
-                                        } else {
-                                            throw (ee);
-                                        }
-                                    } else {
-                                        throw (e);
-                                    }
-                                }
-                            }
-                        } else if (oprType == JdxOprType.DEL) {
-                            // Отложим удаление на второй проход
-                            delayedDeleteTaskForTable.add(recId);
                         }
-                    }
 
-                    //
-                    recValuesStr = dataReader.nextRec();
-
-                    // Обеспечим не слишком огромные порции коммитов
-                    countPortion++;
-                    if (portionMax != 0 && countPortion >= portionMax) {
-                        countPortion = 0;
                         //
-                        db.commit();
-                        db.startTran();
-                        //
-                        log.info("  table: " + readerTableName + ", " + count + ", commit/startTran");
-                    }
-
-                    //
-                    count = count + 1;
-                    if (count % 1000 == 0) {
-                        long filePos = dataReader.getInputStream().getPos();
-                        log.info("  table: " + readerTableName + ", recs: " + count + ", bytes: " + filePos + "/" + fileSize);
-                    }
-                }
-
-
-                //
-                log.info("  done: " + readerTableName + ", recs total: " + count);
-
-
-                //
-                readerTableName = dataReader.nextTable();
-            }
-
-
-            // Ворой проход - выполнение удаления отложенных
-            for (int i = tables.size() - 1; i >= 0; i--) {
-                IJdxTable table = tables.get(i);
-                String tableName = table.getName();
-
-                //
-                Collection<Long> delayedDeleteTaskForTable = delayedDeleteTask.get(tableName);
-                if (delayedDeleteTaskForTable == null) {
-                    continue;
-                }
-                if (delayedDeleteTaskForTable.size() == 0) {
-                    continue;
-                }
-
-                //
-                List<Long> failedDeleteList = new ArrayList<>();
-                count = 0;
-                for (Long recId : delayedDeleteTaskForTable) {
-                    try {
-                        dbu.deleteRec(tableName, recId);
                         count = count + 1;
-                    } catch (Exception e) {
-                        if (dbErrors.errorIs_ForeignKeyViolation(e)) {
-                            // Пропустим реплику, а ниже - выдадим в исходящую очередь наш вариант удаляемой записи
-                            log.info("  table: " + tableName + ", fail to delete: " + failedDeleteList.size());
-                            failedDeleteList.add(recId);
-                        } else {
-                            log.error("table: " + tableName + ", table.id: " + recId);
-                            //
-                            throw (e);
+                        if (count % 200 == 0) {
+                            log.info("  table delete: " + tableName + ", " + count);
                         }
+
                     }
 
                     //
-                    count = count + 1;
-                    if (count % 200 == 0) {
-                        log.info("  table delete: " + tableName + ", " + count);
+                    log.info("  done delete: " + tableName + ", total: " + count);
+
+                    // Обратка от удалений, которые не удалось выполнить - создаем реплики на вставку (выдадим в исходящую очередь наш вариант удаляемой записи),
+                    // чтобы те, кто уже удалил - раскаялись и вернули все назад, по данныим из НАШИХ реплик.
+                    // todo крайне криво - транзакция же ждет!!!
+                    // todo: этот метод В КОНТЕКТСЕ ТРАНЗАКЦИИ возится с какими то файлами и проч... - нежелательно
+                    // todo: комит тут внутри, а контекст с этим методом createTableReplicaByIdList() - снаружи
+                    if (failedDeleteList.size() != 0) {
+                        log.info("  failed delete: " + tableName + ", count: " + failedDeleteList.size());
+                        //
+                        jdxReplWs.createSnapshotByIdListIntoQueOut(tableName, failedDeleteList);
+                        //
+                        log.info("  failed delete: " + tableName + ", snapshot done");
+                        //
+                        failedDeleteList.clear();
                     }
 
+                }
+
+
+                // После применения аудита можно снова включать триггера
+                triggersManager.setTriggersOn();
+
+
+                //
+                db.commit();
+
+
+            } catch (Exception e) {
+                if (!triggersManager.triggersIsOn()) {
+                    triggersManager.setTriggersOn();
                 }
 
                 //
-                log.info("  done delete: " + tableName + ", total: " + count);
+                db.rollback();
 
-                // Обратка от удалений, которые не удалось выполнить - создаем реплики на вставку (выдадим в исходящую очередь наш вариант удаляемой записи),
-                // чтобы те, кто уже удалил - раскаялись и вернули все назад, по данныим из НАШИХ реплик.
-                // todo крайне криво - транзакция же ждет!!!
-                // todo: этот метод В КОНТЕКТСЕ ТРАНЗАКЦИИ возится с какими то файлами и проч... - нежелательно
-                // todo: комит тут внутри, а контекст с этим методом createTableReplicaByIdList() - снаружи
-                if (failedDeleteList.size() != 0) {
-                    log.info("  failed delete: " + tableName + ", count: " + failedDeleteList.size());
-                    //
-                    jdxReplWs.createSnapshotByIdListIntoQueOut(tableName, failedDeleteList);
-                    //
-                    log.info("  failed delete: " + tableName + ", snapshot done");
-                    //
-                    failedDeleteList.clear();
-                }
-
+                //
+                throw e;
             }
 
 
-            // После применения аудита можно снова включать триггера
-            triggersManager.setTriggersOn();
-
-
-            //
-            db.commit();
-
-
-        } catch (Exception e) {
-            if (!triggersManager.triggersIsOn()) {
-                triggersManager.setTriggersOn();
-            }
-
-            //
-            db.rollback();
-
-            //
-            throw e;
+        } finally {
+            state.stop();
         }
-
     }
 
     public static int getDataType(String dbDatatypeName) {
