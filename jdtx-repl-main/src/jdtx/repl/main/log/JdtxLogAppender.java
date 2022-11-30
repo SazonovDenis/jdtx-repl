@@ -20,25 +20,23 @@ public class JdtxLogAppender extends AppenderSkeleton {
     protected static StateItemStackNamed state = JdtxStateContainer.state;
 
     protected void append(LoggingEvent event) {
+        String serviceName = event.getProperty("serviceName");
+        if (serviceName == null) {
+            serviceName = "default";
+        }
+
         // Обновим JdtxLogContainer
         PatternLayout layout = new PatternLayout(conversionPattern);
         String value = layout.format(event);
         value = value.trim();
-
         //
-        String key = event.getProperty("serviceName");
-        if (key == null) {
-            key = "default";
-        }
-
-        //
-        JdtxLogContainer.setLogValue(key, value);
+        JdtxLogContainer.setLogValue(serviceName, value);
 
 
         // Обновим JdtxStateContainer.state
         String text = event.getRenderedMessage().trim();
         state.get().setValue("log.name", event.categoryName);
-        state.get().setValue("log.serviceName", key);
+        state.get().setValue("log.serviceName", serviceName);
         state.get().setValue("log.datetime", new DateTime(event.getTimeStamp()));
         state.get().setValue("log.text", text);
     }
