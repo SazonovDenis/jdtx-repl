@@ -13,6 +13,7 @@ libs = libs + [
   "jdbc-firebird", 
   "jdbc-oracle",
   "kis-toolbox-postgresqldriver",
+  "jdtx-state",
   "httpclient", "httpmime"
 ]
 

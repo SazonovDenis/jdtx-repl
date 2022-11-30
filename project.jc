@@ -2,9 +2,13 @@
 load(fu.getPathprop("kis.toolbox", wd("")))
 
 //
+load("Z:/jdtx-state/project.jc")
+
+
+//
 project.name = "jdtx-repl"
 project.package_root = "jdtx.repl"
-project.version="871"
+project.version="880"
 
 //
 include "wax-root-project"
