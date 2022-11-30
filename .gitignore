@@ -2,13 +2,13 @@ _test-data
 temp
 out
 notuse
+dataSources
+
 install/JadatexSync*.exe
 
 *.iws
 *.iml
 *.ipr
-
-notuse
 
 _app.rt
 _db-ini*.rt

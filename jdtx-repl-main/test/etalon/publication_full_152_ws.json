@@ -214,6 +214,9 @@
     }
   },
   "full_no_usrlog": {
+    "appupdate": {
+      "fields": "*"
+    },
     "billingvarhist": {
       "fields": "*"
     },
