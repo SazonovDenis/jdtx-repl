@@ -2,7 +2,7 @@
 load(fu.getPathprop("kis.toolbox", wd("")))
 
 //
-load("Z:/jdtx-state/project.jc")
+load("../jdtx-state/project.jc")
 
 
 //
