@@ -330,7 +330,7 @@ public class UtMail {
         // Помеченное на 1 меньше отправленного
         if (noQueSendMarked == (noQueSendSrv - 1)) {
             // Сравним CRC и номер реплик: в своей очереди и последнего отправленнного письма на сервере.
-            if (equalLastSend(mailer, box, que, noQueSendSrv)) {
+            if (isEqualLastSend(mailer, box, que, noQueSendSrv)) {
                 // Просто исправляем отметку "отправлено на сервер".
                 mailStateManager.setMailSendDone(noQueSendSrv);
                 //
@@ -352,24 +352,26 @@ public class UtMail {
         return false;
     }
 
-    static boolean equalLastSend(IMailer mailer, String box, IJdxQue que, long noQueSendDone) throws Exception {
+    static boolean isEqualLastSend(IMailer mailer, String box, IJdxQue que, long noQueSendDone) throws Exception {
         // Читаем С СЕРВЕРА информацию о реплике, которую последней отправили на сервер
         IReplicaInfo replicaInfoSrv = ((MailerHttp) mailer).getLastReplicaInfo(box);
-        String replicaCrcSrv = replicaInfoSrv.getCrc();
+        String crcSrv = replicaInfoSrv.getCrc();
 
         // Берем ИЗ ОЧЕРЕДИ ту реплику, которую последней отправили на сервер
         IReplica replicaFromQue = que.get(noQueSendDone);
 
         // Сравниваем CRC реплик
-        if (UtJdx.equalReplicaCrc(replicaFromQue, replicaCrcSrv)) {
+        String crcFile = UtJdx.getMd5File(replicaFromQue.getData());
+        String crcInfo = replicaFromQue.getInfo().getCrc();
+        if (crcSrv.equals(crcFile) && crcFile.equals(crcInfo)) {
             // Реплика совпадает с последним письмом - не считаем ситуацию аварийной.
             // Это бывает, если прервался цикл: отправка на сервер - отметка об отправке в БД,
             // успели отправить на сервер, но не успели отметить в базе.
-            log.warn("equalLastSend: last replica already sent, que: " + que.getQueName() + ", no: " + noQueSendDone + ", box: " + box);
+            log.warn("isEqualLastSend: last replica already sent, que: " + que.getQueName() + ", no: " + noQueSendDone + ", box: " + box);
             //
             return true;
         } else {
-            log.error("equalLastSend: last send replica crc <> ws.crc, ws.crc: " + replicaFromQue.getInfo().getCrc() + ", mail.replica.crc: " + replicaCrcSrv + ", que: " + que.getQueName() + ", no: " + noQueSendDone + ", box: " + box);
+            log.error("isEqualLastSend: last send replica crc is not equal, ws.info.crc: " + crcInfo + ", ws.file.crc: " + crcFile + ", mail.crc: " + crcSrv + ", que: " + que.getQueName() + ", no: " + noQueSendDone + ", box: " + box);
             //
             return false;
         }
