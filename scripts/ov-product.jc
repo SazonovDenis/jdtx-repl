@@ -261,7 +261,7 @@ repl_send_cfg = cm("Отправить конфигурацию на рабоч�
         "file": [value: null, help: "Конфиг-файл"],
         "cfg": [value: null, help: "Вид конфигурации (cfg_publications|cfg_decode|cfg_ws|cfg_storage)"],
         "ws": [value: null, help: "Рабочая станция-получатель"],
-        "que": [value: null, help: "В какую очередь отправить команду"]
+        "que": [value: null, help: "В какую очередь отправить команду (common|out001)"]
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_send_cfg(args)
