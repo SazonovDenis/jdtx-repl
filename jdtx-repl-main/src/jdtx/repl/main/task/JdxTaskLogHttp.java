@@ -28,7 +28,7 @@ public class JdxTaskLogHttp extends JdxTaskCustom {
         Map<String, String> logValues = JdtxLogContainer.getLogValues();
         Map<String, Object> data = new HashMap<>();
         data.put("logValues", logValues);
-        //
+        // Отправим
         try {
             mailer.setData(data, "log.log", null);
         } catch (Exception e) {
@@ -38,7 +38,7 @@ public class JdxTaskLogHttp extends JdxTaskCustom {
         // Соберем из JdtxStateContainer.state
         ITreeNode<StateItem> root = JdtxStateContainer.state.getAll();
         Map<String, Object> stateValue = UtStateCnv.stateItemToMap(root);
-        //
+        // Отправим
         try {
             mailer.setData(stateValue, "state.json", null);
         } catch (Exception e) {
