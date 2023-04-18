@@ -15,6 +15,8 @@ import org.json.simple.*;
 
 import java.util.*;
 
+import static jdtx.repl.main.api.util.UtJdxErrors.*;
+
 public class UtMail {
 
 
@@ -305,7 +307,7 @@ public class UtMail {
     }
 
     public static boolean checkQueSendMarked(long noQueSendMarked, long noQueSendSrv, IJdxQue que, IMailer mailer, String box, IJdxMailSendStateManager mailStateManager) throws Exception {
-        // Отметка совпадает с состоянием сервера?
+        // Наша отметка об отправке совпадает с состоянием сервера?
         if (noQueSendMarked == noQueSendSrv) {
             // Ничего чинить не надо
             return true;
@@ -314,7 +316,7 @@ public class UtMail {
         //
         log.warn("checkQueSendMarked: need repair marked, que: " + que.getQueName() + ", box: " + box + ", noQueSendMarked: " + noQueSendMarked + ", noQueSendSrv: " + noQueSendSrv);
 
-        // Отметка станции опережает отметку почтового сервера.
+        // Наша отметка об отправке опережает отметку почтового сервера.
         // Это значит, что почтовый сервер проснулся из бэкапа
         // или что флешку на обмен притащили немного старую
         // или станция до этого отправляла на другую флешку и передвинула вперед свои отметки.
@@ -327,7 +329,7 @@ public class UtMail {
         // Отметка станции (noQueSendMarked) отстает
         // от отметки отправленного на почтовый сервер (noQueSendSrv)
 
-        // Помеченное на 1 меньше отправленного
+        // Наша отметка об отправке на 1 меньше отправленного на сервер
         if (noQueSendMarked == (noQueSendSrv - 1)) {
             // Сравним CRC и номер реплик: в своей очереди и последнего отправленнного письма на сервере.
             if (isEqualLastSend(mailer, box, que, noQueSendSrv)) {
@@ -343,8 +345,9 @@ public class UtMail {
             }
         }
 
-        // Помеченное сильно отстает от отправленного,
-        // значит кто-то нас опрередил с отправкой на сервер (на сервер отправлено больше, чем мы отправляли от себя).
+        // Наша отметка об отправке сильно отстает от отправленного на сервер,
+        // т.е. на сервер отправлено больше, чем мы отправляли от себя
+        // (кто-то нас опередил с отправкой на сервер).
         // Это ошибка, автоматически не чинится.
         log.error("checkQueSendMarked: unable to repair marked, noQueSendMarked < noQueSendSrv");
 
@@ -357,8 +360,18 @@ public class UtMail {
         IReplicaInfo replicaInfoSrv = ((MailerHttp) mailer).getLastReplicaInfo(box);
         String crcSrv = replicaInfoSrv.getCrc();
 
-        // Берем ИЗ ОЧЕРЕДИ ту реплику, которую последней отправили на сервер
-        IReplica replicaFromQue = que.get(noQueSendDone);
+        // Берем ИЗ СВОЕЙ ОЧЕРЕДИ ту реплику, которую последней отправили на сервер
+        IReplica replicaFromQue;
+        try {
+            replicaFromQue = que.get(noQueSendDone);
+        } catch (Exception e) {
+            if (e.getMessage().contains(message_replicaRecordNotFound)) {
+                log.error("isEqualLastSend: error in que.get(), que: " + que.getQueName() + ", no: " + noQueSendDone + ", box: " + box + ", error: " + e.getMessage());
+                return false;
+            } else {
+                throw e;
+            }
+        }
 
         // Сравниваем CRC реплик
         String crcFile = UtJdx.getMd5File(replicaFromQue.getData());
@@ -368,11 +381,9 @@ public class UtMail {
             // Это бывает, если прервался цикл: отправка на сервер - отметка об отправке в БД,
             // успели отправить на сервер, но не успели отметить в базе.
             log.warn("isEqualLastSend: last replica already sent, que: " + que.getQueName() + ", no: " + noQueSendDone + ", box: " + box);
-            //
             return true;
         } else {
             log.error("isEqualLastSend: last send replica crc is not equal, ws.info.crc: " + crcInfo + ", ws.file.crc: " + crcFile + ", mail.crc: " + crcSrv + ", que: " + que.getQueName() + ", no: " + noQueSendDone + ", box: " + box);
-            //
             return false;
         }
     }
