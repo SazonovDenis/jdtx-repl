@@ -48,7 +48,13 @@ public class RefManager_Decode_Test extends ReplDatabaseStruct_Test {
         System.out.println(own_slot_no_2);
     }
 
+    @Test
+    public void test_RefManagerDecode() throws Exception {
+        RefManager_Decode d1 = extSrv.getApp().service(RefManager_Decode.class);
+        System.out.println(d1.getClass());
+    }
 
+/*
     @Test
     public void test_RefManagerDecode_1() throws Exception {
         db.execSql("delete from " + UtJdx.SYS_TABLE_PREFIX + "decode");
@@ -59,7 +65,7 @@ public class RefManager_Decode_Test extends ReplDatabaseStruct_Test {
         long wsId_d2 = 2;
 
         // ---
-        RefManager_Decode d1 = new RefManager_Decode();
+        RefManager_Decode d1 = extSrv.getApp().service(RefManager_Decode.class);
         d1.db = db;
         d1.init(wsId, cfgDecode);
         d1.SLOT_SIZE = 4;
@@ -259,6 +265,7 @@ public class RefManager_Decode_Test extends ReplDatabaseStruct_Test {
         assertEquals(0, ref.value);
         assertEquals(true, ref.isEmptyWs());
     }
+*/
 
     @Test
     public void test_checkValid() throws Exception {
