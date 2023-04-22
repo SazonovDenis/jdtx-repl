@@ -3,6 +3,7 @@ temp
 out
 notuse
 dataSources
+.ideaDataSources
 
 install/JadatexSync*.exe
 
