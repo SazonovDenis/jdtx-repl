@@ -3,6 +3,7 @@ package jdtx.repl.main.api.manager;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
+import jandcode.utils.error.*;
 import jandcode.web.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
@@ -125,6 +126,9 @@ public class UtAuditAgeManager {
      */
     public DateTime loadMaxIdsFixed(long auditAge, Map<String, Long> maxIdsFixed) throws Exception {
         DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "age where age = " + auditAge).getCurRec();
+        if (rec.getValueLong("id") == 0) {
+            throw new XError("Не найдена запись о состоянии аудита, auditAge: " + auditAge);
+        }
         //
         byte[] table_idsBytes = (byte[]) rec.getValue("table_ids");
         if (table_idsBytes.length != 0) {
@@ -151,6 +155,18 @@ public class UtAuditAgeManager {
                 "table_ids", table_ids
         );
         db.execSql(sqlIns, params);
+    }
+
+    /**
+     * Выясняет, какой возраст аудита был пере текущим возрастом.
+     *
+     * @param age текущий возраст аудита
+     * @return Предыдущий возраст аудита
+     */
+    public long getAgePrior(long age) throws Exception {
+        DataRecord rec = db.loadSql("select max(age) age from " + UtJdx.SYS_TABLE_PREFIX + "age where age < " + age).getCurRec();
+        long age_prior = rec.getValueLong("age");
+        return age_prior;
     }
 
 

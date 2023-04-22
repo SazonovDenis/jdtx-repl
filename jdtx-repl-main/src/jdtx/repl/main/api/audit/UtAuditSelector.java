@@ -248,19 +248,34 @@ public class UtAuditSelector {
 
 
     /**
-     * Извлекает мин и макс zz_id аудита для каждой таблицы,
-     * а также общий период возникновения изменений в таблице.
-     * Используем publicationStorage чтобы
-     * - сэкономить на запросах - не делать запросов к таблицам, которые не в publicationStorage,
-     * - а также чтобы избежать ошибок, делая запросы к таблицам, для которых не создан аудит (но которые есть в структуре).
+     * Извлекает интервал мин и макс zz_id аудита для каждой таблицы, для изменений,
+     * сделанных к возрасту age от предыдущего возраста.
+     * <p>
+     * Также возвращает общий период времени совершения изменений в таблице.
+     * <p>
+     * Используем конфигурацию publicationStorage чтобы:
+     * - не делать запросов к таблицам, которые не в publicationStorage (сэкономить на запросах),
+     * - избежать ошибок, делая запросы к таблицам, для которых не создан аудит
+     * (которые есть в структуре, но не подлежат репликации).
      */
     Map loadAutitIntervals(IPublicationRuleStorage publicationStorage, long age) throws Exception {
         Map auditInfo = new HashMap<>();
 
         //
         UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
+
+        // Выясним, какой возраст предыдущий. Это будет не "age - 1", как может показаться.
+        // При восстановлении БД рабочей станции из бэкапа происходит восстановление
+        // ОЧЕРЕДЕЙ и ДАННЫХ по ранее оправленным репликам, но не происходит восстановление
+        // таблица для хранения возраста таблиц (Z_Z_AGE). Поэтому в этой таблице возможны ПРОПУСКИ,
+        // из-за которых и надо ИСКАТЬ предыдущий возраст, а не просто брать age-1
+        long age_prior = auditAgeManager.getAgePrior(age);
+        if (age_prior != age - 1) {
+            log.warn("loadAutitIntervals, age_prior != age - 1, age: " + age + ", age_prior: " + age_prior);
+        }
+        age_prior = age - 1;
+
         //
-        long age_prior = age - 1;
         Map<String, Long> maxIdsFixed_From = new HashMap<>();
         DateTime dtFrom = auditAgeManager.loadMaxIdsFixed(age_prior, maxIdsFixed_From);
         //
