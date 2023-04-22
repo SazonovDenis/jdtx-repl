@@ -1313,7 +1313,7 @@ public class JdxReplSrv {
         //
         DataStore wsSt = loadWsList();
         for (DataRecord wsRec : wsSt) {
-            // В папке dirName будет структура папок, которую задем мы
+            // В папке dirName должна быть структура папок, которая требуется
             String guid = wsRec.getValueString("guid");
             guid = guid.split("-")[0];
             long wsId = wsRec.getValueLong("id");
