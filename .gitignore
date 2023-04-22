@@ -19,6 +19,8 @@ _data_root
 _logs
 _log
 
+_.shelf
+
 jdtx-repl-main/_log.properties
 
 jdtx-repl-web/.idea 

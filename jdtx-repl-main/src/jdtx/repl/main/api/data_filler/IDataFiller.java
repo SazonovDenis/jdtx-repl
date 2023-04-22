@@ -28,7 +28,6 @@ public interface IDataFiller {
      */
     Map<String, Object> createGenerators(IJdxTable table, Map<String, Object> tableGenerators) throws Exception;
 
-
     Map<String, Object> getGeneratorsCache();
 
     Map<String, Set<Long>> getRefValuesCache();
