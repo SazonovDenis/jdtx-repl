@@ -1,6 +1,6 @@
 package jdtx.repl.main.api;
 
-import com.jdtx.state.StateItemStackNamed;
+import com.jdtx.state.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
 import jandcode.utils.error.*;
@@ -22,7 +22,7 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.settings.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
-import jdtx.repl.main.log.JdtxStateContainer;
+import jdtx.repl.main.log.*;
 import jdtx.repl.main.task.*;
 import org.apache.commons.io.*;
 import org.apache.commons.logging.*;
@@ -1987,7 +1987,7 @@ public class JdxReplWs {
 
         //
         if (needRepair || doPrintIfNeedNoRepair) {
-            log.warn("Restore from backup: need repair: " + needRepair);
+            log.warn("Repair after restore from backup: need repair: " + needRepair);
             log.warn("  self.wsId: " + wsId);
             log.warn("  noQueIn001: " + noQueIn001);
             log.warn("  noQueIn001Dir: " + noQueIn001Dir);
@@ -2045,7 +2045,7 @@ public class JdxReplWs {
         }
 
         log.warn("==========");
-        log.warn("Restore from backup: start repair, lockFile: " + repairLockFileManager.repairLockFileStr());
+        log.warn("Repair after restore from backup: start, lockFile: " + repairLockFileManager.repairLockFileStr());
 
         //
         Map repairParams = repairLockFileManager.repairLockFileMap();
@@ -2068,10 +2068,13 @@ public class JdxReplWs {
                 repairQueByDir(queIn001, noQueIn001, noQueIn001Dir);
             }
         } catch (Exception e) {
-            log.error("repairQueByDir: queIn001, error: " + e.getMessage());
+            log.error("repairQueByDir, queIn001, error: " + e.getMessage());
         }
         // Теперь входная очередь QueIn001 такая
         noQueIn001 = queIn001.getMaxNo();
+        //
+        log.warn("repairQueByDir.queIn001 - ok, queIn001: " + noQueIn001);
+        log.warn("----------");
 
         // Ситуация: noQueIn < noQueInDir
         // Ремонт очереди QueIn по данным из каталога
@@ -2084,6 +2087,9 @@ public class JdxReplWs {
         }
         // Теперь входная очередь QueIn такая
         noQueIn = queIn.getMaxNo();
+        //
+        log.warn("repairQueByDir.queIn - ok, noQueIn: " + noQueIn);
+        log.warn("----------");
 
         // Ситуация: noQueOut < noQueOutDir
         // Ремонт очереди QueOut по данным из каталога
@@ -2096,6 +2102,9 @@ public class JdxReplWs {
         }
         // Теперь исходящая очередь такая
         noQueOut = queOut.getMaxNo();
+        //
+        log.warn("repairQueByDir.queOut - ok, noQueOut: " + noQueOut);
+        log.warn("----------");
 
 
         // ---
@@ -2151,6 +2160,9 @@ public class JdxReplWs {
         noQueIn = queIn.getMaxNo();
         noQueOut = queOut.getMaxNo();
 
+        //
+        log.warn("readQueFromSrv_Interval - ok, noQueIn001: " + noQueIn001 + ", noQueIn: " + noQueIn + ", noQueOut: " + noQueOut);
+        log.warn("----------");
 
         // ---
         // Добиваемся того, чтобы в очереди QueIn оказались и все ранее отправленные наши СОБСТВЕННЫЕ реплики.
@@ -2201,6 +2213,10 @@ public class JdxReplWs {
 
                 } while (true);
             }
+
+            //
+            log.warn("readQueFromSrv_RepicaNo - ok");
+            log.warn("----------");
         }
 
         // Тут мы полностью получили то состояние очереди queIn, которое позволит отремонтровать все данные.
@@ -2221,6 +2237,11 @@ public class JdxReplWs {
             throw new XError("Use queIn001 - que is not completely used, noQueIn001Used: " + noQueIn001Used + ", queIn001.getMaxNo: " + queIn001.getMaxNo());
         }
 
+        //
+        log.warn("handleQueIn001 - ok");
+        log.warn("----------");
+
+
         // ---
         // Среди входящих есть и НАШИ СОБСТВЕННЫЕ реплики, важно их применить именно сейчас, когда начат ремонт.
         // Иначе при применении входящей очереди в рамках обычной работы - не будет вызван ремонт генераторов,
@@ -2234,9 +2255,13 @@ public class JdxReplWs {
             throw new XError("Use queIn - que is not completely used, noQueInUsed: " + noQueInUsed + ", queIn.getMaxNo: " + queIn.getMaxNo());
         }
 
+        //
+        log.warn("handleQueIn - ok");
+        log.warn("----------");
 
+
+        //
         if (!repairMode_EmptyBase) {
-
             // ---
             // Отслеживаем наш последний возраст age, встретившийся в НАШИХ СОБСТВЕННЫХ репликах при примененнии QueIn.
             // Ремонт отметки возраста ОБРАБОТАННОГО аудита делаем именно по нему
@@ -2256,7 +2281,8 @@ public class JdxReplWs {
                 //
                 no00 = no00 - 1;
             }
-
+            //
+            log.warn("lastOwnAgeUsed: " + lastOwnAgeUsed);
 
             // ---
             // Если имеющаяся исходящая очередь старше реплик, которые мы еще НЕ ОТПРАВЛЯЛИ на сервер, значит исходящая очередь
@@ -2300,6 +2326,10 @@ public class JdxReplWs {
                 log.info("Use queOut, self.wsId: " + wsId + ", queOut: " + noQueOut + ", nothing to do");
             }
 
+            //
+            log.warn("Use queOut - ok");
+            log.warn("----------");
+
 
             // ---
             // Тут мы полностью получили такую базу, какой она была на момент отправки последних своих данных.
@@ -2329,6 +2359,10 @@ public class JdxReplWs {
                 }
             }
 
+            //
+            log.warn("setMailSendDone - ok, noQueOutSendSrv: " + noQueOutSendSrv);
+            log.warn("----------");
+
 
             // ---
             // До какого возраста обработана очередь QueIn (noQueInUsed) - нет необходимости чинить,
@@ -2336,27 +2370,44 @@ public class JdxReplWs {
 
 
             // ---
-            // Исправление отметок аудита
+            // Исправление таблицы возраста таблиц и отметок возраста
             // ---
 
             // После ремонта данных применением собственных реплик из очередей QueIn и QueOut
-            // аудит таблиц пуст, а отметка возраста аудита ("возраст age" для таблиц аудита) все ещё содержит устаревшее состояние.
-            // Чиним отметку возраста аудита.
+            // аудит таблиц (Z_<TABLE_NAME>), который породил эти реплики, пуст (и не может быть востановлен),
+            // таблицыа возрастов аудита (Z_Z_AGE) также пуста (и не может быть востановлена),
+            // а отметка возраста аудита (Z_Z_WS_STATE.AGE) все ещё содержит устаревшее состояние.
             UtAuditAgeManager auditManager = new UtAuditAgeManager(db, struct);
             long ageNow = auditManager.getAuditAge();
             if (ageNow < lastOwnAgeUsed) {
+                // Исправляем состояния возраста аудита у каждой таблицы (запись в Z_Z_AGE):
+                // копируем состояние с возраста ageNow в возраст lastOwnAgeUsed
+                Map<String, Long> maxIdsNow = new HashMap<>();
+                auditManager.loadMaxIdsFixed(ageNow, maxIdsNow);
+                auditManager.saveMaxIds(lastOwnAgeUsed, maxIdsNow);
+
+                // Чиним отметку ВОЗРАСТА аудита (поле Z_Z_WS_STATE.AGE):
+                // записываем новый возраст lastOwnAgeUsed
                 auditManager.setAuditAge(lastOwnAgeUsed);
                 log.warn("Repair auditAge, " + ageNow + " -> " + lastOwnAgeUsed);
             }
 
+            //
+            log.warn("Repair auditAge - ok");
+            log.warn("----------");
+
             // После применения собственных реплик из очередей QueIn и QueOut отметка возраста ОБРАБОТАННОГО аудита
             // (до какого возраста аудит отмечен как выложенный в очередь QueOut) все ещё содержит устаревшее состояние.
-            // Чиним отметку возраста обработанного аудита.
+            // Чиним отметку возраста ОБРАБОТАННОГО аудита (поле Z_Z_WS_STATE.AUDIT_AGE_DONE).
             long ageQueOutDoneNow = stateManager.getAuditAgeDoneQueOut();
             if (ageQueOutDoneNow < lastOwnAgeUsed) {
                 stateManager.setAuditAgeDoneQueOut(lastOwnAgeUsed);
                 log.warn("Repair ageQueOutDone, " + ageQueOutDoneNow + " -> " + lastOwnAgeUsed);
             }
+
+            //
+            log.warn("Repair ageQueOutDone - ok");
+            log.warn("----------");
         }
 
 
@@ -2365,6 +2416,9 @@ public class JdxReplWs {
         // Чиним генераторы.
         UtPkGeneratorRepair generatorRepair = new UtPkGeneratorRepair(db, struct);
         generatorRepair.repairGenerators();
+        //
+        log.warn("repairGenerators - ok");
+        log.warn("----------");
 
 
         // ---
@@ -2374,8 +2428,8 @@ public class JdxReplWs {
         repairInfoManager.setNoRepair();
 
         //
-        log.warn("Restore from backup: repair done");
-        log.warn("----------");
+        log.warn("Repair after restore from backup - repair done");
+        log.warn("==========");
     }
 
     private boolean isReplicaInBox(String box, long no) throws Exception {

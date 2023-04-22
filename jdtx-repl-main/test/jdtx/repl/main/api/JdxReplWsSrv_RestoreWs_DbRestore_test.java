@@ -357,7 +357,7 @@ public class JdxReplWsSrv_RestoreWs_DbRestore_test extends JdxReplWsSrv_RestoreW
         test_ws1_makeChange_Unimportant();
         test_ws2_makeChange();
         test_ws3_makeChange();
-        // Немного нагрузим 001
+        // Немного нагрузим очередь 001
         test_srv_make001();
 
         // Синхронизация

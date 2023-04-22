@@ -86,7 +86,7 @@ public class UtAuditApplyer {
                     } else {
                         log.warn("Обработка ошибки не выполнена, autoUseRepairReplica: " + autoUseRepairReplica);
                     }
-                    log.warn("----------");
+                    log.warn("==========");
                 }
                 throw (e);
             }

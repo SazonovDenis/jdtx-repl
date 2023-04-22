@@ -269,11 +269,10 @@ public class UtAuditSelector {
         // ОЧЕРЕДЕЙ и ДАННЫХ по ранее оправленным репликам, но не происходит восстановление
         // таблица для хранения возраста таблиц (Z_Z_AGE). Поэтому в этой таблице возможны ПРОПУСКИ,
         // из-за которых и надо ИСКАТЬ предыдущий возраст, а не просто брать age-1
-        long age_prior = auditAgeManager.getAgePrior(age);
+        long age_prior = auditAgeManager.calcAuditAgePrior(age);
         if (age_prior != age - 1) {
             log.warn("loadAutitIntervals, age_prior != age - 1, age: " + age + ", age_prior: " + age_prior);
         }
-        age_prior = age - 1;
 
         //
         Map<String, Long> maxIdsFixed_From = new HashMap<>();

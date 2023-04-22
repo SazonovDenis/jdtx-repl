@@ -10,7 +10,7 @@ INSERT INTO Z_Z_flag_tab (id, trigger_flag) VALUES (1, 1);
 
 
 /*
-Таблица для хранения возраста таблиц
+Возраст таблиц (счетчики аудита)
 */
 CREATE TABLE Z_Z_age (
   age        INT         NOT NULL,

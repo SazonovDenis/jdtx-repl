@@ -18,13 +18,16 @@ import java.util.*;
  */
 public class UtAuditAgeManager {
 
+
     IJdxDbStruct struct;
     Db db;
+
 
     public UtAuditAgeManager(Db db, IJdxDbStruct struct) {
         this.db = db;
         this.struct = struct;
     }
+
 
     /**
      * Узнать отмеченный возраст рабочей станции
@@ -44,6 +47,18 @@ public class UtAuditAgeManager {
     }
 
     /**
+     * Выясняет, какой возраст аудита был пере текущим возрастом.
+     *
+     * @param age текущий возраст аудита
+     * @return Предыдущий возраст аудита
+     */
+    public long calcAuditAgePrior(long age) throws Exception {
+        DataRecord rec = db.loadSql("select max(age) age from " + UtJdx.SYS_TABLE_PREFIX + "AGE where age < " + age).getCurRec();
+        long age_prior = rec.getValueLong("age");
+        return age_prior;
+    }
+
+    /**
      * Проверить и зафиксировать изменения общего возраста рабочей станции,
      * основываясь на состоянии таблиц аудита для каждой таблицы.
      * Общий возраст рабочей станции есть отметка о совокупности возрастов всех таблиц.
@@ -57,13 +72,13 @@ public class UtAuditAgeManager {
         //
         db.startTran();
         try {
-            // Предыдущий записанный возраст аудита для каждой таблицы (максимальный z_id из аудита)
-            Map<String, Long> maxIdsFixed = new HashMap<>();
-            loadMaxIdsFixed(auditAgeFixed, maxIdsFixed);
-
             // Текущий актуальный возраст аудита каждой таблицы
             Map<String, Long> maxIdsCurr = new HashMap<>();
             loadMaxIdsCurr(maxIdsCurr);
+
+            // Предыдущий записанный возраст аудита для каждой таблицы (максимальный z_id из аудита)
+            Map<String, Long> maxIdsFixed = new HashMap<>();
+            loadMaxIdsFixed(auditAgeFixed, maxIdsFixed);
 
             // Увеличился ли общий возраст БД (т.е. изменилась ли хоть одна таблица)?
             boolean wasTableChanged = false;
@@ -125,8 +140,8 @@ public class UtAuditAgeManager {
      * @param auditAge - читаем для этого возраста
      */
     public DateTime loadMaxIdsFixed(long auditAge, Map<String, Long> maxIdsFixed) throws Exception {
-        DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "age where age = " + auditAge).getCurRec();
-        if (rec.getValueLong("id") == 0) {
+        DataRecord rec = db.loadSql("select * from " + UtJdx.SYS_TABLE_PREFIX + "AGE where age = " + auditAge).getCurRec();
+        if (rec.getValueLong("age") != auditAge) {
             throw new XError("Не найдена запись о состоянии аудита, auditAge: " + auditAge);
         }
         //
@@ -145,28 +160,16 @@ public class UtAuditAgeManager {
      *
      * @param auditAge - записываем для этого возраста
      */
-    private void saveMaxIds(long auditAge, Map maxIdsActual) throws Exception {
+    public void saveMaxIds(long auditAge, Map<String, Long> maxIdsActual) throws Exception {
         DateTime dt = new DateTime();
         String table_ids = UtJson.toString(maxIdsActual);
-        String sqlIns = "insert into " + UtJdx.SYS_TABLE_PREFIX + "age(age, dt, table_ids) values (:age, :dt, :table_ids)";
+        String sqlIns = "insert into " + UtJdx.SYS_TABLE_PREFIX + "AGE(age, dt, table_ids) values (:age, :dt, :table_ids)";
         Map params = UtCnv.toMap(
                 "age", auditAge,
                 "dt", dt,
                 "table_ids", table_ids
         );
         db.execSql(sqlIns, params);
-    }
-
-    /**
-     * Выясняет, какой возраст аудита был пере текущим возрастом.
-     *
-     * @param age текущий возраст аудита
-     * @return Предыдущий возраст аудита
-     */
-    public long getAgePrior(long age) throws Exception {
-        DataRecord rec = db.loadSql("select max(age) age from " + UtJdx.SYS_TABLE_PREFIX + "age where age < " + age).getCurRec();
-        long age_prior = rec.getValueLong("age");
-        return age_prior;
     }
 
 
