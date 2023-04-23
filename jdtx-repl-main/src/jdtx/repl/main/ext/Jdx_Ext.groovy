@@ -640,9 +640,11 @@ class Jdx_Ext extends ProjectExt {
 
     void repl_mail_ws(IVariantMap args) {
         String dirName = args.getValueString("dir")
-        long noFrom = args.getValueLong("from", 0)
-        long noTo = args.getValueLong("to", 0)
-        boolean doMarkDone = args.getValueBoolean("mark", false)
+        //long noFrom = args.getValueLong("from", 0)
+        //long noTo = args.getValueLong("to", 0)
+        //boolean doMarkDone = args.getValueBoolean("mark", false)
+        boolean doReceive = args.getValueBoolean("receive", false)
+        boolean doSend = args.getValueBoolean("send", false)
         //
         if (dirName == null || dirName.length() == 0) {
             throw new XError("Не указан [dir] - почтовый каталог")
@@ -661,13 +663,16 @@ class Jdx_Ext extends ProjectExt {
             ws.init()
 
             //
-            System.out.println("Отправляем свои реплики");
-            //ws.replicasSendDir(dirName, noFrom, noTo, doMarkDone)
-            ws.replicasSendDir(dirName)
+            if (doReceive) {
+                System.out.println("Отправляем свои реплики");
+                ws.replicasSendDir(dirName)
+            }
 
             //
-            System.out.println("Забираем входящие реплики");
-            ws.replicasReceiveDir(dirName)
+            if (doSend) {
+                System.out.println("Забираем входящие реплики");
+                ws.replicasReceiveDir(dirName)
+            }
 
         } finally {
             restoreServiceState(serviceState, db, args)
@@ -677,19 +682,21 @@ class Jdx_Ext extends ProjectExt {
 
     void repl_mail_srv(IVariantMap args) {
         String dirName = args.getValueString("dir")
-        long noFrom = args.getValueLong("from", 0)
-        long noTo = args.getValueLong("to", 0)
-        boolean doMarkDone = args.getValueBoolean("mark", false)
-        long destinationWsId = args.getValueLong("ws")
+        //long noFrom = args.getValueLong("from", 0)
+        //long noTo = args.getValueLong("to", 0)
+        //boolean doMarkDone = args.getValueBoolean("mark", false)
+        //long destinationWsId = args.getValueLong("ws")
+        boolean doReceive = args.getValueBoolean("receive", false)
+        boolean doSend = args.getValueBoolean("send", false)
         //
         if (dirName == null || dirName.length() == 0) {
             throw new XError("Не указан [dir] - почтовый каталог")
         }
         UtFile.unnormPath(dirName) + "/"
         //
-        if (doMarkDone && destinationWsId == 0L) {
-            throw new XError("Не указан [ws] - код рабочей станции, для которой готовятся реплики")
-        }
+        //if (doMarkDone && destinationWsId == 0L) {
+        //    throw new XError("Не указан [ws] - код рабочей станции, для которой готовятся реплики")
+        //}
 
         // БД
         Db db = app.service(ModelService.class).model.getDb()
@@ -704,12 +711,16 @@ class Jdx_Ext extends ProjectExt {
             srv.init()
 
             //
-            System.out.println("Чтение входящих очередей");
-            srv.srvReplicasReceiveDir(dirName)
+            if (doReceive) {
+                System.out.println("Чтение входящих очередей");
+                srv.srvReplicasReceiveDir(dirName)
+            }
 
             //
-            System.out.println("Рассылка исходящих очередей");
-            srv.srvReplicasSendDir(dirName)
+            if (doSend) {
+                System.out.println("Рассылка исходящих очередей");
+                srv.srvReplicasSendDir(dirName)
+            }
         } finally {
             restoreServiceState(serviceState, db, args)
             db.disconnect()
