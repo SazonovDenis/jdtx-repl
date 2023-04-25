@@ -8,7 +8,7 @@ load("../jdtx-state/project.jc")
 //
 project.name = "jdtx-repl"
 project.package_root = "jdtx.repl"
-project.version="882"
+project.version="883"
 
 //
 include "wax-root-project"
@@ -31,35 +31,35 @@ project.event("waxBeforeProduct") {
 
 
 project.event("waxAfterProduct") { m->
-    // пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
+    // В дистрибутиве лишний (иначе затирает наши настройки при обновлении)
     ant.delete(file: m.distr_dir + "/web/WEB-INF/_db-ini.rt")
     ant.delete(file: m.distr_dir + "/web/WEB-INF/db-ini.rt")
 
-    // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ jc.bat (пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
+    // Наш вариант jc.bat (с настройками памяти)
     ant.delete(file: m.distr_dir + "/web/WEB-INF/jc.bat")
     ant.copy(file: wd("install/jc.bat"), tofile: m.distr_dir + "/web/WEB-INF/jc.bat")
     //
     //ant.copy(file: wd("install/run.bat"), tofile: m.distr_dir + "/run.bat_")
     //ant.copy(file: wd("install/run-jc.bat"), tofile: m.distr_dir + "/run-jc.bat")
 
-    // пїЅпїЅпїЅпїЅ - project.jc пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ inno
+    // Глюк - project.jc не попадает в нужное место на момент запуска inno
     ant.copy(file: wd("install/project.jc"), tofile: m.distr_dir + "/web/WEB-INF/project.jc")
 
-    // jc пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ db-create
+    // jc без команд db-create
     ant.delete(file: m.distr_dir + "/web/WEB-INF/scripts/db-project-product.jc")
     ant.copy(file: wd("install/db-project-product.jc"), tofile: m.distr_dir + "/web/WEB-INF/scripts/db-project-product.jc")
 
 
-    // пїЅпїЅпїЅпїЅпїЅ inno
+    // Через inno
     inno()
     //inno_jre()
 }
 
 do_inno = {boolean installJre ->
-    // пїЅпїЅпїЅпїЅпїЅ inno
+    // Через inno
     ut.runexe(showout: true, cmd: "cmd /C copy install\\install.iss install\\temp2.iss")
 
-    // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+    // номер версии
     //ut.runexe(showout: true, cmd: "cmd /C hg log -l 1 --template {rev} > install\\rev.txt")
     //ut.runexe(showout: true, cmd: "tfu replstrf -i install\\temp2.iss -o install\\temp1.iss -s0 _CFG_APP_VERSION  -r install\\rev.txt -u")
     def version = project.version
@@ -68,14 +68,14 @@ do_inno = {boolean installJre ->
 
     //
     if (installJre) {
-        // пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Java
+        // с дистрибутивом Java
         ut.runexe(showout: true, cmd: "tfu replstr -i install\\temp1.iss -o install\\temp0.iss -s0 _CFG_INSTALL_JRE -r0 installJre -u")
     } else {
-        // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Java
+        // без дистрибутива Java
         ut.runexe(showout: true, cmd: "tfu replstr -i install\\temp1.iss -o install\\temp0.iss -s0 _CFG_INSTALL_JRE -r0 noInstallJre -u")
     }
 
-    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    // соберем дистрибутив
     ut.runexe(showout: true, cmd: "cmd /C iscc install\\temp0.iss")
 
     //
@@ -86,7 +86,7 @@ do_inno = {boolean installJre ->
 }
 
 //
-inno = cm("inno пїЅпїЅпїЅ jre",
+inno = cm("inno без jre",
 ) {
   do_inno(false)
 }
