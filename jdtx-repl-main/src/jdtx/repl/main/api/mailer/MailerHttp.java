@@ -41,8 +41,7 @@ public class MailerHttp implements IMailer {
 
     protected static Log log = LogFactory.getLog("jdtx.MailerHttp");
 
-    // 32 Mb
-    public static final int HTTP_FILE_MAX_SIZE = 1024 * 1024 * 32;
+    public static final int HTTP_FILE_MAX_SIZE = 1024 * 1024 * 32; // 32 Mb
     //int HTTP_FILE_MAX_SIZE = 512;
 
     public static final String REPL_PROTOCOL_VERSION = "04";
@@ -71,8 +70,11 @@ public class MailerHttp implements IMailer {
         //
         localDirTmp = UtFile.unnormPath(localDirTmp) + "/";
         //
-        UtFile.mkdirs(localDirTmp);
         UtFile.cleanDir(localDirTmp);
+        // todo нехорошая зависимость у мейлера от других модулей, которые определяют перечень ящиков
+        UtFile.mkdirs(localDirTmp + "/from");
+        UtFile.mkdirs(localDirTmp + "/to");
+        UtFile.mkdirs(localDirTmp + "/to001");
         //
         rnd = new Random();
         rnd.setSeed(new DateTime().getMillis());
@@ -321,89 +323,88 @@ public class MailerHttp implements IMailer {
 
         // Сколько частей надо скачивать
         long filePartsCount = (long) file_info.get("partsCount");
-        long totalBytes = (long) file_info.get("totalBytes");
 
         // Если частей много - сообщим в log.info
         if (filePartsCount > 1) {
             log.info("mailer.receive, filePartsCount: " + filePartsCount);
         }
 
-        // Замечание: файл replicaFile может уже существует - от предыдущих попыток скачать
-        String localFileName = "~" + getFileName(no);
-        File replicaFile = new File(localDirTmp + localFileName);
 
-        // Большие письма получаем с докачкой, поэтому сначала выясняем, что уже успели скачать
-        long receivedBytes = 0;
-        if (replicaFile.exists()) {
-            receivedBytes = replicaFile.length();
-        }
-        //
-        long filePart = (receivedBytes + HTTP_FILE_MAX_SIZE - 1) / HTTP_FILE_MAX_SIZE;
-        long filePartFrac = receivedBytes % HTTP_FILE_MAX_SIZE;
-
-        // Прверяем корректность разделения на порции
-        if (filePartFrac != 0 && receivedBytes < totalBytes) {
-            // Порция не докачана и не является частью
-            log.warn("mailer.receive, not whole received part: " + filePart + ", filePartFrac: " + filePartFrac + ", receive bytes: " + receivedBytes);
-            // Начнем скачку заново
-            replicaFile.delete();
-            receivedBytes = 0;
-            filePart = 0;
-        }
-
-        //
-        if (filePartsCount > 1 && receivedBytes > 0) {
-            log.info("mailer.receive, already received part: " + filePart + ", receive bytes: " + receivedBytes + "/" + totalBytes);
-        }
-
-        // Закачиваем (по частям)
-        HttpClient httpclient = HttpClientBuilder.create().build();
-
-
-        //
-        while (receivedBytes < totalBytes) {
-            //
-            Map info = new HashMap<>();
-            info.put("box", box);
-            info.put("no", no);
-            info.put("part", filePart);
-            HttpGet httpGet = createHttpGet("repl_receive_part", info);
-            //
-            HttpResponse response = httpclient.execute(httpGet);
-
-            //
-            handleHttpErrors(response);
-
-            // Физическая скачка происходит в методе response.getEntity.
-            // Поэтому buff получается сразу готовым, его можно безопасно дописывать в конец частично скачанному.
-            HttpEntity entity = response.getEntity();
-            byte[] buff = EntityUtils.toByteArray(entity);
-            //
-            FileOutputStream outputStream = new FileOutputStream(replicaFile, true);
-            outputStream.write(buff);
-            outputStream.close();
-
-            //
-            filePart = filePart + 1;
-            receivedBytes = receivedBytes + buff.length;
-
-            //
-            String filePart_str = "";
-            if (filePartsCount > 1) {
-                filePart_str = ", part: " + filePart + "/" + filePartsCount;
-            }
-            String receivedBytes_str;
-            if (receivedBytes != totalBytes) {
-                receivedBytes_str = receivedBytes + "/" + totalBytes;
+        // Докачиваем части, которых нет
+        long filePartNo = 0;
+        while (filePartNo < filePartsCount) {
+            File partFileTmp = new File(localDirTmp + getPartName(box, no, filePartNo));
+            if (partFileTmp.exists()) {
+                log.info("mailer.receive, already received no: " + no + ", box: " + box + ", part: " + filePartNo + "/" + filePartsCount);
             } else {
-                receivedBytes_str = String.valueOf(receivedBytes);
+                receiveFilePart(box, no, filePartNo);
+
+                //
+                String filePartInfo = "";
+                if (filePartsCount > 1) {
+                    filePartInfo = ", part: " + filePartNo + "/" + filePartsCount;
+                }
+                log.info("mailer.receive, received no: " + no + ", box: " + box + filePartInfo);
             }
-            log.info("mailer.receive, no: " + no + ", box: " + box + filePart_str + ", receivedBytes: " + receivedBytes_str);
+
+            //
+            filePartNo = filePartNo + 1;
         }
 
-        //
+
+        // ---
+        // Все части скачаны - объединяем в один файл
+        File replicaFileTmp = new File(localDirTmp + getFileName(box, no));
+
+        // Есть ранее скачанный файл реплики - удаляем
+        if (replicaFileTmp.exists()) {
+            log.info("mailer.receive, delete previously received file");
+            if (!replicaFileTmp.delete()) {
+                throw new XError("Unable to delete previously received file: " + replicaFileTmp.getAbsolutePath());
+            }
+        }
+
+        // Собираем порции в один файл
+        FileOutputStream outputStream = new FileOutputStream(replicaFileTmp);
+        try {
+            //
+            filePartNo = 0;
+            while (filePartNo < filePartsCount) {
+                File partFileTmp = new File(localDirTmp + getPartName(box, no, filePartNo));
+
+                // Читаем и копируем файл порции
+                FileInputStream inputStream = new FileInputStream(partFileTmp);
+                try {
+                    byte[] buff = new byte[HTTP_FILE_MAX_SIZE];
+                    while (inputStream.available() != 0) {
+                        // Читаем файл порции
+                        int partSize = inputStream.read(buff);
+
+                        // Копируем порцию
+                        outputStream.write(buff, 0, partSize);
+                    }
+                } finally {
+                    inputStream.close();
+                }
+
+
+                // Удаляем файл порции
+                if (!partFileTmp.delete()) {
+                    throw new XError("Unable to delete part: " + filePartNo + ", file: " + partFileTmp.getAbsolutePath());
+                }
+
+                //
+                filePartNo = filePartNo + 1;
+            }
+        } finally {
+            outputStream.close();
+        }
+
+
+        // ---
+        // Реплика скачана
         IReplica replica = new ReplicaFile();
-        replica.setData(replicaFile);
+        replica.setData(replicaFileTmp);
 
         //
         replica.getInfo().fromJSONObject(file_info);
@@ -540,9 +541,36 @@ public class MailerHttp implements IMailer {
     }
 
 
-    byte[] readFilePart(File file, long pos, int file_max_size) throws IOException {
+    private void receiveFilePart(String box, long no, long filePartNo) throws Exception {
+        HttpClient httpclient = HttpClientBuilder.create().build();
+
+        //
+        Map info = new HashMap<>();
+        info.put("box", box);
+        info.put("no", no);
+        info.put("part", filePartNo);
+        HttpGet httpGet = createHttpGet("repl_receive_part", info);
+        //
+        HttpResponse response = httpclient.execute(httpGet);
+
+        //
+        handleHttpErrors(response);
+
+        // Физическая скачка происходит в методе response.getEntity.
+        // Поэтому buff получается сразу готовым, его можно безопасно дописывать в конец частично скачанному.
+        HttpEntity entity = response.getEntity();
+        byte[] buff = EntityUtils.toByteArray(entity);
+        //
+        File partFileTmp = new File(localDirTmp + getPartName(box, no, filePartNo));
+        FileOutputStream outputStream = new FileOutputStream(partFileTmp);
+        outputStream.write(buff);
+        outputStream.close();
+    }
+
+
+    byte[] readFilePart(File file, long pos, int fileMaxSize) throws IOException {
         long lenMax = file.length();
-        int len = (int) Math.min(lenMax - pos, file_max_size);
+        int len = (int) Math.min(lenMax - pos, fileMaxSize);
         byte[] buff = new byte[len];
         FileInputStream fis = new FileInputStream(file);
         fis.skip(pos);
@@ -814,8 +842,12 @@ public class MailerHttp implements IMailer {
         return urlRes;
     }
 
-    public static String getFileName(long no) {
-        return UtString.padLeft(String.valueOf(no), 9, '0') + ".zip";
+    public static String getFileName(String box, long no) {
+        return "/" + box + "/" + UtString.padLeft(String.valueOf(no), 9, '0') + ".zip";
+    }
+
+    public static String getPartName(String box, long no, long part) {
+        return "/" + box + "/" + UtString.padLeft(String.valueOf(no), 9, '0') + "." + UtString.padLeft(String.valueOf(part), 3, '0');
     }
 
     private HttpGet createHttpGet(String funcName, Map params) {
