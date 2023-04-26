@@ -70,8 +70,7 @@ public class MailerHttp implements IMailer {
         //
         localDirTmp = UtFile.unnormPath(localDirTmp) + "/";
         //
-        UtFile.cleanDir(localDirTmp);
-        // todo нехорошая зависимость у мейлера от других модулей, которые определяют перечень ящиков
+        // todo нехорошая зависимость мейлера от других модулей, которые определяют перечень ящиков
         UtFile.mkdirs(localDirTmp + "/from");
         UtFile.mkdirs(localDirTmp + "/to");
         UtFile.mkdirs(localDirTmp + "/to001");
