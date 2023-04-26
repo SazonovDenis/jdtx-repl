@@ -306,6 +306,14 @@ public class MailerHttp implements IMailer {
         return info;
     }
 
+    String getPartInfoStr(long filePartNo, long filePartsCount) {
+        String filePartInfo = "";
+        if (filePartsCount > 1) {
+            filePartInfo = ", part: " + (filePartNo + 1) + "/" + filePartsCount;
+        }
+        return filePartInfo;
+    }
+
     @Override
     public IReplica receive(String box, long no) throws Exception {
         log.debug("mailer.receive, no: " + no + ", box: " + box + ", remoteUrl: " + remoteUrl);
@@ -320,6 +328,23 @@ public class MailerHttp implements IMailer {
             throw new XError("mailer.receive, protocolVersion.expected: " + REPL_PROTOCOL_VERSION + ", actual: " + protocolVersion);
         }
 
+
+        // ---
+        // Есть ранее скачанный файл реплики - удаляем
+        File replicaFileTmp = new File(localDirTmp + getFileName(box, no));
+
+        //
+        if (replicaFileTmp.exists()) {
+            log.info("mailer.receive, delete previously received file");
+            if (!replicaFileTmp.delete()) {
+                throw new XError("Unable to delete previously received file: " + replicaFileTmp.getAbsolutePath());
+            }
+        }
+
+
+        // ---
+        // Скачиваем по частям
+
         // Сколько частей надо скачивать
         long filePartsCount = (long) file_info.get("partsCount");
 
@@ -328,22 +353,17 @@ public class MailerHttp implements IMailer {
             log.info("mailer.receive, filePartsCount: " + filePartsCount);
         }
 
-
         // Докачиваем части, которых нет
         long filePartNo = 0;
         while (filePartNo < filePartsCount) {
             File partFileTmp = new File(localDirTmp + getPartName(box, no, filePartNo));
             if (partFileTmp.exists()) {
-                log.info("mailer.receive, already received no: " + no + ", box: " + box + ", part: " + filePartNo + "/" + filePartsCount);
+                log.info("mailer.receive, already received no: " + no + ", box: " + box + getPartInfoStr(filePartNo, filePartsCount));
             } else {
                 receiveFilePart(box, no, filePartNo);
 
                 //
-                String filePartInfo = "";
-                if (filePartsCount > 1) {
-                    filePartInfo = ", part: " + filePartNo + "/" + filePartsCount;
-                }
-                log.info("mailer.receive, received no: " + no + ", box: " + box + filePartInfo);
+                log.info("mailer.receive, received no: " + no + ", box: " + box + getPartInfoStr(filePartNo, filePartsCount));
             }
 
             //
@@ -352,18 +372,7 @@ public class MailerHttp implements IMailer {
 
 
         // ---
-        // Все части скачаны - объединяем в один файл
-        File replicaFileTmp = new File(localDirTmp + getFileName(box, no));
-
-        // Есть ранее скачанный файл реплики - удаляем
-        if (replicaFileTmp.exists()) {
-            log.info("mailer.receive, delete previously received file");
-            if (!replicaFileTmp.delete()) {
-                throw new XError("Unable to delete previously received file: " + replicaFileTmp.getAbsolutePath());
-            }
-        }
-
-        // Собираем порции в один файл
+        // Все порции скачаны - собираем порции в один файл
         FileOutputStream outputStream = new FileOutputStream(replicaFileTmp);
         try {
             //
@@ -393,6 +402,11 @@ public class MailerHttp implements IMailer {
                 }
 
                 //
+                if (filePartsCount > 1) {
+                    log.info("mailer.receive, merge parts" + getPartInfoStr(filePartNo, filePartsCount));
+                }
+
+                //
                 filePartNo = filePartNo + 1;
             }
         } finally {
@@ -401,7 +415,9 @@ public class MailerHttp implements IMailer {
 
 
         // ---
-        // Реплика скачана
+        // Файл скачан, формируем и проверяем реплику
+
+        // Реплика
         IReplica replica = new ReplicaFile();
         replica.setData(replicaFileTmp);
 
@@ -411,6 +427,7 @@ public class MailerHttp implements IMailer {
         // Проверяем целостность скачанного
         String crcInfo = (String) file_info.get("crc");
         UtJdx.checkReplicaCrc(replica, crcInfo);
+
 
         //
         return replica;
