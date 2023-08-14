@@ -1831,6 +1831,7 @@ public class JdxReplWs {
         // Очистка файлов, котрорые есть в каталоге, но которых нет в базе
         UtRepl.clearTrashFiles(queIn);
         UtRepl.clearTrashFiles(queIn001);
+        UtRepl.clearEmptyFiles(queOut);
     }
 
     /**
