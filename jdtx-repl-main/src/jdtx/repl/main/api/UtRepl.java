@@ -784,7 +784,7 @@ public class UtRepl {
             //
             log.info(dir.getCanonicalPath() + ", files: " + filesInDir.size());
 
-            // Отсортируем, чтобы команды в результате появлялись в том порядке, как поступали в очередь реплик (или наоборот - смотря как прпросили)
+            // Отсортируем, чтобы команды в результате появлялись в том порядке, как поступали в очередь реплик (или наоборот - смотря как попросили)
             if (findLastOne) {
                 filesInDir.sort(NameFileComparator.NAME_REVERSE);
             } else {
