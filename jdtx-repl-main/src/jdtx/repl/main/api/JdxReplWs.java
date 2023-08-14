@@ -2067,7 +2067,7 @@ public class JdxReplWs {
                 repairQueByDir(queIn001, noQueIn001, noQueIn001Dir);
             }
         } catch (Exception e) {
-            log.error("repairQueByDir, queIn001, error: " + e.getMessage());
+            throw new XError("repairQueByDir, queIn001, error: " + e.getMessage());
         }
         // Теперь входная очередь QueIn001 такая
         noQueIn001 = queIn001.getMaxNo();
@@ -2082,7 +2082,7 @@ public class JdxReplWs {
                 repairQueByDir(queIn, noQueIn, noQueInDir);
             }
         } catch (Exception e) {
-            log.error("repairQueByDir: queIn, error: " + e.getMessage());
+            throw new XError("repairQueByDir: queIn, error: " + e.getMessage());
         }
         // Теперь входная очередь QueIn такая
         noQueIn = queIn.getMaxNo();
@@ -2097,7 +2097,7 @@ public class JdxReplWs {
                 repairQueByDir(queOut, noQueOut, noQueOutDir);
             }
         } catch (Exception e) {
-            log.error("repairQueByDir: queOut, error: " + e.getMessage());
+            throw new XError("repairQueByDir: queOut, error: " + e.getMessage());
         }
         // Теперь исходящая очередь такая
         noQueOut = queOut.getMaxNo();
@@ -2424,9 +2424,11 @@ public class JdxReplWs {
         // Убираем отметку "ремонт начат".
         // После этого ремонт считается завершенным.
         repairLockFileManager.repairLockFileDelete();
+
+        // Отметка на сервер
         repairInfoManager.setNoRepair();
 
-        //
+        // ---
         log.warn("Repair after restore from backup - repair done");
         log.warn("==========");
     }

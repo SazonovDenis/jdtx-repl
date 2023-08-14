@@ -176,6 +176,7 @@ repl_app_update = cm("Послать сигнал на обновление ПО
 repl_snapshot_request = cm("Запрашивает shapshot таблиц с рабочей станции",
         "ws": [value: null, help: "У какой рабочей станции запрашиваем"],
         "tables": [value: null, help: "Имена таблиц, через запятую"],
+        "que": [value: null, help: "В какую очередь отправить реплику со снимком"]
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_snapshot_request(args)

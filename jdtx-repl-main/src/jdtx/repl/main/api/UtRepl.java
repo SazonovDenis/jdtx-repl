@@ -784,7 +784,7 @@ public class UtRepl {
             //
             log.info(dir.getCanonicalPath() + ", files: " + filesInDir.size());
 
-            // Отсортируем, чтобы команды в результате появлялись в том порядке, как поступали в очередь реплик (или наоборот - смотря как прпросили)
+            // Отсортируем, чтобы команды в результате появлялись в том порядке, как поступали в очередь реплик (или наоборот - смотря как попросили)
             if (findLastOne) {
                 filesInDir.sort(NameFileComparator.NAME_REVERSE);
             } else {
@@ -1057,6 +1057,44 @@ public class UtRepl {
                 File trashFile = new File(que.getBaseDir() + "/trash/" + getFileNameTrash(trashNo));
                 FileUtils.moveFile(actualFile, trashFile);
                 log.warn("clearTrashFiles, move, actualFile: " + actualFile.getAbsolutePath() + ", trashFile: " + trashFile.getAbsolutePath());
+            }
+            //
+            trashNo = trashNo - 1;
+        }
+    }
+
+    /**
+     * Удаление файлов нулевого размера.
+     * Это бывает по разным причинам.
+     */
+    public static void clearEmptyFiles(IJdxQue que) throws Exception {
+        log.info("clearEmptyFiles, que: " + que.getQueName() + ", baseDir: " + que.getBaseDir());
+
+        // Сколько реплик есть в рабочем каталоге?
+        long trashNo = que.getMaxNoFromDir();
+
+        if (trashNo < 0) {
+            throw new XError("que.getMaxNoFromDir() < 0");
+        }
+
+        // Сколько реплик есть у нас в базе?
+        long clearFromNo = que.getMaxNo();
+
+        // Лишних - убираем
+        while (trashNo > clearFromNo) {
+            log.warn("clearEmptyFiles, replica.no: " + trashNo);
+
+            // Файл реплики
+            String actualFileName = JdxStorageFile.getFileName(trashNo);
+            File actualFile = new File(que.getBaseDir() + actualFileName);
+
+            // Переносим файл в мусорку
+            if (actualFile.exists() && actualFile.length() == 0) {
+                if (actualFile.delete()) {
+                    log.warn("clearEmptyFiles, move, actualFile: " + actualFile.getAbsolutePath());
+                } else {
+                    log.warn("clearEmptyFiles, move, actualFile: " + actualFile.getAbsolutePath());
+                }
             }
             //
             trashNo = trashNo - 1;
