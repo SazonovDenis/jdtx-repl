@@ -8,6 +8,10 @@ import org.joda.time.*;
 import java.io.*;
 import java.util.*;
 
+/**
+ * Состояние ремонта: требуется, когда начат и т.п.
+ * Реализовано через создание и чтение файла блокировки "repairBackup.lock"
+ */
 public class JdxRepairLockFileManager {
 
     String dataRoot;
@@ -21,6 +25,9 @@ public class JdxRepairLockFileManager {
         return lockFile;
     }
 
+    /**
+     * Перейти в состояние "ремонт начат"
+     */
     public void repairLockFileCreate(Map<String, Object> params) throws Exception {
         File lockFile = getRepairLockFile();
 
@@ -49,6 +56,9 @@ public class JdxRepairLockFileManager {
         UtFile.saveString(lockFileStr, lockFile);
     }
 
+    /**
+     * Снять состояние "ремонт начат"
+     */
     public void repairLockFileDelete() {
         File lockFile = getRepairLockFile();
 
@@ -57,6 +67,11 @@ public class JdxRepairLockFileManager {
         }
     }
 
+    /**
+     * Информация о ремонте в виде строки
+     *
+     * @return содержимое файла getRepairLockFile()
+     */
     public String repairLockFileStr() throws Exception {
         File lockFile = getRepairLockFile();
         if (lockFile.exists()) {
@@ -66,6 +81,11 @@ public class JdxRepairLockFileManager {
         }
     }
 
+    /**
+     * Информация о ремонте в виде Map
+     *
+     * @return разобранное содержимое файла getRepairLockFile()
+     */
     public Map repairLockFileMap() throws Exception {
         File lockFile = getRepairLockFile();
         if (lockFile.exists()) {
@@ -77,13 +97,12 @@ public class JdxRepairLockFileManager {
         }
     }
 
+    /**
+     * @return guid ремонта
+     */
     public String repairLockFileGuid() throws Exception {
-        File lockFile = getRepairLockFile();
-        if (lockFile.exists()) {
-            Map lockFileMap = new HashMap();
-            String lockFileStr = UtFile.loadString(getRepairLockFile());
-            lockFileStr = lockFileStr.substring(1, lockFileStr.length() - 1);
-            UtCnv.toMap(lockFileMap, lockFileStr, ",", "=");
+        Map lockFileMap = repairLockFileMap();
+        if (lockFileMap != null) {
             return (String) lockFileMap.get("guid");
         } else {
             return null;
