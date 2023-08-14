@@ -1684,7 +1684,6 @@ public class JdxReplWs {
 
         //
         sendInternal(mailer);
-
     }
 
 
