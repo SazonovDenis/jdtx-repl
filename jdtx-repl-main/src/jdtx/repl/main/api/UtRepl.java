@@ -1063,6 +1063,44 @@ public class UtRepl {
         }
     }
 
+    /**
+     * Удаление файлов нулевого размера.
+     * Это бывает по разным причинам.
+     */
+    public static void clearEmptyFiles(IJdxQue que) throws Exception {
+        log.info("clearEmptyFiles, que: " + que.getQueName() + ", baseDir: " + que.getBaseDir());
+
+        // Сколько реплик есть в рабочем каталоге?
+        long trashNo = que.getMaxNoFromDir();
+
+        if (trashNo < 0) {
+            throw new XError("que.getMaxNoFromDir() < 0");
+        }
+
+        // Сколько реплик есть у нас в базе?
+        long clearFromNo = que.getMaxNo();
+
+        // Лишних - убираем
+        while (trashNo > clearFromNo) {
+            log.warn("clearEmptyFiles, replica.no: " + trashNo);
+
+            // Файл реплики
+            String actualFileName = JdxStorageFile.getFileName(trashNo);
+            File actualFile = new File(que.getBaseDir() + actualFileName);
+
+            // Переносим файл в мусорку
+            if (actualFile.exists() && actualFile.length() == 0) {
+                if (actualFile.delete()) {
+                    log.warn("clearEmptyFiles, move, actualFile: " + actualFile.getAbsolutePath());
+                } else {
+                    log.warn("clearEmptyFiles, move, actualFile: " + actualFile.getAbsolutePath());
+                }
+            }
+            //
+            trashNo = trashNo - 1;
+        }
+    }
+
     private static String getFileNameTrash(long no) {
         DateTime dt = new DateTime();
         return UtString.padLeft(String.valueOf(no), 9, '0') + "-" + dt.toString("YYYY.MM.dd_HH.mm.ss.SSS") + ".zip";
