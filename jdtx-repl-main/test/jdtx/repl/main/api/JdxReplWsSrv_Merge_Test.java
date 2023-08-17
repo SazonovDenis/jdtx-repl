@@ -470,7 +470,7 @@ public class JdxReplWsSrv_Merge_Test extends JdxReplWsSrv_Test {
 
     private void deletePlanFiles(String filePrefix) {
         new File(filePrefix + ".plan.json").delete();
-        new File(filePrefix + ".plan.json.duplicates").delete();
+        new File(filePrefix + ".plan.duplicates.json").delete();
         new File(filePrefix + ".plan.result.zip").delete();
     }
 

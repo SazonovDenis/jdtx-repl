@@ -72,6 +72,10 @@ class Merge_Ext extends ProjectExt {
         }
 
         //
+        String ext = UtFile.ext(resultFileName)
+        String resultFileNameDuplicates = resultFileName.substring(0, resultFileName.length() - ext.length() - 1) + ".duplicates." + ext
+
+        //
         File resultFile = new File(resultFileName)
 
         // Не затирать существующий
@@ -110,7 +114,7 @@ class Merge_Ext extends ProjectExt {
             // Сериализация
             UtRecMergePlanRW reader = new UtRecMergePlanRW()
             reader.writePlans(mergePlans, resultFileName)
-            reader.writeDuplicates(duplicates, resultFileName + ".duplicates")
+            reader.writeDuplicates(duplicates, resultFileNameDuplicates)
 
             // Печатаем задачи на слияние
             if (doPrintResult) {
