@@ -166,9 +166,9 @@ class Jdx_Ext extends ProjectExt {
 
     void repl_create(IVariantMap args) {
         long wsId = args.getValueLong("ws")
-        String name = args.getValueString("name")
         String guid = args.getValueString("guid")
         String mailUrl = args.getValueString("mail")
+        String name = args.getValueString("name")
         //
         if (wsId == 0L) {
             throw new XError("Не указан [ws] - код рабочей станции")
@@ -1272,7 +1272,7 @@ class Jdx_Ext extends ProjectExt {
         ReplServiceState serviceState = saveServiceState(db, args)
         try {
             if (destinationWsId != 0L) {
-                // Запросили для конкретной станциии.
+                // Запросили для конкретной станции.
                 // Отправляем на станцию через сервер, в очередь QUE_OUT001
                 JdxReplSrv srv = new JdxReplSrv(db)
                 srv.init()
