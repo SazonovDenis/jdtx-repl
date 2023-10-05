@@ -177,6 +177,19 @@ class Jdx_Ext_Test extends JcTestCase {
     }
 
     @Test
+    void repl_replica_recreate() {
+        IVariantMap args = new VariantMap()
+        args.put("no", 74)
+        args.put("file", "temp/_000000074.zip")
+        extWs2.repl_replica_recreate(args)
+
+        println()
+        args = new VariantMap()
+        args.put("no", 73)
+        extWs2.repl_replica_recreate(args)
+    }
+
+    @Test
     void repl_replica_request() {
         IVariantMap args = new VariantMap()
         //args.put("ws", 2)

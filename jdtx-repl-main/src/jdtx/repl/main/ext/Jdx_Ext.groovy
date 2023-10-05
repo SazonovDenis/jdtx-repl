@@ -660,22 +660,27 @@ class Jdx_Ext extends ProjectExt {
             // Выполнение команды
             try {
                 if (replicaFileName == null || replicaFileName.length() == 0) {
+                    // Чиним файл в очереди
+                    IReplica replica = ws.recreateQueOutReplica(no)
+
+                    //
+                    println("Replica new file:")
+                    JdxQue.infoReplica(replica)
+
+                    //
+                    println("Replica file updated in que")
+                } else {
                     // Чиним файл реплики
                     IReplica replica = ws.recreateReplica(no)
 
                     //
+                    println("Replica new file:")
                     JdxQue.infoReplica(replica)
 
                     // Копируем куда просили
                     File fileDest = new File(replicaFileName)
                     FileUtils.copyFile(replica.getData(), fileDest)
-                    System.out.println("Replica file copied: " + fileDest.getCanonicalPath())
-                } else {
-                    // Чиним файл в очереди
-                    IReplica replica = ws.recreateQueOutReplica(no)
-
-                    //
-                    JdxQue.infoReplica(replica)
+                    println("Replica new file copied: " + fileDest.getCanonicalPath())
                 }
 
             } catch (Exception e) {
@@ -684,7 +689,6 @@ class Jdx_Ext extends ProjectExt {
             }
 
         } finally {
-            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }

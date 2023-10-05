@@ -418,7 +418,7 @@ public class JdxReplWs {
      *
      * @param no Номер реплики в очереди queOut
      */
-    public void recreateQueOutReplica(long no) throws Exception {
+    public IReplica recreateQueOutReplica(long no) throws Exception {
         log.info("recreateQueOutReplica, no: " + no);
 
         //
@@ -426,6 +426,9 @@ public class JdxReplWs {
 
         //
         queOut.put(replicaRecreated, no);
+
+        //
+        return replicaRecreated;
     }
 
 

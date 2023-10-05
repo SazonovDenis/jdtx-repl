@@ -100,35 +100,38 @@ public class JdxStorageFile implements IJdxReplicaStorage, IJdxStorageFile {
         UtJdx.validateReplicaFields(replica);
 
         // Переносим файл на постоянное место
-        String actualFileName = getFileName(no);
-        File actualFile = new File(baseDir + actualFileName);
+        String replicaFileName = getFileName(no);
+        File oldFile = new File(baseDir + replicaFileName);
         //
-        File replicaFile = replica.getData();
+        File newFile = replica.getData();
 
         // Файл должен быть - иначе незачем делать put
-        if (replicaFile == null) {
-            throw new XError("Invalid replica.file == null");
+        if (newFile == null) {
+            throw new XError("New replica file == null");
         }
 
         // Если файл, указанный у реплики не совпадает с постоянным местом хранения, то файл переносим на постоянное место.
-        if (replicaFile.getCanonicalPath().compareTo(actualFile.getCanonicalPath()) != 0) {
+        if (newFile.getCanonicalPath().compareTo(oldFile.getCanonicalPath()) != 0) {
             // Какой-то файл уже занимает постоянное место?
-            if (actualFile.exists()) {
-                log.warn("ActualFile already exists: " + actualFile.getAbsolutePath());
+            if (oldFile.exists()) {
+                log.warn("Replace file: " + oldFile.getAbsolutePath());
                 //
                 String crcInfo = replica.getInfo().getCrc();
-                String crcActualFile = UtJdx.getMd5File(actualFile);
-                log.warn("replicaInfo.crc: " + crcInfo + ", actualFile.crc: " + crcActualFile + ", replicaFile.length: " + replicaFile.length() + ", actualFile.length: " + actualFile.length());
+                String crcNewFile = UtJdx.getMd5File(newFile);
+                String crcOldFile = UtJdx.getMd5File(oldFile);
+                log.warn("New info crc: " + crcInfo);
+                log.warn("New file crc: " + crcNewFile + ", length: " + newFile.length());
+                log.warn("Old file crc: " + crcOldFile + ", length: " + oldFile.length());
                 //
                 // Удаялем старый файл
-                if (!actualFile.delete()) {
-                    throw new IOException("Unable to delete file: " + actualFile.getAbsolutePath());
+                if (!oldFile.delete()) {
+                    throw new IOException("Unable to delete file: " + oldFile.getAbsolutePath());
                 }
             }
             // Переносим файл на постоянное место
-            FileUtils.moveFile(replicaFile, actualFile);
+            FileUtils.moveFile(newFile, oldFile);
             // Пусть в реплике теперь указан правильный файл
-            replica.setData(actualFile);
+            replica.setData(oldFile);
         }
     }
 

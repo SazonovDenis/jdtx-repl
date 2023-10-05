@@ -95,7 +95,7 @@ public class UtAuditSelector {
 
     void readAuditData_ByInterval(String tableName, String tableFields, long fromId, long toId, JdxReplicaWriterXml dataWriter) throws Exception {
         // Serializer
-        IJdxDataSerializer dataSerializer = db.getApp().service(DataSerializerService.class);
+        IJdxDataSerializer dataSerializer = db.getApp().service(DataSerializerService.class).getInstance();
 
         // Таблица и поля в Serializer-е
         IJdxTable table = struct.getTable(tableName);
