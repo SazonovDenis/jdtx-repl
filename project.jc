@@ -8,7 +8,7 @@ load("../jdtx-state/project.jc")
 //
 project.name = "jdtx-repl"
 project.package_root = "jdtx.repl"
-project.version="884"
+project.version="887"
 
 //
 include "wax-root-project"
