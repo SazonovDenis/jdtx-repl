@@ -15,9 +15,9 @@ class Jdx_Ext_Test extends JcTestCase {
     Jdx_Ext extWs3
 
     String cfg_json_ws = "test/etalon/ws.json"
-    String mailUrl = "http://localhost/lombard.systems/repl";
-    String mailGuid = "b5781df573ca6ee6.x";
-    String mailPass = "111";
+    String mailUrl = "http://localhost/lombard.systems/repl"
+    String mailGuid = "b5781df573ca6ee6.x"
+    String mailPass = "111"
 
 
     @Override
@@ -92,49 +92,49 @@ class Jdx_Ext_Test extends JcTestCase {
     void repl_mail_check_create_guid() {
         //String mailUrl = "http://localhost/lombard.systems/repl1";
 
-        Random rnd = new Random();
-        rnd.setSeed(new DateTime().getMillis());
-        long wsIdRandom = 100 + rnd.nextInt(1000);
-        long guidRandom = 100 + rnd.nextInt(1000);
+        Random rnd = new Random()
+        rnd.setSeed(new DateTime().getMillis())
+        long wsIdRandom = 100 + rnd.nextInt(1000)
+        long guidRandom = 100 + rnd.nextInt(1000)
 
         // Конфиг для мейлера
         JSONObject cfgMailer = new JSONObject()
         String guid = "test_guid_" + guidRandom
-        cfgMailer.put("guid", guid);
-        cfgMailer.put("url", mailUrl);
-        cfgMailer.put("localDirTmp", "temp/mailer");
+        cfgMailer.put("guid", guid)
+        cfgMailer.put("url", mailUrl)
+        cfgMailer.put("localDirTmp", "temp/mailer")
 
         // Мейлер
-        MailerHttp mailer = new MailerHttp();
-        mailer.init(cfgMailer);
+        MailerHttp mailer = new MailerHttp()
+        mailer.init(cfgMailer)
 
         //
         String pass = mailPass
         mailer.createGuid(guid, pass)
 
         //
-        String guidWs = guid + "/test_ws_" + wsIdRandom;
-        cfgMailer.put("guid", guidWs);
-        mailer.init(cfgMailer);
+        String guidWs = guid + "/test_ws_" + wsIdRandom
+        cfgMailer.put("guid", guidWs)
+        mailer.init(cfgMailer)
 
         //
-        String box = "test_box";
-        mailer.createMailBox(box);
+        String box = "test_box"
+        mailer.createMailBox(box)
     }
 
     @Test
     void repl_mail_login() {
-        String mailUrl = "http://localhost/lombard.systems/repl";
+        String mailUrl = "http://localhost/lombard.systems/repl"
 
         // Конфиг для мейлера
         JSONObject cfgMailer = new JSONObject()
-        cfgMailer.put("guid", "-");
-        cfgMailer.put("url", mailUrl);
-        cfgMailer.put("localDirTmp", "temp/mailer");
+        cfgMailer.put("guid", "-")
+        cfgMailer.put("url", mailUrl)
+        cfgMailer.put("localDirTmp", "temp/mailer")
 
         // Мейлер
-        MailerHttp mailer = new MailerHttp();
-        mailer.init(cfgMailer);
+        MailerHttp mailer = new MailerHttp()
+        mailer.init(cfgMailer)
 
         //
         String token = mailer.login("111")
