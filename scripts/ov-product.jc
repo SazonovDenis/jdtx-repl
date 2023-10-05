@@ -69,7 +69,10 @@ rec_remove_cascade = cm("Удалить запись каскадно",
 
 //
 repl_create = cm("Инициализация базы как рабочей станции",
-        "ws": [value: 0, help: "Код этой рабочей станции"],
+        "guid": [help: "Идентификатор репликационной сети"],
+        "ws": [help: "Код этой рабочей станции"],
+        "mail": [help: "Почтовый сервер"],
+        "name": [value: "", help: "Код этой рабочей станции"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_create(args)
@@ -184,7 +187,7 @@ repl_snapshot_request = cm("Запрашивает shapshot таблиц с ра
 
 //
 repl_snapshot_send = cm("Отправляет shapshot таблиц (с рабочей станции или с сервера)",
-        "ws": [value: null, help: "Рабочая станция - получатель snapshot (указывается только на сервере)"],
+        "ws": [value: null, help: "Рабочая станция - получатель snapshot (указывается только на сервере, если не указана - то всем активным)."],
         "tables": [value: null, help: "Имена таблиц, через запятую"],
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
@@ -299,6 +302,15 @@ repl_replica_use = cm("Применить реплику из файла",
 ) {
     def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
     ext.repl_replica_use(args)
+}
+
+//
+repl_replica_recreate = cm("Пересоздать реплику заново",
+        "no": [value: null, help: "Номер реплики"],
+        "file": [value: null, help: "Файл, куда запишется реплика"],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_replica_recreate(args)
 }
 
 //

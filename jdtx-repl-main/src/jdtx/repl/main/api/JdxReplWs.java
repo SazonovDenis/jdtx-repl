@@ -417,10 +417,26 @@ public class JdxReplWs {
      * Пересоздает реплику из очереди queOut, заменяет существующую на вновь созданную.
      *
      * @param no Номер реплики в очереди queOut
+     */
+    public void recreateQueOutReplica(long no) throws Exception {
+        log.info("recreateQueOutReplica, no: " + no);
+
+        //
+        IReplica replicaRecreated = recreateReplica(no);
+
+        //
+        queOut.put(replicaRecreated, no);
+    }
+
+
+    /**
+     * Пересоздает реплику из очереди queOut.
+     *
+     * @param no Номер реплики в очереди queOut
      * @return Пересозданная реплика
      */
-    public IReplica recreateQueOutReplica(long no) throws Exception {
-        log.info("recreateQueOutReplica, no: " + no);
+    public IReplica recreateReplica(long no) throws Exception {
+        log.info("recreateReplica, no: " + no);
 
         // Смотрим старую реплику
         IReplica replicaOriginal = queOut.get(no);
@@ -430,14 +446,13 @@ public class JdxReplWs {
         if (replicaInfo.getReplicaType() != JdxReplicaType.IDE) {
             throw new XError("Реплику этого типа невозможно пересоздать, no: " + no + ", replica.type: " + replicaInfo.getReplicaType());
         }
+
+        //
         long age = replicaInfo.getAge();
 
         // Формируем реплику заново
         UtAuditSelector auditSelector = new UtAuditSelector(db, struct);
         IReplica replicaRecreated = auditSelector.createReplicaFromAudit(wsId, publicationOut, age);
-
-        //
-        queOut.put(replicaRecreated, no);
 
         //
         return replicaRecreated;
