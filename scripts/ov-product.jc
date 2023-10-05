@@ -305,6 +305,15 @@ repl_replica_use = cm("Применить реплику из файла",
 }
 
 //
+repl_replica_recreate = cm("Пересоздать реплику заново",
+        "no": [value: null, help: "Номер реплики"],
+        "file": [value: null, help: "Файл, куда запишется реплика"],
+) {
+    def ext = createExt("jdtx.repl.main.ext.Jdx_Ext")
+    ext.repl_replica_recreate(args)
+}
+
+//
 repl_allow_repair = cm("Разрешить рабочей станции станци выполнить процедуру ремонта",
         "ws": [value: null, help: "Рабочая станция"],
 ) {

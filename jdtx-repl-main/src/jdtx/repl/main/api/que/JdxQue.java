@@ -114,7 +114,7 @@ public abstract class JdxQue extends JdxStorageFile implements IJdxQue {
         }
     }
 
-    private void infoReplica(IReplica replica) throws Exception {
+    public static void infoReplica(IReplica replica) throws Exception {
         File replicaFile = replica.getData();
         log.info("   age: " + replica.getInfo().getAge());
         log.info("    no: " + replica.getInfo().getNo());

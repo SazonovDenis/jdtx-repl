@@ -269,7 +269,7 @@ public class UtRepl_Test extends JdxReplWsSrv_ChangeDbStruct_Test {
         FileUtils.copyFile(replica0.getData(), newReplicaFile1);
 
         // Чиним файл реплики
-        IReplica replica1 = ws2.recreateQueOutReplica(no);
+        IReplica replica1 = ws2.recreateReplica(no);
         //
         System.out.println("Recreated replica file: " + replica0.getData().getAbsolutePath());
         System.out.println("Recreated file size: " + replica0.getData().length());

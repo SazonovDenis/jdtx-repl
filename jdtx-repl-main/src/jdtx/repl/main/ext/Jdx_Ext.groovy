@@ -21,6 +21,7 @@ import jdtx.repl.main.api.struct.*
 import jdtx.repl.main.api.util.*
 import jdtx.repl.main.gen.*
 import jdtx.repl.main.service.*
+import org.apache.commons.io.*
 import org.apache.log4j.*
 import org.json.simple.*
 
@@ -638,6 +639,56 @@ class Jdx_Ext extends ProjectExt {
         }
     }
 
+    void repl_replica_recreate(IVariantMap args) {
+        String replicaFileName = args.getValueString("file")
+        //
+        long no = args.getValueLong("no")
+        if (no == 0L) {
+            throw new XError("Не указан [no] - номер реплики")
+        }
+
+        // БД
+        Db db = app.service(ModelService.class).model.getDb()
+        db.connect()
+
+        //
+        try {
+            // Рабочая станция
+            JdxReplWs ws = new JdxReplWs(db)
+            ws.init()
+
+            // Выполнение команды
+            try {
+                if (replicaFileName == null || replicaFileName.length() == 0) {
+                    // Чиним файл реплики
+                    IReplica replica = ws.recreateReplica(no)
+
+                    //
+                    JdxQue.infoReplica(replica)
+
+                    // Копируем куда просили
+                    File fileDest = new File(replicaFileName)
+                    FileUtils.copyFile(replica.getData(), fileDest)
+                    System.out.println("Replica file copied: " + fileDest.getCanonicalPath())
+                } else {
+                    // Чиним файл в очереди
+                    IReplica replica = ws.recreateQueOutReplica(no)
+
+                    //
+                    JdxQue.infoReplica(replica)
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace()
+                throw e
+            }
+
+        } finally {
+            restoreServiceState(serviceState, db, args)
+            db.disconnect()
+        }
+    }
+
     void repl_mail_ws(IVariantMap args) {
         String dirName = args.getValueString("dir")
         //long noFrom = args.getValueLong("from", 0)
@@ -664,13 +715,13 @@ class Jdx_Ext extends ProjectExt {
 
             //
             if (doReceive) {
-                System.out.println("Отправляем свои реплики");
+                System.out.println("Отправляем свои реплики")
                 ws.replicasSendDir(dirName)
             }
 
             //
             if (doSend) {
-                System.out.println("Забираем входящие реплики");
+                System.out.println("Забираем входящие реплики")
                 ws.replicasReceiveDir(dirName)
             }
 
@@ -712,13 +763,13 @@ class Jdx_Ext extends ProjectExt {
 
             //
             if (doReceive) {
-                System.out.println("Чтение входящих очередей");
+                System.out.println("Чтение входящих очередей")
                 srv.srvReplicasReceiveDir(dirName)
             }
 
             //
             if (doSend) {
-                System.out.println("Рассылка исходящих очередей");
+                System.out.println("Рассылка исходящих очередей")
                 srv.srvReplicasSendDir(dirName)
             }
         } finally {
