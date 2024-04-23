@@ -533,8 +533,6 @@ class Jdx_Ext extends ProjectExt {
         Db db = app.service(ModelService.class).model.getDb()
         db.connect()
 
-        // Останавливаем процесс и удаляем службу
-        ReplServiceState serviceState = saveServiceState(db, args)
         try {
             // Сервер
             JdxReplSrv srv = new JdxReplSrv(db)
@@ -550,7 +548,6 @@ class Jdx_Ext extends ProjectExt {
                 println("  ws: " + wsId + ", cleanupTask: " + cleanupTask)
             }
         } finally {
-            restoreServiceState(serviceState, db, args)
             db.disconnect()
         }
     }

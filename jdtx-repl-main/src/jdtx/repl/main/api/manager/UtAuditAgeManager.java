@@ -8,6 +8,7 @@ import jandcode.web.*;
 import jdtx.repl.main.api.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
+import org.apache.commons.logging.*;
 import org.joda.time.*;
 import org.json.simple.*;
 
@@ -21,6 +22,9 @@ public class UtAuditAgeManager {
 
     IJdxDbStruct struct;
     Db db;
+
+    //
+    protected static Log log = LogFactory.getLog("jdtx.UtAuditAgeManager");
 
 
     public UtAuditAgeManager(Db db, IJdxDbStruct struct) {
@@ -170,6 +174,25 @@ public class UtAuditAgeManager {
                 "table_ids", table_ids
         );
         db.execSql(sqlIns, params);
+    }
+
+    /**
+     * Удаляем все записи о состоянии аудита младше auditAge
+     *
+     * @param auditAge
+     */
+    public void clearAuditAge(long auditAge) throws Exception {
+        log.info("clearAuditAge, auditAge: " + auditAge);
+
+        // Нельзя удалять последнюю запись
+        DataStore st = db.loadSql("select AGE from " + UtJdx.SYS_TABLE_PREFIX + "AGE where age >= " + auditAge);
+        if (st.size() == 0) {
+            throw new XError("Нельзя удалять последнюю запись о состоянии аудита, auditAge: " + auditAge);
+        }
+
+        // Удаляем
+        String query = "delete from " + UtJdx.SYS_TABLE_PREFIX + "AGE where AGE < :auditAge";
+        db.execSql(query, UtCnv.toMap("auditAge", auditAge));
     }
 
 

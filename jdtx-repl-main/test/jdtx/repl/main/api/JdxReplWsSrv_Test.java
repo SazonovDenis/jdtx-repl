@@ -341,13 +341,13 @@ public class JdxReplWsSrv_Test extends ReplDatabaseStruct_Test {
         sync_http_1_2_3();
 
         //
-        do_DumpTables(db, db2, db3, struct, struct2, struct3);
+        test_DumpTables_1_2_3();
     }
 
     @Test
     public void test_AllHttp_DumpTables() throws Exception {
         test_AllHttp();
-        do_DumpTables(db, db2, db3, struct, struct2, struct3);
+        test_DumpTables_1_2_3();
     }
 
     @Test

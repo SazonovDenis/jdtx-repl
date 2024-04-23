@@ -188,7 +188,7 @@ public class JdxCleaner_Test extends ReplDatabaseStruct_Test {
 
 
         //
-        //test.test_DumpTables_1_2_3();
+        test.test_DumpTables_1_2_3();
     }
 
     @Test

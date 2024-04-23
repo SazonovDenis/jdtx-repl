@@ -161,39 +161,31 @@ public class UtAuditSelector {
     }
 
     /**
-     * Удалить аудит (очистить таблицы аудита) указанного диапазона возрастов
+     * Удалить аудит (очистить таблицы аудита) до указанного возраста.
      *
-     * @param ageFrom
-     * @param ageTo
+     * @param ageTo конечный возраст аудита. Аудит этого возраста и более ранний будет удален.
      */
-    public void clearAuditData(long ageFrom, long ageTo) throws Exception {
-        log.info("clearAuditData, ageFrom: " + ageFrom + ", ageTo: " + ageTo);
+    public void clearAuditData(long ageTo) throws Exception {
+        log.info("clearAuditData, ageTo: " + ageTo);
 
         db.startTran();
         try {
             UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
-            Map<String, Long> maxIdsFixed_From = new HashMap<>();
-            auditAgeManager.loadMaxIdsFixed(ageFrom, maxIdsFixed_From);
             Map<String, Long> maxIdsFixed_To = new HashMap<>();
             auditAgeManager.loadMaxIdsFixed(ageTo, maxIdsFixed_To);
 
             // удаляем журнал измений во всех таблицах
             for (IJdxTable table : struct.getTables()) {
-                // Записи в таблице аудита (интервал id), которые соответствуют возрасту аудита от ageFrom до ageTo
-                long fromId = maxIdsFixed_From.get(table.getName());
+                // Записи в таблице аудита для очередной table, которые соответствуют возрасту аудита до ageTo
                 long toId = maxIdsFixed_To.get(table.getName());
 
                 //
                 String auditTableName = dbNames.getShortName(table.getName(), UtJdx.AUDIT_TABLE_PREFIX);
-                if (fromId < toId) {
-                    log.info("clearAuditData, table: " + table.getName() + ", " + auditTableName + "." + UtJdx.AUDIT_FIELD_PREFIX + "id: [" + (fromId + 1) + ".." + toId + "], count: " + (toId - fromId));
-                } else {
-                    log.debug("clearAuditData, table: " + table.getName() + ", audit empty");
-                }
+                log.info("clearAuditData, table: " + table.getName() + ", " + auditTableName + "." + UtJdx.AUDIT_FIELD_PREFIX + "id <= " + toId);
 
-                // изменения с указанным возрастом
-                String query = "delete from " + auditTableName + " where " + UtJdx.AUDIT_FIELD_PREFIX + "id > :fromId and " + UtJdx.AUDIT_FIELD_PREFIX + "id <= :toId";
-                db.execSql(query, UtCnv.toMap("fromId", fromId, "toId", toId));
+                // Изменения до указанного возраста
+                String query = "delete from " + auditTableName + " where " + UtJdx.AUDIT_FIELD_PREFIX + "ID <= :toId";
+                db.execSql(query, UtCnv.toMap("toId", toId));
             }
 
             db.commit();

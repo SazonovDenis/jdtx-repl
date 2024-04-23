@@ -6,6 +6,7 @@ import jandcode.utils.*;
 import jdtx.repl.main.api.audit.*;
 import jdtx.repl.main.api.data_serializer.*;
 import jdtx.repl.main.api.mailer.*;
+import jdtx.repl.main.api.manager.*;
 import jdtx.repl.main.api.que.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
@@ -123,28 +124,27 @@ public class JdxCleaner {
 
         // По номеру реплики в очереди queOut, узнаем возраст age очищаемого аудита
         DataRecord rec = db.loadSql(sqlAgeByQueOutNo(), UtCnv.toMap("queOutNo", queOutNo)).getCurRec();
-        long ageFrom = rec.getValueLong("ageMin");
-        long ageTo = rec.getValueLong("ageMax");
+        long ageTo = rec.getValueLong("age");
 
         //
-        if (ageFrom == 0 || ageTo == 0) {
-            log.info("clearAudit, no audit found, age.from: " + ageFrom + ", age.to: " + ageTo);
+        if (ageTo == 0) {
+            log.info("clearAudit: no queOut rec found, queOutNo: " + queOutNo);
             return;
         }
 
-        //
+        // Очистим журналы аудита
         UtAuditSelector auditSelector = new UtAuditSelector(db, struct);
-        auditSelector.clearAuditData(ageFrom, ageTo);
+        auditSelector.clearAuditData(ageTo);
+
+        // Очистим журнал возрастов аудита
+        UtAuditAgeManager auditAgeManager = new UtAuditAgeManager(db, struct);
+        auditAgeManager.clearAuditAge(ageTo);
     }
 
     private String sqlAgeByQueOutNo() {
-        return "select \n" +
-                "  min(case when age > 0 then age else null end) ageMin,\n" +
-                "  max(case when age > 0 then age else null end) ageMax\n" +
-                "from\n" +
-                "   " + UtQue.getQueTableName(UtQue.QUE_OUT) + "\n" +
-                "where\n" +
-                "  id <= :queNoTo";
+        return "select age\n" +
+                "from " + UtQue.getQueTableName(UtQue.QUE_OUT) + "\n" +
+                "where id = :queOutNo";
     }
 
     private String sqlQueCommonAuthorsIds() {
