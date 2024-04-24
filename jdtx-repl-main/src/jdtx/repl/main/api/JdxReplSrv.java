@@ -1,6 +1,6 @@
 package jdtx.repl.main.api;
 
-import com.jdtx.state.StateItemStackNamed;
+import com.jdtx.state.*;
 import jandcode.dbm.data.*;
 import jandcode.dbm.db.*;
 import jandcode.utils.*;
@@ -18,7 +18,7 @@ import jdtx.repl.main.api.replica.*;
 import jdtx.repl.main.api.settings.*;
 import jdtx.repl.main.api.struct.*;
 import jdtx.repl.main.api.util.*;
-import jdtx.repl.main.log.JdtxStateContainer;
+import jdtx.repl.main.log.*;
 import jdtx.repl.main.task.*;
 import jdtx.repl.main.ut.*;
 import org.apache.commons.logging.*;
@@ -923,7 +923,6 @@ public class JdxReplSrv {
                     //
                     long queDoneNo = stateManager.getWsQueInNoReceived(wsId);
                     long mailMaxNo = mailerWs.getBoxState("from");
-
 
                     //
                     long total = mailMaxNo - queDoneNo;
