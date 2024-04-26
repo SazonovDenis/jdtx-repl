@@ -142,9 +142,14 @@ public class JdxCleaner {
     }
 
     private String sqlAgeByQueOutNo() {
-        return "select age\n" +
+        // Написано условие "<=", а не просто "=", т.к. бывает,
+        // что номеру queOutNo в очереди соответствует техническая реплика
+        // (например REPLICA_TYPE == JdxReplicaType.MUTE_DONE), где не указывается возраст,
+        // а не реплика с данными (REPLICA_TYPE == JdxReplicaType.IDE),
+        // где возраст AGE указан.
+        return "select max(age) age\n" +
                 "from " + UtQue.getQueTableName(UtQue.QUE_OUT) + "\n" +
-                "where id = :queOutNo";
+                "where id <= :queOutNo";
     }
 
     private String sqlQueCommonAuthorsIds() {
