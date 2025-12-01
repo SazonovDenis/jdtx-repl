@@ -636,7 +636,7 @@ public class MailerHttp implements IMailer {
             }
         } catch (Exception e) {
             log.error("parseJson.error: " + UtJdxErrors.collectExceptionText(e));
-            //log.error("parseJson.jsonStr: " + jsonStr);
+            log.debug("parseJson.jsonStr: " + jsonStr);
             throw e;
         }
 
@@ -870,6 +870,8 @@ public class MailerHttp implements IMailer {
         HttpGet httpGet = new HttpGet(getUrl(funcName, params));
         httpGet.setHeader(new BasicHeader("Pragma", "no-cache"));
         httpGet.setHeader(new BasicHeader("Cache-Control", "no-cache"));
+        log.debug(httpGet.getMethod() + " " + httpGet.getURI());
+        log.debug(httpGet.toString());
         return httpGet;
     }
 
@@ -877,6 +879,8 @@ public class MailerHttp implements IMailer {
         HttpPost httpPost = new HttpPost(getUrlPost(funcName));
         httpPost.setHeader(new BasicHeader("Pragma", "no-cache"));
         httpPost.setHeader(new BasicHeader("Cache-Control", "no-cache"));
+        log.debug(httpPost.getMethod() + " " + httpPost.getURI());
+        log.debug(httpPost.toString());
         return httpPost;
     }
 
